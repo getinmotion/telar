@@ -1,0 +1,59 @@
+
+/* Fallback CSS Grid Layout */
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+  .masonry-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry-grid {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  }
+}
+
+/* Enhanced animations */
+.masonry-item {
+  animation: fadeInUp 0.4s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.masonry-item:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animation for items */
+.masonry-item:nth-child(1) { animation-delay: 0ms; }
+.masonry-item:nth-child(2) { animation-delay: 80ms; }
+.masonry-item:nth-child(3) { animation-delay: 160ms; }
+.masonry-item:nth-child(4) { animation-delay: 240ms; }
+.masonry-item:nth-child(5) { animation-delay: 320ms; }
+.masonry-item:nth-child(6) { animation-delay: 400ms; }
+.masonry-item:nth-child(7) { animation-delay: 480ms; }
+.masonry-item:nth-child(8) { animation-delay: 560ms; }
