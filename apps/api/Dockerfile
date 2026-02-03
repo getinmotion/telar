@@ -34,6 +34,9 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# added to support postgres client for migrations 
+RUN apk add --no-cache bash postgresql-client 
+
 # Instalar bash para el script de inicio
 RUN apk add --no-cache bash
 
