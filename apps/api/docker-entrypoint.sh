@@ -15,7 +15,7 @@ until PGPASSWORD=$PASS_DB psql -h "$HOST_DB" -U "$USER_DB" -d "$NAME_DB" -c '\q'
   RETRY_COUNT=$((RETRY_COUNT + 1))
   
   if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-    echo "❌ PostgreSQL not available after $MAX_RETRIES attempts"
+    echo "❌ PostgreSQL not available after $MAX_RETRIES attempts (host=$HOST_DB, db=$NAME_DB)"
     exit 1
   fi
   
@@ -30,7 +30,7 @@ echo "✅ PostgreSQL is ready!"
 # ========================================
 echo "📦 Running database migrations..."
 
-if npm run migration:run; then
+if npm run migration:run:prod; then
   echo "✅ Migrations completed successfully!"
 else
   echo "⚠️  Migration failed, but continuing startup..."
