@@ -26,15 +26,15 @@ openai==1.10.0
 # ============================================================
 # Database & Vector Store
 # ============================================================
-supabase==2.3.0
-postgrest==0.13.2
+supabase==2.9.0
+# postgrest will be installed automatically by supabase
 psycopg2-binary==2.9.9
 
 # ============================================================
 # Utilities
 # ============================================================
 python-dotenv==1.0.0
-httpx==0.26.0
+httpx>=0.26.0,<0.28.0
 requests==2.31.0
 tavily-python==0.3.3
 

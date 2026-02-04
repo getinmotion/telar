@@ -1,0 +1,190 @@
+version: '3.8'
+
+# ========================================
+# GetInMotion Development Stack
+# Centralized Docker Compose Configuration
+# ========================================
+
+services:
+  # ========================================
+  # PostgreSQL Database
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: gim-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../apps/api/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - gim-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ========================================
+  # API Service (NestJS)
+  # ========================================
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    container_name: gim-api
+    environment:
+      HOST_DB: ${HOST_DB}
+      PORT_DB: ${PORT_DB}
+      USER_DB: ${USER_DB}
+      PASS_DB: ${PASS_DB}
+      NAME_DB: ${NAME_DB}
+      PASSWORD_SECRET: ${PASSWORD_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PORT: ${API_PORT}
+      NODE_ENV: ${NODE_ENV}
+      ENVIRONMENT_PROJECT: ${ENVIRONMENT_PROJECT}
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gim-network
+    # volumes:
+    #   - ../../apps/api/src:/app/src  # Uncomment for development hot-reload
+    #   - ../../apps/api/dist:/app/dist  # Uncomment for development hot-reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3040/', (r) => {process.exit(r.statusCode >= 200 && r.statusCode < 500 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Agents Service (Python/FastAPI)
+  # ========================================
+  agents:
+    build:
+      context: ../../apps
+      dockerfile: agents/Dockerfile
+    container_name: gim-agents
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      API_SECRET_KEY: ${API_SECRET_KEY}
+      PORT: ${AGENTS_PORT}
+      HOST: ${HOST}
+      LOG_LEVEL: ${LOG_LEVEL}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      MAX_RETRIES: ${MAX_RETRIES}
+      REQUEST_TIMEOUT: ${REQUEST_TIMEOUT}
+      RAG_TOP_K: ${RAG_TOP_K}
+      CHUNK_SIZE: ${CHUNK_SIZE}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP}
+      MAX_BATCH_SIZE: ${MAX_BATCH_SIZE}
+      MEMORY_RETRIEVAL_LIMIT: ${MEMORY_RETRIEVAL_LIMIT}
+      MEMORY_IMPORTANCE_THRESHOLD: ${MEMORY_IMPORTANCE_THRESHOLD}
+      PROFILE_UPDATE_INTERVAL: ${PROFILE_UPDATE_INTERVAL}
+      CONVERSATION_SUMMARY_INTERVAL: ${CONVERSATION_SUMMARY_INTERVAL}
+    ports:
+      - "${AGENTS_PORT}:${AGENTS_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gim-network
+    # volumes:
+    #   - ../../apps/agents:/app  # Uncomment for development hot-reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${AGENTS_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Artisans Web (Vite/React)
+  # ========================================
+  artisans-web:
+    build:
+      context: ../../apps/artisans-web
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_SEMANTIC_SEARCH_URL: ${VITE_SEMANTIC_SEARCH_URL}
+        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
+        VITE_GOOGLE_PLACES_API_KEY: ${VITE_GOOGLE_PLACES_API_KEY}
+    container_name: gim-artisans-web
+    ports:
+      - "${ARTISANS_WEB_PORT}:80"
+    depends_on:
+      - api
+      - agents
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ========================================
+  # Marketplace Web (Vite/React)
+  # ========================================
+  marketplace-web:
+    build:
+      context: ../../apps/marketplace-web
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${MARKETPLACE_VITE_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SEMANTIC_SEARCH_API_URL: ${MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL}
+        VITE_SEMANTIC_SEARCH_API_KEY: ${MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY}
+    container_name: gim-marketplace-web
+    ports:
+      - "${MARKETPLACE_WEB_PORT}:80"
+    depends_on:
+      - api
+      - agents
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  gim-network:
+    driver: bridge
+    name: gim-network
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+    name: gim-postgres-data
