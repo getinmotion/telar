@@ -13,8 +13,8 @@ RUN apt-get update && \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy requirements from agents folder
+COPY agents/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -44,11 +44,23 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 # Copy application code
-# Copy agents folder (our new structure)
+# Copy shared src folder (database, services, utils, etc.)
+COPY src/ ./src/
+
+# Copy entire agents folder preserving the 'agents' directory name
 COPY agents/ ./agents/
 
-# Copy src dependencies (database, services, etc.)
-COPY src/ ./src/
+# The structure in container will be:
+# /app/
+#   src/ (shared source)
+#   agents/ (main agents package)
+#     agents/ (nested - agent implementations)
+#     core/
+#     prompts/
+#     tools/
+#     api.py
+#     main.py
+#     etc.
 
 # Create non-root user for security
 RUN useradd -m -u 1000 agentuser && \
@@ -63,5 +75,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the agents service
+# Run the agents service  
+# main.py is at /app/agents/main.py after COPY agents/ ./agents/
 CMD ["uvicorn", "agents.main:app", "--host", "0.0.0.0", "--port", "8000"]
