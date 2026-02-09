@@ -42,7 +42,9 @@ RUN apk add --no-cache bash
 
 # Copiar solo dependencias de producción
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+
+#chancge added to run in local
+RUN npm ci && npm cache clean --force
 
 # Copiar código compilado desde build stage
 COPY --from=build /app/dist ./dist

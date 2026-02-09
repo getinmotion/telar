@@ -1,3 +1,4 @@
+// config/config.go
 package config
 
 import (
@@ -13,42 +14,64 @@ func getenv(key, defaultValue string) string {
 	return value
 }
 
-type FirestoreConfig struct {
-	ProjectID  string
-	Collection string
+// CobreConfig configuración específica para el proveedor Cobre
+type CobreConfig struct {
+	APIKey    string
+	APISecret string
+	BalanceID string
+	BaseURL   string
 }
 
-type CoreConfig struct {
-	FlarebitURL string
+// WompiConfig configuración para la pasarela Wompi
+type WompiConfig struct {
+	PublicKey    string
+	PrivateKey   string // Para transacciones desde el backend
+	IntegrityKey string // Para firmar la cadena (SHA256)
+	EventsSecret string // Para validar la firma de los webhooks entrantes
+	BaseURL      string
 }
 
+// Config estructura principal que agrupa todo
 type Config struct {
-	Firestore   FirestoreConfig
-	Core        CoreConfig
 	ServiceName string
 	Env         string
 	Port        string
 
-	DataBackend string // firestore, dynamodb, etc.
-
-	//SQL
+	// Base de datos
 	SQLDriver     string
-	SQLDataSource string
+	SQLDataSource string // DSN para conexión
+
+	// Proveedores de Pagos
+	Cobre CobreConfig
+	Wompi WompiConfig
 }
 
 func Load() *Config {
 	cfg := &Config{
-
 		ServiceName: getenv("SERVICE_NAME", "payment-svc"),
 		Env:         getenv("ENVIRONMENT", "development"),
 		Port:        getenv("PORT", "8080"),
 
-		DataBackend: getenv("DATA_BACKEND", "firestore"),
+		SQLDriver:     getenv("SQL_DRIVER", "pgx"), // Usamos pgx por defecto
+		SQLDataSource: getenv("SQL_DATA_SOURCE", "postgres://postgres:postgres@localhost:5432/payment_db?sslmode=disable"),
 
-		SQLDriver:     getenv("SQL_DRIVER", "postgres"),
-		SQLDataSource: getenv("SQL_DATA_SOURCE", "user=postgres password=postgres dbname=url_redirections sslmode=disable"),
+		Cobre: CobreConfig{
+			APIKey:    getenv("COBRE_API_KEY", ""),
+			APISecret: getenv("COBRE_API_SECRET", ""),
+			BalanceID: getenv("COBRE_BALANCE_ID", ""),
+			BaseURL:   getenv("COBRE_URL", "https://api.cobre.co"), // URL ejemplo
+		},
+
+		Wompi: WompiConfig{
+			PublicKey:    getenv("WOMPI_PUB_KEY", ""),
+			PrivateKey:   getenv("WOMPI_PRV_KEY", ""),
+			IntegrityKey: getenv("WOMPI_INTEGRITY", ""),
+			EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""),
+			BaseURL:      getenv("WOMPI_URL", "https://production.wompi.co/v1"),
+		},
 	}
 
-	log.Printf("Configuration loaded: %+v\n", cfg)
+	// No loguear secretos en producción, aquí solo imprimimos estructura básica
+	log.Printf("Configuration loaded for service: %s in env: %s\n", cfg.ServiceName, cfg.Env)
 	return cfg
 }
