@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/getinmotion/telar/apps/payment-svc/config"
-	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/domain"
+	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/ports"
 )
 
 type CobreGateway struct {
@@ -24,7 +24,7 @@ func NewCobreGateway(cfg config.CobreConfig) *CobreGateway {
 	}
 }
 
-// Estructuras internas para el JSON de Cobre
+// --- Estructuras internas de Cobre ---
 type cobreAuthReq struct {
 	UserID string `json:"user_id"`
 	Secret string `json:"secret"`
@@ -34,7 +34,7 @@ type cobreAuthResp struct {
 }
 type cobreCheckoutReq struct {
 	Alias          string   `json:"alias"`
-	Amount         int64    `json:"amount"`
+	Amount         int64    `json:"amount"` // Cobre usa centavos
 	ExternalID     string   `json:"external_id"`
 	DestinationID  string   `json:"destination_id"`
 	CheckoutRails  []string `json:"checkout_rails"`
@@ -47,25 +47,33 @@ type cobreCheckoutResp struct {
 	ID          string `json:"id"` // Cobre ID
 }
 
-func (g *CobreGateway) GeneratePaymentLink(ctx context.Context, order *domain.CheckoutOrder) (string, string, error) {
-	// 1. Autenticación (En prod, esto debería cachear el token)
+// --- IMPLEMENTACIÓN CORREGIDA DE LA INTERFAZ ---
+
+// GeneratePaymentLink ahora coincide con la interfaz ports.PaymentGateway
+func (g *CobreGateway) GeneratePaymentLink(ctx context.Context, amount float64, currency string, externalRef string) (*ports.GatewayResponse, error) {
+	// 1. Autenticación
 	token, err := g.authenticate(ctx)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	// 2. Preparar Payload (Lógica de fechas del script Deno)
-	validUntil := time.Now().Add(15 * time.Minute).Format(time.RFC3339) // ISO 8601
+	// 2. Preparar Payload
+	// Cobre pide fecha de expiración explícita
+	expiresAt := time.Now().Add(15 * time.Minute)
+	validUntil := expiresAt.Format(time.RFC3339)
+
+	// Convertir float a centavos
+	amountInCents := int64(amount * 100)
 
 	payload := cobreCheckoutReq{
-		Alias:          "Marketplace Telar - Pagos",
-		Amount:         order.AmountMinor,
-		ExternalID:     order.CartID,
+		Alias:          "Marketplace Payment",
+		Amount:         amountInCents,
+		ExternalID:     externalRef, // Aquí va el Intent ID (ej: pi_123)
 		DestinationID:  g.cfg.BalanceID,
 		CheckoutRails:  []string{"pse", "bancolombia", "nequi", "breb"},
-		CheckoutHeader: "Pago - Telar",
+		CheckoutHeader: "Pago Marketplace",
 		ValidUntil:     validUntil,
-		RedirectURL:    "https://www.telar.co", // Podría venir del config
+		// RedirectURL: "...", // Podrías pasarla si la interfaz la soportara
 	}
 
 	// 3. Request HTTP
@@ -76,23 +84,28 @@ func (g *CobreGateway) GeneratePaymentLink(ctx context.Context, order *domain.Ch
 
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return "", "", fmt.Errorf("error calling cobre: %w", err)
+		return nil, fmt.Errorf("error calling cobre: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return "", "", fmt.Errorf("cobre api returned status: %d", resp.StatusCode)
+		return nil, fmt.Errorf("cobre api returned status: %d", resp.StatusCode)
 	}
 
 	var result cobreCheckoutResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	return result.CheckoutURL, result.ID, nil
+	// 4. Retornar estructura unificada GatewayResponse
+	return &ports.GatewayResponse{
+		URL:        result.CheckoutURL,
+		ExternalID: result.ID,
+		ExpiresAt:  expiresAt,
+	}, nil
 }
 
-// Método privado para autenticación
+// authenticate se mantiene igual...
 func (g *CobreGateway) authenticate(ctx context.Context) (string, error) {
 	authBody := cobreAuthReq{UserID: g.cfg.APIKey, Secret: g.cfg.APISecret}
 	jsonBody, _ := json.Marshal(authBody)

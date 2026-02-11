@@ -11,30 +11,25 @@ type Module struct {
 	handler *adapters.HTTPHandler
 }
 
-// Provide es el único lugar que "conoce" el Container y la DB cruda.
 func (m *Module) Provide(c *bootstrap.Container) error {
+	// Repositorio
+	repo := adapters.NewPostgresRepository(c.PgPool) // Nota: Debes actualizar el repo con los métodos SaveIntent, SaveAttempt
 
-	// 1. Capa ADAPTER (Infraestructura)
-	// Inicializamos el repositorio de Postgres
-	repo := adapters.NewPostgresRepository(c.PgPool)
+	// Gateways
+	cobreGateway := adapters.NewCobreGateway(c.Config.Cobre)
+	wompiGateway := adapters.NewWompiGateway(c.Config.Wompi)
 
-	// Inicializamos el Gateway de Cobre con la config cargada
-	// Asegúrate de que tu config.go tenga el campo 'Cobre' lleno correctamente
-	gateway := adapters.NewCobreGateway(c.Config.Cobre)
+	// Service
+	service := usecases.NewCheckoutService(repo, wompiGateway, cobreGateway, c.Logger)
 
-	// 2. Capa DOMAIN/APPLICATION (Use Cases)
-	// Inyectamos Repositorio + Gateway + Logger
-	service := usecases.NewCheckoutService(repo, gateway, c.Logger)
-
-	// 3. Capa DELIVERY (HTTP)
+	// Handler
 	m.handler = adapters.NewHTTPHandler(service)
 
 	return nil
 }
 
 func (m *Module) RegisterHTTP(e *echo.Echo) {
-	// Registramos rutas usando el handler creado arriba
-	// Ruta final: POST /api/v1/checkout
-	g := e.Group("/api/v1/checkout")
-	g.POST("", m.handler.CreateCheckout)
+	// Endpoint unificado de pagos
+	g := e.Group("/api/v1/payments")
+	g.POST("/checkout", m.handler.CreateCheckout)
 }

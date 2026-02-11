@@ -1,5 +1,3 @@
-// internal/payment-checkout/adapters/http_handler.go
-
 package adapters
 
 import (
@@ -17,34 +15,42 @@ func NewHTTPHandler(service *usecases.CheckoutService) *HTTPHandler {
 	return &HTTPHandler{service: service}
 }
 
-// Request Body DTO
-type createCheckoutReq struct {
-	CartID string  `json:"cart_id"`
-	Price  float64 `json:"price"`
+// Request Body (Simula el Snapshot enviado por el Orchestrator)
+type payRequest struct {
+	CartID    string  `json:"cart_id"`
+	Amount    float64 `json:"amount"`   // Total calculado por Commerce
+	Currency  string  `json:"currency"` // "COP"
+	Provider  string  `json:"provider"` // "wompi"
+	ReturnURL string  `json:"return_url"`
 }
 
 func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
-	var req createCheckoutReq
-
-	// 1. Validar input
+	var req payRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid body"})
 	}
 
-	if req.CartID == "" || req.Price <= 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "cart_id and positive price are required"})
+	// Validaciones básicas
+	if req.CartID == "" || req.Amount <= 0 || req.Provider == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing required fields"})
+	}
+	if req.Currency == "" {
+		req.Currency = "COP"
 	}
 
-	// 2. Llamar al servicio (Use Case)
-	// Usamos el contexto del request para cancelar si el cliente se desconecta
-	ctx := c.Request().Context()
-	order, err := h.service.CreatePaymentLink(ctx, req.CartID, req.Price)
+	// Mapeo al input del caso de uso
+	input := usecases.CreateCheckoutInput{
+		CartID:    req.CartID,
+		Amount:    req.Amount,
+		Currency:  req.Currency,
+		Provider:  req.Provider,
+		ReturnURL: req.ReturnURL,
+	}
 
+	resp, err := h.service.ProcessCheckout(c.Request().Context(), input)
 	if err != nil {
-		// Aquí podrías diferenciar errores de dominio vs errores de servidor
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	// 3. Responder
-	return c.JSON(http.StatusOK, order)
+	return c.JSON(http.StatusOK, resp)
 }

@@ -22,14 +22,20 @@ type CobreConfig struct {
 	BaseURL   string
 }
 
-// WompiConfig configuración para la pasarela Wompi
 type WompiConfig struct {
-	PublicKey    string
-	PrivateKey   string // Para transacciones desde el backend
-	IntegrityKey string // Para firmar la cadena (SHA256)
-	EventsSecret string // Para validar la firma de los webhooks entrantes
-	BaseURL      string
+	BaseURL    string
+	PrivateKey string // "prv_..." para backend
+	PublicKey  string // "pub_..." (opcional si el front la necesita)
 }
+
+// WompiConfig configuración para la pasarela Wompi
+// type WompiConfig struct {
+// 	PublicKey    string
+// 	PrivateKey   string // Para transacciones desde el backend
+// 	IntegrityKey string // Para firmar la cadena (SHA256)
+// 	EventsSecret string // Para validar la firma de los webhooks entrantes
+// 	BaseURL      string
+// }
 
 // Config estructura principal que agrupa todo
 type Config struct {
@@ -63,12 +69,16 @@ func Load() *Config {
 		},
 
 		Wompi: WompiConfig{
-			PublicKey:    getenv("WOMPI_PUB_KEY", ""),
-			PrivateKey:   getenv("WOMPI_PRV_KEY", ""),
-			IntegrityKey: getenv("WOMPI_INTEGRITY", ""),
-			EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""),
-			BaseURL:      getenv("WOMPI_URL", "https://production.wompi.co/v1"),
+			BaseURL:    getenv("WOMPI_BASE_URL", "https://sandbox.wompi.co/v1"), // O sandbox
+			PrivateKey: getenv("WOMPI_PRIVATE_KEY", ""),
 		},
+		// Wompi: WompiConfig{
+		// 	PublicKey:    getenv("WOMPI_PUB_KEY", ""),
+		// 	PrivateKey:   getenv("WOMPI_PRV_KEY", ""),
+		// 	IntegrityKey: getenv("WOMPI_INTEGRITY", ""),
+		// 	EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""),
+		// 	BaseURL:      getenv("WOMPI_URL", "https://production.wompi.co/v1"),
+		// },
 	}
 
 	// No loguear secretos en producción, aquí solo imprimimos estructura básica
