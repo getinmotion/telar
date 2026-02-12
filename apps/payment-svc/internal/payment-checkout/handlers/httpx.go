@@ -1,4 +1,4 @@
-package adapters
+package handlers
 
 import (
 	"net/http"
@@ -15,16 +15,8 @@ func NewHTTPHandler(service *usecases.CheckoutService) *HTTPHandler {
 	return &HTTPHandler{service: service}
 }
 
-// DTO de entrada HTTP (Simplificado)
-type checkoutRequest struct {
-	CartID       string `json:"cart_id"`
-	ProviderCode string `json:"provider_code"` // "wompi"
-	ReturnURL    string `json:"return_url"`
-	BuyerUserID  string `json:"buyer_user_id"` // Opcional en el JSON, podemos poner default
-}
-
 func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
-	var req checkoutRequest
+	var req createCheckoutRequest
 
 	// 1. Bindear JSON
 	if err := c.Bind(&req); err != nil {
@@ -35,17 +27,16 @@ func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
 	if req.CartID == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "cart_id is required"})
 	}
+	// Defaults
 	if req.ProviderCode == "" {
-		req.ProviderCode = "wompi" // Default
+		req.ProviderCode = "wompi"
 	}
-
-	// 3. Manejo de Usuario (En prod vendría del JWT Token) TODO: Extraer BuyerUserID del JWT en lugar de pedirlo en el body
-	// Usamos el ID del SEED que te pasé si no envían nada, para que no falle la FK
+	// En prod esto viene del Token JWT, aquí hardcodeado por el Seed
 	if req.BuyerUserID == "" {
 		req.BuyerUserID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 	}
 
-	// 4. Mapear al Input del Caso de Uso
+	// 3. Mapear al Input del Caso de Uso
 	input := usecases.CreateCheckoutInput{
 		CartID:       req.CartID,
 		BuyerUserID:  req.BuyerUserID,
@@ -53,10 +44,9 @@ func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
 		ReturnURL:    req.ReturnURL,
 	}
 
-	// 5. Llamar al servicio
+	// 4. Llamar al servicio
 	resp, err := h.service.ProcessCheckout(c.Request().Context(), input)
 	if err != nil {
-		// Loguear error real internamente si es necesario
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

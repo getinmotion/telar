@@ -3,12 +3,13 @@ package paymentcheckout
 import (
 	"github.com/getinmotion/telar/apps/payment-svc/internal/bootstrap"
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/adapters"
+	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/handlers"
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/usecases"
 	"github.com/labstack/echo/v4"
 )
 
 type Module struct {
-	handler *adapters.HTTPHandler
+	handler *handlers.HTTPHandler
 }
 
 func (m *Module) Provide(c *bootstrap.Container) error {
@@ -26,7 +27,7 @@ func (m *Module) Provide(c *bootstrap.Container) error {
 	service := usecases.NewCheckoutService(repo, wompiGateway, c.Logger)
 
 	// 4. Handler
-	m.handler = adapters.NewHTTPHandler(service)
+	m.handler = handlers.NewHTTPHandler(service)
 
 	return nil
 }
