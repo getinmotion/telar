@@ -30,7 +30,7 @@ type wompiPaymentLinkReq struct {
 	Name            string `json:"name"`
 	Description     string `json:"description"`
 	SingleUse       bool   `json:"single_use"`
-	CollectShipping bool   `json:"collect_shipping"` // <--- CAMPO NUEVO OBLIGATORIO
+	CollectShipping bool   `json:"collect_shipping"`
 	Currency        string `json:"currency"`
 	AmountInCents   int64  `json:"amount_in_cents"`
 	ExpiresAt       string `json:"expires_at,omitempty"`
@@ -60,16 +60,15 @@ func (g *WompiGateway) GeneratePaymentLink(ctx context.Context, amount float64, 
 		Name:            "Pago Orden " + externalRef,
 		Description:     "Compra en Marketplace Telar",
 		SingleUse:       true,
-		CollectShipping: false, // <--- IMPORTANTISIMO: Enviar false explícitamente
+		CollectShipping: false,
 		Currency:        currency,
 		AmountInCents:   amountInCents,
 		ExpiresAt:       expiresIso,
 		Sku:             externalRef,
 	}
-	// RedirectURL: "https://tuapp.com/resultado", // Se puede pasar como param
-
+	//todo agregar redirect url
 	bodyBytes, _ := json.Marshal(payload)
-	//asda
+	//todo quitar estos debuggers
 	// ... dentro de GeneratePaymentLink ...
 
 	// --- DEBUG INICIO (BORRAR LUEGO) ---
@@ -77,7 +76,7 @@ func (g *WompiGateway) GeneratePaymentLink(ctx context.Context, amount float64, 
 	fmt.Println("Target URL:", g.cfg.BaseURL+"/payment_links")
 	fmt.Printf("Key Length: %d\n", len(g.cfg.PrivateKey))
 	if len(g.cfg.PrivateKey) > 10 {
-		fmt.Println("Key Preview:", g.cfg.PrivateKey[0:9]+"...") // Muestra el inicio (prv_test_...)
+		fmt.Println("Key Preview:", g.cfg.PrivateKey[0:9]+"...")
 	} else {
 		fmt.Println("Key: [VACIA O INVALIDA]")
 	}

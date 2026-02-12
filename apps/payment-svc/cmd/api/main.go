@@ -11,11 +11,11 @@ import (
 	"github.com/getinmotion/telar/apps/payment-svc/infra"
 	"github.com/getinmotion/telar/apps/payment-svc/internal/bootstrap"
 	paymentcheckout "github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout"
-	"github.com/joho/godotenv" // <--- IMPORTANTE: Importar esto
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// 0. Cargar variables del archivo .env (Si existe)
+	// 0. Cargar variables del archivo .env
 	// Esto inyecta las variables en el entorno del proceso
 	if err := godotenv.Load(); err != nil {
 		slog.Warn("No .env file found, relying on system environment variables")

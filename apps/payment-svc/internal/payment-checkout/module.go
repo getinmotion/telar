@@ -12,24 +12,26 @@ type Module struct {
 }
 
 func (m *Module) Provide(c *bootstrap.Container) error {
-	// Repositorio
-	repo := adapters.NewPostgresRepository(c.PgPool) // Nota: Debes actualizar el repo con los métodos SaveIntent, SaveAttempt
+	// 1. Repo
+	repo := adapters.NewPostgresRepository(c.PgPool)
 
-	// Gateways
-	cobreGateway := adapters.NewCobreGateway(c.Config.Cobre)
+	// 2. Gateways
+	// Cobre lo instanciamos pero NO lo usamos por ahora en el servicio v1
+	// _ = adapters.NewCobreGateway(c.Config.Cobre)
+
 	wompiGateway := adapters.NewWompiGateway(c.Config.Wompi)
 
-	// Service
-	service := usecases.NewCheckoutService(repo, wompiGateway, cobreGateway, c.Logger)
+	// 3. Service
+	// CORRECCIÓN: Quitamos cobreGateway de los argumentos para coincidir con la definición
+	service := usecases.NewCheckoutService(repo, wompiGateway, c.Logger)
 
-	// Handler
+	// 4. Handler
 	m.handler = adapters.NewHTTPHandler(service)
 
 	return nil
 }
 
 func (m *Module) RegisterHTTP(e *echo.Echo) {
-	// Endpoint unificado de pagos
 	g := e.Group("/api/v1/payments")
 	g.POST("/checkout", m.handler.CreateCheckout)
 }

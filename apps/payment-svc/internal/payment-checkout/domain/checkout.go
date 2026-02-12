@@ -2,58 +2,104 @@ package domain
 
 import "time"
 
-// Checkout: Representa la orden de pago (Tabla payments.checkouts)
+// ==========================================
+// 1. CONTEXTO DE ENTRADA (Lectura del Carrito)
+// ==========================================
+
+// CartContext: Representa toda la info que necesitamos del carrito para cotizar
+type CartContext struct {
+	ID           string
+	BuyerUserID  string
+	Currency     string
+	Status       string
+	Items        []CartItem
+	ShippingInfo *CartShippingInfo
+}
+
+type CartItem struct {
+	ID             string
+	ProductID      string
+	SellerShopID   string
+	Quantity       int
+	UnitPriceMinor int64
+}
+
+type CartShippingInfo struct {
+	FullName          string
+	Email             string
+	Phone             string
+	Address           string
+	City              string
+	State             string
+	PostalCode        string
+	ShippingMethod    string
+	ShippingCostMinor int64
+}
+
+// ==========================================
+// 2. CONTEXTO DE SALIDA (Checkout Generado)
+// ==========================================
+
+// Checkout: Representa la orden de pago final
 type Checkout struct {
-	ID           string                 `json:"id"`
-	CartID       string                 `json:"cart_id"`
-	Amount       float64                `json:"amount"`       // Decimal (para lógica de negocio)
-	AmountMinor  int64                  `json:"amount_minor"` // Centavos (NECESARIO para Repo y Wompi)
-	Currency     string                 `json:"currency"`
-	Status       string                 `json:"status"`
-	CartSnapshot map[string]interface{} `json:"cart_snapshot"` // NECESARIO para Repo
-	ExpiresAt    time.Time              `json:"expires_at"`    // NECESARIO para Repo
-	CreatedAt    time.Time              `json:"created_at"`
-	UpdatedAt    time.Time              `json:"updated_at"`
+	ID                string           `json:"id"`
+	CartID            string           `json:"cart_id"`
+	BuyerUserID       string           `json:"buyer_user_id"`
+	Context           string           `json:"context"` // 'marketplace'
+	ContextShopID     *string          `json:"context_shop_id,omitempty"`
+	Currency          string           `json:"currency"`
+	Status            string           `json:"status"`
+	SubtotalMinor     int64            `json:"subtotal_minor"`
+	ChargesTotalMinor int64            `json:"charges_total_minor"`
+	TotalMinor        int64            `json:"total_minor"`
+	IdempotencyKey    string           `json:"idempotency_key"`
+	Charges           []CheckoutCharge `json:"charges"`
+	CreatedAt         time.Time        `json:"created_at"`
 }
 
-// PaymentIntent: La intención de pagar con un proveedor (Tabla payments.payment_intents)
+type CheckoutCharge struct {
+	ChargeTypeID string `json:"charge_type_id"`
+	TypeCode     string `json:"type_code"` // SHIPPING, VAT
+	Scope        string `json:"scope"`     // checkout, order
+	AmountMinor  int64  `json:"amount_minor"`
+	Currency     string `json:"currency"`
+}
+
+// ==========================================
+// 3. INTENCIONES DE PAGO Y RESPUESTAS
+// ==========================================
+
 type PaymentIntent struct {
-	ID             string    `json:"id"`
-	CheckoutID     string    `json:"checkout_id"`
-	Provider       string    `json:"provider"`
-	ExternalID     string    `json:"external_id"`    // ID externo (ej: ID de transacción Wompi)
-	IdempotencyKey string    `json:"idempotency_key"`
-	Status         string    `json:"status"`
-	AmountMinor    int64     `json:"amount_minor"` // NECESARIO para Repo
-	Currency       string    `json:"currency"`     // NECESARIO para Repo
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID           string    `json:"id"`
+	CheckoutID   string    `json:"checkout_id"`
+	ProviderCode string    `json:"provider_code"`
+	ProviderID   string    `json:"provider_id"`
+	Currency     string    `json:"currency"`
+	AmountMinor  int64     `json:"amount_minor"`
+	Status       string    `json:"status"`
+	ExternalID   string    `json:"external_id"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
-// PaymentAttempt: El intento técnico HTTP (Tabla payments.payment_attempts)
 type PaymentAttempt struct {
 	ID              string      `json:"id"`
-	PaymentIntentID string      `json:"payment_intent_id"` // Nombre exacto usado en tu repo
+	PaymentIntentID string      `json:"payment_intent_id"`
 	Status          string      `json:"status"`
-	RequestPayload  interface{} `json:"request_payload"`  // NECESARIO para Repo (se guarda como JSONB)
-	ResponsePayload interface{} `json:"response_payload"` // NECESARIO para Repo (se guarda como JSONB)
-	ErrorMessage    string      `json:"error_message"`    // NECESARIO para Repo
+	RequestPayload  interface{} `json:"request_payload"`
+	ResponsePayload interface{} `json:"response_payload"`
+	ErrorMessage    string      `json:"error_message"`
 	CreatedAt       time.Time   `json:"created_at"`
 
-	// Campos auxiliares para devolver la respuesta (no necesariamente en la tabla attempts)
-	CheckoutURL   string    `json:"checkout_url,omitempty"`
-	AttemptNumber int       `json:"attempt_no,omitempty"`
-	ExpiresAt     time.Time `json:"expires_at,omitempty"`
-	ExternalID    string    `json:"external_id,omitempty"` // A veces útil tenerlo aquí también
+	// Campos auxiliares para respuesta
+	CheckoutURL   string `json:"checkout_url,omitempty"`
+	AttemptNumber int    `json:"attempt_no,omitempty"`
 }
 
-// CheckoutResponse: Estructura de respuesta para el Frontend/Orchestrator
 type CheckoutResponse struct {
-	CheckoutID       string    `json:"checkout_id"`
-	PaymentIntentID  string    `json:"payment_intent_id"`
-	PaymentAttemptID string    `json:"payment_attempt_id"`
-	AttemptNumber    int       `json:"attempt_no"`
-	CheckoutURL      string    `json:"checkout_url"`
-	Status           string    `json:"status"`
-	ExpiresAt        time.Time `json:"expires_at"`
+	CheckoutID      string  `json:"checkout_id"`
+	PaymentIntentID string  `json:"payment_intent_id"`
+	CheckoutURL     string  `json:"checkout_url"`
+	Status          string  `json:"status"`
+	TotalAmount     float64 `json:"total_amount"` // Para mostrar al usuario
+	Currency        string  `json:"currency"`
 }

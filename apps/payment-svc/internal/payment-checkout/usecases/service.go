@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -13,124 +12,88 @@ import (
 )
 
 type CheckoutService struct {
-	repo         ports.CheckoutRepository
-	wompiGateway ports.PaymentGateway
-	cobreGateway ports.PaymentGateway // Mantienes Cobre si lo necesitas
-	logger       *slog.Logger
+	repo          ports.CheckoutRepository
+	pricingEngine *PricingEngine
+	wompiGateway  ports.PaymentGateway
+	logger        *slog.Logger
 }
 
-func NewCheckoutService(
-	repo ports.CheckoutRepository,
-	wompi ports.PaymentGateway,
-	cobre ports.PaymentGateway,
-	logger *slog.Logger,
-) *CheckoutService {
+func NewCheckoutService(repo ports.CheckoutRepository, wompi ports.PaymentGateway, logger *slog.Logger) *CheckoutService {
 	return &CheckoutService{
-		repo:         repo,
-		wompiGateway: wompi,
-		cobreGateway: cobre,
-		logger:       logger,
+		repo:          repo,
+		pricingEngine: NewPricingEngine(repo), // Inyectamos repo al engine
+		wompiGateway:  wompi,
+		logger:        logger,
 	}
 }
 
-// Input DTO: El "Snapshot" que viene del Backend externo
 type CreateCheckoutInput struct {
-	CartID    string
-	Amount    float64
-	Currency  string
-	Provider  string // "wompi" o "cobre"
-	ReturnURL string
+	CartID       string `json:"cart_id"`
+	BuyerUserID  string `json:"buyer_user_id"`
+	ProviderCode string `json:"provider_code"`
+	ReturnURL    string `json:"return_url"`
 }
 
 func (s *CheckoutService) ProcessCheckout(ctx context.Context, input CreateCheckoutInput) (*domain.CheckoutResponse, error) {
-	s.logger.Info("Processing checkout", "cart_id", input.CartID, "provider", input.Provider)
+	s.logger.Info("Starting checkout", "cart_id", input.CartID)
 
-	amountMinor := int64(input.Amount * 100)
-
-	// 1. Crear el Checkout
-	checkout := &domain.Checkout{
-		ID:          uuid.New().String(),
-		CartID:      input.CartID,
-		Amount:      input.Amount,
-		AmountMinor: amountMinor, // <--- AHORA REQUERIDO
-		Currency:    input.Currency,
-		Status:      "awaiting_payment",
-		CartSnapshot: map[string]interface{}{ // <--- AHORA REQUERIDO (aunque sea vacío por ahora)
-			"original_price": input.Amount,
-			"items":          "TODO: Fetch details",
-		},
-		ExpiresAt: time.Now().Add(1 * time.Hour), // <--- AHORA REQUERIDO
-		CreatedAt: time.Now(),
-	}
-
-	// 2. Crear el Intent
-	intent := &domain.PaymentIntent{
-		ID:             uuid.New().String(),
-		CheckoutID:     checkout.ID,
-		Provider:       input.Provider,
-		IdempotencyKey: fmt.Sprintf("ik_%s_%s", input.CartID, input.Provider),
-		Status:         "processing",
-		AmountMinor:    amountMinor,    // <--- AHORA REQUERIDO
-		Currency:       input.Currency, // <--- AHORA REQUERIDO
-		CreatedAt:      time.Now(),
-	}
-
-	// 3. Seleccionar Gateway
-	var gateway ports.PaymentGateway
-	switch input.Provider {
-	case "wompi":
-		gateway = s.wompiGateway
-	case "cobre":
-		gateway = s.cobreGateway // Asumiendo que adaptaste Cobre a la nueva interfaz
-	default:
-		return nil, errors.New("unsupported provider")
-	}
-
-	// 4. Llamar al Gateway (Crear Attempt)
-	// Usamos intent.ID como referencia externa para trazabilidad
-	gwResp, err := gateway.GeneratePaymentLink(ctx, checkout.Amount, checkout.Currency, intent.ID)
+	// 1. MOTOR DE PRECIOS (Lee DB y Calcula)
+	checkoutData, err := s.pricingEngine.CalculateTotalsOrchestrator(ctx, input.CartID)
 	if err != nil {
-		s.logger.Error("Gateway failed", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("pricing engine: %w", err)
 	}
 
-	// 5. Crear el Attempt (Registro del intento #1)
-	attempt := &domain.PaymentAttempt{
-		ID:              uuid.New().String(),
-		PaymentIntentID: intent.ID, // <--- CORREGIDO (antes era IntentID)
-		ExternalID:      gwResp.ExternalID,
-		CheckoutURL:     gwResp.URL,
-		AttemptNumber:   1,
-		ExpiresAt:       gwResp.ExpiresAt,
-		Status:          "pending",
+	// 2. Completar Datos del Checkout
+	checkoutData.ID = uuid.New().String()
+	checkoutData.Status = "created"
+	checkoutData.IdempotencyKey = "chk_" + input.CartID + "_" + uuid.New().String()
+	checkoutData.CreatedAt = time.Now()
 
-		// Agregamos estos campos para que no queden nil y el repo no falle
-		RequestPayload:  map[string]interface{}{"amount": input.Amount, "currency": input.Currency},
-		ResponsePayload: map[string]interface{}{"url": gwResp.URL},
-		ErrorMessage:    "",
-		CreatedAt:       time.Now(),
+	// 3. PERSISTIR CHECKOUT + CARGOS (Transacción)
+	if err := s.repo.SaveCheckoutFull(ctx, checkoutData); err != nil {
+		return nil, fmt.Errorf("db save checkout: %w", err)
 	}
 
-	// 6. Persistencia (Idealmente en una transacción DB)
-	// Guardamos todo para tener trazabilidad completa
-	if err := s.repo.SaveCheckout(ctx, checkout); err != nil {
-		return nil, err
+	// 4. CREAR INTENT
+	intent := &domain.PaymentIntent{
+		ID:           uuid.New().String(),
+		CheckoutID:   checkoutData.ID,
+		ProviderCode: input.ProviderCode,
+		Currency:     checkoutData.Currency,
+		AmountMinor:  checkoutData.TotalMinor,
+		Status:       "requires_action",
 	}
+
+	// Buscar Provider ID (wompi)
+	providerID, err := s.repo.GetProviderIDByCode(ctx, input.ProviderCode)
+	if err != nil {
+		return nil, fmt.Errorf("provider not found: %w", err)
+	}
+	intent.ProviderID = providerID
+
+	// 5. LLAMAR A WOMPI
+	amountFloat := float64(checkoutData.TotalMinor) / 100.0
+	// Usamos intent.ID como sku/referencia
+	gwResp, err := s.wompiGateway.GeneratePaymentLink(ctx, amountFloat, checkoutData.Currency, intent.ID)
+	if err != nil {
+		// Aquí podrías guardar el intent como FAILED si quieres trazabilidad del error
+		return nil, fmt.Errorf("gateway error: %w", err)
+	}
+
+	// 6. ACTUALIZAR INTENT
+	intent.ExternalID = gwResp.ExternalID
+	intent.Status = "requires_action"
+
 	if err := s.repo.SaveIntent(ctx, intent); err != nil {
 		return nil, err
 	}
-	if err := s.repo.SaveAttempt(ctx, attempt); err != nil {
-		return nil, err
-	}
 
-	// 7. Retornar respuesta estructurada al Orchestrator
 	return &domain.CheckoutResponse{
-		CheckoutID:       checkout.ID,
-		PaymentIntentID:  intent.ID,
-		PaymentAttemptID: attempt.ID,
-		AttemptNumber:    attempt.AttemptNumber,
-		CheckoutURL:      attempt.CheckoutURL,
-		Status:           checkout.Status,
-		ExpiresAt:        attempt.ExpiresAt,
+		CheckoutID:      checkoutData.ID,
+		PaymentIntentID: intent.ID,
+		CheckoutURL:     gwResp.URL,
+		Status:          checkoutData.Status,
+		TotalAmount:     amountFloat,
+		Currency:        checkoutData.Currency,
 	}, nil
 }

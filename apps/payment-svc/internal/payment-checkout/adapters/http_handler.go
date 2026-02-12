@@ -15,40 +15,48 @@ func NewHTTPHandler(service *usecases.CheckoutService) *HTTPHandler {
 	return &HTTPHandler{service: service}
 }
 
-// Request Body (Simula el Snapshot enviado por el Orchestrator)
-type payRequest struct {
-	CartID    string  `json:"cart_id"`
-	Amount    float64 `json:"amount"`   // Total calculado por Commerce
-	Currency  string  `json:"currency"` // "COP"
-	Provider  string  `json:"provider"` // "wompi"
-	ReturnURL string  `json:"return_url"`
+// DTO de entrada HTTP (Simplificado)
+type checkoutRequest struct {
+	CartID       string `json:"cart_id"`
+	ProviderCode string `json:"provider_code"` // "wompi"
+	ReturnURL    string `json:"return_url"`
+	BuyerUserID  string `json:"buyer_user_id"` // Opcional en el JSON, podemos poner default
 }
 
 func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
-	var req payRequest
+	var req checkoutRequest
+
+	// 1. Bindear JSON
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid body"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	// Validaciones básicas
-	if req.CartID == "" || req.Amount <= 0 || req.Provider == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing required fields"})
+	// 2. Validaciones básicas
+	if req.CartID == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "cart_id is required"})
 	}
-	if req.Currency == "" {
-		req.Currency = "COP"
+	if req.ProviderCode == "" {
+		req.ProviderCode = "wompi" // Default
 	}
 
-	// Mapeo al input del caso de uso
+	// 3. Manejo de Usuario (En prod vendría del JWT Token) TODO: Extraer BuyerUserID del JWT en lugar de pedirlo en el body
+	// Usamos el ID del SEED que te pasé si no envían nada, para que no falle la FK
+	if req.BuyerUserID == "" {
+		req.BuyerUserID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+	}
+
+	// 4. Mapear al Input del Caso de Uso
 	input := usecases.CreateCheckoutInput{
-		CartID:    req.CartID,
-		Amount:    req.Amount,
-		Currency:  req.Currency,
-		Provider:  req.Provider,
-		ReturnURL: req.ReturnURL,
+		CartID:       req.CartID,
+		BuyerUserID:  req.BuyerUserID,
+		ProviderCode: req.ProviderCode,
+		ReturnURL:    req.ReturnURL,
 	}
 
+	// 5. Llamar al servicio
 	resp, err := h.service.ProcessCheckout(c.Request().Context(), input)
 	if err != nil {
+		// Loguear error real internamente si es necesario
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 

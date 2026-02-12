@@ -47,9 +47,6 @@ type cobreCheckoutResp struct {
 	ID          string `json:"id"` // Cobre ID
 }
 
-// --- IMPLEMENTACIÓN CORREGIDA DE LA INTERFAZ ---
-
-// GeneratePaymentLink ahora coincide con la interfaz ports.PaymentGateway
 func (g *CobreGateway) GeneratePaymentLink(ctx context.Context, amount float64, currency string, externalRef string) (*ports.GatewayResponse, error) {
 	// 1. Autenticación
 	token, err := g.authenticate(ctx)
@@ -73,7 +70,7 @@ func (g *CobreGateway) GeneratePaymentLink(ctx context.Context, amount float64, 
 		CheckoutRails:  []string{"pse", "bancolombia", "nequi", "breb"},
 		CheckoutHeader: "Pago Marketplace",
 		ValidUntil:     validUntil,
-		// RedirectURL: "...", // Podrías pasarla si la interfaz la soportara
+		// RedirectURL: "...",
 	}
 
 	// 3. Request HTTP
