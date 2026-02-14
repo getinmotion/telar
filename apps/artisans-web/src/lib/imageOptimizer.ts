@@ -73,27 +73,27 @@ const calculateDimensions = (
     // Landscape
     const newWidth = Math.min(width, maxWidth);
     const newHeight = Math.round(newWidth / aspectRatio);
-    
+
     if (newHeight > maxHeight) {
       return {
         width: Math.round(maxHeight * aspectRatio),
         height: maxHeight,
       };
     }
-    
+
     return { width: newWidth, height: newHeight };
   } else {
     // Portrait or square
     const newHeight = Math.min(height, maxHeight);
     const newWidth = Math.round(newHeight * aspectRatio);
-    
+
     if (newWidth > maxWidth) {
       return {
         width: maxWidth,
         height: Math.round(maxWidth / aspectRatio),
       };
     }
-    
+
     return { width: newWidth, height: newHeight };
   }
 };
@@ -110,7 +110,7 @@ const canvasToFile = (
   return new Promise((resolve, reject) => {
     const mimeType = format === 'webp' ? 'image/webp' : 'image/jpeg';
     const extension = format === 'webp' ? '.webp' : '.jpg';
-    
+
     // Remove original extension and add new one
     const baseName = fileName.replace(/\.[^/.]+$/, '');
     const newFileName = `${baseName}${extension}`;
@@ -121,7 +121,7 @@ const canvasToFile = (
           reject(new Error('Failed to create blob from canvas'));
           return;
         }
-        
+
         const file = new File([blob], newFileName, { type: mimeType });
         resolve(file);
       },
@@ -170,7 +170,7 @@ export async function optimizeImage(
 
     // Load image
     const img = await loadImage(file);
-    
+
     // Calculate new dimensions
     const { width, height } = calculateDimensions(
       img.naturalWidth,
@@ -183,7 +183,7 @@ export async function optimizeImage(
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Failed to get canvas context');
@@ -192,7 +192,7 @@ export async function optimizeImage(
     // Use high-quality image smoothing
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    
+
     // Draw image
     ctx.drawImage(img, 0, 0, width, height);
 
@@ -227,7 +227,7 @@ export async function optimizeImages(
   options: OptimizeOptions = {}
 ): Promise<File[]> {
   console.log(`[ImageOptimizer] Optimizing ${files.length} images...`);
-  
+
   const optimizedFiles = await Promise.all(
     files.map((file) => optimizeImage(file, options))
   );
@@ -236,10 +236,6 @@ export async function optimizeImages(
   const originalSize = files.reduce((sum, f) => sum + f.size, 0);
   const optimizedSize = optimizedFiles.reduce((sum, f) => sum + f.size, 0);
   const totalSavings = Math.round((1 - optimizedSize / originalSize) * 100);
-  
-  console.log(
-    `[ImageOptimizer] 🎉 Total: ${Math.round(originalSize / 1024)}KB → ${Math.round(optimizedSize / 1024)}KB (${totalSavings}% savings)`
-  );
 
   return optimizedFiles;
 }

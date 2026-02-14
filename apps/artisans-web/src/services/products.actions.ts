@@ -19,11 +19,11 @@ import {
  */
 export const getProductsByUserId = async (userId: string): Promise<Product[]> => {
   try {
-    const response = await telarApi.get<GetProductsByUserIdResponse>(
+    const response = await telarApi.get<Product[]>(
       `/telar/server/products/user/${userId}`
     );
 
-    return response.data.data;
+    return response.data;
   } catch (error: any) {
     console.error('[products.actions] Error fetching products by user ID:', error);
     throw error;

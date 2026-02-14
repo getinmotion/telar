@@ -32,8 +32,6 @@ export const getArtisanShopByUserId = async (
       return null;
     }
 
-    console.error('[ArtisanShops] Error al obtener tienda:', error);
-
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
       throw error.response.data as ArtisanShopErrorResponse;

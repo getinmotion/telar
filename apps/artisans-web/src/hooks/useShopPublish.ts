@@ -36,6 +36,8 @@ export const useShopPublish = (shopId?: string) => {
         .eq('shop_id', shopId)
         .in('moderation_status', ['approved', 'approved_with_edits']);
 
+      // const products
+
       if (productsError) throw productsError;
 
       const approvedProductsCount = products?.length || 0;
@@ -53,7 +55,7 @@ export const useShopPublish = (shopId?: string) => {
       }
 
       // Usar el nuevo campo bank_data_status si existe, sino fallback a id_contraparty
-      const bankDataStatus = shopData?.bank_data_status || 
+      const bankDataStatus = shopData?.bank_data_status ||
         (shopData?.id_contraparty ? 'complete' : 'not_set');
       const hasBankData = bankDataStatus === 'complete';
 
@@ -94,7 +96,7 @@ export const useShopPublish = (shopId?: string) => {
     try {
       // Verificar requisitos
       const requirements = await checkPublishRequirements();
-      
+
       if (!requirements.canPublish) {
         toast({
           title: "Requisitos incompletos",
