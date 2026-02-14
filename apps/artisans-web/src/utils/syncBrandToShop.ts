@@ -17,7 +17,6 @@ interface SyncResult {
  */
 export async function syncBrandToShop(userId: string, forceSync: boolean = false): Promise<SyncResult> {
   try {
-    console.log('[syncBrandToShop] Starting sync for user:', userId, 'forceSync:', forceSync);
 
     // 1. Obtener datos de marca desde user_master_context
     const contextData = await getUserMasterContextByUserId(userId);
@@ -32,9 +31,9 @@ export async function syncBrandToShop(userId: string, forceSync: boolean = false
     }
 
     // Buscar en ambos lugares (conversationInsights primero, luego businessContext por compatibilidad)
-    const brandEvaluation = (contextData?.conversationInsights as any)?.brand_evaluation || 
-                           (contextData?.businessContext as any)?.brand_evaluation;
-    
+    const brandEvaluation = (contextData?.conversationInsights as any)?.brand_evaluation ||
+      (contextData?.businessContext as any)?.brand_evaluation;
+
     if (!brandEvaluation || !brandEvaluation.has_logo || !brandEvaluation.has_colors) {
       console.log('[syncBrandToShop] No brand data found in context');
       return {
@@ -52,14 +51,14 @@ export async function syncBrandToShop(userId: string, forceSync: boolean = false
     // 3. Si no existe tienda, crearla primero
     if (!shopData) {
       console.log('[syncBrandToShop] No shop exists, creating one...');
-      
+
       // ✅ Obtener perfil desde NestJS backend
       const profileData = await getUserProfileByUserId(userId).catch(() => null);
 
       const shopName = profileData?.brandName || 'Mi Tienda Artesanal';
       const description = profileData?.businessDescription || 'Productos artesanales únicos';
       const slug = shopName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Date.now();
-      
+
       try {
         const newShop = await createArtisanShop({
           userId,
@@ -91,8 +90,8 @@ export async function syncBrandToShop(userId: string, forceSync: boolean = false
 
     // 4. Si existe la tienda, verificar si necesita sincronización
     const primaryColors = shopData.primaryColors as string[] | null;
-    const hasShopBrandData = shopData.logoUrl && shopData.brandClaim && 
-                             primaryColors && primaryColors.length > 0;
+    const hasShopBrandData = shopData.logoUrl && shopData.brandClaim &&
+      primaryColors && primaryColors.length > 0;
 
     if (hasShopBrandData && !forceSync) {
       console.log('[syncBrandToShop] Shop already has brand data and forceSync is false');
@@ -104,7 +103,7 @@ export async function syncBrandToShop(userId: string, forceSync: boolean = false
 
     // 5. Sincronizar datos de marca a la tienda
     console.log('[syncBrandToShop] Syncing brand data to shop:', shopData.id);
-    
+
     try {
       await updateArtisanShop(shopData.id, {
         logoUrl: brandEvaluation.logo_url,
