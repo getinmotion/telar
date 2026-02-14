@@ -29,6 +29,8 @@ export interface Product {
   category?: ProductCategory;
   description?: string;
   images?: string[];
+  techniques?: string[];
+  materials?: string[];
   stock?: number;
   createdAt?: string;
   updatedAt?: string;

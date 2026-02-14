@@ -44,9 +44,10 @@ export function useBrandSyncValidator(options: UseBrandSyncValidatorOptions = {}
     }
 
     // Configurar validación periódica
-    intervalRef.current = setInterval(() => {
-      runValidation();
-    }, intervalMinutes * 60 * 1000);
+
+    // intervalRef.current = setInterval(() => {
+    //   runValidation();
+    // }, intervalMinutes * 60 * 1000); // TODO: Revisar la periodicidad de la sincronización
 
     return () => {
       if (intervalRef.current) {

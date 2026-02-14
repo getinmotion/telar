@@ -8,6 +8,7 @@ import { useDataCache } from './DataCacheContext';
 import { getUserMasterContextByUserId } from '@/services/userMasterContext.actions';
 import { getArtisanShopByUserId, updateArtisanShop } from '@/services/artisanShops.actions';
 import { getTaskStepsByUserId, updateTaskStep as updateTaskStepService } from '@/services/taskSteps.actions';
+import { getProductsByUserId } from '@/services/products.actions';
 
 interface MasterAgentContextType {
   masterState: MasterAgentState;
@@ -196,14 +197,12 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
           if (shop) {
             // Count products for this shop
-            const { count, error: countError } = await supabase
-              .from('products')
-              .select('*', { count: 'exact', head: true })
-              .eq('shop_id', shop.id);
+            // const { count, error: countError } = await supabase
+            //   .from('products')
+            //   .select('*', { count: 'exact', head: true })
+            //   .eq('shop_id', shop.id);
 
-            if (countError) {
-              console.error('[MasterAgent] Error counting products:', countError);
-            }
+            const shopProductsCount = await getProductsByUserId(shop.id);
 
             setMasterState(prev => ({
               ...prev,
@@ -213,7 +212,7 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 shop_name: shop.shopName || null,
                 theme: null,
                 published: shop.active,
-                products_count: count || 0,
+                products_count: shopProductsCount.length || 0,
                 has_shop: true,
                 hero_config: (shop.heroConfig as { slides?: any[] }) || { slides: [] },
                 story: shop.story || null,
@@ -263,14 +262,13 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
 
           // Get products for the shop
-          const { data: products, error: productsError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('shop_id', shopId);
+          // const { data: products, error: productsError } = await supabase
+          //   .from('products')
+          //   .select('*')
+          //   .eq('shop_id', shopId);
 
-          if (productsError) {
-            console.error('[MasterAgent] Error loading products:', productsError);
-          }
+          const products = await getProductsByUserId(shopId);
+
 
           const productsArray = products || [];
 
@@ -325,8 +323,6 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({ c
             // ✅ Migrado a endpoint NestJS (GET /telar/server/task-steps/user/{user_id})
             // Obtener task steps con información de tareas incluida
             const taskSteps = await getTaskStepsByUserId(authUser.id);
-
-            console.log('taskSteps', taskSteps)
 
             // Reorganizar datos: agrupar steps por task_id
             const tasksMap = new Map<string, any>();
