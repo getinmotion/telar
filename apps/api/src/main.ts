@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './filters/http-exception-filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -11,6 +12,20 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('telar/server');
+
+  // Configurar sesión para Passport (requerido para OAuth)
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'your-secret-key',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+      },
+    }),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
