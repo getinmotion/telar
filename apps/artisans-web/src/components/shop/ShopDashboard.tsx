@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Store, 
-  Package, 
-  Edit3, 
-  Eye, 
+import {
+  Store,
+  Package,
+  Edit3,
+  Eye,
   Plus,
   ShoppingBag,
   Users,
@@ -45,20 +45,18 @@ import { useShopOrders } from '@/hooks/useShopOrders';
 export const ShopDashboard: React.FC = () => {
   const { shop, loading: shopLoading, initialCheckComplete, refreshShop, forceRefresh } = useArtisanShop();
   const { products, loading: productsLoading } = useProducts(shop?.id);
-  const { bankData, loading: bankLoading } = useBankData();
+  // const { bankData, loading: bankLoading } = useBankData();
   const { refineContent, isRefining: isDescriptionRefining } = useAIRefinement();
   const [isNameRefining, setIsNameRefining] = useState(false);
   const { stats: orderStats } = useShopOrders(shop?.id);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Force refresh on mount to get latest data (e.g., after batch AI refinement)
   useEffect(() => {
-    if (shop?.id) {
-      forceRefresh();
-    }
+    refreshShop();
   }, [shop?.id]);
-  
+
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editedDescription, setEditedDescription] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -74,7 +72,7 @@ export const ShopDashboard: React.FC = () => {
 
   const handleSaveDescription = async () => {
     if (!shop?.id) return;
-    
+
     setIsSaving(true);
     try {
       // Refinar descripción con IA
@@ -83,23 +81,23 @@ export const ShopDashboard: React.FC = () => {
         currentValue: editedDescription,
         userPrompt: 'Corrige errores ortográficos y mejora la claridad manteniendo la esencia'
       });
-      
+
       const finalDescription = refinedDescription || editedDescription;
-      
+
       const { error } = await supabase
         .from('artisan_shops')
         .update({ description: finalDescription })
         .eq('id', shop.id);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Descripción actualizada",
-        description: refinedDescription 
+        description: refinedDescription
           ? "Tu descripción ha sido refinada y guardada"
           : "Los cambios se han guardado correctamente",
       });
-      
+
       setEditedDescription(finalDescription);
       setIsEditingDescription(false);
       window.dispatchEvent(new Event('shop-updated'));
@@ -116,29 +114,29 @@ export const ShopDashboard: React.FC = () => {
   };
 
   const handleStartEditName = () => {
-    setEditedName(shop?.shop_name || '');
+    setEditedName(shop?.shopName || '');
     setIsEditingName(true);
   };
 
   const handleSaveName = async () => {
     if (!shop?.id || !editedName.trim()) return;
-    
+
     setIsSaving(true);
     try {
       const finalName = editedName.trim();
-      
+
       const { error } = await supabase
         .from('artisan_shops')
         .update({ shop_name: finalName })
         .eq('id', shop.id);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Nombre actualizado",
         description: "El nombre de tu tienda se ha guardado correctamente",
       });
-      
+
       setEditedName(finalName);
       setIsEditingName(false);
       window.dispatchEvent(new Event('shop-updated'));
@@ -156,7 +154,7 @@ export const ShopDashboard: React.FC = () => {
 
   const handleRefineNameWithAI = async () => {
     if (!shop?.id || !editedName.trim()) return;
-    
+
     setIsNameRefining(true);
     try {
       const refinedName = await refineContent({
@@ -164,7 +162,7 @@ export const ShopDashboard: React.FC = () => {
         currentValue: editedName.trim(),
         userPrompt: 'Corrige errores y usa capitalización correcta'
       });
-      
+
       if (refinedName && refinedName !== editedName.trim()) {
         setEditedName(refinedName);
         toast({
@@ -226,7 +224,7 @@ export const ShopDashboard: React.FC = () => {
                 Intenta reintentar primero. Si el problema persiste, recarga la página.
               </p>
               <div className="flex gap-3 justify-center">
-                <Button 
+                <Button
                   onClick={async () => {
                     setLoadingTimeout(false);
                     await refreshShop();
@@ -234,7 +232,7 @@ export const ShopDashboard: React.FC = () => {
                 >
                   Reintentar
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
                 >
@@ -269,17 +267,17 @@ export const ShopDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      <ShopHeader 
+      <ShopHeader
         title="MI TIENDA"
         subtitle="Gestiona tu tienda digital"
         showPublicShopButton={true}
-        publicShopSlug={shop.shop_slug}
-        shopPublishStatus={shop.publish_status}
+        publicShopSlug={shop.shopSlug}
+        shopPublishStatus={shop.publishStatus}
         showBackButton={false}
         showUploadButton={false}
         showDashboardButton={true}
       />
-      
+
       <div className="max-w-7xl mx-auto p-4 space-y-6">
         {/* Publish Status Banner - Compacto */}
         <ShopPublishStatusBanner shop={shop} />
@@ -296,10 +294,10 @@ export const ShopDashboard: React.FC = () => {
             <div className="flex items-center gap-3 md:hidden">
               {/* Shop Logo - smaller on mobile */}
               <div className="flex-shrink-0">
-                {shop.logo_url ? (
-                  <img 
-                    src={shop.logo_url} 
-                    alt={shop.shop_name}
+                {shop.logoUrl ? (
+                  <img
+                    src={shop.logoUrl}
+                    alt={shop.shopName}
                     className="w-14 h-14 rounded-full object-cover border-2 border-background shadow-sm"
                   />
                 ) : (
@@ -308,12 +306,12 @@ export const ShopDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Name + Badge + Edit inline */}
               <div className="flex-1 min-w-0">
                 {isEditingName ? (
                   <div className="flex items-center gap-1 flex-wrap">
-                    <input 
+                    <input
                       type="text"
                       value={editedName}
                       onChange={(e) => setEditedName(e.target.value)}
@@ -336,7 +334,7 @@ export const ShopDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-foreground truncate">{shop.shop_name}</h2>
+                    <h2 className="text-lg font-bold text-foreground truncate">{shop.shopName}</h2>
                     <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={handleStartEditName}>
                       <Edit3 className="w-3 h-3" />
                     </Button>
@@ -352,7 +350,7 @@ export const ShopDashboard: React.FC = () => {
             <div className="md:hidden">
               {isEditingDescription ? (
                 <div className="space-y-2">
-                  <Textarea 
+                  <Textarea
                     value={editedDescription}
                     onChange={(e) => setEditedDescription(e.target.value)}
                     className="min-h-[60px] w-full text-sm"
@@ -384,8 +382,8 @@ export const ShopDashboard: React.FC = () => {
                       {isDescriptionExpanded ? "Ver menos" : "Ver más"}
                     </button>
                   )}
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={handleStartEdit}
                     className="text-xs h-6 px-2"
@@ -401,10 +399,10 @@ export const ShopDashboard: React.FC = () => {
             <div className="hidden md:flex flex-row gap-6">
               {/* Shop Logo/Icon */}
               <div className="flex-shrink-0">
-                {shop.logo_url ? (
-                  <img 
-                    src={shop.logo_url} 
-                    alt={shop.shop_name}
+                {shop.logoUrl ? (
+                  <img
+                    src={shop.logoUrl}
+                    alt={shop.shopName}
                     className="w-20 h-20 rounded-full object-cover border-4 border-background shadow-neumorphic"
                   />
                 ) : (
@@ -421,7 +419,7 @@ export const ShopDashboard: React.FC = () => {
                     <div className="flex items-center gap-3 mb-1">
                       {isEditingName ? (
                         <div className="flex items-center gap-2 flex-wrap">
-                          <input 
+                          <input
                             type="text"
                             value={editedName}
                             onChange={(e) => setEditedName(e.target.value)}
@@ -433,10 +431,10 @@ export const ShopDashboard: React.FC = () => {
                           <Button size="icon" variant="ghost" onClick={handleSaveName} disabled={isSaving || isNameRefining} title="Guardar">
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={handleRefineNameWithAI} 
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleRefineNameWithAI}
                             disabled={isSaving || isNameRefining}
                             className="text-xs"
                             title="Refinar con IA"
@@ -450,7 +448,7 @@ export const ShopDashboard: React.FC = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <h2 className="text-2xl font-bold text-foreground">{shop.shop_name}</h2>
+                          <h2 className="text-2xl font-bold text-foreground">{shop.shopName}</h2>
                           <Button variant="ghost" size="icon" onClick={handleStartEditName}>
                             <Edit3 className="w-4 h-4" />
                           </Button>
@@ -460,10 +458,10 @@ export const ShopDashboard: React.FC = () => {
                         {shop.active ? "Activa" : "Inactiva"}
                       </Badge>
                     </div>
-                    
+
                     {isEditingDescription ? (
                       <div className="space-y-2">
-                        <Textarea 
+                        <Textarea
                           value={editedDescription}
                           onChange={(e) => setEditedDescription(e.target.value)}
                           className="min-h-[80px] w-full"
@@ -477,7 +475,7 @@ export const ShopDashboard: React.FC = () => {
                           </p>
                         )}
                         <div className="flex gap-2">
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={handleSaveDescription}
                             disabled={isSaving || isDescriptionRefining}
@@ -494,7 +492,7 @@ export const ShopDashboard: React.FC = () => {
                               </>
                             )}
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setIsEditingDescription(false)}
@@ -510,8 +508,8 @@ export const ShopDashboard: React.FC = () => {
                         <p className="text-sm text-muted-foreground text-left flex-1">
                           {shop.description}
                         </p>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={handleStartEdit}
                           className="flex-shrink-0"
@@ -524,10 +522,10 @@ export const ShopDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-4 text-sm">
-                  {shop.craft_type && (
+                  {shop.craftType && (
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">Tipo:</span>
-                      <span className="font-medium text-foreground">{shop.craft_type}</span>
+                      <span className="font-medium text-foreground">{shop.craftType}</span>
                     </div>
                   )}
                   {shop.region && (
@@ -663,7 +661,7 @@ export const ShopDashboard: React.FC = () => {
               className="space-y-4"
             >
               {/* DESTACADO: Subir Productos Card */}
-              <Card 
+              <Card
                 className="p-5 bg-gradient-to-br from-accent/10 to-golden/10 border-accent/30 hover:shadow-lg transition-all cursor-pointer"
                 onClick={() => navigate('/productos/subir')}
               >
@@ -677,7 +675,7 @@ export const ShopDashboard: React.FC = () => {
                       Agrega nuevos productos a tu catálogo
                     </p>
                   </div>
-                  <Badge 
+                  <Badge
                     variant="secondary"
                     className="text-xs bg-accent/20 text-foreground"
                   >
@@ -692,7 +690,7 @@ export const ShopDashboard: React.FC = () => {
               </Card>
 
               {/* Ver Inventario Card */}
-              <Card 
+              <Card
                 className="p-4 hover:shadow-lg transition-all cursor-pointer border-primary/20"
                 onClick={() => navigate('/dashboard/inventory')}
               >
@@ -715,7 +713,7 @@ export const ShopDashboard: React.FC = () => {
               {/* Columna vertical de cards de configuración */}
               <div className="flex flex-col gap-3">
                 {/* Control de Stock Card */}
-                <Card 
+                <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => navigate('/stock-wizard')}
                 >
@@ -727,7 +725,7 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Control Stock</h4>
                       <p className="text-xs text-muted-foreground truncate">Gestiona inventario</p>
                     </div>
-                    <Badge 
+                    <Badge
                       variant="secondary"
                       className="text-xs flex-shrink-0"
                     >
@@ -740,7 +738,7 @@ export const ShopDashboard: React.FC = () => {
                 </Card>
 
                 {/* Hero Slider Card */}
-                <Card 
+                <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => navigate('/dashboard/shop-hero-wizard')}
                 >
@@ -752,7 +750,7 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Hero Slider</h4>
                       <p className="text-xs text-muted-foreground truncate">Portada de tu tienda</p>
                     </div>
-                    <Badge 
+                    <Badge
                       variant={(shop as any).hero_config?.slides?.length > 0 ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
@@ -765,7 +763,7 @@ export const ShopDashboard: React.FC = () => {
                 </Card>
 
                 {/* Perfil Artesanal Card */}
-                <Card 
+                <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => navigate('/dashboard/artisan-profile-wizard')}
                 >
@@ -777,7 +775,7 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Perfil Artesanal</h4>
                       <p className="text-xs text-muted-foreground truncate">Tu historia profunda</p>
                     </div>
-                    <Badge 
+                    <Badge
                       variant={(shop as any).artisan_profile_completed ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
@@ -790,7 +788,7 @@ export const ShopDashboard: React.FC = () => {
                 </Card>
 
                 {/* Contacto Card */}
-                <Card 
+                <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => navigate('/dashboard/shop-contact-wizard')}
                 >
@@ -802,7 +800,7 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Contacto</h4>
                       <p className="text-xs text-muted-foreground truncate">Info de contacto</p>
                     </div>
-                    <Badge 
+                    <Badge
                       variant={(shop as any).contact_config?.welcomeMessage ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
@@ -815,7 +813,7 @@ export const ShopDashboard: React.FC = () => {
                 </Card>
 
                 {/* Mi Marca Card */}
-                <Card 
+                <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => navigate('/dashboard/brand-wizard')}
                 >
@@ -827,11 +825,11 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Mi Marca</h4>
                       <p className="text-xs text-muted-foreground truncate">Logo y colores</p>
                     </div>
-                    <Badge 
-                      variant={shop.logo_url ? "default" : "destructive"}
+                    <Badge
+                      variant={shop.logoUrl ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
-                      {shop.logo_url ? 'OK' : 'Pendiente'}
+                      {shop.logoUrl ? 'OK' : 'Pendiente'}
                     </Badge>
                     <button className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0">
                       <ArrowRight className="w-3 h-3" />
@@ -840,10 +838,10 @@ export const ShopDashboard: React.FC = () => {
                 </Card>
 
                 {/* Datos Bancarios Card */}
-                <Card 
+                <Card
                   className={cn(
                     "p-3 hover:shadow-lg transition-all cursor-pointer",
-                    !shop.id_contraparty && "bg-gradient-to-br from-warning/10 to-destructive/10 border-warning/30"
+                    !shop.idContraparty && "bg-gradient-to-br from-warning/10 to-destructive/10 border-warning/30"
                   )}
                   onClick={() => navigate('/mi-cuenta/datos-bancarios')}
                 >
@@ -855,11 +853,11 @@ export const ShopDashboard: React.FC = () => {
                       <h4 className="font-semibold text-sm text-foreground">Datos Bancarios</h4>
                       <p className="text-xs text-muted-foreground truncate">Para publicar</p>
                     </div>
-                    <Badge 
-                      variant={shop.id_contraparty ? "default" : "destructive"}
+                    <Badge
+                      variant={shop.idContraparty ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
-                      {shop.id_contraparty ? 'OK' : 'Requerido'}
+                      {shop.idContraparty ? 'OK' : 'Requerido'}
                     </Badge>
                     <button className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0">
                       <ArrowRight className="w-3 h-3" />
@@ -916,11 +914,10 @@ export const ShopDashboard: React.FC = () => {
                       return (
                         <div
                           key={product.id}
-                          className={`flex items-center gap-3 lg:gap-4 p-3 rounded-lg border transition-all bg-background/50 ${
-                            needsAttention 
-                              ? 'border-destructive/50 hover:border-destructive' 
-                              : 'border-border hover:border-primary/30'
-                          }`}
+                          className={`flex items-center gap-3 lg:gap-4 p-3 rounded-lg border transition-all bg-background/50 ${needsAttention
+                            ? 'border-destructive/50 hover:border-destructive'
+                            : 'border-border hover:border-primary/30'
+                            }`}
                         >
                           <img
                             src={product.images?.[0] || '/placeholder.svg'}
@@ -930,8 +927,8 @@ export const ShopDashboard: React.FC = () => {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-sm lg:text-base text-foreground truncate">{product.name}</h4>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <ModerationStatusBadge 
-                                status={product.moderation_status || 'draft'} 
+                              <ModerationStatusBadge
+                                status={product.moderation_status || 'draft'}
                                 size="sm"
                               />
                               {product.inventory <= 10 && (
