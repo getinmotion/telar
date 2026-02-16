@@ -6,11 +6,13 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { BrandTheme } from '../../brand-themes/entities/brand-theme.entity';
+import { Product } from '../../products/entities/product.entity';
 
 // Enums
 export enum PrivacyLevel {
@@ -32,8 +34,7 @@ export enum PublishStatus {
 
 export enum BankDataStatus {
   NOT_SET = 'not_set',
-  PENDING = 'pending',
-  APPROVED = 'approved',
+  COMPLETE = 'complete',
 }
 
 export enum MarketplaceApprovalStatus {
@@ -145,6 +146,13 @@ export class ArtisanShop extends BaseEntity {
   })
   @Column({ type: 'boolean', default: false })
   featured: boolean;
+
+  @ApiProperty({
+    description: 'Indica si la tienda tiene cobertura de Servientrega',
+    default: false,
+  })
+  @Column({ type: 'boolean', name: 'servientrega_coverage', default: false })
+  servientregaCoverage: boolean;
 
   @ApiPropertyOptional({
     description: 'Datos SEO de la tienda',
@@ -409,4 +417,9 @@ export class ArtisanShop extends BaseEntity {
   @ManyToOne(() => BrandTheme, { nullable: true })
   @JoinColumn({ name: 'active_theme_id', referencedColumnName: 'themeId' })
   activeTheme: BrandTheme | null;
+
+  // Relación 1:N con Product (una tienda tiene muchos productos)
+  @ApiPropertyOptional({ description: 'Productos de la tienda' })
+  @OneToMany(() => Product, (product) => product.shop)
+  products!: Product[];
 }

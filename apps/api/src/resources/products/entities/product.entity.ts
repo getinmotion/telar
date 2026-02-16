@@ -4,7 +4,6 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
   BaseEntity,
   ManyToOne,
   JoinColumn,
@@ -183,6 +182,13 @@ export class Product extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   featured: boolean;
 
+  @ApiProperty({
+    description: 'Indica si el producto tiene NFT habilitado',
+    default: false,
+  })
+  @Column({ type: 'boolean', name: 'nft_enabled', default: false })
+  nftEnabled: boolean;
+
   @ApiPropertyOptional({
     description: 'Datos SEO del producto',
     example: { title: 'Vasija artesanal', metaDescription: '...' },
@@ -197,14 +203,6 @@ export class Product extends BaseEntity {
   @ApiProperty({ description: 'Fecha de última actualización' })
   @UpdateDateColumn({ type: 'timestamp with time zone', name: 'updated_at' })
   updatedAt: Date;
-
-  @ApiPropertyOptional({ description: 'Fecha de eliminación (soft delete)' })
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
-  deletedAt: Date | null;
 
   @ApiPropertyOptional({
     description: 'ID de categoría de producto',

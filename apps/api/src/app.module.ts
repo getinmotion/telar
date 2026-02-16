@@ -21,6 +21,7 @@ import { AnalyticsEventsModule } from './resources/analytics-events/analytics-ev
 import { AgentDeliverablesModule } from './resources/agent-deliverables/agent-deliverables.module';
 import { UserAchievementsModule } from './resources/user-achievements/user-achievements.module';
 import { TaskStepsModule } from './resources/task-steps/task-steps.module';
+import { WishlistModule } from './resources/wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { TaskStepsModule } from './resources/task-steps/task-steps.module';
     AgentDeliverablesModule,
     UserAchievementsModule,
     TaskStepsModule,
+    WishlistModule
   ],
   controllers: [],
   providers: [],

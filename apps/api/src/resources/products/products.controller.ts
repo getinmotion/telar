@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -20,6 +21,7 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductsQueryDto } from './dto/products-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('products')
@@ -52,13 +54,37 @@ export class ProductsController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener todos los productos' })
+  @ApiOperation({
+    summary: 'Obtener todos los productos con filtros y paginación',
+    description:
+      'Endpoint para obtener productos con soporte de paginación, filtros múltiples, búsqueda y ordenamiento',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de productos obtenida exitosamente',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { type: 'object' },
+        },
+        total: {
+          type: 'number',
+          example: 150,
+        },
+        page: {
+          type: 'number',
+          example: 1,
+        },
+        limit: {
+          type: 'number',
+          example: 20,
+        },
+      },
+    },
   })
-  async getAll() {
-    return await this.productsService.getAll();
+  async getAll(@Query() query: ProductsQueryDto) {
+    return await this.productsService.getAll(query);
   }
 
   /**
