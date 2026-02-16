@@ -144,14 +144,14 @@ export class UserAchievementsService {
   }
 
   /**
-   * Eliminar un logro (soft delete)
+   * Eliminar un logro
    */
   async delete(id: string): Promise<{ message: string }> {
     // Verificar que existe
     await this.getById(id);
 
-    // Soft delete
-    await this.userAchievementsRepository.softDelete(id);
+    // Hard delete
+    await this.userAchievementsRepository.delete(id);
 
     return {
       message: `Logro con ID ${id} eliminado exitosamente`,

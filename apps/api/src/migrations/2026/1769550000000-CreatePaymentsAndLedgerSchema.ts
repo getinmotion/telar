@@ -308,13 +308,23 @@ END$$;
     // 4. Schema ledger
     await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS ledger`);
 
+    // 4.1 Enums y tipos para ledger
     await queryRunner.query(`
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'owner_type') THEN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON t.typnamespace = n.oid
+    WHERE t.typname = 'owner_type' AND n.nspname = 'ledger'
+  ) THEN
     CREATE TYPE ledger.owner_type AS ENUM ('platform', 'shop');
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_type') THEN
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON t.typnamespace = n.oid
+    WHERE t.typname = 'account_type' AND n.nspname = 'ledger'
+  ) THEN
     CREATE TYPE ledger.account_type AS ENUM ('clearing', 'revenue', 'taxes', 'pending', 'available', 'payout_in_transit');
   END IF;
 END$$;
@@ -363,34 +373,49 @@ END$$;
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop in reverse order to avoid dependency issues
-    await queryRunner.query(`DROP TABLE IF EXISTS ledger.entries`);
-    await queryRunner.query(`DROP TABLE IF EXISTS ledger.transactions`);
-    await queryRunner.query(`DROP TABLE IF EXISTS ledger.accounts`);
+
+    // Ledger schema
+    await queryRunner.query(`DROP TABLE IF EXISTS ledger.entries CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS ledger.transactions CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS ledger.accounts CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS ledger.account_type CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS ledger.owner_type CASCADE`);
     await queryRunner.query(`DROP SCHEMA IF EXISTS ledger CASCADE`);
 
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payouts`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_attempts`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_intents`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.checkout_charges`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.order_items`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.orders`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.checkouts`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_items`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_shipping_info`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.carts`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_rules`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_types`);
+    // Payments schema
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.payouts CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_attempts CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_intents CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.checkout_charges CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.order_items CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.orders CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.checkouts CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_items CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_shipping_info CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.carts CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_rules CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_types CASCADE`);
     await queryRunner.query(`DROP INDEX IF EXISTS payments.uq_product_prices_open`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.product_prices`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_providers`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.product_prices CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_providers CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.payout_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.payment_attempt_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.payment_intent_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.charge_scope CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.charge_direction CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.order_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.checkout_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.cart_status CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS payments.sale_context CASCADE`);
     await queryRunner.query(`DROP SCHEMA IF EXISTS payments CASCADE`);
 
-    // Remove shop and auth tables created by this migration
-    await queryRunner.query(`DROP TABLE IF EXISTS shop.products`);
-    await queryRunner.query(`DROP TABLE IF EXISTS shop.artisan_shops`);
-    await queryRunner.query(`DROP SCHEMA IF EXISTS shop CASCADE`);
+    // Shop schema (only remove tables created by this migration, not the schema itself)
+    await queryRunner.query(`DROP TABLE IF EXISTS shop.products CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS shop.artisan_shops CASCADE`);
+    // Note: Don't drop shop schema as it may be used by other migrations
 
-    await queryRunner.query(`DROP TABLE IF EXISTS auth.users`);
-    await queryRunner.query(`DROP SCHEMA IF EXISTS auth CASCADE`);
+    // Auth schema (only remove tables created by this migration, not the schema itself)
+    await queryRunner.query(`DROP TABLE IF EXISTS auth.users CASCADE`);
+    // Note: Don't drop auth schema as it may be used by other migrations
   }
 }
