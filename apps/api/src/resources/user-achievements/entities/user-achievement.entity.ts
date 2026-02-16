@@ -3,7 +3,6 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  DeleteDateColumn,
   BaseEntity,
   ManyToOne,
   JoinColumn,
@@ -70,14 +69,6 @@ export class UserAchievement extends BaseEntity {
   @ApiProperty({ description: 'Fecha de creación' })
   @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
   createdAt: Date;
-
-  @ApiPropertyOptional({ description: 'Fecha de eliminación (soft delete)' })
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
-  deletedAt: Date | null;
 
   // Relación N:1 con User (muchos logros pertenecen a un usuario)
   @ApiProperty({ description: 'Usuario que obtuvo el logro' })
