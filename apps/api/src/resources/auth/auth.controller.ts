@@ -22,6 +22,7 @@ import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordRecoveryDto } from './dto/request-password-recovery.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { CompleteProfileResponseDto } from './dto/complete-profile-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -160,6 +161,32 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'No autorizado - Token inválido' })
   async getProfile(@CurrentUser() user: any) {
     return await this.authService.getProfile(user.sub);
+  }
+
+  /**
+   * GET /auth/me
+   * Obtener perfil completo del usuario autenticado
+   * Incluye: user, userMasterContext, artisanShop, userMaturityActions, access_token
+   * Requiere token JWT
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Obtener perfil completo del usuario autenticado',
+    description:
+      'Retorna información completa del usuario incluyendo user, userMasterContext, artisanShop, userMaturityActions y un nuevo access_token (refreshed)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Perfil completo del usuario obtenido exitosamente con token refreshed',
+    type: CompleteProfileResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado - Token inválido' })
+  async getCompleteProfile(@CurrentUser() user: any) {
+    return await this.authService.getCompleteProfile(user.sub);
   }
 
   /**

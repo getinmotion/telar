@@ -306,6 +306,69 @@ export class AuthService {
   }
 
   /**
+   * Obtener perfil completo del usuario autenticado
+   * Retorna: user, userMasterContext, artisanShop, userMaturityActions, access_token
+   */
+  async getCompleteProfile(userId: string): Promise<{
+    user: Partial<User>;
+    userMasterContext: any | null;
+    artisanShop: any | null;
+    userMaturityActions: any[];
+    access_token: string;
+  }> {
+    // Obtener usuario
+    const user = await this.usersService.getById(userId);
+
+    // Verificar que el usuario no esté eliminado
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Esta cuenta ha sido desactivada');
+    }
+
+    // Verificar si el usuario está baneado
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+      throw new UnauthorizedException(
+        `Esta cuenta está suspendida hasta ${user.bannedUntil.toLocaleDateString()}`,
+      );
+    }
+
+    // Obtener información adicional del usuario
+    // Obtener user_master_context (relación 1:1)
+    const userMasterContext = await this.userMasterContextService
+      .getByUserId(user.id)
+      .catch(() => null);
+
+    // Obtener artisan_shop (relación 1:1)
+    const artisanShop = await this.artisanShopsService
+      .getByUserId(user.id)
+      .catch(() => null);
+
+    // Obtener user_maturity_actions (relación 1:N, retorna array)
+    const userMaturityActions = await this.userMaturityActionsService
+      .getByUserId(user.id)
+      .catch(() => []);
+
+    // Generar nuevo token JWT (refresh)
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      isSuperAdmin: user.isSuperAdmin,
+    };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    // Retornar usuario sin datos sensibles
+    const { encryptedPassword, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+      userMasterContext,
+      artisanShop,
+      userMaturityActions,
+      access_token,
+    };
+  }
+
+  /**
    * Cambiar contraseña
    */
   async changePassword(
