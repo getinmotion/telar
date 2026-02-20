@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { telarClient } from '@/lib/telarClient';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/lib/currencyUtils';
 
 interface Variant {
   id: string;
@@ -32,14 +33,19 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
         .from('product_variants')
         .select('*')
         .eq('product_id', productId)
-        .eq('active', true)
-        .order('created_at', { ascending: true});
+        .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        // Silenciar error - variantes son opcionales
+        setVariants([]);
+        return;
+      }
 
-      setVariants(data || []);
+      // Filtrar variantes activas en el cliente si el campo existe
+      const activeVariants = (data || []).filter((v: any) => v.active !== false);
+      setVariants(activeVariants);
     } catch (error) {
-      console.error('Error fetching variants:', error);
+      setVariants([]);
     } finally {
       setLoading(false);
     }
@@ -52,10 +58,27 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
   };
 
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Cargando variantes...</div>;
+    return null;
   }
 
   if (variants.length === 0) {
+    return null;
+  }
+
+  const hasMeaningfulOptions = variants.some((v) => {
+    const anyV = v as any;
+    const options = anyV.attributes ?? anyV.option_values;
+    const hasOptions =
+      options && typeof options === 'object' && Object.keys(options).length > 0;
+
+    const label = String(anyV.name ?? anyV.sku ?? '').trim();
+    const isDefaultish = !label || /default/i.test(label);
+
+    return hasOptions || !isDefaultish;
+  });
+
+  // Si no hay opciones reales para escoger, no mostramos el selector.
+  if (!hasMeaningfulOptions) {
     return null;
   }
 
@@ -66,8 +89,9 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
       <div className="grid grid-cols-2 gap-3">
         {variants.map((variant) => {
           const isSelected = selectedVariant?.id === variant.id;
-          const finalPrice = basePrice + variant.price_adjustment;
-          const isOutOfStock = variant.stock <= 0;
+          const priceAdjustment = variant.price_adjustment ?? 0;
+          const finalPrice = basePrice + priceAdjustment;
+          const isOutOfStock = (variant.stock ?? 0) <= 0;
 
           return (
             <Button
@@ -79,13 +103,13 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
             >
               <span className="font-semibold">{variant.name}</span>
               <span className="text-sm text-primary">
-                ${finalPrice.toLocaleString('es-MX')}
+                {formatCurrency(finalPrice)}
               </span>
-              
-              {variant.price_adjustment !== 0 && (
+
+              {priceAdjustment !== 0 && (
                 <span className="text-xs text-muted-foreground">
-                  {variant.price_adjustment > 0 ? '+' : ''}
-                  ${variant.price_adjustment.toLocaleString('es-MX')}
+                  {priceAdjustment > 0 ? '+' : ''}
+                  {formatCurrency(priceAdjustment)}
                 </span>
               )}
 
@@ -95,7 +119,7 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
                 </Badge>
               )}
               
-              {!isOutOfStock && variant.stock < 5 && (
+              {!isOutOfStock && (variant.stock ?? 0) < 5 && (
                 <span className="text-xs text-destructive">
                   Solo {variant.stock} disponibles
                 </span>
@@ -107,7 +131,7 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
 
       {selectedVariant && (
         <div className="text-sm text-muted-foreground">
-          Precio final: ${(basePrice + selectedVariant.price_adjustment).toLocaleString('es-MX')}
+          Precio final: {formatCurrency(basePrice + (selectedVariant.price_adjustment ?? 0))}
         </div>
       )}
     </div>

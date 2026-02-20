@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import * as WishlistActions from '@/services/wishlist.actions';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -16,23 +16,13 @@ export const useWishlist = () => {
     }
   }, [user]);
 
-  //
   const fetchWishlist = async () => {
     if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error fetching wishlist:', error);
-        setWishlistItems(new Set());
-      } else {
-        const ids = new Set(data?.map(item => item.product_id) || []);
-        setWishlistItems(ids);
-      }
+    try {
+      const wishlistData = await WishlistActions.getUserWishlist(user.id);
+      const ids = new Set(wishlistData.map(item => item.productId));
+      setWishlistItems(ids);
     } catch (error) {
       console.error('Error fetching wishlist:', error);
       setWishlistItems(new Set());
@@ -50,13 +40,7 @@ export const useWishlist = () => {
       const isInList = wishlistItems.has(productId);
 
       if (isInList) {
-        const { error } = await supabase
-          .from('wishlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
-
-        if (error) throw error;
+        await WishlistActions.removeFromWishlist(user.id, productId);
 
         setWishlistItems(prev => {
           const newSet = new Set(prev);
@@ -65,11 +49,10 @@ export const useWishlist = () => {
         });
         toast.success('Eliminado de favoritos');
       } else {
-        const { error } = await supabase
-          .from('wishlist')
-          .insert({ user_id: user.id, product_id: productId });
-
-        if (error) throw error;
+        await WishlistActions.addToWishlist({
+          userId: user.id,
+          productId: productId
+        });
 
         setWishlistItems(prev => new Set(prev).add(productId));
         toast.success('Agregado a favoritos');

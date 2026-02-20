@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { telarClient } from "@/lib/telarClient";
+import * as ProductsActions from "@/services/products.actions";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductListItem } from "@/components/ProductListItem";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,7 +18,7 @@ import { FeaturedShops } from "@/components/FeaturedShops";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { ExploreByTrade } from "@/components/ExploreByTrade";
 import { PopularMaterials } from "@/components/PopularMaterials";
-import { EditorialSection } from "@/components/EditorialSection";
+import { FeaturedArticles } from "@/components/blog/FeaturedArticles";
 import { NewsletterSection } from "@/components/NewsletterSection";
 import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
@@ -27,8 +27,13 @@ import { mapArtisanCategory } from "@/lib/productMapper";
 import { useHybridSearch } from "@/hooks/useHybridSearch";
 import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
 import { Sparkles } from "lucide-react";
-import { mapProductToMarketplace } from "@/lib/productMapper";
-import { normalizeMaterials, normalizeCraft, normalizeTechniques } from "@/lib/normalizationUtils";
+import {
+  normalizeMaterials,
+  normalizeMaterial,
+  normalizeCraft,
+  normalizeTechniques,
+  formatArtisanText,
+} from "@/lib/normalizationUtils";
 import {
   Pagination,
   PaginationContent,
@@ -38,28 +43,84 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Product } from "@/types/products.types";
 
 const PRODUCTS_PER_PAGE = 24;
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  images?: string[];
-  store_name?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  stock?: number;
-  category?: string;
-  craft?: string;
-  materials?: string[];
-  techniques?: string[];
-  created_at?: string;
-}
+// Fisher-Yates shuffle with seed for consistent randomization
+const seededShuffle = <T,>(array: T[], seed: number): T[] => {
+  const shuffled = [...array];
+  let currentSeed = seed;
+
+  const random = () => {
+    currentSeed = (currentSeed * 9301 + 49297) % 233280;
+    return currentSeed / 233280;
+  };
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Distributed shuffle that avoids consecutive products from the same store
+const distributedShuffle = <T extends { storeName?: string }>(
+  array: T[],
+  seed: number,
+): T[] => {
+  if (array.length <= 1) return array;
+
+  // Group by store
+  const byStore = new Map<string, T[]>();
+  array.forEach((item) => {
+    const store = item.storeName || "unknown";
+    if (!byStore.has(store)) byStore.set(store, []);
+    byStore.get(store)!.push(item);
+  });
+
+  // Shuffle each group internally
+  const shuffledGroups = Array.from(byStore.values()).map((group) =>
+    seededShuffle(group, seed),
+  );
+
+  // Sort groups by size (largest first) for better distribution
+  shuffledGroups.sort((a, b) => b.length - a.length);
+
+  // Interleave products round-robin style
+  const result: T[] = [];
+  const groupIndices = shuffledGroups.map(() => 0);
+
+  while (result.length < array.length) {
+    for (let g = 0; g < shuffledGroups.length; g++) {
+      if (groupIndices[g] < shuffledGroups[g].length) {
+        result.push(shuffledGroups[g][groupIndices[g]]);
+        groupIndices[g]++;
+      }
+    }
+  }
+
+  return result;
+};
+
+// Prioritized shuffle: purchasable products first, then non-purchasable, both distributed by store
+const prioritizedDistributedShuffle = <
+  T extends { storeName?: string; canPurchase?: boolean },
+>(
+  array: T[],
+  seed: number,
+): T[] => {
+  // Separate purchasable and non-purchasable products
+  const purchasable = array.filter((item) => item.canPurchase === true);
+  const notPurchasable = array.filter((item) => item.canPurchase !== true);
+
+  // Apply distributed shuffle to each group
+  const shuffledPurchasable = distributedShuffle(purchasable, seed);
+  const shuffledNotPurchasable = distributedShuffle(notPurchasable, seed + 1);
+
+  // Concatenate: purchasable first
+  return [...shuffledPurchasable, ...shuffledNotPurchasable];
+};
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,10 +133,12 @@ const Index = () => {
     const saved = localStorage.getItem("productViewMode");
     return (saved as ViewMode) || "grid";
   });
-  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState<boolean>(() => {
-    const saved = localStorage.getItem("semanticSearchEnabled");
-    return saved !== null ? saved === "true" : true; // Por defecto activado
-  });
+  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState<boolean>(
+    () => {
+      const saved = localStorage.getItem("semanticSearchEnabled");
+      return saved !== null ? saved === "true" : true; // Por defecto activado
+    },
+  );
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 10000000],
     categories: [],
@@ -88,11 +151,15 @@ const Index = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const productsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Random seed generated once per session for consistent randomization
+  const [randomSeed] = useState(() => Math.floor(Math.random() * 1000000));
 
   // Detect reset param and clear all filters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get('reset') === 'true') {
+    if (params.get("reset") === "true") {
       setFilters({
         priceRange: [0, 10000000],
         categories: [],
@@ -103,7 +170,7 @@ const Index = () => {
         techniques: [],
       });
       setSearchQuery("");
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     }
   }, [location.search, navigate]);
 
@@ -114,7 +181,10 @@ const Index = () => {
 
   // Persist semantic search preference
   useEffect(() => {
-    localStorage.setItem("semanticSearchEnabled", String(semanticSearchEnabled));
+    localStorage.setItem(
+      "semanticSearchEnabled",
+      String(semanticSearchEnabled),
+    );
   }, [semanticSearchEnabled]);
 
   useEffect(() => {
@@ -124,19 +194,26 @@ const Index = () => {
   const fetchProducts = async () => {
     try {
       setError(null);
-      
-      const { data, error } = await telarClient
-        .from('marketplace_products')
-        .select('id, name, description, price, image_url, images, store_name, store_slug, rating, reviews_count, is_new, free_shipping, stock, category, craft, materials, techniques, created_at')
-        .order('created_at', { ascending: false });
 
-      if (error) {
-        throw new Error(`Error de base de datos: ${error.message}`);
-      }
-      
-      setProducts((data || []).map(mapProductToMarketplace));
+      // Fetch all products from the products service (includes inventory, shop info, category, etc.)
+      const response = await ProductsActions.getProducts({
+        order: "DESC",
+        limit: 50, // Get all products
+      });
+
+
+      // Map from camelCase Product type to snake_case local Product interface
+      const mappedProducts = response.data.map((product) => {
+        return {
+          ...product,
+          price: product.price
+        };
+      });
+
+      setProducts(mappedProducts);
     } catch (error: any) {
-      const errorMessage = error?.message || 'No se pudieron cargar los productos';
+      const errorMessage =
+        error?.message || "No se pudieron cargar los productos";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -147,10 +224,10 @@ const Index = () => {
   const availableCategories = getUniqueCategoriesFromProducts(products);
 
   // Búsqueda híbrida (semántica + simple)
-  const { 
-    filteredProducts: searchResults, 
-    isSemanticEnabled, 
-    semanticResultsCount 
+  const {
+    filteredProducts: searchResults,
+    isSemanticEnabled,
+    semanticResultsCount,
   } = useHybridSearch({
     products,
     searchQuery,
@@ -159,40 +236,43 @@ const Index = () => {
   });
 
   // Aplicar filtros adicionales sobre los resultados de búsqueda
-  const filteredProducts = searchResults.filter(product => {
+  const filteredProducts = searchResults.filter((product) => {
     // Price range
-    const matchesPrice = product.price >= filters.priceRange[0] && 
-                        product.price <= filters.priceRange[1];
+    const matchesPrice =
+      parseFloat(product.price.toString()) >= filters.priceRange[0] &&
+      parseFloat(product.price.toString()) <= filters.priceRange[1];
 
     // Categories - comparar directamente ya que marketplace_products devuelve categorías mapeadas
-    const productCategory = (product.category || '').toLowerCase().trim();
+    const productCategory = (product.category || "").toLowerCase().trim();
     const matchesCategory =
       filters.categories.length === 0 ||
-      filters.categories.some(filterCat => 
-        productCategory === filterCat.toLowerCase().trim()
+      filters.categories.some(
+        (filterCat) =>
+          filterCat && productCategory === filterCat.toLowerCase().trim(),
       );
 
     // Rating
-    const matchesRating = !filters.minRating || 
-                         (product.rating && product.rating >= filters.minRating);
+    const matchesRating =
+      !filters.minRating ||
+      (product.rating && product.rating >= filters.minRating);
 
     // Free shipping
-    const matchesShipping = !filters.freeShipping || product.free_shipping;
+    const matchesShipping = !filters.freeShipping 
 
-    // Materials - normalizar para comparación consistente
+    // Materials - normalizar AMBOS lados para comparación consistente
     const productMaterialsNormalized = normalizeMaterials(product.materials);
     const matchesMaterials =
       filters.materials.length === 0 ||
-      filters.materials.some(material => 
-        productMaterialsNormalized.includes(material)
+      filters.materials.some((material) =>
+        productMaterialsNormalized.includes(normalizeMaterial(material)),
       );
 
-    // Techniques - normalizar para comparación consistente
+    // Techniques - normalizar AMBOS lados para comparación consistente
     const productTechniquesNormalized = normalizeTechniques(product.techniques);
     const matchesTechniques =
       filters.techniques.length === 0 ||
-      filters.techniques.some(technique => 
-        productTechniquesNormalized.includes(technique)
+      filters.techniques.some((technique) =>
+        productTechniquesNormalized.includes(formatArtisanText(technique)),
       );
 
     // Crafts (Oficios) - normalizar para comparación consistente
@@ -201,24 +281,37 @@ const Index = () => {
       filters.crafts.length === 0 ||
       filters.crafts.includes(productCraftNormalized);
 
-    return matchesPrice && matchesCategory && matchesRating && matchesShipping && matchesMaterials && matchesTechniques && matchesCrafts;
+    return (
+      matchesPrice &&
+      matchesCategory &&
+      matchesRating &&
+      matchesShipping &&
+      matchesMaterials &&
+      matchesTechniques &&
+      matchesCrafts
+    );
   });
 
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  // Sort and shuffle products
+  const sortedProducts = useMemo(() => {
+    const sorted = [...filteredProducts];
     switch (sortBy) {
       case "price-asc":
-        return a.price - b.price;
+        return sorted.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
       case "price-desc":
-        return b.price - a.price;
+        return sorted.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
       case "newest":
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return sorted.sort(
+          (a, b) =>
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime(),
+        );
       case "rating":
-        return (b.rating || 0) - (a.rating || 0);
-      default: // relevance
-        return 0;
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      default: // relevance - random order
+        return prioritizedDistributedShuffle(sorted, randomSeed);
     }
-  });
+  }, [filteredProducts, sortBy, randomSeed]);
 
   // Pagination
   const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
@@ -233,13 +326,21 @@ const Index = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to products container for better UX
+    if (productsContainerRef.current) {
+      productsContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const renderPaginationItems = () => {
     const items = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
@@ -252,7 +353,7 @@ const Index = () => {
             >
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
     } else {
@@ -266,7 +367,7 @@ const Index = () => {
           >
             1
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
 
       if (currentPage > 3) {
@@ -286,7 +387,7 @@ const Index = () => {
             >
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -303,53 +404,56 @@ const Index = () => {
           >
             {totalPages}
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
     }
 
     return items;
   };
 
-  const handleRemoveFilter = (filterType: keyof FilterState, value?: string) => {
+  const handleRemoveFilter = (
+    filterType: keyof FilterState,
+    value?: string,
+  ) => {
     switch (filterType) {
-      case 'priceRange':
+      case "priceRange":
         setFilters({ ...filters, priceRange: [0, 10000] });
         break;
-      case 'categories':
+      case "categories":
         if (value) {
-          setFilters({ 
-            ...filters, 
-            categories: filters.categories.filter(c => c !== value) 
+          setFilters({
+            ...filters,
+            categories: filters.categories.filter((c) => c !== value),
           });
         }
         break;
-      case 'minRating':
+      case "minRating":
         setFilters({ ...filters, minRating: null });
         break;
-      case 'freeShipping':
+      case "freeShipping":
         setFilters({ ...filters, freeShipping: false });
         break;
-      case 'materials':
+      case "materials":
         if (value) {
           setFilters({
             ...filters,
-            materials: filters.materials.filter(m => m !== value)
+            materials: filters.materials.filter((m) => m !== value),
           });
         }
         break;
-      case 'techniques':
+      case "techniques":
         if (value) {
           setFilters({
             ...filters,
-            techniques: filters.techniques.filter(t => t !== value)
+            techniques: filters.techniques.filter((t) => t !== value),
           });
         }
         break;
-      case 'crafts':
+      case "crafts":
         if (value) {
           setFilters({
             ...filters,
-            crafts: filters.crafts.filter(c => c !== value)
+            crafts: filters.crafts.filter((c) => c !== value),
           });
         }
         break;
@@ -376,7 +480,7 @@ const Index = () => {
 
   const handleCategorySearch = (category: string) => {
     setFilters({ ...filters, categories: [category] });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const isHomePage =
@@ -392,8 +496,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar 
-        searchQuery={searchQuery} 
+      <Navbar
+        searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         semanticSearchEnabled={semanticSearchEnabled}
         onSemanticSearchToggle={setSemanticSearchEnabled}
@@ -406,18 +510,22 @@ const Index = () => {
           <HeroSection />
           <StatsSection />
           <FeaturedCategories onCategoryClick={handleCategorySearch} />
-          
-          <ExploreByTrade onTradeClick={(craft) => {
-            setFilters({ ...filters, crafts: [craft] });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} />
-          
+
+          <ExploreByTrade
+            onTradeClick={(craft) => {
+              setFilters({ ...filters, crafts: [craft] });
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+
           <FeaturedProducts />
-          <PopularMaterials onMaterialClick={(material) => {
-            setFilters({ ...filters, materials: [material] });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} />
-          <EditorialSection />
+          <PopularMaterials
+            onMaterialClick={(material) => {
+              setFilters({ ...filters, materials: [material] });
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+          <FeaturedArticles />
           <FeaturedShops />
           <NewsletterSection />
           <Footer />
@@ -448,146 +556,183 @@ const Index = () => {
 
             {/* Main Content */}
             <main className="flex-1">
-            {/* Breadcrumb */}
-            <CategoryBreadcrumb 
-              categories={filters.categories}
-              searchQuery={searchQuery}
-              onHomeClick={handleHomeClick}
-            />
+              {/* Breadcrumb */}
+              <CategoryBreadcrumb
+                categories={filters.categories}
+                searchQuery={searchQuery}
+                onHomeClick={handleHomeClick}
+              />
 
-            {/* Active Filters */}
-            <FilterChips
-              filters={filters}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAll={clearAllFilters}
-            />
+              {/* Active Filters */}
+              <FilterChips
+                filters={filters}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={clearAllFilters}
+              />
 
-            {/* Sort, View Toggle and Results Count */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">
-                  {sortedProducts.length} {sortedProducts.length === 1 ? 'producto encontrado' : 'productos encontrados'}
-                  {totalPages > 1 && (
-                    <span className="ml-1">
-                      (Página {currentPage} de {totalPages})
-                    </span>
-                  )}
-                </p>
-                {searchQuery && (
-                  <>
-                    {isSemanticEnabled && semanticResultsCount > 0 ? (
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span>Búsqueda inteligente: {semanticResultsCount} resultado{semanticResultsCount !== 1 ? 's' : ''}</span>
-                      </div>
-                    ) : semanticSearchEnabled && !isSemanticEnabled ? (
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span>Buscando con IA...</span>
-                      </div>
-                    ) : !semanticSearchEnabled ? (
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
-                        <span>Búsqueda simple</span>
-                      </div>
-                    ) : null}
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <ViewToggle view={viewMode} onViewChange={setViewMode} />
-                <SortDropdown value={sortBy} onChange={setSortBy} />
-              </div>
-            </div>
-
-            {/* Products Grid/List */}
-            {loading ? (
-              <div className={viewMode === "grid" 
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-              }>
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-square w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : error ? (
-              <div className="text-center py-16">
-                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8 max-w-2xl mx-auto">
-                  <p className="text-destructive text-lg font-semibold mb-2">
-                    Error al cargar productos
+              {/* Sort, View Toggle and Results Count */}
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {sortedProducts.length}{" "}
+                    {sortedProducts.length === 1
+                      ? "producto encontrado"
+                      : "productos encontrados"}
+                    {totalPages > 1 && (
+                      <span className="ml-1">
+                        (Página {currentPage} de {totalPages})
+                      </span>
+                    )}
                   </p>
-                  <p className="text-muted-foreground mb-4">{error}</p>
-                  <Button onClick={fetchProducts} variant="outline">
-                    Reintentar
-                  </Button>
+                  {searchQuery && (
+                    <>
+                      {isSemanticEnabled && semanticResultsCount > 0 ? (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>
+                            Búsqueda inteligente: {semanticResultsCount}{" "}
+                            resultado{semanticResultsCount !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      ) : semanticSearchEnabled && !isSemanticEnabled ? (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>Buscando con IA...</span>
+                        </div>
+                      ) : !semanticSearchEnabled ? (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
+                          <span>Búsqueda simple</span>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <ViewToggle view={viewMode} onViewChange={setViewMode} />
+                  <SortDropdown value={sortBy} onChange={setSortBy} />
                 </div>
               </div>
-            ) : sortedProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground text-lg">
-                  {searchQuery || filters.categories.length > 0 || filters.minRating || filters.freeShipping
-                    ? 'No se encontraron productos con los filtros seleccionados'
-                    : 'No hay productos disponibles'}
-                </p>
-              </div>
-            ) : (
-              <>
-                {viewMode === "grid" ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                    {paginatedProducts.map((product) => {
-                      const imageUrl = product.image_url || (Array.isArray((product as any).images) ? (product as any).images[0] : undefined);
-                      return (
-                        <ProductCard 
-                          key={product.id} 
-                          {...product}
-                          image_url={imageUrl}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="space-y-4 mb-8">
-                    {paginatedProducts.map((product) => {
-                      const imageUrl = product.image_url || (Array.isArray((product as any).images) ? (product as any).images[0] : undefined);
-                      return (
-                        <ProductListItem 
-                          key={product.id} 
-                          {...product}
-                          image_url={imageUrl}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <Pagination className="mt-8">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                      
-                      {renderPaginationItems()}
-                      
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </>
-            )}
-          </main>
+              {/* Products Grid/List */}
+              {loading ? (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                      : "space-y-4"
+                  }
+                >
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="aspect-square w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-center py-16">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8 max-w-2xl mx-auto">
+                    <p className="text-destructive text-lg font-semibold mb-2">
+                      Error al cargar productos
+                    </p>
+                    <p className="text-muted-foreground mb-4">{error}</p>
+                    <Button onClick={fetchProducts} variant="outline">
+                      Reintentar
+                    </Button>
+                  </div>
+                </div>
+              ) : sortedProducts.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground text-lg">
+                    {searchQuery ||
+                    filters.categories.length > 0 ||
+                    filters.minRating ||
+                    filters.freeShipping
+                      ? "No se encontraron productos con los filtros seleccionados"
+                      : "No hay productos disponibles"}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {viewMode === "grid" ? (
+                    <div
+                      ref={productsContainerRef}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
+                    >
+                      {paginatedProducts.map((product) => {
+                        const imageUrl =
+                          product.imageUrl ||
+                          (Array.isArray((product as any).images)
+                            ? (product as any).images[0]
+                            : undefined);
+                        return (
+                          <ProductCard
+                            key={product.id}
+                            {...product}
+                            imageUrl={imageUrl}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mb-8">
+                      {paginatedProducts.map((product) => {
+                        const imageUrl =
+                          product.imageUrl ||
+                          (Array.isArray((product as any).images)
+                            ? (product as any).images[0]
+                            : undefined);
+                        return (
+                          <ProductListItem
+                            key={product.id}
+                            {...product}
+                            imageUrl={imageUrl}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination className="mt-8">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() =>
+                              currentPage > 1 &&
+                              handlePageChange(currentPage - 1)
+                            }
+                            className={
+                              currentPage === 1
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
+                          />
+                        </PaginationItem>
+
+                        {renderPaginationItems()}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() =>
+                              currentPage < totalPages &&
+                              handlePageChange(currentPage + 1)
+                            }
+                            className={
+                              currentPage === totalPages
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </>
+              )}
+            </main>
           </div>
         </div>
       )}
@@ -596,4 +741,3 @@ const Index = () => {
 };
 
 export default Index;
-

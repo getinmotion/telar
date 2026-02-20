@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { telarClient } from "@/lib/telarClient";
-import { mapProductToMarketplace } from "@/lib/productMapper";
+import { useProducts } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Product } from "@/types/products.types";
 
 interface RelatedProductsProps {
   currentProductId: string;
@@ -10,26 +10,8 @@ interface RelatedProductsProps {
   storeName?: string;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  images?: string[];
-  store_name?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  stock?: number;
-  category?: string;
-  materials?: string[];
-  techniques?: string[];
-  craft?: string;
-}
-
 export const RelatedProducts = ({ currentProductId, category, storeName }: RelatedProductsProps) => {
+  const { products: contextProducts, fetchProducts } = useProducts();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,25 +19,25 @@ export const RelatedProducts = ({ currentProductId, category, storeName }: Relat
     fetchRelatedProducts();
   }, [currentProductId, category, storeName]);
 
+  useEffect(() => {
+    if (contextProducts?.length > 0) {
+      const mappedProducts = contextProducts
+        .map(p => ({...p}))
+        .slice(0, 4);
+
+      setProducts(mappedProducts);
+      setLoading(false);
+    }
+  }, [contextProducts]);
+
   const fetchRelatedProducts = async () => {
     try {
-      let query = telarClient
-        .from('marketplace_products')
-        .select('id, name, description, price, image_url, images, store_name, rating, reviews_count, is_new, free_shipping, category, materials, techniques, craft')
-        .neq('id', currentProductId)
-        .limit(8);
-
-      if (category) {
-        query = query.eq('category', category);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      setProducts((data || []).map(mapProductToMarketplace));
+      await fetchProducts({
+        category: category,
+        exclude: currentProductId,
+        limit: 4,
+      });
     } catch (error) {
-      // Silent fail for related products
-    } finally {
       setLoading(false);
     }
   };
@@ -65,8 +47,8 @@ export const RelatedProducts = ({ currentProductId, category, storeName }: Relat
       <section className="py-16 px-4 bg-muted/20">
         <div className="container mx-auto max-w-7xl">
           <Skeleton className="h-10 w-64 mb-8" />
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[...Array(6)].map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-80" />
             ))}
           </div>
@@ -86,17 +68,18 @@ export const RelatedProducts = ({ currentProductId, category, storeName }: Relat
           Productos Relacionados
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {products.map((product) => {
-            const imageUrl = product.image_url || (Array.isArray((product as any).images) ? (product as any).images[0] : undefined);
+            const imageUrl = product.imageUrl || (Array.isArray((product as any).images) ? (product as any).images[0] : undefined);
             return (
               <ProductCard 
                 key={product.id} 
                 {...product} 
-                image_url={imageUrl}
+                imageUrl={imageUrl}
                 materials={product.materials}
                 techniques={product.techniques}
                 craft={product.craft}
+                canPurchase={(product as any).canPurchase ?? false}
               />
             );
           })}

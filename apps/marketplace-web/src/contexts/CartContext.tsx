@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { telarClient } from '@/lib/telarClient';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import * as ProductsActions from '@/services/products.actions';
+import * as CartActions from '@/services/cart.actions';
 
 interface CartItem {
   id: string;
@@ -17,6 +17,7 @@ interface CartItem {
     name: string;
     price: number;
     image_url: string;
+    allows_local_pickup?: boolean;
   };
 }
 
@@ -32,6 +33,7 @@ interface LocalCartItem {
     name: string;
     price: number;
     image_url: string;
+    allows_local_pickup?: boolean;
   };
 }
 
@@ -47,6 +49,7 @@ interface CartContextType {
   removeFromCart: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  resetCart: () => void;
   syncGuestCartToUser: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
@@ -58,6 +61,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'telar_guest_cart';
+const GIFT_CARD_SESSION_KEY = 'telar_gift_cards';
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -141,62 +145,95 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
-      if (!stored) return;
-
-      const localItems: LocalCartItem[] = JSON.parse(stored);
-      if (localItems.length === 0) return;
+      
+      // Also check current items state (for gift cards added directly)
+      const currentGiftCards = items.filter(item => item.isGiftCard);
+      
+      const localItems: LocalCartItem[] = stored ? JSON.parse(stored) : [];
+      
+      // If no local items and no gift cards in state, nothing to sync
+      if (localItems.length === 0 && currentGiftCards.length === 0) return;
 
       // Separate gift cards from regular items
       const regularItems = localItems.filter(item => !item.isGiftCard);
-      const giftCardItems = localItems.filter(item => item.isGiftCard);
+      const giftCardItemsFromStorage = localItems.filter(item => item.isGiftCard);
+      
+      // Combine gift cards from storage and state
+      const allGiftCards = [
+        ...giftCardItemsFromStorage,
+        ...currentGiftCards.map(item => ({
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+          isGiftCard: item.isGiftCard,
+          giftCardAmount: item.giftCardAmount,
+          recipientEmail: item.recipientEmail,
+          giftMessage: item.giftMessage,
+          product: item.product
+        }))
+      ];
 
-      // Prepare regular items for the edge function
+      // Prepare regular items for sync
       const itemsToSync = regularItems.map(item => ({
-        product_id: item.product_id,
-        variant_id: item.variant_id,
-        quantity: item.quantity,
-        price: item.product.price
+        productId: item.product_id,
+        variantId: item.variant_id,
+        quantity: item.quantity
       }));
 
-      // Call the edge function to sync regular cart items
-      if (itemsToSync.length > 0) {
-        const { data, error } = await supabase.functions.invoke('sync-guest-cart', {
-          body: {
-            user_id: user.id,
-            items: itemsToSync
-          }
-        });
+      let cartId = activeCartId;
 
-        if (error) {
-          console.error('Error calling sync-guest-cart:', error);
+      // Call the backend to sync regular cart items OR create empty cart for gift-card-only purchases
+      if (itemsToSync.length > 0 || (!cartId && allGiftCards.length > 0)) {
+        try {
+          const response = await CartActions.syncGuestCart({
+            buyerUserId: user.id,
+            items: itemsToSync.length > 0 ? itemsToSync : [] // Empty array will still create a cart
+          });
+
+          // Store the cart_id from the response
+          if (response.cartId) {
+            cartId = response.cartId;
+            setActiveCartId(cartId);
+          }
+        } catch (error) {
+          console.error('Error syncing guest cart:', error);
           toast.error('Error al sincronizar el carrito');
           return;
         }
-
-        // Store the cart_id from the response
-        if (data?.cart_id) {
-          setActiveCartId(data.cart_id);
-        }
       }
-
-      // For gift cards, we keep them in local state but mark them
-      // They'll be processed separately at checkout
 
       // Clear local cart after successful sync
       localStorage.removeItem(CART_STORAGE_KEY);
       
-      // Refresh cart from database
-      await fetchCart();
+      // Refresh cart from database (preserve cart_id if we have gift cards)
+      await fetchCart(allGiftCards.length > 0);
+      
+      // IMPORTANT: Restore activeCartId after fetchCart if we have gift cards
+      // fetchCart may reset it if there are no cart_items in the database
+      if (allGiftCards.length > 0 && cartId) {
+        setActiveCartId(cartId);
+      }
       
       // Add back gift card items to state
-      if (giftCardItems.length > 0) {
-        setItems(prev => [
-          ...prev,
-          ...giftCardItems.map((item, index) => ({
-            id: `giftcard-${Date.now()}-${index}`,
-            ...item
-          }))
-        ]);
+      if (allGiftCards.length > 0) {
+        setItems(prev => {
+          // Filter out existing gift cards to avoid duplicates
+          const nonGiftCards = prev.filter(item => !item.isGiftCard);
+          return [
+            ...nonGiftCards,
+            ...allGiftCards.map((item, index) => ({
+              id: `giftcard-${Date.now()}-${index}`,
+              product_id: item.product_id,
+              variant_id: item.variant_id,
+              quantity: item.quantity,
+              isGiftCard: item.isGiftCard,
+              giftCardAmount: item.giftCardAmount,
+              recipientEmail: item.recipientEmail,
+              giftMessage: item.giftMessage,
+              product: item.product
+            }))
+          ];
+        });
       }
       
       toast.success('Carrito sincronizado');
@@ -206,7 +243,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchCart = async () => {
+  const fetchCart = async (preserveCartIdForGiftCards: boolean = false) => {
     if (!user) {
       setItems([]);
       setActiveCartId(null);
@@ -216,56 +253,82 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       setLoading(true);
-      
-      // Get cart items for user where payment not completed (active cart)
-      const { data: cartItems, error: cartItemsError } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .is('payment_status', null);
 
-      if (cartItemsError) throw cartItemsError;
+      // Get open cart from backend (1 query instead of 3)
+      const cart = await CartActions.getOpenCart(user.id);
 
-      if (!cartItems || cartItems.length === 0) {
-        setItems([]);
-        setActiveCartId(null);
+      // Validate cart status
+      if (cart.status !== 'open') {
+        console.warn('[CartContext] Cart not open:', cart.status);
+        // Keep gift cards if any
+        setItems(prev => prev.filter(item => item.isGiftCard));
+
+        const hasGiftCardsInState = items.some(item => item.isGiftCard);
+        if (!hasGiftCardsInState) {
+          setActiveCartId(null);
+        }
         return;
       }
 
-      // Get the cart_id from the first item (all items share the same cart_id)
-      const currentCartId = cartItems[0].cart_id;
-      setActiveCartId(currentCartId);
+      setActiveCartId(cart.id);
 
-      // Get product details from marketplace_products view (only approved products)
-      const productIds = cartItems.map(item => item.product_id);
-      const { data: products, error: productsError } = await telarClient
-        .from('marketplace_products')
-        .select('id, name, price, images')
-        .in('id', productIds);
+      // Get cart items with enriched product + sellerShop data
+      const detailedItems = await CartActions.getCartItems(cart.id);
 
-      if (productsError) throw productsError;
+      if (!detailedItems || detailedItems.length === 0) {
+        // Keep gift cards if any
+        setItems(prev => prev.filter(item => item.isGiftCard));
+        return;
+      }
 
-      // Map cart items with product details
-      const mappedItems = cartItems.map(item => {
-        const product = products?.find(p => p.id === item.product_id);
-        const imageUrl = product?.images?.[0] || '';
+      // Map backend items to local CartItem format
+      const mappedItems: CartItem[] = detailedItems.map(item => {
+        // Convert unitPriceMinor (string) to price (number)
+        // "5000000" → 50000.00
+        const price = parseFloat(item.unitPriceMinor) / 100;
+
+        // Get image from enriched product
+        const imageUrl = item.product?.images?.[0] || '';
+
         return {
           id: item.id,
-          product_id: item.product_id,
-          variant_id: item.variant_id,
+          product_id: item.productId,
+          variant_id: item.metadata?.variantId,
           quantity: item.quantity,
           product: {
-            name: product?.name || 'Producto no disponible',
-            price: product?.price || 0,
-            image_url: imageUrl
+            name: item.product?.name || 'Producto no disponible',
+            price: price,
+            image_url: imageUrl,
+            allows_local_pickup: item.product?.allowsLocalPickup || false
           }
         };
       });
 
-      setItems(mappedItems);
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      setItems([]);
+      // Preserve gift cards from state
+      const currentGiftCards = items.filter(item => item.isGiftCard);
+      setItems([...mappedItems, ...currentGiftCards]);
+
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        // No cart found - new user or cart converted
+        console.log('[CartContext] No open cart found');
+
+        // Check if we have gift cards in state and should preserve the activeCartId
+        const hasGiftCardsInState = items.some(item => item.isGiftCard);
+        if (preserveCartIdForGiftCards && hasGiftCardsInState && activeCartId) {
+          // Don't reset activeCartId - gift cards need it for checkout
+          setLoading(false);
+          return;
+        }
+
+        setItems(prev => prev.filter(item => item.isGiftCard)); // Keep gift cards
+        if (!hasGiftCardsInState) {
+          setActiveCartId(null);
+        }
+      } else {
+        console.error('[CartContext] Error fetching cart:', error);
+        setItems([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -273,14 +336,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = async (productId: string, quantity: number, variantId?: string) => {
     try {
-      // Fetch product details from marketplace_products view
-      const { data: product, error: productError } = await telarClient
-        .from('marketplace_products')
-        .select('id, name, price, images')
-        .eq('id', productId)
-        .single();
-
-      if (productError) throw productError;
+      // Fetch product details from products service
+      const product = await ProductsActions.getProductById(productId);
 
       const imageUrl = product.images?.[0] || '';
 
@@ -293,7 +350,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           quantity,
           product: {
             name: product.name,
-            price: product.price,
+            price: parseFloat(product.price.toString()),
             image_url: imageUrl
           }
         };
@@ -304,88 +361,100 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // For authenticated users, check if there's an active cart_id from existing items
+      // For authenticated users
       let cartId = activeCartId;
 
-      if (!cartId) {
-        // Check for existing cart items to get cart_id
-        const { data: existingItem } = await supabase
-          .from('cart_items')
-          .select('cart_id')
-          .eq('user_id', user.id)
-          .is('payment_status', null)
-          .limit(1)
-          .maybeSingle();
-
-        if (existingItem) {
-          cartId = existingItem.cart_id;
-          setActiveCartId(cartId);
-        }
-      }
-
       if (cartId) {
-        // Check if this product is already in the cart
-        const { data: existingProduct } = await supabase
-          .from('cart_items')
-          .select('id, quantity')
-          .eq('cart_id', cartId)
-          .eq('product_id', productId)
-          .maybeSingle();
+        // Add item to existing cart using backend
+        // Backend handles duplicate checking and quantity merging
+        const unitPriceMinor = Math.round(parseFloat(product.price.toString()) * 100).toString();
 
-        if (existingProduct) {
-          // Update quantity of existing item
-          const { error: updateError } = await supabase
-            .from('cart_items')
-            .update({ quantity: existingProduct.quantity + quantity })
-            .eq('id', existingProduct.id);
-
-          if (updateError) throw updateError;
-        } else {
-          // Add new item to existing cart
-          const { error: insertError } = await supabase
-            .from('cart_items')
-            .insert({
-              cart_id: cartId,
-              user_id: user.id,
-              product_id: productId,
-              variant_id: variantId,
-              quantity
-            });
-
-          if (insertError) throw insertError;
-        }
+        await CartActions.addCartItem({
+          cartId: cartId,
+          productId: productId,
+          sellerShopId: product.shopId,
+          quantity: quantity,
+          currency: 'COP',
+          unitPriceMinor: unitPriceMinor,
+          priceSource: 'product_base',
+          metadata: variantId ? { variantId } : undefined
+        });
       } else {
-        // No active cart, use edge function to create cart_id and cart_item
-        const { data, error } = await supabase.functions.invoke('sync-guest-cart', {
-          body: {
-            user_id: user.id,
-            items: [{
-              product_id: productId,
-              variant_id: variantId,
-              quantity,
-              price: product.price
-            }]
-          }
+        // No active cart, use sync-guest to create cart + item
+        const response = await CartActions.syncGuestCart({
+          buyerUserId: user.id,
+          items: [{
+            productId: productId,
+            variantId: variantId,
+            quantity
+          }]
         });
 
-        if (error) {
-          console.error('Error calling sync-guest-cart:', error);
-          throw error;
-        }
-
-        if (data?.cart_id) {
-          setActiveCartId(data.cart_id);
+        if (response.cartId) {
+          setActiveCartId(response.cartId);
         }
       }
 
-      await fetchCart();
+      await fetchCart(true); // Preserve cart ID for gift cards
       toast.success('Producto agregado al carrito');
       openCart();
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('[CartContext] Error adding to cart:', error);
       toast.error('Error al agregar al carrito');
     }
   };
+
+  // Helper to persist gift cards to sessionStorage
+  const saveGiftCardsToSession = (giftCards: CartItem[]) => {
+    try {
+      sessionStorage.setItem(GIFT_CARD_SESSION_KEY, JSON.stringify(giftCards));
+    } catch (error) {
+      console.error('Error saving gift cards to session:', error);
+    }
+  };
+
+  // Helper to load gift cards from sessionStorage
+  const loadGiftCardsFromSession = (): CartItem[] => {
+    try {
+      const stored = sessionStorage.getItem(GIFT_CARD_SESSION_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Error loading gift cards from session:', error);
+    }
+    return [];
+  };
+
+  // Clear gift cards from sessionStorage
+  const clearGiftCardsFromSession = () => {
+    try {
+      sessionStorage.removeItem(GIFT_CARD_SESSION_KEY);
+    } catch (error) {
+      console.error('Error clearing gift cards from session:', error);
+    }
+  };
+
+  // Load gift cards from sessionStorage on mount
+  useEffect(() => {
+    const savedGiftCards = loadGiftCardsFromSession();
+    if (savedGiftCards.length > 0) {
+      setItems(prev => {
+        const nonGiftCards = prev.filter(item => !item.isGiftCard);
+        return [...nonGiftCards, ...savedGiftCards];
+      });
+    }
+  }, []);
+
+  // Persist gift cards to sessionStorage whenever items change
+  useEffect(() => {
+    const giftCards = items.filter(item => item.isGiftCard);
+    if (giftCards.length > 0) {
+      saveGiftCardsToSession(giftCards);
+    } else {
+      clearGiftCardsFromSession();
+    }
+  }, [items]);
 
   const addGiftCardToCart = async (amount: number, recipientEmail?: string, message?: string) => {
     const giftCardItem: CartItem = {
@@ -413,11 +482,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromCart = async (itemId: string) => {
-    // Check if it's a gift card (handled locally)
+    // Check if it's a gift card or local item (handled in state)
     if (itemId.startsWith('giftcard-') || itemId.startsWith('local-')) {
       const updatedItems = items.filter(item => item.id !== itemId);
       setItems(updatedItems);
-      
+
       // Update localStorage for guests
       if (!user) {
         if (updatedItems.length === 0) {
@@ -426,47 +495,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           saveLocalCart(updatedItems);
         }
       }
-      
+
       toast.success('Producto eliminado del carrito');
       return;
     }
 
     // For authenticated users with regular products
     try {
-      // Get the cart_id before deleting
-      const { data: cartItem } = await supabase
-        .from('cart_items')
-        .select('cart_id')
-        .eq('id', itemId)
-        .single();
-
-      const cartId = cartItem?.cart_id;
-
-      // Delete the cart_item
-      const { error: deleteError } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('id', itemId);
-
-      if (deleteError) throw deleteError;
-
-      // Check if there are remaining items in the cart
-      if (cartId) {
-        const { data: remainingItems } = await supabase
-          .from('cart_items')
-          .select('id')
-          .eq('cart_id', cartId);
-
-        if (!remainingItems || remainingItems.length === 0) {
-          // No items left, clear active cart
-          setActiveCartId(null);
-        }
-      }
-
-      await fetchCart();
+      await CartActions.deleteCartItem(itemId);
+      await fetchCart(true); // Preserve cart ID for gift cards
       toast.success('Producto eliminado del carrito');
     } catch (error) {
-      console.error('Error removing from cart:', error);
+      console.error('[CartContext] Error removing from cart:', error);
       toast.error('Error al eliminar del carrito');
     }
   };
@@ -476,30 +516,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     // For gift cards or guests, update local state
     if (itemId.startsWith('giftcard-') || itemId.startsWith('local-') || !user) {
-      setItems(prev => prev.map(item => 
+      setItems(prev => prev.map(item =>
         item.id === itemId ? { ...item, quantity } : item
       ));
       return;
     }
 
-    // For authenticated users, update in Supabase
+    // For authenticated users, update via backend
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .update({ quantity })
-        .eq('id', itemId);
-
-      if (error) throw error;
-
-      await fetchCart();
+      await CartActions.updateCartItem(itemId, { quantity });
+      await fetchCart(true); // Preserve cart ID for gift cards
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      console.error('[CartContext] Error updating quantity:', error);
       toast.error('Error al actualizar cantidad');
     }
   };
 
   const clearCart = async () => {
     setItems([]);
+  };
+
+  // Reset cart after purchase completion (clears state and activeCartId)
+  const resetCart = () => {
+    setItems([]);
+    setActiveCartId(null);
+    localStorage.removeItem(CART_STORAGE_KEY);
+    clearGiftCardsFromSession(); // Clear gift cards from sessionStorage
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -525,6 +567,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       removeFromCart,
       updateQuantity,
       clearCart,
+      resetCart,
       syncGuestCartToUser,
       totalItems,
       totalPrice,
