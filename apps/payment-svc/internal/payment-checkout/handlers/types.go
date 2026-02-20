@@ -15,3 +15,26 @@ type checkoutResponse struct {
 	Status      string  `json:"status"`
 	Total       float64 `json:"total"`
 }
+
+// Estructura exacta basada en la documentación de eventos de Wompi
+type WompiWebhookPayload struct {
+	Event string `json:"event"`
+	Data  struct {
+		Transaction map[string]interface{} `json:"transaction"` // Usamos map para extraer props dinámicamente
+	} `json:"data"`
+	Environment string `json:"environment"`
+	Signature   struct {
+		Properties []string `json:"properties"`
+		Checksum   string   `json:"checksum"`
+	} `json:"signature"`
+	Timestamp int64 `json:"timestamp"`
+}
+
+// Estructura tipada para acceder fácil a los datos que nos importan
+type WompiTransaction struct {
+	ID            string `json:"id"`
+	AmountInCents int64  `json:"amount_in_cents"`
+	Reference     string `json:"reference"` // Este es nuestro Intent.ID
+	Status        string `json:"status"`
+	Currency      string `json:"currency"`
+}

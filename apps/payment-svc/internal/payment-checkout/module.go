@@ -13,18 +13,23 @@ type Module struct {
 }
 
 func (m *Module) Provide(c *bootstrap.Container) error {
-	// 1. Repo
+	// 1. Repo Principal (Implementa CheckoutRepo, LedgerRepo, EventRepo y UnitOfWork)
 	repo := adapters.NewPostgresRepository(c.PgPool)
 
-	// 2. Gateways
-	// Cobre lo instanciamos pero NO lo usamos por ahora en el servicio v1
-	// _ = adapters.NewCobreGateway(c.Config.Cobre)
-
+	// 2. Gateways & Validators
 	wompiGateway := adapters.NewWompiGateway(c.Config.Wompi)
+	wompiValidator := adapters.NewWompiSignatureValidator(c.Config.Wompi.EventsSecret)
 
 	// 3. Service
-	// CORRECCIÓN: Quitamos cobreGateway de los argumentos para coincidir con la definición
-	service := usecases.NewCheckoutService(repo, wompiGateway, c.Logger)
+	// Pasamos 'repo' dos veces: una como CheckoutRepository y otra como UnitOfWork.
+	// ¡Magia de las interfaces en Go!
+	service := usecases.NewCheckoutService(
+		repo,           // ports.CheckoutRepository
+		repo,           // ports.UnitOfWork
+		wompiGateway,   // ports.PaymentGateway
+		wompiValidator, // ports.WebhookValidator
+		c.Logger,       // *slog.Logger
+	)
 
 	// 4. Handler
 	m.handler = handlers.NewHTTPHandler(service)
@@ -34,5 +39,5 @@ func (m *Module) Provide(c *bootstrap.Container) error {
 
 func (m *Module) RegisterHTTP(e *echo.Echo) {
 	g := e.Group("/api/v1/payments")
-	g.POST("/checkout", m.handler.CreateCheckout)
+	m.handler.RegisterRoutes(g)
 }

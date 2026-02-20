@@ -1,6 +1,10 @@
+//internal/payment-checkout/domain/checkout.go
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // ==========================================
 // 1. CONTEXTO DE ENTRADA (Lectura del Carrito)
@@ -102,4 +106,57 @@ type CheckoutResponse struct {
 	Status          string  `json:"status"`
 	TotalAmount     float64 `json:"total_amount"` // Para mostrar al usuario
 	Currency        string  `json:"currency"`
+}
+
+// ==========================================
+// 4. webhook de actualización de estado de pago
+// ==========================================
+
+// --- WEBHOOK (Agnóstico a Wompi) ---
+type PaymentGatewayEvent struct {
+	EventID        string // Para Idempotencia
+	ExternalTxID   string // ID de la transacción en el gateway
+	PaymentLinkID  string // Para correlacionar con nuestro ExternalID
+	Status         string // APPROVED, DECLINED, etc.
+	AmountMinor    int64
+	Currency       string
+	GatewayPayload []byte // Raw para auditoría
+	CreatedAt      time.Time
+}
+
+// --- LÉXICO CONTABLE (LEDGER) ---
+type AccountType string
+
+const (
+	AccTypeAsset     AccountType = "ASSET"     // ej: gateway_receivable
+	AccTypeLiability AccountType = "LIABILITY" // ej: tax_liability, seller_pending
+	AccTypeRevenue   AccountType = "REVENUE"   // ej: platform_revenue
+)
+
+type LedgerAccount struct {
+	ID       string
+	Name     string
+	Type     AccountType
+	Currency string
+}
+
+type LedgerEntry struct {
+	ID              string
+	TransactionID   string // ID agrupador para la partida doble
+	AccountID       string
+	PaymentIntentID string
+	AmountMinor     int64 // Positivo = Débito, Negativo = Crédito
+	CreatedAt       time.Time
+}
+
+// Regla de Dominio: Partida Doble ($inline$\sum \text{Débitos} + \sum \text{Créditos} = 0$inline$)
+func ValidateDoubleEntry(entries []LedgerEntry) error {
+	var balance int64 = 0
+	for _, e := range entries {
+		balance += e.AmountMinor
+	}
+	if balance != 0 {
+		return errors.New("domain_error: ledger entries do not balance to zero")
+	}
+	return nil
 }

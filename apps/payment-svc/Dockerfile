@@ -31,7 +31,6 @@ COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 # Copiar el binario compilado
 COPY --from=builder /app/payment-service /payment-service
 
-# Copiar archivo .env (OPCIONAL: En producción real, usa variables de entorno del sistema, no archivo .env)
 # COPY .env .env 
 
 # Exponer el puerto

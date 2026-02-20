@@ -384,3 +384,4 @@ MigrationBackup/
 .env
 
 test/
+bin

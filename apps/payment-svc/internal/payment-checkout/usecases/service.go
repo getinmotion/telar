@@ -12,18 +12,28 @@ import (
 )
 
 type CheckoutService struct {
-	repo          ports.CheckoutRepository
-	pricingEngine *PricingEngine
-	wompiGateway  ports.PaymentGateway
-	logger        *slog.Logger
+	repo           ports.CheckoutRepository
+	uow            ports.UnitOfWork // Añadido para transacciones complejas
+	pricingEngine  *PricingEngine
+	wompiGateway   ports.PaymentGateway
+	wompiValidator ports.WebhookValidator // Añadido para verificar firmas
+	logger         *slog.Logger
 }
 
-func NewCheckoutService(repo ports.CheckoutRepository, wompi ports.PaymentGateway, logger *slog.Logger) *CheckoutService {
+func NewCheckoutService(
+	repo ports.CheckoutRepository,
+	uow ports.UnitOfWork,
+	wompiGateway ports.PaymentGateway,
+	wompiValidator ports.WebhookValidator,
+	logger *slog.Logger,
+) *CheckoutService {
 	return &CheckoutService{
-		repo:          repo,
-		pricingEngine: NewPricingEngine(repo), // Inyectamos repo al engine
-		wompiGateway:  wompi,
-		logger:        logger,
+		repo:           repo,
+		uow:            uow,
+		pricingEngine:  NewPricingEngine(repo),
+		wompiGateway:   wompiGateway,
+		wompiValidator: wompiValidator,
+		logger:         logger,
 	}
 }
 

@@ -1,3 +1,4 @@
+// internal/payment-checkout/ports/interfaces.go
 package ports
 
 import (
@@ -35,4 +36,40 @@ type CheckoutRepository interface {
 	// Helpers
 	CountAttemptsByIntent(ctx context.Context, intentID string) (int, error)
 	GetChargeTypeID(ctx context.Context, code string) (string, error) // Opcional en interfaz, pero útil
+
+	// Transaccionales para el Webhook
+	GetIntentByIDForUpdate(ctx context.Context, tx DBTransaction, intentID string) (*domain.PaymentIntent, error)
+	UpdateIntentStatus(ctx context.Context, tx DBTransaction, intentID string, status string) error
+	UpdateCheckoutStatus(ctx context.Context, tx DBTransaction, checkoutID string, status string) error
+}
+
+// DBTransaction permite orquestar múltiples operaciones en una sola transacción ACID
+type DBTransaction interface {
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
+}
+
+type UnitOfWork interface {
+	BeginTx(ctx context.Context) (DBTransaction, error)
+	// Los repositorios se inyectan en la Tx
+	CheckoutRepo() CheckoutRepository
+	LedgerRepo() LedgerRepository
+	EventRepo() EventRepository
+}
+
+type LedgerRepository interface {
+	// Obtiene o crea la cuenta según tu esquema (owner_type, owner_id, account_type, currency)
+	GetOrCreateAccount(ctx context.Context, tx DBTransaction, ownerType string, ownerID *string, accountType string, currency string) (string, error)
+
+	// Guarda la transacción (ledger.transactions) y sus entradas (ledger.entries)
+	SaveLedgerTransaction(ctx context.Context, tx DBTransaction, referenceType string, referenceID string, currency string, idempotencyKey string, entries []domain.LedgerEntry) error
+}
+
+type EventRepository interface {
+	// Falla si el event_id ya existe (Idempotencia)
+	SaveProcessedEvent(ctx context.Context, tx DBTransaction, eventID string) error
+}
+
+type WebhookValidator interface {
+	ValidateSignature(payload []byte, signatureHeader string) error
 }

@@ -23,9 +23,10 @@ type CobreConfig struct {
 }
 
 type WompiConfig struct {
-	BaseURL    string
-	PrivateKey string // "prv_..." para backend
-	PublicKey  string // "pub_..." (opcional si el front la necesita)
+	BaseURL      string
+	PrivateKey   string // "prv_..." para backend
+	PublicKey    string // "pub_..." (opcional si el front la necesita)
+	EventsSecret string
 }
 
 // WompiConfig configuración para la pasarela Wompi
@@ -69,8 +70,9 @@ func Load() *Config {
 		},
 
 		Wompi: WompiConfig{
-			BaseURL:    getenv("WOMPI_BASE_URL", "https://sandbox.wompi.co/v1"), // O sandbox
-			PrivateKey: getenv("WOMPI_PRIVATE_KEY", ""),
+			BaseURL:      getenv("WOMPI_BASE_URL", "https://sandbox.wompi.co/v1"), // O sandbox
+			PrivateKey:   getenv("WOMPI_PRIVATE_KEY", ""),
+			EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""), // <-- ¡Añadido! Fundamental para el Webhook
 		},
 		// Wompi: WompiConfig{
 		// 	PublicKey:    getenv("WOMPI_PUB_KEY", ""),

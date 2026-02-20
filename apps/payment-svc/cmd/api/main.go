@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/getinmotion/telar/apps/payment-svc/config"
@@ -14,12 +15,27 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Helper para encontrar la raíz del proyecto y cargar el .env
+func loadEnv() {
+	// Intentar cargar el .env en el directorio actual (por si ejecutamos desde la raíz)
+	if err := godotenv.Load(); err == nil {
+		return
+	}
+
+	// Si falla, buscar dos niveles arriba (por si ejecutamos desde cmd/api)
+	dir, _ := os.Getwd()
+	envPath := filepath.Join(dir, "..", "..", ".env")
+	if err := godotenv.Load(envPath); err != nil {
+		slog.Warn("No .env file found in standard locations, relying on system environment variables")
+	} else {
+		slog.Info("Loaded .env from fallback path", "path", envPath)
+	}
+}
+
 func main() {
 	// 0. Cargar variables del archivo .env
 	// Esto inyecta las variables en el entorno del proceso
-	if err := godotenv.Load(); err != nil {
-		slog.Warn("No .env file found, relying on system environment variables")
-	}
+	loadEnv()
 
 	// 1. Cargar Configuración
 	cfg := config.Load()

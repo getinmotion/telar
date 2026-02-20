@@ -4,10 +4,13 @@ import "github.com/labstack/echo/v4"
 
 // RegisterRoutes permite que el Handler defina sus propios caminos
 func (h *HTTPHandler) RegisterRoutes(e *echo.Group) {
-	// Definimos las rutas relativas al grupo que nos pasen
+	// Endpoints del API transaccional (App / Frontend)
 	e.POST("/checkout", h.CreateCheckout)
-
-	// Aquí agregarías futuros endpoints, por ejemplo:
 	// e.GET("/:id", h.GetCheckout)
-	// e.POST("/webhook", h.HandleWebhook)
+
+	// Endpoints de integración asíncrona (Webhooks de terceros)
+	// Nota: Si el grupo 'e' tiene un prefijo como '/api/v1/payments',
+	// la URL final para configurar en el dashboard de Wompi será:
+	// https://tu-dominio.com/api/v1/payments/webhook/wompi
+	e.POST("/webhook/wompi", h.HandleWompiWebhook)
 }
