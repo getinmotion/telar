@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FilterState } from "./FilterSidebar";
+import { formatCurrency } from "@/lib/currencyUtils";
 
 interface FilterChipsProps {
   filters: FilterState;
@@ -16,7 +17,7 @@ export const FilterChips = ({ filters, onRemoveFilter, onClearAll }: FilterChips
   if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000) {
     activeFilters.push({
       type: 'priceRange',
-      label: `$${filters.priceRange[0].toLocaleString()} - $${filters.priceRange[1].toLocaleString()}`,
+      label: `${formatCurrency(filters.priceRange[0])} - ${formatCurrency(filters.priceRange[1])}`,
     });
   }
 

@@ -6,6 +6,8 @@ import bolsosImg from '@/assets/categories/bolsos.png';
 import vajillasImg from '@/assets/categories/vajillas.png';
 import mueblesImg from '@/assets/categories/muebles.png';
 import arteImg from '@/assets/categories/arte.png';
+// Placeholder para cuidado personal hasta que se agregue imagen
+const cuidadoPersonalImg = decoracionImg; // Temporal, usar imagen apropiada después
 
 export interface MarketplaceCategory {
   name: string;
@@ -16,7 +18,7 @@ export interface MarketplaceCategory {
   keywords: string[];
 }
 
-export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
+export const FALLBACK_MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
   {
     name: "Joyería y Accesorios",
     icon: "Gem",
@@ -72,7 +74,17 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
     color: "from-indigo-500/20 to-violet-500/20",
     imageUrl: arteImg,
     keywords: ["arte", "escultura", "figura", "madera", "piedra", "metal", "artístico", "decorativo"]
+  },
+  {
+    name: "Cuidado Personal",
+    icon: "Sparkles",
+    description: "Cosméticos y productos artesanales para el bienestar",
+    color: "from-rose-500/20 to-pink-500/20",
+    imageUrl: cuidadoPersonalImg,
+    keywords: ["crema", "jabón", "cosmético", "aceite", "loción", "bálsamo", "ungüento", "hidratante", "exfoliante", "mascarilla", "sérum", "corporal", "facial", "natural"]
   }
 ];
 
-export const MARKETPLACE_CATEGORY_NAMES = MARKETPLACE_CATEGORIES.map(c => c.name);
+// Backward compatibility exports
+export const MARKETPLACE_CATEGORIES = FALLBACK_MARKETPLACE_CATEGORIES;
+export const MARKETPLACE_CATEGORY_NAMES = FALLBACK_MARKETPLACE_CATEGORIES.map(c => c.name);

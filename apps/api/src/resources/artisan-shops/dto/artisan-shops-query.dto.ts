@@ -128,14 +128,14 @@ export class ArtisanShopsQueryDto {
   // Ordenamiento
   @ApiPropertyOptional({
     description: 'Ordenar por',
-    enum: ['createdAt', 'shopName'],
-    example: 'createdAt',
+    enum: ['created_at', 'shop_name'],
+    example: 'created_at',
   })
   @IsOptional()
-  @IsEnum(['createdAt', 'shopName'], {
-    message: 'sortBy debe ser: createdAt o shopName',
+  @IsEnum(['created_at', 'shop_name'], {
+    message: 'sortBy debe ser: created_at o shop_name',
   })
-  sortBy?: 'createdAt' | 'shopName';
+  sortBy?: 'created_at' | 'shop_name';
 
   @ApiPropertyOptional({
     description: 'Orden',

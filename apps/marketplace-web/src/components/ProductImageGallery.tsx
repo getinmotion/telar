@@ -39,6 +39,9 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
           src={images[selectedImage]}
           alt={`${productName} - Imagen ${selectedImage + 1}`}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = '/placeholder.svg';
+          }}
         />
         
         {/* Navigation Arrows */}
@@ -98,6 +101,9 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
                 src={image}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                }}
               />
             </button>
           ))}
@@ -112,6 +118,9 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
               src={images[selectedImage]}
               alt={productName}
               className="w-full h-auto max-h-[85vh] object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/placeholder.svg';
+              }}
             />
             <Button
               variant="secondary"
