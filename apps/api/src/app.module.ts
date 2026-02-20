@@ -21,6 +21,15 @@ import { AnalyticsEventsModule } from './resources/analytics-events/analytics-ev
 import { AgentDeliverablesModule } from './resources/agent-deliverables/agent-deliverables.module';
 import { UserAchievementsModule } from './resources/user-achievements/user-achievements.module';
 import { TaskStepsModule } from './resources/task-steps/task-steps.module';
+import { WishlistModule } from './resources/wishlist/wishlist.module';
+import { AddressesModule } from './resources/addresses/addresses.module';
+import { CartModule } from './resources/cart/cart.module';
+import { CartItemsModule } from './resources/cart-items/cart-items.module';
+import { OrdersModule } from './resources/orders/orders.module';
+import { OrderItemsModule } from './resources/order-items/order-items.module';
+import { PendingGiftCardOrdersModule } from './resources/pending-gift-card-orders/pending-gift-card-orders.module';
+import { GiftCardsModule } from './resources/gift-cards/gift-cards.module';
+import { CheckoutsModule } from './resources/checkouts/checkouts.module';
 
 @Module({
   imports: [
@@ -48,6 +57,15 @@ import { TaskStepsModule } from './resources/task-steps/task-steps.module';
     AgentDeliverablesModule,
     UserAchievementsModule,
     TaskStepsModule,
+    WishlistModule,
+    AddressesModule,
+    CartModule,
+    CartItemsModule,
+    OrdersModule,
+    OrderItemsModule,
+    PendingGiftCardOrdersModule,
+    GiftCardsModule,
+    CheckoutsModule
   ],
   controllers: [],
   providers: [],

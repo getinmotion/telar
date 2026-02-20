@@ -5,10 +5,11 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ArtisanShop } from './entities/artisan-shop.entity';
 import { CreateArtisanShopDto } from './dto/create-artisan-shop.dto';
 import { UpdateArtisanShopDto } from './dto/update-artisan-shop.dto';
+import { ArtisanShopsQueryDto } from './dto/artisan-shops-query.dto';
 
 @Injectable()
 export class ArtisanShopsService {
@@ -46,13 +47,125 @@ export class ArtisanShopsService {
   }
 
   /**
-   * Obtener todas las tiendas
+   * Obtener todas las tiendas con filtros y paginación
    */
-  async getAll(): Promise<ArtisanShop[]> {
-    return await this.artisanShopsRepository.find({
-      relations: ['user', 'activeTheme'],
-      order: { createdAt: 'DESC' },
-    });
+  async getAll(query: ArtisanShopsQueryDto): Promise<{
+    data: ArtisanShop[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const {
+      page = 1,
+      limit = 20,
+      active,
+      publishStatus,
+      marketplaceApproved,
+      featured,
+      hasApprovedProducts,
+      shopSlug,
+      region,
+      craftType,
+      sortBy = 'created_at',
+      order = 'DESC',
+    } = query;
+
+    const queryBuilder = this.artisanShopsRepository
+      .createQueryBuilder('shop')
+      .leftJoinAndSelect('shop.user', 'user')
+      .leftJoinAndSelect('shop.activeTheme', 'activeTheme');
+
+    // Filtro: active
+    if (active !== undefined) {
+      queryBuilder.andWhere('shop.active = :active', { active });
+    }
+
+    // Filtro: publishStatus
+    if (publishStatus) {
+      queryBuilder.andWhere('shop.publish_status = :publishStatus', {
+        publishStatus,
+      });
+    }
+
+    // Filtro: marketplaceApproved
+    if (marketplaceApproved !== undefined) {
+      queryBuilder.andWhere(
+        'shop.marketplace_approved = :marketplaceApproved',
+        { marketplaceApproved },
+      );
+    }
+
+    // Filtro: featured
+    if (featured !== undefined) {
+      queryBuilder.andWhere('shop.featured = :featured', { featured });
+    }
+
+    // Filtro: hasApprovedProducts (solo tiendas con productos aprobados)
+    if (hasApprovedProducts === true) {
+      queryBuilder
+        .innerJoin('shop.products', 'product')
+        .andWhere('product.moderation_status IN (:...statuses)', {
+          statuses: ['approved', 'approved_with_edits'],
+        });
+    }
+
+    // Filtro: shopSlug
+    if (shopSlug) {
+      queryBuilder.andWhere('shop.shop_slug = :shopSlug', { shopSlug });
+    }
+
+    // Filtro: region
+    if (region) {
+      queryBuilder.andWhere('shop.region = :region', { region });
+    }
+
+    // Filtro: craftType
+    if (craftType) {
+      queryBuilder.andWhere('shop.craft_type = :craftType', { craftType });
+    }
+
+    // Ordenamiento - solo si NO hay hasApprovedProducts
+    if (hasApprovedProducts !== true) {
+      const orderByColumn = sortBy === 'shop_name' ? 'shop.shop_name' : 'shop.created_at';
+      queryBuilder.orderBy(orderByColumn, order);
+    }
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Ejecutar query
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    // Si hasApprovedProducts está activo, eliminar duplicados y ordenar manualmente
+    let uniqueData = data;
+    if (hasApprovedProducts === true) {
+      // Eliminar duplicados
+      uniqueData = data.filter(
+        (shop, index, self) =>
+          index === self.findIndex((s) => s.id === shop.id),
+      );
+
+      // Ordenar manualmente a nivel de aplicación
+      const sortField = sortBy === 'shop_name' ? 'shopName' : 'createdAt';
+      uniqueData.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+
+        if (order === 'ASC') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    }
+
+    return {
+      data: uniqueData,
+      total,
+      page,
+      limit,
+    };
   }
 
   /**
@@ -145,13 +258,44 @@ export class ArtisanShopsService {
   }
 
   /**
-   * Obtener tiendas destacadas
+   * Obtener tiendas destacadas con productos aprobados
+   * - Solo tiendas activas, publicadas y aprobadas en marketplace
+   * - Solo tiendas con al menos 1 producto aprobado
+   * - Ordenadas por fecha de creación (más recientes primero)
+   * @param limit Cantidad máxima de tiendas a retornar (default: 8)
    */
-  async getFeatured(): Promise<ArtisanShop[]> {
+  async getFeatured(limit: number = 8): Promise<ArtisanShop[]> {
+    // Paso 1: Obtener IDs de tiendas que tienen productos aprobados usando query raw
+    const shopIdsResult = await this.artisanShopsRepository.query(
+      `
+      SELECT s.id
+      FROM shop.artisan_shops s
+      WHERE s.active = $1
+        AND s.publish_status = $2
+        AND s.marketplace_approved = $3
+        AND EXISTS (
+          SELECT 1 FROM shop.products p
+          WHERE p.shop_id = s.id
+            AND p.moderation_status IN ('approved', 'approved_with_edits')
+        )
+      LIMIT $4
+      `,
+      [true, 'published', true, limit],
+    );
+
+    const shopIds = shopIdsResult.map((row: { id: string }) => row.id);
+
+    // Si no hay tiendas que cumplan los criterios, retornar array vacío
+    if (shopIds.length === 0) {
+      return [];
+    }
+
+    // Paso 2: Obtener las tiendas completas con sus relaciones y ordenadas
     return await this.artisanShopsRepository.find({
-      where: { featured: true, active: true },
+      where: { id: In(shopIds) },
       relations: ['user', 'activeTheme'],
       order: { createdAt: 'DESC' },
+      take: limit,
     });
   }
 

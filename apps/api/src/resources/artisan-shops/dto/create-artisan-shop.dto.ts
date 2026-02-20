@@ -153,6 +153,16 @@ export class CreateArtisanShopDto {
   featured?: boolean;
 
   @ApiPropertyOptional({
+    description: 'Indica si la tienda tiene cobertura de Servientrega',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean({
+    message: 'servientregaCoverage debe ser un valor booleano',
+  })
+  servientregaCoverage?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Datos SEO de la tienda',
     example: { title: 'Tienda', description: 'Descripción SEO' },
   })
@@ -307,7 +317,7 @@ export class CreateArtisanShopDto {
   })
   @IsOptional()
   @IsEnum(BankDataStatus, {
-    message: 'El estado de datos bancarios debe ser: not_set, pending o approved',
+    message: 'El estado de datos bancarios debe ser: not_set o complete',
   })
   bankDataStatus?: string;
 

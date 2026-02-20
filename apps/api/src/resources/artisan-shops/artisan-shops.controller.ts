@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -20,6 +21,7 @@ import {
 import { ArtisanShopsService } from './artisan-shops.service';
 import { CreateArtisanShopDto } from './dto/create-artisan-shop.dto';
 import { UpdateArtisanShopDto } from './dto/update-artisan-shop.dto';
+import { ArtisanShopsQueryDto } from './dto/artisan-shops-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('artisan-shops')
@@ -51,17 +53,41 @@ export class ArtisanShopsController {
 
   /**
    * GET /artisan-shops
-   * Obtener todas las tiendas
+   * Obtener todas las tiendas con filtros y paginación
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener todas las tiendas de artesanos' })
+  @ApiOperation({
+    summary: 'Obtener todas las tiendas con filtros y paginación',
+    description:
+      'Endpoint para obtener tiendas con soporte de paginación, filtros múltiples y ordenamiento',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de tiendas obtenida exitosamente',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { type: 'object' },
+        },
+        total: {
+          type: 'number',
+          example: 50,
+        },
+        page: {
+          type: 'number',
+          example: 1,
+        },
+        limit: {
+          type: 'number',
+          example: 20,
+        },
+      },
+    },
   })
-  async getAll() {
-    return await this.artisanShopsService.getAll();
+  async getAll(@Query() query: ArtisanShopsQueryDto) {
+    return await this.artisanShopsService.getAll(query);
   }
 
   /**
@@ -81,17 +107,45 @@ export class ArtisanShopsController {
 
   /**
    * GET /artisan-shops/featured
-   * Obtener tiendas destacadas
+   * Obtener tiendas destacadas con productos aprobados
    */
   @Get('featured')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener tiendas destacadas' })
+  @ApiOperation({
+    summary: 'Obtener tiendas destacadas con productos aprobados',
+    description:
+      'Retorna tiendas activas, publicadas, aprobadas en marketplace y con al menos 1 producto aprobado',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Lista de tiendas destacadas obtenida exitosamente',
+    description:
+      'Lista de tiendas destacadas con productos aprobados obtenida exitosamente',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
+          shopName: { type: 'string', example: 'Artesanías del Valle' },
+          shopSlug: { type: 'string', example: 'artesanias-del-valle' },
+          description: { type: 'string' },
+          logoUrl: { type: 'string' },
+          bannerUrl: { type: 'string' },
+          craftType: { type: 'string' },
+          region: { type: 'string' },
+          featured: { type: 'boolean' },
+          active: { type: 'boolean' },
+          publishStatus: { type: 'string', example: 'published' },
+          marketplaceApproved: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
   })
-  async getFeatured() {
-    return await this.artisanShopsService.getFeatured();
+  async getFeatured(@Query('limit') limit?: string) {
+    const limitNumber = limit ? parseInt(limit, 10) : 8;
+    return await this.artisanShopsService.getFeatured(limitNumber);
   }
 
   /**

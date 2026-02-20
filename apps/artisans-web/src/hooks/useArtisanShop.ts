@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { ArtisanShop } from '@/types/artisan';
 import { useToast } from '@/components/ui/use-toast';
 import { useAutoHeroGeneration } from '@/hooks/useAutoHeroGeneration';
 import { NotificationTemplates } from '@/services/notificationService';
@@ -11,6 +10,7 @@ import {
   updateArtisanShop,
   isSlugAvailable
 } from '@/services/artisanShops.actions';
+import { ArtisanShop } from '@/types/artisanShop.types';
 
 export const useArtisanShop = () => {
   const [shop, setShop] = useState<ArtisanShop | null>(null);
@@ -25,6 +25,8 @@ export const useArtisanShop = () => {
   const fetchShop = async (retryAttempt = 0) => {
 
     // If we already have shop data, just complete initialization
+
+
     if (shop && user?.id) {
       setLoading(false);
       setInitialCheckComplete(true);
@@ -59,8 +61,6 @@ export const useArtisanShop = () => {
       // Retry logic: attempt up to 2 additional times with exponential backoff
       if (retryAttempt < 2) {
         const retryDelay = 1000 * (retryAttempt + 1); // 1s, 2s
-        console.warn(`[useArtisanShop] Retry ${retryAttempt + 1}/2 in ${retryDelay}ms`);
-        // NO resetear isFetchingRef aquí - seguimos en proceso de retry
         setTimeout(() => fetchShop(retryAttempt + 1), retryDelay);
         return;
       }
@@ -139,12 +139,10 @@ export const useArtisanShop = () => {
 
       const data = await createArtisanShop(payload);
 
-      console.log(data, 'data')
-
       setShop(data as any);
 
       // 🔔 Crear notificación de tienda creada
-      await NotificationTemplates.shopCreated(user.id, data.shopName, data.shopSlug);
+      // await NotificationTemplates.shopCreated(user.id, data.shopName, data.shopSlug);
 
       // Generar hero slides automáticamente
       const heroResult = await generateHeroSlides(data.id);
@@ -196,7 +194,7 @@ export const useArtisanShop = () => {
 
     try {
       const data = await getArtisanShopByUserId(user.id);
-      return data as any;
+      return data
     } catch (error) {
       return null;
     }
@@ -287,6 +285,9 @@ export const useArtisanShop = () => {
 
     try {
       const data = await getArtisanShopByUserId(user.id);
+
+      console.log('verificando user', user)
+
 
       if (data) {
         setShop(data as any);

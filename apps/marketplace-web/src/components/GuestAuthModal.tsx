@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Mail, ArrowLeft, Loader2, CheckCircle2, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 type LoadingState = 'idle' | 'sending' | 'sent' | 'verifying';
 
@@ -25,6 +26,7 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
   const [otpSent, setOtpSent] = useState(false);
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const isLoading = loadingState !== 'idle' && loadingState !== 'sent';
 
@@ -97,6 +99,7 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
       setOtpCode('');
       setEmail('');
       setLoadingState('idle');
+      setAcceptedTerms(false);
     }
   };
 
@@ -142,7 +145,7 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-md border-border/50">
+      <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-md border-border/50 top-[10%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] max-h-[85vh] overflow-y-auto">
         <DialogHeader className="text-center">
           <DialogTitle className="text-xl">
             {otpSent ? 'Ingresa el código' : 'Continuar como invitado'}
@@ -174,8 +177,30 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
                 />
               </div>
             </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox 
+                id="guest-accept-terms" 
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+              />
+              <Label htmlFor="guest-accept-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                He leído y acepto los{' '}
+                <Link to="/terminos" target="_blank" className="text-primary hover:underline">
+                  Términos y Condiciones
+                </Link>
+                , la{' '}
+                <Link to="/privacidad" target="_blank" className="text-primary hover:underline">
+                  Política de Privacidad
+                </Link>
+                {' '}y el{' '}
+                <Link to="/datos-personales" target="_blank" className="text-primary hover:underline">
+                  Tratamiento de Datos
+                </Link>
+              </Label>
+            </div>
             
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || !acceptedTerms}>
               Enviar código
             </Button>
             
@@ -212,15 +237,15 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
                 disabled={isLoading}
               >
                 <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={0} className="border-2 border-muted-foreground/50 h-12 w-12" />
+                  <InputOTPSlot index={1} className="border-2 border-muted-foreground/50 h-12 w-12" />
+                  <InputOTPSlot index={2} className="border-2 border-muted-foreground/50 h-12 w-12" />
                 </InputOTPGroup>
                 <InputOTPSeparator />
                 <InputOTPGroup>
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
+                  <InputOTPSlot index={3} className="border-2 border-muted-foreground/50 h-12 w-12" />
+                  <InputOTPSlot index={4} className="border-2 border-muted-foreground/50 h-12 w-12" />
+                  <InputOTPSlot index={5} className="border-2 border-muted-foreground/50 h-12 w-12" />
                 </InputOTPGroup>
               </InputOTP>
             </div>

@@ -1,8 +1,9 @@
-import { useParams, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useProducts } from "@/contexts/ProductsContext";
 import { telarClient } from "@/lib/telarClient";
-import { mapProductToMarketplace } from "@/lib/productMapper";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,33 +19,24 @@ import { ProductSpecs } from "@/components/ProductSpecs";
 import { ProductTags } from "@/components/ProductTags";
 import { CraftBadge } from "@/components/CraftBadge";
 import { RelatedProducts } from "@/components/RelatedProducts";
+import { ProductPurchaseButton } from "@/components/ProductPurchaseButton";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/currencyUtils";
+import { mapArtisanCategory } from "@/lib/productMapper";
+import { Product } from "@/types/products.types";
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  images?: string[];
-  store_name?: string;
-  shop_slug?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  stock?: number;
-  category?: string;
-  tags?: string[];
-  materials?: string[];
-  techniques?: string[];
-  craft?: string;
-}
+
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Use state from Link, or fallback to sessionStorage
+  const returnUrl = (location.state as { returnUrl?: string })?.returnUrl 
+    || sessionStorage.getItem('productsReturnUrl') 
+    || '';
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -59,21 +51,29 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
-  const fetchProduct = async () => {
-    try {
-      const { data, error } = await telarClient
-        .from('marketplace_products')
-        .select('id, name, description, price, image_url, images, store_name, store_slug, rating, reviews_count, is_new, free_shipping, stock, category, tags, materials, techniques, craft')
-        .eq('id', id)
-        .maybeSingle();
 
-      if (error) throw error;
-      
-      if (data) {
-        setProduct(mapProductToMarketplace(data));
+  const { fetchProductById } = useProducts();
+
+  const fetchProduct = async () => {
+    if (!id) return;
+
+    try {
+      const productData = await fetchProductById(id);
+
+
+      if (productData) {
+        const realStock = productData?.stock || productData.inventory || 0;
+        const storeReadyToPurchase = productData.canPurchase ?? false;
+        const realCanPurchase = storeReadyToPurchase && realStock > 0;
+
+        setProduct({
+         ...productData,
+         stock: realStock,
+         canPurchase: realCanPurchase,
+        });
       }
     } catch (error) {
-      toast.error('Error al cargar el producto');
+      // Error already handled by context with toast
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ const ProductDetail = () => {
 
   const getFinalPrice = () => {
     if (!product) return 0;
-    return product.price + (selectedVariant?.price_adjustment || 0);
+    return parseFloat(product.price) + (selectedVariant?.price_adjustment || 0);
   };
 
   if (loading) {
@@ -115,8 +115,8 @@ const ProductDetail = () => {
   // Obtener imágenes del producto (si es array de telar.co)
   const productImages = product.images && product.images.length > 0
     ? product.images
-    : product.image_url 
-      ? [product.image_url] 
+    : product.imageUrl 
+      ? [product.imageUrl] 
       : [];
 
   return (
@@ -126,12 +126,15 @@ const ProductDetail = () => {
       {/* Breadcrumb */}
       <div className="border-b bg-muted/20">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="hover:bg-transparent">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Volver a productos
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hover:bg-transparent"
+            onClick={() => navigate(`/productos${returnUrl}`)}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Volver
+          </Button>
         </div>
       </div>
 
@@ -149,15 +152,15 @@ const ProductDetail = () => {
           {/* Right Column - Product Info */}
           <div className="space-y-6">
             {/* Store Info */}
-              {product.store_name && (
+              {product.storeName && (
                 <Link 
-                  to={product.shop_slug ? `/tienda/${product.shop_slug}` : '#'}
+                  to={product.storeSlug ? `/tienda/${product.storeSlug}` : '#'}
                   className={cn(
                     "flex items-center gap-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors group",
-                    !product.shop_slug && "cursor-not-allowed opacity-60"
+                    !product.storeSlug && "cursor-not-allowed opacity-60"
                   )}
                   onClick={(e) => {
-                    if (!product.shop_slug) e.preventDefault();
+                    if (!product.storeSlug) e.preventDefault();
                   }}
                 >
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
@@ -166,7 +169,7 @@ const ProductDetail = () => {
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Artesano</p>
                   <p className="font-semibold group-hover:text-primary transition-colors">
-                    {product.store_name}
+                    {product.storeName}
                   </p>
                 </div>
               </Link>
@@ -202,14 +205,20 @@ const ProductDetail = () => {
 
             {/* Badges */}
             <div className="flex gap-2 flex-wrap">
-              {product.is_new && (
+              {product.isNew && (
                 <Badge className="bg-primary text-primary-foreground px-3 py-1">
                   Nuevo
                 </Badge>
               )}
-              {product.free_shipping && (
+              {product.freeShipping && (
                 <Badge variant="secondary" className="px-3 py-1">
                   Envío gratis
+                </Badge>
+              )}
+              {product.allowsLocalPickup && (
+                <Badge variant="secondary" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
+                  <MapPin className="h-3 w-3 mr-1" />
+                  Retiro en local disponible
                 </Badge>
               )}
               {product.category && (
@@ -222,68 +231,88 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="space-y-2">
               <div className="text-4xl font-bold text-foreground">
-                ${getFinalPrice().toLocaleString('es-CO')}
+                {formatCurrency(getFinalPrice())}
               </div>
-              {selectedVariant && (
+              {selectedVariant && selectedVariant.price_adjustment != null && (
                 <p className="text-sm text-muted-foreground">
-                  Precio base: ${product.price.toLocaleString('es-CO')} + 
-                  ${selectedVariant.price_adjustment.toLocaleString('es-CO')} (variante)
+                  Precio base: {formatCurrency(parseFloat(product.price))} +
+                  {formatCurrency(selectedVariant.price_adjustment || 0)} (variante)
                 </p>
               )}
             </div>
 
             <Separator />
 
-            {/* Variants */}
+            {/* Variants - El componente maneja su propio título y retorna null si no hay variantes */}
             {id && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Opciones disponibles</h3>
-                <ProductVariants 
-                  productId={id} 
-                  basePrice={product.price} 
-                  onVariantSelect={setSelectedVariant} 
-                />
-              </div>
+              <ProductVariants 
+                productId={id} 
+                basePrice={parseFloat(product.price)} 
+                onVariantSelect={(variant) => {
+                  setSelectedVariant(variant);
+                  setQuantity(1);
+                }} 
+              />
             )}
 
-            {/* Quantity Selector */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Cantidad</h3>
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="h-12 w-12"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  -
-                </Button>
-                <div className="w-20 h-12 flex items-center justify-center border rounded-md bg-muted">
-                  <span className="text-lg font-semibold">{quantity}</span>
+            {/* Quantity Selector - Solo mostrar si hay stock */}
+            {(() => {
+              const maxStock = selectedVariant?.stock ?? product.stock ?? 0;
+              if (maxStock === 0) return null;
+              
+              return (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg">Cantidad</h3>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-12 w-12"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
+                    </Button>
+                    <div className="w-20 h-12 flex items-center justify-center border rounded-md bg-muted">
+                      <span className="text-lg font-semibold">{quantity}</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-12 w-12"
+                      onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
+                      disabled={quantity >= maxStock}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  {/* Stock indicator */}
+                  <div className="text-sm">
+                    {maxStock > 10 ? (
+                      <span className="text-green-600">+10 disponibles</span>
+                    ) : maxStock <= 3 ? (
+                      <span className="text-orange-500 font-medium">¡Solo {maxStock} disponible{maxStock > 1 ? 's' : ''}!</span>
+                    ) : (
+                      <span className="text-muted-foreground">{maxStock} disponibles</span>
+                    )}
+                  </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="h-12 w-12"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
+              );
+            })()}
 
             <Separator />
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button 
-                className="w-full h-14 text-lg" 
-                size="lg" 
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Agregar al carrito
-              </Button>
+              <ProductPurchaseButton
+                productId={product.id}
+                productName={product.name}
+                canPurchase={product.canPurchase ?? true}
+                stock={product.stock}
+                quantity={quantity}
+                variantId={selectedVariant?.id}
+                variant="detail"
+              />
               
               <div className="grid grid-cols-2 gap-3">
                 <Button 
@@ -325,7 +354,7 @@ const ProductDetail = () => {
                     <span className="text-primary mt-0.5">✓</span>
                     <span>Diseño único y original</span>
                   </p>
-                  {product.free_shipping && (
+                  {product.freeShipping && (
                     <p className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">✓</span>
                       <span>Envío gratis a todo el país</span>
@@ -348,7 +377,7 @@ const ProductDetail = () => {
                 Especificaciones
               </TabsTrigger>
               <TabsTrigger value="reviews" className="text-base">
-                Reseñas ({product.reviews_count || 0})
+                Reseñas ({product.reviewsCount || 0})
               </TabsTrigger>
             </TabsList>
 
@@ -418,7 +447,7 @@ const ProductDetail = () => {
             <TabsContent value="specs">
               <ProductSpecs 
                 stock={product.stock}
-                freeShipping={product.free_shipping}
+                freeShipping={product.freeShipping}
                 category={product.category}
                 sku={product.id.slice(0, 8).toUpperCase()}
               />
@@ -435,7 +464,7 @@ const ProductDetail = () => {
       <RelatedProducts 
         currentProductId={product.id}
         category={product.category}
-        storeName={product.store_name}
+        storeName={product.storeName}
       />
     </div>
   );

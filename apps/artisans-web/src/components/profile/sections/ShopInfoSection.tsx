@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ArtisanShop } from '@/types/artisan';
 import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
 import { useArtisanClassifier } from '@/hooks/useArtisanClassifier';
 import { useAuth } from '@/context/AuthContext';
+import { ArtisanShop } from '@/types/artisanShop.types';
 
 interface ShopInfoSectionProps {
   shop: ArtisanShop | null;
@@ -22,7 +22,7 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
   const { user } = useAuth();
   const { getClassification } = useArtisanClassifier();
   const [officialClassification, setOfficialClassification] = React.useState<string | undefined>();
-  
+
   // Cargar clasificación oficial si existe
   React.useEffect(() => {
     const loadClassification = async () => {
@@ -79,7 +79,7 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
   }
 
   const getStatusBadge = () => {
-    if (shop.publish_status === 'published') {
+    if (shop.publishStatus === 'published') {
       return <Badge variant="default" className="bg-success text-success-foreground">Publicada</Badge>;
     }
     return <Badge variant="secondary">Pendiente de publicación</Badge>;
@@ -106,10 +106,10 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
         {/* Shop Logo & Name */}
         <div className="flex items-start gap-3 sm:gap-4 py-3 sm:py-4 border-b border-border">
           <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg bg-muted overflow-hidden flex items-center justify-center shrink-0">
-            {shop.logo_url ? (
-              <img 
-                src={shop.logo_url} 
-                alt={shop.shop_name} 
+            {shop.logoUrl ? (
+              <img
+                src={shop.logoUrl}
+                alt={shop.shopName}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -118,7 +118,7 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-base sm:text-lg truncate">{shop.shop_name}</h3>
+              <h3 className="font-semibold text-base sm:text-lg truncate">{shop.shopName}</h3>
               {getStatusBadge()}
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -134,7 +134,7 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">Tipo de Artesanía</p>
-            <p className="text-sm sm:text-base text-foreground capitalize">{shop.craft_type || 'No especificado'}</p>
+            <p className="text-sm sm:text-base text-foreground capitalize">{shop.craftType || 'No especificado'}</p>
           </div>
         </div>
 
@@ -151,16 +151,16 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
 
         {/* Quick Actions */}
         <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            onClick={() => navigate(`/tienda/${shop.shop_slug}?preview=true`)}
+            onClick={() => navigate(`/tienda/${shop.shopSlug}?preview=true`)}
             className="w-full sm:w-auto text-xs sm:text-sm"
           >
             Ver Vista Previa
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate('/mi-tienda')}
             className="w-full sm:w-auto text-xs sm:text-sm"
@@ -170,13 +170,13 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
         </div>
 
         {/* Tarjetas de Perfil Artesanal - Solo se muestran en el perfil */}
-        {shop.craft_type && (
+        {shop.craftType && (
           <div className="pt-6 border-t border-border mt-4">
             <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
               Tu Perfil Artesanal
             </h4>
             <ArtisanProfileCards
-              craftType={shop.craft_type}
+              craftType={shop.craftType}
               officialClassification={officialClassification}
               language="es"
               onAddClassification={() => navigate('/onboarding?step=classification')}

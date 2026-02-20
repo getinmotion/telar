@@ -1,30 +1,41 @@
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
 import heroTextiles from "@/assets/hero-textiles.png";
 import heroJewelry from "@/assets/hero-jewelry.png";
 import heroCrafts from "@/assets/hero-crafts.png";
 import { useParallax } from "@/hooks/useParallax";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useHeroSlides } from "@/hooks/useHeroSlides";
+import { getStoryblokImageUrl, resolveStoryblokLink, HeroSlide } from "@/types/storyblok";
 
-const HERO_SLIDES = [
+// Fallback slides when CMS content is not available
+const FALLBACK_SLIDES = [
   {
     image: heroTextiles,
     title: "Regala Arte Esta Navidad",
     subtitle: "Descubre artesanías únicas hechas a mano",
-    cta: "Explorar Colección"
+    cta: "Explorar Colección",
+    link: "/productos",
+    overlayOpacity: 30
   },
   {
     image: heroJewelry,
     title: "Apoyo Directo a Artesanos",
     subtitle: "Cada compra impacta comunidades locales",
-    cta: "Conocer Artesanos"
+    cta: "Conocer Artesanos",
+    link: "/tiendas",
+    overlayOpacity: 30
   },
   {
     image: heroCrafts,
     title: "Envíos a Todo el Mundo",
     subtitle: "Arte colombiano hasta tu puerta",
-    cta: "Ver Productos"
+    cta: "Ver Productos",
+    link: "/productos",
+    overlayOpacity: 30
   }
 ];
 
@@ -32,6 +43,21 @@ export const HeroSection = () => {
   const parallaxOffset = useParallax(0.5);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
+  
+  const { data: cmsSlides, isLoading } = useHeroSlides();
+
+  // Transform CMS slides to component format or use fallback
+  const slides = cmsSlides && cmsSlides.length > 0
+    ? cmsSlides.map((slide: HeroSlide) => ({
+        image: getStoryblokImageUrl(slide.image, { width: 1920, height: 1080, quality: 85 }) || heroTextiles,
+        title: slide.title,
+        subtitle: slide.subtitle,
+        cta: slide.cta_text,
+        link: resolveStoryblokLink(slide.cta_link),
+        overlayOpacity: slide.overlay_opacity || 30
+      }))
+    : FALLBACK_SLIDES;
 
   useEffect(() => {
     if (!api) return;
@@ -43,10 +69,13 @@ export const HeroSection = () => {
     });
   }, [api]);
 
-  const scrollToProducts = () => {
-    const productsSection = document.getElementById('products-section');
-    productsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  if (isLoading) {
+    return (
+      <section className="relative overflow-hidden">
+        <Skeleton className="w-full min-h-[400px] lg:min-h-[500px]" />
+      </section>
+    );
+  }
 
   return (
     <section className="relative overflow-hidden">
@@ -64,7 +93,7 @@ export const HeroSection = () => {
         className="w-full"
       >
         <CarouselContent>
-          {HERO_SLIDES.map((slide, index) => (
+          {slides.map((slide, index) => (
             <CarouselItem key={index}>
               <div className="relative min-h-[400px] lg:min-h-[500px]">
                 {/* Background Image with Parallax */}
@@ -78,7 +107,10 @@ export const HeroSection = () => {
                     className="w-full h-full object-cover"
                   />
                   {/* Dark overlay for text readability */}
-                  <div className="absolute inset-0 bg-black/30" />
+                  <div 
+                    className="absolute inset-0 bg-black"
+                    style={{ opacity: (slide.overlayOpacity || 30) / 100 }}
+                  />
                 </div>
 
                 {/* Content */}
@@ -105,10 +137,10 @@ export const HeroSection = () => {
                         className="animate-fade-in"
                         style={{ animationDelay: '0.6s' }}
                       >
-                        <Button 
+                      <Button 
                           size="lg" 
                           className="px-12 py-6 text-lg h-auto"
-                          onClick={scrollToProducts}
+                          onClick={() => navigate(slide.link)}
                         >
                           {slide.cta}
                         </Button>
@@ -126,7 +158,7 @@ export const HeroSection = () => {
       
       {/* Carousel Indicators */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-        {HERO_SLIDES.map((_, index) => (
+        {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => api?.scrollTo(index)}

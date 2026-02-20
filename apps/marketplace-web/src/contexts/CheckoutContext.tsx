@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { telarClient } from "@/lib/telarClient";
+import * as ProductsActions from '@/services/products.actions';
 import { useAuth } from "./AuthContext";
 
 interface PromoState {
@@ -16,7 +16,7 @@ interface PromoState {
 interface CheckoutContextType {
   isLoading: boolean;
   promo: PromoState | null;
-  createCheckoutLink: (cartId: string, price: number) => Promise<void>;
+  createCheckoutLink: (cartId: string, price: number) => Promise<boolean>;
   validatePromoCode: (code: string, cartTotal: number) => Promise<boolean>;
   clearPromo: () => void;
   applyPromoToOrder: (orderId: string, cartTotal: number) => Promise<boolean>;
@@ -108,16 +108,76 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({
     return cartTotal;
   };
 
-  const createCheckoutLink = async (cartId: string, price: number) => {
-    if (!cartId || price <= 0) {
+  // Save cart snapshot to sessionStorage for payment processing
+  const saveCartSnapshot = async (cartId: string) => {
+    try {
+      // Fetch cart items from database
+      const { data: cartItems, error } = await supabase
+        .from('cart_items')
+        .select('product_id, variant_id, quantity')
+        .eq('cart_id', cartId);
+
+      if (error) {
+        console.error('[CheckoutContext] Error fetching cart items for snapshot:', error);
+        return;
+      }
+
+      if (cartItems && cartItems.length > 0) {
+        // Fetch product details from products service
+        const productIds = cartItems.map(item => item.product_id);
+
+        const productPromises = productIds.map(id =>
+          ProductsActions.getProductById(id).catch(() => null)
+        );
+        const products = await Promise.all(productPromises);
+
+        const productMap = new Map(
+          products
+            .filter(p => p !== null)
+            .map(p => [p!.id, p!])
+        );
+
+        const snapshot = cartItems.map(item => {
+          const product = productMap.get(item.product_id);
+          return {
+            product_id: item.product_id,
+            variant_id: item.variant_id,
+            quantity: item.quantity,
+            product_name: product?.name,
+            price: product?.price
+          };
+        });
+
+        sessionStorage.setItem('cartItemsSnapshot', JSON.stringify(snapshot));
+        console.log('[CheckoutContext] Cart snapshot saved:', snapshot.length, 'items');
+      }
+    } catch (err) {
+      console.error('[CheckoutContext] Error saving cart snapshot:', err);
+    }
+  };
+
+  const createCheckoutLink = async (cartId: string, price: number): Promise<boolean> => {
+    if (!cartId) {
       toast.error("Datos del carrito inválidos");
-      return;
+      return false;
+    }
+
+    // If price is 0 or negative, this should be handled by process-zero-payment
+    // This is a safety check - ConfirmPurchase should route $0 orders differently
+    if (price <= 0) {
+      console.warn("[CheckoutContext] Attempted to create checkout with $0 - this should be handled by process-zero-payment");
+      toast.error("El total es $0. Usa el procesamiento de gift card.");
+      return false;
     }
 
     setIsLoading(true);
 
     try {
-      await telarClient
+      // Save cart snapshot BEFORE any state changes
+      console.log('[CheckoutContext] Saving cart snapshot before checkout...');
+      await saveCartSnapshot(cartId);
+
+      await supabase
         .from("cart")
         .update({ is_active_cart: false })
         .eq("id", cartId);
@@ -125,29 +185,47 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({
       // Use the final price (with discount if promo applied)
       const finalPrice = getFinalTotal(price);
 
-      const { data, error } = await supabase.functions.invoke(
-        "checkout-link-cobre",
+      // Call telar.ia's edge function directly since Cobre secrets are there
+      const TELAR_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb29xbXFtb3VmcXR4dmV0eHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Nzc1ODIsImV4cCI6MjA2MzI1MzU4Mn0.F_FtGBwpHKBpog6Ad4zUjmogRZMLNVgk18rsbMv7JYs';
+      
+      const response = await fetch(
+        'https://ylooqmqmoufqtxvetxuj.supabase.co/functions/v1/checkout-link-cobre',
         {
-          body: { cart_id: cartId, price: finalPrice },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${TELAR_ANON_KEY}`,
+            'apikey': TELAR_ANON_KEY,
+          },
+          body: JSON.stringify({ cart_id: cartId, price: finalPrice }),
         }
       );
 
-      if (error) {
-        console.error("Error creating checkout link:", error);
-        toast.error("Error al crear el link de pago");
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error creating checkout link:", data);
+        toast.error(data?.hint || "No pudimos generar el link de pago");
+        return false;
       }
 
       if (data?.checkout_url) {
-        window.open(data.checkout_url, "_blank");
+        const opened = window.open(data.checkout_url, "_blank");
+        if (!opened) {
+          toast.error("Tu navegador bloqueó la ventana de pago. Permite pop-ups e intenta de nuevo.");
+          return false;
+        }
         toast.success("Redirigiendo al pago...");
-      } else {
-        console.error("No checkout URL in response:", data);
-        toast.error("No se pudo obtener el link de pago");
+        return true;
       }
+
+      console.error("No checkout URL in response:", data);
+      toast.error("No se pudo obtener el link de pago");
+      return false;
     } catch (error) {
       console.error("Exception creating checkout link:", error);
       toast.error("Error inesperado al procesar el pago");
+      return false;
     } finally {
       setIsLoading(false);
     }

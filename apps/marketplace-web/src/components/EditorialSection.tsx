@@ -1,8 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
+import { useEditorialStories } from "@/hooks/useEditorialStories";
+import { getStoryblokImageUrl, resolveStoryblokLink, EditorialStory } from "@/types/storyblok";
 
-const editorialStories = [
+// Fallback stories when CMS content is not available
+const FALLBACK_STORIES = [
   {
     id: 1,
     title: "Tejidos Ancestrales de San Jacinto",
@@ -27,6 +31,44 @@ const editorialStories = [
 ];
 
 export const EditorialSection = () => {
+  const { data: cmsStories, isLoading } = useEditorialStories();
+
+  // Transform CMS stories or use fallback
+  const stories = cmsStories && cmsStories.length > 0
+    ? cmsStories.map((story: EditorialStory, index: number) => ({
+        id: story._uid || index,
+        title: story.title,
+        description: story.description,
+        image: getStoryblokImageUrl(story.image, { width: 800, height: 1000, quality: 85 }),
+        link: resolveStoryblokLink(story.link)
+      }))
+    : FALLBACK_STORIES;
+
+  if (isLoading) {
+    return (
+      <section className="py-20 px-4 bg-background">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <Skeleton className="h-12 w-96 mx-auto mb-4" />
+            <Skeleton className="h-6 w-80 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden border-0">
+                <Skeleton className="aspect-[4/5] w-full" />
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-6 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-20 px-4 bg-background">
       <div className="container mx-auto max-w-7xl">
@@ -40,7 +82,7 @@ export const EditorialSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {editorialStories.map((story) => (
+          {stories.map((story) => (
             <Card 
               key={story.id}
               className="group overflow-hidden border-0 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2"

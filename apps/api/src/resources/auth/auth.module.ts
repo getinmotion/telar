@@ -12,7 +12,9 @@ import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
 import { UserMaturityActionsModule } from '../user-maturity-actions/user-maturity-actions.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -25,6 +27,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     forwardRef(() => ArtisanShopsModule),
     forwardRef(() => UserMaturityActionsModule),
     ConfigModule,
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -36,7 +41,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard],
-  exports: [JwtModule, JwtAuthGuard],
+  providers: [AuthService, JwtAuthGuard, GoogleStrategy],
+  exports: [JwtModule, JwtAuthGuard, PassportModule],
 })
 export class AuthModule {}
