@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,12 +9,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { normalizeMaterials, normalizeTechniques, normalizeCraft, normalizeMaterial } from "@/lib/normalizationUtils";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { MARKETPLACE_CATEGORIES } from "@/lib/marketplaceCategories";
+import { FALLBACK_MARKETPLACE_CATEGORIES } from "@/lib/marketplaceCategories";
+import { formatCurrency } from "@/lib/currencyUtils";
+import { Product } from "@/types/products.types";
 
 export interface FilterState {
   priceRange: [number, number];
@@ -30,7 +34,7 @@ interface FilterSidebarProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   availableCategories: string[];
-  products: any[];
+  products: Product[];
   mobileOnly?: boolean;
   desktopOnly?: boolean;
 }
@@ -62,7 +66,7 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
   // Count products by marketplace category - comparar case-insensitive
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    MARKETPLACE_CATEGORIES.forEach(cat => {
+    FALLBACK_MARKETPLACE_CATEGORIES.forEach(cat => {
       const catLower = cat.name.toLowerCase().trim();
       const count = products.filter(p => 
         (p.category || '').toLowerCase().trim() === catLower
@@ -161,10 +165,9 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
 
   const FilterContent = () => (
     <div className="h-full flex flex-col">
-      {/* Sticky Header with Clear Button */}
-      <div className="flex items-center justify-between pb-4 border-b mb-4">
-        <h3 className="text-base font-semibold">Filtros</h3>
-        {activeFiltersCount > 0 && (
+      {/* Clear Button - sin título duplicado */}
+      {activeFiltersCount > 0 && (
+        <div className="flex items-center justify-end pb-4 border-b mb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -174,29 +177,25 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
             <X className="h-4 w-4 mr-1" />
             Limpiar ({activeFiltersCount})
           </Button>
-        )}
-      </div>
+        </div>
+      )}
       
       <ScrollArea className="flex-1 pr-4">
         <div className="space-y-6 pb-4">
           {/* Price Range */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Precio</Label>
-            </div>
-            <div className="space-y-4">
-              <Slider
-                value={filters.priceRange}
-                onValueChange={(value) => updateFilters({ priceRange: value as [number, number] })}
-                min={0}
-                max={10000000}
-                step={10000}
-                className="w-full"
-              />
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>${filters.priceRange[0].toLocaleString()}</span>
-                <span>${filters.priceRange[1].toLocaleString()}</span>
-              </div>
+            <Label className="text-base font-semibold">Precio</Label>
+            <Slider
+              value={filters.priceRange}
+              onValueChange={(value) => updateFilters({ priceRange: value as [number, number] })}
+              min={0}
+              max={10000000}
+              step={50000}
+              className="w-full"
+            />
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>{formatCurrency(filters.priceRange[0])}</span>
+              <span>{formatCurrency(filters.priceRange[1])}</span>
             </div>
           </div>
 
@@ -204,7 +203,7 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
         <div className="space-y-4">
           <Label className="text-base font-semibold">Categorías</Label>
           <div className="space-y-1">
-            {MARKETPLACE_CATEGORIES.map((category) => {
+            {FALLBACK_MARKETPLACE_CATEGORIES.map((category) => {
               const isActive = filters.categories.includes(category.name);
               const count = categoryCounts.get(category.name) || 0;
               return (
@@ -384,28 +383,30 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
     </div>
   );
 
-  // Mobile only - render just the collapsible
+  // Mobile only - render as Sheet (drawer lateral)
   if (mobileOnly) {
     return (
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <div className="flex items-center">
-              <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Filtros
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </div>
-            <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {activeFiltersCount}
+              </Badge>
+            )}
           </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4 p-4 border rounded-lg bg-card max-h-[60vh] overflow-auto">
-          <FilterContent />
-        </CollapsibleContent>
-      </Collapsible>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
+          <SheetHeader className="px-4 py-3 border-b">
+            <SheetTitle>Filtros</SheetTitle>
+          </SheetHeader>
+          <div className="p-4 h-[calc(100vh-4rem)] overflow-auto">
+            <FilterContent />
+          </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 
@@ -442,27 +443,29 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
         </div>
       </div>
 
-      {/* Mobile Collapsible */}
+      {/* Mobile Sheet */}
       <div className="lg:hidden mb-4">
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <div className="flex items-center">
-                <SlidersHorizontal className="mr-2 h-4 w-4" />
-                Filtros
-                {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </div>
-              <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtros
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {activeFiltersCount}
+                </Badge>
+              )}
             </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4 p-4 border rounded-lg bg-card">
-            <FilterContent />
-          </CollapsibleContent>
-        </Collapsible>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
+            <SheetHeader className="px-4 py-3 border-b">
+              <SheetTitle>Filtros</SheetTitle>
+            </SheetHeader>
+            <div className="p-4 h-[calc(100vh-4rem)] overflow-auto">
+              <FilterContent />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </>
   );

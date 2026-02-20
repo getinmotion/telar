@@ -1,12 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-import { telarClient } from '@/lib/telarClient';
-import { Skeleton } from './ui/skeleton';
-import { MARKETPLACE_CATEGORIES } from '@/lib/marketplaceCategories';
-import { normalizeArtisanText } from '@/lib/normalizationUtils';
+import { useProducts } from '@/contexts/ProductsContext';
 import * as Icons from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMarketplaceCategories } from '@/hooks/useMarketplaceCategories';
+import { Skeleton } from './ui/skeleton';
+import { mapArtisanCategory } from '@/lib/productMapper';
 
 interface FeaturedCategoriesProps {
   onCategoryClick?: (category: string) => void;
@@ -18,63 +17,61 @@ interface CategoryData {
 }
 
 export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps) => {
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const categoryNames = MARKETPLACE_CATEGORIES.map(c => c.name);
+  const { products, fetchActiveProducts } = useProducts();
+  const [productCounts, setProductCounts] = useState<Map<string, number>>(new Map());
+  const [loadingCounts, setLoadingCounts] = useState(true);
+  const { categories, loading: loadingCategories } = useMarketplaceCategories();
 
   useEffect(() => {
-    fetchCategories();
+    fetchProductCounts();
   }, []);
 
-  const fetchCategories = async () => {
+  useEffect(() => {
+    if (products.length > 0 && categories.length > 0) {
+      processCounts();
+    }
+  }, [products, categories]);
+
+  const fetchProductCounts = async () => {
     try {
-      // Consultar desde la vista marketplace_products (ya filtrada por moderación)
-      const { data: products, error } = await telarClient
-        .from('marketplace_products')
-        .select('category')
-        .not('category', 'is', null);
+      await fetchActiveProducts();
+    } catch (error) {
+      setLoadingCounts(false);
+    }
+  };
 
-      if (error) throw error;
+  const processCounts = () => {
+    try {
+      const counts = new Map<string, number>();
+      const categoryNames = categories.map(c => c.name).filter(Boolean);
 
-      // Contar productos por cada categoría de marketplace (ya vienen mapeadas de la vista)
-      const categoryCounts: Record<string, number> = {};
-      
-      // Normalizar conteo case-insensitive
-      (products || []).forEach((p: any) => {
-        if (p.category) {
-          const normalizedCat = p.category.toLowerCase().trim();
-          // Encontrar categoría que coincida y usar su nombre canónico
+      products.forEach((p) => {
+        const categoryName =  mapArtisanCategory(p.category);
+        if (categoryName) {
+          const normalizedCat = categoryName.toLowerCase().trim();
           const matchedCatName = categoryNames.find(
-            catName => catName.toLowerCase().trim() === normalizedCat
+            catName => catName && catName.toLowerCase().trim() === normalizedCat
           );
           if (matchedCatName) {
-            categoryCounts[matchedCatName] = (categoryCounts[matchedCatName] || 0) + 1;
+            counts.set(matchedCatName, (counts.get(matchedCatName) || 0) + 1);
           }
         }
       });
 
-      // Crear array de categorías con conteos
-      const categoriesWithCount = categoryNames.map(cat => ({
-        category: cat,
-        product_count: categoryCounts[cat] || 0,
-      }));
-
-      setCategories(categoriesWithCount);
+      setProductCounts(counts);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      // Silent fail for category counts
     } finally {
-      setLoading(false);
+      setLoadingCounts(false);
     }
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    const category = MARKETPLACE_CATEGORIES.find(c => c.name === categoryName);
-    if (!category) return null;
-    const IconComponent = Icons[category.icon] as LucideIcon;
+  const getCategoryIcon = (iconName: string) => {
+    const IconComponent = Icons[iconName as keyof typeof Icons] as LucideIcon;
     return IconComponent ? <IconComponent className="h-8 w-8" /> : null;
   };
 
-  // Bento layout solo aplica desde md: - en mobile todas las cards son uniformes
+  // Bento layout - solo aplica desde md
   const bentoLayout: Record<string, string> = {
     "Joyería y Accesorios": "md:col-span-2 md:row-span-2",
     "Decoración del Hogar": "md:col-span-1 md:row-span-2", 
@@ -85,13 +82,13 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
     "Arte y Esculturas": "md:col-span-1 md:row-span-1"
   };
 
+  const loading = loadingCategories || loadingCounts;
+
   if (loading) {
     return (
       <div className="container mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">
-            Explora por Categoría
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Explora por Categoría</h2>
           <p className="text-xl text-muted-foreground">
             Encuentra artesanías únicas organizadas por categoría
           </p>
@@ -100,7 +97,7 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">
           {[...Array(7)].map((_, i) => (
             <div key={i} className="aspect-square md:aspect-auto rounded-lg overflow-hidden">
-              <div className="w-full h-full bg-muted animate-pulse" />
+              <Skeleton className="w-full h-full" />
             </div>
           ))}
         </div>
@@ -108,7 +105,11 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
     );
   }
 
-  if (categories.length === 0) {
+  // Excluir "Cuidado Personal" de los destacados en home
+  const excludedFromFeatured = ["Cuidado Personal"];
+  const featuredCategories = categories.filter(cat => !excludedFromFeatured.includes(cat.name));
+
+  if (featuredCategories.length === 0) {
     return null;
   }
 
@@ -125,19 +126,19 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">
-          {categories.map((cat) => {
-            const categoryData = MARKETPLACE_CATEGORIES.find(c => c.name === cat.category);
-            const imageUrl = categoryData?.imageUrl || '';
-            const gridClass = bentoLayout[cat.category] || "col-span-1 row-span-1";
+          {featuredCategories.map((cat) => {
+            const imageUrl = cat.imageUrl || '';
+            const gridClass = bentoLayout[cat.name] || "col-span-1 row-span-1";
+            const count = productCounts.get(cat.name) || 0;
             
             return (
               <div
-                key={cat.category}
-                onClick={() => onCategoryClick && onCategoryClick(cat.category)}
+                key={cat.name}
+                onClick={() => onCategoryClick && onCategoryClick(cat.name)}
                 className={cn(
                   "group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300",
                   "hover:shadow-xl hover:scale-[1.02]",
-                  "aspect-square md:aspect-auto", // Cuadrado en mobile, flexible en desktop
+                  "aspect-square md:aspect-auto",
                   gridClass
                 )}
               >
@@ -145,7 +146,7 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
                   {imageUrl ? (
                     <img 
                       src={imageUrl} 
-                      alt={cat.category}
+                      alt={cat.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (
@@ -156,13 +157,13 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
                 
                 <div className="relative h-full flex flex-col justify-end p-3 md:p-6 text-white">
                   <div className="mb-2 md:mb-3 p-2 md:p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 w-fit">
-                    {getCategoryIcon(cat.category)}
+                    {getCategoryIcon(cat.icon)}
                   </div>
                   <h3 className="text-sm md:text-2xl font-bold mb-1 md:mb-2 line-clamp-2">
-                    {cat.category}
+                    {cat.name}
                   </h3>
                   <p className="text-xs md:text-sm text-white/80">
-                    {cat.product_count} {cat.product_count === 1 ? 'producto' : 'productos'}
+                    {count} {count === 1 ? 'producto' : 'productos'}
                   </p>
                 </div>
               </div>

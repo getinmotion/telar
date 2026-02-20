@@ -1,26 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { telarClient } from "@/lib/telarClient";
-import { supabase } from "@/integrations/supabase/client";
+import * as WishlistActions from '@/services/wishlist.actions';
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
+import { Product } from "@/types/products.types";
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  store_name?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-}
+
 
 const Wishlist = () => {
   const { user } = useAuth();
@@ -38,30 +27,16 @@ const Wishlist = () => {
   const fetchWishlist = async () => {
     try {
       setLoading(true);
-      
-      // 1. Get wishlist product IDs for the user
-      const { data: wishlistData, error: wishlistError } = await supabase
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', user!.id);
 
-      if (wishlistError) throw wishlistError;
+      // Fetch wishlist with full product details (single API call)
+      const wishlistData = await WishlistActions.getUserWishlist(user!.id);
 
-      const productIds = wishlistData?.map(item => item.product_id) || [];
+      if (wishlistData.length > 0) {
+        // Map products from camelCase to snake_case for marketplace format
+        const mappedProducts = wishlistData.map(item => ({
+          ...item.product
+        }));
 
-      // 2. Fetch product details from marketplace_products view (only approved products)
-      if (productIds.length > 0) {
-        const { data: productsData, error: productsError } = await telarClient
-          .from('marketplace_products')
-          .select('*')
-          .in('id', productIds);
-
-        if (productsError) throw productsError;
-
-        // Mapear productos a formato marketplace
-        const { mapProductToMarketplace } = await import('@/lib/productMapper');
-        const mappedProducts = (productsData || []).map(mapProductToMarketplace);
-        
         setWishlistProducts(mappedProducts);
       } else {
         setWishlistProducts([]);

@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import telarLogo from "@/assets/telar-vertical.svg";
-import { usePaymentStatus, PaymentStatus } from "@/hooks/usePaymentStatus";
+import { usePaymentStatus } from "@/hooks/usePaymentStatus";
+import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const PaymentPending = () => {
   const navigate = useNavigate();
   const [cartId, setCartId] = useState<string | null>(null);
-  const [giftCardsProcessed, setGiftCardsProcessed] = useState(false);
+  const { resetCart } = useCart();
+  const postPaymentTriggeredRef = useRef(false);
 
   // Obtener cartId de sessionStorage
   useEffect(() => {
@@ -31,43 +32,89 @@ const PaymentPending = () => {
     }
   }, [cartId, startListening]);
 
-  // Procesar gift cards cuando el pago se complete
+  // Trigger post-payment processing when payment completes
   useEffect(() => {
-    const processGiftCards = async () => {
-      if (paymentStatus === 'completed' && !giftCardsProcessed) {
-        const pendingGiftCardsStr = sessionStorage.getItem('pendingGiftCards');
-        if (pendingGiftCardsStr) {
+    const triggerPostPayment = async () => {
+      console.log("[PaymentPending] useEffect triggered - paymentStatus:", paymentStatus, "cartId:", cartId, "triggered:", postPaymentTriggeredRef.current);
+      
+      if (paymentStatus !== 'completed' || !cartId || postPaymentTriggeredRef.current) {
+        console.log("[PaymentPending] Skipping - conditions not met");
+        return;
+      }
+
+      postPaymentTriggeredRef.current = true;
+      console.log("[PaymentPending] Payment completed! Triggering sync-payment-status...");
+
+      try {
+        // Get cart items snapshot from sessionStorage
+        let cartItemsSnapshot = null;
+        const snapshotStr = sessionStorage.getItem('cartItemsSnapshot');
+        if (snapshotStr) {
           try {
-            const giftCardsData = JSON.parse(pendingGiftCardsStr);
-            
-            // Llamar al edge function para generar las gift cards
-            const { data, error } = await supabase.functions.invoke('generate-gift-cards', {
-              body: {
-                order_id: cartId,
-                purchaser_email: giftCardsData.purchaser_email,
-                items: giftCardsData.items
-              }
-            });
-
-            if (error) {
-              console.error('Error generating gift cards:', error);
-              toast.error('Error al generar las Gift Cards');
-            } else if (data?.success) {
-              toast.success(`${data.codes_generated} Gift Card(s) generada(s) y enviada(s) por correo`);
-            }
-
-            // Limpiar sessionStorage
-            sessionStorage.removeItem('pendingGiftCards');
-            setGiftCardsProcessed(true);
+            cartItemsSnapshot = JSON.parse(snapshotStr);
+            console.log("[PaymentPending] Cart items snapshot found:", cartItemsSnapshot?.length, "items");
           } catch (e) {
-            console.error('Error processing gift cards:', e);
+            console.error("[PaymentPending] Error parsing cart snapshot:", e);
+          }
+        } else {
+          console.warn("[PaymentPending] No cart items snapshot found in sessionStorage");
+        }
+
+        // Get payment breakdown from sessionStorage
+        let breakdown = null;
+        const breakdownStr = sessionStorage.getItem('pendingPaymentBreakdown');
+        if (breakdownStr) {
+          try {
+            breakdown = JSON.parse(breakdownStr);
+            console.log("[PaymentPending] Payment breakdown found:", breakdown);
+          } catch (e) {
+            console.error("[PaymentPending] Error parsing breakdown:", e);
           }
         }
+
+        const requestBody: any = {
+          cart_id: cartId,
+          payment_status: 'completed',
+        };
+
+        // Include cart items snapshot if available
+        if (cartItemsSnapshot && cartItemsSnapshot.length > 0) {
+          requestBody.cart_items = cartItemsSnapshot;
+          console.log("[PaymentPending] Including cart_items in request:", cartItemsSnapshot);
+        }
+
+        // Include breakdown if available
+        if (breakdown) {
+          requestBody.breakdown = breakdown;
+          console.log("[PaymentPending] Including breakdown in request:", breakdown);
+        }
+
+        const { data, error } = await supabase.functions.invoke('sync-payment-status', {
+          body: requestBody,
+        });
+
+        // Handle 401 gracefully - the webhook from telar.ia already processed the payment
+        // This frontend call is redundant backup, so don't fail the user experience
+        if (error) {
+          console.warn("[PaymentPending] sync-payment-status returned error (this is OK if webhook already processed):", error);
+          // Don't throw - the order was likely already created by the webhook
+        } else {
+          console.log("[PaymentPending] sync-payment-status SUCCESS:", data);
+        }
+
+        // Clear the snapshot after use
+        sessionStorage.removeItem('cartItemsSnapshot');
+      } catch (err) {
+        // Non-blocking error - webhook already processed, this is just cleanup
+        console.warn("[PaymentPending] Exception in sync-payment-status (non-blocking):", err);
       }
+
+      // Reset cart after processing regardless of sync result
+      resetCart();
     };
 
-    processGiftCards();
-  }, [paymentStatus, cartId, giftCardsProcessed]);
+    triggerPostPayment();
+  }, [paymentStatus, cartId, resetCart]);
 
   const isProcessing = !paymentStatus || paymentStatus === 'initiated' || paymentStatus === 'processing';
   const isCompleted = paymentStatus === 'completed';
@@ -75,7 +122,9 @@ const PaymentPending = () => {
 
   const handleGoHome = () => {
     sessionStorage.removeItem('pendingPaymentCartId');
+    sessionStorage.removeItem('pendingPaymentBreakdown');
     sessionStorage.removeItem('pendingGiftCards');
+    sessionStorage.removeItem('cartItemsSnapshot');
     navigate('/');
   };
 

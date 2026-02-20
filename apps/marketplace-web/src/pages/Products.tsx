@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import { telarClient } from "@/lib/telarClient";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useProducts } from "@/contexts/ProductsContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
@@ -9,16 +11,17 @@ import { FilterChips } from "@/components/FilterChips";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { SortDropdown, SortOption } from "@/components/SortDropdown";
 import { ViewToggle, ViewMode } from "@/components/ViewToggle";
+import { MobileViewToggle, MobileViewMode } from "@/components/MobileViewToggle";
 import { CategoryBreadcrumb } from "@/components/CategoryBreadcrumb";
 import { Search, RefreshCw, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getUniqueCategoriesFromProducts } from "@/lib/categoryUtils";
 import { mapArtisanCategory } from "@/lib/productMapper";
 import { useToast } from "@/hooks/use-toast";
-import { MarketplaceProduct } from "@/lib/mapTelarData";
-import { normalizeCraft, normalizeMaterial, normalizeMaterials, normalizeTechniques } from "@/lib/normalizationUtils";
+import { normalizeCraft, normalizeMaterial, normalizeMaterials, normalizeTechniques, formatArtisanText } from "@/lib/normalizationUtils";
 import { useHybridSearch } from "@/hooks/useHybridSearch";
 import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Pagination,
   PaginationContent,
@@ -28,59 +31,215 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Product } from "@/types/products.types";
 
-const PRODUCTS_PER_PAGE = 24;
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  store_name?: string;
-  store_logo?: string;
-  category?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  stock?: number;
-  shop_slug?: string;
-  craft?: string;
-  materials?: string[];
-  techniques?: string[];
-}
+// Helper functions for URL params
+// Save current URL to sessionStorage for returning from product detail
+const saveProductsUrl = () => {
+  sessionStorage.setItem('productsReturnUrl', window.location.search);
+};
+
+const parseFiltersFromURL = (searchParams: URLSearchParams): Partial<FilterState> => {
+  const filters: Partial<FilterState> = {};
+  
+  const minPrice = searchParams.get('minPrice');
+  const maxPrice = searchParams.get('maxPrice');
+  if (minPrice || maxPrice) {
+    filters.priceRange = [
+      minPrice ? parseInt(minPrice) : 0,
+      maxPrice ? parseInt(maxPrice) : 10000000
+    ];
+  }
+  
+  const categories = searchParams.get('categories');
+  if (categories) filters.categories = categories.split(',');
+  
+  const crafts = searchParams.get('crafts');
+  if (crafts) filters.crafts = crafts.split(',');
+  
+  const materials = searchParams.get('materials');
+  if (materials) filters.materials = materials.split(',');
+  
+  const techniques = searchParams.get('techniques');
+  if (techniques) filters.techniques = techniques.split(',');
+  
+  const minRating = searchParams.get('minRating');
+  if (minRating) filters.minRating = parseInt(minRating);
+  
+  const freeShipping = searchParams.get('freeShipping');
+  if (freeShipping === 'true') filters.freeShipping = true;
+  
+  return filters;
+};
+
+const serializeFiltersToURL = (
+  filters: FilterState, 
+  searchQuery: string, 
+  sortBy: SortOption, 
+  currentPage: number
+): Record<string, string> => {
+  const params: Record<string, string> = {};
+  
+  if (searchQuery) params.q = searchQuery;
+  if (sortBy !== 'relevance') params.sortBy = sortBy;
+  if (currentPage > 1) params.page = String(currentPage);
+  
+  if (filters.priceRange[0] > 0) params.minPrice = String(filters.priceRange[0]);
+  if (filters.priceRange[1] < 10000000) params.maxPrice = String(filters.priceRange[1]);
+  
+  if (filters.categories.length > 0) params.categories = filters.categories.join(',');
+  if (filters.crafts.length > 0) params.crafts = filters.crafts.join(',');
+  if (filters.materials.length > 0) params.materials = filters.materials.join(',');
+  if (filters.techniques.length > 0) params.techniques = filters.techniques.join(',');
+  if (filters.minRating > 0) params.minRating = String(filters.minRating);
+  if (filters.freeShipping) params.freeShipping = 'true';
+  
+  return params;
+};
+
+
+// Fisher-Yates shuffle with seed for consistent randomization
+const seededShuffle = <T,>(array: T[], seed: number): T[] => {
+  const shuffled = [...array];
+  let currentSeed = seed;
+  
+  const random = () => {
+    currentSeed = (currentSeed * 9301 + 49297) % 233280;
+    return currentSeed / 233280;
+  };
+  
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Distributed shuffle that avoids consecutive products from the same store
+const distributedShuffle = <T extends { storeName?: string }>(array: T[], seed: number): T[] => {
+  if (array.length <= 1) return array;
+
+  // Group by store
+  const byStore = new Map<string, T[]>();
+  array.forEach(item => {
+    const store = item.storeName || 'unknown';
+    if (!byStore.has(store)) byStore.set(store, []);
+    byStore.get(store)!.push(item);
+  });
+  
+  // Shuffle each group internally
+  const shuffledGroups = Array.from(byStore.values()).map(group => 
+    seededShuffle(group, seed)
+  );
+  
+  // Sort groups by size (largest first) for better distribution
+  shuffledGroups.sort((a, b) => b.length - a.length);
+  
+  // Interleave products round-robin style
+  const result: T[] = [];
+  const groupIndices = shuffledGroups.map(() => 0);
+  
+  while (result.length < array.length) {
+    for (let g = 0; g < shuffledGroups.length; g++) {
+      if (groupIndices[g] < shuffledGroups[g].length) {
+        result.push(shuffledGroups[g][groupIndices[g]]);
+        groupIndices[g]++;
+      }
+    }
+  }
+  
+  return result;
+};
+
+// Prioritized shuffle: purchasable products first, then non-purchasable, both distributed by store
+const prioritizedDistributedShuffle = <T extends { storeName?: string; canPurchase?: boolean }>(array: T[], seed: number): T[] => {
+  // Separate purchasable and non-purchasable products
+  const purchasable = array.filter(item => item.canPurchase === true);
+  const notPurchasable = array.filter(item => item.canPurchase !== true);
+
+  // Apply distributed shuffle to each group with correct typing
+  const shuffledPurchasable = distributedShuffle<T>(purchasable as T[], seed);
+  const shuffledNotPurchasable = distributedShuffle<T>(notPurchasable as T[], seed + 1);
+
+  // Concatenate: purchasable first
+  return [...shuffledPurchasable, ...shuffledNotPurchasable];
+};
+
+type LimitOption = 50 | 100 | 200 | 500;
 
 const Products = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState<LimitOption>(50);
   const [syncing, setSyncing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem("productViewMode");
     return (saved as ViewMode) || "grid";
   });
+  const [mobileViewMode, setMobileViewMode] = useState<MobileViewMode>(() => {
+    const saved = localStorage.getItem("mobileViewMode");
+    return (saved as MobileViewMode) || "2-col";
+  });
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem("semanticSearchEnabled");
-    return saved !== null ? saved === "true" : true; // Por defecto activado
+    return saved !== null ? saved === "true" : true;
   });
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, 10000000],
-    categories: [],
-    crafts: [],
-    minRating: 0,
-    freeShipping: false,
-    materials: [],
-    techniques: [],
+  const isMobile = useIsMobile();
+  
+  // Initialize state from URL params
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || "");
+  const [sortBy, setSortBy] = useState<SortOption>(() => (searchParams.get('sortBy') as SortOption) || "relevance");
+  const [currentPage, setCurrentPage] = useState(() => parseInt(searchParams.get('page') || '1'));
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const urlFilters = parseFiltersFromURL(searchParams);
+    return {
+      priceRange: urlFilters.priceRange || [0, 10000000],
+      categories: urlFilters.categories || [],
+      crafts: urlFilters.crafts || [],
+      minRating: urlFilters.minRating || 0,
+      freeShipping: urlFilters.freeShipping || false,
+      materials: urlFilters.materials || [],
+      techniques: urlFilters.techniques || [],
+    };
   });
+  
   const { toast } = useToast();
+  const productsContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
+  
+  // Random seed generated once per session for consistent randomization
+  const [randomSeed] = useState(() => Math.floor(Math.random() * 1000000));
+
+  // Sync state to URL (skip on initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const params = serializeFiltersToURL(filters, searchQuery, sortBy, currentPage);
+    setSearchParams(params, { replace: true });
+    // Save URL for returning from product detail
+    saveProductsUrl();
+  }, [filters, searchQuery, sortBy, currentPage, setSearchParams]);
 
   // Persist view mode preference
   useEffect(() => {
     localStorage.setItem("productViewMode", viewMode);
   }, [viewMode]);
+
+  // Persist mobile view mode preference
+  useEffect(() => {
+    localStorage.setItem("mobileViewMode", mobileViewMode);
+  }, [mobileViewMode]);
 
   // Persist semantic search preference
   useEffect(() => {
@@ -107,22 +266,38 @@ const Products = () => {
     },
   });
 
+  const {
+    products: contextProducts,
+    fetchProducts: fetchProductsContext,
+    total: totalProducts,
+    page: currentPageFromContext,
+    limit: limitFromContext,
+  } = useProducts();
+
+  useEffect(() => {
+    if (contextProducts.length > 0) {
+      
+      // Convertir price de string a number para cálculos
+      const mappedProducts: Product[] = contextProducts.map(p => ({
+        ...p,
+        category: p.category ? mapArtisanCategory(p.category) : undefined,
+        stock: p.stock || p.inventory || 0,
+      }));
+
+      setProducts(mappedProducts);
+    }
+  }, [contextProducts]);
+
   const fetchProducts = async () => {
     try {
-      const { data, error } = await telarClient
-        .from('marketplace_products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Mapear productos a formato marketplace
-      const { mapProductToMarketplace } = await import('@/lib/productMapper');
-      const mappedProducts = (data || []).map(mapProductToMarketplace);
-      
-      setProducts(mappedProducts);
+      await fetchProductsContext({
+        sortBy: 'created_at',
+        order: 'DESC',
+        limit: limit,
+        page: currentPage,
+      });
     } catch (error) {
-      console.error('Error fetching products:', error);
+      // Error already handled by context with toast
     } finally {
       setLoading(false);
     }
@@ -142,37 +317,41 @@ const Products = () => {
     filters,
   });
 
+
   // Aplicar filtros adicionales sobre los resultados de búsqueda
+
   const filteredProducts = searchResults.filter((product) => {
     const matchesPrice =
-      product.price >= filters.priceRange[0] &&
-      product.price <= filters.priceRange[1];
+     parseFloat(product.price || "0") >= filters.priceRange[0] &&
+      parseFloat(product.price || "0") <= filters.priceRange[1];
 
     // Comparar case-insensitive ya que marketplace_products puede tener variaciones
-    const productCategory = (product.category || '').toLowerCase().trim();
+    const productCategory = (product?.category || '').toLowerCase().trim();
     const matchesCategory =
       filters.categories.length === 0 ||
       filters.categories.some(filterCat => 
         productCategory === filterCat.toLowerCase().trim()
       );
 
-    const matchesRating = product.rating >= filters.minRating;
+    const matchesRating = product?.rating >= filters.minRating;
 
     const matchesFreeShipping =
-      !filters.freeShipping || product.free_shipping;
+      !filters.freeShipping || product.freeShipping;
 
-    const productMaterials = normalizeMaterials(product.materials);
+    // Materials - normalizar AMBOS lados para comparación consistente
+    const productMaterials = normalizeMaterials(product?.materials);
     const matchesMaterials =
-      filters.materials.length === 0 ||
-      filters.materials.some(material => productMaterials.includes(material));
+      filters.materials?.length === 0 ||
+      filters.materials.some(material => productMaterials.includes(normalizeMaterial(material)));
 
+    // Techniques - normalizar AMBOS lados para comparación consistente
     const productTechniques = normalizeTechniques(product.techniques);
     const matchesTechniques =
-      filters.techniques.length === 0 ||
-      filters.techniques.some(technique => productTechniques.includes(technique));
+      filters.techniques?.length === 0 ||
+      filters.techniques.some(technique => productTechniques.includes(formatArtisanText(technique)));
 
     const matchesCrafts =
-      filters.crafts.length === 0 ||
+      filters.crafts?.length === 0 ||
       filters.crafts.includes(normalizeCraft(product.craft));
 
     return (
@@ -186,34 +365,40 @@ const Products = () => {
     );
   });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  // Sort and shuffle products
+  const sortedProducts = useMemo(() => {
+    const sorted = [...filteredProducts];
     switch (sortBy) {
       case "price-asc":
-        return a.price - b.price;
+        return sorted.sort((a, b) => parseFloat(a.price || "0") - parseFloat(b.price || "0"));
       case "price-desc":
-        return b.price - a.price;
+        return sorted.sort((a, b) => parseFloat(b.price || "0") - parseFloat(a.price || "0"));
       case "newest":
-        return 0;
+        return sorted;
       case "rating":
-        return b.rating - a.rating;
-      default:
-        return 0;
+        return sorted.sort((a, b) => b.rating - a.rating);
+      default: // relevance - random order
+        return prioritizedDistributedShuffle(sorted, randomSeed);
     }
-  });
+  }, [filteredProducts, sortBy, randomSeed]);
 
   // Pagination
-  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
-  const endIndex = startIndex + PRODUCTS_PER_PAGE;
-  const paginatedProducts = sortedProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalProducts / limit);
+  const paginatedProducts = sortedProducts;
 
-  // Reset to page 1 when filters or search changes
+  // Reset to page 1 when filters, search, or limit changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, limit]);
+
+  // Fetch products when page or limit changes
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage, limit]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    // Scroll to top for better UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -353,17 +538,18 @@ const Products = () => {
           <div className="mb-8 lg:mb-12">
             <h1 className="text-3xl lg:text-5xl font-bold mb-3 text-foreground">Todos los Productos</h1>
             <p className="text-muted-foreground text-base lg:text-lg">
-              Descubre {products.length} artesanías únicas
+              Descubre {totalProducts} artesanías únicas
             </p>
           </div>
           
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
-            {/* FilterSidebar - maneja internamente desktop (sidebar) y mobile (sheet) */}
+            {/* FilterSidebar - Desktop sidebar */}
             <FilterSidebar
               filters={filters}
               onFiltersChange={setFilters}
               availableCategories={availableCategories}
               products={products}
+              desktopOnly
             />
           
             <div className="flex-1 space-y-6 lg:space-y-8">
@@ -373,28 +559,73 @@ const Products = () => {
                 searchQuery={searchQuery}
               />
 
-              <div className="flex items-center justify-between gap-6">
-                <div className="relative flex-1 max-w-xl">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-12"
-                  />
-                </div>
-                <div className="flex items-center gap-4">
-                  {syncing && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span className="hidden sm:inline">Sincronizando...</span>
+              {/* Mobile: Filtros + Columnas + Ordenar en una línea */}
+              {isMobile ? (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <FilterSidebar
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      availableCategories={availableCategories}
+                      products={products}
+                      mobileOnly
+                    />
+                    <div className="flex items-center gap-2">
+                      <MobileViewToggle mode={mobileViewMode} onModeChange={setMobileViewMode} />
+                      <SortDropdown value={sortBy} onChange={setSortBy} />
                     </div>
-                  )}
-                  <ViewToggle view={viewMode} onViewChange={setViewMode} />
-                  <SortDropdown value={sortBy} onChange={setSortBy} />
+                  </div>
+                  {/* Mobile limit selector */}
+                  <div className="flex justify-end">
+                    <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v) as LimitOption)}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Mostrar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="50">50 por página</SelectItem>
+                        <SelectItem value="100">100 por página</SelectItem>
+                        <SelectItem value="200">200 por página</SelectItem>
+                        <SelectItem value="500">500 por página</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : (
+                /* Desktop: Buscador + Controles */
+                <div className="flex items-center justify-between gap-6">
+                  <div className="relative flex-1 max-w-xl">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                    <Input
+                      type="text"
+                      placeholder="Buscar productos..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-12 h-12"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {syncing && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <span>Sincronizando...</span>
+                      </div>
+                    )}
+                    <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v) as LimitOption)}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Mostrar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="50">50 por página</SelectItem>
+                        <SelectItem value="100">100 por página</SelectItem>
+                        <SelectItem value="200">200 por página</SelectItem>
+                        <SelectItem value="500">500 por página</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <ViewToggle view={viewMode} onViewChange={setViewMode} />
+                    <SortDropdown value={sortBy} onChange={setSortBy} />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <FilterChips
                 filters={filters}
@@ -422,11 +653,17 @@ const Products = () => {
                 <>
                   <div className="flex items-center gap-4 flex-wrap">
                     <div className="text-sm text-muted-foreground">
-                      Mostrando {sortedProducts.length} {sortedProducts.length === 1 ? 'producto' : 'productos'}
-                      {totalPages > 1 && (
-                        <span className="ml-1">
-                          - Página {currentPage} de {totalPages}
-                        </span>
+                      {totalProducts > 0 ? (
+                        <>
+                          Mostrando {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, totalProducts)} de {totalProducts} {totalProducts === 1 ? 'producto' : 'productos'}
+                          {totalPages > 1 && (
+                            <span className="ml-1">
+                              (Página {currentPage} de {totalPages})
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        'No hay productos'
                       )}
                     </div>
                     {searchQuery && (
@@ -450,18 +687,46 @@ const Products = () => {
                     )}
                   </div>
                   
-                  {viewMode === "grid" ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
-                      {paginatedProducts.map((product) => (
-                        <ProductCard key={product.id} {...product} />
-                      ))}
-                    </div>
+                  {/* Mobile view rendering */}
+                  {isMobile ? (
+                    mobileViewMode === "list" ? (
+                      <div className="space-y-4">
+                        {paginatedProducts.map((product) => (
+                          <ProductListItem key={product.id} {...product} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div 
+                        ref={productsContainerRef} 
+                        className={`grid gap-3 py-4 ${mobileViewMode === "1-col" ? "grid-cols-1" : "grid-cols-2"}`}
+                      >
+                        {paginatedProducts.map((product) => (
+                          <ProductCard 
+                            key={product.id} 
+                            {...product} 
+                            compactMode={mobileViewMode === "2-col"}
+                          />
+                        ))}
+                      </div>
+                    )
                   ) : (
-                    <div className="space-y-4">
-                      {paginatedProducts.map((product) => (
-                        <ProductListItem key={product.id} {...product} />
-                      ))}
-                    </div>
+                    /* Desktop view rendering */
+                    viewMode === "grid" ? (
+                      <div 
+                        ref={productsContainerRef} 
+                        className="grid gap-6 py-4 sm:grid-cols-2 lg:grid-cols-3"
+                      >
+                        {paginatedProducts.map((product) => (
+                          <ProductCard key={product.id} {...product} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {paginatedProducts.map((product) => (
+                          <ProductListItem key={product.id} {...product} />
+                        ))}
+                      </div>
+                    )
                   )}
 
                   {/* Pagination */}

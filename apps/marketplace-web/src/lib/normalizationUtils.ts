@@ -27,109 +27,319 @@ export const formatArtisanText = (text: string | null | undefined): string => {
 };
 
 /**
- * Agrupar oficios similares bajo nombres canónicos
- * Mapea variantes comunes a nombres estándar
+ * Lista de oficios válidos reconocidos
  */
-export const normalizeCraft = (craft: string | null | undefined): string => {
-  if (!craft) return 'Sin especificar';
+export const VALID_OFICIOS = [
+  "Alfarería",
+  "Bordado",
+  "Carpintería",
+  "Cestería",
+  "Cerámica",
+  "Cosmética Artesanal",
+  "Ebanistería",
+  "Encuadernación",
+  "Escultura",
+  "Filigrana",
+  "Jabonería Artesanal",
+  "Joyería",
+  "Marroquinería",
+  "Orfebrería",
+  "Serigrafía",
+  "Soplado de Vidrio",
+  "Talla",
+  "Talabartería",
+  "Tejeduría",
+  "Trabajo en Papel",
+  "Trabajo en Piedra",
+  "Vidriería",
+];
+
+/**
+ * Términos que NO son oficios y deben ser filtrados
+ * Incluye categorías de marketplace, términos genéricos, etc.
+ */
+const INVALID_CRAFT_TERMS = [
+  // Categorías de marketplace (NO son oficios)
+  'decoracion del hogar',
+  'decoración del hogar',
+  'vajillas y cocina',
+  'vajilla y cocina',
+  'textiles y moda',
+  'bolsos y carteras',
+  'joyeria y accesorios',
+  'joyería y accesorios',
+  'muebles',
+  'arte y esculturas',
+  'cuidado personal',
+  // Términos genéricos (NO son oficios)
+  'hecho a mano',
+  'artesania',
+  'artesanía',
+  'artesanal',
+  'hogar',
+  'vestuario',
+  'otros',
+  'other',
+  'n/a',
+  'none',
+  'unknown',
+  'desconocido',
+  'sin especificar',
+  // Términos en inglés genéricos
+  'handmade',
+  'crafts',
+  'craft',
+  'home',
+  'decor',
+  'decoration',
+];
+
+/**
+ * Mapeo de variantes a nombres canónicos de oficios
+ */
+const CRAFT_VARIANTS_MAP: Record<string, string> = {
+  // Tejeduría
+  'tejeduria': 'Tejeduría',
+  'tejido': 'Tejeduría',
+  'tejidos': 'Tejeduría',
+  'weaving': 'Tejeduría',
+  'knitting': 'Tejeduría',
+  'crochet': 'Tejeduría',
+  'macrame': 'Tejeduría',
+  // Cestería
+  'cesteria': 'Cestería',
+  'cestas': 'Cestería',
+  'canastos': 'Cestería',
+  'basket': 'Cestería',
+  'basketry': 'Cestería',
+  'werregue': 'Cestería',
+  // Joyería
+  'joyeria': 'Joyería',
+  'bisuteria': 'Joyería',
+  'alhajas': 'Joyería',
+  'jewelry': 'Joyería',
+  'jewellery': 'Joyería',
+  // Orfebrería (separado de joyería genérica)
+  'orfebreria': 'Orfebrería',
+  'plateria': 'Orfebrería',
+  // Filigrana
+  'filigrana': 'Filigrana',
+  // Cerámica / Alfarería
+  'ceramica': 'Cerámica',
+  'alfareria': 'Alfarería',
+  'barro': 'Alfarería',
+  'arcilla': 'Alfarería',
+  'ceramics': 'Cerámica',
+  'ceramic': 'Cerámica',
+  'pottery': 'Alfarería',
+  // Carpintería y Ebanistería
+  'carpinteria': 'Carpintería',
+  'ebanisteria': 'Ebanistería',
+  'woodwork': 'Carpintería',
+  'woodworking': 'Carpintería',
+  // Talla en Madera / Escultura
+  'talla': 'Talla',
+  'tallado': 'Talla',
+  'escultura': 'Escultura',
+  'carving': 'Talla',
+  // Marroquinería / Talabartería
+  'marroquineria': 'Marroquinería',
+  'cuero': 'Marroquinería',
+  'piel': 'Marroquinería',
+  'leatherwork': 'Marroquinería',
+  'leather': 'Marroquinería',
+  'talabarteria': 'Talabartería',
+  // Bordado
+  'bordado': 'Bordado',
+  'embroidery': 'Bordado',
+  // Textilería (mapear a Tejeduría)
+  'textil': 'Tejeduría',
+  'textiles': 'Tejeduría',
+  'textile': 'Tejeduría',
+  'telas': 'Tejeduría',
+  'sewing': 'Tejeduría',
+  // Vidriería
+  'vidrio': 'Vidriería',
+  'glasswork': 'Vidriería',
+  'glass': 'Vidriería',
+  'soplado de vidrio': 'Soplado de Vidrio',
+  // Metalistería
+  'metalwork': 'Orfebrería',
+  'metal': 'Orfebrería',
+  // Cosmética artesanal
+  'cosmetica artesanal': 'Cosmética Artesanal',
+  'cosmetica': 'Cosmética Artesanal',
+  'jaboneria': 'Jabonería Artesanal',
+  'jaboneria artesanal': 'Jabonería Artesanal',
+  // Serigrafía
+  'serigrafia': 'Serigrafía',
+  // Trabajo en piedra
+  'piedra': 'Trabajo en Piedra',
+  'stone': 'Trabajo en Piedra',
+  // Encuadernación
+  'encuadernacion': 'Encuadernación',
+  'libros': 'Encuadernación',
+  'bookbinding': 'Encuadernación',
+  // Trabajo en Papel
+  'papercraft': 'Trabajo en Papel',
+  'papel': 'Trabajo en Papel',
+};
+
+/**
+ * Patrones para inferir oficios desde nombres de productos
+ * Usado como fallback cuando el craft field es inválido
+ */
+const PRODUCT_NAME_PATTERNS: { pattern: RegExp; craft: string }[] = [
+  // Tejeduría / Textiles
+  { pattern: /ruana|poncho|bufanda|chal|hamaca|mochila wayuu|tapiz|telar/i, craft: 'Tejeduría' },
+  { pattern: /tejido|hilado|punto/i, craft: 'Tejeduría' },
+  // Cestería
+  { pattern: /canast[ao]|cesta|werregue|bolso.*fibra|caña flecha/i, craft: 'Cestería' },
+  // Joyería / Orfebrería
+  { pattern: /aretes|collar|pulsera|anillo|pendientes|brazalete/i, craft: 'Joyería' },
+  { pattern: /filigrana/i, craft: 'Filigrana' },
+  { pattern: /plata.*martill|oro.*artesanal/i, craft: 'Orfebrería' },
+  // Cerámica / Alfarería
+  { pattern: /jarr[oó]n|olla|plato.*barro|taza.*ceramica|bowl/i, craft: 'Cerámica' },
+  { pattern: /barro.*pintado|arcilla/i, craft: 'Alfarería' },
+  // Madera
+  { pattern: /mesa.*madera|silla.*artesanal|estanter[ií]a|ba[uú]l/i, craft: 'Carpintería' },
+  { pattern: /talla.*madera|escultura.*madera|figura.*tallada/i, craft: 'Talla' },
+  // Cuero
+  { pattern: /bolso.*cuero|cartera.*cuero|cintur[oó]n|billetera|monedero.*cuero/i, craft: 'Marroquinería' },
+  // Bordado
+  { pattern: /bordado|mantel.*bordado|cojin.*bordado|camino.*mesa/i, craft: 'Bordado' },
+  // Cosmética
+  { pattern: /jab[oó]n|crema|balsamo|aceite.*esencial|exfoliante|hidratante/i, craft: 'Cosmética Artesanal' },
+  // Vidrio
+  { pattern: /vidrio.*soplado|lampara.*vidrio|florero.*vidrio/i, craft: 'Soplado de Vidrio' },
+];
+
+/**
+ * Inferir oficio desde el nombre del producto
+ */
+const inferCraftFromProductName = (productName: string): string | null => {
+  if (!productName) return null;
+  
+  for (const { pattern, craft } of PRODUCT_NAME_PATTERNS) {
+    if (pattern.test(productName)) {
+      return craft;
+    }
+  }
+  
+  return null;
+};
+
+/**
+ * Buscar un oficio válido dentro de un array de tags
+ */
+export const findCraftInTags = (tags: string[] | null | undefined): string | null => {
+  if (!tags || tags.length === 0) return null;
+  
+  for (const tag of tags) {
+    const normalized = normalizeArtisanText(tag);
+    
+    // Check direct match in variants map
+    if (CRAFT_VARIANTS_MAP[normalized]) {
+      return CRAFT_VARIANTS_MAP[normalized];
+    }
+    
+    // Check if formatted version is a valid oficio
+    const formatted = formatArtisanText(tag);
+    if (VALID_OFICIOS.includes(formatted)) {
+      return formatted;
+    }
+    
+    // Check partial matches in variants map
+    for (const [key, canonical] of Object.entries(CRAFT_VARIANTS_MAP)) {
+      if (normalized.includes(key)) {
+        return canonical;
+      }
+    }
+  }
+  
+  return null;
+};
+
+/**
+ * Normalizar oficio con fallback inteligente
+ * 
+ * Prioridad:
+ * 1. Mapeo directo desde craftMap
+ * 2. Match parcial en craftMap
+ * 3. Verificar si ya es un oficio válido
+ * 4. Buscar en tags del producto (si se proporciona context)
+ * 5. Inferir desde nombre del producto (si se proporciona context)
+ * 6. Devolver "Sin especificar"
+ */
+export const normalizeCraft = (
+  craft: string | null | undefined, 
+  context?: { tags?: string[] | null; productName?: string | null }
+): string => {
+  if (!craft) {
+    // Si no hay craft pero hay contexto, intentar inferir
+    if (context) {
+      // Primero buscar en tags
+      const craftFromTags = findCraftInTags(context.tags);
+      if (craftFromTags) return craftFromTags;
+      
+      // Luego inferir del nombre
+      if (context.productName) {
+        const inferred = inferCraftFromProductName(context.productName);
+        if (inferred) return inferred;
+      }
+    }
+    return 'Sin especificar';
+  }
   
   const normalized = normalizeArtisanText(craft);
   
-  // Mapeo de variantes a nombres canónicos
-  const craftMap: Record<string, string> = {
-    // Tejeduría
-    'tejeduria': 'Tejeduría',
-    'tejido': 'Tejeduría',
-    'tejidos': 'Tejeduría',
-    'weaving': 'Tejeduría',
-    'knitting': 'Tejeduría',
-    'crochet': 'Tejeduría',
-    'macrame': 'Tejeduría',
-    // Cestería
-    'cesteria': 'Cestería',
-    'cestas': 'Cestería',
-    'canastos': 'Cestería',
-    'basket': 'Cestería',
-    'basketry': 'Cestería',
-    // Joyería
-    'joyeria': 'Joyería',
-    'bisuteria': 'Joyería',
-    'alhajas': 'Joyería',
-    'orfebreria': 'Joyería',
-    'jewelry': 'Joyería',
-    'jewellery': 'Joyería',
-    'accessories': 'Joyería',
-    // Cerámica
-    'ceramica': 'Cerámica',
-    'alfareria': 'Cerámica',
-    'barro': 'Cerámica',
-    'arcilla': 'Cerámica',
-    'ceramics': 'Cerámica',
-    'ceramic': 'Cerámica',
-    'pottery': 'Cerámica',
-    // Carpintería y Ebanistería
-    'carpinteria': 'Carpintería y Ebanistería',
-    'ebanisteria': 'Carpintería y Ebanistería',
-    'madera': 'Carpintería y Ebanistería',
-    'muebles': 'Carpintería y Ebanistería',
-    'woodwork': 'Carpintería y Ebanistería',
-    'woodworking': 'Carpintería y Ebanistería',
-    // Textiles No Tejidos
-    'textiles': 'Textiles No Tejidos',
-    'telas': 'Textiles No Tejidos',
-    'bordado': 'Textiles No Tejidos',
-    'embroidery': 'Textiles No Tejidos',
-    'sewing': 'Textiles No Tejidos',
-    // Marroquinería
-    'marroquineria': 'Marroquinería',
-    'cuero': 'Marroquinería',
-    'piel': 'Marroquinería',
-    'leatherwork': 'Marroquinería',
-    'leather': 'Marroquinería',
-    // Talla en Madera
-    'talla': 'Talla en Madera',
-    'tallado': 'Talla en Madera',
-    'escultura': 'Talla en Madera',
-    'carving': 'Talla en Madera',
-    // Pintura Artesanal
-    'pintura': 'Pintura Artesanal',
-    'arte': 'Pintura Artesanal',
-    'painting': 'Pintura Artesanal',
-    // Arte Floral
-    'flores': 'Arte Floral',
-    'floral': 'Arte Floral',
-    // Encuadernación
-    'encuadernacion': 'Encuadernación',
-    'libros': 'Encuadernación',
-    'bookbinding': 'Encuadernación',
-    // Otros oficios específicos
-    'metalwork': 'Metalistería',
-    'metal': 'Metalistería',
-    'glasswork': 'Vidriería',
-    'glass': 'Vidriería',
-    'vidrio': 'Vidriería',
-    'papercraft': 'Trabajo en Papel',
-    'papel': 'Trabajo en Papel',
-    // Términos genéricos -> Sin especificar
-    'other': 'Sin especificar',
-    'others': 'Sin especificar',
-    'otro': 'Sin especificar',
-    'otros': 'Sin especificar',
-    'n/a': 'Sin especificar',
-    'none': 'Sin especificar',
-    'unknown': 'Sin especificar',
-    'desconocido': 'Sin especificar',
-  };
+  // Primero verificar si es un término inválido
+  if (INVALID_CRAFT_TERMS.some(term => normalized === term || normalized.includes(term))) {
+    // Es una categoría o término genérico, intentar fallback
+    if (context) {
+      const craftFromTags = findCraftInTags(context.tags);
+      if (craftFromTags) return craftFromTags;
+      
+      if (context.productName) {
+        const inferred = inferCraftFromProductName(context.productName);
+        if (inferred) return inferred;
+      }
+    }
+    return 'Sin especificar';
+  }
   
-  // Buscar coincidencias parciales (para variantes)
-  for (const [key, canonical] of Object.entries(craftMap)) {
+  // Buscar coincidencia exacta primero
+  if (CRAFT_VARIANTS_MAP[normalized]) {
+    return CRAFT_VARIANTS_MAP[normalized];
+  }
+  
+  // Buscar coincidencias parciales
+  for (const [key, canonical] of Object.entries(CRAFT_VARIANTS_MAP)) {
     if (normalized.includes(key)) {
       return canonical;
     }
   }
   
-  // Si no hay match, devolver formateado (Title Case)
-  return formatArtisanText(craft);
+  // Verificar si el texto formateado está en la lista de oficios válidos
+  const formatted = formatArtisanText(craft);
+  if (VALID_OFICIOS.includes(formatted)) {
+    return formatted;
+  }
+  
+  // Último intento: buscar en tags o inferir del nombre
+  if (context) {
+    const craftFromTags = findCraftInTags(context.tags);
+    if (craftFromTags) return craftFromTags;
+    
+    if (context.productName) {
+      const inferred = inferCraftFromProductName(context.productName);
+      if (inferred) return inferred;
+    }
+  }
+  
+  // Si no hay match y no está en la lista válida, es "Sin especificar"
+  return 'Sin especificar';
 };
 
 /**
