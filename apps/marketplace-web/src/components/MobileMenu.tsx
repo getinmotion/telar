@@ -28,7 +28,7 @@ export const MobileMenu = ({ isOpen, onOpenChange }: MobileMenuProps) => {
         <nav className="flex flex-col py-2">
           {/* Navigation Links */}
           <Link 
-            to="/" 
+            to="/?reset=true" 
             onClick={() => onOpenChange(false)}
             className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
           >
@@ -71,7 +71,16 @@ export const MobileMenu = ({ isOpen, onOpenChange }: MobileMenuProps) => {
             className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
           >
             <Heart className="h-5 w-5 text-muted-foreground" />
-            <span>Mis Favoritos</span>
+            <span>Productos Favoritos</span>
+          </Link>
+          
+          <Link 
+            to="/tiendas-favoritas" 
+            onClick={() => onOpenChange(false)}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+          >
+            <Store className="h-5 w-5 text-red-500" />
+            <span>Tiendas Favoritas</span>
           </Link>
 
           <Separator className="my-2" />

@@ -1,43 +1,38 @@
-import { Star, ShoppingCart, Heart } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCategoryName } from "@/lib/categoryUtils";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/hooks/useWishlist";
+import { ProductPurchaseButton } from "./ProductPurchaseButton";
+import { formatCurrency } from "@/lib/currencyUtils";
+import { Product } from "@/types/products.types";
 
-interface ProductListItemProps {
-  id: string;
-  name: string;
-  price: number;
-  image_url?: string;
-  store_name?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  description?: string;
-  category?: string;
-  materials?: string[];
-  techniques?: string[];
-  craft?: string;
-}
 
 export const ProductListItem = ({
   id,
   name,
   price,
-  image_url,
-  store_name,
+  imageUrl,
+  storeName,
   rating,
-  reviews_count,
-  is_new,
-  free_shipping,
+  reviewsCount,
+  isNew,
+  freeShipping,
   description,
   category,
   materials,
   techniques,
   craft,
-}: ProductListItemProps) => {
+  canPurchase = true,
+  stock,
+}: Product) => {
+  const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
+  const isFavorite = isInWishlist(id);
+
   return (
     <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group">
       <CardContent className="p-0">
@@ -45,11 +40,12 @@ export const ProductListItem = ({
           {/* Image */}
           <Link 
             to={`/product/${id}`} 
+            state={{ returnUrl: window.location.search }}
             className="relative w-full sm:w-48 h-48 flex-shrink-0 overflow-hidden bg-muted"
           >
-            {image_url ? (
+            {imageUrl ? (
               <img
-                src={image_url}
+                src={imageUrl}
                 alt={name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -61,12 +57,22 @@ export const ProductListItem = ({
             
             {/* Badges */}
             <div className="absolute top-2 left-2 flex flex-col gap-2">
-              {is_new && (
+              {stock === 0 && (
+                <Badge className="bg-red-500 hover:bg-red-500 text-white border-0">
+                  Agotado
+                </Badge>
+              )}
+              {stock !== undefined && stock > 0 && stock <= 3 && (
+                <Badge className="bg-orange-500 hover:bg-orange-500 text-white border-0">
+                  {stock === 1 ? '¡Última unidad!' : `¡Últimas ${stock}!`}
+                </Badge>
+              )}
+              {isNew && (
                 <Badge variant="default" className="bg-primary text-primary-foreground">
                   Nuevo
                 </Badge>
               )}
-              {free_shipping && (
+              {freeShipping && (
                 <Badge variant="secondary">
                   Envío gratis
                 </Badge>
@@ -85,16 +91,16 @@ export const ProductListItem = ({
               )}
 
               {/* Title */}
-              <Link to={`/product/${id}`}>
+              <Link to={`/product/${id}`} state={{ returnUrl: window.location.search }}>
                 <h3 className="font-semibold text-lg line-clamp-2 hover:text-primary transition-colors">
                   {name}
                 </h3>
               </Link>
 
               {/* Store */}
-              {store_name && (
+              {storeName && (
                 <p className="text-sm text-muted-foreground">
-                  por {store_name}
+                  por {storeName}
                 </p>
               )}
 
@@ -146,9 +152,9 @@ export const ProductListItem = ({
                       />
                     ))}
                   </div>
-                  {reviews_count && reviews_count > 0 && (
+                  {reviewsCount && reviewsCount > 0 && (
                     <span className="text-sm text-muted-foreground">
-                      ({reviews_count})
+                      ({reviewsCount})
                     </span>
                   )}
                 </div>
@@ -159,25 +165,31 @@ export const ProductListItem = ({
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-primary">
-                  ${price.toLocaleString()}
+                  {formatCurrency(parseFloat(price))}
                 </span>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <Button
                   variant="outline"
                   size="icon"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist(id);
+                  }}
+                  disabled={wishlistLoading}
                   className="hover:bg-primary hover:text-primary-foreground"
                 >
-                  <Heart className="h-4 w-4" />
+                  <Heart className={`h-4 w-4 ${isFavorite ? "fill-primary text-primary" : ""}`} />
                 </Button>
-                <Button
-                  size="default"
-                  className="gap-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Agregar
-                </Button>
+                <ProductPurchaseButton
+                  productId={id}
+                  productName={name}
+                  canPurchase={canPurchase}
+                  stock={stock}
+                  variant="card"
+                />
               </div>
             </div>
           </div>
