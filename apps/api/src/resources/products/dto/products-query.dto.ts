@@ -87,6 +87,22 @@ export class ProductsQueryDto {
   shopSlug?: string;
 
   @ApiPropertyOptional({
+    description: 'Región de la tienda',
+    example: 'Caribe',
+  })
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @ApiPropertyOptional({
+    description: 'Tipo de artesanía de la tienda',
+    example: 'wayuu',
+  })
+  @IsOptional()
+  @IsString()
+  craftType?: string;
+
+  @ApiPropertyOptional({
     description: 'IDs de productos (separados por coma)',
     example: '123e4567-e89b-12d3-a456-426614174000,223e4567-e89b-12d3-a456-426614174000',
   })

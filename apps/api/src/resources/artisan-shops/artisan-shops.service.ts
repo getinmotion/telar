@@ -66,7 +66,7 @@ export class ArtisanShopsService {
       shopSlug,
       region,
       craftType,
-      sortBy = 'createdAt',
+      sortBy = 'created_at',
       order = 'DESC',
     } = query;
 
@@ -124,9 +124,11 @@ export class ArtisanShopsService {
       queryBuilder.andWhere('shop.craft_type = :craftType', { craftType });
     }
 
-    // Ordenamiento
-    const orderByColumn = sortBy === 'shopName' ? 'shop.shop_name' : 'shop.created_at';
-    queryBuilder.orderBy(orderByColumn, order);
+    // Ordenamiento - solo si NO hay hasApprovedProducts
+    if (hasApprovedProducts !== true) {
+      const orderByColumn = sortBy === 'shop_name' ? 'shop.shop_name' : 'shop.created_at';
+      queryBuilder.orderBy(orderByColumn, order);
+    }
 
     // Paginación
     const skip = (page - 1) * limit;
@@ -135,13 +137,27 @@ export class ArtisanShopsService {
     // Ejecutar query
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    // Si hasApprovedProducts está activo, eliminar duplicados
+    // Si hasApprovedProducts está activo, eliminar duplicados y ordenar manualmente
     let uniqueData = data;
     if (hasApprovedProducts === true) {
+      // Eliminar duplicados
       uniqueData = data.filter(
         (shop, index, self) =>
           index === self.findIndex((s) => s.id === shop.id),
       );
+
+      // Ordenar manualmente a nivel de aplicación
+      const sortField = sortBy === 'shop_name' ? 'shopName' : 'createdAt';
+      uniqueData.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+
+        if (order === 'ASC') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
     }
 
     return {
