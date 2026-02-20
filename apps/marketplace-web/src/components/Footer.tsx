@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, ChevronDown } from "lucide-react";
+import { Facebook, Instagram, Mail, MapPin, Phone, ChevronDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import telarHorizontal from '@/assets/telar-horizontal.svg';
@@ -38,33 +38,32 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-8 md:py-16">
         {/* Mobile: Single column with collapsibles */}
         {/* Desktop: Multi-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-0 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-0 md:gap-8">
           {/* Company Info - Always expanded */}
           <div className="space-y-4 col-span-1 md:col-span-2 pb-6 md:pb-0">
-            <img 
-              src={telarHorizontal}
-              alt="TELAR" 
-              className="h-8 md:h-10 w-auto mb-4 brightness-0 invert" 
-            />
+            <div className="bg-white rounded-full px-4 py-2 mb-4 inline-block">
+              <img 
+                src={telarHorizontal}
+                alt="TELAR" 
+                className="h-6 md:h-8 w-auto" 
+              />
+            </div>
             <p className="text-sm text-gray-300 max-w-sm">
               Conectando artesanos locales con el mundo. Descubre piezas únicas hechas a mano con amor y tradición.
             </p>
             <div className="flex space-x-4 pt-2">
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a href="https://facebook.com/telar.co" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+              <a href="https://instagram.com/telar.co" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors">
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           <Separator className="md:hidden bg-gray-700" />
 
-          {/* Shop */}
+          {/* Comprar */}
           <FooterSection title="Comprar">
             <ul className="space-y-2">
               <li>
@@ -78,70 +77,37 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Nuevos Ingresos
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Ofertas
-                </a>
+                <Link to="/giftcards" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                  Tarjetas de Regalo
+                </Link>
               </li>
             </ul>
           </FooterSection>
 
           <Separator className="md:hidden bg-gray-700" />
 
-          {/* About */}
-          <FooterSection title="Empresa">
+          {/* Descubre */}
+          <FooterSection title="Descubre">
             <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Sobre Nosotros
-                </a>
-              </li>
               <li>
                 <Link to="/tiendas" className="text-sm text-gray-400 hover:text-primary transition-colors">
                   Artesanos
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                <Link to="/blog" className="text-sm text-gray-400 hover:text-primary transition-colors">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Sostenibilidad
-                </a>
-              </li>
-            </ul>
-          </FooterSection>
-
-          <Separator className="md:hidden bg-gray-700" />
-
-          {/* Help */}
-          <FooterSection title="Ayuda">
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Centro de Ayuda
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Envíos
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
-                  Devoluciones
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                <Link to="/profile" className="text-sm text-gray-400 hover:text-primary transition-colors">
                   Mi Cuenta
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/wishlist" className="text-sm text-gray-400 hover:text-primary transition-colors">
+                  Lista de Deseos
+                </Link>
               </li>
             </ul>
           </FooterSection>
@@ -156,10 +122,6 @@ export const Footer = () => {
                 <span className="text-sm text-gray-400">Bogotá, Colombia</span>
               </li>
               <li className="flex items-start space-x-2">
-                <Phone className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-                <span className="text-sm text-gray-400">+57 300 123 4567</span>
-              </li>
-              <li className="flex items-start space-x-2">
                 <Mail className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
                 <span className="text-sm text-gray-400">hola@telar.co</span>
               </li>
@@ -171,9 +133,18 @@ export const Footer = () => {
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
           <p className="text-center md:text-left">&copy; {new Date().getFullYear()} TELAR. Todos los derechos reservados.</p>
-          <div className="flex gap-4 md:gap-6">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <Link to="/privacidad" className="hover:text-primary transition-colors">
+              Privacidad
+            </Link>
+            <Link to="/terminos" className="hover:text-primary transition-colors">
+              Términos
+            </Link>
+            <Link to="/datos-personales" className="hover:text-primary transition-colors">
+              Tratamiento de Datos
+            </Link>
+            <span className="hidden md:inline text-gray-600">|</span>
             <span>Colombia</span>
-            <span className="hidden md:inline">|</span>
             <span>Español</span>
           </div>
         </div>

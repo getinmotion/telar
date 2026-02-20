@@ -38,7 +38,7 @@ WORKDIR /app
 RUN apk add --no-cache bash postgresql-client 
 
 # Instalar bash para el script de inicio
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash postgresql-client
 
 # Copiar solo dependencias de producción
 COPY package*.json ./
@@ -46,17 +46,14 @@ COPY package*.json ./
 #chancge added to run in local
 RUN npm ci && npm cache clean --force
 
-# Copiar código compilado desde build stage
+# Copiar código compilado desde build stage (dist incluye dist/migrations por nest build)
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/src/migrations ./src/migrations
 
-# Copiar archivos de configuración necesarios
-COPY tsconfig.json ./
-COPY nest-cli.json ./
+# Copiar config (incluye data-source.prod.js para migraciones en producción)
 COPY src/config ./src/config
 
-# Copiar script de inicio
 COPY docker-entrypoint.sh ./
+RUN sed -i 's/\r$//' docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
 # Crear usuario no-root para seguridad

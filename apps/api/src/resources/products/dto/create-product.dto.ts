@@ -179,6 +179,14 @@ export class CreateProductDto {
   featured?: boolean;
 
   @ApiPropertyOptional({
+    description: 'Indica si el producto tiene NFT habilitado',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'El campo nftEnabled debe ser un booleano' })
+  nftEnabled?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Datos SEO del producto',
     example: { title: 'Vasija artesanal', metaDescription: '...' },
   })

@@ -138,8 +138,6 @@ export const useMasterCoordinator = () => {
         // businessProfile: businessProfile || null
       });
 
-      console.log('Pasa por data', data)
-
       if (data?.tasks && data.tasks.length > 0) {
 
         // ✅ Migrado a endpoint NestJS - Actualizar master_coordinator_context

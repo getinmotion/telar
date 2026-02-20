@@ -6,6 +6,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,13 +15,16 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordRecoveryDto } from './dto/request-password-recovery.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { CompleteProfileResponseDto } from './dto/complete-profile-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
@@ -157,6 +161,32 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'No autorizado - Token inválido' })
   async getProfile(@CurrentUser() user: any) {
     return await this.authService.getProfile(user.sub);
+  }
+
+  /**
+   * GET /auth/me
+   * Obtener perfil completo del usuario autenticado
+   * Incluye: user, userMasterContext, artisanShop, userMaturityActions, access_token
+   * Requiere token JWT
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Obtener perfil completo del usuario autenticado',
+    description:
+      'Retorna información completa del usuario incluyendo user, userMasterContext, artisanShop, userMaturityActions y un nuevo access_token (refreshed)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Perfil completo del usuario obtenido exitosamente con token refreshed',
+    type: CompleteProfileResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado - Token inválido' })
+  async getCompleteProfile(@CurrentUser() user: any) {
+    return await this.authService.getCompleteProfile(user.sub);
   }
 
   /**
@@ -308,5 +338,76 @@ export class AuthController {
         isSuperAdmin: user.isSuperAdmin,
       },
     };
+  }
+
+  /**
+   * GET /auth/google
+   * Inicia el flujo de autenticación con Google
+   * Redirige al usuario a Google OAuth consent screen
+   */
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({
+    summary: 'Iniciar autenticación con Google',
+    description: 'Redirige al usuario a Google para autenticarse',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirección a Google OAuth',
+  })
+  async googleAuth() {
+    // Guard maneja la redirección
+  }
+
+  /**
+   * GET /auth/google/callback
+   * Callback de Google OAuth
+   * Maneja la respuesta de Google y retorna sesión (JWT + usuario)
+   */
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({
+    summary: 'Callback de Google OAuth',
+    description: 'Maneja la respuesta de Google OAuth y autentica al usuario',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario autenticado exitosamente con Google',
+    schema: {
+      example: {
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'user@example.com',
+          phone: null,
+          role: 'user',
+          isSuperAdmin: false,
+          emailConfirmedAt: '2026-02-12T10:00:00.000Z',
+          lastSignInAt: '2026-02-12T15:30:00.000Z',
+          createdAt: '2026-02-12T10:00:00.000Z',
+        },
+        userMasterContext: null,
+        artisanShop: null,
+        userMaturityActions: [],
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error durante la autenticación con Google',
+  })
+  async googleAuthCallback(@CurrentUser() user: any, @Res() res: Response) {
+    // Manejar el callback de Google
+    const result = await this.authService.handleGoogleCallback(user);
+
+    // Retornar el usuario autenticado con JWT
+    // Opcionalmente, también puedes establecer un cookie con el JWT
+    // res.cookie('access_token', result.access_token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'lax',
+    // });
+
+    return res.json(result);
   }
 }

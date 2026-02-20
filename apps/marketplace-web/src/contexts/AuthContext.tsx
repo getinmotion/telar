@@ -1,168 +1,185 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  signUpWithEmail,
+  signInWithEmail,
+  initiateGoogleAuth,
+  sendOtp,
+  verifyOtp,
+  requestPasswordReset,
+  updatePassword as updatePasswordService,
+  signOut as signOutService,
+  getCurrentUser,
+} from '@/services/auth.actions';
+import { AuthUser, AuthResponse } from '@/types/auth.types';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, userType?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   sendCustomOTP: (email: string, channel: 'email' | 'whatsapp') => Promise<void>;
   verifyCustomOTP: (email: string, code: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Check user type after login
-        if (session?.user) {
-          setTimeout(() => {
-            checkUserType(session.user.id);
-          }, 0);
+    // Verificar si hay una sesión existente al cargar
+    const initializeAuth = async () => {
+      try {
+        const authResponse = await getCurrentUser();
+        if (authResponse?.user) {
+          setUser(authResponse.user);
+          checkUserType(authResponse.user.id);
         }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
       }
-    );
+    };
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    initializeAuth();
   }, []);
 
   const checkUserType = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('user_type, artisan_app_url')
-      .eq('id', userId)
-      .single();
-      
-    if (data?.user_type === 'artisan') {
-      toast.info(
-        'Hola artesano! ¿Quieres ir a tu app?',
-        {
-          action: {
-            label: 'Ir a mi App',
-            onClick: () => window.open(data.artisan_app_url || 'https://app.telar.co', '_blank')
-          },
-          duration: 10000
+    try {
+      const authResponse = await getCurrentUser();
+      if (authResponse?.userMasterContext) {
+        // Si el usuario es un artesano, mostrar notificación
+        if (authResponse.user.role === 'user' || authResponse.artisanShop) {
+          toast.info(
+            'Hola artesano! ¿Quieres ir a tu app?',
+            {
+              action: {
+                label: 'Ir a mi App',
+                onClick: () => window.open(authResponse.artisanShop.shopSlug || 'https://app.telar.co', '_blank')
+              },
+              duration: 10000
+            }
+          );
         }
-      );
+      }
+    } catch (error) {
+      console.error('Error checking user type:', error);
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string, userType: string = 'marketplace_customer') => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          user_type: userType
-        }
-      }
-    });
-
-    if (error) throw error;
-    toast.success('Cuenta creada exitosamente');
+    try {
+      const response = await signUpWithEmail(email, password, fullName, userType);
+      setUser(response.user);
+      toast.success('Cuenta creada exitosamente');
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      toast.error(error.response?.data?.message || 'Error al crear la cuenta');
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-    toast.success('Bienvenido de vuelta');
+    try {
+      const response = await signInWithEmail(email, password);
+      setUser(response.user);
+      checkUserType(response.user.id);
+      toast.success('Bienvenido de vuelta');
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-    if (error) throw error;
+    try {
+      await initiateGoogleAuth();
+    } catch (error: any) {
+      console.error('Google auth error:', error);
+      toast.error('Error al iniciar sesión con Google');
+      throw error;
+    }
   };
 
   const sendCustomOTP = async (email: string, channel: 'email' | 'whatsapp' = 'email') => {
     try {
-      const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { email, channel }
-      });
-
-      if (error) throw error;
+      await sendOtp(email, channel);
       toast.success(`Código enviado a ${email}`);
     } catch (error: any) {
       console.error('Error al enviar OTP:', error);
-      toast.error(error.message || 'Error al enviar código de verificación');
+      toast.error(error.response?.data?.message || 'Error al enviar código de verificación');
       throw error;
     }
   };
 
   const verifyCustomOTP = async (email: string, code: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-otp', {
-        body: { email, code }
-      });
-
-      if (error) throw error;
-
-      // Establecer la sesión usando el token_hash devuelto por el backend
-      if (data?.token_hash) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          type: 'magiclink',
-          token_hash: data.token_hash,
-        });
-        
-        if (verifyError) {
-          console.error('Error verificando token_hash:', verifyError);
-          throw verifyError;
-        }
-      }
+      const response = await verifyOtp(email, code);
+      setUser(response.user);
+      checkUserType(response.user.id);
       toast.success('Verificación exitosa. Redirigiendo...');
     } catch (error: any) {
       console.error('Error al verificar OTP:', error);
-      toast.error(error.message || 'Código inválido o expirado');
+      toast.error(error.response?.data?.message || 'Código inválido o expirado');
       throw error;
     }
   };
+
+  const resetPassword = async (email: string) => {
+    try {
+      await requestPasswordReset(email);
+      toast.success('Revisa tu email para instrucciones de reset');
+    } catch (error: any) {
+      console.error('Error al resetear contraseña:', error);
+      toast.error(error.response?.data?.message || 'Error al solicitar reset de contraseña');
+      throw error;
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      await updatePasswordService(newPassword);
+      toast.success('Contraseña actualizada exitosamente');
+    } catch (error: any) {
+      console.error('Error al actualizar contraseña:', error);
+      toast.error(error.response?.data?.message || 'Error al actualizar contraseña');
+      throw error;
+    }
+  };
+
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    toast.success('Sesión cerrada');
+    try {
+      await signOutService();
+      setUser(null);
+      toast.success('Sesión cerrada');
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      toast.error('Error al cerrar sesión');
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, sendCustomOTP, verifyCustomOTP, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signUp, 
+      signIn, 
+      signInWithGoogle, 
+      sendCustomOTP, 
+      verifyCustomOTP, 
+      resetPassword,
+      updatePassword,
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

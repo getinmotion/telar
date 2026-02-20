@@ -306,6 +306,69 @@ export class AuthService {
   }
 
   /**
+   * Obtener perfil completo del usuario autenticado
+   * Retorna: user, userMasterContext, artisanShop, userMaturityActions, access_token
+   */
+  async getCompleteProfile(userId: string): Promise<{
+    user: Partial<User>;
+    userMasterContext: any | null;
+    artisanShop: any | null;
+    userMaturityActions: any[];
+    access_token: string;
+  }> {
+    // Obtener usuario
+    const user = await this.usersService.getById(userId);
+
+    // Verificar que el usuario no esté eliminado
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Esta cuenta ha sido desactivada');
+    }
+
+    // Verificar si el usuario está baneado
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+      throw new UnauthorizedException(
+        `Esta cuenta está suspendida hasta ${user.bannedUntil.toLocaleDateString()}`,
+      );
+    }
+
+    // Obtener información adicional del usuario
+    // Obtener user_master_context (relación 1:1)
+    const userMasterContext = await this.userMasterContextService
+      .getByUserId(user.id)
+      .catch(() => null);
+
+    // Obtener artisan_shop (relación 1:1)
+    const artisanShop = await this.artisanShopsService
+      .getByUserId(user.id)
+      .catch(() => null);
+
+    // Obtener user_maturity_actions (relación 1:N, retorna array)
+    const userMaturityActions = await this.userMaturityActionsService
+      .getByUserId(user.id)
+      .catch(() => []);
+
+    // Generar nuevo token JWT (refresh)
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      isSuperAdmin: user.isSuperAdmin,
+    };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    // Retornar usuario sin datos sensibles
+    const { encryptedPassword, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+      userMasterContext,
+      artisanShop,
+      userMaturityActions,
+      access_token,
+    };
+  }
+
+  /**
    * Cambiar contraseña
    */
   async changePassword(
@@ -427,6 +490,154 @@ export class AuthService {
       };
     } catch (error) {
       throw new UnauthorizedException('Token inválido o expirado');
+    }
+  }
+
+  /**
+   * Manejar callback de Google OAuth
+   * Crea o actualiza usuario y devuelve JWT + información adicional
+   */
+  async handleGoogleCallback(
+    googleAuthDto: any,
+  ): Promise<{
+    user: Partial<User>;
+    userMasterContext: any | null;
+    artisanShop: any | null;
+    userMaturityActions: any[];
+    access_token: string;
+  }> {
+    const normalizedEmail = googleAuthDto.email.toLowerCase().trim();
+
+    try {
+      // Buscar si el usuario ya existe por email
+      let user = await this.usersService.getByEmail(normalizedEmail);
+
+      if (user) {
+        // Usuario existe: actualizar información de Google si es necesario
+        if (
+          googleAuthDto.profilePhoto &&
+          !user.rawUserMetaData?.profile_picture
+        ) {
+          user = await this.usersService.update(user.id, {
+            rawUserMetaData: {
+              ...user.rawUserMetaData,
+              profile_picture: googleAuthDto.profilePhoto,
+              google_id: googleAuthDto.googleId,
+            },
+          } as any);
+        }
+
+        // Actualizar última fecha de inicio de sesión
+        await this.usersService.update(user.id, {
+          lastSignInAt: new Date(),
+          emailConfirmedAt: user.emailConfirmedAt || new Date(), // Confirmar email automáticamente si aún no está confirmado
+        } as any);
+      } else {
+        // Usuario NO existe: crear nuevo usuario
+        // Generar contraseña temporal para Google OAuth (no será usada)
+        const tempPassword = Math.random().toString(36).substring(2, 15) +
+          Math.random().toString(36).substring(2, 15);
+
+        const newUser = await this.usersService.create({
+          email: normalizedEmail,
+          password: tempPassword,
+          phone: undefined,
+          role: 'user',
+          emailConfirmedAt: new Date(),
+          rawUserMetaData: {
+            first_name: googleAuthDto.firstName || '',
+            last_name: googleAuthDto.lastName || '',
+            full_name: `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
+            profile_picture: googleAuthDto.profilePhoto,
+            google_id: googleAuthDto.googleId,
+            oauth_provider: 'google',
+          },
+        } as any);
+
+        user = newUser;
+
+        // Crear perfil de usuario automáticamente
+        try {
+          await this.userProfilesService.create({
+            userId: newUser.id,
+            firstName: googleAuthDto.firstName || '',
+            lastName: googleAuthDto.lastName || '',
+            fullName: `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
+            whatsappE164: undefined,
+            department: undefined,
+            city: undefined,
+            businessLocation: undefined,
+            rut: undefined,
+            rutPendiente: true,
+            newsletterOptIn: false,
+          } as any);
+        } catch (profileError) {
+          // Si falla la creación del perfil, eliminar el usuario
+          await this.usersService.hardDelete(newUser.id);
+          throw new InternalServerErrorException(
+            'Error al crear el perfil de usuario',
+          );
+        }
+
+        // Crear progreso inicial
+        try {
+          await this.userProgressService.create({
+            userId: newUser.id,
+            level: 1,
+            experiencePoints: 0,
+            nextLevelXp: 100,
+          });
+        } catch (progressError) {
+          // Si falla, eliminar usuario
+          await this.usersService.hardDelete(newUser.id);
+          throw new InternalServerErrorException(
+            'Error al inicializar el progreso del usuario',
+          );
+        }
+      }
+
+      // Obtener información adicional del usuario
+      const userMasterContext = await this.userMasterContextService
+        .getByUserId(user.id)
+        .catch(() => null);
+
+      const artisanShop = await this.artisanShopsService
+        .getByUserId(user.id)
+        .catch(() => null);
+
+      const userMaturityActions = await this.userMaturityActionsService
+        .getByUserId(user.id)
+        .catch(() => []);
+
+      // Generar token JWT
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
+      };
+      const access_token = await this.jwtService.signAsync(payload);
+
+      // Retornar usuario sin datos sensibles
+      const { encryptedPassword, ...userWithoutPassword } = user;
+
+      return {
+        user: userWithoutPassword,
+        userMasterContext,
+        artisanShop,
+        userMaturityActions,
+        access_token,
+      };
+    } catch (error) {
+      if (
+        error instanceof InternalServerErrorException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error procesando autenticación de Google',
+      );
     }
   }
 }

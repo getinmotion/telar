@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Rocket, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useShopPublish, PublishRequirements } from '@/hooks/useShopPublish';
-import { ArtisanShop } from '@/types/artisan';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ArtisanShop } from '@/types/artisanShop.types';
 
 interface ShopPublishStatusBannerProps {
   shop: ArtisanShop;
@@ -52,18 +52,18 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
   };
 
   // Si ya está publicada - solo mostrar una vez después de publicar
-  if (shop.publish_status === 'published') {
+  if (shop.publishStatus === 'published') {
     const bannerKey = `shop_published_banner_shown_${shop.id}`;
     const alreadyShown = localStorage.getItem(bannerKey);
-    
+
     // Si ya se mostró, no renderizar nada
     if (alreadyShown) {
       return null;
     }
-    
+
     // Marcar como mostrado para la próxima vez
     localStorage.setItem(bannerKey, 'true');
-    
+
     return (
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -95,15 +95,14 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
                 <AlertCircle className="w-4 h-4 text-warning" />
                 <span className="font-medium text-warning text-sm">En preparación</span>
               </div>
-              
+
               {/* Requisitos como chips inline */}
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Chip Productos - OBLIGATORIO */}
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
-                  requirements?.hasApprovedProducts 
-                    ? 'bg-success/20 text-success' 
-                    : 'bg-warning/20 text-warning'
-                }`}>
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${requirements?.hasApprovedProducts
+                  ? 'bg-success/20 text-success'
+                  : 'bg-warning/20 text-warning'
+                  }`}>
                   {requirements?.hasApprovedProducts ? (
                     <CheckCircle className="w-3 h-3" />
                   ) : (
@@ -111,7 +110,7 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
                   )}
                   {requirements?.approvedProductsCount || 0}/1 productos
                 </div>
-                
+
                 {/* Chip Datos Bancarios - INFORMATIVO (no bloquea publicación) */}
                 {requirements?.hasBankData ? (
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-success/20 text-success">
@@ -119,7 +118,7 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
                     Datos bancarios
                   </div>
                 ) : (
-                  <div 
+                  <div
                     className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground cursor-pointer hover:bg-muted transition-colors"
                     onClick={() => navigate('/mi-cuenta/datos-bancarios')}
                     title="Opcional para publicar, necesario para recibir pagos"
@@ -129,11 +128,11 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
                   </div>
                 )}
               </div>
-              
+
               {/* Botón Publicar */}
-              <Button 
-                size="sm" 
-                disabled={!requirements?.canPublish || loading} 
+              <Button
+                size="sm"
+                disabled={!requirements?.canPublish || loading}
                 onClick={handlePublishClick}
                 className="h-8"
               >
@@ -155,7 +154,7 @@ export const ShopPublishStatusBanner: React.FC<ShopPublishStatusBannerProps> = (
                 <>
                   <br /><br />
                   <span className="text-warning">
-                    ⚠️ Nota: Aún no has configurado tus datos bancarios. Podrás publicar tu tienda, 
+                    ⚠️ Nota: Aún no has configurado tus datos bancarios. Podrás publicar tu tienda,
                     pero necesitarás completar esta información para poder recibir pagos de tus ventas.
                   </span>
                 </>

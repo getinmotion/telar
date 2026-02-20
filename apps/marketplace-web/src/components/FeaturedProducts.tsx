@@ -1,57 +1,122 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { telarClient } from "@/lib/telarClient";
-import { mapProductToMarketplace } from "@/lib/productMapper";
+import { useProducts } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import {
+  MobileColumnsToggle,
+  MobileColumns,
+} from "@/components/MobileColumnsToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { mapArtisanCategory } from "@/lib/productMapper";
+import { Product } from "@/types/products.types";
 
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  images?: string[];
-  store_name?: string;
-  rating?: number;
-  reviews_count?: number;
-  is_new?: boolean;
-  free_shipping?: boolean;
-  stock?: number;
-  category?: string;
-}
+// Seeded random for consistent shuffle during the day
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed++) * 10000;
+  return x - Math.floor(x);
+};
+
+// Distributed shuffle to avoid consecutive products from same store
+const distributedShuffle = <T extends { storeName?: string }>(
+  array: T[],
+  seed: number,
+): T[] => {
+  if (array.length === 0) return array;
+
+  const grouped = array.reduce(
+    (acc, item) => {
+      const key = item.storeName || "unknown";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    },
+    {} as Record<string, T[]>,
+  );
+
+  Object.values(grouped).forEach((group) => {
+    for (let i = group.length - 1; i > 0; i--) {
+      const j = Math.floor(seededRandom(seed + i) * (i + 1));
+      [group[i], group[j]] = [group[j], group[i]];
+    }
+  });
+
+  const sortedGroups = Object.values(grouped).sort(
+    (a, b) => b.length - a.length,
+  );
+  const result: T[] = [];
+  let groupIndex = 0;
+
+  while (sortedGroups.some((g) => g.length > 0)) {
+    const group = sortedGroups[groupIndex % sortedGroups.length];
+    if (group.length > 0) {
+      result.push(group.shift()!);
+    }
+    groupIndex++;
+  }
+
+  return result;
+};
+
+// Prioritized shuffle: purchasable products first, then non-purchasable
+const prioritizedDistributedShuffle = <
+  T extends { storeName?: string; canPurchase?: boolean },
+>(
+  array: T[],
+  seed: number,
+): T[] => {
+  const purchasable = array.filter((item) => item.canPurchase === true);
+  const notPurchasable = array.filter((item) => item.canPurchase !== true);
+
+  const shuffledPurchasable = distributedShuffle(purchasable, seed);
+  const shuffledNotPurchasable = distributedShuffle(notPurchasable, seed + 1);
+
+  return [...shuffledPurchasable, ...shuffledNotPurchasable];
+};
 
 export const FeaturedProducts = () => {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+  const {
+    products: contextProducts,
+    loading,
+    fetchFeaturedProducts,
+  } = useProducts();
+  const [displayProducts, setDisplayProducts] = useState<Product[]>([]);
+  const [randomSeed] = useState(() => Math.floor(Date.now() / 86400000));
+  const [mobileColumns, setMobileColumns] = useState<MobileColumns>(() => {
+    const saved = localStorage.getItem("featuredMobileColumns");
+    return saved === "1" ? 1 : 2;
+  });
 
   useEffect(() => {
-    fetchFeaturedProducts();
-  }, []);
+    localStorage.setItem("featuredMobileColumns", String(mobileColumns));
+  }, [mobileColumns]);
 
-  const fetchFeaturedProducts = async () => {
+  useEffect(() => {
+    loadFeaturedProducts();
+  }, [randomSeed]);
+
+  useEffect(() => {
+    if (contextProducts.length > 0) {
+      const prioritizedProducts = prioritizedDistributedShuffle(
+        contextProducts.map((p) => ({
+          ...p
+        })),
+        randomSeed,
+      );
+      setDisplayProducts(prioritizedProducts.slice(0, 8));
+    }
+  }, [contextProducts, randomSeed]);
+
+  const loadFeaturedProducts = async () => {
     try {
-      setError(null);
-      
-      const { data, error } = await telarClient
-        .from('marketplace_products')
-        .select('id, name, description, price, image_url, images, store_name, rating, reviews_count, is_new, free_shipping, category')
-        .order('created_at', { ascending: false })
-        .limit(8);
-
-      if (error) {
-        throw new Error(`Error al cargar productos destacados: ${error.message}`);
-      }
-      
-      setProducts((data || []).map(mapProductToMarketplace));
-    } catch (error: any) {
-      setError(error?.message || 'No se pudieron cargar los productos destacados');
-    } finally {
-      setLoading(false);
+      await fetchFeaturedProducts();
+    } catch (error) {
+      // Error already handled by context with toast
     }
   };
 
@@ -73,52 +138,78 @@ export const FeaturedProducts = () => {
     );
   }
 
-  if (error) {
-    return (
-      <section className="py-16 px-4 bg-muted/20">
-        <div className="container mx-auto max-w-7xl text-center">
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8 max-w-2xl mx-auto">
-            <p className="text-destructive font-semibold mb-2">Error al cargar productos destacados</p>
-            <p className="text-muted-foreground text-sm mb-4">{error}</p>
-            <Button onClick={fetchFeaturedProducts} variant="outline" size="sm">
-              Reintentar
-            </Button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (products.length === 0) {
+  if (!loading && displayProducts.length === 0) {
     return null;
   }
 
+  const isCompactMode = isMobile && mobileColumns === 2;
+
   return (
-    <section className="py-20 px-4 bg-muted/20">
+    <section
+      className={cn("bg-muted/20", isMobile ? "py-12 px-2" : "py-20 px-4")}
+    >
       <div className="container mx-auto max-w-7xl">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
+        <div className={cn("text-center", isMobile ? "mb-8" : "mb-16")}>
+          <h2
+            className={cn(
+              "font-bold text-foreground",
+              isMobile ? "text-2xl mb-2" : "text-4xl lg:text-5xl mb-4",
+            )}
+          >
             Productos Destacados
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p
+            className={cn(
+              "text-muted-foreground",
+              isMobile ? "text-base" : "text-xl",
+            )}
+          >
             Lo mejor de nuestra comunidad de artesanos
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => {
-            const imageUrl = product.image_url || (Array.isArray((product as any).images) ? (product as any).images[0] : undefined);
+        {isMobile && (
+          <div className="flex justify-end mb-4">
+            <MobileColumnsToggle
+              columns={mobileColumns}
+              onColumnsChange={setMobileColumns}
+            />
+          </div>
+        )}
+
+        <div
+          className={cn(
+            "grid",
+            isMobile ? "gap-3" : "gap-6",
+            isMobile
+              ? mobileColumns === 1
+                ? "grid-cols-1"
+                : "grid-cols-2"
+              : "md:grid-cols-2 lg:grid-cols-4",
+          )}
+        >
+          {displayProducts.map((product) => {
+            const imageUrl =
+              product.imageUrl ||
+              (Array.isArray(product.images) ? product.images[0] : undefined);
             return (
-              <ProductCard key={product.id} {...product} image_url={imageUrl} />
+              <ProductCard
+                key={product.id}
+                {...product}
+                imageUrl={imageUrl}
+                stock={product.stock | product.inventory}
+                canPurchase={product.canPurchase ?? false}
+                compactMode={isCompactMode}
+              />
             );
           })}
         </div>
 
         <div className="text-center mt-16">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="group h-12 px-10"
-            onClick={() => navigate('/productos')}
+            onClick={() => navigate("/productos")}
           >
             Ver Todos los Productos
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
