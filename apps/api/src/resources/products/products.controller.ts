@@ -88,6 +88,125 @@ export class ProductsController {
   }
 
   /**
+   * GET /products/marketplace
+   * Obtener productos para marketplace (replica marketplace_products view)
+   */
+  @Get('marketplace')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos para marketplace',
+    description:
+      'Endpoint que replica la vista marketplace_products. ' +
+      'Incluye cálculos de stock, rating, reviews y filtra solo productos aprobados de tiendas publicadas',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos de marketplace obtenida exitosamente',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: { type: 'object' },
+        },
+        total: {
+          type: 'number',
+          example: 150,
+        },
+        page: {
+          type: 'number',
+          example: 1,
+        },
+        limit: {
+          type: 'number',
+          example: 20,
+        },
+      },
+    },
+  })
+  async getMarketplaceProducts(@Query() query: ProductsQueryDto) {
+    return await this.productsService.getMarketplaceProducts(query);
+  }
+
+  /**
+   * GET /products/marketplace/featured
+   * Obtener productos destacados enriquecidos para marketplace
+   */
+  @Get('marketplace/featured')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos destacados para marketplace',
+    description: 'Productos destacados con datos enriquecidos (stock, rating, reviews)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos destacados obtenida exitosamente',
+  })
+  async getMarketplaceFeaturedProducts() {
+    return await this.productsService.getMarketplaceFeaturedProducts();
+  }
+
+  /**
+   * GET /products/marketplace/shop/:shopId
+   * Obtener productos de una tienda enriquecidos para marketplace
+   */
+  @Get('marketplace/shop/:shopId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos de una tienda para marketplace',
+    description: 'Productos de una tienda específica con datos enriquecidos',
+  })
+  @ApiParam({ name: 'shopId', description: 'ID de la tienda' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos de la tienda obtenida exitosamente',
+  })
+  async getMarketplaceProductsByShop(@Param('shopId') shopId: string) {
+    return await this.productsService.getMarketplaceProductsByShop(shopId);
+  }
+
+  /**
+   * GET /products/marketplace/:id
+   * Obtener un producto individual enriquecido para marketplace
+   */
+  @Get('marketplace/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener un producto para marketplace',
+    description: 'Producto individual con datos enriquecidos (stock, rating, reviews)',
+  })
+  @ApiParam({ name: 'id', description: 'ID del producto' })
+  @ApiResponse({
+    status: 200,
+    description: 'Producto obtenido exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Producto no encontrado' })
+  async getMarketplaceProductById(@Param('id') id: string) {
+    return await this.productsService.getMarketplaceProductById(id);
+  }
+
+  /**
+   * GET /products/marketplace/user/:userId
+   * Obtener productos de un usuario enriquecidos para marketplace
+   */
+  @Get('marketplace/user/:userId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Obtener productos de un usuario para marketplace',
+    description:
+      'Productos de un usuario (a través de su tienda) con datos enriquecidos',
+  })
+  @ApiParam({ name: 'userId', description: 'ID del usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos del usuario obtenida exitosamente',
+  })
+  async getMarketplaceProductsByUser(@Param('userId') userId: string) {
+    return await this.productsService.getMarketplaceProductsByUser(userId);
+  }
+
+  /**
    * GET /products/active
    * Obtener productos activos
    */

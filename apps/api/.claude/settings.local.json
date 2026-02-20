@@ -4,7 +4,9 @@
       "Bash(python clean_users_sql.py:*)",
       "Bash(python clean_users_sql_v2.py:*)",
       "Bash(npm run migration:create:*)",
-      "Bash(npm run typeorm:*)"
+      "Bash(npm run typeorm:*)",
+      "Bash(nest g resource:*)",
+      "Bash(npx nest g:*)"
     ]
   }
 }
