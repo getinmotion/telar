@@ -12,28 +12,28 @@ import (
 )
 
 type CheckoutService struct {
-	repo           ports.CheckoutRepository
-	uow            ports.UnitOfWork // Añadido para transacciones complejas
-	pricingEngine  *PricingEngine
-	wompiGateway   ports.PaymentGateway
-	wompiValidator ports.WebhookValidator // Añadido para verificar firmas
-	logger         *slog.Logger
+	repo          ports.CheckoutRepository
+	uow           ports.UnitOfWork
+	pricingEngine *PricingEngine
+	gateways      map[string]ports.PaymentGateway
+	validators    map[string]ports.WebhookValidator
+	logger        *slog.Logger
 }
 
 func NewCheckoutService(
 	repo ports.CheckoutRepository,
 	uow ports.UnitOfWork,
-	wompiGateway ports.PaymentGateway,
-	wompiValidator ports.WebhookValidator,
+	gateways map[string]ports.PaymentGateway, // <--- Recibir el mapa
+	validators map[string]ports.WebhookValidator,
 	logger *slog.Logger,
 ) *CheckoutService {
 	return &CheckoutService{
-		repo:           repo,
-		uow:            uow,
-		pricingEngine:  NewPricingEngine(repo),
-		wompiGateway:   wompiGateway,
-		wompiValidator: wompiValidator,
-		logger:         logger,
+		repo:          repo,
+		uow:           uow,
+		pricingEngine: NewPricingEngine(repo),
+		gateways:      gateways,
+		validators:    validators,
+		logger:        logger,
 	}
 }
 
@@ -81,15 +81,17 @@ func (s *CheckoutService) ProcessCheckout(ctx context.Context, input CreateCheck
 	}
 	intent.ProviderID = providerID
 
-	// 5. LLAMAR A WOMPI
-	amountFloat := float64(checkoutData.TotalMinor) / 100.0
-	// Usamos intent.ID como sku/referencia
-	gwResp, err := s.wompiGateway.GeneratePaymentLink(ctx, amountFloat, checkoutData.Currency, intent.ID)
-	if err != nil {
-		// Aquí podrías guardar el intent como FAILED si quieres trazabilidad del error
-		return nil, fmt.Errorf("gateway error: %w", err)
+	// 5. SELECCIONAR GATEWAY Y LLAMAR
+	gateway, exists := s.gateways[input.ProviderCode]
+	if !exists {
+		return nil, fmt.Errorf("unsupported provider code: %s", input.ProviderCode)
 	}
 
+	amountFloat := float64(checkoutData.TotalMinor) / 100.0
+	gwResp, err := gateway.GeneratePaymentLink(ctx, amountFloat, checkoutData.Currency, intent.ID)
+	if err != nil {
+		return nil, fmt.Errorf("gateway error: %w", err)
+	}
 	// 6. ACTUALIZAR INTENT
 	intent.ExternalID = gwResp.ExternalID
 	intent.Status = "requires_action"
