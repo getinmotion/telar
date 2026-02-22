@@ -2,7 +2,8 @@ version: '3.8'
 
 # ========================================
 # GetInMotion Development Stack
-# Centralized Docker Compose Configuration
+# Images pulled from GHCR — built by CI on push to develop
+# To deploy: docker compose pull && docker compose up -d
 # ========================================
 
 services:
@@ -20,11 +21,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../../apps/api/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
       - gim-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,9 +34,7 @@ services:
   # API Service (NestJS)
   # ========================================
   api:
-    build:
-      context: ../../apps/api
-      dockerfile: Dockerfile
+    image: ghcr.io/getinmotion/gim-api:${IMAGE_TAG:-develop}
     container_name: gim-api
     environment:
       HOST_DB: ${HOST_DB}
@@ -56,9 +54,6 @@ services:
         condition: service_healthy
     networks:
       - gim-network
-    # volumes:
-    #   - ../../apps/api/src:/app/src  # Uncomment for development hot-reload
-    #   - ../../apps/api/dist:/app/dist  # Uncomment for development hot-reload
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3040/', (r) => {process.exit(r.statusCode >= 200 && r.statusCode < 500 ? 0 : 1)})"]
@@ -70,9 +65,7 @@ services:
   # Agents Service (Python/FastAPI)
   # ========================================
   agents:
-    build:
-      context: ../../apps
-      dockerfile: agents/Dockerfile
+    image: ghcr.io/getinmotion/gim-agents:${IMAGE_TAG:-develop}
     container_name: gim-agents
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -107,8 +100,6 @@ services:
         condition: service_healthy
     networks:
       - gim-network
-    # volumes:
-    #   - ../../apps/agents:/app  # Uncomment for development hot-reload
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${AGENTS_PORT}/health"]
@@ -118,19 +109,10 @@ services:
 
   # ========================================
   # Artisans Web (Vite/React)
+  # VITE_* vars are baked into the image at CI build time
   # ========================================
   artisans-web:
-    build:
-      context: ../../apps/artisans-web
-      dockerfile: Dockerfile
-      args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-        VITE_SEMANTIC_SEARCH_URL: ${VITE_SEMANTIC_SEARCH_URL}
-        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
-        VITE_GOOGLE_PLACES_API_KEY: ${VITE_GOOGLE_PLACES_API_KEY}
+    image: ghcr.io/getinmotion/gim-artisans-web:${IMAGE_TAG:-develop}
     container_name: gim-artisans-web
     ports:
       - "${ARTISANS_WEB_PORT}:80"
@@ -148,16 +130,10 @@ services:
 
   # ========================================
   # Marketplace Web (Vite/React)
+  # VITE_* vars are baked into the image at CI build time
   # ========================================
   marketplace-web:
-    build:
-      context: ../../apps/marketplace-web
-      dockerfile: Dockerfile
-      args:
-        VITE_SUPABASE_URL: ${MARKETPLACE_VITE_SUPABASE_URL}
-        VITE_SUPABASE_PUBLISHABLE_KEY: ${MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY}
-        VITE_SEMANTIC_SEARCH_API_URL: ${MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL}
-        VITE_SEMANTIC_SEARCH_API_KEY: ${MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY}
+    image: ghcr.io/getinmotion/gim-marketplace-web:${IMAGE_TAG:-develop}
     container_name: gim-marketplace-web
     ports:
       - "${MARKETPLACE_WEB_PORT}:80"
