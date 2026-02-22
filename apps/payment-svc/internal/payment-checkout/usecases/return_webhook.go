@@ -8,10 +8,17 @@ import (
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/ports"
 )
 
-func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, rawPayload []byte, event domain.PaymentGatewayEvent) error {
-	// 1. Validar Firma (Adapter inyectado) - Ahora usamos el nombre correcto
-	if err := s.wompiValidator.ValidateSignature(rawPayload, ""); err != nil {
-		return fmt.Errorf("invalid signature: %w", err)
+func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode string, rawPayload []byte, event domain.PaymentGatewayEvent) error {
+
+	// 1. Validar Firma dinámicamente según el proveedor
+	validator, exists := s.validators[providerCode]
+	if exists {
+		// Aquí le pasamos el header de la firma (por ahora vacío)
+		if err := validator.ValidateSignature(rawPayload, ""); err != nil {
+			return fmt.Errorf("invalid signature for %s: %w", providerCode, err)
+		}
+	} else {
+		s.logger.Warn("No validator found for provider, skipping signature check", "provider", providerCode)
 	}
 
 	tx, err := s.uow.BeginTx(ctx)

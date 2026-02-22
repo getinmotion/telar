@@ -38,3 +38,23 @@ type WompiTransaction struct {
 	Status        string `json:"status"`
 	Currency      string `json:"currency"`
 }
+
+// --- Estructuras para Cobre Webhook ---
+
+type CobreWebhookPayload struct {
+	ID        string `json:"id"`
+	EventKey  string `json:"event_key"`
+	CreatedAt string `json:"created_at"`
+	Content   struct {
+		ID              string                 `json:"id"`
+		Type            string                 `json:"type"`
+		Amount          int64                  `json:"amount"`
+		Currency        string                 `json:"currency"`
+		Date            string                 `json:"date"`
+		Metadata        map[string]interface{} `json:"metadata"`
+		AccountID       string                 `json:"account_id"`
+		PreviousBalance int64                  `json:"previous_balance"`
+		CurrentBalance  int64                  `json:"current_balance"`
+		CreditDebitType string                 `json:"credit_debit_type"`
+	} `json:"content"`
+}

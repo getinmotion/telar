@@ -87,7 +87,7 @@ func (h *HTTPHandler) HandleWompiWebhook(c echo.Context) error {
 	}
 
 	// 3. Pasar al Use Case
-	err = h.service.ProcessPaymentEvent(c.Request().Context(), rawPayload, domainEvent)
+	err = h.service.ProcessPaymentEvent(c.Request().Context(), "wompi", rawPayload, domainEvent)
 	if err != nil {
 		c.Logger().Error("Error processing webhook: ", err)
 		// Si es un error de firma, no reintentar (400). Si es error interno, 500 para que Wompi reintente.
@@ -98,5 +98,53 @@ func (h *HTTPHandler) HandleWompiWebhook(c echo.Context) error {
 	}
 
 	// 4. Wompi exige un 200 OK para no reintentar
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *HTTPHandler) HandleCobreWebhook(c echo.Context) error {
+	rawPayload, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	var cobrePayload CobreWebhookPayload
+	if err := json.Unmarshal(rawPayload, &cobrePayload); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// Cobre dispara muchos eventos; solo nos interesan los abonos (créditos)
+	if cobrePayload.EventKey != "accounts.balance.credit" {
+		return c.NoContent(http.StatusOK) // Ignoramos otros eventos y respondemos 200
+	}
+
+	// Extraer el ExternalID (Nuestro Intent ID) de la metadata.
+	// Dependiendo del tipo de riel, Cobre lo envía en "mm_external_id" u otros campos.
+	var intentID string
+	if extID, ok := cobrePayload.Content.Metadata["mm_external_id"].(string); ok && extID != "" {
+		intentID = extID
+	} else {
+		// Fallback: Si no está en mm_external_id, es posible que el evento no sea de un checkout nuestro
+		c.Logger().Warn("Webhook de Cobre sin mm_external_id", "cobre_trx_id", cobrePayload.Content.ID)
+		return c.NoContent(http.StatusOK)
+	}
+
+	// Mapear al Dominio Agnóstico
+	domainEvent := domain.PaymentGatewayEvent{
+		EventID:        cobrePayload.ID, // Event ID de Cobre
+		ExternalTxID:   cobrePayload.Content.ID,
+		PaymentLinkID:  intentID,   // El ID que enviamos en la creación del checkout
+		Status:         "APPROVED", // Si es un evento de account.balance.credit, el dinero entró
+		AmountMinor:    cobrePayload.Content.Amount,
+		Currency:       cobrePayload.Content.Currency,
+		GatewayPayload: rawPayload,
+	}
+
+	// OJO: Tendremos que manejar la firma de Cobre en el futuro
+	err = h.service.ProcessPaymentEvent(c.Request().Context(), "cobre", rawPayload, domainEvent)
+	if err != nil {
+		c.Logger().Error("Error processing Cobre webhook: ", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusOK)
 }
