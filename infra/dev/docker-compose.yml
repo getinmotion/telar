@@ -111,6 +111,39 @@ services:
       retries: 3
 
   # ========================================
+  # Payment Service (Go)
+  # ========================================
+  payment-svc:
+    image: ghcr.io/getinmotion/gim-payment-svc:${IMAGE_TAG:-develop}
+    container_name: gim-payment-svc
+    environment:
+      SERVICE_NAME: ${PAYMENT_SERVICE_NAME}
+      ENVIRONMENT: ${PAYMENT_ENVIRONMENT}
+      PORT: ${PAYMENT_PORT}
+      SQL_DRIVER: ${PAYMENT_SQL_DRIVER}
+      SQL_DATA_SOURCE: ${PAYMENT_SQL_DATA_SOURCE}
+      COBRE_API_KEY: ${COBRE_API_KEY}
+      COBRE_API_SECRET: ${COBRE_API_SECRET}
+      COBRE_BALANCE_ID: ${COBRE_BALANCE_ID}
+      COBRE_URL: ${COBRE_URL}
+      WOMPI_BASE_URL: ${WOMPI_BASE_URL}
+      WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY}
+      WOMPI_EVENTS_SECRET: ${WOMPI_EVENTS_SECRET}
+    ports:
+      - "${PAYMENT_PORT}:${PAYMENT_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:${PAYMENT_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
   # Artisans Web (Vite/React)
   # VITE_* vars are baked into the image at CI build time
   # ========================================
