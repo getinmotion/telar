@@ -7,9 +7,11 @@ import {
   BaseEntity,
   OneToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from 'src/resources/users/entities/user.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 export enum UserType {
   REGULAR = 'regular',
@@ -252,4 +254,12 @@ export class UserProfile extends BaseEntity {
   @ApiPropertyOptional({ description: 'Código DANE de la ciudad' })
   @Column({ type: 'integer', nullable: true, name: 'dane_city' })
   daneCity: number | null;
+
+  /**
+   * Transform relative image paths to full CDN URLs after loading from database
+   */
+  @AfterLoad()
+  transformImageUrls() {
+    this.avatarUrl = ImageUrlBuilder.buildUrl(this.avatarUrl);
+  }
 }

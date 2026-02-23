@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { ImageUrlBuilder } from '../../common/utils/image-url-builder.util';
 
 @Injectable()
 export class MailService {
@@ -29,7 +30,9 @@ export class MailService {
       context: {
         name,
         verificationUrl,
-        logoUrl: this.configService.get<string>('LOGO_URL') || null,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') || '/images/platform/telar-logo.png',
+        ),
         year: new Date().getFullYear(),
       },
     });

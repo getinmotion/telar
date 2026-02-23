@@ -49,6 +49,21 @@ export async function migrateProductCategories() {
 
     for (const [index, category] of categories.entries()) {
       try {
+        // Función para transformar URLs de Supabase a paths relativos de S3
+        const transformSupabaseUrlToS3Path = (url: string | null): string | null => {
+          if (!url || url.trim() === '') return null;
+          if (!url.includes('ylooqmqmoufqtxvetxuj.supabase.co')) return url;
+          try {
+            const match = url.match(/\/storage\/v1\/object\/public\/(.+)$/);
+            if (!match) return null;
+            return `/${match[1]}`;
+          } catch {
+            return null;
+          }
+        };
+
+        const imagePath = transformSupabaseUrlToS3Path(category.image_url);
+
         // Insertar en producción (schema shop)
         await productionConnection.query(
           `
@@ -84,7 +99,7 @@ export async function migrateProductCategories() {
             category.parent_id,
             category.display_order,
             category.is_active,
-            category.image_url,
+            imagePath, // Transformado a path relativo S3
             category.created_at,
             category.updated_at,
           ],
