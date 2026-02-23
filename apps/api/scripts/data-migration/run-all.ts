@@ -116,7 +116,9 @@ async function main() {
       try {
         const result = await migration.fn();
         results.push({
-          ...migration,
+          name: migration.name,
+          description: migration.description,
+          fn: migration.fn,
           result,
           status: 'success',
         });
@@ -125,7 +127,9 @@ async function main() {
         console.error(error);
 
         results.push({
-          ...migration,
+          name: migration.name,
+          description: migration.description,
+          fn: migration.fn,
           error: error instanceof Error ? error.message : String(error),
           status: 'failed',
         });
