@@ -3,7 +3,11 @@ import { supabaseConnection, productionConnection } from '../config';
 /**
  * Migración de user_roles desde Supabase (public.user_roles) a Producción (auth.user_roles)
  */
-export async function migrateUserRoles() {
+export async function migrateUserRoles(): Promise<{
+  success: number;
+  failed: number;
+  total: number;
+}> {
   console.log('=== Iniciando migración de User Roles ===');
 
   try {
@@ -27,7 +31,7 @@ export async function migrateUserRoles() {
 
     if (supabaseUserRoles.length === 0) {
       console.log('No hay user_roles para migrar.');
-      return;
+      return { success: 0, failed: 0, total: 0 };
     }
 
     // Verificar cuántos ya existen en producción
@@ -39,7 +43,8 @@ export async function migrateUserRoles() {
     );
 
     // Preparar datos para inserción
-    let insertedCount = 0;
+    let successCount = 0;
+    let failedCount = 0;
     let skippedCount = 0;
     const existingIds = new Set(existingUserRoles.map((ur) => ur.id));
 
@@ -47,6 +52,7 @@ export async function migrateUserRoles() {
       // Saltar si ya existe
       if (existingIds.has(userRole.id)) {
         skippedCount++;
+        successCount++; // Contar como exitoso porque ya existe
         continue;
       }
 
@@ -70,12 +76,13 @@ export async function migrateUserRoles() {
           ],
         );
 
-        insertedCount++;
+        successCount++;
 
-        if (insertedCount % 100 === 0) {
-          console.log(`  → ${insertedCount} user_roles insertados...`);
+        if (successCount % 100 === 0) {
+          console.log(`  → ${successCount} user_roles procesados...`);
         }
       } catch (error) {
+        failedCount++;
         console.error(
           `✗ Error insertando user_role ${userRole.id}:`,
           error.message,
@@ -83,11 +90,20 @@ export async function migrateUserRoles() {
       }
     }
 
+    const insertedCount = successCount - skippedCount;
+
     console.log('\n=== Resumen de migración de User Roles ===');
     console.log(`Total en Supabase: ${supabaseUserRoles.length}`);
     console.log(`Insertados: ${insertedCount}`);
     console.log(`Omitidos (ya existían): ${skippedCount}`);
+    console.log(`Fallidos: ${failedCount}`);
     console.log('✓ Migración de user_roles completada\n');
+
+    return {
+      success: successCount,
+      failed: failedCount,
+      total: supabaseUserRoles.length,
+    };
   } catch (error) {
     console.error('✗ Error en migración de user_roles:', error);
     throw error;
