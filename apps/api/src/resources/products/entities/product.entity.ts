@@ -7,10 +7,12 @@ import {
   BaseEntity,
   ManyToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ArtisanShop } from '../../artisan-shops/entities/artisan-shop.entity';
 import { ProductCategory } from '../../product-categories/entities/product-category.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 // Enum para estado de moderación
 export enum ModerationStatus {
@@ -330,4 +332,12 @@ export class Product extends BaseEntity {
   })
   @JoinColumn({ name: 'category_id' })
   category: ProductCategory | null;
+
+  /**
+   * Transform relative image paths to full CDN URLs after loading from database
+   */
+  @AfterLoad()
+  transformImageUrls() {
+    this.images = ImageUrlBuilder.buildUrls(this.images);
+  }
 }

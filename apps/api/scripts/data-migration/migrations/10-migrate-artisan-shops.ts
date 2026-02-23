@@ -119,6 +119,65 @@ export async function migrateArtisanShops() {
           }
         };
 
+        // Función para transformar URLs de Supabase a paths relativos de S3
+        const transformSupabaseUrlToS3Path = (url: string | null): string | null => {
+          if (!url || url.trim() === '') return null;
+          if (!url.includes('ylooqmqmoufqtxvetxuj.supabase.co')) {
+            logger.log(`⚠️  ${shop.shop_name} - URL externa detectada: ${url}`);
+            return url; // Mantener URLs externas sin cambios
+          }
+          try {
+            const match = url.match(/\/storage\/v1\/object\/public\/(.+)$/);
+            if (!match) {
+              logger.log(`⚠️  ${shop.shop_name} - Formato de URL Supabase inválido: ${url}`);
+              return null;
+            }
+            return `/${match[1]}`;
+          } catch (error) {
+            logger.log(`❌ ${shop.shop_name} - Error transformando URL: ${url}`);
+            return null;
+          }
+        };
+
+        // Función para transformar JSONB con imágenes anidadas
+        const transformNestedImages = (jsonbString: string | null): string | null => {
+          if (!jsonbString) return null;
+          try {
+            const parsed = JSON.parse(jsonbString);
+
+            // Transform hero_config.slides[].imageUrl (not 'image')
+            if (parsed.slides && Array.isArray(parsed.slides)) {
+              parsed.slides = parsed.slides.map((slide: any) => ({
+                ...slide,
+                imageUrl: transformSupabaseUrlToS3Path(slide.imageUrl),
+              }));
+            }
+
+            // Transform artisan_profile single image
+            if (parsed.artisanPhoto) {
+              parsed.artisanPhoto = transformSupabaseUrlToS3Path(parsed.artisanPhoto);
+            }
+
+            // Transform artisan_profile image arrays
+            if (parsed.familyPhotos && Array.isArray(parsed.familyPhotos)) {
+              parsed.familyPhotos = parsed.familyPhotos.map(transformSupabaseUrlToS3Path);
+            }
+            if (parsed.workingPhotos && Array.isArray(parsed.workingPhotos)) {
+              parsed.workingPhotos = parsed.workingPhotos.map(transformSupabaseUrlToS3Path);
+            }
+            if (parsed.workshopPhotos && Array.isArray(parsed.workshopPhotos)) {
+              parsed.workshopPhotos = parsed.workshopPhotos.map(transformSupabaseUrlToS3Path);
+            }
+            if (parsed.communityPhotos && Array.isArray(parsed.communityPhotos)) {
+              parsed.communityPhotos = parsed.communityPhotos.map(transformSupabaseUrlToS3Path);
+            }
+
+            return JSON.stringify(parsed);
+          } catch {
+            return jsonbString; // Mantener original si hay error
+          }
+        };
+
         const certifications = sanitizeJson(shop.certifications, 'certifications');
         const contactInfo = sanitizeJson(shop.contact_info, 'contact_info');
         const socialLinks = sanitizeJson(shop.social_links, 'social_links');
@@ -127,10 +186,14 @@ export async function migrateArtisanShops() {
         const publicProfile = sanitizeJson(shop.public_profile, 'public_profile');
         const primaryColors = sanitizeJson(shop.primary_colors, 'primary_colors');
         const secondaryColors = sanitizeJson(shop.secondary_colors, 'secondary_colors');
-        const heroConfig = sanitizeJson(shop.hero_config, 'hero_config');
+        const heroConfig = transformNestedImages(sanitizeJson(shop.hero_config, 'hero_config'));
         const aboutContent = sanitizeJson(shop.about_content, 'about_content');
         const contactConfig = sanitizeJson(shop.contact_config, 'contact_config');
-        const artisanProfile = sanitizeJson(shop.artisan_profile, 'artisan_profile');
+        const artisanProfile = transformNestedImages(sanitizeJson(shop.artisan_profile, 'artisan_profile'));
+
+        // Transformar URLs de logo y banner
+        const logoPath = transformSupabaseUrlToS3Path(shop.logo_url);
+        const bannerPath = transformSupabaseUrlToS3Path(shop.banner_url);
 
         // Insertar en producción (schema shop)
         await productionConnection.query(
@@ -234,8 +297,8 @@ export async function migrateArtisanShops() {
             shop.shop_slug,
             shop.description,
             shop.story,
-            shop.logo_url,
-            shop.banner_url,
+            logoPath, // Transformado a path relativo S3
+            bannerPath, // Transformado a path relativo S3
             shop.craft_type,
             shop.region,
             certifications, // Sanitizado

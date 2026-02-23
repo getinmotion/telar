@@ -73,6 +73,21 @@ export async function migrateUserProfiles() {
 
     for (const [index, profile] of profiles.entries()) {
       try {
+        // Función para transformar URLs de Supabase a paths relativos de S3
+        const transformSupabaseUrlToS3Path = (url: string | null): string | null => {
+          if (!url || url.trim() === '') return null;
+          if (!url.includes('ylooqmqmoufqtxvetxuj.supabase.co')) return url;
+          try {
+            const match = url.match(/\/storage\/v1\/object\/public\/(.+)$/);
+            if (!match) return null;
+            return `/images/${match[1]}`;
+          } catch {
+            return null;
+          }
+        };
+
+        const avatarPath = transformSupabaseUrlToS3Path(profile.avatar_url);
+
         // Insertar en producción (schema artesanos)
         await productionConnection.query(
           `
@@ -155,7 +170,7 @@ export async function migrateUserProfiles() {
             profile.id,
             profile.user_id,
             profile.full_name,
-            profile.avatar_url,
+            avatarPath, // Transformado a path relativo S3
             profile.created_at,
             profile.updated_at,
             profile.business_description,

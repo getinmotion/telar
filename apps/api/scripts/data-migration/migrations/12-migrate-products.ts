@@ -141,7 +141,35 @@ export async function migrateProducts() {
           }
         };
 
-        const images = sanitizeJson(product.images, 'images');
+        // Función para transformar URLs de Supabase a paths relativos de S3
+        const transformSupabaseUrlToS3Path = (url: string | null): string | null => {
+          if (!url || url.trim() === '') return null;
+          if (!url.includes('ylooqmqmoufqtxvetxuj.supabase.co')) {
+            return url; // Mantener URLs externas sin cambios
+          }
+          try {
+            const match = url.match(/\/storage\/v1\/object\/public\/(.+)$/);
+            if (!match) return null;
+            return `/${match[1]}`;
+          } catch {
+            return null;
+          }
+        };
+
+        // Función para transformar array de imágenes
+        const transformImageArray = (jsonbString: string | null): string | null => {
+          if (!jsonbString) return null;
+          try {
+            const parsed = JSON.parse(jsonbString);
+            if (!Array.isArray(parsed)) return jsonbString;
+            const transformed = parsed.map(transformSupabaseUrlToS3Path);
+            return JSON.stringify(transformed);
+          } catch {
+            return jsonbString;
+          }
+        };
+
+        const images = transformImageArray(sanitizeJson(product.images, 'images'));
         const tags = sanitizeJson(product.tags, 'tags');
         const dimensions = sanitizeJson(product.dimensions, 'dimensions');
         const materials = sanitizeJson(product.materials, 'materials');

@@ -4,12 +4,18 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './filters/http-exception-filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import session from 'express-session';
+import { ConfigService } from '@nestjs/config';
+import { ImageUrlBuilder } from './common/utils/image-url-builder.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: true,
     logger: console,
   });
+
+  // Configure Image URL Builder for CDN
+  const configService = app.get(ConfigService);
+  ImageUrlBuilder.configure(configService);
 
   app.setGlobalPrefix('telar/server');
 
