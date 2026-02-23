@@ -96,8 +96,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-api
-          cache-to: type=gha,scope=gim-api,mode=max
+          cache-from: type=gha,scope=gim-api-v2
+          cache-to: type=gha,scope=gim-api-v2,mode=max
 
   # ============================================================
   # Agents — Python / FastAPI
