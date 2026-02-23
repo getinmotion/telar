@@ -11,6 +11,7 @@ import { migrateUserMaturityScores } from './migrations/09-migrate-user-maturity
 import { migrateArtisanShops } from './migrations/10-migrate-artisan-shops';
 import { migrateProductCategories } from './migrations/11-migrate-product-categories';
 import { migrateProducts } from './migrations/12-migrate-products';
+import { migrateUserRoles } from './migrations/13-migrate-user-roles';
 // Importar otras migraciones cuando las crees
 
 interface MigrationResult {
@@ -94,6 +95,11 @@ async function main() {
         name: 'Productos',
         description: 'Migrar productos de public.products a shop.products',
         fn: migrateProducts,
+      },
+      {
+        name: 'Roles de Usuario',
+        description: 'Migrar roles de public.user_roles a auth.user_roles',
+        fn: migrateUserRoles,
       },
       // Agregar más migraciones aquí
     ];

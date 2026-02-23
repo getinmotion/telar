@@ -37,7 +37,8 @@
     "data-migration:user-maturity-scores": "ts-node scripts/data-migration/migrations/09-migrate-user-maturity-scores.ts",
     "data-migration:artisan-shops": "ts-node scripts/data-migration/migrations/10-migrate-artisan-shops.ts",
     "data-migration:product-categories": "ts-node scripts/data-migration/migrations/11-migrate-product-categories.ts",
-    "data-migration:products": "ts-node scripts/data-migration/migrations/12-migrate-products.ts"
+    "data-migration:products": "ts-node scripts/data-migration/migrations/12-migrate-products.ts",
+    "data-migration:user-roles": "ts-node scripts/data-migration/migrations/13-migrate-user-roles.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

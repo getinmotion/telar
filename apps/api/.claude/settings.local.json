@@ -6,7 +6,12 @@
       "Bash(npm run migration:create:*)",
       "Bash(npm run typeorm:*)",
       "Bash(nest g resource:*)",
-      "Bash(npx nest g:*)"
+      "Bash(npx nest g:*)",
+      "Bash(npm run nest:*)",
+      "Bash(npx @nestjs/cli generate resource:*)",
+      "Bash(npm run migration:generate:*)",
+      "Bash(npm run migration:run:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
