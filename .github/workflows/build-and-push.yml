@@ -34,6 +34,7 @@ jobs:
       agents: ${{ steps.filter.outputs.agents }}
       artisans-web: ${{ steps.filter.outputs.artisans-web }}
       marketplace-web: ${{ steps.filter.outputs.marketplace-web }}
+      payment-svc: ${{ steps.filter.outputs.payment-svc }}
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +51,8 @@ jobs:
               - 'apps/artisans-web/**'
             marketplace-web:
               - 'apps/marketplace-web/**'
+            payment-svc:
+              - 'apps/payment-svc/**'
 
   # ============================================================
   # API — NestJS
@@ -262,53 +265,3 @@ jobs:
             VITE_BACKEND_URL=${{ secrets.STG_VITE_BACKEND_URL }}
           cache-from: type=gha,scope=gim-marketplace-web-v2
           cache-to: type=gha,scope=gim-marketplace-web-v2,mode=max
-
-  # ============================================================
-  # Payment Service — Go
-  # All config is injected at runtime via docker-compose env vars
-  # ============================================================
-  build-payment-svc:
-    name: Build Payment Service (Go)
-    needs: changes
-    if: |
-      needs.changes.outputs['payment-svc'] == 'true' ||
-      (github.event_name == 'workflow_dispatch' &&
-       (github.event.inputs.service == 'payment-svc' || github.event.inputs.service == 'all'))
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-payment-svc
-          tags: |
-            type=raw,value=develop
-            type=sha,prefix=sha-,format=short
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: apps/payment-svc
-          file: apps/payment-svc/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-payment-svc
-          cache-to: type=gha,scope=gim-payment-svc,mode=max
