@@ -1,0 +1,77 @@
+services:
+  agents:
+    build:
+      context: ..
+      dockerfile: agents/Dockerfile
+    container_name: getinmotion-agents
+    ports:
+      - "8000:8000"
+    environment:
+      # OpenAI Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-1536}
+      
+      # Supabase Configuration
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
+      
+      # API Security
+      - API_SECRET_KEY=${API_SECRET_KEY}
+      
+      # Server Configuration
+      - PORT=8000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # LangSmith Configuration (Optional)
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY:-}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-artisan-agents}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-true}
+      
+      # Tavily Web Search
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      
+      # Agent Configuration
+      - MAX_RETRIES=${MAX_RETRIES:-3}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-60}
+      - RAG_TOP_K=${RAG_TOP_K:-5}
+      - CHUNK_SIZE=${CHUNK_SIZE:-1000}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-200}
+      
+      # Memory Configuration
+      - MEMORY_RETRIEVAL_LIMIT=${MEMORY_RETRIEVAL_LIMIT:-10}
+      - MEMORY_IMPORTANCE_THRESHOLD=${MEMORY_IMPORTANCE_THRESHOLD:-0.5}
+      - PROFILE_UPDATE_INTERVAL=${PROFILE_UPDATE_INTERVAL:-5}
+      - CONVERSATION_SUMMARY_INTERVAL=${CONVERSATION_SUMMARY_INTERVAL:-10}
+    
+    env_file:
+      - ../.env
+    
+    volumes:
+      # Mount for development (hot reload)
+      - ../agents:/app/agents
+      - ../src:/app/src
+    
+    networks:
+      - agents-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "com.getinmotion.service=agents"
+      - "com.getinmotion.version=1.0.0"
+      - "com.getinmotion.description=Multi-agent system for artisan support"
+
+networks:
+  agents-network:
+    driver: bridge

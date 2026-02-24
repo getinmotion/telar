@@ -1,0 +1,56 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://motion.lovable.app/</loc>
+    <lastmod>2024-12-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://motion.lovable.app/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://motion.lovable.app/" />
+  </url>
+
+  <!-- Agents Gallery -->
+  <url>
+    <loc>https://motion.lovable.app/agents</loc>
+    <lastmod>2024-12-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://motion.lovable.app/agents" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://motion.lovable.app/agents" />
+  </url>
+
+  <!-- One Pager -->
+  <url>
+    <loc>https://motion.lovable.app/one-pager</loc>
+    <lastmod>2024-12-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://motion.lovable.app/one-pager" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://motion.lovable.app/one-pager" />
+  </url>
+
+  <!-- Two Pager -->
+  <url>
+    <loc>https://motion.lovable.app/two-pager</loc>
+    <lastmod>2024-12-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://motion.lovable.app/two-pager" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://motion.lovable.app/two-pager" />
+  </url>
+
+  <!-- Three Pager -->
+  <url>
+    <loc>https://motion.lovable.app/three-pager</loc>
+    <lastmod>2024-12-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://motion.lovable.app/three-pager" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://motion.lovable.app/three-pager" />
+  </url>
+
+</urlset>

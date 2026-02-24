@@ -1,0 +1,267 @@
+# Reglas de Cursor para GetInMotion ISR
+
+## 🎯 Contexto del Proyecto
+
+Este proyecto fue desarrollado inicialmente en Lovable y ahora se está migrando a Cursor. Es una plataforma para artesanos con:
+- Frontend: React + TypeScript + Vite
+- Backend: Supabase (PostgreSQL + Edge Functions)
+- Backend Python: FastAPI/Streamlit para agentes de IA
+- UI: shadcn/ui + Tailwind CSS
+- Sistema de agentes: Growth, Brand, Digital Presence, Inventory, etc.
+
+## 📁 Estructura del Proyecto
+
+### Frontend (src/)
+- `src/components/` - Componentes React organizados por dominio
+- `src/pages/` - Páginas/rutas de la aplicación
+- `src/context/` - Contextos de React (Auth, Language, MasterAgent)
+- `src/services/` - Servicios y lógica de negocio
+- `src/integrations/supabase/` - Cliente y tipos de Supabase
+- `src/agents/` - Agentes de IA (GrowthAgent, BrandAgent, etc.)
+- `src/lib/` - Utilidades y helpers
+- `src/types/` - Definiciones de TypeScript
+- `src/config/` - Configuración y constantes
+
+### Backend
+- `backend/src/` - Código Python del backend
+- `supabase/functions/` - Edge Functions de Supabase (TypeScript)
+- `supabase/migrations/` - Migraciones de base de datos
+
+## 🔧 Convenciones de Código
+
+### TypeScript
+- Usar TypeScript estricto cuando sea posible
+- Tipos explícitos para props de componentes
+- Usar interfaces para objetos, types para uniones
+- Importar tipos con `import type` cuando sea apropiado
+- Usar el alias `@/` para imports desde `src/`
+
+### React
+- Componentes funcionales con hooks
+- Usar `React.memo()` para componentes pesados
+- Custom hooks para lógica reutilizable (prefijo `use`)
+- Props interface al inicio del archivo
+- Destructuring de props en la firma del componente
+
+### Nombres de Archivos
+- Componentes: PascalCase (`UserProfile.tsx`)
+- Utilidades: camelCase (`formatDate.ts`)
+- Hooks: camelCase con prefijo `use` (`useAuth.ts`)
+- Tipos: PascalCase (`User.ts`, `Product.ts`)
+- Constantes: UPPER_SNAKE_CASE o camelCase según contexto
+
+### Estructura de Componentes
+```typescript
+// 1. Imports
+import { useState } from 'react'
+import type { ComponentProps } from '@/types'
+
+// 2. Types/Interfaces
+interface Props {
+  // ...
+}
+
+// 3. Component
+export const Component = ({ prop1, prop2 }: Props) => {
+  // 4. Hooks
+  const [state, setState] = useState()
+  
+  // 5. Handlers
+  const handleClick = () => {}
+  
+  // 6. Effects
+  useEffect(() => {}, [])
+  
+  // 7. Render
+  return <div>...</div>
+}
+```
+
+## 🎨 UI y Estilos
+
+### Tailwind CSS
+- Usar clases de Tailwind en lugar de CSS inline cuando sea posible
+- Usar variables CSS para colores del tema (navy, golden, coral, cream)
+- Componentes shadcn/ui para elementos comunes (Button, Dialog, etc.)
+- Responsive: mobile-first approach
+
+### Componentes shadcn/ui
+- No modificar directamente componentes en `src/components/ui/`
+- Crear variantes usando `cn()` y `cva()` (class-variance-authority)
+- Usar componentes base de shadcn como base para componentes personalizados
+
+### Paleta de Colores
+- **Navy** (primary): `hsl(220 50% 15%)` - #142239
+- **Golden** (secondary): `hsl(45 100% 54%)` - #ffc716
+- **Coral** (accent): `hsl(20 89% 66%)` - #f48c5f
+- **Cream** (background): `hsl(40 50% 98%)` - #fcf7ec
+- **Neon Green**: #B8FF5C (para elementos destacados)
+- Usar variables CSS: `bg-navy`, `text-golden`, etc.
+
+## 🔐 Supabase
+
+### Cliente
+- Siempre usar `supabase` desde `@/integrations/supabase/client`
+- No crear nuevos clientes de Supabase
+- Usar tipos generados desde `@/integrations/supabase/types`
+
+### Consultas
+- Usar RLS (Row Level Security) en todas las tablas
+- Validar permisos antes de operaciones sensibles
+- Manejar errores de Supabase apropiadamente
+- Usar transacciones cuando sea necesario
+
+### Edge Functions
+- Funciones en `supabase/functions/`
+- Usar TypeScript estricto
+- Manejar CORS apropiadamente
+- Validar inputs con Zod cuando sea posible
+
+## 🤖 Sistema de Agentes
+
+### Agentes Permitidos (ALLOWED_AGENTS)
+Solo estos agentes pueden generar misiones:
+- `growth` - Growth Agent
+- `inventory` - Producto/Tienda
+- `digital-presence` - Presencia Digital
+- `brand` - Marca
+
+### Validación
+- Siempre validar `agent_id` antes de crear tareas
+- Usar `isAgentAllowed()` de `@/config/allowedAgents`
+- No crear tareas para agentes bloqueados
+
+### Estructura de Agentes
+- Cada agente en `src/agents/[AgentName]Agent.ts`
+- Exportar desde `src/agents/index.ts`
+- Usar tipos de `@/types/agentTypes.ts`
+
+## 🌐 Internacionalización
+
+- Usar `LanguageContext` para idioma actual
+- Traducciones en `src/translations/`
+- Componente `LanguageSwitcher` para cambiar idioma
+- Textos hardcodeados solo para prototipos
+
+## 🧪 Testing
+
+- Tests unitarios con Vitest
+- Tests de componentes con React Testing Library
+- Tests de accesibilidad con jest-axe
+- Cobertura mínima: 70% para código crítico
+
+## 📝 Documentación
+
+### Comentarios
+- JSDoc para funciones públicas
+- Comentarios explicativos para lógica compleja
+- No comentar código obvio
+
+### README
+- Actualizar README.md cuando se agreguen features importantes
+- Documentar variables de entorno necesarias
+- Incluir ejemplos de uso para APIs complejas
+
+## 🚀 Performance
+
+### Optimizaciones
+- Lazy loading de rutas con `React.lazy()`
+- Code splitting automático con Vite
+- Imágenes optimizadas (usar formato WebP cuando sea posible)
+- Memoización de cálculos costosos con `useMemo()`
+
+### Bundle Size
+- Importar solo lo necesario de librerías grandes
+- Usar tree-shaking (Vite lo hace automáticamente)
+- Revisar bundle size periódicamente
+
+## 🔒 Seguridad
+
+### Variables de Entorno
+- Nunca commitear `.env` o `.env.local`
+- Usar `VITE_` prefix para variables del frontend
+- Validar variables requeridas al inicio de la app
+
+### Autenticación
+- Usar Supabase Auth para autenticación
+- Validar sesiones en rutas protegidas
+- No exponer tokens en el cliente
+
+### Validación
+- Validar inputs del usuario (usar Zod)
+- Sanitizar datos antes de guardar en BD
+- Validar permisos antes de operaciones
+
+## 🐛 Debugging
+
+### Logs
+- ⛔ **NO AGREGAR `console.log()` al código** - Solo mantener `console.error()` para errores críticos
+- Usar niveles apropiados solo cuando sea absolutamente necesario (warn, error)
+- Si necesitas debugging temporal, recuerda eliminarlo antes de finalizar
+- El código debe estar limpio de logs de debugging en el resultado final
+
+### Error Handling
+- Usar Error Boundaries para errores de React
+- Manejar errores de async apropiadamente
+- Mostrar mensajes de error amigables al usuario
+
+## 📦 Dependencias
+
+### Agregar Dependencias
+- Revisar si ya existe una solución similar
+- Preferir librerías mantenidas y populares
+- Revisar tamaño del bundle
+- Actualizar `package.json` y ejecutar `npm install`
+
+### Versionado
+- Usar versiones exactas para dependencias críticas
+- Usar `^` para dependencias menores
+- Revisar changelogs antes de actualizar mayor
+
+## 🎯 Mejores Prácticas Generales
+
+1. **Principio DRY**: No repetir código, crear funciones/componentes reutilizables
+2. **Single Responsibility**: Cada función/componente debe hacer una cosa
+3. **Nombres descriptivos**: Variables y funciones con nombres claros
+4. **Mantenibilidad**: Código que otros puedan entender y modificar
+5. **Accesibilidad**: Usar ARIA labels, semántica HTML correcta
+6. **Responsive**: Probar en diferentes tamaños de pantalla
+7. **Performance**: Optimizar renders, evitar re-renders innecesarios
+
+## 🔄 Migración desde Lovable
+
+### Consideraciones
+- Algunos componentes pueden tener referencias a Lovable
+- Revisar imports y dependencias
+- Actualizar configuración de build si es necesario
+- Mantener compatibilidad con Supabase existente
+
+### Archivos Generados
+- `src/integrations/supabase/client.ts` - Puede ser regenerado
+- `src/integrations/supabase/types.ts` - Generado desde Supabase
+- No editar manualmente archivos generados
+
+## 📚 Recursos
+
+- [Documentación de Supabase](https://supabase.com/docs)
+- [shadcn/ui Components](https://ui.shadcn.com)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app)
+- [Vite Documentation](https://vitejs.dev)
+
+## ⚠️ Advertencias Importantes
+
+1. **No modificar** `src/integrations/supabase/client.ts` manualmente (es generado)
+2. **Validar agentes** antes de crear tareas (solo 4 agentes permitidos)
+3. **No commitear** credenciales o keys en el código
+4. **Revisar RLS** antes de crear nuevas tablas en Supabase
+5. **Probar Edge Functions** localmente antes de deployar
+
+## 🎓 Tips para Cursor
+
+- Usar "Explain code" para entender código complejo
+- Usar "Generate tests" para crear tests automáticamente
+- Usar "Refactor" para mejorar código existente
+- Usar "Fix errors" para corregir errores de TypeScript/ESLint
+- Buscar en codebase antes de crear código duplicado
+

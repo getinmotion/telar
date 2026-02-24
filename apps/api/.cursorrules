@@ -1,0 +1,975 @@
+# GetInMotion Server - Cursor Rules
+
+## Contexto del Proyecto
+
+Este es un proyecto backend en **NestJS** con **TypeORM** y **PostgreSQL**. Es una transición desde Supabase, manteniendo compatibilidad con la estructura de base de datos existente.
+
+### Stack Tecnológico
+- **Framework**: NestJS 11.x
+- **ORM**: TypeORM 0.3.x
+- **Base de Datos**: PostgreSQL
+- **Autenticación**: JWT (@nestjs/jwt)
+- **Validación**: class-validator, class-transformer
+- **Documentación**: Swagger (@nestjs/swagger)
+- **Encriptación**: bcryptjs (compatible con Supabase)
+
+---
+
+## Estructura de Recursos (Resources)
+
+Cada recurso debe seguir esta estructura estándar:
+
+```
+src/resources/{resource-name}/
+├── entities/
+│   └── {resource-name}.entity.ts
+├── dto/
+│   ├── create-{resource-name}.dto.ts
+│   └── update-{resource-name}.dto.ts
+├── {resource-name}.controller.ts
+├── {resource-name}.service.ts
+├── {resource-name}.module.ts
+└── {resource-name}.providers.ts
+```
+
+---
+
+## Flujo de Creación de un Recurso
+
+### 1. MIGRACIÓN (Primero)
+
+**Ubicación**: `src/migrations/YYYY/timestamp-NombreMigracion.ts`
+
+**Comando para crear**:
+```bash
+npm run migration:create --name=CreateNombreTabla
+```
+
+**Estructura de migración**:
+```typescript
+import { MigrationInterface, QueryRunner } from 'typeorm';
+
+export class CreateNombreTabla1234567890 implements MigrationInterface {
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // 1. Crear schema si es necesario
+    await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS schema_name`);
+    
+    // 2. Habilitar extensiones necesarias
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+    
+    // 3. Crear tabla con UUID autogenerado
+    await queryRunner.query(`
+      CREATE TABLE schema_name.table_name (
+        id UUID NOT NULL DEFAULT uuid_generate_v4(),
+        created_at TIMESTAMP WITH TIME ZONE NULL,
+        updated_at TIMESTAMP WITH TIME ZONE NULL,
+        -- otros campos...
+        CONSTRAINT table_name_pkey PRIMARY KEY (id)
+      )
+    `);
+    
+    // 4. Crear índices
+    await queryRunner.query(`
+      CREATE INDEX IF NOT EXISTS idx_name 
+      ON schema_name.table_name (column_name)
+    `);
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // Eliminar en orden inverso
+    await queryRunner.query(`DROP INDEX IF EXISTS schema_name.idx_name`);
+    await queryRunner.query(`DROP TABLE IF EXISTS schema_name.table_name`);
+    // No eliminar extensiones ni schemas (pueden ser usados por otras tablas)
+  }
+}
+```
+
+**Ejecutar migración**:
+```bash
+npm run migration:run
+```
+
+---
+
+### 2. ENTITY (Segundo)
+
+**Ubicación**: `src/resources/{resource}/entities/{resource}.entity.ts`
+
+**Reglas**:
+- Usar decoradores de TypeORM
+- Nombres de columnas en `snake_case` en BD, `camelCase` en TypeScript
+- Extender de `BaseEntity` para métodos activos
+- Incluir decoradores de Swagger (`@ApiProperty`)
+
+**Template**:
+```typescript
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+} from 'typeorm';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+@Entity({ name: 'table_name', schema: 'schema_name' })
+export class ResourceName extends BaseEntity {
+  @ApiProperty({ description: 'ID único del recurso' })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ApiProperty({ description: 'Descripción del campo', example: 'Ejemplo' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  fieldName: string;
+
+  @ApiPropertyOptional({ description: 'Campo opcional' })
+  @Column({ type: 'text', nullable: true })
+  optionalField: string | null;
+
+  @ApiProperty({ description: 'Fecha de creación' })
+  @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
+  createdAt: Date;
+
+  @ApiProperty({ description: 'Fecha de última actualización' })
+  @UpdateDateColumn({ type: 'timestamp with time zone', name: 'updated_at' })
+  updatedAt: Date;
+}
+```
+
+---
+
+### 3. PROVIDERS (Tercero)
+
+**Ubicación**: `src/resources/{resource}/{resource}.providers.ts`
+
+**Template estándar** (igual para todos los recursos):
+```typescript
+import { DataSource } from 'typeorm';
+import { ResourceName } from './entities/{resource}.entity';
+
+export const resourceProviders = [
+  {
+    provide: 'RESOURCE_REPOSITORY',
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(ResourceName),
+    inject: ['DATA_SOURCE'],
+  },
+];
+```
+
+**Convención de nombres**:
+- Provider: `'RESOURCE_REPOSITORY'` (plural, mayúsculas, con _REPOSITORY)
+- Ejemplo: `'USERS_REPOSITORY'`, `'POSTS_REPOSITORY'`
+
+---
+
+### 4. MODULE (Cuarto)
+
+**Ubicación**: `src/resources/{resource}/{resource}.module.ts`
+
+**Template**:
+```typescript
+import { Module } from '@nestjs/common';
+import { ResourceService } from './{resource}.service';
+import { ResourceController } from './{resource}.controller';
+import { DatabaseModule } from 'src/config/configOrm.module';
+import { resourceProviders } from './{resource}.providers';
+
+@Module({
+  imports: [DatabaseModule],
+  controllers: [ResourceController],
+  providers: [...resourceProviders, ResourceService],
+  exports: [ResourceService, ...resourceProviders], // Exportar para usar en otros módulos
+})
+export class ResourceModule {}
+```
+
+**Reglas**:
+- Siempre importar `DatabaseModule`
+- Exportar servicio y providers si otros módulos los necesitan
+- Usar `forwardRef()` si hay dependencias circulares
+
+---
+
+### 5. DTOs (Quinto)
+
+#### Create DTO
+
+**Ubicación**: `src/resources/{resource}/dto/create-{resource}.dto.ts`
+
+**Template**:
+```typescript
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  MaxLength,
+  MinLength,
+  IsEmail,
+  IsBoolean,
+  IsNumber,
+  IsUUID,
+  Matches,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class CreateResourceDto {
+  @ApiProperty({
+    description: 'Descripción del campo',
+    example: 'Ejemplo de valor',
+    maxLength: 255,
+  })
+  @IsString({ message: 'El campo debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El campo es obligatorio' })
+  @MaxLength(255, { message: 'El campo no puede exceder 255 caracteres' })
+  requiredField: string;
+
+  @ApiPropertyOptional({
+    description: 'Campo opcional',
+    example: 'Valor opcional',
+  })
+  @IsOptional()
+  @IsString({ message: 'El campo debe ser una cadena de texto' })
+  optionalField?: string;
+}
+```
+
+#### Update DTO
+
+**Ubicación**: `src/resources/{resource}/dto/update-{resource}.dto.ts`
+
+**Template**:
+```typescript
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateResourceDto } from './create-{resource}.dto';
+
+export class UpdateResourceDto extends PartialType(CreateResourceDto) {}
+```
+
+**Validaciones comunes**:
+- `@IsEmail()` - Emails
+- `@IsString()` - Textos
+- `@IsNumber()` - Números
+- `@IsBoolean()` - Booleanos
+- `@IsUUID()` - UUIDs
+- `@MinLength()` / `@MaxLength()` - Longitud
+- `@Matches()` - Regex (teléfonos, contraseñas, etc.)
+- `@IsOptional()` - Campos opcionales
+
+---
+
+### 6. SERVICE (Sexto)
+
+**Ubicación**: `src/resources/{resource}/{resource}.service.ts`
+
+**Métodos estándar obligatorios**:
+1. `create(createDto)` - Crear
+2. `getAll()` - Obtener todos
+3. `getById(id)` - Obtener por ID
+4. `update(id, updateDto)` - Actualizar
+5. `delete(id)` - Eliminar (soft delete)
+
+**Template completo**:
+```typescript
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Repository, IsNull } from 'typeorm';
+import { ResourceName } from './entities/{resource}.entity';
+import { CreateResourceDto } from './dto/create-{resource}.dto';
+import { UpdateResourceDto } from './dto/update-{resource}.dto';
+
+@Injectable()
+export class ResourceService {
+  constructor(
+    @Inject('RESOURCE_REPOSITORY')
+    private readonly resourceRepository: Repository<ResourceName>,
+  ) {}
+
+  /**
+   * Crear un nuevo recurso
+   */
+  async create(createDto: CreateResourceDto): Promise<ResourceName> {
+    // Validaciones de duplicados si es necesario
+    const existing = await this.resourceRepository.findOne({
+      where: { uniqueField: createDto.uniqueField },
+    });
+    
+    if (existing) {
+      throw new ConflictException('El recurso ya existe');
+    }
+
+    const newResource = this.resourceRepository.create(createDto);
+    return await this.resourceRepository.save(newResource);
+  }
+
+  /**
+   * Obtener todos los recursos
+   */
+  async getAll(): Promise<ResourceName[]> {
+    return await this.resourceRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
+   * Obtener un recurso por ID
+   */
+  async getById(id: string): Promise<ResourceName> {
+    if (!id) {
+      throw new BadRequestException('El ID es requerido');
+    }
+
+    const resource = await this.resourceRepository.findOne({
+      where: { id },
+    });
+
+    if (!resource) {
+      throw new NotFoundException(`Recurso con ID ${id} no encontrado`);
+    }
+
+    return resource;
+  }
+
+  /**
+   * Actualizar un recurso
+   */
+  async update(id: string, updateDto: UpdateResourceDto): Promise<ResourceName> {
+    // Verificar que existe
+    const resource = await this.getById(id);
+
+    // Validaciones adicionales si es necesario
+
+    // Actualizar
+    await this.resourceRepository.update(id, updateDto);
+
+    // Retornar actualizado
+    return await this.getById(id);
+  }
+
+  /**
+   * Eliminar un recurso (soft delete)
+   */
+  async delete(id: string): Promise<{ message: string }> {
+    // Verificar que existe
+    await this.getById(id);
+
+    // Soft delete
+    await this.resourceRepository.softDelete(id);
+
+    return {
+      message: `Recurso con ID ${id} eliminado exitosamente`,
+    };
+  }
+}
+```
+
+**Reglas del Service**:
+- Usar `IsNull()` para buscar valores nulos en queries
+- Siempre validar que el recurso existe antes de actualizar/eliminar
+- Usar soft delete por defecto (agregar `deletedAt` en entity)
+- Lanzar excepciones apropiadas:
+  - `NotFoundException` - Recurso no encontrado
+  - `ConflictException` - Duplicados
+  - `BadRequestException` - Datos inválidos
+  - `UnauthorizedException` - Sin permisos
+- Mensajes de error en español
+- NO usar `console.log()` para debugging (usar logger de NestJS si es necesario)
+
+---
+
+### 7. CONTROLLER (Séptimo)
+
+**Ubicación**: `src/resources/{resource}/{resource}.controller.ts`
+
+**Endpoints estándar obligatorios**:
+1. `POST /{resource}` - Crear
+2. `GET /{resource}` - Obtener todos
+3. `GET /{resource}/:id` - Obtener por ID
+4. `PATCH /{resource}/:id` - Actualizar
+5. `DELETE /{resource}/:id` - Eliminar
+
+**Template completo**:
+```typescript
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
+import { ResourceService } from './{resource}.service';
+import { CreateResourceDto } from './dto/create-{resource}.dto';
+import { UpdateResourceDto } from './dto/update-{resource}.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+@ApiTags('resources')
+@Controller('resources')
+export class ResourceController {
+  constructor(private readonly resourceService: ResourceService) {}
+
+  /**
+   * POST /resources
+   * Crear un nuevo recurso
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard) // Si requiere autenticación
+  @ApiBearerAuth('JWT-auth') // Si requiere autenticación
+  @ApiOperation({ summary: 'Crear un nuevo recurso' })
+  @ApiResponse({
+    status: 201,
+    description: 'Recurso creado exitosamente',
+  })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 409, description: 'El recurso ya existe' })
+  async create(@Body() createDto: CreateResourceDto) {
+    return await this.resourceService.create(createDto);
+  }
+
+  /**
+   * GET /resources
+   * Obtener todos los recursos
+   */
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obtener todos los recursos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de recursos obtenida exitosamente',
+  })
+  async getAll() {
+    return await this.resourceService.getAll();
+  }
+
+  /**
+   * GET /resources/:id
+   * Obtener un recurso por ID
+   */
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obtener un recurso por ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID del recurso (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recurso encontrado',
+  })
+  @ApiResponse({ status: 404, description: 'Recurso no encontrado' })
+  async getById(@Param('id') id: string) {
+    return await this.resourceService.getById(id);
+  }
+
+  /**
+   * PATCH /resources/:id
+   * Actualizar un recurso
+   */
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard) // Si requiere autenticación
+  @ApiBearerAuth('JWT-auth') // Si requiere autenticación
+  @ApiOperation({ summary: 'Actualizar un recurso' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID del recurso (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recurso actualizado exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Recurso no encontrado' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateResourceDto,
+  ) {
+    return await this.resourceService.update(id, updateDto);
+  }
+
+  /**
+   * DELETE /resources/:id
+   * Eliminar un recurso
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard) // Si requiere autenticación
+  @ApiBearerAuth('JWT-auth') // Si requiere autenticación
+  @ApiOperation({ summary: 'Eliminar un recurso' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID del recurso (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recurso eliminado exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Recurso no encontrado' })
+  async delete(@Param('id') id: string) {
+    return await this.resourceService.delete(id);
+  }
+}
+```
+
+**Reglas del Controller**:
+- Siempre documentar con Swagger (`@ApiTags`, `@ApiOperation`, `@ApiResponse`)
+- Usar `@HttpCode()` explícitamente
+- Usar `@UseGuards(JwtAuthGuard)` para endpoints protegidos
+- Usar `@ApiBearerAuth('JWT-auth')` junto con el guard
+- Incluir `@ApiParam()` para parámetros de ruta
+- Incluir ejemplos en las respuestas
+- Métodos async/await
+- NO usar `console.log()` para debugging
+
+---
+
+## Convenciones de Código
+
+### Nombres
+- **Archivos**: kebab-case (`user-profile.service.ts`)
+- **Clases**: PascalCase (`UserProfileService`)
+- **Métodos/Variables**: camelCase (`getUserProfile`)
+- **Constantes**: UPPER_SNAKE_CASE (`MAX_RETRY_ATTEMPTS`)
+- **Columnas BD**: snake_case (`created_at`)
+- **Propiedades TS**: camelCase (`createdAt`)
+
+### Imports
+```typescript
+// 1. Librerías externas
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+
+// 2. Módulos internos (absolute paths)
+import { User } from 'src/resources/users/entities/user.entity';
+import { DatabaseModule } from 'src/config/configOrm.module';
+
+// 3. Imports relativos (solo si es necesario)
+import { CreateUserDto } from './dto/create-user.dto';
+```
+
+### TypeScript
+- Usar tipos explícitos en parámetros y retornos
+- Evitar `any` (usar `unknown` si es necesario)
+- Usar `null` para valores ausentes en BD
+- Usar `undefined` para valores opcionales en TS
+- Interfaces para objetos complejos
+
+### Mensajes
+- Todos los mensajes al usuario en **español**
+- Mensajes de error descriptivos
+- Usar comillas simples `'` en TypeScript
+- Usar backticks `` ` `` para SQL y templates
+
+---
+
+## Autenticación y Seguridad
+
+### Encriptación de Contraseñas
+```typescript
+import * as bcrypt from 'bcryptjs';
+
+// Hash (10 rounds - compatible con Supabase)
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// Verificar
+const isValid = await bcrypt.compare(plainPassword, hashedPassword);
+```
+
+### JWT
+```typescript
+// Payload estándar
+const payload = {
+  sub: user.id,        // ID del usuario
+  email: user.email,   // Email
+  role: user.role,     // Rol
+  isSuperAdmin: false, // Permisos
+};
+
+// Generar token
+const token = await this.jwtService.signAsync(payload);
+```
+
+### Guards
+```typescript
+// Proteger endpoint
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@Get('protected')
+async protectedRoute(@CurrentUser() user: any) {
+  // user contiene el payload del JWT
+  return user;
+}
+```
+
+---
+
+## Base de Datos
+
+### Schemas
+- `auth` - Autenticación y usuarios
+- `public` - Datos de la aplicación
+
+### Tipos comunes
+- IDs: `UUID` con `uuid_generate_v4()`
+- Timestamps: `TIMESTAMP WITH TIME ZONE`
+- Textos cortos: `VARCHAR(255)`
+- Textos largos: `TEXT`
+- JSON: `JSONB`
+- Booleanos: `BOOLEAN`
+
+### Índices
+```sql
+-- Único
+CREATE UNIQUE INDEX idx_name ON schema.table (column);
+
+-- Compuesto
+CREATE INDEX idx_name ON schema.table (col1, col2);
+
+-- Condicional
+CREATE INDEX idx_name ON schema.table (column) WHERE condition;
+```
+
+---
+
+## Swagger
+
+### Configuración Global
+Ya está configurado en `src/main.ts`:
+- URL: `http://localhost:3040/api/docs`
+- Bearer Auth: `JWT-auth`
+- Tags: Organizar por recurso
+
+### Decoradores
+```typescript
+// Clase/Controller
+@ApiTags('nombre-recurso')
+
+// Método
+@ApiOperation({ summary: 'Descripción corta' })
+
+// Respuestas
+@ApiResponse({ status: 200, description: 'Éxito' })
+@ApiResponse({ status: 404, description: 'No encontrado' })
+
+// Autenticación
+@ApiBearerAuth('JWT-auth')
+
+// Parámetros
+@ApiParam({ name: 'id', description: 'ID del recurso' })
+
+// Body
+@ApiBody({ type: CreateDto })
+
+// Propiedades DTO
+@ApiProperty({ description: 'Campo', example: 'valor' })
+@ApiPropertyOptional({ description: 'Campo opcional' })
+```
+
+---
+
+## Debugging
+
+### ❌ NO USAR
+```typescript
+console.log('debug'); // PROHIBIDO
+console.error('error'); // PROHIBIDO
+```
+
+### ✅ USAR
+```typescript
+// Logger de NestJS (si es absolutamente necesario)
+import { Logger } from '@nestjs/common';
+
+@Injectable()
+export class MyService {
+  private readonly logger = new Logger(MyService.name);
+
+  someMethod() {
+    this.logger.log('Información');
+    this.logger.error('Error', trace);
+    this.logger.warn('Advertencia');
+  }
+}
+```
+
+**Preferencia**: Usar excepciones y dejar que el sistema las maneje.
+
+---
+
+## Testing
+
+### Estructura
+```
+src/resources/{resource}/
+├── {resource}.service.spec.ts
+└── {resource}.controller.spec.ts
+```
+
+### Comandos
+```bash
+npm run test              # Todos los tests
+npm run test:watch        # Watch mode
+npm run test:cov          # Coverage
+```
+
+---
+
+## Scripts Útiles
+
+```bash
+# Desarrollo
+npm run start:dev         # Modo desarrollo con watch
+
+# Migraciones
+npm run migration:create --name=NombreMigracion
+npm run migration:generate --name=NombreMigracion
+npm run migration:run
+npm run migration:revert
+npm run migration:show
+
+# Build
+npm run build
+npm run start:prod
+
+# Linting
+npm run lint
+npm run format
+```
+
+---
+
+## Ejemplo Completo: Resource "Posts"
+
+### 1. Migración
+```bash
+npm run migration:create --name=CreatePostsTable
+```
+
+### 2. Entity
+```typescript
+@Entity({ name: 'posts', schema: 'public' })
+export class Post extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  @Column({ type: 'text' })
+  content: string;
+
+  @Column({ type: 'uuid', name: 'user_id' })
+  userId: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+}
+```
+
+### 3. Provider
+```typescript
+export const postsProviders = [
+  {
+    provide: 'POSTS_REPOSITORY',
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(Post),
+    inject: ['DATA_SOURCE'],
+  },
+];
+```
+
+### 4. Module
+```typescript
+@Module({
+  imports: [DatabaseModule],
+  controllers: [PostsController],
+  providers: [...postsProviders, PostsService],
+  exports: [PostsService, ...postsProviders],
+})
+export class PostsModule {}
+```
+
+### 5. DTOs
+```typescript
+// create-post.dto.ts
+export class CreatePostDto {
+  @ApiProperty({ description: 'Título del post', example: 'Mi primer post' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  title: string;
+
+  @ApiProperty({ description: 'Contenido del post' })
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}
+
+// update-post.dto.ts
+export class UpdatePostDto extends PartialType(CreatePostDto) {}
+```
+
+### 6. Service
+```typescript
+@Injectable()
+export class PostsService {
+  constructor(
+    @Inject('POSTS_REPOSITORY')
+    private readonly postsRepository: Repository<Post>,
+  ) {}
+
+  async create(createDto: CreatePostDto, userId: string): Promise<Post> {
+    const newPost = this.postsRepository.create({
+      ...createDto,
+      userId,
+    });
+    return await this.postsRepository.save(newPost);
+  }
+
+  async getAll(): Promise<Post[]> {
+    return await this.postsRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getById(id: string): Promise<Post> {
+    const post = await this.postsRepository.findOne({ where: { id } });
+    if (!post) {
+      throw new NotFoundException(`Post con ID ${id} no encontrado`);
+    }
+    return post;
+  }
+
+  async update(id: string, updateDto: UpdatePostDto): Promise<Post> {
+    await this.getById(id);
+    await this.postsRepository.update(id, updateDto);
+    return await this.getById(id);
+  }
+
+  async delete(id: string): Promise<{ message: string }> {
+    await this.getById(id);
+    await this.postsRepository.softDelete(id);
+    return { message: `Post con ID ${id} eliminado exitosamente` };
+  }
+}
+```
+
+### 7. Controller
+```typescript
+@ApiTags('posts')
+@Controller('posts')
+export class PostsController {
+  constructor(private readonly postsService: PostsService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Crear un nuevo post' })
+  async create(
+    @Body() createDto: CreatePostDto,
+    @CurrentUser() user: any,
+  ) {
+    return await this.postsService.create(createDto, user.sub);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Obtener todos los posts' })
+  async getAll() {
+    return await this.postsService.getAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener un post por ID' })
+  async getById(@Param('id') id: string) {
+    return await this.postsService.getById(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Actualizar un post' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdatePostDto,
+  ) {
+    return await this.postsService.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Eliminar un post' })
+  async delete(@Param('id') id: string) {
+    return await this.postsService.delete(id);
+  }
+}
+```
+
+---
+
+## Checklist para Nuevo Recurso
+
+- [ ] Crear migración con `npm run migration:create`
+- [ ] Ejecutar migración con `npm run migration:run`
+- [ ] Crear carpeta `src/resources/{resource}/`
+- [ ] Crear entity en `entities/{resource}.entity.ts`
+- [ ] Crear provider en `{resource}.providers.ts`
+- [ ] Crear module en `{resource}.module.ts`
+- [ ] Crear DTOs en `dto/create-{resource}.dto.ts` y `dto/update-{resource}.dto.ts`
+- [ ] Crear service en `{resource}.service.ts` con los 5 métodos estándar
+- [ ] Crear controller en `{resource}.controller.ts` con los 5 endpoints estándar
+- [ ] Documentar todo con Swagger
+- [ ] Agregar module a `app.module.ts`
+- [ ] Probar en Swagger: `http://localhost:3040/api/docs`
+- [ ] Verificar que no hay `console.log()`
+
+---
+
+## Notas Importantes
+
+1. **Compatibilidad Supabase**: Mantener estructura de BD compatible
+2. **UUID Autogenerado**: Siempre usar `uuid_generate_v4()` en migraciones
+3. **Bcrypt**: 10 rounds para compatibilidad con Supabase
+4. **Soft Delete**: Preferir soft delete sobre hard delete
+5. **Español**: Todos los mensajes al usuario en español
+6. **Swagger**: Documentar TODOS los endpoints
+7. **NO console.log**: Usar Logger de NestJS solo si es necesario
+8. **Validaciones**: Siempre validar con class-validator en DTOs
+9. **Excepciones**: Usar excepciones de NestJS apropiadas
+10. **TypeScript**: Tipos explícitos en todo
+
+---
+
+## Recursos Adicionales
+
+- **NestJS Docs**: https://docs.nestjs.com
+- **TypeORM Docs**: https://typeorm.io
+- **Swagger Docs**: https://docs.nestjs.com/openapi/introduction
+- **Class Validator**: https://github.com/typestack/class-validator
+
+---
+
+**Versión**: 1.0  
+**Última actualización**: 2026-01-13
+

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Variables de entorno para el build
+        # IMPORTANTE: Estas variables se usan durante el BUILD del frontend
+        # Apuntan a telar.ia por defecto
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-https://ylooqmqmoufqtxvetxuj.supabase.co}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb29xbXFtb3VmcXR4dmV0eHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Nzc1ODIsImV4cCI6MjA2MzI1MzU4Mn0.F_FtGBwpHKBpog6Ad4zUjmogRZMLNVgk18rsbMv7JYs}
+        VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL:-https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com}
+        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY:-}
+    container_name: marketplace-telar-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+
+networks:
+  marketplace-network:
+    driver: bridge
+

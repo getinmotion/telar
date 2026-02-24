@@ -1,0 +1,38 @@
+// Principales municipios de Colombia por departamento
+export const MUNICIPIOS_POR_DEPARTAMENTO: Record<string, string[]> = {
+  'Amazonas': ['Leticia', 'Puerto Nariño'],
+  'Antioquia': ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Apartadó', 'Turbo', 'Rionegro', 'Caucasia', 'Sabaneta', 'La Estrella', 'Caldas', 'Copacabana', 'Carmen de Viboral', 'Marinilla', 'Guarne'],
+  'Arauca': ['Arauca', 'Arauquita', 'Saravena', 'Tame', 'Fortul'],
+  'Atlántico': ['Barranquilla', 'Soledad', 'Malambo', 'Sabanalarga', 'Puerto Colombia', 'Galapa', 'Baranoa'],
+  'Bogotá D.C.': ['Bogotá D.C.', 'Usaquén', 'Chapinero', 'Santa Fe', 'San Cristóbal', 'Usme', 'Tunjuelito', 'Bosa', 'Kennedy', 'Fontibón', 'Engativá', 'Suba', 'Barrios Unidos', 'Teusaquillo', 'Los Mártires', 'Antonio Nariño', 'Puente Aranda', 'La Candelaria', 'Rafael Uribe Uribe', 'Ciudad Bolívar', 'Sumapaz'],
+  'Bolívar': ['Cartagena', 'Magangué', 'Turbaco', 'Arjona', 'El Carmen de Bolívar', 'Mompós', 'San Jacinto'],
+  'Boyacá': ['Tunja', 'Duitama', 'Sogamoso', 'Chiquinquirá', 'Paipa', 'Villa de Leyva', 'Puerto Boyacá', 'Monguí', 'Nobsa'],
+  'Caldas': ['Manizales', 'La Dorada', 'Chinchiná', 'Villamaría', 'Riosucio', 'Anserma', 'Salamina'],
+  'Caquetá': ['Florencia', 'San Vicente del Caguán', 'Puerto Rico', 'El Doncello', 'Belén de los Andaquíes'],
+  'Casanare': ['Yopal', 'Aguazul', 'Villanueva', 'Monterrey', 'Paz de Ariporo', 'Tauramena'],
+  'Cauca': ['Popayán', 'Santander de Quilichao', 'Puerto Tejada', 'Patía', 'Miranda', 'Corinto', 'Piendamó'],
+  'Cesar': ['Valledupar', 'Aguachica', 'Bosconia', 'Agustín Codazzi', 'La Jagua de Ibirico', 'Curumaní', 'Chimichagua'],
+  'Chocó': ['Quibdó', 'Istmina', 'Condoto', 'Tadó', 'Acandí', 'Riosucio', 'Bahía Solano'],
+  'Córdoba': ['Montería', 'Cereté', 'Lorica', 'Sahagún', 'Planeta Rica', 'Montelíbano', 'Tierralta'],
+  'Cundinamarca': ['Soacha', 'Facatativá', 'Zipaquirá', 'Chía', 'Mosquera', 'Madrid', 'Funza', 'Cajicá', 'Girardot', 'Fusagasugá', 'Villeta', 'La Mesa', 'Tocancipá', 'Cota', 'Tenjo'],
+  'Guainía': ['Inírida', 'Barranco Minas'],
+  'Guaviare': ['San José del Guaviare', 'Calamar', 'El Retorno', 'Miraflores'],
+  'Huila': ['Neiva', 'Pitalito', 'Garzón', 'La Plata', 'Campoalegre', 'San Agustín', 'Algeciras'],
+  'La Guajira': ['Riohacha', 'Maicao', 'Uribia', 'Manaure', 'Fonseca', 'San Juan del Cesar', 'Albania'],
+  'Magdalena': ['Santa Marta', 'Ciénaga', 'Fundación', 'El Banco', 'Plato', 'Zona Bananera', 'Aracataca'],
+  'Meta': ['Villavicencio', 'Acacías', 'Granada', 'Puerto López', 'San Martín', 'Restrepo', 'Cumaral'],
+  'Nariño': ['Pasto', 'Tumaco', 'Ipiales', 'Túquerres', 'Barbacoas', 'La Unión', 'Samaniego'],
+  'Norte de Santander': ['Cúcuta', 'Ocaña', 'Villa del Rosario', 'Los Patios', 'Pamplona', 'Tibú', 'El Zulia'],
+  'Putumayo': ['Mocoa', 'Puerto Asís', 'Orito', 'Valle del Guamuez', 'Puerto Guzmán', 'Villagarzón'],
+  'Quindío': ['Armenia', 'Calarcá', 'La Tebaida', 'Montenegro', 'Quimbaya', 'Circasia', 'Salento'],
+  'Risaralda': ['Pereira', 'Dosquebradas', 'Santa Rosa de Cabal', 'La Virginia', 'Marsella', 'Belén de Umbría'],
+  'San Andrés y Providencia': ['San Andrés', 'Providencia'],
+  'Santander': ['Bucaramanga', 'Floridablanca', 'Girón', 'Piedecuesta', 'Barrancabermeja', 'San Gil', 'Socorro', 'Málaga', 'Barbosa'],
+  'Sucre': ['Sincelejo', 'Corozal', 'Sampués', 'Tolú', 'San Marcos', 'Majagual', 'Morroa'],
+  'Tolima': ['Ibagué', 'Espinal', 'Melgar', 'Honda', 'Líbano', 'Chaparral', 'Mariquita'],
+  'Valle del Cauca': ['Cali', 'Palmira', 'Buenaventura', 'Tuluá', 'Cartago', 'Buga', 'Jamundí', 'Yumbo', 'Candelaria', 'Florida'],
+  'Vaupés': ['Mitú', 'Caruru'],
+  'Vichada': ['Puerto Carreño', 'La Primavera', 'Cumaribo']
+};
+
+export const DEPARTAMENTOS_COLOMBIA = Object.keys(MUNICIPIOS_POR_DEPARTAMENTO).sort();

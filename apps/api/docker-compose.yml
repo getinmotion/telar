@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # PostgreSQL Database
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: getinmotion-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${NAME_DB}
+      POSTGRES_USER: ${USER_DB}
+      POSTGRES_PASSWORD: ${PASS_DB}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - '${PORT_DB}:5432'
+    networks:
+      - getinmotion-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${USER_DB} -d ${NAME_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ========================================
+  # NestJS Application
+  # ========================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: getinmotion-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database (dentro de la red Docker Postgres escucha en 5432)
+      HOST_DB: postgres
+      PORT_DB: 5432
+      USER_DB: ${USER_DB}
+      PASS_DB: ${PASS_DB}
+      NAME_DB: ${NAME_DB}
+
+      # JWT
+      PASSWORD_SECRET: ${PASSWORD_SECRET}
+
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+      # App
+      PORT: 3040
+      NODE_ENV: production
+      ENVIRONMENT_PROJECT: production
+    ports:
+      - '3040:3040'
+    networks:
+      - getinmotion-network
+    volumes:
+      # Solo para logs si es necesario
+      - ./logs:/app/logs
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3040/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+    name: getinmotion-postgres-data
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  getinmotion-network:
+    driver: bridge
+    name: getinmotion-network

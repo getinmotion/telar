@@ -1,0 +1,284 @@
+project_id = "ylooqmqmoufqtxvetxuj"
+
+[functions.log-analytics]
+verify_jwt = false
+
+[functions.analytics-engine]
+verify_jwt = false
+
+[functions.update-user-progress]
+verify_jwt = true
+
+[functions.generate-deliverable]
+verify_jwt = true
+
+[functions.get-all-users]
+verify_jwt = true
+
+[functions.contexto-maestro]
+verify_jwt = true
+
+[functions.master-prompt-generator]
+verify_jwt = true
+
+[functions.generate-progressive-tasks]
+verify_jwt = true
+
+[functions.create-admin-user]
+verify_jwt = true
+
+[functions.get-admin-users]
+verify_jwt = true
+
+[functions.get-waitlist]
+verify_jwt = true
+
+[functions.approve-waitlist-user]
+verify_jwt = true
+
+[functions.validate-access-code]
+verify_jwt = false
+
+[functions.register-user]
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.verify-email]
+verify_jwt = false
+
+[functions.resend-verification]
+verify_jwt = false
+
+[functions.coordinator-ai-chat]
+verify_jwt = true
+
+[functions.master-coordinator-orchestrator]
+verify_jwt = true
+
+[functions.brand-ai-assistant]
+verify_jwt = true
+
+[functions.generate-shop-hero-slide]
+verify_jwt = true
+
+[functions.generate-shop-about]
+verify_jwt = true
+
+[functions.generate-shop-contact]
+verify_jwt = true
+
+[functions.generate-hero-slide-from-image]
+verify_jwt = true
+
+[functions.generate-hero-slide-image]
+verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = true
+
+[functions.chat-assistant]
+verify_jwt = true
+
+[functions.extract-business-info]
+verify_jwt = true
+
+[functions.generate-intelligent-questions]
+verify_jwt = true
+
+[functions.generate-dynamic-questions]
+verify_jwt = true
+
+[functions.process-deep-insights]
+verify_jwt = true
+
+[functions.intelligent-web-search]
+verify_jwt = false
+
+[functions.master-agent-coordinator]
+verify_jwt = true
+
+[functions.create-test-user]
+verify_jwt = true
+
+[functions.generate-checkpoint-summary]
+verify_jwt = false
+
+[functions.categorize-product]
+verify_jwt = true
+
+[functions.recategorize-all-products]
+verify_jwt = false
+
+[functions.create-dummy-users]
+verify_jwt = true
+
+[functions.delete-users]
+verify_jwt = true
+
+[functions.cleanup-orphan-data]
+verify_jwt = true
+
+[functions.reset-to-dummy-data]
+verify_jwt = true
+
+[functions.fix-shop-descriptions]
+verify_jwt = true
+
+[functions.ai-content-refiner]
+verify_jwt = true
+
+[functions.auth-rate-limit-check]
+verify_jwt = false
+
+[functions.verify-turnstile]
+verify_jwt = false
+
+[functions.moderate-product]
+verify_jwt = true
+
+[functions.get-moderation-queue]
+verify_jwt = true
+
+[functions.delete-dummy-users]
+verify_jwt = true
+
+[functions.moderate-shop-marketplace]
+verify_jwt = true
+
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.fix-shop-descriptions-batch]
+verify_jwt = false
+
+[functions.quick-task]
+verify_jwt = true
+
+[functions.get-counterparty]
+verify_jwt = true
+
+[functions.generate-artisan-profile-story]
+verify_jwt = true
+
+[functions.create-moderator-user]
+verify_jwt = false
+
+[functions.validate-promo-code]
+verify_jwt = false
+
+[functions.apply-promo-code]
+verify_jwt = false
+
+[functions.generate-gift-cards]
+verify_jwt = true
+
+[functions.manage-coupons]
+verify_jwt = true
+
+[functions.manage-gift-cards]
+verify_jwt = true
+
+[functions.delete-shop]
+verify_jwt = true
+
+[functions.sevientrega-function]
+verify_jwt = false
+
+[functions.classify-artisan-craft]
+verify_jwt = true
+
+[functions.ai-image-analyzer]
+verify_jwt = true
+
+[functions.create-user-by-type]
+verify_jwt = true
+
+[functions.maturity-analysis]
+verify_jwt = true
+
+[functions.create-counterparty-admin]
+verify_jwt = true
+
+[functions.update-shop-logo-admin]
+verify_jwt = true
+
+[functions.publish-shop-admin]
+verify_jwt = true
+
+[functions.send-password-reset-email]
+verify_jwt = false
+
+[functions.verify-password-reset]
+verify_jwt = false
+
+[functions.fix-product-categories]
+verify_jwt = true
+
+[functions.normalize-shop-regions]
+verify_jwt = false
+
+[functions.update-counterparty]
+verify_jwt = true
+
+[functions.admin-set-password]
+verify_jwt = false
+
+[functions.clever-handler]
+verify_jwt = false
+
+[functions.get-shop-orders]
+verify_jwt = true
+
+[functions.record-marketplace-order]
+verify_jwt = false
+
+[functions.get-cobre-balance]
+verify_jwt = true
+
+[functions.optimize-existing-images]
+verify_jwt = true
+
+[functions.optimize-shop-images]
+verify_jwt = true
+
+[functions.ai-recommendations]
+verify_jwt = true
+
+[functions.check-existing-user]
+verify_jwt = true
+
+[functions.checkout-link-cobre]
+verify_jwt = true
+
+[functions.create-intelligent-shop]
+verify_jwt = true
+
+[functions.generate-artisan-tasks]
+verify_jwt = true
+
+[functions.generate-brand-theme]
+verify_jwt = true
+
+[functions.generate-task-recommendations]
+verify_jwt = true
+
+[functions.manage-moderators]
+verify_jwt = true
+
+[functions.openai-chat]
+verify_jwt = false
+
+[functions.step-ai-assistant]
+verify_jwt = true
+
+[functions.sync-guest-cart]
+verify_jwt = false
+
+[functions.trigger-embedding-update]
+verify_jwt = true
+
+
+
+

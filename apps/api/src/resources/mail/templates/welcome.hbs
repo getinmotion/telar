@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a GetInMotion</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #2B2B2B 0%, #1a1a1a 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+        .logo {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            background: #ffffff;
+            padding: 40px 30px;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #2B2B2B;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        .button-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #D4FF00;
+            color: #2B2B2B;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(212, 255, 0, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .features {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .features h3 {
+            color: #2B2B2B;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .features ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #555;
+        }
+        .features li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            background: #f5f5f5;
+            text-align: center;
+            padding: 25px 20px;
+            color: #888;
+            font-size: 13px;
+            border-radius: 0 0 12px 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer-emoji {
+            font-size: 18px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if logoUrl}}
+            <img src="{{logoUrl}}" alt="GetInMotion" class="logo">
+            {{/if}}
+            <h1>GetInMotion</h1>
+        </div>
+        <div class="content">
+            <div class="greeting">¡Bienvenido, {{name}}! 🎉</div>
+            <p class="message">
+                Nos alegra mucho tenerte en <strong>GetInMotion</strong>. Tu cuenta ha sido verificada exitosamente y ya puedes comenzar a usar nuestra plataforma.
+            </p>
+            <div class="features">
+                <h3>¿Qué puedes hacer ahora?</h3>
+                <ul>
+                    <li>Acceder a tu cuenta en cualquier momento</li>
+                    <li>Personalizar tu perfil</li>
+                    <li>Explorar todas las funcionalidades de la plataforma</li>
+                    <li>Conectar con otros usuarios</li>
+                </ul>
+            </div>
+            <div class="button-container">
+                <a href="{{loginUrl}}" class="button">🚀 Iniciar sesión</a>
+            </div>
+            <p class="message">
+                Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ayudarte.
+            </p>
+            <p class="message">
+                ¡Esperamos que disfrutes de tu experiencia en GetInMotion!
+            </p>
+        </div>
+        <div class="footer">
+            <p>Con cariño desde Bogotá, Colombia <span class="footer-emoji">🇨🇴</span></p>
+            <p style="margin-top: 10px;">GetInMotion © {{year}}</p>
+        </div>
+    </div>
+</body>
+</html>
+

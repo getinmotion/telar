@@ -1,0 +1,110 @@
+name: Growth Module Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run all Growth Module tests with coverage
+      run: npm run test -- --coverage --run
+      
+    - name: Run Growth Module unit tests
+      run: npm run test -- src/utils/__tests__/ src/config/__tests__/ --run
+      
+    - name: Run Growth Module integration tests
+      run: npm run test -- src/components/cultural/__tests__/CulturalMaturityWizard.integration.test.tsx --run
+      
+    - name: Generate coverage report
+      run: npm run test -- --coverage --run
+      continue-on-error: true
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/coverage-final.json
+        flags: growth-module
+        name: growth-module-coverage
+      continue-on-error: true
+      
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      with:
+        lcov-file: ./coverage/lcov.info
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+      
+    - name: Run all tests with verbose output
+      run: npm run test -- --run --reporter=verbose
+      
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.node-version }}
+        path: |
+          coverage/
+          __snapshots__/
+        retention-days: 30
+
+  accessibility-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run accessibility tests
+      run: npm run test -- src/components/cultural/__tests__/CulturalMaturityWizard.a11y.test.tsx --run
+      
+    - name: Upload a11y results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: a11y-test-results
+        path: coverage/
+        retention-days: 30
+
+  notify:
+    needs: [test, accessibility-tests]
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+    - name: Send notification on failure
+      run: |
+        echo "::error::Growth Module tests failed! Check the logs for details."
+        echo "::error::Branch: ${{ github.ref }}"
+        echo "::error::Commit: ${{ github.sha }}"
+        echo "::error::Author: ${{ github.actor }}"

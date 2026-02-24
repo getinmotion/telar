@@ -1,0 +1,40 @@
+project_id = "qzjcgwchexqpykqsxxcr"
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.verify-otp]
+verify_jwt = false
+
+[functions.categorize-product]
+verify_jwt = true
+
+[functions.recategorize-products]
+verify_jwt = true
+
+[functions.check-telar-tables]
+verify_jwt = true
+
+[functions.create-marketplace-view]
+verify_jwt = true
+
+[functions.generate-category-images]
+verify_jwt = false
+
+[functions.search-unsplash-category]
+verify_jwt = false
+
+[functions.sync-guest-cart]
+verify_jwt = true
+
+[functions.checkout-link-cobre]
+verify_jwt = true
+
+[functions.validate-promo-code]
+verify_jwt = false
+
+[functions.apply-promo-code]
+verify_jwt = true
+
+[functions.generate-gift-cards]
+verify_jwt = true
