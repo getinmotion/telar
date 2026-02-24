@@ -1,0 +1,208 @@
+# ============================================================
+# Environment Variables
+# ============================================================
+.env
+.env.local
+.env.*.local
+**/.env
+!.env.example
+!**/.env.example
+
+# ============================================================
+# Node.js / NPM
+# ============================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Dependency directories
+package-lock.json
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Python testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ============================================================
+# Docker
+# ============================================================
+# Don't ignore docker-compose files, but ignore override files
+docker-compose.override.yml
+
+# ============================================================
+# IDEs and Editors
+# ============================================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Cursor
+.cursor/
+
+# JetBrains IDEs (IntelliJ, PyCharm, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+
+# ============================================================
+# Operating System
+# ============================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================
+# Logs
+# ============================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================================
+# Testing
+# ============================================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ============================================================
+# Temporary Files
+# ============================================================
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# ============================================================
+# Database
+# ============================================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================================
+# Secrets & Credentials
+# ============================================================
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+serviceAccountKey.json
+
+# ============================================================
+# Build Tools
+# ============================================================
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.docusaurus/
+
+# Vite
+.vite/
+vite.config.*.timestamp-*
+
+# ============================================================
+# Project Specific
+# ============================================================
+# Agent transcripts (may contain sensitive info)
+agent-transcripts/
+
+# Local docker volumes data
+volumes/
+data/
+
+# Local development scripts
+*.local.sh
+*.local.py
+
+#=================================================================
+apps/payment-svc/repomix-output.xml
+.DS_Store
+apps/marketplace-web/backups/backup_telar_ia.backup

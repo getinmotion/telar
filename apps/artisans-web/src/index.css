@@ -1,0 +1,354 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Colors - Navy Blue Palette */
+    --primary: 220 50% 15%; /* #142239 Navy Blue - Main brand color */
+    --primary-foreground: 0 0% 100%; /* White text */
+    --primary-glow: 220 45% 25%; /* Lighter navy for glow */
+    --primary-subtle: 220 30% 96%; /* Very light navy tint */
+    
+    /* Secondary Colors - Golden Yellow (WCAG AA compliant) */
+    --secondary: 45 95% 45%; /* #c29200 Golden Yellow darkened for contrast */
+    --secondary-foreground: 0 0% 100%; /* White text */
+    --secondary-glow: 45 95% 55%; /* Lighter golden glow */
+    
+    /* Accent Colors - Coral/Peach (WCAG AA compliant) */
+    --accent: 17 75% 52%; /* #d15a2e Coral darkened for contrast */
+    --accent-foreground: 0 0% 100%; /* White text */
+    
+    /* Background & Surface Colors */
+    --background: 40 50% 98%; /* #fcf7ec Cream background */
+    --foreground: 220 50% 15%; /* #142239 Navy for text */
+    
+    /* Card & Surface Colors */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 220 50% 15%; /* Navy text on cards */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 50% 15%;
+    
+    --warning: 43 96% 56%;
+    --warning-foreground: 222.2 84% 4.9%;
+    
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --muted: 40 30% 90%; /* Muted cream */
+    --muted-foreground: 220 35% 25%; /* Darker navy-gray for WCAG AA contrast */
+    
+    /* Brand Colors - New Palette */
+    --navy: 220 50% 15%; /* #142239 */
+    --golden: 45 95% 45%; /* #c29200 Darkened for WCAG AA contrast 4.5:1 */
+    --coral: 17 75% 52%; /* #d15a2e Darkened for WCAG AA contrast 4.5:1 */
+    --cream: 40 50% 98%; /* #fcf7ec */
+    --dark-gray: 0 0% 15%; /* #282828 */
+    
+    /* Gradients - Navy/Golden/Coral */
+    --gradient-primary: linear-gradient(135deg, hsl(220 50% 15%), hsl(220 45% 25%));
+    --gradient-secondary: linear-gradient(135deg, hsl(45 100% 54%), hsl(45 95% 64%));
+    --gradient-accent: linear-gradient(135deg, hsl(20 89% 66%), hsl(45 100% 54%));
+    --gradient-subtle: linear-gradient(180deg, hsl(40 50% 98%), hsl(40 45% 94%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 50% 15% / 0.9), hsl(45 100% 54% / 0.8));
+    --gradient-warm: linear-gradient(135deg, hsl(20 89% 66%), hsl(40 50% 98%));
+    --gradient-brand: linear-gradient(135deg, hsl(220 50% 15%), hsl(45 100% 54%), hsl(20 89% 66%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(40 50% 98%));
+    --gradient-glass: linear-gradient(145deg, hsl(0 0% 100% / 0.8), hsl(40 50% 98% / 0.4));
+    
+    /* Shadows - Navy/Golden themed */
+    --shadow-elegant: 0 10px 30px -10px hsl(220 50% 15% / 0.3);
+    --shadow-glow: 0 0 40px hsl(45 100% 54% / 0.4);
+    --shadow-card: 0 4px 20px hsl(220 50% 15% / 0.08);
+    --shadow-hover: 0 20px 40px -10px hsl(220 50% 15% / 0.15);
+    --shadow-glass: 0 8px 32px hsl(220 50% 15% / 0.12);
+    --shadow-soft: 0 2px 8px hsl(220 50% 15% / 0.06);
+    --shadow-paper: 0 4px 12px hsl(220 50% 15% / 0.15);
+    --shadow-workbench: 0 8px 24px hsl(220 50% 15% / 0.12);
+    --shadow-organic: 0 6px 20px -4px hsl(20 89% 66% / 0.2);
+    
+    /* Neumorphic Shadows */
+    --shadow-neumorphic-light: -6px -6px 16px hsl(0 0% 100% / 0.8);
+    --shadow-neumorphic-dark: 6px 6px 16px hsl(220 50% 15% / 0.12);
+    --shadow-neumorphic: var(--shadow-neumorphic-light), var(--shadow-neumorphic-dark);
+    --shadow-neumorphic-hover: -8px -8px 20px hsl(0 0% 100% / 0.9), 8px 8px 20px hsl(220 50% 15% / 0.15);
+    --shadow-neumorphic-inset: inset 2px 2px 4px hsl(220 50% 15% / 0.08), inset -2px -2px 4px hsl(0 0% 100% / 0.6);
+    --shadow-neumorphic-pressed: inset 4px 4px 8px hsl(220 50% 15% / 0.1), inset -4px -4px 8px hsl(0 0% 100% / 0.5);
+    
+    /* Neumorphic surface color */
+    --neumorphic-surface: 40 40% 96%;
+    
+    /* Animation variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 50% 10%; /* Navy oscuro */
+    --foreground: 40 50% 98%; /* Cream para texto */
+
+    --card: 220 45% 15%;
+    --card-foreground: 40 50% 98%;
+
+    --popover: 220 45% 15%;
+    --popover-foreground: 40 50% 98%;
+
+    /* Dark mode - Navy/Golden/Coral optimized */
+    --primary: 45 100% 54%; /* Golden en dark mode */
+    --primary-foreground: 220 50% 10%;
+    --primary-glow: 45 95% 64%;
+    --primary-subtle: 45 50% 15%;
+
+    --secondary: 220 45% 25%; /* Navy más claro */
+    --secondary-foreground: 40 50% 98%;
+    --secondary-glow: 220 40% 35%;
+
+    --warning: 43 96% 60%;
+    --warning-foreground: 0 0% 10%;
+    
+    --success: 142 76% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --muted: 220 40% 18%;
+    --muted-foreground: 40 30% 70%;
+
+    --accent: 20 89% 66%; /* Coral mantiene */
+    --accent-foreground: 0 0% 100%;
+
+    /* Dark mode - Brand colors (WCAG AA compliant) */
+    --navy: 220 50% 10%;
+    --golden: 45 95% 55%; /* Slightly lighter for dark mode readability */
+    --coral: 17 75% 60%; /* Adjusted for dark mode contrast */
+    --cream: 40 50% 98%;
+    --dark-gray: 0 0% 20%;
+
+    /* Dark mode - Gradients optimized */
+    --gradient-primary: linear-gradient(135deg, hsl(45 100% 54%), hsl(45 95% 64%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220 45% 25%), hsl(220 40% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(20 89% 66%), hsl(45 100% 54%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 50% 10%), hsl(220 45% 15%));
+    --gradient-card: linear-gradient(145deg, hsl(220 45% 15%), hsl(220 40% 18%));
+    --gradient-glass: linear-gradient(145deg, hsl(220 50% 10% / 0.8), hsl(220 45% 15% / 0.4));
+
+    /* Dark mode - Shadows optimized */
+    --shadow-elegant: 0 10px 30px -10px hsl(45 100% 54% / 0.2);
+    --shadow-glow: 0 0 40px hsl(45 100% 54% / 0.3);
+    --shadow-card: 0 4px 20px hsl(45 100% 54% / 0.08);
+    --shadow-hover: 0 20px 40px -10px hsl(45 100% 54% / 0.15);
+    --shadow-glass: 0 8px 32px hsl(45 100% 54% / 0.12);
+    
+    /* Dark mode - Neumorphic Shadows */
+    --shadow-neumorphic-light: -6px -6px 16px hsl(220 45% 18% / 0.8);
+    --shadow-neumorphic-dark: 6px 6px 16px hsl(0 0% 0% / 0.4);
+    --shadow-neumorphic: var(--shadow-neumorphic-light), var(--shadow-neumorphic-dark);
+    --shadow-neumorphic-hover: -8px -8px 20px hsl(220 45% 18% / 0.9), 8px 8px 20px hsl(0 0% 0% / 0.5);
+    --shadow-neumorphic-inset: inset 2px 2px 4px hsl(0 0% 0% / 0.3), inset -2px -2px 4px hsl(220 45% 18% / 0.6);
+    --shadow-neumorphic-pressed: inset 4px 4px 8px hsl(0 0% 0% / 0.4), inset -4px -4px 8px hsl(220 45% 18% / 0.5);
+    
+    --neumorphic-surface: 220 45% 14%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 40% 20%;
+    --input: 220 40% 20%;
+    --ring: 45 100% 54%;
+    
+    --sidebar-background: 220 50% 8%;
+    --sidebar-foreground: 40 50% 95%;
+    --sidebar-primary: 45 100% 54%;
+    --sidebar-primary-foreground: 220 50% 10%;
+    --sidebar-accent: 220 45% 15%;
+    --sidebar-accent-foreground: 40 50% 95%;
+    --sidebar-border: 220 40% 20%;
+    --sidebar-ring: 45 100% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* TELAR utility classes using semantic tokens */
+  .card-float {
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+
+  .card-float:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .glassmorphism {
+    @apply bg-card/60 backdrop-blur-sm border border-border;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .progress-ring {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease-out;
+  }
+
+  /* Floating Agent - Always on top */
+  .floating-agent-container {
+    z-index: 10000 !important;
+    pointer-events: auto;
+  }
+
+  /* Agent Highlight Animation using TELAR accent color */
+  .highlight-agent {
+    animation: pulse-accent 2s ease-in-out;
+    box-shadow: 0 0 0 4px hsl(var(--accent) / 0.5);
+    border-radius: 1rem;
+  }
+
+  @keyframes pulse-accent {
+    0%, 100% { 
+      box-shadow: 0 0 0 0 hsl(var(--accent) / 0);
+      transform: scale(1);
+    }
+    50% { 
+      box-shadow: 0 0 0 8px hsl(var(--accent) / 0.4);
+      transform: scale(1.02);
+    }
+  }
+
+  /* Text column utilities for optimal readability */
+  .text-column-narrow {
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .text-column-medium {
+    max-width: 75ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .prose-narrow {
+    max-width: 60ch;
+  }
+
+  /* Typography System - Titles Uppercase, Subtitles Italic */
+  h1, .h1, .title-main {
+    @apply uppercase;
+  }
+  
+  h2, .h2, .title-section {
+    @apply uppercase;
+  }
+  
+  .subtitle, .subtitle-italic {
+    @apply italic;
+  }
+
+  /* ✅ Scrollbar Hide - Para checkpoints responsivos */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* CSS-based animations for better performance */
+  @keyframes float-slow {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(100px, 50px) scale(1.2);
+    }
+    66% {
+      transform: translate(60px, -30px) scale(1.1);
+    }
+  }
+
+  @keyframes float-slower {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(-80px, 100px) scale(1.3);
+    }
+    66% {
+      transform: translate(-40px, 60px) scale(1.15);
+    }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 35s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .animate-float-slower {
+    animation: float-slower 40s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Neumorphic Utilities */
+  .neumorphic {
+    @apply bg-neumorphic-surface rounded-2xl;
+    box-shadow: var(--shadow-neumorphic);
+    transition: var(--transition-smooth);
+  }
+  
+  .neumorphic:hover {
+    box-shadow: var(--shadow-neumorphic-hover);
+  }
+  
+  .neumorphic-inset {
+    box-shadow: var(--shadow-neumorphic-inset);
+  }
+  
+  .neumorphic-pressed {
+    box-shadow: var(--shadow-neumorphic-pressed);
+  }
+  
+  .btn-capsule {
+    @apply rounded-full px-6 py-3 font-semibold;
+  }
+}
