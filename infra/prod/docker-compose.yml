@@ -1,0 +1,165 @@
+version: '3.8'
+
+# ========================================
+# GetInMotion Production Stack
+# Images pulled from GHCR — built by CI on push to main
+# To deploy: docker compose pull && docker compose up -d
+# NOTE: PostgreSQL is a Lightsail managed database (external — no postgres container)
+# NOTE: Ports are bound to 127.0.0.1 — Nginx on the host handles public traffic
+# ========================================
+
+services:
+  # ========================================
+  # API Service (NestJS)
+  # ========================================
+  api:
+    image: ghcr.io/getinmotion/gim-api:${IMAGE_TAG:-main}
+    container_name: gim-api
+    environment:
+      HOST_DB: ${HOST_DB}
+      PORT_DB: ${PORT_DB}
+      USER_DB: ${USER_DB}
+      PASS_DB: ${PASS_DB}
+      NAME_DB: ${NAME_DB}
+      PASSWORD_SECRET: ${PASSWORD_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PORT: ${API_PORT}
+      NODE_ENV: ${NODE_ENV}
+      ENVIRONMENT_PROJECT: ${ENVIRONMENT_PROJECT}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      CDN_BASE_URL: ${CDN_BASE_URL}
+    ports:
+      - "127.0.0.1:${API_PORT}:${API_PORT}"
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3040/', (r) => {process.exit(r.statusCode >= 200 && r.statusCode < 500 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Agents Service (Python/FastAPI)
+  # ========================================
+  agents:
+    image: ghcr.io/getinmotion/gim-agents:${IMAGE_TAG:-main}
+    container_name: gim-agents
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      API_SECRET_KEY: ${API_SECRET_KEY}
+      PORT: ${AGENTS_PORT}
+      HOST: ${HOST}
+      LOG_LEVEL: ${LOG_LEVEL}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      MAX_RETRIES: ${MAX_RETRIES}
+      REQUEST_TIMEOUT: ${REQUEST_TIMEOUT}
+      RAG_TOP_K: ${RAG_TOP_K}
+      CHUNK_SIZE: ${CHUNK_SIZE}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP}
+      MAX_BATCH_SIZE: ${MAX_BATCH_SIZE}
+      MEMORY_RETRIEVAL_LIMIT: ${MEMORY_RETRIEVAL_LIMIT}
+      MEMORY_IMPORTANCE_THRESHOLD: ${MEMORY_IMPORTANCE_THRESHOLD}
+      PROFILE_UPDATE_INTERVAL: ${PROFILE_UPDATE_INTERVAL}
+      CONVERSATION_SUMMARY_INTERVAL: ${CONVERSATION_SUMMARY_INTERVAL}
+    ports:
+      - "127.0.0.1:${AGENTS_PORT}:${AGENTS_PORT}"
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${AGENTS_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Payment Service (Go)
+  # ========================================
+  payment-svc:
+    image: ghcr.io/getinmotion/gim-payment-svc:${IMAGE_TAG:-main}
+    container_name: gim-payment-svc
+    environment:
+      SERVICE_NAME: ${PAYMENT_SERVICE_NAME}
+      ENVIRONMENT: ${PAYMENT_ENVIRONMENT}
+      PORT: ${PAYMENT_PORT}
+      SQL_DRIVER: ${PAYMENT_SQL_DRIVER}
+      SQL_DATA_SOURCE: ${PAYMENT_SQL_DATA_SOURCE}
+      COBRE_API_KEY: ${COBRE_API_KEY}
+      COBRE_API_SECRET: ${COBRE_API_SECRET}
+      COBRE_BALANCE_ID: ${COBRE_BALANCE_ID}
+      COBRE_URL: ${COBRE_URL}
+      WOMPI_BASE_URL: ${WOMPI_BASE_URL}
+      WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY}
+      WOMPI_EVENTS_SECRET: ${WOMPI_EVENTS_SECRET}
+    ports:
+      - "127.0.0.1:${PAYMENT_PORT}:${PAYMENT_PORT}"
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:${PAYMENT_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Artisans Web (Vite/React)
+  # VITE_* vars are baked into the image at CI build time
+  # ========================================
+  artisans-web:
+    image: ghcr.io/getinmotion/gim-artisans-web:${IMAGE_TAG:-main}
+    container_name: gim-artisans-web
+    ports:
+      - "127.0.0.1:${ARTISANS_WEB_PORT}:80"
+    depends_on:
+      - api
+      - agents
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ========================================
+  # Marketplace Web (Vite/React)
+  # VITE_* vars are baked into the image at CI build time
+  # ========================================
+  marketplace-web:
+    image: ghcr.io/getinmotion/gim-marketplace-web:${IMAGE_TAG:-main}
+    container_name: gim-marketplace-web
+    ports:
+      - "127.0.0.1:${MARKETPLACE_WEB_PORT}:80"
+    depends_on:
+      - api
+      - agents
+    networks:
+      - gim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  gim-network:
+    driver: bridge
+    name: gim-network
