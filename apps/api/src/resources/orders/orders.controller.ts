@@ -69,11 +69,15 @@ export class OrdersController {
   }
 
   @Get('seller/:sellerShopId')
-  @ApiOperation({ summary: 'Obtener órdenes por sellerShopId' })
+  @ApiOperation({
+    summary: 'Obtener órdenes por sellerShopId con sus items',
+    description:
+      'Retorna todas las órdenes de una tienda vendedora incluyendo los order_items y productos asociados',
+  })
   @ApiParam({ name: 'sellerShopId', description: 'ID de la tienda vendedora' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de órdenes de la tienda',
+    description: 'Lista de órdenes de la tienda con sus items y productos',
     type: [Order],
   })
   @ApiResponse({ status: 400, description: 'sellerShopId inválido' })

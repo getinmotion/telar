@@ -85,7 +85,7 @@ export class OrdersService {
   }
 
   /**
-   * Obtener órdenes por sellerShopId
+   * Obtener órdenes por sellerShopId con sus items
    */
   async findBySellerShopId(sellerShopId: string): Promise<Order[]> {
     if (!sellerShopId) {
@@ -94,7 +94,7 @@ export class OrdersService {
 
     return await this.ordersRepository.find({
       where: { sellerShopId },
-      relations: ['sellerShop'],
+      relations: ['sellerShop', 'orderItems', 'orderItems.product'],
       order: { createdAt: 'DESC' },
     });
   }

@@ -5,6 +5,7 @@ import { AiController } from './ai.controller';
 import { OpenAIService } from './services/openai.service';
 import { PromptsService } from './services/prompts.service';
 import { MasterCoordinatorService } from './services/master-coordinator.service';
+import { BrandAiAssistantService } from './services/brand-ai-assistant.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 import { UserMasterContextModule } from '../user-master-context/user-master-context.module';
@@ -32,7 +33,8 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     OpenAIService,
     PromptsService,
     MasterCoordinatorService,
+    BrandAiAssistantService,
   ],
-  exports: [AiService, MasterCoordinatorService],
+  exports: [AiService, MasterCoordinatorService, BrandAiAssistantService],
 })
 export class AiModule {}

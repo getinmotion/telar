@@ -21,7 +21,7 @@ export const supabaseConnection = new DataSource({
 });
 
 /**
- * Conexión a la nueva BD de producción (Base de datos destino)
+ * Conexión a la nueva BD de producción (Base de datos destino - AWS Lightsail)
  */
 export const productionConnection = new DataSource({
   type: 'postgres',
@@ -30,7 +30,9 @@ export const productionConnection = new DataSource({
   username: process.env.USER_DB,
   password: process.env.PASS_DB,
   database: process.env.NAME_DB,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  // ssl: {
+  //   rejectUnauthorized: false, // AWS Lightsail/RDS requiere SSL
+  // },
   logging: false,
 });
 

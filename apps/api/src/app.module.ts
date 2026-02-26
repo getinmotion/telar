@@ -31,6 +31,9 @@ import { PendingGiftCardOrdersModule } from './resources/pending-gift-card-order
 import { GiftCardsModule } from './resources/gift-cards/gift-cards.module';
 import { CheckoutsModule } from './resources/checkouts/checkouts.module';
 import { UserRolesModule } from './resources/user-roles/user-roles.module';
+import { ServientregaModule } from './resources/servientrega/servientrega.module';
+import { CartShippingInfoModule } from './resources/cart-shipping-info/cart-shipping-info.module';
+import { NotificationsModule } from './resources/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -67,7 +70,10 @@ import { UserRolesModule } from './resources/user-roles/user-roles.module';
     PendingGiftCardOrdersModule,
     GiftCardsModule,
     CheckoutsModule,
-    UserRolesModule
+    UserRolesModule,
+    ServientregaModule,
+    CartShippingInfoModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],

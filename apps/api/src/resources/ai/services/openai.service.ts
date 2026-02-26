@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 @Injectable()
 export class OpenAIService implements OnModuleInit {
@@ -106,6 +107,49 @@ export class OpenAIService implements OnModuleInit {
       return response;
     } catch (error) {
       this.logger.error('Error al llamar a OpenAI API con tools', error.stack);
+      throw new InternalServerErrorException(
+        'Error al comunicarse con el servicio de IA',
+      );
+    }
+  }
+
+  /**
+   * Realiza una llamada a OpenAI con function calling y soporte de visión (multimodal).
+   * Permite mensajes con contenido de imagen (image_url) para analizar imágenes.
+   */
+  async chatCompletionWithVision(params: {
+    model?: string;
+    messages: ChatCompletionMessageParam[];
+    tools: any[];
+    tool_choice?: any;
+    max_tokens?: number;
+    temperature?: number;
+  }): Promise<any> {
+    if (!this.openai) {
+      throw new InternalServerErrorException(
+        'OpenAI no está inicializado. Verifica tu API key.',
+      );
+    }
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: params.model || 'gpt-4o',
+        messages: params.messages,
+        tools: params.tools,
+        tool_choice: params.tool_choice,
+        max_tokens: params.max_tokens || 800,
+        temperature: params.temperature ?? 0.7,
+      });
+
+      if (!response.choices || response.choices.length === 0) {
+        throw new InternalServerErrorException(
+          'OpenAI no retornó ninguna respuesta',
+        );
+      }
+
+      return response;
+    } catch (error) {
+      this.logger.error('Error al llamar a OpenAI API con visión', error.stack);
       throw new InternalServerErrorException(
         'Error al comunicarse con el servicio de IA',
       );

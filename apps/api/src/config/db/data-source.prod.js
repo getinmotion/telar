@@ -16,4 +16,7 @@ module.exports = new DataSource({
   migrationsTableName: 'migrations',
   synchronize: false,
   logging: false,
+  // ssl: {
+  //   rejectUnauthorized: false, // AWS Lightsail/RDS requiere SSL
+  // },
 });
