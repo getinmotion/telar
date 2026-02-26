@@ -31,9 +31,7 @@ const dataSource = new DataSource({
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: false,
   logging: false,
-  // ssl: {
-  //   rejectUnauthorized: false, // AWS Lightsail/RDS requiere SSL
-  // },
+  ssl: ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 console.info('🐬 Conectado a la DB:', dataSource.options.database);
