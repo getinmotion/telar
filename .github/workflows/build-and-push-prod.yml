@@ -1,9 +1,9 @@
-name: Build & Push Images to GHCR
+name: Build & Push Images to GHCR (Production)
 
 on:
   push:
     branches:
-      - develop
+      - main
     paths:
       - 'apps/api/**'
       - 'apps/agents/**'
@@ -89,7 +89,7 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-api
           tags: |
-            type=raw,value=develop
+            type=raw,value=main
             type=sha,prefix=sha-,format=short
 
       - name: Build and push
@@ -100,8 +100,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-api-v2
-          cache-to: type=gha,scope=gim-api-v2,mode=max
+          cache-from: type=gha,scope=gim-api-prod
+          cache-to: type=gha,scope=gim-api-prod,mode=max
 
   # ============================================================
   # Agents — Python / FastAPI
@@ -138,7 +138,7 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-agents
           tags: |
-            type=raw,value=develop
+            type=raw,value=main
             type=sha,prefix=sha-,format=short
 
       - name: Build and push
@@ -149,12 +149,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-agents
-          cache-to: type=gha,scope=gim-agents,mode=max
+          cache-from: type=gha,scope=gim-agents-prod
+          cache-to: type=gha,scope=gim-agents-prod,mode=max
 
   # ============================================================
   # Artisans Web — Vite / React
-  # VITE_* vars are baked into the image at build time
+  # VITE_* vars baked into image at build time from PROD_* secrets
   # ============================================================
   build-artisans-web:
     name: Build Artisans Web (Vite/React)
@@ -188,7 +188,7 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-artisans-web
           tags: |
-            type=raw,value=develop
+            type=raw,value=main
             type=sha,prefix=sha-,format=short
 
       - name: Build and push
@@ -200,19 +200,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_SUPABASE_URL=${{ secrets.STG_VITE_SUPABASE_URL }}
-            VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.STG_VITE_SUPABASE_PUBLISHABLE_KEY }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.STG_VITE_SUPABASE_ANON_KEY }}
-            VITE_BACKEND_URL=${{ secrets.STG_VITE_BACKEND_URL }}
-            VITE_SEMANTIC_SEARCH_URL=${{ secrets.STG_VITE_SEMANTIC_SEARCH_URL }}
-            VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.STG_VITE_SEMANTIC_SEARCH_API_KEY }}
-            VITE_GOOGLE_PLACES_API_KEY=${{ secrets.STG_VITE_GOOGLE_PLACES_API_KEY }}
-          cache-from: type=gha,scope=gim-artisans-web
-          cache-to: type=gha,scope=gim-artisans-web,mode=max
+            VITE_SUPABASE_URL=${{ secrets.PROD_VITE_SUPABASE_URL }}
+            VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.PROD_VITE_SUPABASE_PUBLISHABLE_KEY }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.PROD_VITE_SUPABASE_ANON_KEY }}
+            VITE_BACKEND_URL=${{ secrets.PROD_VITE_BACKEND_URL }}
+            VITE_SEMANTIC_SEARCH_URL=${{ secrets.PROD_VITE_SEMANTIC_SEARCH_URL }}
+            VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.PROD_VITE_SEMANTIC_SEARCH_API_KEY }}
+            VITE_GOOGLE_PLACES_API_KEY=${{ secrets.PROD_VITE_GOOGLE_PLACES_API_KEY }}
+          cache-from: type=gha,scope=gim-artisans-web-prod
+          cache-to: type=gha,scope=gim-artisans-web-prod,mode=max
 
   # ============================================================
   # Marketplace Web — Vite / React
-  # VITE_* vars are baked into the image at build time
+  # VITE_* vars baked into image at build time from PROD_* secrets
   # ============================================================
   build-marketplace-web:
     name: Build Marketplace Web (Vite/React)
@@ -246,7 +246,7 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-marketplace-web
           tags: |
-            type=raw,value=develop
+            type=raw,value=main
             type=sha,prefix=sha-,format=short
 
       - name: Build and push
@@ -258,13 +258,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_SUPABASE_URL=${{ secrets.STG_MARKETPLACE_VITE_SUPABASE_URL }}
-            VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.STG_MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY }}
-            VITE_SEMANTIC_SEARCH_API_URL=${{ secrets.STG_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL }}
-            VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.STG_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY }}
-            VITE_BACKEND_URL=${{ secrets.STG_VITE_BACKEND_URL }}
-          cache-from: type=gha,scope=gim-marketplace-web-v2
-          cache-to: type=gha,scope=gim-marketplace-web-v2,mode=max
+            VITE_SUPABASE_URL=${{ secrets.PROD_MARKETPLACE_VITE_SUPABASE_URL }}
+            VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY }}
+            VITE_SEMANTIC_SEARCH_API_URL=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL }}
+            VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY }}
+            VITE_BACKEND_URL=${{ secrets.PROD_VITE_BACKEND_URL }}
+          cache-from: type=gha,scope=gim-marketplace-web-prod
+          cache-to: type=gha,scope=gim-marketplace-web-prod,mode=max
 
   # ============================================================
   # Payment Service — Go
@@ -301,7 +301,7 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-payment-svc
           tags: |
-            type=raw,value=develop
+            type=raw,value=main
             type=sha,prefix=sha-,format=short
 
       - name: Build and push
@@ -312,28 +312,30 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-payment-svc
-          cache-to: type=gha,scope=gim-payment-svc,mode=max
+          cache-from: type=gha,scope=gim-payment-svc-prod
+          cache-to: type=gha,scope=gim-payment-svc-prod,mode=max
 
   # ============================================================
-  # Deploy to Staging
-  # Runs after all build jobs complete (skipped jobs are not failures)
+  # Deploy to Production
+  # Requires manual approval via GitHub Environment "production"
+  # Set up: Repository → Settings → Environments → production → Required Reviewers
   # ============================================================
-  deploy-staging:
-    name: Deploy to Staging
+  deploy-prod:
+    name: Deploy to Production
     needs: [build-api, build-agents, build-artisans-web, build-marketplace-web, build-payment-svc]
     if: always() && !failure() && !cancelled()
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: SSH deploy to staging
+      - name: SSH deploy to production
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.SSH_STAGING_HOST }}
-          username: ${{ secrets.SSH_STAGING_USER }}
-          key: ${{ secrets.SSH_STAGING_KEY }}
+          host: ${{ secrets.SSH_PROD_HOST }}
+          username: ${{ secrets.SSH_PROD_USER }}
+          key: ${{ secrets.SSH_PROD_KEY }}
           script: |
-            cd ~/telar/infra/dev
-            git pull origin develop
+            cd ~/telar/infra/prod
+            git pull origin main
             docker compose pull
             docker compose up -d --remove-orphans
