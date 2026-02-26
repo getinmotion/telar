@@ -62,7 +62,7 @@ interface UserMasterContext {
 interface ArtisanShop {
   id: string;
   user_id: string;
-  creation_status?: 'complete' | 'in_progress' | null;
+  creationStatus?: 'complete' | 'in_progress' | null;
   creation_step?: number;
   logo_url?: string;
   hero_config?: Record<string, any>;
@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
 
       get isShopComplete() {
         const shop = get().artisanShop;
-        return shop?.creation_status === 'complete';
+        return shop?.creationStatus === 'complete';
       },
 
       // Acciones
@@ -190,7 +190,6 @@ export const useAuthStore = create<AuthState>()(
         const state = get();
 
         // Calcular si tiene test de madurez completado
-        console.log(state, 'state')
         const context = state.userMasterContext;
         const taskGenContext = context?.task_generation_context;
         const maturityScores = taskGenContext?.maturityScores;
@@ -204,10 +203,8 @@ export const useAuthStore = create<AuthState>()(
 
         // Si tiene datos de madurez o tienda, ir al dashboard
         if (hasMaturityData || shop) {
-          console.log('hasMaturityData', hasMaturityData)
-          console.log('shop', shop)
           // Si tiene tienda pero está incompleta, continuar creación
-          if (shop && shop.creation_status !== 'complete') {
+          if (shop && shop.creationStatus !== 'complete') {
             return '/dashboard/create-shop';
           }
           return '/dashboard';

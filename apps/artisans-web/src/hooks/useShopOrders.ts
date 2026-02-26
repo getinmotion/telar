@@ -1,26 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getOrdersBySellerShopId, updateOrderStatus, Order } from '@/services/orders.actions';
 
-export interface ShopOrder {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone?: string;
-  shipping_address: any;
-  items: any;
-  subtotal: number;
-  shipping_cost?: number;
-  total: number;
-  payment_status?: string;
-  fulfillment_status?: string;
-  tracking_number?: string;
-  status: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
+export type ShopOrder = Order;
 
 export interface OrderStats {
   total: number;
@@ -33,17 +15,31 @@ export interface OrderStats {
   totalRevenue: number;
 }
 
-// Helper to check if order requires shipping (not pickup)
+type ValidOrderStatus = 'pending_fulfillment' | 'delivered' | 'canceled' | 'refunded';
+
+// Mapeo de estados legacy (fulfillment) → estados del backend
+const LEGACY_TO_ORDER_STATUS: Record<string, ValidOrderStatus | undefined> = {
+  picked_up: 'delivered',
+  fulfilled: 'delivered',
+  delivered: 'delivered',
+  canceled: 'canceled',
+  refunded: 'refunded',
+  pending_fulfillment: 'pending_fulfillment',
+  pending: 'pending_fulfillment',
+  unfulfilled: 'pending_fulfillment',
+  // 'shipped' no tiene equivalente en el nuevo backend (flujo en revisión)
+};
+
 export function orderRequiresShipping(order: ShopOrder): boolean {
   const shippingMethod = order.shipping_address?.method;
-  // Es pickup si tiene method='pickup' o si no tiene dirección y shipping_cost es 0
-  const isPickup = shippingMethod === 'pickup' || 
-                   shippingMethod === 'local_pickup' ||
-                   (order.shipping_cost === 0 && (!order.shipping_address || Object.keys(order.shipping_address).length === 0));
+  const isPickup =
+    shippingMethod === 'pickup' ||
+    shippingMethod === 'local_pickup' ||
+    (order.shipping_cost === 0 &&
+      (!order.shipping_address || Object.keys(order.shipping_address).length === 0));
   return !isPickup;
 }
 
-// Helper to check if order needs tracking number
 export function orderNeedsTracking(order: ShopOrder): boolean {
   return (
     orderRequiresShipping(order) &&
@@ -52,6 +48,32 @@ export function orderNeedsTracking(order: ShopOrder): boolean {
     order.fulfillment_status !== 'fulfilled' &&
     order.fulfillment_status !== 'delivered'
   );
+}
+
+function calculateStats(orders: ShopOrder[]): OrderStats {
+  return {
+    total: orders.length,
+    pending: orders.filter(
+      o =>
+        o.status === 'pending_fulfillment' ||
+        o.fulfillment_status === 'unfulfilled' ||
+        o.fulfillment_status === 'pending'
+    ).length,
+    processing: orders.filter(
+      o =>
+        o.fulfillment_status === 'processing' ||
+        o.fulfillment_status === 'confirmed'
+    ).length,
+    shipped: orders.filter(o => o.fulfillment_status === 'shipped').length,
+    delivered: orders.filter(
+      o => o.status === 'delivered' || o.fulfillment_status === 'fulfilled'
+    ).length,
+    pendingTracking: orders.filter(o => orderNeedsTracking(o)).length,
+    pickupOrders: orders.filter(o => !orderRequiresShipping(o)).length,
+    totalRevenue: orders
+      .filter(o => o.payment_status === 'paid')
+      .reduce((sum, o) => sum + (o.subtotal || 0), 0),
+  };
 }
 
 export function useShopOrders(shopId: string | undefined) {
@@ -77,81 +99,10 @@ export function useShopOrders(shopId: string | undefined) {
 
     try {
       setLoading(true);
-      
-      // Fetch orders directly from orders table for this shop
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('shop_id', shopId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const ordersData = (data || []) as ShopOrder[];
-
-      // Enrich orders with product images from local products table
-      const allProductIds = ordersData.flatMap(order => {
-        const items = Array.isArray(order.items) ? order.items : [];
-        return items.map((item: any) => item.product_id).filter(Boolean);
-      });
-
-      let productMap = new Map<string, { images: any; name: string }>();
-      if (allProductIds.length > 0) {
-        const uniqueProductIds = [...new Set(allProductIds)];
-        const { data: products } = await supabase
-          .from('products')
-          .select('id, images, name')
-          .in('id', uniqueProductIds);
-
-        if (products) {
-          productMap = new Map(products.map(p => [p.id, { images: p.images, name: p.name }]));
-        }
-      }
-
-      // Enrich each order's items with product images
-      const enrichedOrders = ordersData.map(order => {
-        const items = Array.isArray(order.items) ? order.items : [];
-        const enrichedItems = items.map((item: any) => {
-          const localProduct = productMap.get(item.product_id);
-          const localImage = localProduct?.images?.[0] || null;
-          const localName = localProduct?.name || null;
-
-          return {
-            ...item,
-            product_image: item.product_image || item.image || localImage,
-            image: item.product_image || item.image || localImage,
-            product_name: item.product_name || item.name || localName || 'Producto',
-            name: item.product_name || item.name || localName || 'Producto',
-          };
-        });
-
-        return { ...order, items: enrichedItems };
-      });
-
-      setOrders(enrichedOrders);
-
-      // Calculate stats with improved logic
-      const newStats: OrderStats = {
-        total: enrichedOrders.length,
-        pending: enrichedOrders.filter(o => 
-          o.status === 'pending' || o.fulfillment_status === 'unfulfilled' || o.fulfillment_status === 'pending'
-        ).length,
-        processing: enrichedOrders.filter(o => o.status === 'processing' || o.status === 'confirmed').length,
-        shipped: enrichedOrders.filter(o => o.status === 'shipped' || o.fulfillment_status === 'shipped').length,
-        delivered: enrichedOrders.filter(o => o.status === 'delivered' || o.fulfillment_status === 'fulfilled').length,
-        // Only count orders that require shipping AND don't have tracking
-        pendingTracking: enrichedOrders.filter(o => orderNeedsTracking(o)).length,
-        // Count pickup orders
-        pickupOrders: enrichedOrders.filter(o => !orderRequiresShipping(o)).length,
-        // Total revenue from paid orders (subtotal = products only, excludes shipping)
-        totalRevenue: enrichedOrders
-          .filter(o => o.payment_status === 'paid')
-          .reduce((sum, o) => sum + (o.subtotal || 0), 0),
-      };
-      setStats(newStats);
-
-    } catch (error) {
-      console.error('Error fetching orders:', error);
+      const ordersData = await getOrdersBySellerShopId(shopId);
+      setOrders(ordersData);
+      setStats(calculateStats(ordersData));
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudieron cargar las órdenes',
@@ -162,81 +113,65 @@ export function useShopOrders(shopId: string | undefined) {
     }
   }, [shopId, toast]);
 
-  const updateTrackingNumber = useCallback(async (orderId: string, trackingNumber: string) => {
-    try {
-      // Solo guardar la guía, NO cambiar el estado automáticamente
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          tracking_number: trackingNumber,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
+  // TODO: Pendiente — el flujo de tracking está siendo revisado
+  const updateTrackingNumber = useCallback(
+    async (_orderId: string, _trackingNumber: string) => {
       toast({
-        title: 'Guía guardada',
-        description: 'El número de guía ha sido guardado. Recuerda marcar como enviado cuando despaches.',
-      });
-
-      fetchOrders();
-      return true;
-    } catch (error) {
-      console.error('Error updating tracking:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo guardar el número de guía',
-        variant: 'destructive',
+        title: 'Funcionalidad en revisión',
+        description: 'El flujo de números de guía está siendo actualizado',
       });
       return false;
-    }
-  }, [fetchOrders, toast]);
+    },
+    [toast]
+  );
 
-  const updateFulfillmentStatus = useCallback(async (orderId: string, status: string) => {
-    try {
-      const updateData: any = { 
-        fulfillment_status: status,
-        updated_at: new Date().toISOString()
-      };
+  const updateFulfillmentStatus = useCallback(
+    async (orderId: string, status: string) => {
+      const mappedStatus = LEGACY_TO_ORDER_STATUS[status];
 
-      // Also update main status based on fulfillment
-      if (status === 'shipped') updateData.status = 'shipped';
-      if (status === 'fulfilled' || status === 'delivered') updateData.status = 'delivered';
-      if (status === 'picked_up') updateData.status = 'delivered';
+      if (!mappedStatus) {
+        toast({
+          title: 'Funcionalidad en revisión',
+          description: 'Este cambio de estado está siendo actualizado',
+        });
+        return false;
+      }
 
-      const { error } = await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', orderId);
+      try {
+        const updatedOrder = await updateOrderStatus(orderId, mappedStatus);
 
-      if (error) throw error;
+        setOrders(prev => {
+          const next = prev.map(o => (o.id === orderId ? updatedOrder : o));
+          setStats(calculateStats(next));
+          return next;
+        });
 
-      toast({
-        title: 'Estado actualizado',
-        description: 'El estado del pedido ha sido actualizado',
-      });
+        toast({
+          title: 'Estado actualizado',
+          description: 'El estado del pedido ha sido actualizado',
+        });
+        return true;
+      } catch {
+        toast({
+          title: 'Error',
+          description: 'No se pudo actualizar el estado',
+          variant: 'destructive',
+        });
+        return false;
+      }
+    },
+    [toast]
+  );
 
-      fetchOrders();
-      return true;
-    } catch (error) {
-      console.error('Error updating fulfillment status:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  }, [fetchOrders, toast]);
+  const markAsShipped = useCallback(
+    (orderId: string) => updateFulfillmentStatus(orderId, 'shipped'),
+    [updateFulfillmentStatus]
+  );
 
-  const markAsShipped = useCallback(async (orderId: string) => {
-    return updateFulfillmentStatus(orderId, 'shipped');
-  }, [updateFulfillmentStatus]);
-
-  const markAsPickedUp = useCallback(async (orderId: string) => {
-    return updateFulfillmentStatus(orderId, 'picked_up');
-  }, [updateFulfillmentStatus]);
+  const markAsPickedUp = useCallback(
+    (orderId: string) => updateFulfillmentStatus(orderId, 'picked_up'),
+    [updateFulfillmentStatus]
+  );
 
   useEffect(() => {
     fetchOrders();

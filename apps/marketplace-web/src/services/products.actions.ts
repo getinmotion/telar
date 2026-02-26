@@ -4,6 +4,7 @@
  */
 
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   Product,
   ProductsResponse,
@@ -50,6 +51,7 @@ export const getProducts = async (
     });
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -73,6 +75,7 @@ export const getProductById = async (id: string): Promise<Product> => {
     const response = await telarApiPublic.get<Product>(`/products/marketplace/${id}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -94,6 +97,7 @@ export const getActiveProducts = async (): Promise<ProductsResponse> => {
     const response = await telarApiPublic.get<ProductsResponse>('/products/marketplace');
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -115,6 +119,7 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
     const response = await telarApiPublic.get<Product[]>('/products/marketplace/featured');
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -137,6 +142,7 @@ export const getProductsByShop = async (shopId: string): Promise<Product[]> => {
     const response = await telarApiPublic.get<Product[]>(`/products/marketplace/shop/${shopId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -157,6 +163,7 @@ export const getProductsByUser = async (userId: string): Promise<Product[]> => {
     const response = await telarApi.get<Product[]>(`/products/user/${userId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -184,6 +191,7 @@ export const createProduct = async (
     const response = await telarApi.post<Product>('/products', data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -208,6 +216,7 @@ export const updateProduct = async (
     const response = await telarApi.patch<Product>(`/products/${id}`, data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -233,6 +242,7 @@ export const deleteProduct = async (
     );
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

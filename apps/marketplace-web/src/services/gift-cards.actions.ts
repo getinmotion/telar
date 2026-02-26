@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type { GiftCard, GetUserGiftCardsResponse } from '@/types/gift-cards.types';
 
 /**
@@ -26,7 +27,7 @@ export const getUserGiftCards = async (userEmail: string): Promise<GiftCard[]> =
     );
     return response.data;
   } catch (error: any) {
-    console.error('[GiftCardsActions] Error fetching user gift cards:', error);
+    toastError(error);
     throw error;
   }
 };

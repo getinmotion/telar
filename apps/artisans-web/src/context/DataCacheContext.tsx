@@ -33,23 +33,41 @@ export const DataCacheProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const currentUserPromiseRef = useRef<Promise<any> | null>(null);
   const userProfilePromisesRef = useRef<Map<string, Promise<any>>>(new Map());
 
+  // ✅ FIX: Usar función estable sin dependencias de estado
   const isCacheValid = useCallback((timestamp: number) => {
     return Date.now() - timestamp < CACHE_TTL;
   }, []);
 
+  // ✅ FIX: No incluir estados en las dependencias - usar refs y callbacks
   const getCurrentUserCached = useCallback(async () => {
-    // Si hay datos en caché válidos, retornarlos
-    if (currentUserCache.data && isCacheValid(currentUserCache.timestamp)) {
-      return currentUserCache.data;
-    }
-
     // Si ya hay una petición en curso, esperar a que termine
     if (currentUserPromiseRef.current) {
       return currentUserPromiseRef.current;
     }
 
-    // Marcar como loading
-    setCurrentUserCache(prev => ({ ...prev, loading: true }));
+    // Verificar cache usando la función de setState con callback
+    let shouldFetch = false;
+    let cachedData: any = null;
+
+    setCurrentUserCache(prev => {
+      if (prev.data && isCacheValid(prev.timestamp)) {
+        cachedData = prev.data;
+        return prev; // No change, return from cache
+      } else {
+        shouldFetch = true;
+        return { ...prev, loading: true };
+      }
+    });
+
+    // Si tenemos data en cache, retornarla
+    if (cachedData) {
+      return cachedData;
+    }
+
+    // Si no debe hacer fetch, retornar null
+    if (!shouldFetch) {
+      return null;
+    }
 
     // Crear nueva promesa
     const promise = getCurrentUser()
@@ -71,31 +89,46 @@ export const DataCacheProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     currentUserPromiseRef.current = promise;
     return promise;
-  }, [currentUserCache, isCacheValid]);
+  }, [isCacheValid]); // ✅ Solo isCacheValid como dependencia
 
+  // ✅ FIX: No incluir estados en las dependencias
   const getUserProfileCached = useCallback(async (userId: string) => {
-    // Si hay datos en caché válidos, retornarlos
-    const cached = userProfileCache.get(userId);
-    if (cached?.data && isCacheValid(cached.timestamp)) {
-      return cached.data;
-    }
-
     // Si ya hay una petición en curso para este usuario, esperar a que termine
     const existingPromise = userProfilePromisesRef.current.get(userId);
     if (existingPromise) {
       return existingPromise;
     }
 
-    // Marcar como loading
+    // Verificar cache usando la función de setState con callback
+    let shouldFetch = false;
+    let cachedData: any = null;
+
     setUserProfileCache(prev => {
-      const newMap = new Map(prev);
-      newMap.set(userId, {
-        data: cached?.data || null,
-        timestamp: cached?.timestamp || 0,
-        loading: true,
-      });
-      return newMap;
+      const cached = prev.get(userId);
+      if (cached?.data && isCacheValid(cached.timestamp)) {
+        cachedData = cached.data;
+        return prev; // No change, return from cache
+      } else {
+        shouldFetch = true;
+        const newMap = new Map(prev);
+        newMap.set(userId, {
+          data: cached?.data || null,
+          timestamp: cached?.timestamp || 0,
+          loading: true,
+        });
+        return newMap;
+      }
     });
+
+    // Si tenemos data en cache, retornarla
+    if (cachedData) {
+      return cachedData;
+    }
+
+    // Si no debe hacer fetch, retornar null
+    if (!shouldFetch) {
+      return null;
+    }
 
     // Crear nueva promesa
     const promise = getUserProfileByUserId(userId)
@@ -128,7 +161,7 @@ export const DataCacheProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     userProfilePromisesRef.current.set(userId, promise);
     return promise;
-  }, [userProfileCache, isCacheValid]);
+  }, [isCacheValid]); // ✅ Solo isCacheValid como dependencia
 
   const invalidateCache = useCallback((keys?: string[]) => {
     if (!keys || keys.includes('currentUser')) {
@@ -150,15 +183,16 @@ export const DataCacheProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     invalidateCache();
   }, [invalidateCache]);
 
+  // ✅ FIX: Memoizar el value para evitar recreaciones innecesarias
+  const contextValue = React.useMemo(() => ({
+    getCurrentUserCached,
+    getUserProfileCached,
+    invalidateCache,
+    clearAllCache,
+  }), [getCurrentUserCached, getUserProfileCached, invalidateCache, clearAllCache]);
+
   return (
-    <DataCacheContext.Provider
-      value={{
-        getCurrentUserCached,
-        getUserProfileCached,
-        invalidateCache,
-        clearAllCache,
-      }}
-    >
+    <DataCacheContext.Provider value={contextValue}>
       {children}
     </DataCacheContext.Provider>
   );

@@ -14,6 +14,37 @@ import type {
 } from '@/types/artisanShop.types';
 
 /**
+ * Obtiene una tienda por su ID
+ * @param shopId - ID de la tienda
+ * @returns La tienda o null si no existe
+ *
+ * Endpoint: GET /telar/server/artisan-shops/:id
+ */
+export const getArtisanShopById = async (
+  shopId: string
+): Promise<ArtisanShop | null> => {
+  try {
+    const response = await telarApi.get<ArtisanShop>(
+      `/telar/server/artisan-shops/${shopId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    // Si es 404, la tienda no existe (es válido)
+    if (error.response?.status === 404) {
+      return null;
+    }
+
+    console.error('[ArtisanShops] Error al obtener tienda por ID:', error);
+
+    // Para otros errores, lanzar la respuesta estructurada
+    if (error.response?.data) {
+      throw error.response.data as ArtisanShopErrorResponse;
+    }
+    throw error;
+  }
+};
+
+/**
  * Obtiene la tienda de un artesano por su user_id
  * @param userId - ID del usuario propietario
  * @returns La tienda del artesano o null si no existe

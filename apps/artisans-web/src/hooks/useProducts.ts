@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/artisan';
 import { useToast } from '@/hooks/use-toast';
 import { EventBus } from '@/utils/eventBus';
+import {
+  getProductsByShopId,
+  createProduct as apiCreateProduct,
+  updateProduct as apiUpdateProduct,
+  deleteProduct as apiDeleteProduct,
+} from '@/services/products.actions';
 
 export const useProducts = (shopId?: string) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,60 +22,37 @@ export const useProducts = (shopId?: string) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('shop_id', shopId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setProducts(data || []);
+      const data = await getProductsByShopId(shopId);
+      setProducts(data);
     } catch (err: any) {
       setError(err.message);
-      console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
     }
   }, [shopId]);
 
-  const createProduct = async (productData: any) => {
+  const createProduct = async (productData: Record<string, any>) => {
     if (!shopId) throw new Error('Shop ID required');
 
     try {
       setLoading(true);
-
-      const { data, error } = await supabase
-        .from('products')
-        .insert({
-          ...productData,
-          shop_id: shopId,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await apiCreateProduct({ ...productData, shop_id: shopId });
 
       setProducts(prev => [data, ...prev]);
-      
-      // Notify Master Coordinator
-      EventBus.publish('inventory.updated', { 
-        productId: data.id,
-        action: 'created' 
-      });
-      
+      EventBus.publish('inventory.updated', { productId: data.id, action: 'created' });
+
       toast({
-        title: "¡Producto creado!",
-        description: "Tu producto ha sido agregado al catálogo.",
+        title: '¡Producto creado!',
+        description: 'Tu producto ha sido agregado al catálogo.',
       });
 
       return data;
     } catch (err: any) {
       setError(err.message);
       toast({
-        title: "Error",
-        description: "No se pudo crear el producto. Inténtalo de nuevo.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudo crear el producto. Inténtalo de nuevo.',
+        variant: 'destructive',
       });
       throw err;
     } finally {
@@ -78,44 +60,26 @@ export const useProducts = (shopId?: string) => {
     }
   };
 
-  const updateProduct = async (productId: string, updates: any) => {
+  const updateProduct = async (productId: string, updates: Record<string, any>) => {
     try {
       setLoading(true);
+      const data = await apiUpdateProduct(productId, updates);
 
-      const { data, error } = await supabase
-        .from('products')
-        .update(updates)
-        .eq('id', productId)
-        .eq('shop_id', shopId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setProducts(prev => 
-        prev.map(product => 
-          product.id === productId ? data : product
-        )
-      );
-
-      // Notify Master Coordinator
-      EventBus.publish('inventory.updated', { 
-        productId: productId,
-        action: 'updated' 
-      });
+      setProducts(prev => prev.map(p => (p.id === productId ? data : p)));
+      EventBus.publish('inventory.updated', { productId, action: 'updated' });
 
       toast({
-        title: "Producto actualizado",
-        description: "Los cambios han sido guardados exitosamente.",
+        title: 'Producto actualizado',
+        description: 'Los cambios han sido guardados exitosamente.',
       });
 
       return data;
     } catch (err: any) {
       setError(err.message);
       toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudieron guardar los cambios.',
+        variant: 'destructive',
       });
       throw err;
     } finally {
@@ -126,33 +90,21 @@ export const useProducts = (shopId?: string) => {
   const deleteProduct = async (productId: string) => {
     try {
       setLoading(true);
+      await apiDeleteProduct(productId);
 
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId)
-        .eq('shop_id', shopId);
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      EventBus.publish('inventory.updated', { productId, action: 'deleted' });
 
-      if (error) throw error;
-
-      setProducts(prev => prev.filter(product => product.id !== productId));
-      
-      // Notify Master Coordinator
-      EventBus.publish('inventory.updated', { 
-        productId: productId,
-        action: 'deleted' 
-      });
-      
       toast({
-        title: "Producto eliminado",
-        description: "El producto ha sido eliminado del catálogo.",
+        title: 'Producto eliminado',
+        description: 'El producto ha sido eliminado del catálogo.',
       });
     } catch (err: any) {
       setError(err.message);
       toast({
-        title: "Error",
-        description: "No se pudo eliminar el producto.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudo eliminar el producto.',
+        variant: 'destructive',
       });
       throw err;
     } finally {

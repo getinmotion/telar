@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   UserProfile,
   UpdateUserProfileRequest,
@@ -26,6 +27,7 @@ export const getUserProfile = async (profileId: string): Promise<UserProfile> =>
     const response = await telarApi.get<UserProfile>(`/user-profiles/${profileId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -49,6 +51,7 @@ export const getUserProfileByUserId = async (userId: string): Promise<UserProfil
     const response = await telarApi.get<UserProfile>(`/user-profiles/by-user/${userId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -78,6 +81,7 @@ export const updateUserProfile = async (
     );
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
