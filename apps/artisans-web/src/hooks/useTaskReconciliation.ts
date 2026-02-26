@@ -19,10 +19,17 @@ export const useTaskReconciliation = () => {
   useEffect(() => {
     if (!user || hasReconciled.current) return;
 
+    // ✅ FIX: TEMPORALMENTE DESHABILITADO para prevenir loops infinitos
+    // Este hook hace múltiples queries a Supabase directamente que pueden causar loops
+    // TODO: Re-habilitar cuando se migre completamente a NestJS backend y se optimice
+    console.log('⏭️ [Reconciliation] Hook deshabilitado temporalmente para prevenir loops');
+    hasReconciled.current = true;
+
+    /* COMENTADO - preservado para futura re-habilitación
     const reconcileTasks = async () => {
       try {
         console.log('🔄 [Reconciliation] Iniciando sincronización de tareas...');
-        
+
         // Obtener estado real del usuario
         const [shop, profile] = await Promise.all([
           getArtisanShopByUserId(user.id).catch(() => null),
@@ -83,67 +90,67 @@ export const useTaskReconciliation = () => {
           let shouldComplete = false;
 
           // Crear tienda
-          if ((titleLower.includes('crear') && titleLower.includes('tienda')) || 
-              titleLower.includes('tienda online') || 
+          if ((titleLower.includes('crear') && titleLower.includes('tienda')) ||
+              titleLower.includes('tienda online') ||
               titleLower.includes('create_shop')) {
             shouldComplete = hasShop;
           }
           // Primer producto
-          else if ((titleLower.includes('primer producto') || 
+          else if ((titleLower.includes('primer producto') ||
                     titleLower.includes('first_product') ||
-                    titleLower.includes('sube') || 
+                    titleLower.includes('sube') ||
                     titleLower.includes('añade un producto')) && productCount > 0) {
             shouldComplete = true;
           }
           // 5 productos
-          else if ((titleLower.includes('5 productos') || 
+          else if ((titleLower.includes('5 productos') ||
                     titleLower.includes('five_products') ||
                     titleLower.includes('cinco productos')) && productCount >= 5) {
             shouldComplete = true;
           }
           // 10 productos
-          else if ((titleLower.includes('10 productos') || 
+          else if ((titleLower.includes('10 productos') ||
                     titleLower.includes('ten_products') ||
                     titleLower.includes('diez productos')) && productCount >= 10) {
             shouldComplete = true;
           }
           // Marca / Logo
-          else if ((titleLower.includes('marca') || 
-                    titleLower.includes('logo') || 
+          else if ((titleLower.includes('marca') ||
+                    titleLower.includes('logo') ||
                     titleLower.includes('create_brand') ||
                     titleLower.includes('identidad') ||
                     descLower.includes('logo')) && hasLogo) {
             shouldComplete = true;
           }
           // Hero Slider / Personalizar tienda
-          else if ((titleLower.includes('hero') || 
+          else if ((titleLower.includes('hero') ||
                     titleLower.includes('personaliza') ||
                     titleLower.includes('customize_shop') ||
                     titleLower.includes('slider')) && hasHeroSlider) {
             shouldComplete = true;
           }
           // Historia / About / Nosotros
-          else if ((titleLower.includes('historia') || 
-                    titleLower.includes('about') || 
+          else if ((titleLower.includes('historia') ||
+                    titleLower.includes('about') ||
                     titleLower.includes('nosotros') ||
                     titleLower.includes('create_story') ||
                     descLower.includes('historia')) && hasStory) {
             shouldComplete = true;
           }
           // Contacto
-          else if ((titleLower.includes('contacto') || 
+          else if ((titleLower.includes('contacto') ||
                     titleLower.includes('contact')) && hasContactInfo) {
             shouldComplete = true;
           }
           // Redes Sociales
-          else if ((titleLower.includes('redes sociales') || 
+          else if ((titleLower.includes('redes sociales') ||
                     titleLower.includes('social') ||
                     titleLower.includes('instagram') ||
                     titleLower.includes('facebook')) && hasSocialLinks) {
             shouldComplete = true;
           }
           // RUT / NIT
-          else if ((titleLower.includes('rut') || 
+          else if ((titleLower.includes('rut') ||
                     titleLower.includes('nit') ||
                     titleLower.includes('complete_rut')) && hasRUT) {
             shouldComplete = true;
@@ -165,12 +172,13 @@ export const useTaskReconciliation = () => {
         }
 
         hasReconciled.current = true;
-        
+
       } catch (error) {
         console.error('❌ [Reconciliation] Error en reconciliación:', error);
       }
     };
 
     reconcileTasks();
+    */
   }, [user]);
 };

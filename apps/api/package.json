@@ -41,8 +41,8 @@
     "data-migration:user-roles": "ts-node scripts/data-migration/migrations/13-migrate-user-roles.ts"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
     "@nestjs-modules/mailer": "^2.0.2",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -55,9 +55,11 @@
     "@types/express-session": "^1.18.2",
     "@types/nodemailer": "^7.0.5",
     "@types/passport-google-oauth20": "^2.0.17",
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
+    "dotenv": "^16.4.7",
     "express-session": "^1.19.0",
     "handlebars": "^4.7.8",
     "nodemailer": "^7.0.12",

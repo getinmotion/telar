@@ -1,6 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import {
+  getNotificationsByUserId,
+  markNotificationAsRead as markAsReadService,
+  markAllNotificationsAsRead as markAllAsReadService,
+  deleteNotification as deleteNotificationService,
+} from '@/services/notifications.actions';
 
 export interface Notification {
   id: string;
@@ -19,9 +25,22 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // OPTIMIZATION: Use user?.id instead of user to prevent unnecessary re-creation
+  // ✅ FIX: Usar ref para userId
+  const userIdRef = useRef<string | undefined>(user?.id);
+
+  useEffect(() => {
+    userIdRef.current = user?.id;
+  }, [user?.id]);
+
+  // ✅ FIX: Guard para fetch único
+  const hasFetchedRef = useRef(false);
+
+  // ✅ FIX: Guard para suscripción única
+  const hasSubscribedRef = useRef(false);
+
   const fetchNotifications = useCallback(async () => {
-    if (!user) {
+    const userId = userIdRef.current;
+    if (!userId) {
       setNotifications([]);
       setUnreadCount(0);
       setLoading(false);
@@ -29,103 +48,103 @@ export const useNotifications = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // ✅ MIGRATED: NestJS endpoint - GET /telar/server/notifications/user/:userId
+      const data = await getNotificationsByUserId(userId, { limit: 50 });
 
-      if (error) throw error;
-
-      const typedData = (data || []) as Notification[];
-      setNotifications(typedData);
-      setUnreadCount(typedData.filter(n => !n.read).length);
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.read).length);
+      hasFetchedRef.current = true;
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, []); // ✅ Sin dependencias - usa refs
 
   const markAsRead = useCallback(async (notificationId: string) => {
-    if (!user) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId)
-        .eq('user_id', user.id);
+      // ✅ MIGRATED: NestJS endpoint - PATCH /telar/server/notifications/:id/mark-as-read
+      await markAsReadService(notificationId);
 
-      if (error) throw error;
-
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
-  }, [user?.id]);
+  }, []); // ✅ Sin dependencias - usa refs
 
   const markAllAsRead = useCallback(async () => {
-    if (!user) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
-
-      if (error) throw error;
+      // ✅ MIGRATED: NestJS endpoint - POST /telar/server/notifications/user/:userId/mark-all-as-read
+      await markAllAsReadService(userId);
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
-  }, [user?.id]); // OPTIMIZATION: Use user?.id instead of user
+  }, []); // ✅ Sin dependencias - usa refs
 
   const deleteNotification = useCallback(async (notificationId: string) => {
-    if (!user) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      // ✅ MIGRATED: NestJS endpoint - DELETE /telar/server/notifications/:id
+      await deleteNotificationService(notificationId);
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
-  }, [user?.id]); // OPTIMIZATION: Use user?.id instead of user
+  }, []); // ✅ Sin dependencias - usa refs
 
-  // Initial fetch
+  // ✅ FIX: Initial fetch solo cuando cambia userId
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    if (!user?.id) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setLoading(false);
+      hasFetchedRef.current = false;
+      hasSubscribedRef.current = false;
+      return;
+    }
 
-  // Real-time subscription
+    // Solo fetch si no se ha hecho antes para este usuario
+    if (!hasFetchedRef.current) {
+      fetchNotifications();
+    }
+  }, [user?.id, fetchNotifications]);
+
+  // ✅ OPTIMIZED: Real-time subscription con guard para prevenir loops
+  // Este SÍ se mantiene porque las notificaciones son eventos EXTERNOS del sistema
   useEffect(() => {
-    if (!user) return;
+    const userId = userIdRef.current;
+    if (!userId || hasSubscribedRef.current) return;
+
+    console.log('🔔 [Notifications] Subscribing to realtime notifications');
+    hasSubscribedRef.current = true;
 
     const channel = supabase
-      .channel('notifications-changes')
+      .channel(`notifications-changes-${userId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log('🔔 [Notifications] New notification received:', payload.new);
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
@@ -134,9 +153,11 @@ export const useNotifications = () => {
       .subscribe();
 
     return () => {
+      console.log('🔔 [Notifications] Unsubscribing from realtime');
       supabase.removeChannel(channel);
+      hasSubscribedRef.current = false;
     };
-  }, [user]);
+  }, [user?.id]); // ✅ Solo cuando cambia el userId
 
   return {
     notifications,

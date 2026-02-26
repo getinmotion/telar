@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   WishlistItem,
   WishlistItemWithUser,
@@ -30,6 +31,7 @@ export const getUserWishlist = async (userId: string): Promise<WishlistItem[]> =
     const response = await telarApi.get<WishlistItem[]>(`/wishlist/user/${userId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -52,6 +54,7 @@ export const getAllWishlists = async (): Promise<WishlistItemWithUser[]> => {
     const response = await telarApi.get<WishlistItemWithUser[]>('/wishlist');
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -80,6 +83,7 @@ export const addToWishlist = async (
     const response = await telarApi.post<CreateWishlistResponse>('/wishlist', data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -105,6 +109,7 @@ export const removeFromWishlist = async (
   try {
     await telarApi.delete(`/wishlist/user/${userId}/product/${productId}`);
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

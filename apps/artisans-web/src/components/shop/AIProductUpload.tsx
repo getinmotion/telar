@@ -9,11 +9,11 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
-import { 
-  Upload, 
-  Sparkles, 
-  Package, 
-  Tag, 
+import {
+  Upload,
+  Sparkles,
+  Package,
+  Tag,
   Loader2,
   Check,
   ArrowRight,
@@ -43,7 +43,7 @@ export const AIProductUpload: React.FC = () => {
     suggestions: [],
     manualMode: false
   });
-  
+
   const [productData, setProductData] = useState({
     name: '',
     description: '',
@@ -82,8 +82,8 @@ export const AIProductUpload: React.FC = () => {
             phase: 'suggestions',
             suggestions: suggestions.productSuggestions.products
           }));
-          
-          setCoordinatorMessage(`✨ He generado ${suggestions.productSuggestions.products.length} sugerencias de productos perfectas para tu tienda de ${shop.craft_type}. ¿Quieres usar alguna o prefieres crear uno desde cero?`);
+
+          setCoordinatorMessage(`✨ He generado ${suggestions.productSuggestions.products.length} sugerencias de productos perfectas para tu tienda de ${shop.craftType}. ¿Quieres usar alguna o prefieres crear uno desde cero?`);
         } else {
           setState(prev => ({ ...prev, phase: 'upload', manualMode: true }));
           setCoordinatorMessage('📝 Vamos a crear tu primer producto juntos. Puedes subir fotos y yo te ayudo con títulos y descripciones optimizadas.');
@@ -115,10 +115,10 @@ export const AIProductUpload: React.FC = () => {
 
   const handleImageUpload = async (files: FileList | null) => {
     if (!files) return;
-    
+
     setIsProcessing(true);
     const newImages = Array.from(files);
-    
+
     // Analyze images with AI if available
     try {
       const imageAnalysis = await analyzeProductImages(newImages);
@@ -140,7 +140,7 @@ export const AIProductUpload: React.FC = () => {
       setProductData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
       setCoordinatorMessage('📸 Imágenes cargadas correctamente. Continúa con la información del producto.');
     }
-    
+
     setIsProcessing(false);
   };
 
@@ -199,7 +199,7 @@ export const AIProductUpload: React.FC = () => {
 
     try {
       console.log('=== DEBUG: Iniciando creación de producto ===');
-      console.log('Shop data:', { id: shop.id, name: shop.shop_name });
+      console.log('Shop data:', { id: shop.id, name: shop.shopName });
       console.log('Product data antes de procesar:', {
         name: productData.name,
         price: productData.price,
@@ -215,13 +215,13 @@ export const AIProductUpload: React.FC = () => {
         if (image.size > 10 * 1024 * 1024) {
           throw new Error(`La imagen ${index + 1} es muy grande (máx 10MB). Tamaño actual: ${Math.round(image.size / 1024 / 1024)}MB`);
         }
-        
+
         // Validar tipo MIME
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!validTypes.includes(image.type)) {
           throw new Error(`La imagen ${index + 1} tiene un formato no válido. Usa JPG, PNG o WEBP. Formato actual: ${image.type}`);
         }
-        
+
         console.log(`Imagen ${index + 1} validada: ${image.name} (${Math.round(image.size / 1024)}KB, ${image.type})`);
         return image;
       });
@@ -237,9 +237,9 @@ export const AIProductUpload: React.FC = () => {
           const sanitizedName = image.name.replace(/[^a-zA-Z0-9.-]/g, '_');
           const fileExtension = image.name.split('.').pop()?.toLowerCase() || 'webp';
           const fileName = `${Date.now()}_${index}_${sanitizedName.substring(0, 20)}.${fileExtension}`;
-          
+
           console.log(`Subiendo imagen ${index + 1}/${optimizedImages.length}: ${fileName} (${Math.round(image.size / 1024)}KB)`);
-          
+
           try {
             const { data, error } = await supabase.storage
               .from('images')
@@ -247,7 +247,7 @@ export const AIProductUpload: React.FC = () => {
                 cacheControl: '3600',
                 upsert: false
               });
-            
+
             if (error) {
               console.error(`Error específico subiendo imagen ${index + 1}:`, {
                 error,
@@ -257,14 +257,14 @@ export const AIProductUpload: React.FC = () => {
               });
               throw new Error(`Error al subir imagen "${image.name}": ${error.message}`);
             }
-            
+
             const { data: { publicUrl } } = supabase.storage
               .from('images')
               .getPublicUrl(data.path);
-            
+
             console.log(`✅ Imagen ${index + 1} subida exitosamente:`, { fileName, url: publicUrl });
             return publicUrl;
-            
+
           } catch (uploadError) {
             console.error(`Error en proceso de subida imagen ${index + 1}:`, uploadError);
             throw new Error(`No se pudo subir la imagen "${image.name}". Verifica tu conexión e inténtalo de nuevo.`);
@@ -338,7 +338,7 @@ export const AIProductUpload: React.FC = () => {
 
       setState(prev => ({ ...prev, phase: 'complete' }));
       setCoordinatorMessage('🎉 ¡Producto creado exitosamente! Tu producto ya está visible en tu tienda. ¿Quieres crear otro producto o ver tu tienda?');
-      
+
       toast({
         title: "¡Producto creado!",
         description: "Tu producto ha sido añadido a tu tienda digital.",
@@ -346,9 +346,9 @@ export const AIProductUpload: React.FC = () => {
 
     } catch (error) {
       console.error('=== ERROR COMPLETO ===', error);
-      
+
       let errorMessage = "Hubo un problema al crear el producto.";
-      
+
       if (error instanceof Error) {
         if (error.message.includes('subir imagen')) {
           errorMessage = "Error al subir las imágenes. Verifica que sean archivos válidos.";
@@ -358,7 +358,7 @@ export const AIProductUpload: React.FC = () => {
           errorMessage = error.message;
         }
       }
-      
+
       toast({
         title: "Error",
         description: errorMessage,
@@ -410,7 +410,7 @@ export const AIProductUpload: React.FC = () => {
                   </span>
                 ))}
               </div>
-              <Button 
+              <Button
                 onClick={() => handleSelectSuggestion(suggestion)}
                 className="w-full"
                 variant="outline"
@@ -424,7 +424,7 @@ export const AIProductUpload: React.FC = () => {
       </div>
 
       <div className="text-center">
-        <Button 
+        <Button
           onClick={() => setState(prev => ({ ...prev, phase: 'upload', manualMode: true }))}
           variant="outline"
         >
@@ -471,7 +471,7 @@ export const AIProductUpload: React.FC = () => {
               </Button>
             </label>
           </div>
-          
+
           {productData.images.length > 0 && (
             <div className="mt-4">
               <p className="text-sm text-muted-foreground mb-2">
@@ -547,8 +547,8 @@ export const AIProductUpload: React.FC = () => {
             <Input
               id="product-tags"
               value={productData.tags.join(', ')}
-              onChange={(e) => setProductData(prev => ({ 
-                ...prev, 
+              onChange={(e) => setProductData(prev => ({
+                ...prev,
                 tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
               }))}
               placeholder="artesanal, hecho a mano, único"
@@ -594,7 +594,7 @@ export const AIProductUpload: React.FC = () => {
           Crear otro producto
         </Button>
         <Button
-          onClick={() => window.open(`/tienda/${shop?.shop_slug}`, '_blank')}
+          onClick={() => window.open(`/tienda/${shop?.shopSlug}`, '_blank')}
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           Ver mi tienda

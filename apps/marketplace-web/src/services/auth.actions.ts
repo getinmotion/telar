@@ -5,7 +5,8 @@
 
 import { telarApi, telarApiPublic } from '@/integrations/api/telarApi';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthResponse, GoogleAuthResponse } from '@/types/auth.types';
+import { toastError } from '@/utils/toast.utils';
+import { AuthResponse, GoogleAuthResponse, SignUpData } from '@/types/auth.types';
 
 /**
  * Iniciar sesión con Google
@@ -27,33 +28,23 @@ export const initiateGoogleAuth = async (): Promise<void> => {
   try {
     window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
 
 /**
  * Registrarse con email y contraseña
- * @param email - Email del usuario
- * @param password - Contraseña
- * @param fullName - Nombre completo
- * @param userType - Tipo de usuario (por defecto 'marketplace_customer')
+ * @param data - Datos completos del registro
  * @returns AuthResponse con datos del usuario y access_token
- * 
+ *
  * Endpoint: POST /auth/register
  */
 export const signUpWithEmail = async (
-  email: string,
-  password: string,
-  fullName: string,
-  userType: string = 'marketplace_customer'
+  data: SignUpData
 ): Promise<AuthResponse> => {
   try {
-    const response = await telarApiPublic.post<AuthResponse>('/auth/register', {
-      email,
-      password,
-      fullName,
-      userType,
-    });
+    const response = await telarApiPublic.post<AuthResponse>('/auth/register', data);
 
     // Guardar el token en localStorage
     if (response.data.access_token) {
@@ -62,6 +53,7 @@ export const signUpWithEmail = async (
 
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -84,6 +76,7 @@ export const signInWithEmail = async (
       password,
     });
 
+
     // Guardar el token en localStorage
     if (response.data.access_token) {
       localStorage.setItem('telar_token', response.data.access_token);
@@ -91,6 +84,7 @@ export const signInWithEmail = async (
 
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -134,6 +128,7 @@ export const sendOtp = async (
 
     if (error) throw error;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -192,6 +187,7 @@ export const verifyOtp = async (
       access_token: data?.token_hash || '',
     };
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -208,6 +204,7 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
       email,
     });
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -229,6 +226,7 @@ export const updatePassword = async (
 
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -251,6 +249,7 @@ export const signOut = async (): Promise<void> => {
     // Limpiar token local
     localStorage.removeItem('telar_token');
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

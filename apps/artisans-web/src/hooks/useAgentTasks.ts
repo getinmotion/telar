@@ -42,31 +42,9 @@ export function useAgentTasks(agentId?: string) {
     refreshTasks();
   }, [refreshTasks]);
 
-  // Realtime subscription for tasks
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`realtime-tasks-user-${user.id}-agent-${agentId || 'all'}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agent_tasks',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log('Task change detected, refreshing...', payload);
-          refreshTasks();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, agentId, refreshTasks]);
+  // ✅ MIGRATION: Realtime subscription eliminada - migrando a NestJS sin Supabase
+  // Las tareas se actualizan manualmente después de cada operación (create, update, delete)
+  // Si el backend crea tareas automáticamente, se pueden ver al recargar o navegar
 
   const hasSanitizedOnce = useRef(false);
   useEffect(() => {

@@ -93,6 +93,18 @@ async function bootstrap() {
       'Logros y achievements desbloqueados por usuarios',
     )
     .addTag('task-steps', 'Pasos individuales de tareas de agentes IA')
+    .addTag(
+      'servientrega',
+      'Cotizaciones de envío con Servientrega (empresa de mensajería)',
+    )
+    .addTag(
+      'cart-shipping-info',
+      'Información de envío asociada a carritos de compra',
+    )
+    .addTag(
+      'notifications',
+      'Sistema de notificaciones para usuarios',
+    )
     .addBearerAuth(
       {
         type: 'http',

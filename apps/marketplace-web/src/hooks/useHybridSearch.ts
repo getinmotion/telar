@@ -133,15 +133,21 @@ export function useHybridSearch<T extends { id: string; name: string; descriptio
 
   const [filteredProducts, setFilteredProducts] = useState<T[]>([]);
 
-  // Ejecutar búsqueda cuando cambien los productos o el query
+  // Ejecutar búsqueda cuando cambien los productos o el query (con debounce)
   useEffect(() => {
     // Si no hay productos, no hacer nada
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
-    
-    performHybridSearch().then(setFilteredProducts);
+
+    // Debounce: esperar 500ms después de que el usuario deje de escribir
+    const timeoutId = setTimeout(() => {
+      performHybridSearch().then(setFilteredProducts);
+    }, 500);
+
+    // Limpiar timeout si el usuario sigue escribiendo
+    return () => clearTimeout(timeoutId);
   }, [products, searchQuery, filters, semanticEnabled]);
 
   return {
