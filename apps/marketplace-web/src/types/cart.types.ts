@@ -183,3 +183,46 @@ export interface DeleteCartItemResponse {
 export interface UpdateCartStatusRequest {
   status: CartStatus;
 }
+
+/**
+ * Request para guardar información de envío del carrito
+ * POST /cart-shipping-info
+ */
+export interface CreateCartShippingInfoRequest {
+  cartId: string; // UUID del carrito
+  fullName: string; // Nombre completo del destinatario
+  email: string; // Email del destinatario
+  phone: string; // Teléfono con formato internacional
+  address: string; // Dirección completa de envío
+  daneCiudad: number; // Código DANE de la ciudad
+  descCiudad: string; // Nombre de la ciudad
+  descDepart: string; // Nombre del departamento
+  postalCode: string; // Código postal
+  descEnvio: string; // Descripción del método de envío
+  valorFleteMinor?: number; // Valor del flete en centavos (opcional)
+  valorSobreFleteMinor?: number; // Valor del sobreflete en centavos (opcional)
+  valorTotalFleteMinor?: number; // Valor total del flete en centavos (opcional)
+}
+
+/**
+ * Response de información de envío guardada
+ */
+export interface CartShippingInfo {
+  id: string;
+  cartId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  daneCiudad: number;
+  descCiudad: string;
+  descDepart: string;
+  postalCode: string;
+  descEnvio: string;
+  numGuia: string | null;
+  valorFleteMinor: string;
+  valorSobreFleteMinor: string;
+  valorTotalFleteMinor: string;
+  createdAt: string;
+  updatedAt: string;
+}

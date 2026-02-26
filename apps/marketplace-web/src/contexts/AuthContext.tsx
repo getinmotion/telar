@@ -11,12 +11,12 @@ import {
   signOut as signOutService,
   getCurrentUser,
 } from '@/services/auth.actions';
-import { AuthUser, AuthResponse } from '@/types/auth.types';
+import { AuthUser, AuthResponse, SignUpData } from '@/types/auth.types';
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, userType?: string) => Promise<void>;
+  signUp: (data: SignUpData) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   sendCustomOTP: (email: string, channel: 'email' | 'whatsapp') => Promise<void>;
@@ -74,14 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, userType: string = 'marketplace_customer') => {
+  const signUp = async (data: SignUpData) => {
     try {
-      const response = await signUpWithEmail(email, password, fullName, userType);
-      setUser(response.user);
+      const response = await signUpWithEmail(data);
+      setUser(response?.user);
       toast.success('Cuenta creada exitosamente');
     } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast.error(error.response?.data?.message || 'Error al crear la cuenta');
       throw error;
     }
   };
@@ -89,12 +87,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const response = await signInWithEmail(email, password);
-      setUser(response.user);
+      setUser(response?.user);
       checkUserType(response.user.id);
       toast.success('Bienvenido de vuelta');
     } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
       throw error;
     }
   };

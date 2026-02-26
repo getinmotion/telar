@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type { BackendOrder, GetBuyerOrdersWithItemsResponse } from '@/types/orders.types';
 
 /**
@@ -27,7 +28,7 @@ export const getBuyerOrdersWithItems = async (userId: string): Promise<BackendOr
     );
     return response.data;
   } catch (error: any) {
-    console.error('[OrdersActions] Error fetching buyer orders:', error);
+    toastError(error);
     throw error;
   }
 };

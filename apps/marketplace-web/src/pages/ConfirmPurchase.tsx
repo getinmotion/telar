@@ -8,17 +8,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PromoCodeInput } from "@/components/checkout/PromoCodeInput";
-import { PromoValidationResult } from "@/hooks/usePromotions";
-import { usePromotions } from "@/hooks/usePromotions";
+// TEMPORALMENTE DESHABILITADO - Cupones y Gift Cards
+// import { PromoCodeInput } from "@/components/checkout/PromoCodeInput";
+// import { PromoValidationResult } from "@/hooks/usePromotions";
+// import { usePromotions } from "@/hooks/usePromotions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useCheckout } from "@/contexts/CheckoutContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Gift, Truck, MapPin } from "lucide-react";
+import { Loader2, Gift, Truck, MapPin, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import * as UserProfilesActions from "@/services/user-profiles.actions";
+import * as AddressesActions from "@/services/addresses.actions";
+import * as ServientregaActions from "@/services/servientrega.actions";
+import * as CartActions from "@/services/cart.actions";
 
 
 interface PersonalInfo {
@@ -76,11 +81,13 @@ export const ConfirmPurchase: React.FC = () => {
   const { items, totalPrice, totalItems, activeCartId, loading: cartLoading, hasGiftCards, getGiftCardItems, nonGiftCardTotal } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { isLoading, createCheckoutLink } = useCheckout();
-  const { applyPromoCode } = usePromotions();
+  // TEMPORALMENTE DESHABILITADO - Cupones y Gift Cards
+  // const { applyPromoCode } = usePromotions();
   const navigate = useNavigate();
-  
+
+  // TEMPORALMENTE DESHABILITADO - Cupones y Gift Cards
   // Multiple promo codes state (up to 3)
-  const [appliedPromos, setAppliedPromos] = useState<PromoValidationResult[]>([]);
+  // const [appliedPromos, setAppliedPromos] = useState<PromoValidationResult[]>([]);
   
   // ALL useState hooks MUST be before any conditional returns
   const [ciudadesDane, setCiudadesDane] = useState<CiudadesDane>({});
@@ -101,7 +108,10 @@ export const ConfirmPurchase: React.FC = () => {
   
   // Delivery method state: 'shipping' or 'pickup'
   const [deliveryMethod, setDeliveryMethod] = useState<'shipping' | 'pickup'>('shipping');
-  
+
+  // Payment method state: 'wompi' (Tarjeta) or 'cobre' (PSE)
+  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'cobre'>('cobre');
+
   // Save address state
   const [saveNewAddress, setSaveNewAddress] = useState<boolean>(false);
   const [newAddressLabel, setNewAddressLabel] = useState<string>("");
@@ -125,27 +135,33 @@ export const ConfirmPurchase: React.FC = () => {
   useEffect(() => {
     const loadUserData = async () => {
       if (!user?.id) return;
-      
+
       // Set email immediately
       if (user.email && !personalInfo.email) {
         setPersonalInfo(prev => ({ ...prev, email: user.email || "" }));
       }
-      
-      // Fetch user profile for name and phone
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('full_name, phone')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      setPersonalInfo(prev => ({
-        ...prev,
-        email: prev.email || user.email || "",
-        name: prev.name || profile?.full_name || "",
-        phone: prev.phone || profile?.phone || "",
-      }));
+
+      // Fetch user profile for name from backend
+      // Note: phone is not stored in user_profiles, user must enter it manually
+      try {
+        const profile = await UserProfilesActions.getUserProfileByUserId(user.id);
+
+        setPersonalInfo(prev => ({
+          ...prev,
+          email: prev.email || user.email || "",
+          name: prev.name || profile?.fullName || "",
+          // phone stays empty - user must enter it
+        }));
+      } catch (error) {
+        console.error('[ConfirmPurchase] Error loading user profile:', error);
+        // Set email anyway even if profile fails
+        setPersonalInfo(prev => ({
+          ...prev,
+          email: prev.email || user.email || "",
+        }));
+      }
     };
-    
+
     loadUserData();
   }, [user?.id, user?.email]);
 
@@ -153,23 +169,34 @@ export const ConfirmPurchase: React.FC = () => {
   useEffect(() => {
     const loadSavedAddresses = async () => {
       if (!user?.id) return;
-      
-      const { data, error } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('is_default', { ascending: false });
-      
-      if (!error && data) {
-        setSavedAddresses(data);
+
+      try {
+        const addresses = await AddressesActions.getUserAddresses(user.id);
+
+        // Map backend camelCase to frontend snake_case format
+        const mappedAddresses: SavedAddress[] = addresses.map(addr => ({
+          id: addr.id,
+          label: addr.label,
+          street_address: addr.streetAddress,
+          city: addr.city,
+          state: addr.state,
+          postal_code: addr.postalCode,
+          is_default: addr.isDefault,
+        }));
+
+        setSavedAddresses(mappedAddresses);
+
         // Auto-select default address if exists and form is empty
-        const defaultAddress = data.find(a => a.is_default);
+        const defaultAddress = mappedAddresses.find(a => a.is_default);
         if (defaultAddress && !shippingInfo.address) {
           handleAddressSelect(defaultAddress.id);
         }
+      } catch (error) {
+        console.error('[ConfirmPurchase] Error loading addresses:', error);
+        // Don't show error to user, addresses are optional
       }
     };
-    
+
     loadSavedAddresses();
   }, [user?.id]);
 
@@ -232,19 +259,10 @@ export const ConfirmPurchase: React.FC = () => {
 
       setLoadingShipping(true);
       try {
-        const { data, error } = await supabase.functions.invoke("servientrega-function", {
-          body: {
-            cart_id: activeCartId,
-            idCityDestino: shippingInfo.daneCiudad,
-          },
+        const data = await ServientregaActions.getShippingQuote({
+          cart_id: activeCartId,
+          idCityDestino: shippingInfo.daneCiudad,
         });
-
-        if (error) {
-          console.warn("Shipping quote unavailable:", error);
-          setShippingQuotes([]);
-          setShippingCost(0);
-          return;
-        }
 
         if (data?.success && Array.isArray(data.quotes)) {
           setShippingQuotes(data.quotes);
@@ -257,18 +275,18 @@ export const ConfirmPurchase: React.FC = () => {
           // Get max estimated days from all quotes
           const maxDays = Math.max(...data.quotes.map((q: ShippingQuote) => q.estimatedDays || 0));
           setEstimatedDays(maxDays || 5);
-          
-                          // Store detailed shipping costs in localStorage
-                          // Note: servientrega-function returns rawResponse, not response
-                          const totalValorFlete = data.quotes.reduce(
-                            (sum: number, q: any) => sum + (q.rawResponse?.ValorFlete || 0), 0
-                          );
-                          const totalValorSobreFlete = data.quotes.reduce(
-                            (sum: number, q: any) => sum + (q.rawResponse?.ValorSobreFlete || 0), 0
-                          );
-                          const totalValorTotal = data.quotes.reduce(
-                            (sum: number, q: any) => sum + (q.rawResponse?.ValorTotal || 0), 0
-                          );
+
+          // Store detailed shipping costs in localStorage
+          // Note: Backend returns rawResponse with detailed costs
+          const totalValorFlete = data.quotes.reduce(
+            (sum: number, q: any) => sum + (q.rawResponse?.ValorFlete || 0), 0
+          );
+          const totalValorSobreFlete = data.quotes.reduce(
+            (sum: number, q: any) => sum + (q.rawResponse?.ValorSobreFlete || 0), 0
+          );
+          const totalValorTotal = data.quotes.reduce(
+            (sum: number, q: any) => sum + (q.rawResponse?.ValorTotal || 0), 0
+          );
           localStorage.setItem('pending_shipping_costs', JSON.stringify({
             valor_flete: totalValorFlete,
             valor_sobre_flete: totalValorSobreFlete,
@@ -281,6 +299,7 @@ export const ConfirmPurchase: React.FC = () => {
           setEstimatedDays(0);
         }
       } catch (error) {
+        console.error('[ConfirmPurchase] Error fetching shipping quote:', error);
         setShippingQuotes([]);
         setShippingCost(0);
         setEstimatedDays(0);
@@ -383,17 +402,17 @@ export const ConfirmPurchase: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(v);
 
-  // El descuento solo aplica a productos físicos, luego sumamos gift cards y envío
-  const giftCardTotal = items
-    .filter(item => item.isGiftCard)
-    .reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const totalDiscount = appliedPromos.reduce((sum, promo) => sum + promo.discount_amount, 0);
-  const discountedPhysicalTotal = nonGiftCardTotal - totalDiscount;
-  
+  // TEMPORALMENTE DESHABILITADO - Cupones y Gift Cards
+  // const giftCardTotal = items
+  //   .filter(item => item.isGiftCard)
+  //   .reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  // const totalDiscount = appliedPromos.reduce((sum, promo) => sum + promo.discount_amount, 0);
+  // const discountedPhysicalTotal = nonGiftCardTotal - totalDiscount;
+  // const finalTotal = discountedPhysicalTotal + giftCardTotal + effectiveShippingCost;
+  // const giftCardItems = getGiftCardItems();
+
   // Shipping cost is 0 when pickup is selected
   const effectiveShippingCost = deliveryMethod === 'pickup' ? 0 : shippingCost;
-  const finalTotal = discountedPhysicalTotal + giftCardTotal + effectiveShippingCost;
-  const giftCardItems = getGiftCardItems();
   
   // Check if all physical products allow pickup
   const physicalItems = items.filter(item => !item.isGiftCard);
@@ -431,66 +450,56 @@ export const ConfirmPurchase: React.FC = () => {
     }
 
     try {
-      // Guardar teléfono en el perfil del usuario si está logueado
-      if (user?.id && personalInfo.phone) {
-        await supabase
-          .from('user_profiles')
-          .update({ phone: personalInfo.phone })
-          .eq('id', user.id);
-      }
-
       // Guardar datos de envío primero (solo si hay productos físicos Y se eligió envío)
       if (hasPhysicalProducts && activeCartId && deliveryMethod === 'shipping') {
         // Retrieve shipping costs from localStorage
         const pendingShippingCosts = localStorage.getItem('pending_shipping_costs');
         const shippingCosts = pendingShippingCosts ? JSON.parse(pendingShippingCosts) : {};
-        
-        const { error: shippingError } = await supabase
-          .from('shipping_data')
-          .insert({
-            cart_id: activeCartId,
-            full_name: personalInfo.name,
-            email: personalInfo.email,
-            phone: personalInfo.phone,
-            address: shippingInfo.address,
-            dane_ciudad: parseInt(shippingInfo.daneCiudad),
-            desc_ciudad: shippingInfo.city,
-            desc_depart: shippingInfo.department,
-            postal_code: shippingInfo.postal,
-            desc_envio: shippingInfo.description,
-            valor_flete: shippingCosts.valor_flete || null,
-            valor_sobre_flete: shippingCosts.valor_sobre_flete || null,
-            valor_total_flete: shippingCosts.valor_total_flete || null,
-          });
 
-        if (shippingError) {
-          console.error('Error saving shipping data:', shippingError);
-          toast.error('Error al guardar datos de envío');
-          return;
-        }
+        // Guardar información de envío usando backend
+        await CartActions.createCartShippingInfo({
+          cartId: activeCartId,
+          fullName: personalInfo.name,
+          email: personalInfo.email,
+          phone: personalInfo.phone,
+          address: shippingInfo.address,
+          daneCiudad: parseInt(shippingInfo.daneCiudad),
+          descCiudad: shippingInfo.city,
+          descDepart: shippingInfo.department,
+          postalCode: shippingInfo.postal,
+          descEnvio: shippingInfo.description,
+          valorFleteMinor: shippingCosts.valor_flete || undefined,
+          valorSobreFleteMinor: shippingCosts.valor_sobre_flete || undefined,
+          valorTotalFleteMinor: shippingCosts.valor_total_flete || undefined,
+        });
 
-        // Save new address if user opted in
+        // Guardar nueva dirección si el usuario lo solicitó
         if (saveNewAddress && newAddressLabel && user?.id) {
-          const { error: addressError } = await supabase
-            .from('addresses')
-            .insert({
-              user_id: user.id,
+          try {
+            await AddressesActions.createAddress({
+              userId: user.id,
               label: newAddressLabel,
-              street_address: shippingInfo.address,
+              streetAddress: shippingInfo.address,
               city: shippingInfo.city,
               state: shippingInfo.department,
-              postal_code: shippingInfo.postal,
-              is_default: savedAddresses.length === 0, // Make default if first address
+              postalCode: shippingInfo.postal,
+              country: 'Colombia',
+              isDefault: savedAddresses.length === 0, // Make default if first address
             });
-
-          if (addressError) {
-            console.error('Error saving address:', addressError);
-            // Don't block checkout, just log the error
-          } else {
             toast.success('Dirección guardada para futuras compras');
+          } catch (addressError) {
+            console.error('[ConfirmPurchase] Error saving address:', addressError);
+            // Don't block checkout, just log the error
           }
         }
       }
+
+      /* ====================================================================
+       * CÓDIGO TEMPORALMENTE DESHABILITADO - CUPONES Y GIFT CARDS
+       * ====================================================================
+       * Este código será reimplementado en el futuro cuando se migre
+       * la funcionalidad de cupones y gift cards al backend NestJS.
+       * ====================================================================
 
       // Si hay códigos promocionales aplicados Y el finalTotal > 0, aplicarlos aquí
       // Si finalTotal === 0, el process-zero-payment aplicará el descuento con el order_id real
@@ -505,16 +514,24 @@ export const ConfirmPurchase: React.FC = () => {
         }
       }
 
+      ==================================================================== */
+
       // Crear link de checkout y continuar solo si fue exitoso
       if (!activeCartId) {
         toast.error('No hay un carrito activo');
         return;
       }
 
+      /* ====================================================================
+       * CÓDIGO TEMPORALMENTE DESHABILITADO - PAGO CON TOTAL $0
+       * ====================================================================
+       * Este flujo será reimplementado cuando se migre process-zero-payment
+       * ====================================================================
+
       // If total is 0 (fully covered by gift card), use process-zero-payment
       if (finalTotal === 0) {
         console.log('Total is $0, using process-zero-payment');
-        
+
         const { data, error } = await supabase.functions.invoke('process-zero-payment', {
           body: {
             cart_id: activeCartId,
@@ -557,23 +574,28 @@ export const ConfirmPurchase: React.FC = () => {
         return;
       }
 
-      // Normal payment flow with Cobre
-      const checkoutOk = await createCheckoutLink(activeCartId, finalTotal);
+      ==================================================================== */
+
+      // Normal payment flow with selected provider (Cobre PSE or Wompi Credit Card)
+      const finalAmount = totalPrice + effectiveShippingCost;
+      const checkoutOk = await createCheckoutLink(activeCartId, finalAmount, paymentMethod);
       if (!checkoutOk) return;
 
       // Guardar cartId y breakdown en sessionStorage para sync-payment-status
       sessionStorage.setItem('pendingPaymentCartId', activeCartId);
-      
+
       // Guardar breakdown para que sync-payment-status lo use al crear la orden
       const paymentBreakdown = {
-        subtotal: nonGiftCardTotal,
+        subtotal: totalPrice,
         shipping_cost: effectiveShippingCost,
-        gift_card_discount: totalDiscount,
-        gift_card_code: appliedPromos.length > 0 ? appliedPromos[0].code : null,
-        paid_amount: finalTotal,
+        paid_amount: totalPrice + effectiveShippingCost,
         delivery_method: deliveryMethod,
       };
       sessionStorage.setItem('pendingPaymentBreakdown', JSON.stringify(paymentBreakdown));
+
+      /* ====================================================================
+       * CÓDIGO TEMPORALMENTE DESHABILITADO - GIFT CARDS
+       * ====================================================================
 
       // Guardar gift cards en la base de datos para procesamiento backend resiliente
       if (giftCardItems.length > 0 && user?.id) {
@@ -607,6 +629,8 @@ export const ConfirmPurchase: React.FC = () => {
           sessionStorage.removeItem('pendingGiftCards');
         }
       }
+
+      ==================================================================== */
 
       navigate('/payment-pending');
     } catch (error) {
@@ -680,7 +704,8 @@ export const ConfirmPurchase: React.FC = () => {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{fmt(totalPrice)}</span>
                     </div>
-                    
+
+                    {/* TEMPORALMENTE DESHABILITADO - Mostrar descuentos aplicados
                     {appliedPromos.length > 0 && appliedPromos.map((promo) => (
                       <div key={promo.code} className="flex justify-between text-sm">
                         <span className="text-green-600">
@@ -689,6 +714,7 @@ export const ConfirmPurchase: React.FC = () => {
                         <span className="text-green-600">-{fmt(promo.discount_amount)}</span>
                       </div>
                     ))}
+                    */}
 
                     {/* Shipping/Pickup cost */}
                     <div className="flex justify-between text-sm">
@@ -721,22 +747,30 @@ export const ConfirmPurchase: React.FC = () => {
                     
                     <div className="flex justify-between font-semibold text-base md:text-lg">
                       <span>Total</span>
-                      <span>{fmt(finalTotal)}</span>
+                      <span>{fmt(totalPrice + effectiveShippingCost)}</span>
                     </div>
                   </div>
 
                 </CardContent>
               </Card>
 
-              {/* Cupón / Gift Card */}
-              <PromoCodeInput 
-                cartTotal={nonGiftCardTotal} 
+              {/* ====================================================================
+               * COMPONENTE TEMPORALMENTE DESHABILITADO - CUPONES Y GIFT CARDS
+               * ====================================================================
+               * Este componente será habilitado cuando se migre la funcionalidad
+               * de cupones y gift cards al backend NestJS.
+               * ====================================================================
+
+              <PromoCodeInput
+                cartTotal={nonGiftCardTotal}
                 hasOnlyGiftCards={hasGiftCards && nonGiftCardTotal === 0}
                 userId={user?.id}
                 userEmail={personalInfo.email}
                 onPromosChanged={setAppliedPromos}
                 appliedPromos={appliedPromos}
               />
+
+              ==================================================================== */}
 
               {/* CTA Button - Desktop only */}
               <Button 
@@ -750,7 +784,7 @@ export const ConfirmPurchase: React.FC = () => {
                     Procesando...
                   </>
                 ) : (
-                  `Confirmar y pagar ${fmt(finalTotal)}`
+                  `Confirmar y pagar ${fmt(totalPrice + effectiveShippingCost)}`
                 )}
               </Button>
             </div>
@@ -805,6 +839,51 @@ export const ConfirmPurchase: React.FC = () => {
                         className="h-11"
                       />
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Medios de pagos */}
+              <Card>
+                <CardHeader className="p-4 md:p-6">
+                  <h2 className="text-base md:text-lg font-medium">Medios de pagos</h2>
+                </CardHeader>
+                <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-method">Selecciona tu método de pago</Label>
+                    <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as 'wompi' | 'cobre')}>
+                      <SelectTrigger id="payment-method" className="h-11">
+                        <SelectValue>
+                          <div className="flex items-center gap-2">
+                            {paymentMethod === 'wompi' ? (
+                              <>
+                                <CreditCard className="h-4 w-4" />
+                                <span>Tarjeta de crédito</span>
+                              </>
+                            ) : (
+                              <>
+                                <img src="/pse-icon.png" alt="PSE" className="h-4 w-4" />
+                                <span>PSE</span>
+                              </>
+                            )}
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="wompi">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            <span>Tarjeta de crédito</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="cobre">
+                          <div className="flex items-center gap-2">
+                            <img src="/pse-icon.png" alt="PSE" className="h-4 w-4" />
+                            <span>PSE</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
@@ -1065,7 +1144,7 @@ export const ConfirmPurchase: React.FC = () => {
               Procesando...
             </>
           ) : (
-            `Confirmar y pagar ${fmt(finalTotal)}`
+            `Confirmar y pagar ${fmt(totalPrice + effectiveShippingCost)}`
           )}
         </Button>
       </div>
