@@ -18,7 +18,7 @@ export const getUserProfileByUserId = async (
   try {
     // Llamada al endpoint de user-profiles del backend NestJS
     const response = await telarApi.get<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles/by-user/${userId}`
+      `/user-profiles/by-user/${userId}`
     );
 
     return response.data;
@@ -63,7 +63,7 @@ export const createUserProfile = async (
 ): Promise<GetUserProfileByUserIdSuccessResponse> => {
   try {
     const response = await telarApi.post<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles`,
+      `/user-profiles`,
       payload
     );
 
@@ -93,7 +93,7 @@ export const updateUserProfileById = async (
 ): Promise<GetUserProfileByUserIdSuccessResponse> => {
   try {
     const response = await telarApi.patch<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles/${profileId}`,
+      `/user-profiles/${profileId}`,
       payload
     );
 

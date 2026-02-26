@@ -77,7 +77,7 @@ export const attemptDataRepair = async (userId: string): Promise<RepairResult> =
     if (profile && profile.brandName !== correctBrandName) {
       console.log('🔧 [DATA REPAIR] Updating user_profiles.brand_name:', correctBrandName);
       
-      // ✅ Migrado a endpoint NestJS (PATCH /telar/server/user-profiles/:userId)
+      // ✅ Migrado a endpoint NestJS (PATCH /user-profiles/:userId)
       try {
         await updateUserProfile(userId, { brandName: correctBrandName });
         changes.push(`Actualizado user_profiles.brand_name a "${correctBrandName}"`);

@@ -24,7 +24,7 @@ export const markTaskAsCompleted = async (taskId: string, userId?: string) => {
   console.log(`🎯 Marking task ${taskId} as completed with data:`, completionData);
   
   try {
-    // ✅ Migrado a endpoint NestJS - PATCH /telar/server/agent-tasks/{id}
+    // ✅ Migrado a endpoint NestJS - PATCH /agent-tasks/{id}
     const data = await updateAgentTask(taskId, {
       status: completionData.status,
       progressPercentage: completionData.progress_percentage,

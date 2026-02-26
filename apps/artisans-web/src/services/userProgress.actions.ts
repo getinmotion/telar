@@ -26,7 +26,7 @@ export const getUserProgressByUserId = async (
 ): Promise<UserProgress | null> => {
   try {
     const response = await telarApi.get<UserProgress>(
-      `/telar/server/user-progress/user/${userId}`
+      `/user-progress/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
@@ -70,7 +70,7 @@ export const createUserProgress = async (
 ): Promise<UserProgress> => {
   try {
     const response = await telarApi.post<GetUserProgressSuccessResponse>(
-      `/telar/server/user-progress`,
+      `/user-progress`,
       payload
     );
     return response.data.data;
@@ -95,7 +95,7 @@ export const updateUserProgressById = async (
 ): Promise<UserProgress> => {
   try {
     const response = await telarApi.patch<GetUserProgressSuccessResponse>(
-      `/telar/server/user-progress/${progressId}`,
+      `/user-progress/${progressId}`,
       payload
     );
     return response.data.data;
@@ -175,7 +175,7 @@ export const updateUserProgressWithRewards = async (
 ): Promise<UpdateUserProgressSuccessResponse> => {
   try {
     const response = await telarApi.post<UpdateUserProgressSuccessResponse>(
-      `/telar/server/user-progress/update`,
+      `/user-progress/update`,
       payload
     );
     return response.data;

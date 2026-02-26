@@ -36,7 +36,7 @@ export const useMaturityTestStatus = (): MaturityTestStatus => {
       }
 
       // 1. Check user_maturity_scores table and get actual scores
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const scoresData = await getScoresForAnalytics(user.id);
 
       // ✅ Use cached context data instead of querying

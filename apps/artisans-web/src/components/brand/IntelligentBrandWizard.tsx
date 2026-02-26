@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client'; // solo para Storage
 import { useToast } from '@/hooks/use-toast';
+import { extractColors, generateColorPalette, generateClaim, diagnoseBrandIdentity } from '@/services/brandAiAssistant.actions';
+import { createAgentTasksBulk } from '@/services/agentTasks.actions';
+import { getUserMasterContextByUserId } from '@/services/userMasterContext.actions';
+import { telarApi } from '@/integrations/api/telarApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Upload, Palette, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -55,7 +59,7 @@ export const IntelligentBrandWizard: React.FC = () => {
     brandName: string;
     businessDescription: string;
   }>({ brandName: '', businessDescription: '' });
-  
+
   // Perception data for diagnosis
   const [perceptionData, setPerceptionData] = useState<{
     years_with_brand: string;
@@ -72,11 +76,11 @@ export const IntelligentBrandWizard: React.FC = () => {
     target_audience: '',
     desired_emotion: ''
   });
-  
+
   // Diagnosis results
   const [diagnosis, setDiagnosis] = useState<any>(null);
   const [generatedMissions, setGeneratedMissions] = useState<any[]>([]);
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -96,14 +100,14 @@ export const IntelligentBrandWizard: React.FC = () => {
         const businessContext = (context?.conversationInsights as any) || {};
 
         // Usar cualquier información disponible del maturity test
-        const effectiveBrandName = businessProfile.brand_name || 
-                                  businessProfile.business_name || 
-                                  businessProfile.business_description?.substring(0, 50) || 
-                                  'Tu Negocio';
-        
-        const effectiveDescription = businessProfile.business_description || 
-                                    businessProfile.unique_value || 
-                                    '';
+        const effectiveBrandName = businessProfile.brand_name ||
+          businessProfile.business_name ||
+          businessProfile.business_description?.substring(0, 50) ||
+          'Tu Negocio';
+
+        const effectiveDescription = businessProfile.business_description ||
+          businessProfile.unique_value ||
+          '';
 
         // Solo redirigir si NO hay descripción NI nombre de marca (usuario completamente nuevo)
         if (!effectiveDescription && !effectiveBrandName) {
@@ -127,23 +131,20 @@ export const IntelligentBrandWizard: React.FC = () => {
         // Si ya tiene marca completa (logo + colores + claim), determinar siguiente paso
         const brandEval = businessContext?.brand_evaluation;
         const diagnosis = businessContext?.brand_diagnosis;
-        
+
         if (brandEval?.logo_url && brandEval?.claim && brandEval?.primary_colors) {
-          console.log('[BrandWizard] Marca existente detectada');
           setLogoUrl(brandEval.logo_url);
           setColorSystem({
             primary_colors: brandEval.primary_colors || brandEval.colors || [],
             secondary_colors: brandEval.secondary_colors || []
           });
           setSelectedClaim(brandEval.claim);
-          
-          // ✅ Si ya tiene diagnóstico completo → Dashboard editable
+
           if (diagnosis && diagnosis.average_score) {
             setDiagnosis(diagnosis);
             setGeneratedMissions(diagnosis.generated_missions || []);
             setStep('dashboard');
           } else {
-            // ✅ Si NO tiene diagnóstico → BrandHub (punto de decisión)
             setStep('brand-hub');
           }
         } else if (brandEval?.logo_url) {
@@ -158,8 +159,7 @@ export const IntelligentBrandWizard: React.FC = () => {
           // Empezar desde el inicio
           setStep('upload-logo');
         }
-      } catch (error) {
-        console.error('[BrandWizard] Error:', error);
+      } catch {
         setStep('upload-logo');
       }
     };
@@ -175,16 +175,14 @@ export const IntelligentBrandWizard: React.FC = () => {
     try {
       // Optimize logo before upload
       const optimizedFile = await optimizeImage(logoFile, ImageOptimizePresets.logo);
-      console.log(`[BrandWizard] Logo optimized: ${Math.round(logoFile.size / 1024)}KB → ${Math.round(optimizedFile.size / 1024)}KB`);
 
       // 1. Subir a Supabase Storage
       const fileName = `${user.id}/logo_${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('brand-assets')
         .upload(fileName, optimizedFile, { upsert: true });
 
       if (uploadError) {
-        console.error('[BrandWizard] Upload error:', uploadError);
         toast({
           title: 'Error',
           description: 'No se pudo subir el logo. Intenta de nuevo.',
@@ -201,28 +199,25 @@ export const IntelligentBrandWizard: React.FC = () => {
       setLogoUrl(publicUrl);
 
       // 2. Extraer colores con IA
-      const { data, error } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: { action: 'extract_colors', logoUrl: publicUrl }
-      });
-
-      if (error) {
-        console.error('[BrandWizard] AI extraction error:', error);
+      let extractedColors: string[] = ['#000000', '#FFFFFF'];
+      try {
+        const { colors } = await extractColors(publicUrl);
+        extractedColors = colors;
+        setColorSystem(prev => ({ ...prev, primary_colors: colors }));
+        toast({
+          title: '¡Colores Primarios Extraídos!',
+          description: `Se identificaron ${colors.length} colores de tu logo.`,
+        });
+        setStep('generating-palette');
+        await generateSecondaryPalette(colors);
+      } catch {
         toast({
           title: 'Advertencia',
           description: 'No se pudieron extraer colores automáticamente. Puedes continuar.',
           variant: 'default'
         });
-        setColorSystem({ primary_colors: ['#000000', '#FFFFFF'], secondary_colors: [] });
+        setColorSystem({ primary_colors: extractedColors, secondary_colors: [] });
         setStep('ask-claim');
-      } else if (data?.colors) {
-        setColorSystem(prev => ({ ...prev, primary_colors: data.colors }));
-        toast({
-          title: '¡Colores Primarios Extraídos!',
-          description: `Se identificaron ${data.colors.length} colores de tu logo.`,
-        });
-        // Generar paleta secundaria
-        setStep('generating-palette');
-        await generateSecondaryPalette(data.colors);
       }
 
       // GUARDAR EN user_profiles usando unified data
@@ -243,17 +238,16 @@ export const IntelligentBrandWizard: React.FC = () => {
             has_logo: true,
             logo_url: publicUrl,
             has_colors: true,
-            primary_colors: data?.colors || ['#000000', '#FFFFFF'],
+            primary_colors: extractedColors,
             secondary_colors: currentBrandEval.secondary_colors || [],
             evaluation_date: new Date().toISOString()
           }
         }
       });
 
-      EventBus.publish('brand.logo.uploaded', { logoUrl: publicUrl, colors: data?.colors || [] });
+      EventBus.publish('brand.logo.uploaded', { logoUrl: publicUrl, colors: extractedColors });
 
-    } catch (error) {
-      console.error('[BrandWizard] Error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'Algo salió mal. Intenta de nuevo.',
@@ -266,38 +260,19 @@ export const IntelligentBrandWizard: React.FC = () => {
   const generateSecondaryPalette = async (primaryColors: string[]) => {
     if (!user) return;
 
+    const fallbackColors = ['#F5F5F5', '#E0E0E0', '#333333'];
+
     try {
-      const { data, error } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: {
-          action: 'generate_color_palette',
-          primaryColors: primaryColors
-        }
+      const { secondary_colors, reasoning } = await generateColorPalette(primaryColors);
+
+      if (!secondary_colors?.length) throw new Error('No secondary colors returned');
+
+      setColorSystem(prev => ({ ...prev, secondary_colors, palette_reasoning: reasoning }));
+      toast({
+        title: '¡Paleta Completa Generada! 🎨',
+        description: 'Se creó un sistema de colores completo para tu marca.',
       });
 
-      if (error || !data?.secondary_colors) {
-        console.error('[BrandWizard] Palette generation error:', error);
-        toast({
-          title: 'Advertencia',
-          description: 'Se usaron colores predeterminados para la paleta secundaria.',
-          variant: 'default'
-        });
-        setColorSystem(prev => ({
-          ...prev,
-          secondary_colors: ['#F5F5F5', '#E0E0E0', '#333333']
-        }));
-      } else {
-        setColorSystem(prev => ({
-          ...prev,
-          secondary_colors: data.secondary_colors,
-          palette_reasoning: data.reasoning
-        }));
-        toast({
-          title: '¡Paleta Completa Generada! 🎨',
-          description: 'Se creó un sistema de colores completo para tu marca.',
-        });
-      }
-
-      // Guardar sistema de colores completo usando unified data
       const existingContext = context?.conversationInsights || {};
       const currentBrandEval = (existingContext as any)?.brand_evaluation || {};
 
@@ -307,21 +282,21 @@ export const IntelligentBrandWizard: React.FC = () => {
           brand_evaluation: {
             ...currentBrandEval,
             primary_colors: primaryColors,
-            secondary_colors: data?.secondary_colors || ['#F5F5F5', '#E0E0E0', '#333333'],
-            palette_reasoning: data?.reasoning || ''
+            secondary_colors,
+            palette_reasoning: reasoning || ''
           }
         }
       });
 
-      // ✅ FASE 1: Ir a preguntas de percepción antes del claim
       setStep('perception-1');
 
-    } catch (error) {
-      console.error('[BrandWizard] Error:', error);
-      setColorSystem(prev => ({
-        ...prev,
-        secondary_colors: ['#F5F5F5', '#E0E0E0', '#333333']
-      }));
+    } catch {
+      toast({
+        title: 'Advertencia',
+        description: 'Se usaron colores predeterminados para la paleta secundaria.',
+        variant: 'default'
+      });
+      setColorSystem(prev => ({ ...prev, secondary_colors: fallbackColors }));
       setStep('ask-claim');
     }
   };
@@ -332,28 +307,14 @@ export const IntelligentBrandWizard: React.FC = () => {
     setStep('generating-claims');
 
     try {
-      const { data, error } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: {
-          action: 'generate_claim',
-          brandName: brandContext.brandName,
-          businessDescription: brandContext.businessDescription,
-          userId: user.id
-        }
+      const { claims } = await generateClaim({
+        brandName: brandContext.brandName,
+        businessDescription: brandContext.businessDescription,
+        userId: user.id,
       });
 
-      if (error) {
-        console.error('[BrandWizard] Claim generation error:', error);
-        toast({
-          title: 'Error',
-          description: 'No se pudieron generar claims. Intenta de nuevo.',
-          variant: 'destructive'
-        });
-        setStep('generate-claim');
-        return;
-      }
-
-      if (data?.claims && data.claims.length > 0) {
-        setClaimOptions(data.claims);
+      if (claims?.length > 0) {
+        setClaimOptions(claims);
         setStep('select-claim');
         toast({
           title: '¡Claims Generados!',
@@ -367,8 +328,7 @@ export const IntelligentBrandWizard: React.FC = () => {
         });
         setStep('generate-claim');
       }
-    } catch (error) {
-      console.error('[BrandWizard] Error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'Error al generar claims.',
@@ -381,7 +341,7 @@ export const IntelligentBrandWizard: React.FC = () => {
   // ✅ FASE 1: Handler para completar preguntas de percepción
   const handlePerceptionComplete = (data: typeof perceptionData) => {
     setPerceptionData(prev => ({ ...prev, ...data }));
-    
+
     // Avanzar al siguiente paso de percepción
     if (step === 'perception-1') {
       setStep('perception-2');
@@ -400,105 +360,70 @@ export const IntelligentBrandWizard: React.FC = () => {
     setStep('diagnosing');
 
     try {
-      // Preparar datos completos para el diagnóstico
-      const diagnosisInput = {
-        logo_url: logoUrl,
+      const { diagnosis: diagnosisResult } = await diagnoseBrandIdentity({
+        logoUrl,
         colors: {
           primary: colorSystem.primary_colors,
-          secondary: colorSystem.secondary_colors
+          secondary: colorSystem.secondary_colors,
         },
-        brand_name: brandContext.brandName,
-        business_description: brandContext.businessDescription,
-        perception: finalPerceptionData
-      };
-
-      console.log('[BrandWizard] Running diagnosis with:', diagnosisInput);
-
-      // Llamar edge function para diagnóstico
-      const { data, error } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: {
-          action: 'diagnose_brand_identity',
-          ...diagnosisInput
-        }
+        brandName: brandContext.brandName,
+        businessDescription: brandContext.businessDescription,
+        perception: {
+          yearsWithBrand: finalPerceptionData.years_with_brand,
+          descriptionIn3Words: finalPerceptionData.description_in_3_words,
+          customerFeedback: finalPerceptionData.customer_feedback,
+          logoFeeling: finalPerceptionData.logo_feeling,
+          targetAudience: finalPerceptionData.target_audience,
+          desiredEmotion: finalPerceptionData.desired_emotion,
+        },
       });
 
-      if (error) {
-        console.error('[BrandWizard] Diagnosis error:', error);
-        toast({
-          title: 'Error en Diagnóstico',
-          description: 'No se pudo completar el diagnóstico. Continuando con el wizard.',
-          variant: 'destructive'
-        });
-        setStep('ask-claim');
-        return;
-      }
+      setDiagnosis(diagnosisResult);
 
-      if (data?.diagnosis) {
-        const diagnosisResult = data.diagnosis;
-        setDiagnosis(diagnosisResult);
+      const missions = generateBrandMissions(diagnosisResult, brandContext.brandName);
+      setGeneratedMissions(missions);
 
-        // ✅ FASE 3: Generar misiones automáticamente
-        const missions = generateBrandMissions(diagnosisResult, brandContext.brandName);
-        setGeneratedMissions(missions);
-
-        console.log('[BrandWizard] Generated missions:', missions);
-
-        // ✅ FASE 2: Insertar misiones directamente en agent_tasks
-        if (missions.length > 0) {
-          const tasksToInsert = missions.map(mission => ({
-            user_id: user.id,
-            agent_id: mission.agent_id,
-            milestone_category: 'brand',
+      if (missions.length > 0) {
+        await createAgentTasksBulk(
+          missions.map((mission: any) => ({
+            userId: user.id,
+            agentId: mission.agent_id,
+            milestoneCategory: 'brand' as const,
             title: mission.title,
             description: mission.description,
             priority: mission.priority === 'high' ? 5 : mission.priority === 'medium' ? 3 : 1,
-            relevance: mission.relevance,
-            status: 'pending',
-            progress_percentage: 0,
-            environment: 'production'
-          }));
+            relevance: mission.relevance as 'low' | 'medium' | 'high',
+            status: 'pending' as const,
+            progressPercentage: 0,
+            environment: 'production' as const,
+          }))
+        );
+        EventBus.publish('milestone.tasks.generated', {
+          milestoneId: 'brand',
+          milestoneName: 'Identidad de Marca',
+          count: missions.length
+        });
+      }
 
-          const { error: insertError } = await supabase
-            .from('agent_tasks')
-            .insert(tasksToInsert);
-
-          if (insertError) {
-            console.error('[BrandWizard] Error inserting missions:', insertError);
-          } else {
-            console.log('✅ Brand missions inserted into agent_tasks');
-            // Publicar evento para notificar al sistema
-            EventBus.publish('milestone.tasks.generated', {
-              milestoneId: 'brand',
-              milestoneName: 'Identidad de Marca',
-              count: missions.length
-            });
+      const existingContext = context?.conversationInsights || {};
+      await updateContext({
+        conversationInsights: {
+          ...existingContext,
+          brand_perception: finalPerceptionData,
+          brand_diagnosis: {
+            ...diagnosisResult,
+            evaluated_at: new Date().toISOString(),
+            generated_missions: missions.map((m: any) => m.diagnosis_issue)
           }
         }
+      });
 
-        // Guardar percepción y diagnóstico en context
-        const existingContext = context?.conversationInsights || {};
-        await updateContext({
-          conversationInsights: {
-            ...existingContext,
-            brand_perception: finalPerceptionData,
-            brand_diagnosis: {
-              ...diagnosisResult,
-              evaluated_at: new Date().toISOString(),
-              generated_missions: missions.map((m: any) => m.diagnosis_issue)
-            }
-          }
-        });
-
-        setStep('diagnosis-results');
-        toast({
-          title: '✅ Diagnóstico Completo',
-          description: `Se generaron ${missions.length} misiones de mejora.`,
-        });
-      } else {
-        throw new Error('No diagnosis data returned');
-      }
-    } catch (error) {
-      console.error('[BrandWizard] Diagnosis error:', error);
+      setStep('diagnosis-results');
+      toast({
+        title: '✅ Diagnóstico Completo',
+        description: `Se generaron ${missions.length} misiones de mejora.`,
+      });
+    } catch {
       toast({
         title: 'Error',
         description: 'Hubo un problema con el diagnóstico. Continuando...',
@@ -547,27 +472,15 @@ export const IntelligentBrandWizard: React.FC = () => {
 
       // SINCRONIZAR CON TIENDA ARTESANAL usando función mejorada
       try {
-        console.log('[BrandWizard] Starting shop synchronization...');
-        
         const { syncBrandToShop } = await import('@/utils/syncBrandToShop');
-        const result = await syncBrandToShop(user.id, true); // forceSync = true
-        
-        if (result.success) {
-          console.log('[BrandWizard] Shop sync successful:', result.message);
-          toast({
-            title: '✅ Sincronización completa',
-            description: result.message,
-          });
-        } else {
-          console.error('[BrandWizard] Shop sync failed:', result.message);
-          toast({
-            title: 'Advertencia',
-            description: result.message,
-            variant: 'default'
-          });
-        }
-      } catch (error: any) {
-        console.error('[BrandWizard] Sync error:', error);
+        const result = await syncBrandToShop(user.id, true);
+
+        toast({
+          title: result.success ? '✅ Sincronización completa' : 'Advertencia',
+          description: result.message,
+          variant: result.success ? 'default' : 'default'
+        });
+      } catch {
         toast({
           title: 'Advertencia',
           description: 'La marca se guardó pero hubo un problema al sincronizar con la tienda.',
@@ -575,18 +488,17 @@ export const IntelligentBrandWizard: React.FC = () => {
         });
       }
 
-      EventBus.publish('brand.colors.updated', { 
+      EventBus.publish('brand.colors.updated', {
         primary_colors: colorSystem.primary_colors,
         secondary_colors: colorSystem.secondary_colors,
-        claim: selectedClaim 
+        claim: selectedClaim
       });
-      
+
       // Sincronizar módulos
       await refreshModule('marca');
       await refreshModule('tienda');
 
       // 🎯 GAMIFICACIÓN: Otorgar XP por completar el wizard de marca
-      console.log('🎯 Awarding XP for Brand Wizard completion...');
       await awardXP(
         XP_REWARDS.BRAND_WIZARD_COMPLETE,
         'Identidad de Marca Completada',
@@ -602,22 +514,17 @@ export const IntelligentBrandWizard: React.FC = () => {
         description: 'Tu identidad visual está completa y aplicada a tu tienda.',
       });
 
-      // 🎯 MARCAR TAREA COMO COMPLETADA en agent_tasks
       if (taskId) {
-        console.log('🎯 [BrandWizard] Marking task as completed:', taskId);
-        
         try {
-          // ✅ Migrado a endpoint NestJS - PATCH /telar/server/agent-tasks/{id}
           await markTaskAsCompleted(taskId, user.id);
-          console.log('✅ Task marked as completed successfully');
-        } catch (taskUpdateError) {
-          console.error('[BrandWizard] Error updating task status:', taskUpdateError);
+        } catch {
+          // non-critical
         }
       }
 
       // Publicar evento de milestone completado
-      EventBus.publish('brand.wizard.completed', { 
-        userId: user.id, 
+      EventBus.publish('brand.wizard.completed', {
+        userId: user.id,
         taskId: taskId || 'brand-visual-identity',
         actions: ['logo', 'colors', 'claim', 'brand_wizard']
       });
@@ -625,9 +532,7 @@ export const IntelligentBrandWizard: React.FC = () => {
       // Trigger progress recalculation
       EventBus.publish('master.full.sync', { source: 'brand_wizard' });
 
-      // 📊 Update routing analytics
       if (taskId) {
-        console.log('📊 Updating routing analytics for task:', taskId);
         await updateRoutingCompletion({
           taskId,
           wasSuccessful: true,
@@ -644,8 +549,7 @@ export const IntelligentBrandWizard: React.FC = () => {
         }, 2000);
       }
 
-    } catch (error) {
-      console.error('[BrandWizard] Error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudo completar el guardado.',
@@ -709,11 +613,11 @@ export const IntelligentBrandWizard: React.FC = () => {
               )}
             </Label>
           </div>
-          
+
           <AIDisclaimer variant="banner" context="generate" className="mb-4" />
-          
-          <Button 
-            onClick={handleLogoUpload} 
+
+          <Button
+            onClick={handleLogoUpload}
             disabled={!logoFile}
             className="w-full"
             size="lg"
@@ -788,17 +692,11 @@ export const IntelligentBrandWizard: React.FC = () => {
           setStep('perception-1');
         }}
         onElementUpdated={async () => {
-          // Refrescar datos para obtener cambios
           await refreshData();
-          
-          // Actualizar elementos en el estado local
-          const result = await supabase
-            .from('user_master_context')
-            .select('conversation_insights')
-            .eq('user_id', user?.id)
-            .single();
-          
-          const brandEval = (result.data?.conversation_insights as any)?.brand_evaluation;
+
+          const contextData = await getUserMasterContextByUserId(user!.id);
+          const brandEval = (contextData?.conversationInsights as any)?.brand_evaluation;
+
           if (brandEval) {
             if (brandEval.logo_url) setLogoUrl(brandEval.logo_url);
             if (brandEval.claim) setSelectedClaim(brandEval.claim);
@@ -809,7 +707,7 @@ export const IntelligentBrandWizard: React.FC = () => {
               });
             }
           }
-          
+
           toast({
             title: '✅ Marca Actualizada',
             description: 'Los cambios se guardaron correctamente.',
@@ -835,60 +733,39 @@ export const IntelligentBrandWizard: React.FC = () => {
             setStep('upload-logo');
           }}
           onElementUpdated={async (element, newDiagnosis) => {
-            // Actualizar diagnóstico y refrescar datos
             setDiagnosis(newDiagnosis);
-            
-            // Regenerar misiones si el score bajó
+
             if (newDiagnosis.average_score < (diagnosis?.average_score || 0)) {
               const newMissions = generateBrandMissions(newDiagnosis, brandContext.brandName);
               setGeneratedMissions(newMissions);
-              
-              // Enviar al Master Coordinator
+
               if (user) {
-                await supabase.functions.invoke('master-agent-coordinator', {
-                  body: {
-                    action: 'process_brand_diagnosis',
+                try {
+                  await telarApi.post('/ai/master-coordinator', {
+                    action: 'evaluate_brand_identity',
                     userId: user.id,
-                    diagnosis: newDiagnosis,
-                    generated_missions: newMissions
-                  }
-                });
+                    wizardData: { diagnosis: newDiagnosis, generatedMissions: newMissions },
+                  });
+                } catch {
+                  // non-critical background call
+                }
               }
             }
-            
-            // Actualizar elementos en el estado local
-            if (element === 'logo') {
-              const result = await supabase
-                .from('user_master_context')
-                .select('conversation_insights')
-                .eq('user_id', user?.id)
-                .single();
-              const newLogoUrl = (result.data?.conversation_insights as any)?.brand_evaluation?.logo_url;
-              if (newLogoUrl) setLogoUrl(newLogoUrl);
-            } else if (element === 'colors') {
-              const result = await supabase
-                .from('user_master_context')
-                .select('conversation_insights')
-                .eq('user_id', user?.id)
-                .single();
-              const contextData = (result.data?.conversation_insights as any)?.brand_evaluation;
-              if (contextData) {
-                setColorSystem({
-                  primary_colors: contextData.primary_colors || [],
-                  secondary_colors: contextData.secondary_colors || []
-                });
-              }
-            } else if (element === 'claim') {
-              const result = await supabase
-                .from('user_master_context')
-                .select('conversation_insights')
-                .eq('user_id', user?.id)
-                .single();
-              const newClaim = (result.data?.conversation_insights as any)?.brand_evaluation?.claim;
-              if (newClaim) setSelectedClaim(newClaim);
+
+            const freshContext = await getUserMasterContextByUserId(user!.id);
+            const brandEval = (freshContext?.conversationInsights as any)?.brand_evaluation;
+
+            if (element === 'logo' && brandEval?.logo_url) {
+              setLogoUrl(brandEval.logo_url);
+            } else if (element === 'colors' && brandEval) {
+              setColorSystem({
+                primary_colors: brandEval.primary_colors || [],
+                secondary_colors: brandEval.secondary_colors || []
+              });
+            } else if (element === 'claim' && brandEval?.claim) {
+              setSelectedClaim(brandEval.claim);
             }
-            
-            // Refrescar datos unificados
+
             await refreshData();
           }}
         />
@@ -933,8 +810,8 @@ export const IntelligentBrandWizard: React.FC = () => {
             <div className="flex gap-2 flex-wrap">
               {colorSystem.primary_colors.map((color, idx) => (
                 <div key={idx} className="text-center">
-                  <div 
-                    className="w-16 h-16 rounded-lg border-2 border-border shadow-sm" 
+                  <div
+                    className="w-16 h-16 rounded-lg border-2 border-border shadow-sm"
                     style={{ backgroundColor: color }}
                   />
                   <span className="text-xs text-muted-foreground mt-1 block">{color}</span>
@@ -949,8 +826,8 @@ export const IntelligentBrandWizard: React.FC = () => {
               <div className="flex gap-2 flex-wrap">
                 {colorSystem.secondary_colors.map((color, idx) => (
                   <div key={idx} className="text-center">
-                    <div 
-                      className="w-16 h-16 rounded-lg border-2 border-border shadow-sm" 
+                    <div
+                      className="w-16 h-16 rounded-lg border-2 border-border shadow-sm"
                       style={{ backgroundColor: color }}
                     />
                     <span className="text-xs text-muted-foreground mt-1 block">{color}</span>
@@ -969,7 +846,7 @@ export const IntelligentBrandWizard: React.FC = () => {
               Un claim es una frase corta que define la esencia de tu marca (ej: "Nike - Just Do It")
             </p>
             <div className="flex gap-3">
-              <Button 
+              <Button
                 onClick={() => setStep('input-claim')}
                 variant="outline"
                 className="flex-1"
@@ -977,7 +854,7 @@ export const IntelligentBrandWizard: React.FC = () => {
               >
                 Sí, ya tengo uno
               </Button>
-              <Button 
+              <Button
                 onClick={handleGenerateClaims}
                 className="flex-1"
                 size="lg"
@@ -1013,14 +890,14 @@ export const IntelligentBrandWizard: React.FC = () => {
             />
           </div>
           <div className="flex gap-3">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setStep('ask-claim')}
               className="flex-1"
             >
               Volver
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 if (existingClaim.trim()) {
                   setSelectedClaim(existingClaim);
@@ -1083,7 +960,7 @@ export const IntelligentBrandWizard: React.FC = () => {
             ))}
           </RadioGroup>
 
-          <Button 
+          <Button
             onClick={handleSaveBrand}
             disabled={!selectedClaim}
             className="w-full"
@@ -1149,10 +1026,10 @@ export const IntelligentBrandWizard: React.FC = () => {
               Siguiente paso: Aplica tu marca a tu tienda
             </h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Ahora que has definido tu identidad de marca, configura el Hero Slider de tu tienda 
+              Ahora que has definido tu identidad de marca, configura el Hero Slider de tu tienda
               para que refleje tu nueva imagen visual.
             </p>
-            <Button 
+            <Button
               onClick={() => navigate('/dashboard/shop-hero-wizard')}
               className="w-full"
               size="lg"

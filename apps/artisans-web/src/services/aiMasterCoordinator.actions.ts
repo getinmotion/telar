@@ -23,7 +23,7 @@ export const invokeMasterCoordinator = async <T = any>(
 ): Promise<T> => {
   try {
     const response = await telarApi.post<T>(
-      `/telar/server/ai/master-coordinator`,
+      `/ai/master-coordinator`,
       request
     );
     return response.data;

@@ -115,13 +115,13 @@ export interface CompleteOnboardingResponse {
 export const maturityApi = {
   /**
    * Extrae información estructurada de la descripción del negocio usando IA
-   * Endpoint: POST /telar/server/ai/extract-business-info
+   * Endpoint: POST /ai/extract-business-info
    */
   extractBusinessInfo: async (
     data: ExtractBusinessInfoRequest
   ): Promise<ExtractBusinessInfoResponse> => {
     const response = await telarApi.post<ExtractBusinessInfoResponse>(
-      '/telar/server/ai/extract-business-info',
+      '/ai/extract-business-info',
       data
     );
     return response.data;
@@ -129,13 +129,13 @@ export const maturityApi = {
 
   /**
    * Crea o actualiza el contexto maestro del usuario
-   * Endpoint: POST /telar/server/user-master-context
+   * Endpoint: POST /user-master-context
    */
   createOrUpdateUserMasterContext: async (
     data: UserMasterContextRequest
   ): Promise<UserMasterContextResponse> => {
     const response = await telarApi.post<UserMasterContextResponse>(
-      '/telar/server/user-master-context',
+      '/user-master-context',
       data
     );
     return response.data;
@@ -143,12 +143,12 @@ export const maturityApi = {
 
   /**
    * Obtiene el contexto maestro del usuario (progreso)
-   * Endpoint: GET /telar/server/master-coordinator-context/user/{userId}
+   * Endpoint: GET /master-coordinator-context/user/{userId}
    */
   getUserMasterContext: async (userId: string): Promise<UserMasterContextResponse | null> => {
     try {
       const response = await telarApi.get<UserMasterContextResponse>(
-        `/telar/server/master-coordinator-context/user/${userId}`
+        `/master-coordinator-context/user/${userId}`
       );
       return response.data;
     } catch (error: any) {
@@ -223,13 +223,13 @@ export const maturityApi = {
   /**
    * Completa el onboarding (finaliza las 3 preguntas)
    * ⚠️ NOTA: Este endpoint aún no existe en el backend
-   * Endpoint esperado: POST /telar/server/maturity/complete-onboarding
+   * Endpoint esperado: POST /maturity/complete-onboarding
    */
   completeOnboarding: async (
     data: CompleteOnboardingRequest
   ): Promise<CompleteOnboardingResponse> => {
     const response = await telarApi.post<CompleteOnboardingResponse>(
-      '/telar/server/maturity/complete-onboarding',
+      '/maturity/complete-onboarding',
       data
     );
     return response.data;
@@ -238,10 +238,10 @@ export const maturityApi = {
   /**
    * Inicializa el user_progress (gamificación)
    * ⚠️ NOTA: Este endpoint aún no existe en el backend
-   * Endpoint esperado: POST /telar/server/user-progress
+   * Endpoint esperado: POST /user-progress
    */
   initUserProgress: async (userId: string) => {
-    const response = await telarApi.post('/telar/server/user-progress', {
+    const response = await telarApi.post('/user-progress', {
       userId,
     });
     return response.data;

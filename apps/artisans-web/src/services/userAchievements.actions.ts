@@ -18,12 +18,12 @@ import {
  * @returns Array de logros con relación a user
  * @throws Error si la petición falla
  * 
- * Endpoint: GET /telar/server/user-achievements
+ * Endpoint: GET /user-achievements
  */
 export const getUserAchievements = async (): Promise<UserAchievement[]> => {
   try {
     const response = await telarApi.get<GetUserAchievementsResponse>(
-      '/telar/server/user-achievements'
+      '/user-achievements'
     );
 
     return response.data.data;
@@ -39,14 +39,14 @@ export const getUserAchievements = async (): Promise<UserAchievement[]> => {
  * @returns El logro creado
  * @throws Error si la petición falla
  * 
- * Endpoint: POST /telar/server/user-achievements
+ * Endpoint: POST /user-achievements
  */
 export const createUserAchievement = async (
   payload: CreateUserAchievementPayload
 ): Promise<UserAchievement> => {
   try {
     const response = await telarApi.post<CreateUserAchievementResponse>(
-      '/telar/server/user-achievements',
+      '/user-achievements',
       payload
     );
 
@@ -64,7 +64,7 @@ export const createUserAchievement = async (
  * @returns El logro actualizado
  * @throws Error si la petición falla
  * 
- * Endpoint: PATCH /telar/server/user-achievements/{id}
+ * Endpoint: PATCH /user-achievements/{id}
  */
 export const updateUserAchievement = async (
   achievementId: string,
@@ -72,7 +72,7 @@ export const updateUserAchievement = async (
 ): Promise<UserAchievement> => {
   try {
     const response = await telarApi.patch<UpdateUserAchievementResponse>(
-      `/telar/server/user-achievements/${achievementId}`,
+      `/user-achievements/${achievementId}`,
       payload
     );
 

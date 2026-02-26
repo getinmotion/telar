@@ -397,7 +397,7 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({
               const taskGenContext = contextData?.taskGenerationContext as any;
               const maturityScores = taskGenContext?.maturityScores;
 
-              // ✅ Migrado a endpoint NestJS (GET /telar/server/task-steps/user/{user_id})
+              // ✅ Migrado a endpoint NestJS (GET /task-steps/user/{user_id})
               // Obtener task steps con información de tareas incluida
               const taskSteps = await getTaskStepsByUserId(authUser.id);
 
@@ -569,7 +569,7 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateTaskStep = useCallback(
     async (taskId: string, stepId: string, completed: boolean) => {
       try {
-        // ✅ Migrado a endpoint NestJS - PATCH /telar/server/task-steps/{id}
+        // ✅ Migrado a endpoint NestJS - PATCH /task-steps/{id}
         await updateTaskStepService(stepId, {
           completionStatus: completed ? "completed" : "pending",
         });

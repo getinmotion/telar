@@ -105,7 +105,7 @@ export const useArtisanShop = () => {
       let slug = baseSlug;
       let counter = 1;
 
-      // ✅ Migrado a NestJS - GET /telar/server/artisan-shops/slug/{slug}
+      // ✅ Migrado a NestJS - GET /artisan-shops/slug/{slug}
       // Genera un slug único verificando disponibilidad
       while (!(await isSlugAvailable(slug))) {
         slug = `${baseSlug}-${counter}`;

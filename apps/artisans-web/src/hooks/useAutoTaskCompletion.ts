@@ -22,7 +22,7 @@ export const useAutoTaskCompletion = () => {
   //     try {
   //       console.log('🔍 [Auto-Task] Verificando tareas para auto-completar...');
 
-  //       // ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+  //       // ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
   //       const allTasks = await getAgentTasksByUserId(user.id);
 
   //       // Filtrar solo tareas pendientes o en progreso
@@ -37,7 +37,7 @@ export const useAutoTaskCompletion = () => {
 
   //       console.log(`📋 [Auto-Task] Encontradas ${tasks.length} tareas pendientes`);
 
-  //       // ✅ Migrado a NestJS - GET /telar/server/artisan-shops/user/{user_id}
+  //       // ✅ Migrado a NestJS - GET /artisan-shops/user/{user_id}
   //       const shop = await getArtisanShopByUserId(user.id).catch((error) => {
   //         console.error('❌ [Auto-Task] Error obteniendo tienda:', error);
   //         return null;
@@ -52,7 +52,7 @@ export const useAutoTaskCompletion = () => {
 
   //       let productCount = 0;
 
-  //       // ✅ Migrado a NestJS - GET /telar/server/products/user/{user_id}
+  //       // ✅ Migrado a NestJS - GET /products/user/{user_id}
   //       if (shop?.id) {
   //         try {
   //           const products = await getProductsByUserId(user.id);
@@ -66,7 +66,7 @@ export const useAutoTaskCompletion = () => {
   //         console.log('ℹ️ [Auto-Task] Usuario no tiene tienda todavía');
   //       }
 
-  //       // ✅ Migrado a NestJS - GET /telar/server/user-profiles/user/{user_id}
+  //       // ✅ Migrado a NestJS - GET /user-profiles/user/{user_id}
   //       const profile = await getUserProfileByUserId(user.id).catch((error) => {
   //         console.error('❌ [Auto-Task] Error obteniendo perfil:', error);
   //         return null;

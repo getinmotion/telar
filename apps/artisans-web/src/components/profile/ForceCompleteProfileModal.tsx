@@ -127,7 +127,7 @@ export const ForceCompleteProfileModal: React.FC<ForceCompleteProfileModalProps>
         updateData.city = city;
       }
       
-      // ✅ Migrado a endpoint NestJS (PATCH /telar/server/user-profiles/:userId)
+      // ✅ Migrado a endpoint NestJS (PATCH /user-profiles/:userId)
       await updateUserProfile(user.id, updateData);
       
       toast.success('¡Perfil actualizado!', {

@@ -213,7 +213,7 @@ export const useDataRecovery = () => {
       }
 
       // Save maturity scores to DB
-      // ✅ Migrado a endpoint NestJS (POST /telar/server/user-maturity-scores)
+      // ✅ Migrado a endpoint NestJS (POST /user-maturity-scores)
       try {
         await createUserMaturityScore({
           userId: userId,
