@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { generateColorPalette, diagnoseBrandIdentity } from '@/services/brandAiAssistant.actions';
+import { getUserMasterContextByUserId, updateUserMasterContext } from '@/services/userMasterContext.actions';
 import { Loader2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -49,22 +50,15 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
   const handleGenerateWithAI = async () => {
     setIsProcessing(true);
     try {
-      const { data } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: {
-          action: 'generate_color_palette',
-          primaryColors: primaryColors
-        }
-      });
-
-      if (data?.secondary_colors) {
-        setSecondaryColors(data.secondary_colors);
+      const { secondary_colors } = await generateColorPalette(primaryColors);
+      if (secondary_colors?.length) {
+        setSecondaryColors(secondary_colors);
         toast({
           title: '✨ Colores Generados',
           description: 'La IA creó una paleta complementaria',
         });
       }
-    } catch (error) {
-      console.error('[ColorPaletteModal] Error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudieron generar colores',
@@ -81,72 +75,56 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
     setIsProcessing(true);
 
     try {
-      // 1. Obtener diagnóstico actual
-      const { data: contextData } = await supabase
-        .from('user_master_context')
-        .select('conversation_insights, business_profile')
-        .eq('user_id', user.id)
-        .single();
+      // 1. Obtener contexto actual
+      const contextData = await getUserMasterContextByUserId(user.id);
 
-      const oldDiagnosis = (contextData?.conversation_insights as any)?.brand_diagnosis;
-      const businessProfile = contextData?.business_profile as any;
-      const conversationInsights = contextData?.conversation_insights as any;
+      const conversationInsights = contextData?.conversationInsights as Record<string, any> | undefined;
+      const businessProfile = contextData?.businessProfile as Record<string, any> | undefined;
+      const oldDiagnosis = conversationInsights?.brand_diagnosis;
 
       // 2. Re-diagnosticar con nuevos colores
-      const { data: diagnosisData } = await supabase.functions.invoke('brand-ai-assistant', {
-        body: {
-          action: 'diagnose_brand_identity',
-          logo_url: logoUrl,
-          colors: {
-            primary: primaryColors,
-            secondary: secondaryColors
-          },
-          brand_name: brandName,
-          business_description: businessProfile?.business_description || '',
-          perception: conversationInsights?.brand_perception || {}
-        }
+      const { diagnosis: newDiagnosis } = await diagnoseBrandIdentity({
+        logoUrl,
+        colors: { primary: primaryColors, secondary: secondaryColors },
+        brandName,
+        businessDescription: businessProfile?.businessDescription || businessProfile?.business_description || '',
+        perception: conversationInsights?.brand_perception || {},
       });
 
-      const newDiagnosis = diagnosisData?.diagnosis;
-
-      // 3. Calcular diff de scores
+      // 3. Calcular diff de scores usando variables locales para el toast
+      const colorScoreBefore = oldDiagnosis?.scores?.color?.score || 0;
+      const colorScoreAfter = newDiagnosis?.scores?.color?.score || 0;
       if (oldDiagnosis && newDiagnosis) {
-        const oldColorScore = oldDiagnosis.scores?.color?.score || 0;
-        const newColorScore = newDiagnosis.scores?.color?.score || 0;
-        setScoreDiff({ before: oldColorScore, after: newColorScore });
+        setScoreDiff({ before: colorScoreBefore, after: colorScoreAfter });
       }
 
       // 4. Actualizar context
-      await supabase
-        .from('user_master_context')
-        .update({
-          conversation_insights: {
-            ...conversationInsights,
-            brand_evaluation: {
-              ...conversationInsights?.brand_evaluation,
-              primary_colors: primaryColors,
-              secondary_colors: secondaryColors,
-              has_colors: true
-            },
-            brand_diagnosis: {
-              ...newDiagnosis,
-              evaluated_at: new Date().toISOString(),
-              changed_element: 'colors'
-            }
-          }
-        })
-        .eq('user_id', user.id);
+      await updateUserMasterContext(user.id, {
+        conversationInsights: {
+          ...conversationInsights,
+          brand_evaluation: {
+            ...conversationInsights?.brand_evaluation,
+            primary_colors: primaryColors,
+            secondary_colors: secondaryColors,
+            has_colors: true,
+          },
+          brand_diagnosis: {
+            ...newDiagnosis,
+            evaluated_at: new Date().toISOString(),
+            changed_element: 'colors',
+          },
+        },
+      });
 
       toast({
         title: '✅ Colores Actualizados',
-        description: scoreDiff 
-          ? `Tu score de color cambió de ${scoreDiff.before.toFixed(1)} a ${scoreDiff.after.toFixed(1)}`
+        description: (oldDiagnosis && newDiagnosis)
+          ? `Tu score de color cambió de ${colorScoreBefore.toFixed(1)} a ${colorScoreAfter.toFixed(1)}`
           : 'Tu paleta ha sido actualizada y re-diagnosticada',
       });
 
       onSave({ primary_colors: primaryColors, secondary_colors: secondaryColors }, newDiagnosis);
-    } catch (error) {
-      console.error('[ColorPaletteModal] Error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudieron actualizar los colores',
@@ -177,8 +155,8 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
             <div className="grid grid-cols-3 gap-3">
               {primaryColors.map((color, idx) => (
                 <div key={idx} className="space-y-2">
-                  <div 
-                    className="w-full h-20 rounded-lg border-2 border-border shadow-sm cursor-pointer" 
+                  <div
+                    className="w-full h-20 rounded-lg border-2 border-border shadow-sm cursor-pointer"
                     style={{ backgroundColor: color }}
                     onClick={() => {
                       const input = document.getElementById(`primary-${idx}`) as HTMLInputElement;
@@ -208,9 +186,9 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
             <div className="flex items-center justify-between mb-3">
               <Label className="font-semibold">Colores Secundarios</Label>
               <div className="flex items-center gap-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={handleGenerateWithAI}
                   disabled={isProcessing}
                 >
@@ -223,8 +201,8 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
             <div className="grid grid-cols-3 gap-3">
               {secondaryColors.map((color, idx) => (
                 <div key={idx} className="space-y-2">
-                  <div 
-                    className="w-full h-20 rounded-lg border-2 border-border shadow-sm cursor-pointer" 
+                  <div
+                    className="w-full h-20 rounded-lg border-2 border-border shadow-sm cursor-pointer"
                     style={{ backgroundColor: color }}
                     onClick={() => {
                       const input = document.getElementById(`secondary-${idx}`) as HTMLInputElement;
@@ -275,8 +253,8 @@ export const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
             <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleSave} 
+            <Button
+              onClick={handleSave}
               disabled={isProcessing}
               className="flex-1"
             >

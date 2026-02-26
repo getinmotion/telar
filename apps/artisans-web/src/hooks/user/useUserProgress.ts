@@ -1,17 +1,17 @@
 /**
  * useUserProgress Hook
- * 
+ *
  * Hook para manejar el progreso del usuario: niveles, XP, rachas, logros
+ * ✅ OPTIMIZED: Refs para prevenir recreaciones innecesarias
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
   getUserProgressByUserId,
   createUserProgress,
-  updateUserProgress,
   updateUserProgressWithRewards,
 } from '@/services/userProgress.actions';
 import { UserProgress } from '@/types/userProgress.types';
@@ -44,20 +44,28 @@ export const useUserProgress = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
+  // ✅ FIX: Usar ref para evitar recreaciones del callback
+  const userIdRef = useRef<string | undefined>(user?.id);
+
+  useEffect(() => {
+    userIdRef.current = user?.id;
+  }, [user?.id]);
+
   // Fetch user progress
   const fetchProgress = useCallback(async () => {
-    if (!user) {
+    const userId = userIdRef.current;
+    if (!userId) {
       setLoading(false);
       return;
     }
 
     try {
-      let data = await getUserProgressByUserId(user.id);
+      let data = await getUserProgressByUserId(userId);
 
       if (!data) {
         // No progress found, create initial progress
         data = await createUserProgress({
-          userId: user.id,
+          userId: userId,
           level: 1,
           experiencePoints: 0,
           nextLevelXp: 100
@@ -83,18 +91,19 @@ export const useUserProgress = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]); // OPTIMIZATION: Use user?.id instead of user
+  }, []); // ✅ FIX: Sin dependencias - usa ref
 
   // Fetch achievements
   const fetchAchievements = useCallback(async () => {
-    if (!user) return;
+    const userId = userIdRef.current;
+    if (!userId) return;
 
     try {
       // Fetch unlocked achievements
       const { data: unlockedData, error: unlockedError } = await supabase
         .from('user_achievements')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('unlocked_at', { ascending: false });
 
       if (unlockedError) throw unlockedError;
@@ -132,7 +141,7 @@ export const useUserProgress = () => {
     } catch (error) {
       console.error('Error fetching achievements:', error);
     }
-  }, [user?.id]); // OPTIMIZATION: Use user?.id instead of user
+  }, []); // ✅ FIX: Sin dependencias - usa ref
 
   // Update progress (add XP, complete missions)
   const updateProgress = useCallback(async (
@@ -140,7 +149,8 @@ export const useUserProgress = () => {
     missionCompleted: boolean = false,
     timeSpent: number = 0
   ) => {
-    if (!user || updating) return;
+    const userId = userIdRef.current;
+    if (!userId || updating) return;
 
     setUpdating(true);
 
@@ -199,7 +209,7 @@ export const useUserProgress = () => {
     } finally {
       setUpdating(false);
     }
-  }, [user?.id, updating, toast, fetchAchievements]); // OPTIMIZATION: Use user?.id instead of user
+  }, [updating, toast, fetchAchievements]); // ✅ FIX: Dependencias mínimas
 
   // Calculate progress percentage
   const progressPercentage = progress
@@ -216,47 +226,17 @@ export const useUserProgress = () => {
     };
   });
 
+  // ✅ FIX: Initial fetch solo cuando cambia el userId
   useEffect(() => {
+    if (!user?.id) return;
+
     fetchProgress();
     fetchAchievements();
-  }, [fetchProgress, fetchAchievements]);
+  }, [user?.id]); // ✅ Solo cuando cambia el ID del usuario
 
-  // Realtime subscription for progress updates
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`user-progress-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_progress',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchProgress();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_achievements',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchAchievements();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchProgress, fetchAchievements]);
+  // ✅ MIGRATION: Realtime subscription eliminada - migrando a NestJS sin Supabase
+  // La actualización de progreso se hace manualmente después de cada mutación
+  // vía updateProgress() que ya refetch achievements cuando se desbloquean (línea 197)
 
   return {
     progress,
