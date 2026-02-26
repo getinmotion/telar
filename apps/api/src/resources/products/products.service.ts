@@ -669,4 +669,20 @@ export class ProductsService {
         (product.shippingDataComplete || false) === true,
     }));
   }
+
+  /**
+   * Contar productos aprobados de una tienda
+   */
+  async countApprovedByShopId(shopId: string): Promise<number> {
+    if (!shopId) {
+      throw new BadRequestException('El ID de la tienda es requerido');
+    }
+
+    return await this.productsRepository.count({
+      where: {
+        shopId,
+        moderationStatus: In(['approved', 'approved_with_edits']),
+      },
+    });
+  }
 }
