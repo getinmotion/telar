@@ -52,10 +52,16 @@ export class ServientregaService {
       codFacturacion: this.codFacturacion,
     };
 
+    console.log('Payload:', payload);
+
     try {
+
+       console.log('AuthUrl Servientrega :', this.authUrl);
       const response = await firstValueFrom(
         this.httpService.post<ServientregaAuthResponse>(this.authUrl, payload),
       );
+
+
 
       if (!response.data || !response.data.token) {
         throw new Error('No se recibió token de Servientrega');
