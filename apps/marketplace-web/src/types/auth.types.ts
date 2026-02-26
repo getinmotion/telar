@@ -123,3 +123,22 @@ export interface AuthResponse {
  * Extiende AuthResponse con la misma estructura
  */
 export interface GoogleAuthResponse extends AuthResponse {}
+
+/**
+ * Data para registro de nuevo usuario
+ * Payload para POST /auth/register
+ */
+export interface SignUpData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+  whatsapp: string; // Formato: +573001234567
+  department: string; // Departamento de Colombia
+  city: string; // Ciudad de Colombia
+  hasRUT: boolean;
+  rut?: string; // Opcional, solo si hasRUT = true
+  acceptTerms: boolean; // Obligatorio
+  newsletterOptIn: boolean; // Opcional
+}
