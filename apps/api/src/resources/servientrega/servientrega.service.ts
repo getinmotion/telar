@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { DataSource } from 'typeorm';
@@ -16,6 +16,7 @@ import {
 
 @Injectable()
 export class ServientregaService {
+  private readonly logger = new Logger(ServientregaService.name);
   private readonly authUrl: string;
   private readonly quoteUrl: string;
   private readonly login: string;
@@ -52,11 +53,10 @@ export class ServientregaService {
       codFacturacion: this.codFacturacion,
     };
 
-    console.log('Payload:', payload);
+    this.logger.debug('Payload para autenticación Servientrega:', payload);
 
     try {
-
-       console.log('AuthUrl Servientrega :', this.authUrl);
+      this.logger.debug('AuthUrl Servientrega:', this.authUrl);
       const response = await firstValueFrom(
         this.httpService.post<ServientregaAuthResponse>(this.authUrl, payload),
       );
@@ -69,7 +69,7 @@ export class ServientregaService {
 
       return response.data.token;
     } catch (error: any) {
-      throw new Error(`Error autenticando con Servientrega: ${error.message}`);
+      throw new Error(`Error -----${this.authUrl} autenticando --- ${JSON.stringify(payload)} con Servientrega: ${error.message}`);
     }
   }
 
