@@ -73,7 +73,7 @@ export const useAdminShops = () => {
       if (productsError) throw productsError;
 
       // Fetch user names (email not available in user_profiles)
-      // TODO: Crear endpoint NestJS para obtener múltiples perfiles: POST /telar/server/user-profiles/batch
+      // TODO: Crear endpoint NestJS para obtener múltiples perfiles: POST /user-profiles/batch
       const userIds = [...new Set(shopsData?.map(s => s.user_id) || [])];
       const { data: profiles, error: profilesError } = await supabase
         .from('user_profiles')

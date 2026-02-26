@@ -25,7 +25,7 @@ export const getUserMasterContextByUserId = async (
 ): Promise<UserMasterContext | null> => {
   try {
     const response = await telarApi.get<UserMasterContext | "" | null>(
-      `/telar/server/user-master-context/user/${userId}`
+      `/user-master-context/user/${userId}`
     );
 
     // El servidor retorna data: "" (string vacío) cuando no hay registro (status 200)
@@ -78,7 +78,7 @@ export const updateUserMasterContextById = async (
 ): Promise<UserMasterContext> => {
   try {
     const response = await telarApi.patch<UserMasterContext>(
-      `/telar/server/user-master-context/${contextId}`,
+      `/user-master-context/${contextId}`,
       payload
     );
     return response.data;
@@ -133,7 +133,7 @@ export const createUserMasterContext = async (
 ): Promise<UserMasterContext> => {
   try {
     const response = await telarApi.post<UserMasterContext>(
-      `/telar/server/user-master-context`,
+      `/user-master-context`,
       payload
     );
     return response.data;

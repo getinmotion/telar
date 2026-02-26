@@ -832,11 +832,11 @@ export const useFusedMaturityAgent = (
 
 
     try {
-      // 1. ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+      // 1. ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
       const userTasks = await getAgentTasksByUserId(user.id);
 
       // 2. Obtener maturity scores del usuario
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const maturityData = await getLatestMaturityScore(user.id);
 
       // 3. Construir contexto para cálculo
@@ -950,7 +950,7 @@ export const useFusedMaturityAgent = (
           monetization: calculateMonetization(profileData)
         };
 
-        // 2. ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+        // 2. ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
         let existingTasks = [];
         try {
           existingTasks = await getAgentTasksByUserId(user.id);
@@ -1514,7 +1514,7 @@ export const useFusedMaturityAgent = (
           try {
             const { calculateCaminoArtesanalProgress } = await import('@/utils/caminoArtesanalProgress');
 
-            // ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+            // ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
             // Obtener tareas existentes (probablemente vacías en onboarding)
             const existingTasks = await getAgentTasksByUserId(user.id);
 
@@ -1626,7 +1626,7 @@ export const useFusedMaturityAgent = (
         try {
           const { calculateCaminoArtesanalProgress } = await import('@/utils/caminoArtesanalProgress');
 
-          // ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+          // ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
           const existingTasks = await getAgentTasksByUserId(user.id);
 
           const initialProgress = calculateCaminoArtesanalProgress({

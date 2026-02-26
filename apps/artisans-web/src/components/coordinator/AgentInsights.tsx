@@ -39,7 +39,7 @@ export const AgentInsights = () => {
         .eq('user_id', user.id)
         .single();
 
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const maturityData = await getLatestMaturityScore(user.id);
 
       const { data: shops } = await supabase

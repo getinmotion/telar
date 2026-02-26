@@ -107,25 +107,25 @@ function toBackendPayload(data: Record<string, any>): Record<string, any> {
 
 /**
  * Obtener todos los productos de una tienda
- * Endpoint: GET /telar/server/products/shop/:shopId
+ * Endpoint: GET /products/shop/:shopId
  */
 export async function getProductsByShopId(shopId: string): Promise<Product[]> {
   const response = await telarApi.get<BackendProductDTO[]>(
-    `/telar/server/products/shop/${shopId}`
+    `/products/shop/${shopId}`
   );
   return response.data.map(mapProductFromDTO);
 }
 
 /**
  * Crear un nuevo producto
- * Endpoint: POST /telar/server/products
+ * Endpoint: POST /products
  */
 export async function createProduct(
   productData: Record<string, any>
 ): Promise<Product> {
   const payload = toBackendPayload(productData);
   const response = await telarApi.post<BackendProductDTO>(
-    '/telar/server/products',
+    '/products',
     payload
   );
   return mapProductFromDTO(response.data);
@@ -133,7 +133,7 @@ export async function createProduct(
 
 /**
  * Actualizar un producto existente
- * Endpoint: PATCH /telar/server/products/:id
+ * Endpoint: PATCH /products/:id
  */
 export async function updateProduct(
   productId: string,
@@ -141,7 +141,7 @@ export async function updateProduct(
 ): Promise<Product> {
   const payload = toBackendPayload(updates);
   const response = await telarApi.patch<BackendProductDTO>(
-    `/telar/server/products/${productId}`,
+    `/products/${productId}`,
     payload
   );
   return mapProductFromDTO(response.data);
@@ -149,30 +149,30 @@ export async function updateProduct(
 
 /**
  * Eliminar un producto
- * Endpoint: DELETE /telar/server/products/:id
+ * Endpoint: DELETE /products/:id
  */
 export async function deleteProduct(productId: string): Promise<void> {
-  await telarApi.delete(`/telar/server/products/${productId}`);
+  await telarApi.delete(`/products/${productId}`);
 }
 
 /**
  * Obtener todos los productos activos de un usuario (a través de su tienda)
- * Endpoint: GET /telar/server/products/user/:userId
+ * Endpoint: GET /products/user/:userId
  */
 export async function getProductsByUserId(userId: string): Promise<Product[]> {
   const response = await telarApi.get<BackendProductDTO[]>(
-    `/telar/server/products/user/${userId}`
+    `/products/user/${userId}`
   );
   return response.data.map(mapProductFromDTO);
 }
 
 /**
  * Obtener el conteo de productos aprobados de una tienda
- * Endpoint: GET /telar/server/products/shop/:shopId/approved-count
+ * Endpoint: GET /products/shop/:shopId/approved-count
  */
 export async function getApprovedProductsCount(shopId: string): Promise<number> {
   const response = await telarApi.get<{ count: number }>(
-    `/telar/server/products/shop/${shopId}/approved-count`
+    `/products/shop/${shopId}/approved-count`
   );
   return response.data.count;
 }

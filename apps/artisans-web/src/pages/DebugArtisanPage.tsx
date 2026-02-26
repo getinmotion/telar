@@ -110,7 +110,7 @@ export default function DebugArtisanPage() {
         { count: shopsCount },
         { count: materialsCount }
       ] = await Promise.all([
-        // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
         getUserMaturityScoresByUserId(user.id).then(scores => ({ count: scores.length })).catch(() => ({ count: 0 })),
         supabase.from('agent_tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('user_agents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
@@ -181,7 +181,7 @@ export default function DebugArtisanPage() {
         { data: globalProfiles },
         { data: onboardingProfiles }
       ] = await Promise.all([
-        // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
         getUserMaturityScoresByUserId(user.id).then(scores => ({ data: scores })).catch(() => ({ data: [] })),
         supabase.from('user_maturity_actions').select('*').eq('user_id', user.id),
         supabase.from('agent_tasks').select('*').eq('user_id', user.id),

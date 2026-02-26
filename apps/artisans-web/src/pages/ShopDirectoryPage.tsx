@@ -64,7 +64,7 @@ export const ShopDirectoryPage: React.FC = () => {
     const fetchShops = async () => {
       try {
         // TODO: Migrar a NestJS cuando esté disponible el endpoint:
-        // GET /telar/server/artisan-shops?active=true&publishStatus=published&orderBy=featured:desc,createdAt:desc
+        // GET /artisan-shops?active=true&publishStatus=published&orderBy=featured:desc,createdAt:desc
         const { data, error } = await supabase
           .from('artisan_shops')
           .select('*')

@@ -112,13 +112,13 @@ export const useMasterCoordinator = () => {
       // ✅ Migrado a NestJS - Obtener TODOS los datos antes de llamar al coordinador
       const fullProfile = await getUserProfileByUserId(user.id);
 
-      // ✅ Migrado a NestJS - GET /telar/server/artisan-shops/user/{user_id}
+      // ✅ Migrado a NestJS - GET /artisan-shops/user/{user_id}
       const shopData = await getArtisanShopByUserId(user.id);
 
-      // ✅ Migrado a NestJS - GET /telar/server/products/user/{user_id}
+      // ✅ Migrado a NestJS - GET /products/user/{user_id}
       const productsData = shopData ? await getProductsByUserId(user.id) : [];
 
-      // ✅ Migrado a endpoint NestJS - POST /telar/server/ai/master-coordinator
+      // ✅ Migrado a endpoint NestJS - POST /ai/master-coordinator
       const data = await analyzeAndGenerateTasks({
         userId: user.id,
         businessDescription: businessProfile?.businessDescription || shopData?.description,
@@ -206,7 +206,7 @@ export const useMasterCoordinator = () => {
     if (!user?.id) return [];
 
     try {
-      // ✅ Migrado a NestJS - POST /telar/server/ai/master-coordinator
+      // ✅ Migrado a NestJS - POST /ai/master-coordinator
       const data = await invokeMasterCoordinator<{ questions: any[] }>({
         action: 'generate_intelligent_questions',
         userId: user.id,
@@ -378,7 +378,7 @@ export const useMasterCoordinator = () => {
         .sort((a, b) => new Date(b.completed_at || 0).getTime() - new Date(a.completed_at || 0).getTime())
         .slice(0, 10);
 
-      // ✅ Migrado a NestJS - POST /telar/server/ai/master-coordinator
+      // ✅ Migrado a NestJS - POST /ai/master-coordinator
       const data = await invokeMasterCoordinator<{ suggestions: any[] }>({
         action: 'evolve_tasks',
         userId: user.id,
@@ -479,7 +479,7 @@ export const useMasterCoordinator = () => {
 
       // Create steps if they don't exist
       if (!existingSteps || existingSteps.length === 0) {
-        // ✅ Migrado a NestJS - POST /telar/server/ai/master-coordinator
+        // ✅ Migrado a NestJS - POST /ai/master-coordinator
         await invokeMasterCoordinator({
           action: 'create_task_steps',
           taskId,
@@ -491,7 +491,7 @@ export const useMasterCoordinator = () => {
         });
       }
 
-      // ✅ Migrado a NestJS - PATCH /telar/server/agent-tasks/{id}
+      // ✅ Migrado a NestJS - PATCH /agent-tasks/{id}
       try {
         await updateAgentTask(taskId, {
           status: 'in_progress'
@@ -511,7 +511,7 @@ export const useMasterCoordinator = () => {
   const completeTaskStep = async (taskId: string, stepId: string, stepData: any) => {
     try {
 
-      // ✅ Migrado a NestJS - POST /telar/server/ai/master-coordinator
+      // ✅ Migrado a NestJS - POST /ai/master-coordinator
       await invokeMasterCoordinator({
         action: 'complete_step',
         taskId,
@@ -553,7 +553,7 @@ export const useMasterCoordinator = () => {
   const generateTaskDeliverable = async (taskId: string) => {
     try {
 
-      // ✅ Migrado a NestJS - POST /telar/server/ai/master-coordinator
+      // ✅ Migrado a NestJS - POST /ai/master-coordinator
       await invokeMasterCoordinator({
         action: 'generate_deliverable',
         taskId,

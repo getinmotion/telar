@@ -44,7 +44,7 @@ function mapNotificationFromDTO(dto: NotificationDTO): Notification {
 }
 
 /**
- * GET /telar/server/notifications/user/{userId}
+ * GET /notifications/user/{userId}
  * Obtener notificaciones del usuario con paginación
  */
 export async function getNotificationsByUserId(
@@ -60,7 +60,7 @@ export async function getNotificationsByUserId(
     if (options?.offset) params.offset = options.offset.toString();
 
     const response = await telarApi.get<NotificationDTO[]>(
-      `/telar/server/notifications/user/${userId}`,
+      `/notifications/user/${userId}`,
       { params }
     );
 
@@ -75,7 +75,7 @@ export async function getNotificationsByUserId(
 }
 
 /**
- * PATCH /telar/server/notifications/:id/mark-as-read
+ * PATCH /notifications/:id/mark-as-read
  * Marcar una notificación como leída
  */
 export async function markNotificationAsRead(
@@ -83,7 +83,7 @@ export async function markNotificationAsRead(
 ): Promise<Notification> {
   try {
     const response = await telarApi.patch<NotificationDTO>(
-      `/telar/server/notifications/${notificationId}/mark-as-read`
+      `/notifications/${notificationId}/mark-as-read`
     );
 
     return mapNotificationFromDTO(response.data);
@@ -97,7 +97,7 @@ export async function markNotificationAsRead(
 }
 
 /**
- * POST /telar/server/notifications/user/:userId/mark-all-as-read
+ * POST /notifications/user/:userId/mark-all-as-read
  * Marcar todas las notificaciones del usuario como leídas
  */
 export async function markAllNotificationsAsRead(
@@ -105,7 +105,7 @@ export async function markAllNotificationsAsRead(
 ): Promise<{ message: string }> {
   try {
     const response = await telarApi.post<{ message: string }>(
-      `/telar/server/notifications/user/${userId}/mark-all-as-read`
+      `/notifications/user/${userId}/mark-all-as-read`
     );
 
     return response.data;
@@ -119,7 +119,7 @@ export async function markAllNotificationsAsRead(
 }
 
 /**
- * DELETE /telar/server/notifications/:id
+ * DELETE /notifications/:id
  * Eliminar una notificación
  *
  * Returns: HTTP 204 No Content on success
@@ -128,7 +128,7 @@ export async function deleteNotification(
   notificationId: string
 ): Promise<void> {
   try {
-    await telarApi.delete(`/telar/server/notifications/${notificationId}`);
+    await telarApi.delete(`/notifications/${notificationId}`);
     // 204 No Content - no body to parse
   } catch (error: any) {
     console.error('[deleteNotification] Error:', error);

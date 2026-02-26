@@ -26,7 +26,7 @@ export const useArtisanDetection = () => {
 
       try {
         // Check if user already has an artisan shop
-        // ✅ Migrado a endpoint NestJS (GET /telar/server/artisan-shops/user/{user_id})
+        // ✅ Migrado a endpoint NestJS (GET /artisan-shops/user/{user_id})
         const shop = await getArtisanShopByUserId(user.id);
 
         if (shop) {

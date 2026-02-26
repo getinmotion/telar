@@ -92,7 +92,7 @@ export const useAnalyticsTracking = () => {
 
     try {
       // Get user's maturity level from latest scores
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const maturityData = await getScoresForAnalytics(userId);
 
       let maturityLevel = 'unknown';

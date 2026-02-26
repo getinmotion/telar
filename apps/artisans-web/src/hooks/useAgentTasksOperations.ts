@@ -94,7 +94,7 @@ export function useAgentTasksOperations(
 
   const updateTask = async (taskId: string, updates: Partial<AgentTask>) => {
     try {
-      // ✅ Migrado a endpoint NestJS - PATCH /telar/server/agent-tasks/{id}
+      // ✅ Migrado a endpoint NestJS - PATCH /agent-tasks/{id}
       // Convertir de snake_case (frontend) a camelCase (backend NestJS)
       const payload: any = {};
       
