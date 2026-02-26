@@ -651,7 +651,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
       });
 
       // Update step in database
-      // ✅ Migrado a endpoint NestJS - PATCH /telar/server/task-steps/{id}
+      // ✅ Migrado a endpoint NestJS - PATCH /task-steps/{id}
       await updateTaskStep(stepId, {
         completionStatus: "completed",
       });
@@ -680,7 +680,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           // Mark task as completed usando datos consistentes
           const completionData = getTaskCompletionData();
 
-          // ✅ Migrado a endpoint NestJS - PATCH /telar/server/agent-tasks/{id}
+          // ✅ Migrado a endpoint NestJS - PATCH /agent-tasks/{id}
           await updateAgentTask(taskId, {
             status: completionData.status,
             progressPercentage: completionData.progress_percentage,
@@ -716,7 +716,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           }
 
           // Update user progress (XP, achievements)
-          // ✅ Migrado a endpoint NestJS - POST /telar/server/user-progress/update
+          // ✅ Migrado a endpoint NestJS - POST /user-progress/update
           try {
             await updateUserProgressWithRewards({
               xpGained: 50,

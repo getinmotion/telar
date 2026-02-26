@@ -66,7 +66,7 @@ export const MilestoneCheckpoint: React.FC<MilestoneCheckpointProps> = ({
           .eq('user_id', profileData.userId);
 
         // Obtener maturity scores
-        // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
         const maturityData = await getLatestMaturityScore(profileData.userId);
 
         // Construir contexto

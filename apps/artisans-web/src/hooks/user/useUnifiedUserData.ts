@@ -339,7 +339,7 @@ export const useUnifiedUserData = () => {
           console.warn(`[useUnifiedUserData] Cache limpiado: ${cleanedCount} entradas`);
         }
 
-        // ✅ Migrado a endpoint NestJS (POST /telar/server/user-profiles)
+        // ✅ Migrado a endpoint NestJS (POST /user-profiles)
         try {
           await createUserProfile({
             userId: user.id,
@@ -440,7 +440,7 @@ export const useUnifiedUserData = () => {
     }
 
     try {
-      // ✅ Migrado a endpoint NestJS (PATCH /telar/server/user-profiles/:userId)
+      // ✅ Migrado a endpoint NestJS (PATCH /user-profiles/:userId)
       await updateUserProfile(user.id, {
         fullName: updates.fullName,
         firstName: updates.firstName,

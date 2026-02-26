@@ -48,7 +48,7 @@ export const useNotifications = () => {
     }
 
     try {
-      // ✅ MIGRATED: NestJS endpoint - GET /telar/server/notifications/user/:userId
+      // ✅ MIGRATED: NestJS endpoint - GET /notifications/user/:userId
       const data = await getNotificationsByUserId(userId, { limit: 50 });
 
       setNotifications(data);
@@ -66,7 +66,7 @@ export const useNotifications = () => {
     if (!userId) return;
 
     try {
-      // ✅ MIGRATED: NestJS endpoint - PATCH /telar/server/notifications/:id/mark-as-read
+      // ✅ MIGRATED: NestJS endpoint - PATCH /notifications/:id/mark-as-read
       await markAsReadService(notificationId);
 
       setNotifications(prev =>
@@ -83,7 +83,7 @@ export const useNotifications = () => {
     if (!userId) return;
 
     try {
-      // ✅ MIGRATED: NestJS endpoint - POST /telar/server/notifications/user/:userId/mark-all-as-read
+      // ✅ MIGRATED: NestJS endpoint - POST /notifications/user/:userId/mark-all-as-read
       await markAllAsReadService(userId);
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -98,7 +98,7 @@ export const useNotifications = () => {
     if (!userId) return;
 
     try {
-      // ✅ MIGRATED: NestJS endpoint - DELETE /telar/server/notifications/:id
+      // ✅ MIGRATED: NestJS endpoint - DELETE /notifications/:id
       await deleteNotificationService(notificationId);
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));

@@ -20,7 +20,7 @@ export const useMaturityScores = () => {
     if (!user) return;
 
     try {
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const latest = await getLatestMaturityScore(user.id);
 
       if (latest) {
@@ -43,7 +43,7 @@ export const useMaturityScores = () => {
     if (!user) return;
 
     try {
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const data = await getUserMaturityScoresByUserId(user.id);
       // Limit to last 10 scores
       setScoreHistory(data.slice(0, 10));
@@ -56,7 +56,7 @@ export const useMaturityScores = () => {
     if (!user) return null;
 
     try {
-      // ✅ Migrado a endpoint NestJS (POST /telar/server/user-maturity-scores)
+      // ✅ Migrado a endpoint NestJS (POST /user-maturity-scores)
       const data = await createUserMaturityScore({
         userId: user.id,
         ideaValidation: scores.ideaValidation,

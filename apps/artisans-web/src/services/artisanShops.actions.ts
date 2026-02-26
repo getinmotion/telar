@@ -18,14 +18,14 @@ import type {
  * @param shopId - ID de la tienda
  * @returns La tienda o null si no existe
  *
- * Endpoint: GET /telar/server/artisan-shops/:id
+ * Endpoint: GET /artisan-shops/:id
  */
 export const getArtisanShopById = async (
   shopId: string
 ): Promise<ArtisanShop | null> => {
   try {
     const response = await telarApi.get<ArtisanShop>(
-      `/telar/server/artisan-shops/${shopId}`
+      `/artisan-shops/${shopId}`
     );
     return response.data;
   } catch (error: any) {
@@ -54,7 +54,7 @@ export const getArtisanShopByUserId = async (
 ): Promise<ArtisanShop | null> => {
   try {
     const response = await telarApi.get<ArtisanShop>(
-      `/telar/server/artisan-shops/user/${userId}`
+      `/artisan-shops/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
@@ -76,14 +76,14 @@ export const getArtisanShopByUserId = async (
  * @param shopSlug - Slug de la tienda
  * @returns La tienda o null si no existe
  * 
- * Endpoint: GET /telar/server/artisan-shops/slug/{slug}
+ * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const getArtisanShopBySlug = async (
   shopSlug: string
 ): Promise<ArtisanShop | null> => {
   try {
     const response = await telarApi.get<ArtisanShop>(
-      `/telar/server/artisan-shops/slug/${shopSlug}`
+      `/artisan-shops/slug/${shopSlug}`
     );
     return response.data;
   } catch (error: any) {
@@ -107,7 +107,7 @@ export const getArtisanShopBySlug = async (
  * @param slug - Slug a verificar
  * @returns true si está disponible (no existe), false si ya existe
  * 
- * Endpoint: GET /telar/server/artisan-shops/slug/{slug}
+ * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const isSlugAvailable = async (slug: string): Promise<boolean> => {
   try {
@@ -144,7 +144,7 @@ export const createArtisanShop = async (
 ): Promise<ArtisanShop> => {
   try {
     const response = await telarApi.post<ArtisanShop>(
-      `/telar/server/artisan-shops`,
+      `/artisan-shops`,
       payload
     );
     return response.data;
@@ -169,7 +169,7 @@ export const updateArtisanShop = async (
 ): Promise<ArtisanShop> => {
   try {
     const response = await telarApi.patch<ArtisanShop>(
-      `/telar/server/artisan-shops/${shopId}`,
+      `/artisan-shops/${shopId}`,
       payload
     );
     return response.data;

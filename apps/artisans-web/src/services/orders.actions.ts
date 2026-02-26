@@ -106,25 +106,25 @@ function mapOrderFromDTO(dto: OrderDTO): Order {
 
 /**
  * Obtener todas las órdenes de una tienda (seller)
- * Endpoint: GET /telar/server/orders/seller/:sellerShopId
+ * Endpoint: GET /orders/seller/:sellerShopId
  */
 export async function getOrdersBySellerShopId(sellerShopId: string): Promise<Order[]> {
   const response = await telarApi.get<OrderDTO[]>(
-    `/telar/server/orders/seller/${sellerShopId}`
+    `/orders/seller/${sellerShopId}`
   );
   return response.data.map(mapOrderFromDTO);
 }
 
 /**
  * Actualizar el status de una orden
- * Endpoint: PATCH /telar/server/orders/:id/status
+ * Endpoint: PATCH /orders/:id/status
  */
 export async function updateOrderStatus(
   orderId: string,
   status: 'pending_fulfillment' | 'delivered' | 'canceled' | 'refunded'
 ): Promise<Order> {
   const response = await telarApi.patch<OrderDTO>(
-    `/telar/server/orders/${orderId}/status`,
+    `/orders/${orderId}/status`,
     { status }
   );
   return mapOrderFromDTO(response.data);
@@ -134,7 +134,7 @@ export async function updateOrderStatus(
  * TODO: Actualizar tracking number
  * Pendiente de definir el flujo con cart-shipping-info
  *
- * Endpoint pendiente: PATCH /telar/server/orders/:orderId/tracking
+ * Endpoint pendiente: PATCH /orders/:orderId/tracking
  */
 export async function updateOrderTracking(
   _orderId: string,

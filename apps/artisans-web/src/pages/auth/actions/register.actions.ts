@@ -15,7 +15,7 @@ export const register = async (registerPayload: RegisterPayload): Promise<Regist
     try {
         // Llamada al endpoint de registro del backend NestJS
         const response = await telarApi.post<RegisterSuccessResponse>(
-            '/telar/server/auth/register',
+            '/auth/register',
             registerPayload
         );
         
@@ -36,7 +36,7 @@ export const verifyEmail = async (token: string): Promise<VerifyEmailSuccessResp
         // Llamada al endpoint de verificación de email del backend NestJS
         // El token va en la URL como parámetro de ruta
         const response = await telarApi.post<VerifyEmailSuccessResponse>(
-            `/telar/server/email-verifications/verify/${token}`
+            `/email-verifications/verify/${token}`
         );
         
         console.log('✅ Email verificado exitosamente:', response.data);

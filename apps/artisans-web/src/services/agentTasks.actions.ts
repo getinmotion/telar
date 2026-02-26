@@ -1,105 +1,81 @@
-/**
- * Agent Tasks Service - Centralized API calls to NestJS backend
- * 
- * Este servicio maneja las operaciones para agent_tasks
- * usando el backend NestJS en lugar de consultas directas a Supabase.
- */
-
 import { telarApi } from '@/integrations/api/telarApi';
-import type {
-  AgentTask,
-  GetAgentTasksByUserIdResponse,
-  CreateAgentTaskPayload,
-  UpdateAgentTaskPayload,
-  UpdateAgentTaskSuccessResponse,
-  AgentTaskErrorResponse
-} from '@/types/agentTask.types';
 
-/**
- * Obtiene todas las tareas de un usuario
- * @param userId - ID del usuario
- * @returns Array de tareas del usuario
- */
-export const getAgentTasksByUserId = async (
-  userId: string
-): Promise<AgentTask[]> => {
-  try {
-    const response = await telarApi.get<GetAgentTasksByUserIdResponse>(
-      `/telar/server/agent-tasks/user/${userId}`
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error('[AgentTasks] Error al obtener tareas por usuario:', error);
-    
-    if (error.response?.data) {
-      throw error.response.data as AgentTaskErrorResponse;
-    }
-    throw error;
-  }
-};
+export interface CreateAgentTaskPayload {
+  userId: string;
+  agentId: string;
+  title: string;
+  description?: string;
+  milestoneCategory?: 'formalization' | 'brand' | 'shop' | 'sales' | 'community';
+  priority?: number;
+  relevance?: 'low' | 'medium' | 'high';
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  progressPercentage?: number;
+  environment?: 'production' | 'staging';
+  deliverableType?: string;
+  dueDate?: string;
+  notes?: string;
+}
 
-/**
- * Crea una nueva tarea de agente
- * @param payload - Datos de la tarea a crear
- * @returns La tarea creada
- */
-export const createAgentTask = async (
-  payload: CreateAgentTaskPayload
-): Promise<AgentTask> => {
-  try {
-    const response = await telarApi.post<AgentTask>(
-      `/telar/server/agent-tasks`,
-      payload
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error('[AgentTasks] Error al crear tarea:', error);
-    
-    if (error.response?.data) {
-      throw error.response.data as AgentTaskErrorResponse;
-    }
-    throw error;
-  }
-};
+// completedAt se omite del payload — el backend lo asigna automáticamente al pasar status: 'completed'
+export interface UpdateAgentTaskPayload {
+  title?: string;
+  description?: string;
+  milestoneCategory?: 'formalization' | 'brand' | 'shop' | 'sales' | 'community';
+  priority?: number;
+  relevance?: 'low' | 'medium' | 'high';
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  progressPercentage?: number;
+  environment?: 'production' | 'staging';
+  deliverableType?: string;
+  dueDate?: string;
+  notes?: string;
+  timeSpent?: number;
+  isArchived?: boolean;
+}
 
-/**
- * Actualiza una tarea de agente existente
- * @param taskId - ID de la tarea
- * @param payload - Datos a actualizar
- * @returns La tarea actualizada
- */
-export const updateAgentTask = async (
-  taskId: string,
+export interface AgentTask {
+  id: string;
+  userId: string;
+  agentId: string;
+  title: string;
+  description: string | null;
+  milestoneCategory: string | null;
+  priority: number;
+  relevance: string;
+  status: string;
+  progressPercentage: number;
+  environment: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  dueDate: string | null;
+}
+
+export async function getAgentTasksByUserId(userId: string): Promise<AgentTask[]> {
+  const response = await telarApi.get<AgentTask[]>(
+    `/agent-tasks/user/${userId}`
+  );
+  return response.data;
+}
+
+export async function createAgentTask(payload: CreateAgentTaskPayload): Promise<AgentTask> {
+  const response = await telarApi.post<AgentTask>('/agent-tasks', payload);
+  return response.data;
+}
+
+export async function updateAgentTask(
+  id: string,
   payload: UpdateAgentTaskPayload
-): Promise<UpdateAgentTaskSuccessResponse> => {
-  try {
-    const response = await telarApi.patch<UpdateAgentTaskSuccessResponse>(
-      `/telar/server/agent-tasks/${taskId}`,
-      payload
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error('[AgentTasks] Error al actualizar tarea:', error);
-    
-    if (error.response?.data) {
-      throw error.response.data as AgentTaskErrorResponse;
-    }
-    throw error;
-  }
-};
+): Promise<AgentTask> {
+  const response = await telarApi.patch<AgentTask>(
+    `/agent-tasks/${id}`,
+    payload
+  );
+  return response.data;
+}
 
-/**
- * Marca una tarea como completada
- * Helper que actualiza status, progress_percentage y completed_at
- * @param taskId - ID de la tarea
- * @returns La tarea actualizada
- */
-export const completeAgentTask = async (
-  taskId: string
-): Promise<UpdateAgentTaskSuccessResponse> => {
-  return updateAgentTask(taskId, {
-    status: 'completed',
-    progressPercentage: 100,
-    completedAt: new Date().toISOString()
-  });
-};
+export async function createAgentTasksBulk(
+  tasks: CreateAgentTaskPayload[]
+): Promise<AgentTask[]> {
+  return Promise.all(tasks.map(task => createAgentTask(task)));
+}

@@ -5,6 +5,11 @@ interface BrandColors {
   secondary: string[];
 }
 
+export interface ClaimOption {
+  text: string;
+  reasoning: string;
+}
+
 export interface BrandDiagnosis {
   scores: {
     logo: { score: number; reasoning: string };
@@ -20,14 +25,39 @@ export interface BrandDiagnosis {
   risks: string[];
 }
 
+export async function extractColors(logoUrl: string): Promise<{ colors: string[] }> {
+  const response = await telarApi.post<{ colors: string[] }>(
+    '/ai/brand-assistant',
+    { action: 'extract_colors', logoUrl }
+  );
+  return response.data;
+}
+
 export async function generateColorPalette(
   primaryColors: string[]
-): Promise<{ secondary_colors: string[] }> {
+): Promise<{ secondary_colors: string[]; reasoning?: string }> {
   const response = await telarApi.post<{ secondary_colors: string[]; reasoning: string }>(
-    '/telar/server/ai/brand-assistant',
+    '/ai/brand-assistant',
     { action: 'generate_color_palette', primaryColors }
   );
-  return { secondary_colors: response.data.secondary_colors };
+  return response.data;
+}
+
+export async function generateClaim(params: {
+  brandName: string;
+  businessDescription: string;
+  userId: string;
+}): Promise<{ claims: ClaimOption[] }> {
+  const response = await telarApi.post<{ claims: ClaimOption[] }>(
+    '/ai/brand-assistant',
+    {
+      action: 'generate_claim',
+      brandName: params.brandName,
+      businessDescription: params.businessDescription,
+      userId: params.userId,
+    }
+  );
+  return response.data;
 }
 
 export async function diagnoseBrandIdentity(params: {
@@ -38,7 +68,7 @@ export async function diagnoseBrandIdentity(params: {
   perception?: Record<string, unknown>;
 }): Promise<{ diagnosis: BrandDiagnosis }> {
   const response = await telarApi.post<{ diagnosis: BrandDiagnosis }>(
-    '/telar/server/ai/brand-assistant',
+    '/ai/brand-assistant',
     {
       action: 'diagnose_brand_identity',
       logoUrl: params.logoUrl || undefined,

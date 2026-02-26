@@ -17,7 +17,7 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
     try {
         // Llamada al endpoint de login del backend NestJS
         const response = await telarApi.post<LoginSuccessResponse>(
-            '/telar/server/auth/login',
+            '/auth/login',
             loginPayload
         );
         
@@ -49,7 +49,7 @@ export const getCurrentUser = async (): Promise<GetProfileSuccessResponse> => {
     try {
         // El token se envía automáticamente por el interceptor de telarApi
         const response = await telarApi.get<GetProfileSuccessResponse>(
-            '/telar/server/auth/profile'
+            '/auth/profile'
         );
         
         return response.data;
@@ -68,7 +68,7 @@ export const refreshToken = async (): Promise<RefreshTokenSuccessResponse> => {
     try {
         // El token actual se envía automáticamente por el interceptor de telarApi
         const response = await telarApi.post<RefreshTokenSuccessResponse>(
-            '/telar/server/auth/refresh'
+            '/auth/refresh'
         );
         
         // Actualizar el token en localStorage

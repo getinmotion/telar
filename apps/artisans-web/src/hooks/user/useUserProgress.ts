@@ -155,7 +155,7 @@ export const useUserProgress = () => {
     setUpdating(true);
 
     try {
-      // ✅ Migrado a endpoint NestJS - POST /telar/server/user-progress/update
+      // ✅ Migrado a endpoint NestJS - POST /user-progress/update
       const response = await updateUserProgressWithRewards({
         xpGained,
         missionCompleted,
