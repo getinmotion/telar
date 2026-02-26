@@ -18,12 +18,12 @@ import {
  * @returns Array de entregables con relaciones a user y task
  * @throws Error si la petición falla
  * 
- * Endpoint: GET /telar/server/agent-deliverables
+ * Endpoint: GET /agent-deliverables
  */
 export const getAgentDeliverables = async (): Promise<AgentDeliverable[]> => {
   try {
     const response = await telarApi.get<GetAgentDeliverablesResponse>(
-      '/telar/server/agent-deliverables'
+      '/agent-deliverables'
     );
 
     return response.data.data;
@@ -39,14 +39,14 @@ export const getAgentDeliverables = async (): Promise<AgentDeliverable[]> => {
  * @returns El entregable creado
  * @throws Error si la petición falla
  * 
- * Endpoint: POST /telar/server/agent-deliverables
+ * Endpoint: POST /agent-deliverables
  */
 export const createAgentDeliverable = async (
   payload: CreateAgentDeliverablePayload
 ): Promise<AgentDeliverable> => {
   try {
     const response = await telarApi.post<CreateAgentDeliverableResponse>(
-      '/telar/server/agent-deliverables',
+      '/agent-deliverables',
       payload
     );
 
@@ -64,7 +64,7 @@ export const createAgentDeliverable = async (
  * @returns El entregable actualizado
  * @throws Error si la petición falla
  * 
- * Endpoint: PATCH /telar/server/agent-deliverables/{id}
+ * Endpoint: PATCH /agent-deliverables/{id}
  */
 export const updateAgentDeliverable = async (
   deliverableId: string,
@@ -72,7 +72,7 @@ export const updateAgentDeliverable = async (
 ): Promise<AgentDeliverable> => {
   try {
     const response = await telarApi.patch<UpdateAgentDeliverableResponse>(
-      `/telar/server/agent-deliverables/${deliverableId}`,
+      `/agent-deliverables/${deliverableId}`,
       payload
     );
 

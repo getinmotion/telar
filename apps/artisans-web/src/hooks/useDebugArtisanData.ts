@@ -233,7 +233,7 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       // ✅ Obtener perfil desde NestJS backend
       const userProfile = await getUserProfileByUserId(user.id).catch(() => null);
 
-      // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
       const maturityScores = await getLatestMaturityScore(user.id);
 
       // 4. Calcular Business Readiness Score
@@ -481,7 +481,7 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       if (agentsError) console.error('Error deleting agents:', agentsError);
 
       // Delete user_maturity_scores
-      // ✅ Migrado a endpoint NestJS (DELETE /telar/server/user-maturity-scores/user/{user_id})
+      // ✅ Migrado a endpoint NestJS (DELETE /user-maturity-scores/user/{user_id})
       // TODO: Este endpoint podría no existir aún. Si falla, se logea pero no se lanza error.
       await deleteUserMaturityScores(user.id);
 
@@ -523,7 +523,7 @@ export const useDebugArtisanData = (autoRefresh = false) => {
 
       // Recreate user_progress with initial values
       try {
-        // TODO: Si necesitas DELETE primero, requiere endpoint DELETE /telar/server/user-progress/:id
+        // TODO: Si necesitas DELETE primero, requiere endpoint DELETE /user-progress/:id
         // Por ahora usamos UPSERT que resetea los valores
         await upsertUserProgress(user.id, {
           level: 1,

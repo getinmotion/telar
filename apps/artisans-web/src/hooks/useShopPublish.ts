@@ -91,7 +91,7 @@ export const useShopPublish = (shopId?: string) => {
         return false;
       }
 
-      // ✅ MIGRATED: NestJS endpoint - PATCH /telar/server/artisan-shops/:id
+      // ✅ MIGRATED: NestJS endpoint - PATCH /artisan-shops/:id
       await updateArtisanShop(shopId, {
         publishStatus: 'published',
         active: true,

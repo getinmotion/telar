@@ -183,7 +183,7 @@ export const FusedMaturityCalculator: React.FC<FusedMaturityCalculatorProps> = (
           contextVersion: (existingContext?.contextVersion || 0) + 1
         });
 
-        // ✅ Migrado a endpoint NestJS (PATCH /telar/server/user-profiles/:userId)
+        // ✅ Migrado a endpoint NestJS (PATCH /user-profiles/:userId)
         await updateUserProfile(user.id, {
           brandName: extractedBrandName,
           businessDescription: profileData.businessDescription,

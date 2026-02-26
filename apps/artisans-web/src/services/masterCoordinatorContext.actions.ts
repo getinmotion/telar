@@ -19,14 +19,14 @@ import {
  * @returns El contexto del coordinador o null si no existe
  * @throws Error si la petición falla
  * 
- * Endpoint: GET /telar/server/master-coordinator-context/user/{user_id}
+ * Endpoint: GET /master-coordinator-context/user/{user_id}
  */
 export const getMasterCoordinatorContextByUserId = async (
   userId: string
 ): Promise<MasterCoordinatorContext | null> => {
   try {
     const response = await telarApi.get<GetMasterCoordinatorContextResponse>(
-      `/telar/server/master-coordinator-context/user/${userId}`
+      `/master-coordinator-context/user/${userId}`
     );
 
     return response.data.data;
@@ -47,14 +47,14 @@ export const getMasterCoordinatorContextByUserId = async (
  * @returns El contexto creado
  * @throws Error si la petición falla
  * 
- * Endpoint: POST /telar/server/master-coordinator-context
+ * Endpoint: POST /master-coordinator-context
  */
 export const createMasterCoordinatorContext = async (
   payload: CreateMasterCoordinatorContextPayload
 ): Promise<MasterCoordinatorContext> => {
   try {
     const response = await telarApi.post<CreateMasterCoordinatorContextResponse>(
-      `/telar/server/master-coordinator-context`,
+      `/master-coordinator-context`,
       payload
     );
 
@@ -82,7 +82,7 @@ export const createMasterCoordinatorContext = async (
  * @returns El contexto actualizado
  * @throws Error si la petición falla
  * 
- * Endpoint: PATCH /telar/server/master-coordinator-context/user/{user_id}
+ * Endpoint: PATCH /master-coordinator-context/user/{user_id}
  */
 export const updateMasterCoordinatorContextByUserId = async (
   userId: string,
@@ -90,7 +90,7 @@ export const updateMasterCoordinatorContextByUserId = async (
 ): Promise<MasterCoordinatorContext> => {
   try {
     const response = await telarApi.patch<UpdateMasterCoordinatorContextResponse>(
-      `/telar/server/master-coordinator-context/user/${userId}`,
+      `/master-coordinator-context/user/${userId}`,
       payload
     );
 
