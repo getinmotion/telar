@@ -12,10 +12,6 @@ import { MATURITY_TEST_CONFIG, getProgressPercentage, isAssessmentComplete } fro
 import { BusinessInfoConfirmationClean } from './BusinessInfoConfirmationClean';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useArtisanClassifier } from '@/hooks/useArtisanClassifier';
-import { useArtisanDetection } from '@/hooks/useArtisanDetection';
-import { useAuth } from '@/context/AuthContext';
-import { ClasificacionOficial } from '@/types/artisan';
 import { getUserMasterContextByUserId, upsertUserMasterContext } from '@/services/userMasterContext.actions';
 
 // Hook de debounce para evitar guardados constantes
@@ -83,11 +79,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
   const [extractedInfo, setExtractedInfo] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Artisan classification
-  const { user } = useAuth();
-  const { isArtisan } = useArtisanDetection();
-  const { classifyArtisan, isClassifying, getClassification, saveClassification } = useArtisanClassifier();
-  const [classification, setClassification] = useState<ClasificacionOficial | null>(null);
 
   // Debounced version of updateProfileData to prevent constant saves
   const debouncedUpdateProfile = useDebouncedCallback((data: Partial<UserProfileData>) => {
@@ -101,22 +92,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       setExtractedInfo(null);
     }
   }, [currentQuestionIndex, block.id, totalAnswered]);
-
-  // Load classification for artisan users
-  useEffect(() => {
-    const loadClassification = async () => {
-      if (isArtisan) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const existingClassification = await getClassification(user.id);
-          if (existingClassification) {
-            setClassification(existingClassification);
-          }
-        }
-      }
-    };
-    loadClassification();
-  }, [isArtisan]);
 
   // Show save indicator after each checkpoint
   useEffect(() => {
@@ -284,7 +259,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           });
 
           if (error) {
-            console.error('Error extracting info:', error);
             toast.error(
               language === 'es'
                 ? '⚠️ Procesando tu respuesta... Continuamos de todos modos'
@@ -356,14 +330,12 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
             setIsExtracting(false);
             return;
           } else {
-            console.warn('Extraction returned no data');
             onAnswer(currentQuestion.id, description);
             setIsExtracting(false);
             setCurrentQuestionIndex(prev => prev + 1);
             return;
           }
-        } catch (err) {
-          console.error('Unexpected error:', err);
+        } catch {
           toast.error(
             language === 'es'
               ? '⚠️ Error inesperado al analizar'
@@ -375,7 +347,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           return;
         }
       } else {
-        console.error('Description too short');
         toast.error(
           language === 'es'
             ? 'Por favor escribe al menos 20 caracteres para poder analizar tu negocio'
@@ -468,8 +439,8 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           },
         });
       }
-    } catch (error) {
-      console.error('Error syncing brand name:', error);
+    } catch {
+      // sync error is non-critical
     }
 
     // Reset confirmation state
@@ -483,19 +454,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
     );
 
     setCurrentQuestionIndex(prev => prev + 1);
-  };
-
-  const handleClassifyArtisan = async (description: string): Promise<ClasificacionOficial | null> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const result = await classifyArtisan(description, user.id);
-    if (result) {
-      setClassification(result);
-      // Save to database
-      await saveClassification(user.id, result);
-    }
-    return result;
   };
 
   const isQuestionAnswered = (question: any) => {
@@ -587,23 +545,7 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       originalText={profileData.businessDescription || currentAnswer}
       language={language}
       craftType={profileData.craftType}
-      officialClassification={classification?.oficio}
       totalAnswered={totalAnswered}
-      onAddClassification={async () => {
-        if (!classification && profileData.craftType && user) {
-          console.log('🔄 [CLASSIFICATION] Auto-classifying artisan...');
-          const result = await classifyArtisan(profileData.craftType);
-          if (result) {
-            setClassification(result);
-            await saveClassification(user.id, result);
-            toast.success(
-              language === 'es'
-                ? `✓ Clasificación agregada: ${result.oficio}`
-                : `✓ Classification added: ${result.oficio}`
-            );
-          }
-        }
-      }}
       onConfirm={handleConfirmExtractedInfo}
       onEdit={() => {
         setShowConfirmation(false);

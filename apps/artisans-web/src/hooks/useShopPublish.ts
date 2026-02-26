@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { getArtisanShopById, updateArtisanShop } from '@/services/artisanShops.actions';
+import { getApprovedProductsCount } from '@/services/products.actions';
 
 export interface PublishRequirements {
   hasApprovedProducts: boolean;
@@ -29,34 +30,18 @@ export const useShopPublish = (shopId?: string) => {
     }
 
     try {
-      // Verificar productos aprobados
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, moderation_status')
-        .eq('shop_id', shopId)
-        .in('moderation_status', ['approved', 'approved_with_edits']);
+      // ✅ MIGRATED: NestJS endpoints
+      // Obtener conteo de productos aprobados y datos de la tienda en paralelo
+      const [approvedProductsCount, shopData] = await Promise.all([
+        getApprovedProductsCount(shopId),
+        getArtisanShopById(shopId)
+      ]);
 
-      // const products
-
-      if (productsError) throw productsError;
-
-      const approvedProductsCount = products?.length || 0;
       const hasApprovedProducts = approvedProductsCount >= 1;
 
-      // Verificar datos bancarios directamente por shopId
-      const { data: shopData, error: bankError } = await supabase
-        .from('artisan_shops')
-        .select('id_contraparty, bank_data_status')
-        .eq('id', shopId)
-        .single();
-
-      if (bankError && bankError.code !== 'PGRST116') {
-        console.error('Error fetching bank data:', bankError);
-      }
-
       // Usar el nuevo campo bank_data_status si existe, sino fallback a id_contraparty
-      const bankDataStatus = shopData?.bank_data_status ||
-        (shopData?.id_contraparty ? 'complete' : 'not_set');
+      const bankDataStatus = shopData?.bankDataStatus ||
+        (shopData?.idContraparty ? 'complete' : 'not_set');
       const hasBankData = bankDataStatus === 'complete';
 
       return {
@@ -106,16 +91,11 @@ export const useShopPublish = (shopId?: string) => {
         return false;
       }
 
-      // Actualizar estado de la tienda
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({
-          publish_status: 'published',
-          active: true,
-        })
-        .eq('id', shopId);
-
-      if (error) throw error;
+      // ✅ MIGRATED: NestJS endpoint - PATCH /telar/server/artisan-shops/:id
+      await updateArtisanShop(shopId, {
+        publishStatus: 'published',
+        active: true,
+      });
 
       toast({
         title: "¡Tienda publicada!",

@@ -5,8 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
-import { useArtisanClassifier } from '@/hooks/useArtisanClassifier';
-import { useAuth } from '@/context/AuthContext';
 import { ArtisanShop } from '@/types/artisanShop.types';
 
 interface ShopInfoSectionProps {
@@ -19,22 +17,6 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
   isLoading,
 }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { getClassification } = useArtisanClassifier();
-  const [officialClassification, setOfficialClassification] = React.useState<string | undefined>();
-
-  // Cargar clasificación oficial si existe
-  React.useEffect(() => {
-    const loadClassification = async () => {
-      if (user?.id) {
-        const classification = await getClassification(user.id);
-        if (classification) {
-          setOfficialClassification(`${classification.oficio} - ${classification.materiaPrima}`);
-        }
-      }
-    };
-    loadClassification();
-  }, [user?.id, getClassification]);
 
   if (isLoading) {
     return (
@@ -177,9 +159,7 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
             </h4>
             <ArtisanProfileCards
               craftType={shop.craftType}
-              officialClassification={officialClassification}
               language="es"
-              onAddClassification={() => navigate('/onboarding?step=classification')}
             />
           </div>
         )}

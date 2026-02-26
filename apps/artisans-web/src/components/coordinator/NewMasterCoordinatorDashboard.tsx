@@ -1,9 +1,9 @@
 /**
  * Tu Taller Digital - Consolidado con MasterAgentContext
- * 
+ *
  * Tu espacio principal unificado que usa MasterAgentContext como única fuente de verdad.
  * Todos los datos fluyen a través del Coordinador Maestro.
- * 
+ *
  * Estructura:
  * - Hero dinámico con saludo y nivel de madurez
  * - Sidebar permanente del Coordinador (chat siempre disponible)
@@ -11,37 +11,46 @@
  * - Panel de Entregables (descargables)
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { useMasterAgent } from '@/context/MasterAgentContext';
-import { useUserProgress } from '@/hooks/useUserProgress';
-import { useLanguage } from '@/context/LanguageContext';
-import { useMasterOrchestrator } from '@/hooks/useMasterOrchestrator';
-import { useAuth } from '@/context/AuthContext';
-import { getUserProgressByUserId, updateUserProgressWithRewards } from '@/services/userProgress.actions';
-import { getProductsByUserId } from '@/services/products.actions';
-import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
-import { updateTaskStep } from '@/services/taskSteps.actions';
-import { updateAgentTask } from '@/services/agentTasks.actions';
-import { getAgentDeliverables, createAgentDeliverable } from '@/services/agentDeliverables.actions';
-import { getUserAchievements } from '@/services/userAchievements.actions';
-import { getMasterCoordinatorContextByUserId, updateMasterCoordinatorContextByUserId } from '@/services/masterCoordinatorContext.actions';
-import { useUnifiedProgress } from '@/hooks/useUnifiedProgress';
-import { useUserLocalStorage } from '@/hooks/useUserLocalStorage';
-import { useUnifiedUserData } from '@/hooks/user';
-import { useFixedTasksManager } from '@/hooks/useFixedTasksManager';
-import { useMissionDiscovery } from '@/hooks/useMissionDiscovery';
-import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
-import { CoordinatorChatSidebar } from './CoordinatorChatSidebar';
-import { SimpleMissionCard } from '../dashboard/artisan/SimpleMissionCard';
-import { RewardsPanel } from './RewardsPanel';
-import { DeliverableCard } from './DeliverableCard';
-import { FloatingMasterAgent } from '@/components/dashboard/FloatingMasterAgent';
-import { DashboardActionCard } from '@/components/dashboard/DashboardActionCard';
-import { InventoryOrganizerModal } from '@/components/tasks/StepSpecificModals/InventoryOrganizerModal';
-import { LegalGuideModal } from '@/components/tasks/StepSpecificModals/LegalGuideModal';
-import { ForceCompleteProfileModal } from '@/components/profile/ForceCompleteProfileModal';
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useMasterAgent } from "@/context/MasterAgentContext";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useLanguage } from "@/context/LanguageContext";
+import { useMasterOrchestrator } from "@/hooks/useMasterOrchestrator";
+import { useAuth } from "@/context/AuthContext";
+import {
+  getUserProgressByUserId,
+  updateUserProgressWithRewards,
+} from "@/services/userProgress.actions";
+import { getProductsByUserId } from "@/services/products.actions";
+import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
+import { updateTaskStep } from "@/services/taskSteps.actions";
+import { updateAgentTask } from "@/services/agentTasks.actions";
+import {
+  getAgentDeliverables,
+  createAgentDeliverable,
+} from "@/services/agentDeliverables.actions";
+import { getUserAchievements } from "@/services/userAchievements.actions";
+import {
+  getMasterCoordinatorContextByUserId,
+  updateMasterCoordinatorContextByUserId,
+} from "@/services/masterCoordinatorContext.actions";
+import { useUnifiedProgress } from "@/hooks/useUnifiedProgress";
+import { useUserLocalStorage } from "@/hooks/useUserLocalStorage";
+import { useUnifiedUserData } from "@/hooks/user";
+import { useFixedTasksManager } from "@/hooks/useFixedTasksManager";
+import { useMissionDiscovery } from "@/hooks/useMissionDiscovery";
+import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
+import { CoordinatorChatSidebar } from "./CoordinatorChatSidebar";
+import { SimpleMissionCard } from "../dashboard/artisan/SimpleMissionCard";
+import { RewardsPanel } from "./RewardsPanel";
+import { DeliverableCard } from "./DeliverableCard";
+import { FloatingMasterAgent } from "@/components/dashboard/FloatingMasterAgent";
+import { DashboardActionCard } from "@/components/dashboard/DashboardActionCard";
+import { InventoryOrganizerModal } from "@/components/tasks/StepSpecificModals/InventoryOrganizerModal";
+import { LegalGuideModal } from "@/components/tasks/StepSpecificModals/LegalGuideModal";
+import { ForceCompleteProfileModal } from "@/components/profile/ForceCompleteProfileModal";
 
 import {
   Sparkles,
@@ -67,31 +76,31 @@ import {
   ExternalLink,
   Search,
   Palette,
-  Edit
-} from 'lucide-react';
-import { TelarLoadingAnimation } from '@/components/ui/TelarLoadingAnimation';
-import { RotatingLoadingPhrases } from '@/components/ui/RotatingLoadingPhrases';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { EventBus } from '@/utils/eventBus';
-import { getTaskCompletionData } from '@/hooks/utils/taskCompletionHelpers';
-import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
-import { useMaturityTestStatus } from '@/hooks/useMaturityTestStatus';
-import { MATURITY_TEST_CONFIG } from '@/config/maturityTest';
-import { useBrandSyncValidator } from '@/hooks/useBrandSyncValidator';
-import { useWizardTaskDetector } from '@/hooks/useWizardTaskDetector';
-import { useOnboardingValidation } from '@/hooks/useOnboardingValidation';
-import { ArtisanProgressHero } from '@/components/dashboard/artisan/ArtisanProgressHero';
-import { UserProgressDashboard } from '@/components/dashboard/UserProgressDashboard';
-import { DashboardNavHeader } from '@/components/dashboard/DashboardNavHeader';
-import { ContinueMaturityBanner } from '@/components/dashboard/ContinueMaturityBanner';
-import { useShopNavigation } from '@/hooks/useShopNavigation';
-import { DashboardSkeleton } from '@/components/dashboard/skeletons';
-import { ShopSalesMiniCard } from '@/components/dashboard/ShopSalesMiniCard';
+  Edit,
+} from "lucide-react";
+import { TelarLoadingAnimation } from "@/components/ui/TelarLoadingAnimation";
+import { RotatingLoadingPhrases } from "@/components/ui/RotatingLoadingPhrases";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { EventBus } from "@/utils/eventBus";
+import { getTaskCompletionData } from "@/hooks/utils/taskCompletionHelpers";
+import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
+import { useMaturityTestStatus } from "@/hooks/useMaturityTestStatus";
+import { MATURITY_TEST_CONFIG } from "@/config/maturityTest";
+import { useBrandSyncValidator } from "@/hooks/useBrandSyncValidator";
+import { useWizardTaskDetector } from "@/hooks/useWizardTaskDetector";
+import { useOnboardingValidation } from "@/hooks/useOnboardingValidation";
+import { ArtisanProgressHero } from "@/components/dashboard/artisan/ArtisanProgressHero";
+import { UserProgressDashboard } from "@/components/dashboard/UserProgressDashboard";
+import { DashboardNavHeader } from "@/components/dashboard/DashboardNavHeader";
+import { ContinueMaturityBanner } from "@/components/dashboard/ContinueMaturityBanner";
+import { useShopNavigation } from "@/hooks/useShopNavigation";
+import { DashboardSkeleton } from "@/components/dashboard/skeletons";
+import { ShopSalesMiniCard } from "@/components/dashboard/ShopSalesMiniCard";
 
 export const NewMasterCoordinatorDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -99,35 +108,64 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const { user } = useAuth();
   const userLocalStorage = useUserLocalStorage();
   const { context } = useUnifiedUserData();
-  const { masterState, syncAll, refreshModule, isLoading, error } = useMasterAgent();
+  const { masterState, syncAll, refreshModule, isLoading, error } =
+    useMasterAgent();
   const { hasShop, shopButtonTextLong, navigateToShop } = useShopNavigation();
   const { progress, updateProgress, progressPercentage } = useUserProgress();
   const { trackEvent } = useAnalyticsTracking();
-  const { unifiedProgress, loading: loadingProgress, refreshProgress } = useUnifiedProgress();
-  const { analyzeContext, generateTasks, validateTask, isAnalyzing, isGenerating, isValidating: isTaskValidating } = useMasterOrchestrator();
-  const { isComplete: isProfileComplete, isLoading: isProfileLoading, missingFields, currentData, refresh: refreshProfileCompleteness } = useProfileCompleteness();
+  const {
+    unifiedProgress,
+    loading: loadingProgress,
+    refreshProgress,
+  } = useUnifiedProgress();
+  const {
+    analyzeContext,
+    generateTasks,
+    validateTask,
+    isAnalyzing,
+    isGenerating,
+    isValidating: isTaskValidating,
+  } = useMasterOrchestrator();
+  const {
+    isComplete: isProfileComplete,
+    isLoading: isProfileLoading,
+    missingFields,
+    currentData,
+    refresh: refreshProfileCompleteness,
+  } = useProfileCompleteness();
   const [isChatExpanded, setIsChatExpanded] = useState(false);
-  const [processingTasks, setProcessingTasks] = useState<Set<string>>(new Set());
+  const [processingTasks, setProcessingTasks] = useState<Set<string>>(
+    new Set(),
+  );
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [inventoryModalOpen, setInventoryModalOpen] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   // 🔧 OPTIMIZATION: Verificación directa con guard para evitar re-ejecución
-  const [directProductCount, setDirectProductCount] = useState<number | null>(null);
-  const verifyProductsRef = useRef(false);
+  const [directProductCount, setDirectProductCount] = useState<number | null>(
+    null,
+  );
+  const verifyProductsRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // OPTIMIZATION: Guard para prevenir queries redundantes
-    if (verifyProductsRef.current || !user?.id) return;
-    verifyProductsRef.current = true;
+    // ✅ FIX: Resetear guard cuando cambia el userId
+    if (!user?.id) return;
+
+    // Si ya se verificó para este usuario, no volver a ejecutar
+    if (verifyProductsRef.current === user.id) return;
+
+    verifyProductsRef.current = user.id;
 
     const verifyProducts = async () => {
       try {
         const products = await getProductsByUserId(user.id);
         setDirectProductCount(products.length);
       } catch (error) {
-        console.error('[NewMasterCoordinatorDashboard] Error fetching products:', error);
+        console.error(
+          "[NewMasterCoordinatorDashboard] Error fetching products:",
+          error,
+        );
         setDirectProductCount(0);
       }
     };
@@ -136,8 +174,13 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   }, [user?.id]);
 
   // 🎯 Fixed Tasks Manager & Mission Discovery
-  const { tasks: fixedTasks, completedTaskIds: completedFixedTasks, loading: loadingFixed } = useFixedTasksManager();
-  const { suggestions, isDiscovering, discoverMissions } = useMissionDiscovery();
+  const {
+    tasks: fixedTasks,
+    completedTaskIds: completedFixedTasks,
+    loading: loadingFixed,
+  } = useFixedTasksManager();
+  const { suggestions, isDiscovering, discoverMissions } =
+    useMissionDiscovery();
 
   // 🎯 NUEVO: Estados de Maturity Test con diferenciación clara
   const {
@@ -145,7 +188,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
     hasCompletedMaturityTest,
     totalAnswered: maturityTotalAnswered,
     isInProgress: maturityIsInProgress,
-    isValidating: maturityIsValidating
+    isValidating: maturityIsValidating,
   } = useOnboardingValidation();
 
   // Aliases para compatibilidad con código existente
@@ -162,7 +205,8 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
   // 🔄 Usar totalAnswered del hook como fuente principal
   const totalAnswered = maturityTotalAnswered;
-  const remainingQuestions = MATURITY_TEST_CONFIG.TOTAL_QUESTIONS - totalAnswered;
+  const remainingQuestions =
+    MATURITY_TEST_CONFIG.TOTAL_QUESTIONS - totalAnswered;
 
   // 🔐 Mostrar modal de perfil incompleto cuando faltan datos críticos
   useEffect(() => {
@@ -179,7 +223,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   useEffect(() => {
     if (isLoading || isAnalyzing || isGenerating || isTaskValidating) {
       const timer = setTimeout(() => {
-        console.warn('[Dashboard] ⏰ Loading timeout reached, forcing render');
+        console.warn("[Dashboard] ⏰ Loading timeout reached, forcing render");
         setLoadingTimeout(true);
       }, 15000);
 
@@ -191,30 +235,38 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
   // Listen for real-time inventory updates
   useEffect(() => {
+    const unsubscribeInventory = EventBus.subscribe(
+      "inventory.updated",
+      async (data) => {
+        await refreshModule("inventario");
+        await refreshModule("tienda");
 
-    const unsubscribeInventory = EventBus.subscribe('inventory.updated', async (data) => {
-      await refreshModule('inventario');
-      await refreshModule('tienda');
+        toast.info("Inventario actualizado", {
+          description: "Tu catálogo de productos se ha sincronizado",
+          duration: 3000,
+        });
+      },
+    );
 
-      toast.info('Inventario actualizado', {
-        description: 'Tu catálogo de productos se ha sincronizado',
-        duration: 3000
-      });
-    });
-
-    const unsubscribeBrand = EventBus.subscribe('brand.updated', async () => {
-      await refreshModule('marca');
+    const unsubscribeBrand = EventBus.subscribe("brand.updated", async () => {
+      await refreshModule("marca");
     });
 
     // 🧹 NUEVO: Refrescar todo el dashboard cuando se limpien datos
-    const unsubscribeDebugClear = EventBus.subscribe('debug.data.cleared', async () => {
-      await syncAll();
-      refreshProgress();
-    });
+    const unsubscribeDebugClear = EventBus.subscribe(
+      "debug.data.cleared",
+      async () => {
+        await syncAll();
+        refreshProgress();
+      },
+    );
 
-    const unsubscribeProgress = EventBus.subscribe('master.full.sync', async () => {
-      refreshProgress();
-    });
+    const unsubscribeProgress = EventBus.subscribe(
+      "master.full.sync",
+      async () => {
+        refreshProgress();
+      },
+    );
 
     return () => {
       unsubscribeInventory();
@@ -232,12 +284,16 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
   // 🔧 OPTIMIZATION: Verificación de tienda con guard
   const [hasShopVerified, setHasShopVerified] = useState<boolean | null>(null);
-  const verifyShopRef = useRef(false);
+  const verifyShopRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // OPTIMIZATION: Guard para prevenir queries redundantes
-    if (verifyShopRef.current || !user?.id) return;
-    verifyShopRef.current = true;
+    // ✅ FIX: Resetear guard cuando cambia el userId
+    if (!user?.id) return;
+
+    // Si ya se verificó para este usuario, no volver a ejecutar
+    if (verifyShopRef.current === user.id) return;
+
+    verifyShopRef.current = user.id;
 
     const verifyShop = async () => {
       try {
@@ -245,7 +301,10 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
         const shop = await getArtisanShopByUserId(user.id);
         setHasShopVerified(!!shop);
       } catch (error) {
-        console.error('[NewMasterCoordinatorDashboard] Error verifying shop:', error);
+        console.error(
+          "[NewMasterCoordinatorDashboard] Error verifying shop:",
+          error,
+        );
         setHasShopVerified(false);
       }
     };
@@ -254,25 +313,45 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   }, [user?.id]);
 
   // 🔧 FASE 2: Forzar re-sincronización cuando el inventario esté vacío pero la tienda exista
+  const inventorySyncedRef = useRef(false);
+
   useEffect(() => {
+    // ✅ FIX: Solo ejecutar UNA VEZ cuando se cumplen las condiciones
     // Si tenemos tienda pero el inventario está vacío, forzar re-sync
-    if (hasShopVerified && inventory.productos?.length === 0 && !isLoading && directProductCount !== null && directProductCount > 0) {
-      refreshModule('inventario');
+    if (
+      hasShopVerified &&
+      inventory.productos?.length === 0 &&
+      !isLoading &&
+      directProductCount !== null &&
+      directProductCount > 0 &&
+      !inventorySyncedRef.current
+    ) {
+      inventorySyncedRef.current = true;
+      refreshModule("inventario");
     }
-  }, [hasShopVerified, inventory.productos?.length, isLoading, refreshModule, directProductCount]);
+    // ✅ FIX: No incluir refreshModule en dependencias para evitar loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    hasShopVerified,
+    inventory.productos?.length,
+    isLoading,
+    directProductCount,
+  ]);
 
   // ✅ FIXED: Always provide default scores if they don't exist
   const maturityScores = masterState.growth.nivel_madurez || {
     ideaValidation: 0,
     userExperience: 0,
     marketFit: 0,
-    monetization: 0
+    monetization: 0,
   };
 
   // 🔧 Deduplicar tareas por agent_id (mantener solo la más reciente de cada tipo)
   const rawTasks = masterState.growth.misiones || [];
   const deduplicatedTasks = rawTasks.reduce((acc: any[], task: any) => {
-    const existingIndex = acc.findIndex((t: any) => t.agent_id === task.agent_id);
+    const existingIndex = acc.findIndex(
+      (t: any) => t.agent_id === task.agent_id,
+    );
     if (existingIndex === -1) {
       acc.push(task);
     } else {
@@ -289,7 +368,10 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const shouldHideCreateShop = hasShopVerified === true || shop.has_shop;
 
   const tasks = deduplicatedTasks.filter((task: any) => {
-    if (shouldHideCreateShop && (task.agent_id === 'create_shop' || task.agent_id === 'shop')) {
+    if (
+      shouldHideCreateShop &&
+      (task.agent_id === "create_shop" || task.agent_id === "shop")
+    ) {
       return false;
     }
     return true;
@@ -297,90 +379,115 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
   const translations = {
     es: {
-      welcome: 'Hola',
-      subtitle: 'Tu taller digital artesanal',
-      maturityLevel: 'Nivel de Madurez',
-      nextRecommendation: 'Próximo Paso Recomendado',
-      activeMissions: 'Misiones Activas',
-      deliverables: 'Tus Entregables',
-      viewAll: 'Ver Todas',
-      startNow: 'Empezar Ahora',
-      chatWithCoordinator: 'Conversemos',
-      downloadDeliverable: 'Descargar',
-      noMissions: 'No tienes misiones activas',
-      noDeliverables: 'Aún no has completado ninguna misión',
-      coordinatorMessage: 'Hola 👋 Estoy aquí para ayudarte a crecer tu negocio artesanal paso a paso.',
-      refresh: 'Actualizar',
-      syncInventory: 'Sincronizar Inventario',
-      completeProfile: 'Completa tu Perfil de Crecimiento',
-      answeredQuestions: 'Has respondido {{current}} de {{total}} preguntas',
-      betterRecommendations: 'Mientras más completes, mejores recomendaciones recibirás',
-      continueButton: 'Continuar'
+      welcome: "Hola",
+      subtitle: "Tu taller digital artesanal",
+      maturityLevel: "Nivel de Madurez",
+      nextRecommendation: "Próximo Paso Recomendado",
+      activeMissions: "Misiones Activas",
+      deliverables: "Tus Entregables",
+      viewAll: "Ver Todas",
+      startNow: "Empezar Ahora",
+      chatWithCoordinator: "Conversemos",
+      downloadDeliverable: "Descargar",
+      noMissions: "No tienes misiones activas",
+      noDeliverables: "Aún no has completado ninguna misión",
+      coordinatorMessage:
+        "Hola 👋 Estoy aquí para ayudarte a crecer tu negocio artesanal paso a paso.",
+      refresh: "Actualizar",
+      syncInventory: "Sincronizar Inventario",
+      completeProfile: "Completa tu Perfil de Crecimiento",
+      answeredQuestions: "Has respondido {{current}} de {{total}} preguntas",
+      betterRecommendations:
+        "Mientras más completes, mejores recomendaciones recibirás",
+      continueButton: "Continuar",
     },
     en: {
-      welcome: 'Hello',
-      subtitle: 'Your digital artisan workshop',
-      maturityLevel: 'Maturity Level',
-      nextRecommendation: 'Next Recommended Step',
-      activeMissions: 'Active Missions',
-      deliverables: 'Your Deliverables',
-      viewAll: 'View All',
-      startNow: 'Start Now',
-      chatWithCoordinator: 'Let\'s Talk',
-      downloadDeliverable: 'Download',
-      noMissions: 'No active missions',
-      noDeliverables: 'No deliverables yet',
-      coordinatorMessage: 'Hello 👋 I\'m here to help you grow your artisan business step by step.',
-      refresh: 'Refresh',
-      syncInventory: 'Sync Inventory'
-    }
+      welcome: "Hello",
+      subtitle: "Your digital artisan workshop",
+      maturityLevel: "Maturity Level",
+      nextRecommendation: "Next Recommended Step",
+      activeMissions: "Active Missions",
+      deliverables: "Your Deliverables",
+      viewAll: "View All",
+      startNow: "Start Now",
+      chatWithCoordinator: "Let's Talk",
+      downloadDeliverable: "Download",
+      noMissions: "No active missions",
+      noDeliverables: "No deliverables yet",
+      coordinatorMessage:
+        "Hello 👋 I'm here to help you grow your artisan business step by step.",
+      refresh: "Refresh",
+      syncInventory: "Sync Inventory",
+    },
   };
 
-  const t = translations[language as 'es' | 'en'] || translations.es;
+  const t = translations[language as "es" | "en"] || translations.es;
 
   // Use unified progress instead of manual calculation
   const totalProgress = unifiedProgress?.totalProgress || 0;
-  const dynamicMaturityScores = unifiedProgress?.maturityScores || maturityScores;
-
+  const dynamicMaturityScores =
+    unifiedProgress?.maturityScores || maturityScores;
 
   // Get active tasks (exclude Fixed Tasks to avoid duplication) - MEMOIZED
-  const generatedTasks = useMemo(() => tasks.filter((task: any) =>
-    (task.status === 'in_progress' || task.status === 'pending') &&
-    !fixedTasks.some(ft => ft.id === task.agent_id)
-  ), [tasks, fixedTasks]);
+  const generatedTasks = useMemo(
+    () =>
+      tasks.filter(
+        (task: any) =>
+          (task.status === "in_progress" || task.status === "pending") &&
+          !fixedTasks.some((ft) => ft.id === task.agent_id),
+      ),
+    [tasks, fixedTasks],
+  );
 
-  const activeTasks = useMemo(() => generatedTasks.slice(0, 3), [generatedTasks]);
+  const activeTasks = useMemo(
+    () => generatedTasks.slice(0, 3),
+    [generatedTasks],
+  );
 
   // Transform tasks to match SimpleMissionCard format - MEMOIZED
-  const transformFixedTask = useMemo(() => (task: any) => ({
-    id: task.id,
-    title: task.title,
-    description: task.description || '',
-    milestone: task.milestone || 'general',
-    ctaLabel: task.action?.type === 'wizard' ? 'Iniciar' : 'Ver',
-    ctaRoute: task.action?.destination || '#',
-    isCompleted: completedFixedTasks.includes(task.id),
-    isLocked: false,
-    icon: task.icon || 'Package',
-    estimatedMinutes: task.estimatedMinutes
-  }), [completedFixedTasks]);
+  const transformFixedTask = useMemo(
+    () => (task: any) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || "",
+      milestone: task.milestone || "general",
+      ctaLabel: task.action?.type === "wizard" ? "Iniciar" : "Ver",
+      ctaRoute: task.action?.destination || "#",
+      isCompleted: completedFixedTasks.includes(task.id),
+      isLocked: false,
+      icon: task.icon || "Package",
+      estimatedMinutes: task.estimatedMinutes,
+    }),
+    [completedFixedTasks],
+  );
 
   // Get deliverables from completed tasks
   const [deliverables, setDeliverables] = useState<any[]>([]);
   const [userStats, setUserStats] = useState<any>(null);
 
   // ✅ OPTIMIZATION: Guard to prevent infinite loops on deliverables fetch
-  const deliverablesFetchedRef = useRef(false);
+  const deliverablesFetchedRef = useRef<string | null>(null);
   const tasksLengthRef = useRef(0);
 
   useEffect(() => {
-    // ✅ OPTIMIZATION: Only fetch once, or when tasks length actually changes significantly
+    // ✅ OPTIMIZATION: Only fetch once per user, or when tasks length changes significantly
     if (!user?.id) return;
-    if (deliverablesFetchedRef.current && Math.abs(tasksLengthRef.current - generatedTasks.length) < 3) {
+
+    // ✅ FIX: Reset guard cuando cambia el usuario
+    if (deliverablesFetchedRef.current !== user.id) {
+      deliverablesFetchedRef.current = null;
+      tasksLengthRef.current = 0;
+    }
+
+    // ✅ FIX: Solo fetch si no se ha hecho antes PARA ESTE USUARIO, o si cambian significativamente las tareas
+    if (
+      deliverablesFetchedRef.current === user.id &&
+      Math.abs(tasksLengthRef.current - generatedTasks.length) < 5
+    ) {
       return;
     }
 
-    deliverablesFetchedRef.current = true;
+    deliverablesFetchedRef.current = user.id;
     tasksLengthRef.current = generatedTasks.length;
 
     const loadData = async () => {
@@ -388,25 +495,46 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
       try {
         const deliverablesData = await getAgentDeliverables();
         // Limitar a los 3 más recientes (el backend ya los ordena por created_at desc)
-        setDeliverables(deliverablesData.slice(0, 3));
+        if (deliverablesData && Array.isArray(deliverablesData)) {
+          setDeliverables(deliverablesData.slice(0, 3));
+        }
       } catch (error) {
-        console.error('[NewMasterCoordinatorDashboard] Error loading deliverables:', error);
+        console.error(
+          "[NewMasterCoordinatorDashboard] Error loading deliverables:",
+          error,
+        );
         setDeliverables([]);
       }
 
       // Load user progress stats
-      const progressData = await getUserProgressByUserId(user.id).catch(() => null);
+      const progressData = await getUserProgressByUserId(user.id).catch(
+        () => null,
+      );
 
       // ✅ Load user achievements from NestJS backend
       let achievements: any[] = [];
       try {
         const achievementsData = await getUserAchievements();
-        // Ordenar por unlockedAt descendente (más recientes primero)
-        achievements = achievementsData.sort((a, b) =>
-          new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime()
-        );
+        // ✅ FIX: Validar que achievementsData existe y es un array antes de ordenar
+        if (achievementsData && Array.isArray(achievementsData)) {
+          // Ordenar por unlockedAt descendente (más recientes primero)
+          achievements = achievementsData.sort(
+            (a, b) =>
+              new Date(b.unlockedAt).getTime() -
+              new Date(a.unlockedAt).getTime(),
+          );
+        } else {
+          console.warn(
+            "[NewMasterCoordinatorDashboard] achievementsData is undefined or not an array",
+          );
+          achievements = [];
+        }
       } catch (error) {
-        console.error('[NewMasterCoordinatorDashboard] Error loading achievements:', error);
+        console.error(
+          "[NewMasterCoordinatorDashboard] Error loading achievements:",
+          error,
+        );
+        achievements = [];
       }
 
       if (progressData) {
@@ -423,8 +551,8 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             title: a.title,
             description: a.description,
             icon: a.icon,
-            unlockedAt: new Date(a.unlockedAt)
-          }))
+            unlockedAt: new Date(a.unlockedAt),
+          })),
         });
       }
     };
@@ -432,11 +560,28 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
     loadData();
   }, [user?.id, generatedTasks.length]); // ✅ FIXED: Use stable primitive dependency
 
-  // Verificar que el Camino Artesanal tenga progreso válido después del onboarding
+  // ✅ FIX: Usar ref para activeTasks para evitar loops
+  const activeTasksRef = useRef(activeTasks);
   useEffect(() => {
-    if (!hasCompletedOnboarding || !user?.id || totalProgress !== 0 || loadingProgress) {
+    activeTasksRef.current = activeTasks;
+  }, [activeTasks]);
+
+  // Verificar que el Camino Artesanal tenga progreso válido después del onboarding
+  const caminoVerifiedRef = useRef(false);
+
+  useEffect(() => {
+    // ✅ FIX: Solo ejecutar UNA VEZ cuando se cumplen las condiciones
+    if (
+      !hasCompletedOnboarding ||
+      !user?.id ||
+      totalProgress !== 0 ||
+      loadingProgress ||
+      caminoVerifiedRef.current
+    ) {
       return;
     }
+
+    caminoVerifiedRef.current = true;
 
     const verifyCaminoProgress = async () => {
       try {
@@ -447,20 +592,32 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
         const currentProgress = currentSnapshot?.camino_artesanal_progress;
 
         if (!currentProgress || currentProgress === 0) {
-          const { calculateCaminoArtesanalProgress } = await import('@/utils/caminoArtesanalProgress');
-          const initialProgress = Math.max(10, calculateCaminoArtesanalProgress({
-            maturity: { ideaValidation: 10, userExperience: 10, marketFit: 10, monetization: 10 },
-            tasks: activeTasks || []
-          } as any));
+          const { calculateCaminoArtesanalProgress } =
+            await import("@/utils/caminoArtesanalProgress");
+          const initialProgress = Math.max(
+            10,
+            calculateCaminoArtesanalProgress({
+              maturity: {
+                ideaValidation: 10,
+                userExperience: 10,
+                marketFit: 10,
+                monetization: 10,
+              },
+              tasks: activeTasksRef.current || [],
+            } as any),
+          );
 
           // ✅ Update context via NestJS backend
           await updateMasterCoordinatorContextByUserId(user.id, {
             contextSnapshot: {
-              ...(typeof currentSnapshot === 'object' && currentSnapshot !== null ? currentSnapshot : {}),
+              ...(typeof currentSnapshot === "object" &&
+              currentSnapshot !== null
+                ? currentSnapshot
+                : {}),
               camino_artesanal_progress: initialProgress,
-              last_updated: new Date().toISOString()
+              last_updated: new Date().toISOString(),
             },
-            lastInteractionAt: new Date().toISOString()
+            lastInteractionAt: new Date().toISOString(),
           });
 
           setTimeout(() => {
@@ -468,49 +625,51 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           }, 500);
         }
       } catch (error) {
-        console.error('❌ [CAMINO] Error verifying progress:', error);
+        console.error("❌ [CAMINO] Error verifying progress:", error);
       }
     };
 
     verifyCaminoProgress();
-  }, [hasCompletedOnboarding, user?.id, totalProgress, loadingProgress, activeTasks, refreshProgress]);
+    // ✅ FIX: No incluir activeTasks ni refreshProgress en dependencias
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasCompletedOnboarding, user?.id, totalProgress, loadingProgress]);
 
   const handleCompleteTaskStep = async (taskId: string, stepId: string) => {
     if (processingTasks.has(taskId)) return;
 
-    setProcessingTasks(prev => new Set(prev).add(taskId));
+    setProcessingTasks((prev) => new Set(prev).add(taskId));
 
     try {
       const task = tasks.find((t: any) => t.id === taskId);
 
       // Track step start
       trackEvent({
-        eventType: 'task_step_started',
+        eventType: "task_step_started",
         eventData: {},
         taskId,
-        agentId: task?.agent_id
+        agentId: task?.agent_id,
       });
 
       // Update step in database
       // ✅ Migrado a endpoint NestJS - PATCH /telar/server/task-steps/{id}
       await updateTaskStep(stepId, {
-        completionStatus: 'completed'
+        completionStatus: "completed",
       });
 
       // Track step completion
       trackEvent({
-        eventType: 'task_step_completed',
+        eventType: "task_step_completed",
         eventData: {
-          taskProgress: task?.progress_percentage || 0
+          taskProgress: task?.progress_percentage || 0,
         },
         taskId,
         agentId: task?.agent_id,
-        success: true
+        success: true,
       });
 
       // Check if all steps are completed
-      const allStepsCompleted = task?.steps?.every((s: any) =>
-        s.id === stepId || s.completion_status === 'completed'
+      const allStepsCompleted = task?.steps?.every(
+        (s: any) => s.id === stepId || s.completion_status === "completed",
       );
 
       if (allStepsCompleted) {
@@ -525,7 +684,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           await updateAgentTask(taskId, {
             status: completionData.status,
             progressPercentage: completionData.progress_percentage,
-            completedAt: completionData.completed_at
+            completedAt: completionData.completed_at,
           });
 
           // ✅ Save deliverable to database if present
@@ -536,24 +695,25 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                 taskId: taskId,
                 agentId: task.agent_id,
                 title: validation.deliverable.title,
-                description: validation.deliverable.description || 'Entregable generado por IA',
+                description:
+                  validation.deliverable.description ||
+                  "Entregable generado por IA",
                 content: validation.deliverable.content,
-                fileType: validation.deliverable.type || 'markdown',
+                fileType: validation.deliverable.type || "markdown",
                 metadata: {
-                  generatedBy: 'orchestrator',
+                  generatedBy: "orchestrator",
                   validationMessage: validation.message,
                   nextSteps: validation.nextSteps || [],
-                  generatedAt: new Date().toISOString()
-                }
+                  generatedAt: new Date().toISOString(),
+                },
               });
 
-              toast.success('¡Entregable generado y guardado! 📄');
+              toast.success("¡Entregable generado y guardado! 📄");
             } catch (deliverableError) {
-              console.error('Error saving deliverable:', deliverableError);
-              toast.error('Error al guardar el entregable');
+              console.error("Error saving deliverable:", deliverableError);
+              toast.error("Error al guardar el entregable");
             }
           }
-
 
           // Update user progress (XP, achievements)
           // ✅ Migrado a endpoint NestJS - POST /telar/server/user-progress/update
@@ -561,40 +721,39 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             await updateUserProgressWithRewards({
               xpGained: 50,
               missionCompleted: true,
-              timeSpent: 0
+              timeSpent: 0,
             });
           } catch (progressError) {
-            console.error('Error updating user progress:', progressError);
+            console.error("Error updating user progress:", progressError);
             // No bloqueamos el flujo si falla la actualización de progreso
           }
 
           // Track mission completion
           trackEvent({
-            eventType: 'mission_completed',
+            eventType: "mission_completed",
             eventData: {
               totalSteps: task?.steps?.length || 0,
               timeSpent: task?.time_spent || 0,
               hasDeliverable: !!validation.deliverable,
-              deliverableType: validation.deliverable?.type
+              deliverableType: validation.deliverable?.type,
             },
             taskId,
             agentId: task.agent_id,
-            success: true
+            success: true,
           });
 
-          toast.success('¡Misión completada! 🎉');
+          toast.success("¡Misión completada! 🎉");
         }
       }
 
       // Trigger refresh
-      EventBus.publish('task.updated', { taskId, stepId });
-      await refreshModule('growth');
-
+      EventBus.publish("task.updated", { taskId, stepId });
+      await refreshModule("growth");
     } catch (err) {
-      console.error('Error completing task step:', err);
-      toast.error('Error al completar el paso');
+      console.error("Error completing task step:", err);
+      toast.error("Error al completar el paso");
     } finally {
-      setProcessingTasks(prev => {
+      setProcessingTasks((prev) => {
         const newSet = new Set(prev);
         newSet.delete(taskId);
         return newSet;
@@ -605,19 +764,19 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const handleDownloadDeliverable = (deliverable: any) => {
     // Track deliverable download
     trackEvent({
-      eventType: 'deliverable_downloaded',
+      eventType: "deliverable_downloaded",
       eventData: {
         deliverableId: deliverable.id,
         fileType: deliverable.file_type,
-        hasFile: !!deliverable.file_url
+        hasFile: !!deliverable.file_url,
       },
-      agentId: deliverable.agent_id
+      agentId: deliverable.agent_id,
     });
 
     if (deliverable.file_url) {
-      window.open(deliverable.file_url, '_blank');
+      window.open(deliverable.file_url, "_blank");
     } else {
-      toast.info('Este entregable no tiene archivo descargable');
+      toast.info("Este entregable no tiene archivo descargable");
     }
   };
 
@@ -626,24 +785,29 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   // Handlers for navigation
   const handleAddProduct = () => {
     trackEvent({
-      eventType: 'feature_used' as any,
+      eventType: "feature_used" as any,
       eventData: {
-        feature: 'product_creation',
-        source: 'dashboard',
-        agent: 'inventory-manager'
-      }
+        feature: "product_creation",
+        source: "dashboard",
+        agent: "inventory-manager",
+      },
     });
 
     // Navigate to integrated product upload wizard
-    navigate('/productos/subir');
+    navigate("/productos/subir");
   };
 
   const handleViewShop = () => {
-    trackEvent({ eventType: 'navigation' as any, eventData: { destination: 'shop', source: 'dashboard' } });
-    navigate('/mi-tienda');
+    trackEvent({
+      eventType: "navigation" as any,
+      eventData: { destination: "shop", source: "dashboard" },
+    });
+    navigate("/mi-tienda");
   };
 
-  const showLoadingScreen = (isLoading || isAnalyzing || isGenerating || isTaskValidating) && !loadingTimeout;
+  const showLoadingScreen =
+    (isLoading || isAnalyzing || isGenerating || isTaskValidating) &&
+    !loadingTimeout;
 
   // 🎯 Detectar si los datos críticos están listos para renderizar
   const isDataReady = useMemo(() => {
@@ -662,12 +826,12 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const showSkeleton = !showLoadingScreen && !isDataReady;
 
   const loadingMessage = isAnalyzing
-    ? 'Analizando tu contexto con IA...'
+    ? "Analizando tu contexto con IA..."
     : isGenerating
-      ? 'Generando tareas personalizadas...'
+      ? "Generando tareas personalizadas..."
       : isTaskValidating
-        ? 'Validando tu progreso...'
-        : 'Sincronizando tu taller...';
+        ? "Validando tu progreso..."
+        : "Sincronizando tu taller...";
 
   if (showLoadingScreen) {
     return (
@@ -677,9 +841,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center space-y-6"
         >
-          <motion.div
-            className="w-16 h-16 mx-auto"
-          >
+          <motion.div className="w-16 h-16 mx-auto">
             <TelarLoadingAnimation size="lg" />
           </motion.div>
           <div className="space-y-2">
@@ -700,7 +862,8 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
     <div className="min-h-screen bg-background">
       <DashboardNavHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">{/* pt-24 compensates for fixed header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        {/* pt-24 compensates for fixed header */}
 
         {/* 1️⃣ Artisan Progress Hero - Mostrar PRIMERO (después del onboarding) */}
         {hasCompletedOnboarding && (
@@ -711,7 +874,9 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             className="mb-6"
           >
             <ArtisanProgressHero
-              userName={profile.nombre || user?.user_metadata?.name || 'Artesano'}
+              userName={
+                profile.nombre || user?.user_metadata?.name || "Artesano"
+              }
               maturityScores={dynamicMaturityScores}
               totalProgress={totalProgress}
               hasCompletedMaturityTest={hasCompleted}
@@ -734,28 +899,33 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
         {/* 2️⃣ Dashboard Action Cards - Estilo Nike Sofisticado */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
           {/* Card: Test de Madurez */}
           {!checkingOnboarding && !hasCompleted && !hasInProgress && (
             <DashboardActionCard
-              badge={{ label: 'Nuevo', variant: 'recommended' }}
+              badge={{ label: "Nuevo", variant: "recommended" }}
               icon={<Lightbulb className="w-8 h-8" />}
               category="Evaluación"
               title="Test de Madurez"
               subtitle="Descubre dónde estás y hacia dónde ir"
               metadata={[
-                { icon: <Clock className="w-3.5 h-3.5" />, value: '~5 minutos' },
-                { icon: <BarChart3 className="w-3.5 h-3.5" />, value: '4 áreas clave' }
+                {
+                  icon: <Clock className="w-3.5 h-3.5" />,
+                  value: "~5 minutos",
+                },
+                {
+                  icon: <BarChart3 className="w-3.5 h-3.5" />,
+                  value: "4 áreas clave",
+                },
               ]}
               primaryAction={{
-                label: 'Empezar Evaluación',
+                label: "Empezar Evaluación",
                 onClick: () => {
                   trackEvent({
-                    eventType: 'onboarding_started' as any,
-                    eventData: { source: 'dashboard_action_card' }
+                    eventType: "onboarding_started" as any,
+                    eventData: { source: "dashboard_action_card" },
                   });
-                  navigate('/maturity-calculator?mode=onboarding');
-                }
+                  navigate("/maturity-calculator?mode=onboarding");
+                },
               }}
               status="warning"
             />
@@ -764,7 +934,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           {/* Card: Continuar Test (In Progress) */}
           {!checkingOnboarding && hasInProgress && !hasCompleted && (
             <DashboardActionCard
-              badge={{ label: 'En Progreso', variant: 'default' }}
+              badge={{ label: "En Progreso", variant: "default" }}
               icon={<Target className="w-8 h-8" />}
               category="Evaluación"
               title="Test de Madurez"
@@ -772,27 +942,30 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
               progress={{
                 current: testTotalAnswered,
                 total: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
-                label: 'preguntas'
+                label: "preguntas",
               }}
               metadata={[
                 {
                   icon: <Clock className="w-3.5 h-3.5" />,
-                  value: `~${Math.ceil(remainingQuestions * 0.5)} min restantes`
+                  value: `~${Math.ceil(remainingQuestions * 0.5)} min restantes`,
                 },
                 {
                   icon: <BarChart3 className="w-3.5 h-3.5" />,
-                  value: '4 áreas por evaluar'
-                }
+                  value: "4 áreas por evaluar",
+                },
               ]}
               primaryAction={{
-                label: 'Continuar',
+                label: "Continuar",
                 onClick: () => {
                   trackEvent({
-                    eventType: 'onboarding_resumed' as any,
-                    eventData: { source: 'dashboard_action_card', progress: testTotalAnswered }
+                    eventType: "onboarding_resumed" as any,
+                    eventData: {
+                      source: "dashboard_action_card",
+                      progress: testTotalAnswered,
+                    },
                   });
-                  navigate('/maturity-calculator?mode=continue');
-                }
+                  navigate("/maturity-calculator?mode=continue");
+                },
               }}
               status="default"
             />
@@ -800,34 +973,46 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
           {/* Card: Mi Marca - Cuando ya tiene diagnóstico completo */}
           {(() => {
-            const brandEval = (context?.conversationInsights as any)?.brand_evaluation;
-            const brandDiagnosis = (context?.conversationInsights as any)?.brand_diagnosis;
+            const brandEval = (context?.conversationInsights as any)
+              ?.brand_evaluation;
+            const brandDiagnosis = (context?.conversationInsights as any)
+              ?.brand_diagnosis;
 
             // Mostrar cuando YA tiene diagnóstico
             if (brandDiagnosis?.average_score) {
               const score = brandDiagnosis.average_score;
-              const scoreLabel = score >= 4 ? 'Excelente' : score >= 3 ? 'Buena' : 'Mejorable';
+              const scoreLabel =
+                score >= 4 ? "Excelente" : score >= 3 ? "Buena" : "Mejorable";
 
               return (
                 <DashboardActionCard
-                  badge={{ label: `${score.toFixed(1)}/5`, variant: score >= 3 ? 'success' : 'warning' }}
+                  badge={{
+                    label: `${score.toFixed(1)}/5`,
+                    variant: score >= 3 ? "success" : "warning",
+                  }}
                   icon={<Palette className="w-8 h-8" />}
                   category="Identidad"
                   title="Mi Marca"
                   subtitle={`Identidad ${scoreLabel}`}
                   metadata={[
-                    { icon: <Edit className="w-3.5 h-3.5" />, value: 'Logo, colores, claim' },
-                    { icon: <Award className="w-3.5 h-3.5" />, value: 'Diagnóstico completo' }
+                    {
+                      icon: <Edit className="w-3.5 h-3.5" />,
+                      value: "Logo, colores, claim",
+                    },
+                    {
+                      icon: <Award className="w-3.5 h-3.5" />,
+                      value: "Diagnóstico completo",
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Editar Marca',
-                    onClick: () => navigate('/dashboard/brand-wizard')
+                    label: "Editar Marca",
+                    onClick: () => navigate("/dashboard/brand-wizard"),
                   }}
                   secondaryAction={{
-                    label: 'Ver Diagnóstico',
-                    onClick: () => navigate('/dashboard/brand-wizard')
+                    label: "Ver Diagnóstico",
+                    onClick: () => navigate("/dashboard/brand-wizard"),
                   }}
-                  status={score >= 3 ? 'success' : 'warning'}
+                  status={score >= 3 ? "success" : "warning"}
                 />
               );
             }
@@ -836,7 +1021,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             if (brandEval?.logo_url && brandEval?.claim && !brandDiagnosis) {
               return (
                 <DashboardActionCard
-                  badge={{ label: 'Disponible', variant: 'recommended' }}
+                  badge={{ label: "Disponible", variant: "recommended" }}
                   icon={<Search className="w-8 h-8" />}
                   category="Identidad"
                   title="Diagnóstico de Marca"
@@ -844,26 +1029,26 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   metadata={[
                     {
                       icon: <Palette className="w-3.5 h-3.5" />,
-                      value: 'Logo cargado'
+                      value: "Logo cargado",
                     },
                     {
                       icon: <Edit className="w-3.5 h-3.5" />,
-                      value: 'Claim definido'
-                    }
+                      value: "Claim definido",
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Iniciar Diagnóstico',
+                    label: "Iniciar Diagnóstico",
                     onClick: () => {
                       trackEvent({
-                        eventType: 'feature_started' as any,
+                        eventType: "feature_started" as any,
                         eventData: {
-                          feature: 'brand_diagnosis',
-                          source: 'dashboard_action_card',
-                          has_brand_evaluation: true
-                        }
+                          feature: "brand_diagnosis",
+                          source: "dashboard_action_card",
+                          has_brand_evaluation: true,
+                        },
                       });
-                      navigate('/dashboard/brand-wizard');
-                    }
+                      navigate("/dashboard/brand-wizard");
+                    },
                   }}
                   status="info"
                 />
@@ -874,18 +1059,24 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             if (!brandEval?.logo_url && !brandDiagnosis) {
               return (
                 <DashboardActionCard
-                  badge={{ label: 'Pendiente', variant: 'default' }}
+                  badge={{ label: "Pendiente", variant: "default" }}
                   icon={<Palette className="w-8 h-8" />}
                   category="Identidad"
                   title="Mi Marca"
                   subtitle="Define tu identidad visual"
                   metadata={[
-                    { icon: <Palette className="w-3.5 h-3.5" />, value: 'Sube tu logo' },
-                    { icon: <Sparkles className="w-3.5 h-3.5" />, value: 'IA genera colores' }
+                    {
+                      icon: <Palette className="w-3.5 h-3.5" />,
+                      value: "Sube tu logo",
+                    },
+                    {
+                      icon: <Sparkles className="w-3.5 h-3.5" />,
+                      value: "IA genera colores",
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Crear Marca',
-                    onClick: () => navigate('/dashboard/brand-wizard')
+                    label: "Crear Marca",
+                    onClick: () => navigate("/dashboard/brand-wizard"),
                   }}
                   status="default"
                 />
@@ -898,18 +1089,25 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           {/* Card: Estado de Tienda */}
           {(() => {
             // FASE 1: Usar conteo directo como fallback si inventory está vacío
-            const productCount = directProductCount ?? (inventory.productos?.length || 0);
+            const productCount =
+              directProductCount ?? (inventory.productos?.length || 0);
             const hasActiveShop = shop.has_shop && shop.published;
-            const shopName = shop.shop_name || 'tu tienda';
-            const publishedCount = inventory.productos?.filter((p: any) => p.active)?.length || 0;
+            const shopName = shop.shop_name || "tu tienda";
+            const publishedCount =
+              inventory.productos?.filter((p: any) => p.active)?.length || 0;
             const draftCount = productCount - publishedCount;
 
             // Caso 1: Tienda activa con productos
             if (hasActiveShop && productCount > 0) {
               return (
                 <DashboardActionCard
-                  badge={{ label: `${productCount} productos`, variant: 'success' }}
-                  actionIcon={<ExternalLink className="w-4 h-4 text-muted-foreground" />}
+                  badge={{
+                    label: `${productCount} productos`,
+                    variant: "success",
+                  }}
+                  actionIcon={
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  }
                   icon={<Store className="w-8 h-8" />}
                   category="Tu Tienda"
                   title={shopName}
@@ -917,20 +1115,20 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   metadata={[
                     {
                       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-                      value: `${publishedCount} publicados`
+                      value: `${publishedCount} publicados`,
                     },
                     {
                       icon: <Package className="w-3.5 h-3.5" />,
-                      value: `${draftCount} borradores`
-                    }
+                      value: `${draftCount} borradores`,
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Agregar Más',
-                    onClick: handleAddProduct
+                    label: "Agregar Más",
+                    onClick: handleAddProduct,
                   }}
                   secondaryAction={{
-                    label: 'Ver Inventario',
-                    onClick: () => navigate('/dashboard/inventory')
+                    label: "Ver Inventario",
+                    onClick: () => navigate("/dashboard/inventory"),
                   }}
                   status="success"
                 />
@@ -941,7 +1139,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             if (hasActiveShop && productCount === 0) {
               return (
                 <DashboardActionCard
-                  badge={{ label: 'Sin Productos', variant: 'warning' }}
+                  badge={{ label: "Sin Productos", variant: "warning" }}
                   icon={<ShoppingBag className="w-8 h-8" />}
                   category="Tu Tienda"
                   title={shopName}
@@ -949,23 +1147,23 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   metadata={[
                     {
                       icon: <Store className="w-3.5 h-3.5" />,
-                      value: 'Publicada'
+                      value: "Publicada",
                     },
                     {
                       icon: <Package className="w-3.5 h-3.5" />,
-                      value: '0 productos'
-                    }
+                      value: "0 productos",
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Subir Producto',
-                    onClick: handleAddProduct
+                    label: "Subir Producto",
+                    onClick: handleAddProduct,
                   }}
                   secondaryAction={{
-                    label: 'Ver Tienda',
+                    label: "Ver Tienda",
                     onClick: () => {
                       const slug = (shop as any).shop_slug || shop.url;
                       navigate(`/tienda/${slug}`);
-                    }
+                    },
                   }}
                   status="warning"
                 />
@@ -976,7 +1174,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             if (!shop.has_shop && productCount > 0) {
               return (
                 <DashboardActionCard
-                  badge={{ label: 'Listo para Publicar', variant: 'success' }}
+                  badge={{ label: "Listo para Publicar", variant: "success" }}
                   icon={<Sparkles className="w-8 h-8" />}
                   category="Tu Catálogo"
                   title={`${productCount} productos listos`}
@@ -984,16 +1182,16 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   metadata={[
                     {
                       icon: <Package className="w-3.5 h-3.5" />,
-                      value: `${productCount} en inventario`
+                      value: `${productCount} en inventario`,
                     },
                     {
                       icon: <Store className="w-3.5 h-3.5" />,
-                      value: 'Sin tienda aún'
-                    }
+                      value: "Sin tienda aún",
+                    },
                   ]}
                   primaryAction={{
-                    label: 'Crear Tienda',
-                    onClick: navigateToShop
+                    label: "Crear Tienda",
+                    onClick: navigateToShop,
                   }}
                   status="success"
                 />
@@ -1002,15 +1200,11 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
             return null;
           })()}
-
         </div>
 
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-8">
-
             {/* Fixed Tasks Section - Priority Missions */}
             {!loadingFixed && fixedTasks.length > 0 && (
               <motion.div
@@ -1032,10 +1226,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   {fixedTasks.slice(0, 3).map((task: any) => {
                     const transformedTask = transformFixedTask(task);
                     return (
-                      <SimpleMissionCard
-                        key={task.id}
-                        {...transformedTask}
-                      />
+                      <SimpleMissionCard key={task.id} {...transformedTask} />
                     );
                   })}
                   {fixedTasks.length > 3 && (
@@ -1050,41 +1241,44 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
             )}
 
             {/* Discover Missions Button */}
-            {!loadingFixed && fixedTasks.length === 0 && generatedTasks.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="neumorphic p-8 text-center">
-                  <Compass className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-foreground mb-2">
-                    ¡Descubre tus próximos pasos!
-                  </h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    Analiza tu estado actual y recibe misiones personalizadas para hacer crecer tu negocio artesanal
-                  </p>
-                  <Button
-                    onClick={discoverMissions}
-                    disabled={isDiscovering}
-                    size="lg"
-                    className="bg-gradient-primary hover:opacity-90"
-                  >
-                    {isDiscovering ? (
-                      <>
-                        <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                        Analizando...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        Descubrir Misiones
-                      </>
-                    )}
-                  </Button>
-                </Card>
-              </motion.div>
-            )}
+            {!loadingFixed &&
+              fixedTasks.length === 0 &&
+              generatedTasks.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Card className="neumorphic p-8 text-center">
+                    <Compass className="w-16 h-16 text-primary mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-foreground mb-2">
+                      ¡Descubre tus próximos pasos!
+                    </h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Analiza tu estado actual y recibe misiones personalizadas
+                      para hacer crecer tu negocio artesanal
+                    </p>
+                    <Button
+                      onClick={discoverMissions}
+                      disabled={isDiscovering}
+                      size="lg"
+                      className="bg-gradient-primary hover:opacity-90"
+                    >
+                      {isDiscovering ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                          Analizando...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          Descubrir Misiones
+                        </>
+                      )}
+                    </Button>
+                  </Card>
+                </motion.div>
+              )}
 
             {/* Active Missions (Generated Tasks) */}
             <motion.div
@@ -1108,9 +1302,15 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                     {activeTasks.slice(0, 3).map((task: any, index: number) => (
                       <Card key={task.id} className="p-4">
                         <h4 className="font-semibold mb-2">{task.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {task.description}
+                        </p>
                         <Button
-                          onClick={() => navigate('/dashboard/tasks', { state: { selectedTaskId: task.id } })}
+                          onClick={() =>
+                            navigate("/dashboard/tasks", {
+                              state: { selectedTaskId: task.id },
+                            })
+                          }
                           size="sm"
                         >
                           Ver Tarea
@@ -1120,7 +1320,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                     {activeTasks.length > 3 && (
                       <Card className="p-4 text-center bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40 transition-all">
                         <Button
-                          onClick={() => navigate('/dashboard/tasks')}
+                          onClick={() => navigate("/dashboard/tasks")}
                           variant="ghost"
                           className="w-full text-primary hover:text-primary hover:bg-primary/10"
                         >
@@ -1136,16 +1336,19 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                     {hasCompletedOnboarding ? (
                       <>
                         <Target className="w-12 h-12 text-primary mx-auto mb-4" />
-                        <p className="text-foreground font-semibold mb-2">¡Estás listo para comenzar!</p>
+                        <p className="text-foreground font-semibold mb-2">
+                          ¡Estás listo para comenzar!
+                        </p>
                         <p className="text-sm text-muted-foreground mb-4">
                           {hasCompleted
-                            ? 'Tus misiones se generarán pronto basadas en tu evaluación completa'
-                            : 'Continúa el Test de Madurez para recibir tareas personalizadas'
-                          }
+                            ? "Tus misiones se generarán pronto basadas en tu evaluación completa"
+                            : "Continúa el Test de Madurez para recibir tareas personalizadas"}
                         </p>
                         {!hasCompleted && (
                           <Button
-                            onClick={() => navigate('/maturity-calculator?mode=continue')}
+                            onClick={() =>
+                              navigate("/maturity-calculator?mode=continue")
+                            }
                             className="bg-gradient-primary hover:opacity-90"
                           >
                             Continuar Test de Madurez
@@ -1155,7 +1358,9 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                     ) : (
                       <>
                         <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
-                        <p className="text-muted-foreground font-medium">{t.noMissions}</p>
+                        <p className="text-muted-foreground font-medium">
+                          {t.noMissions}
+                        </p>
                       </>
                     )}
                   </Card>
@@ -1178,7 +1383,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate('/dashboard/deliverables')}
+                    onClick={() => navigate("/dashboard/deliverables")}
                     className="hover:bg-primary/10 text-foreground"
                   >
                     {t.viewAll}
@@ -1193,7 +1398,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                       key={deliverable.id}
                       id={deliverable.id}
                       title={deliverable.title}
-                      description={deliverable.description || ''}
+                      description={deliverable.description || ""}
                       type={deliverable.file_type as any}
                       agentId={deliverable.agent_id}
                       agentName={deliverable.agent_id}
@@ -1205,7 +1410,9 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                 ) : (
                   <Card className="p-8 text-center md:col-span-2 bg-card rounded-2xl shadow-float hover:shadow-hover transition-all duration-300">
                     <Lightbulb className="w-12 h-12 text-primary mx-auto mb-4" />
-                    <p className="text-muted-foreground font-medium">{t.noDeliverables}</p>
+                    <p className="text-muted-foreground font-medium">
+                      {t.noDeliverables}
+                    </p>
                   </Card>
                 )}
               </div>
@@ -1214,7 +1421,6 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-
             {/* Shop Sales Mini Card */}
             <ShopSalesMiniCard />
 
@@ -1225,7 +1431,10 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <RewardsPanel stats={userStats} language={language as 'es' | 'en'} />
+                <RewardsPanel
+                  stats={userStats}
+                  language={language as "es" | "en"}
+                />
               </motion.div>
             )}
           </div>
@@ -1251,7 +1460,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
               initial={{ x: 400, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 400, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed inset-y-0 right-0 w-96 bg-background border-l shadow-2xl z-50 overflow-hidden"
             >
               <CoordinatorChatSidebar />
@@ -1270,36 +1479,43 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
       {/* Floating Master Agent Button */}
       <FloatingMasterAgent
-        language={language as 'es' | 'en'}
-        maturityScores={maturityScores || {
-          ideaValidation: 0,
-          userExperience: 0,
-          marketFit: 0,
-          monetization: 0
-        }}
+        language={language as "es" | "en"}
+        maturityScores={
+          maturityScores || {
+            ideaValidation: 0,
+            userExperience: 0,
+            marketFit: 0,
+            monetization: 0,
+          }
+        }
         activeTasksCount={activeTasks.length}
-        completedTasksCount={tasks.filter((t: any) => t.status === 'completed').length}
+        completedTasksCount={
+          tasks.filter((t: any) => t.status === "completed").length
+        }
         userActivityDays={progress?.currentStreak || 0}
         onStartChat={() => {
           trackEvent({
-            eventType: 'feature_used' as any,
-            eventData: { feature: 'coordinator_chat', source: 'floating_button' }
+            eventType: "feature_used" as any,
+            eventData: {
+              feature: "coordinator_chat",
+              source: "floating_button",
+            },
           });
           setIsChatExpanded(true);
         }}
         onViewProgress={() => {
           trackEvent({
-            eventType: 'navigation' as any,
-            eventData: { destination: 'tasks_view', source: 'floating_agent' }
+            eventType: "navigation" as any,
+            eventData: { destination: "tasks_view", source: "floating_agent" },
           });
-          navigate('/dashboard/tasks');
+          navigate("/dashboard/tasks");
         }}
         onHelp={() => {
           trackEvent({
-            eventType: 'navigation' as any,
-            eventData: { destination: 'help', source: 'floating_agent' }
+            eventType: "navigation" as any,
+            eventData: { destination: "help", source: "floating_agent" },
           });
-          navigate('/help');
+          navigate("/help");
         }}
       />
 
@@ -1313,7 +1529,6 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           refreshProfileCompleteness();
         }}
       />
-
     </div>
   );
 };
