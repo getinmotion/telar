@@ -1,3 +1,4 @@
+// internal/payment-checkout/usecases/return_webhook.go
 package usecases
 
 import (
@@ -58,6 +59,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return err
 	}
 
+	// --- INICIO DE LA LÓGICA DE NOTIFICACIÓN ---
 	if newCheckoutStatus == "PAID" {
 		// CORRECCIÓN: Quitamos el 'tx' porque la interfaz original solo pide (ctx, checkoutID)
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
@@ -67,8 +69,44 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		}
 	}
 
-	return tx.Commit(ctx)
+	// 1. Guardamos la transacción en Postgres primero
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
+	if newCheckoutStatus == "PAID" || newCheckoutStatus == "FAILED" {
+
+		// Obtenemos el checkout si no lo hemos buscado antes (caso FAILED)
+		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
+		cartID := ""
+		if checkout != nil {
+			cartID = checkout.CartID
+		}
+
+		payload := ports.PaymentNotification{
+			GatewayCode:   intent.ProviderCode, // "wompi" o "cobre"
+			TransactionID: intent.ID,           // Identificador interno del movimiento
+			CartID:        cartID,              // Para generar guías en tu API central
+			Status:        newCheckoutStatus,
+		}
+
+		// Ejecutamos en background (Goroutine) con un contexto independiente
+		// para no fallar la petición HTTP principal.
+		go func(bgCtx context.Context, p ports.PaymentNotification) {
+			s.logger.Info("Sending payment notification to central API", "cart_id", p.CartID)
+			if err := s.notifier.NotifyPaymentConfirmation(bgCtx, p); err != nil {
+				// Aquí solo logueamos. En un sistema ultra-resiliente podrías implementar
+				// un Outbox Pattern o enviar a RabbitMQ/SQS.
+				s.logger.Error("Failed to notify central API", "error", err, "cart_id", p.CartID)
+			}
+		}(context.Background(), payload)
+	}
+
+	return nil
+	// --- FIN DE LA LÓGICA DE NOTIFICACIÓN ---
 }
+
 func (s *CheckoutService) recordLedgerMovement(ctx context.Context, tx ports.DBTransaction, intent *domain.PaymentIntent, checkout *domain.Checkout, eventID string) error {
 	repo := s.uow.LedgerRepo()
 	currency := intent.Currency
