@@ -35,7 +35,6 @@ export const getUserProgressByUserId = async (
       return null;
     }
 
-    console.error('[UserProgress] Error al obtener progreso:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -55,7 +54,6 @@ export const hasUserProgress = async (userId: string): Promise<boolean> => {
     const progress = await getUserProgressByUserId(userId);
     return progress !== null;
   } catch (error) {
-    console.error('[UserProgress] Error al verificar existencia:', error);
     return false;
   }
 };
@@ -75,7 +73,6 @@ export const createUserProgress = async (
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al crear progreso:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }
@@ -100,7 +97,6 @@ export const updateUserProgressById = async (
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso por ID:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }
@@ -130,7 +126,6 @@ export const updateUserProgress = async (
     // PASO 2: Usar la función optimizada con el ID
     return updateUserProgressById(currentProgress.id, payload);
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
@@ -180,7 +175,6 @@ export const updateUserProgressWithRewards = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso con recompensas:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }

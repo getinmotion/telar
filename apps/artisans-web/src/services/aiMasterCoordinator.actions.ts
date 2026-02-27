@@ -28,7 +28,6 @@ export const invokeMasterCoordinator = async <T = any>(
     );
     return response.data;
   } catch (error: any) {
-    console.error('[AIMasterCoordinator] Error al invocar coordinador:', error);
     
     if (error.response?.data) {
       throw error.response.data as MasterCoordinatorErrorResponse;

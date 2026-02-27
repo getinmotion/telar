@@ -23,7 +23,6 @@ export const getUserProfileByUserId = async (
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al obtener perfil del usuario:', error);
 
     // Si el backend retorna un error estructurado, lanzarlo tal cual
     if (error.response?.data) {
@@ -69,7 +68,6 @@ export const createUserProfile = async (
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al crear perfil:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;
@@ -99,7 +97,6 @@ export const updateUserProfileById = async (
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al actualizar perfil por ID:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;
@@ -136,7 +133,6 @@ export const updateUserProfile = async (
     // PASO 2: Usar la función optimizada con el ID
     return updateUserProfileById(currentProfile.id, payload);
   } catch (error: any) {
-    console.error('[UserProfiles] Error al actualizar perfil:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;

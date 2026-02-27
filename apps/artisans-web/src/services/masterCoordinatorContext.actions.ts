@@ -36,7 +36,6 @@ export const getMasterCoordinatorContextByUserId = async (
       return null;
     }
 
-    console.error('[masterCoordinatorContext.actions] Error fetching context:', error);
     throw error;
   }
 };
@@ -70,7 +69,6 @@ export const createMasterCoordinatorContext = async (
       updatedAt: response.data.updatedAt
     };
   } catch (error: any) {
-    console.error('[masterCoordinatorContext.actions] Error creating context:', error);
     throw error;
   }
 };
@@ -96,7 +94,6 @@ export const updateMasterCoordinatorContextByUserId = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[masterCoordinatorContext.actions] Error updating context:', error);
     throw error;
   }
 };
@@ -124,7 +121,6 @@ export const upsertMasterCoordinatorContext = async (
       return await createMasterCoordinatorContext({ ...payload, userId });
     }
   } catch (error: any) {
-    console.error('[masterCoordinatorContext.actions] Error upserting context:', error);
     throw error;
   }
 };

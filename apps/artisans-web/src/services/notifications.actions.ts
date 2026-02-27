@@ -66,7 +66,6 @@ export async function getNotificationsByUserId(
 
     return response.data.map(mapNotificationFromDTO);
   } catch (error: any) {
-    console.error('[getNotificationsByUserId] Error:', error);
     if (error.response?.data) {
       throw error.response.data;
     }
@@ -88,7 +87,6 @@ export async function markNotificationAsRead(
 
     return mapNotificationFromDTO(response.data);
   } catch (error: any) {
-    console.error('[markNotificationAsRead] Error:', error);
     if (error.response?.data) {
       throw error.response.data;
     }
@@ -110,7 +108,6 @@ export async function markAllNotificationsAsRead(
 
     return response.data;
   } catch (error: any) {
-    console.error('[markAllNotificationsAsRead] Error:', error);
     if (error.response?.data) {
       throw error.response.data;
     }
@@ -131,7 +128,6 @@ export async function deleteNotification(
     await telarApi.delete(`/notifications/${notificationId}`);
     // 204 No Content - no body to parse
   } catch (error: any) {
-    console.error('[deleteNotification] Error:', error);
 
     // Axios con 404 retorna error.response.status === 404
     if (error.response?.status === 404) {
