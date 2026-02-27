@@ -41,7 +41,6 @@ export const getUserMasterContextByUserId = async (
       return null;
     }
 
-    console.error('[UserMasterContext] Error al obtener contexto:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -61,7 +60,6 @@ export const hasUserMasterContext = async (userId: string): Promise<boolean> => 
     const context = await getUserMasterContextByUserId(userId);
     return context !== null;
   } catch (error) {
-    console.error('[UserMasterContext] Error al verificar existencia:', error);
     return false;
   }
 };
@@ -83,7 +81,6 @@ export const updateUserMasterContextById = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[UserMasterContext] Error al actualizar contexto por ID:', error);
     if (error.response?.data) {
       throw error.response.data as UserMasterContextErrorResponse;
     }
@@ -113,7 +110,6 @@ export const updateUserMasterContext = async (
     // PASO 2: Usar la función optimizada con el ID
     return updateUserMasterContextById(currentContext.id, payload);
   } catch (error: any) {
-    console.error('[UserMasterContext] Error al actualizar contexto:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserMasterContextErrorResponse;
@@ -138,7 +134,6 @@ export const createUserMasterContext = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[UserMasterContext] Error al crear contexto:', error);
     if (error.response?.data) {
       throw error.response.data as UserMasterContextErrorResponse;
     }

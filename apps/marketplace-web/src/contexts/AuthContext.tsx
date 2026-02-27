@@ -11,7 +11,7 @@ import {
   signOut as signOutService,
   getCurrentUser,
 } from '@/services/auth.actions';
-import { AuthUser, AuthResponse, SignUpData } from '@/types/auth.types';
+import { AuthUser, AuthResponse, RegisterMarketplaceResponse, SignUpData } from '@/types/auth.types';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -76,9 +76,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (data: SignUpData) => {
     try {
-      const response = await signUpWithEmail(data);
-      setUser(response?.user);
-      toast.success('Cuenta creada exitosamente');
+      const response: RegisterMarketplaceResponse = await signUpWithEmail(data);
+      setUser({
+        ...response.user,
+        isSuperAdmin: false,
+        rawUserMetaData: null,
+        bannedUntil: null,
+        deletedAt: null,
+        isSsoUser: false,
+      });
+      toast.success(response.message);
     } catch (error: any) {
       throw error;
     }
@@ -164,17 +171,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      signUp, 
-      signIn, 
-      signInWithGoogle, 
-      sendCustomOTP, 
-      verifyCustomOTP, 
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      signUp,
+      signIn,
+      signInWithGoogle,
+      sendCustomOTP,
+      verifyCustomOTP,
       resetPassword,
       updatePassword,
-      signOut 
+      signOut
     }}>
       {children}
     </AuthContext.Provider>

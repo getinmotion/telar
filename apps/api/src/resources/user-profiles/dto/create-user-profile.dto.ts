@@ -270,7 +270,7 @@ export class CreateUserProfileDto {
   @ApiPropertyOptional({
     description: 'Tipo de cuenta',
     enum: AccountType,
-    default: AccountType.BUYER,
+    default: AccountType.SELLER,
   })
   @IsOptional()
   @IsEnum(AccountType, { message: 'El tipo de cuenta no es válido' })
