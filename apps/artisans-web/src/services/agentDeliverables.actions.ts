@@ -28,7 +28,6 @@ export const getAgentDeliverables = async (): Promise<AgentDeliverable[]> => {
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[agentDeliverables.actions] Error fetching agent deliverables:', error);
     throw error;
   }
 };
@@ -52,7 +51,6 @@ export const createAgentDeliverable = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[agentDeliverables.actions] Error creating agent deliverable:', error);
     throw error;
   }
 };
@@ -78,7 +76,6 @@ export const updateAgentDeliverable = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[agentDeliverables.actions] Error updating agent deliverable:', error);
     throw error;
   }
 };

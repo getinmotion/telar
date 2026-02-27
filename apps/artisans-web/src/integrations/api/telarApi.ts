@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toastError } from '@/utils/toast.utils';
 
 const telarApi = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -9,8 +10,15 @@ telarApi.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
+
+telarApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    toastError(error);
+    return Promise.reject(error);
+  }
+);
 
 export { telarApi };

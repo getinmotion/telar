@@ -97,46 +97,6 @@ export const Register = () => {
         }
       });
 
-    } catch (error: any) {
-
-      // Manejo de errores del backend
-      const errorResponse = error?.response?.data;
-
-      // Error de email ya registrado
-      if (errorResponse?.errorCode === 'EMAIL_EXISTS' || errorResponse?.message?.includes('already exists')) {
-        form.setError('email', {
-          type: 'manual',
-          message: 'Este correo ya está registrado'
-        });
-
-        toast({
-          title: 'Este correo ya está registrado',
-          description: (
-            <div className="space-y-2">
-              <p>Ya existe una cuenta con este correo.</p>
-              <button
-                onClick={() => navigate('/login')}
-                className="text-sm underline hover:no-underline"
-              >
-                Ir a iniciar sesión
-              </button>
-            </div>
-          ),
-          variant: 'destructive',
-          duration: 8000,
-        });
-        return;
-      }
-
-      // Otros errores
-      const errorMessage = errorResponse?.message || error?.message || 'No pudimos procesar tu registro';
-
-      toast({
-        title: 'Error al crear la cuenta',
-        description: errorMessage + '. Por favor intenta nuevamente.',
-        variant: 'destructive',
-        duration: 8000,
-      });
     } finally {
       setIsLoading(false);
     }

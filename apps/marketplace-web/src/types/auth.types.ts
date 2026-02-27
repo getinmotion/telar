@@ -126,7 +126,7 @@ export interface GoogleAuthResponse extends AuthResponse {}
 
 /**
  * Data para registro de nuevo usuario
- * Payload para POST /auth/register
+ * Payload para POST /auth/register-marketplace
  */
 export interface SignUpData {
   firstName: string;
@@ -141,4 +141,31 @@ export interface SignUpData {
   rut?: string; // Opcional, solo si hasRUT = true
   acceptTerms: boolean; // Obligatorio
   newsletterOptIn: boolean; // Opcional
+}
+
+/**
+ * Usuario incluido en el response de registro del marketplace
+ * User object de POST /auth/register-marketplace
+ */
+export interface RegisterMarketplaceUser {
+  id: string;
+  email: string;
+  phone: string;
+  role: string;
+  emailConfirmedAt: string;
+  lastSignInAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Response de registro en el marketplace
+ * Response de POST /auth/register-marketplace
+ */
+export interface RegisterMarketplaceResponse {
+  success: boolean;
+  message: string;
+  userId: string;
+  user: RegisterMarketplaceUser;
+  access_token: string;
 }

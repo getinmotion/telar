@@ -16,6 +16,7 @@ import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
+import { AccountType } from '../user-profiles/entities/user-profile.entity';
 
 @Injectable()
 export class AuthService {
@@ -637,6 +638,136 @@ export class AuthService {
       }
       throw new InternalServerErrorException(
         'Error procesando autenticación de Google',
+      );
+    }
+  }
+
+  /**
+   * Registro simplificado para marketplace (compradores)
+   * - No requiere verificación de email
+   * - Se activa automáticamente
+   * - Retorna token JWT directamente
+   */
+  async registerMarketplace(registerDto: RegisterDto): Promise<{
+    success: boolean;
+    message: string;
+    userId: string;
+    user?: Partial<User>;
+    access_token: string;
+  }> {
+    // Validar que las contraseñas coincidan
+    if (registerDto.password !== registerDto.passwordConfirmation) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    // Validar que acepta términos y condiciones
+    if (!registerDto.acceptTerms) {
+      throw new BadRequestException('Debes aceptar los términos y condiciones');
+    }
+
+    // Normalizar email
+    const normalizedEmail = registerDto.email.toLowerCase().trim();
+
+    let createdUserId: string | null = null;
+
+    try {
+      // 1. Crear el usuario en auth.users con email verificado automáticamente
+      const newUser = await this.usersService.create({
+        email: normalizedEmail,
+        password: registerDto.password,
+        phone: registerDto.whatsapp,
+        role: 'user',
+        emailConfirmedAt: new Date(), // Activar automáticamente
+        rawUserMetaData: {
+          first_name: registerDto.firstName.trim(),
+          last_name: registerDto.lastName.trim(),
+          full_name: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
+        },
+      });
+
+      createdUserId = newUser.id;
+
+      // 2. Crear el perfil en artesanos.user_profiles con accountType = 'buyer'
+      const businessLocation =
+        registerDto.city && registerDto.department
+          ? `${registerDto.city.trim()}, ${registerDto.department.trim()}, Colombia`
+          : undefined;
+
+      try {
+        await this.userProfilesService.create({
+          userId: newUser.id,
+          firstName: registerDto.firstName.trim(),
+          lastName: registerDto.lastName.trim(),
+          fullName: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
+          whatsappE164: registerDto.whatsapp,
+          department: registerDto.department.trim(),
+          city: registerDto.city.trim(),
+          businessLocation,
+          accountType: AccountType.BUYER, // Tipo de cuenta para marketplace
+          rut:
+            registerDto.hasRUT && registerDto.rut
+              ? registerDto.rut.trim()
+              : undefined,
+          rutPendiente: !registerDto.hasRUT,
+          newsletterOptIn: registerDto.newsletterOptIn || false,
+        });
+      } catch (profileError) {
+        // Si falla la creación del perfil, eliminar el usuario
+        await this.usersService.hardDelete(createdUserId);
+        throw new InternalServerErrorException(
+          'Error al crear el perfil de usuario',
+        );
+      }
+
+      // 3. Generar token JWT automáticamente
+      const payload = {
+        sub: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        isSuperAdmin: newUser.isSuperAdmin,
+      };
+      const access_token = await this.jwtService.signAsync(payload);
+
+      // Actualizar última fecha de inicio de sesión
+      await this.usersService.update(newUser.id, {
+        lastSignInAt: new Date(),
+      } as any);
+
+      // Retornar usuario sin datos sensibles
+      const { encryptedPassword, ...userWithoutPassword } = newUser;
+
+      return {
+        success: true,
+        message: 'Cuenta creada exitosamente. Ya puedes empezar a comprar.',
+        userId: newUser.id,
+        user: userWithoutPassword,
+        access_token,
+      };
+    } catch (error) {
+      // Si es un error que ya manejamos, lo relanzamos
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
+
+      // Error inesperado
+      // Intentar limpiar si se creó el usuario
+      if (createdUserId) {
+        try {
+          await this.usersService.hardDelete(createdUserId);
+        } catch (cleanupError) {
+          console.error(
+            'Error cleaning up user after failed registration:',
+            cleanupError,
+          );
+        }
+      }
+
+      throw new InternalServerErrorException(
+        'Error interno del servidor durante el registro',
       );
     }
   }

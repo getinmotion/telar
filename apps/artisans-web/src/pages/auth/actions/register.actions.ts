@@ -1,8 +1,8 @@
 import { telarApi } from "@/integrations/api/telarApi";
-import { 
-  RegisterPayload, 
-  RegisterSuccessResponse,
-  VerifyEmailSuccessResponse 
+import {
+    RegisterPayload,
+    RegisterSuccessResponse,
+    VerifyEmailSuccessResponse,
 } from "../types/register.types";
 
 /**
@@ -11,19 +11,21 @@ import {
  * @returns RegisterSuccessResponse con información del usuario creado
  * @throws Error si el registro falla
  */
-export const register = async (registerPayload: RegisterPayload): Promise<RegisterSuccessResponse> => {
+export const register = async (
+    registerPayload: RegisterPayload
+): Promise<RegisterSuccessResponse> => {
     try {
         // Llamada al endpoint de registro del backend NestJS
         const response = await telarApi.post<RegisterSuccessResponse>(
-            '/auth/register',
+            "/auth/register",
             registerPayload
         );
-        
+
         return response.data;
     } catch (error) {
         throw error;
     }
-}
+};
 
 /**
  * Verificar email del usuario con el token recibido por correo
@@ -31,18 +33,18 @@ export const register = async (registerPayload: RegisterPayload): Promise<Regist
  * @returns VerifyEmailSuccessResponse con información de la verificación
  * @throws Error si la verificación falla
  */
-export const verifyEmail = async (token: string): Promise<VerifyEmailSuccessResponse> => {
+export const verifyEmail = async (
+    token: string
+): Promise<VerifyEmailSuccessResponse> => {
     try {
         // Llamada al endpoint de verificación de email del backend NestJS
         // El token va en la URL como parámetro de ruta
         const response = await telarApi.post<VerifyEmailSuccessResponse>(
             `/email-verifications/verify/${token}`
         );
-        
-        console.log('✅ Email verificado exitosamente:', response.data);
+
         return response.data;
     } catch (error) {
-        console.error('❌ Error al verificar email:', error);
         throw error;
     }
-}
+};

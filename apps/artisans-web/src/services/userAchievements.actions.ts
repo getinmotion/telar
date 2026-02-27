@@ -28,7 +28,6 @@ export const getUserAchievements = async (): Promise<UserAchievement[]> => {
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error fetching user achievements:', error);
     throw error;
   }
 };
@@ -52,7 +51,6 @@ export const createUserAchievement = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error creating user achievement:', error);
     throw error;
   }
 };
@@ -78,7 +76,6 @@ export const updateUserAchievement = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error updating user achievement:', error);
     throw error;
   }
 };
