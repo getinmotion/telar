@@ -9,6 +9,7 @@ import {
   IsBoolean,
   Matches,
   IsUUID,
+  IsDate,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -55,4 +56,8 @@ export class CreateUserDto {
 
   @IsOptional()
   rawAppMetaData?: Record<string, any>;
+
+  @IsOptional()
+  @IsDate({ message: 'emailConfirmedAt debe ser una fecha válida' })
+  emailConfirmedAt?: Date;
 }

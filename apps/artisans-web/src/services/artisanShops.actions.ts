@@ -34,7 +34,6 @@ export const getArtisanShopById = async (
       return null;
     }
 
-    console.error('[ArtisanShops] Error al obtener tienda por ID:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -92,7 +91,6 @@ export const getArtisanShopBySlug = async (
       return null;
     }
 
-    console.error('[ArtisanShops] Error al obtener tienda por slug:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -114,7 +112,6 @@ export const isSlugAvailable = async (slug: string): Promise<boolean> => {
     const shop = await getArtisanShopBySlug(slug);
     return shop === null; // null = no existe = disponible
   } catch (error) {
-    console.error('[ArtisanShops] Error al verificar disponibilidad de slug:', error);
     return false; // En caso de error, asumir que no está disponible
   }
 };
@@ -129,7 +126,6 @@ export const hasArtisanShop = async (userId: string): Promise<boolean> => {
     const shop = await getArtisanShopByUserId(userId);
     return shop !== null;
   } catch (error) {
-    console.error('[ArtisanShops] Error al verificar existencia:', error);
     return false;
   }
 };
@@ -149,7 +145,6 @@ export const createArtisanShop = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[ArtisanShops] Error al crear tienda:', error);
     if (error.response?.data) {
       throw error.response.data as ArtisanShopErrorResponse;
     }
@@ -174,7 +169,6 @@ export const updateArtisanShop = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[ArtisanShops] Error al actualizar tienda:', error);
     if (error.response?.data) {
       throw error.response.data as ArtisanShopErrorResponse;
     }
@@ -196,13 +190,11 @@ export const updateArtisanShopByUserId = async (
     // Primero obtener la tienda para tener el shopId
     const shop = await getArtisanShopByUserId(userId);
     if (!shop) {
-      console.warn(`[ArtisanShops] No se encontró tienda para userId: ${userId}`);
       return null;
     }
 
     return await updateArtisanShop(shop.id, payload);
   } catch (error) {
-    console.error('[ArtisanShops] Error al actualizar tienda por userId:', error);
     throw error;
   }
 };

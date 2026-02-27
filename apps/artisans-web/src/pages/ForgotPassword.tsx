@@ -9,25 +9,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { telarApi } from "@/integrations/api/telarApi";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email) {
-      toast({
-        title: "Email requerido",
+      toast.warning("Email requerido", {
         description: "Por favor ingresa tu email",
-        variant: "destructive",
       });
       return;
     }
@@ -35,32 +32,10 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/reset-password`;
-
-      console.log("Password reset redirect URL:", redirectUrl);
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
-
-      if (error) {
-        throw error;
-      }
-
+      await telarApi.post("/auth/request-password-recovery", { email });
       setEmailSent(true);
-      toast({
-        title: "Email enviado",
-        description: "Si el email existe, recibirás un enlace de recuperación",
-      });
-    } catch (error: any) {
-      console.error("Password reset error:", error);
-      toast({
-        title: "Error",
-        description:
-          error.message || "No se pudo enviar el email de recuperación",
-        variant: "destructive",
-      });
+    } catch {
+      // El interceptor de telarApi muestra el toast de error automáticamente
     } finally {
       setIsLoading(false);
     }
@@ -78,8 +53,7 @@ const ForgotPassword = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Si no recibes el correo en unos minutos, revisa tu carpeta de
-              spam.
+              Si no recibes el correo en unos minutos, revisa tu carpeta de spam.
             </p>
             <p className="text-sm text-muted-foreground text-center">
               El enlace expira en <strong>1 hora</strong>.
@@ -104,8 +78,7 @@ const ForgotPassword = () => {
         <CardHeader className="text-center">
           <CardTitle>¿Olvidaste tu contraseña?</CardTitle>
           <CardDescription>
-            Ingresa tu email y te enviaremos un enlace para restablecer tu
-            contraseña
+            Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
           </CardDescription>
         </CardHeader>
         <CardContent>

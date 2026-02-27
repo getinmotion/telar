@@ -29,7 +29,6 @@ export const getUserMaturityScoresByUserId = async (
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[userMaturityScores] Error fetching scores:', error);
     throw new Error(
       error.response?.data?.message || 'Failed to fetch maturity scores'
     );
@@ -48,7 +47,6 @@ export const getLatestMaturityScore = async (
     const scores = await getUserMaturityScoresByUserId(userId);
     return scores.length > 0 ? scores[0] : null;
   } catch (error: any) {
-    console.error('[userMaturityScores] Error fetching latest score:', error);
     return null;
   }
 };
@@ -86,7 +84,6 @@ export const createUserMaturityScore = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[userMaturityScores] Error creating score:', error);
     const errorData: UserMaturityScoreErrorResponse = error.response?.data;
     throw new Error(
       errorData?.message || 'Failed to create maturity score'
@@ -114,11 +111,9 @@ export const deleteUserMaturityScores = async (
       `/user-maturity-scores/user/${userId}`
     );
   } catch (error: any) {
-    console.error('[userMaturityScores] Error deleting scores:', error);
     // Don't throw - this is for debug operations
     // If endpoint doesn't exist, log a TODO
     if (error.response?.status === 404) {
-      console.warn('[userMaturityScores] DELETE endpoint not yet implemented');
     }
   }
 };

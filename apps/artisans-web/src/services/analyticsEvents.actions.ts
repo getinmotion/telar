@@ -29,7 +29,6 @@ export const logAnalyticsEvent = async (
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[analyticsEvents.actions] Error logging analytics event:', error);
     throw error;
   }
 };
