@@ -74,7 +74,7 @@ func Load() *Config {
 
 		Wompi: WompiConfig{
 			BaseURL:      getenv("WOMPI_BASE_URL", "https://sandbox.wompi.co/v1"), // O sandbox
-			PrivateKey:   getenv("WOMPI_PRIVATE_KEY", ""),
+			PrivateKey:   getenv("WOMPI_PRV_KEY", ""),
 			EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""), // <-- ¡Añadido! Fundamental para el Webhook
 		},
 		// Wompi: WompiConfig{
