@@ -84,7 +84,10 @@ export class CreateUserProfileDto {
   })
   @IsOptional()
   @IsArray({ message: 'Los objetivos deben ser un array' })
-  @IsString({ each: true, message: 'Cada objetivo debe ser una cadena de texto' })
+  @IsString({
+    each: true,
+    message: 'Cada objetivo debe ser una cadena de texto',
+  })
   businessGoals?: string[];
 
   @ApiPropertyOptional({
@@ -118,7 +121,10 @@ export class CreateUserProfileDto {
   })
   @IsOptional()
   @IsArray({ message: 'Los desafíos deben ser un array' })
-  @IsString({ each: true, message: 'Cada desafío debe ser una cadena de texto' })
+  @IsString({
+    each: true,
+    message: 'Cada desafío debe ser una cadena de texto',
+  })
   currentChallenges?: string[];
 
   @ApiPropertyOptional({
@@ -185,7 +191,9 @@ export class CreateUserProfileDto {
     default: 'es',
   })
   @IsOptional()
-  @IsString({ message: 'La preferencia de idioma debe ser una cadena de texto' })
+  @IsString({
+    message: 'La preferencia de idioma debe ser una cadena de texto',
+  })
   @MaxLength(10, {
     message: 'La preferencia de idioma no puede exceder 10 caracteres',
   })
@@ -223,7 +231,8 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString({ message: 'El número de WhatsApp debe ser una cadena de texto' })
   @Matches(/^\+[1-9]\d{1,14}$/, {
-    message: 'El número de WhatsApp debe estar en formato E.164 (ej: +573001234567)',
+    message:
+      'El número de WhatsApp debe estar en formato E.164 (ej: +573001234567)',
   })
   whatsappE164?: string;
 
@@ -284,4 +293,3 @@ export class CreateUserProfileDto {
   @IsInt({ message: 'El código DANE debe ser un número entero' })
   daneCity?: number;
 }
-

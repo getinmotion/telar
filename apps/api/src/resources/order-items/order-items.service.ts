@@ -76,9 +76,7 @@ export class OrderItemsService {
     });
 
     if (!orderItem) {
-      throw new NotFoundException(
-        `Item de orden con ID ${id} no encontrado`,
-      );
+      throw new NotFoundException(`Item de orden con ID ${id} no encontrado`);
     }
 
     return orderItem;
@@ -102,10 +100,7 @@ export class OrderItemsService {
   /**
    * Actualizar un item de orden
    */
-  async update(
-    id: string,
-    updateDto: UpdateOrderItemDto,
-  ): Promise<OrderItem> {
+  async update(id: string, updateDto: UpdateOrderItemDto): Promise<OrderItem> {
     // Verificar que existe
     await this.findOne(id);
 

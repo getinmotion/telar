@@ -12,9 +12,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - Elimina constraint antiguo
  * - Crea constraint nuevo
  */
-export class UpdateBankDataStatusConstraint1771202604956
-  implements MigrationInterface
-{
+export class UpdateBankDataStatusConstraint1771202604956 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Actualizar datos existentes: 'pending' → 'complete'
     await queryRunner.query(`

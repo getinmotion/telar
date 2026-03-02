@@ -96,11 +96,15 @@ export class ServientregaService {
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post<ServientregaQuoteResponse>(this.quoteUrl, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        this.httpService.post<ServientregaQuoteResponse>(
+          this.quoteUrl,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        }),
+        ),
       );
 
       rawResponse = response.data;
@@ -126,8 +130,7 @@ export class ServientregaService {
     // Si no hay costo válido, usar tarifa por defecto
     if (shippingCost <= 0) {
       shippingCost = 15000; // Default 15,000 COP
-      error =
-        error || 'Cotización no disponible, usando tarifa estándar';
+      error = error || 'Cotización no disponible, usando tarifa estándar';
     }
 
     return {
@@ -214,7 +217,9 @@ export class ServientregaService {
         // unit_price_minor está en centavos (menores), dividir por 100
         const priceInPesos = item.unit_price_minor
           ? parseInt(item.unit_price_minor) / 100
-          : (item.price > 0 ? item.price : 50000);
+          : item.price > 0
+            ? item.price
+            : 50000;
 
         group.totalValue += priceInPesos * item.quantity;
 

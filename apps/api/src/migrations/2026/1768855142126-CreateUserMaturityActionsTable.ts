@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateUserMaturityActionsTable1768855142126
-  implements MigrationInterface
-{
+export class CreateUserMaturityActionsTable1768855142126 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión UUID
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);

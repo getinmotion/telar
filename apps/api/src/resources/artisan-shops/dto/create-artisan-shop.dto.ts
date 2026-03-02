@@ -290,8 +290,7 @@ export class CreateArtisanShopDto {
   })
   @IsOptional()
   @IsEnum(PublishStatus, {
-    message:
-      'El estado de publicación debe ser: pending_publish o published',
+    message: 'El estado de publicación debe ser: pending_publish o published',
   })
   publishStatus?: string;
 
@@ -328,10 +327,17 @@ export class CreateArtisanShopDto {
   })
   @IsOptional()
   @IsEnum(MarketplaceApprovalStatus, {
-    message:
-      'El estado de aprobación debe ser: pending, approved o rejected',
+    message: 'El estado de aprobación debe ser: pending, approved o rejected',
   })
   marketplaceApprovalStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'Aprobación directa en marketplace (campo booleano)',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'marketplaceApproved debe ser un booleano' })
+  marketplaceApproved?: boolean;
 
   @ApiPropertyOptional({
     description: 'Departamento',

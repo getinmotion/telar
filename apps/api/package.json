@@ -38,9 +38,14 @@
     "data-migration:artisan-shops": "ts-node scripts/data-migration/migrations/10-migrate-artisan-shops.ts",
     "data-migration:product-categories": "ts-node scripts/data-migration/migrations/11-migrate-product-categories.ts",
     "data-migration:products": "ts-node scripts/data-migration/migrations/12-migrate-products.ts",
-    "data-migration:user-roles": "ts-node scripts/data-migration/migrations/13-migrate-user-roles.ts"
+    "data-migration:user-roles": "ts-node scripts/data-migration/migrations/13-migrate-user-roles.ts",
+    "data-migration:product-moderation-history": "ts-node scripts/data-migration/migrations/14-migrate-product-moderation-history.ts",
+    "data-migration:product-variants": "ts-node scripts/data-migration/migrations/15-migrate-product-variants.ts",
+    "data-migration:inventory-movements": "ts-node scripts/data-migration/migrations/16-migrate-inventory-movements.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/lib-storage": "^3.1000.0",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
@@ -62,6 +67,7 @@
     "dotenv": "^16.4.7",
     "express-session": "^1.19.0",
     "handlebars": "^4.7.8",
+    "multer": "^2.1.0",
     "nodemailer": "^7.0.12",
     "openai": "^6.16.0",
     "passport": "^0.7.0",
@@ -69,6 +75,7 @@
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.5",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28"
   },
@@ -80,6 +87,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.19.6",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class MoveProductCategoriesToShopSchema1768923617792
-  implements MigrationInterface
-{
+export class MoveProductCategoriesToShopSchema1768923617792 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Eliminar las FKs existentes que apuntan a product_categories
     await queryRunner.query(`

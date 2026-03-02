@@ -12,6 +12,9 @@ import { migrateArtisanShops } from './migrations/10-migrate-artisan-shops';
 import { migrateProductCategories } from './migrations/11-migrate-product-categories';
 import { migrateProducts } from './migrations/12-migrate-products';
 import { migrateUserRoles } from './migrations/13-migrate-user-roles';
+import { migrateProductModerationHistory } from './migrations/14-migrate-product-moderation-history';
+import { migrateProductVariants } from './migrations/15-migrate-product-variants';
+import { migrateInventoryMovements } from './migrations/16-migrate-inventory-movements';
 // Importar otras migraciones cuando las crees
 
 interface MigrationResult {
@@ -100,6 +103,21 @@ async function main() {
         name: 'Roles de Usuario',
         description: 'Migrar roles de public.user_roles a auth.user_roles',
         fn: migrateUserRoles,
+      },
+      {
+        name: 'Historial de Moderación de Productos',
+        description: 'Migrar historial de public.product_moderation_history a public.product_moderation_history',
+        fn: migrateProductModerationHistory,
+      },
+      {
+        name: 'Variantes de Productos',
+        description: 'Migrar variantes de public.product_variants a public.product_variants',
+        fn: migrateProductVariants,
+      },
+      {
+        name: 'Movimientos de Inventario',
+        description: 'Migrar movimientos de public.inventory_movements a public.inventory_movements',
+        fn: migrateInventoryMovements,
       },
       // Agregar más migraciones aquí
     ];

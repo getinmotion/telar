@@ -34,6 +34,12 @@ import { UserRolesModule } from './resources/user-roles/user-roles.module';
 import { ServientregaModule } from './resources/servientrega/servientrega.module';
 import { CartShippingInfoModule } from './resources/cart-shipping-info/cart-shipping-info.module';
 import { NotificationsModule } from './resources/notifications/notifications.module';
+import { ProductModerationHistoryModule } from './resources/product-moderation-history/product-moderation-history.module';
+import { CobreModule } from './resources/cobre/cobre.module';
+import { ProductVariantsModule } from './resources/product-variants/product-variants.module';
+import { InventoryMovementsModule } from './resources/inventory-movements/inventory-movements.module';
+import { FileUploadModule } from './resources/file-upload/file-upload.module';
+import { S3Module } from './common/services/s3/s3.module';
 
 @Module({
   imports: [
@@ -41,6 +47,7 @@ import { NotificationsModule } from './resources/notifications/notifications.mod
       envFilePath: '.env',
       isGlobal: true,
     }),
+    S3Module,
     AuthModule,
     UsersModule,
     MailModule,
@@ -74,6 +81,11 @@ import { NotificationsModule } from './resources/notifications/notifications.mod
     ServientregaModule,
     CartShippingInfoModule,
     NotificationsModule,
+    ProductModerationHistoryModule,
+    CobreModule,
+    ProductVariantsModule,
+    InventoryMovementsModule,
+    FileUploadModule,
   ],
   controllers: [],
   providers: [],

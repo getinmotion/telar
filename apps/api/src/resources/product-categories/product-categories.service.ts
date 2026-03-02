@@ -20,9 +20,7 @@ export class ProductCategoriesService {
   /**
    * Crear una nueva categoría
    */
-  async create(
-    createDto: CreateProductCategoryDto,
-  ): Promise<ProductCategory> {
+  async create(createDto: CreateProductCategoryDto): Promise<ProductCategory> {
     // Verificar si ya existe una categoría con ese slug
     const existingSlug = await this.productCategoriesRepository.findOne({
       where: { slug: createDto.slug },

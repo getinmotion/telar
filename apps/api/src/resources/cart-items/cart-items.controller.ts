@@ -121,7 +121,9 @@ export class CartItemsController {
     description: 'Items del carrito eliminados exitosamente',
   })
   @ApiResponse({ status: 400, description: 'cartId inválido' })
-  removeByCartId(@Param('cartId') cartId: string): Promise<{ message: string }> {
+  removeByCartId(
+    @Param('cartId') cartId: string,
+  ): Promise<{ message: string }> {
     return this.cartItemsService.removeByCartId(cartId);
   }
 }

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class MoveArtisanShopsToShopSchema1769031699997
-  implements MigrationInterface
-{
+export class MoveArtisanShopsToShopSchema1769031699997 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Eliminar FKs que apuntan a artisan_shops (products -> artisan_shops)
     await queryRunner.query(`

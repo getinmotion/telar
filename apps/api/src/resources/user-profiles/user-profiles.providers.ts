@@ -9,4 +9,3 @@ export const userProfilesProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

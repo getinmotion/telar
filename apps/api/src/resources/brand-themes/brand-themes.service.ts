@@ -110,7 +110,10 @@ export class BrandThemesService {
   /**
    * Actualizar un tema
    */
-  async update(id: string, updateDto: UpdateBrandThemeDto): Promise<BrandTheme> {
+  async update(
+    id: string,
+    updateDto: UpdateBrandThemeDto,
+  ): Promise<BrandTheme> {
     // Verificar que existe
     await this.getById(id);
 
