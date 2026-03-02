@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { ArtisanBankData } from "@/types/artisan";
 import { useToast } from "@/components/ui/use-toast";
-import counterpatiesService from "@/services/counterpatiesService";
 import { useAuth } from "@/context/AuthContext";
+import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
+import {
+  getCounterparty,
+  createCounterpartySelf,
+  CounterpartyResponse,
+} from "@/services/cobre.actions";
 
 interface BankDataForm {
   holder_name: string;
@@ -18,166 +22,114 @@ interface BankDataForm {
   geo: string;
 }
 
+const mapCounterpartyToArtisanBankData = (
+  userId: string,
+  counterpartyId: string,
+  data: CounterpartyResponse,
+): ArtisanBankData => {
+  const meta = data.metadata ?? {};
+  return {
+    id: counterpartyId,
+    user_id: userId,
+    holder_name: meta.counterparty_fullname ?? '',
+    document_type: meta.counterparty_id_type ?? '',
+    document_number: meta.counterparty_id_number ?? '',
+    bank_code: meta.beneficiary_institution ?? '',
+    account_type: data.type ?? '',
+    account_number: meta.account_number ?? '',
+    country: 'Colombia',
+    currency: 'COP',
+    status: 'complete',
+    created_at: (data.created_at as string) ?? new Date().toISOString(),
+    updated_at: (data.updated_at as string) ?? new Date().toISOString(),
+  };
+};
+
 export const useBankData = () => {
   const [bankData, setBankData] = useState<ArtisanBankData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentToken, setPaymentToken] = useState("");
 
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const obtenerToken = useCallback(async () => {
-    try {
-      const { data } = await supabase.functions.invoke("get-payment-token");
-      setPaymentToken(data?.token || "");
-    } catch (error) {
-      console.error("Error getting payment token:", error);
-    }
-  }, []);
-
   const fetchBankData = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      
-      // First check if user has id_contraparty in their shop
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
+
+      const shop = await getArtisanShopByUserId(user.id);
+      if (!shop?.idContraparty) {
         setLoading(false);
         return;
       }
 
-      const { data: shopData } = await supabase
-        .from('artisan_shops')
-        .select('id_contraparty')
-        .eq('user_id', authUser.id)
-        .single();
-
-      if (!shopData?.id_contraparty) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch counterparty data from Cobre via edge function
-      const { data, error } = await supabase.functions.invoke('get-counterparty', {
-        body: { counterparty_id: shopData.id_contraparty }
-      });
-
-      if (error) {
-        console.error('Error fetching counterparty:', error);
-        setLoading(false);
-        return;
-      }
-
-      if (data?.counterparty) {
-        // Map Cobre response to ArtisanBankData format
-        const counterparty = data.counterparty;
-        setBankData({
-          id: shopData.id_contraparty,
-          user_id: authUser.id,
-          holder_name: counterparty.legal_name || counterparty.name || '',
-          document_type: counterparty.document_type || '',
-          document_number: counterparty.document_number || '',
-          bank_code: counterparty.bank_name || counterparty.bank_code || '',
-          account_type: counterparty.account_type || '',
-          account_number: counterparty.account_number || '',
-          country: counterparty.country || 'Colombia',
-          currency: counterparty.currency || 'COP',
-          status: 'complete',
-          created_at: counterparty.created_at || new Date().toISOString(),
-          updated_at: counterparty.updated_at || new Date().toISOString(),
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching bank data:", error);
+      const data = await getCounterparty(shop.idContraparty);
+      setBankData(mapCounterpartyToArtisanBankData(user.id, shop.idContraparty, data));
+    } catch {
+      // Sin datos bancarios disponibles
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    obtenerToken();
-  }, [obtenerToken]);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchBankData();
   }, [fetchBankData]);
 
-  const saveBankData = async (formData: BankDataForm): Promise<{ success: boolean; id_contraparty?: string }> => {
+  const saveBankData = async (
+    formData: BankDataForm,
+  ): Promise<{ success: boolean; id_contraparty?: string }> => {
+    if (!user?.id) {
+      toast({ title: "Error", description: "Usuario no autenticado", variant: "destructive" });
+      return { success: false };
+    }
+
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Usuario no autenticado");
-      }
-
-      const result = await counterpatiesService.createCounterpartiesCobre(
-        toast,
-        paymentToken,
-        formData,
-        user.id
-      );
-
-      if (result.success) {
-        toast({
-          title: "Datos bancarios guardados",
-          description: "Tus datos han sido guardados correctamente",
-        });
-      }
-
-      return result;
-    } catch (error) {
-      console.error("Error saving bank data:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar los datos bancarios",
-        variant: "destructive",
+      const result = await createCounterpartySelf(user.id, {
+        holder_name: formData.holder_name,
+        document_type: formData.document_type,
+        document_number: formData.document_number,
+        bank_code: formData.bank_code,
+        account_type: formData.account_type,
+        account_number: formData.account_number,
       });
+
+      toast({ title: "Datos bancarios guardados", description: "Tus datos han sido guardados correctamente" });
+      return { success: true, id_contraparty: result.id_contraparty };
+    } catch {
+      toast({ title: "Error", description: "No se pudieron guardar los datos bancarios", variant: "destructive" });
       return { success: false };
     }
   };
 
-  const updateBankData = async (formData: BankDataForm): Promise<{ success: boolean; id_contraparty?: string }> => {
+  // "Actualizar" en Cobre implica crear una nueva contraparte y reemplazar la anterior
+  const updateBankData = async (
+    formData: BankDataForm,
+  ): Promise<{ success: boolean; id_contraparty?: string }> => {
+    if (!user?.id) {
+      toast({ title: "Error", description: "Usuario no autenticado", variant: "destructive" });
+      return { success: false };
+    }
+
     try {
-      const { data, error } = await supabase.functions.invoke("update-counterparty", {
-        body: {
-          holder_name: formData.holder_name,
-          document_type: formData.document_type,
-          document_number: formData.document_number,
-          bank_code: formData.bank_code,
-          account_type: formData.account_type,
-          account_number: formData.account_number,
-          geo: formData.geo || "col",
-        },
+      const result = await createCounterpartySelf(user.id, {
+        holder_name: formData.holder_name,
+        document_type: formData.document_type,
+        document_number: formData.document_number,
+        bank_code: formData.bank_code,
+        account_type: formData.account_type,
+        account_number: formData.account_number,
       });
 
-      if (error) {
-        console.error("Error updating bank data:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron actualizar los datos bancarios",
-          variant: "destructive",
-        });
-        return { success: false };
-      }
-
-      toast({
-        title: "Datos actualizados",
-        description: "Tus datos bancarios han sido actualizados correctamente",
-      });
-
-      // Refetch to show updated data
+      toast({ title: "Datos actualizados", description: "Tus datos bancarios han sido actualizados correctamente" });
       await fetchBankData();
-
-      return { success: true, id_contraparty: data?.id_contraparty };
-    } catch (error) {
-      console.error("Error updating bank data:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron actualizar los datos bancarios",
-        variant: "destructive",
-      });
+      return { success: true, id_contraparty: result.id_contraparty };
+    } catch {
+      toast({ title: "Error", description: "No se pudieron actualizar los datos bancarios", variant: "destructive" });
       return { success: false };
     }
   };
@@ -188,6 +140,7 @@ export const useBankData = () => {
     saveBankData,
     updateBankData,
     refetch: fetchBankData,
-    paymentToken,
+    // paymentToken kept for backward compat but no longer needed
+    paymentToken: '',
   };
 };

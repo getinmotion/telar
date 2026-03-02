@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { ArtisanShop, CraftType, Region } from '@/types/artisan';
+import { ArtisanShop } from '@/types/artisanShop.types';
+import { getPublishedArtisanShops } from '@/services/artisanShops.actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,10 +25,10 @@ export const ShopDirectoryPage: React.FC = () => {
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get('featured') === 'true');
   const [useSemanticSearchMode, setUseSemanticSearchMode] = useState(false);
   const [semanticShops, setSemanticShops] = useState<ArtisanShop[]>([]);
-  
+
   const { search: semanticSearch, loading: semanticLoading, error: semanticError, executionTime } = useSemanticSearch();
 
-  const craftTypes: { value: CraftType; label: string }[] = [
+  const craftTypes: { value: string; label: string }[] = [
     { value: 'textiles', label: 'Textiles' },
     { value: 'ceramics', label: 'Cerámica' },
     { value: 'jewelry', label: 'Joyería' },
@@ -42,7 +42,7 @@ export const ShopDirectoryPage: React.FC = () => {
     { value: 'other', label: 'Otros' }
   ];
 
-  const regions: { value: Region; label: string }[] = [
+  const regions: { value: string; label: string }[] = [
     { value: 'antioquia', label: 'Antioquia' },
     { value: 'atlantico', label: 'Atlántico' },
     { value: 'bolivar', label: 'Bolívar' },
@@ -63,18 +63,14 @@ export const ShopDirectoryPage: React.FC = () => {
   useEffect(() => {
     const fetchShops = async () => {
       try {
-        // TODO: Migrar a NestJS cuando esté disponible el endpoint:
-        // GET /artisan-shops?active=true&publishStatus=published&orderBy=featured:desc,createdAt:desc
-        const { data, error } = await supabase
-          .from('artisan_shops')
-          .select('*')
-          .eq('active', true)
-          .eq('publish_status', 'published')
-          .order('featured', { ascending: false })
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setShops(data || []);
+        const data = await getPublishedArtisanShops();
+        // Destacadas primero, luego por fecha de creación desc
+        const sorted = [...data].sort((a, b) => {
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setShops(sorted);
       } catch (error) {
         console.error('Error fetching shops:', error);
       } finally {
@@ -97,10 +93,10 @@ export const ShopDirectoryPage: React.FC = () => {
 
           // Convert semantic results to shop IDs
           const shopIds = new Set(results.map(r => r.shop_id));
-          
+
           // Filter shops to only include those from semantic search results
           const semanticFiltered = shops.filter(shop => shopIds.has(shop.id));
-          
+
           // Sort by similarity score from semantic search
           const sortedShops = semanticFiltered.sort((a, b) => {
             const aScore = results.find(r => r.shop_id === a.id)?.similarity_score || 0;
@@ -137,16 +133,16 @@ export const ShopDirectoryPage: React.FC = () => {
 
       // Search filter
       if (searchQuery) {
-        filtered = filtered.filter(shop => 
-          shop.shop_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        filtered = filtered.filter(shop =>
+          shop.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           shop.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          shop.craft_type?.toLowerCase().includes(searchQuery.toLowerCase())
+          shop.craftType?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
 
       // Craft type filter
       if (selectedCraft !== 'all') {
-        filtered = filtered.filter(shop => shop.craft_type === selectedCraft);
+        filtered = filtered.filter(shop => shop.craftType === selectedCraft);
       }
 
       // Region filter
@@ -219,7 +215,7 @@ export const ShopDirectoryPage: React.FC = () => {
               <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
                 Descubre las mejores artesanías colombianas directamente de los maestros creadores
               </p>
-              
+
               {/* Enhanced Search */}
               <div className="max-w-2xl mx-auto">
                 <div className="relative group">
@@ -282,7 +278,7 @@ export const ShopDirectoryPage: React.FC = () => {
                     Buscando con inteligencia artificial...
                   </div>
                 )}
-                
+
                 {semanticError && (
                   <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg mt-3">
                     {semanticError} - Usando búsqueda tradicional
@@ -296,7 +292,7 @@ export const ShopDirectoryPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground">Tipo de artesanía</label>
@@ -377,26 +373,26 @@ export const ShopDirectoryPage: React.FC = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredShops.map((shop, index) => (
-                <Card 
+                <Card
                   key={shop.id}
                   className="group cursor-pointer bg-gradient-card backdrop-blur-sm border-0 shadow-card hover:shadow-hover transition-all duration-500 hover:-translate-y-2 animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() => navigate(`/tienda/${shop.shop_slug}`)}
+                  onClick={() => navigate(`/tienda/${shop.shopSlug}`)}
                 >
                   <CardContent className="p-0 overflow-hidden">
                     {/* Enhanced Shop banner/logo */}
                     <div className="relative h-56 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 overflow-hidden">
                       {(() => {
-                        const bannerImage = shop.banner_url || 
-                                           shop.hero_config?.slides?.[0]?.imageUrl || 
-                                           shop.hero_config?.slides?.[0]?.image || 
-                                           null;
-                        
+                        const bannerImage = shop.bannerUrl ||
+                          shop.heroConfig?.slides?.[0]?.imageUrl ||
+                          shop.heroConfig?.slides?.[0]?.image ||
+                          null;
+
                         return bannerImage ? (
                           <>
-                            <img 
+                            <img
                               src={bannerImage}
-                              alt={`Banner de ${shop.shop_name}`}
+                              alt={`Banner de ${shop.shopName}`}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:from-black/60 transition-all duration-500"></div>
@@ -407,13 +403,13 @@ export const ShopDirectoryPage: React.FC = () => {
                           </div>
                         );
                       })()}
-                      
+
                       {/* Logo overlay with glow effect */}
-                      {shop.logo_url && (
+                      {shop.logoUrl && (
                         <div className="absolute bottom-4 left-4 group-hover:scale-105 transition-transform duration-300">
-                          <img 
-                            src={shop.logo_url}
-                            alt={`Logo de ${shop.shop_name}`}
+                          <img
+                            src={shop.logoUrl}
+                            alt={`Logo de ${shop.shopName}`}
                             className="w-16 h-16 rounded-full border-4 border-white shadow-glow object-cover"
                           />
                         </div>
@@ -433,11 +429,11 @@ export const ShopDirectoryPage: React.FC = () => {
                     {/* Enhanced Shop info */}
                     <div className="p-6 bg-gradient-to-b from-background/80 to-background">
                       <div className="mb-4">
-                        <h3 className="font-bold text-xl line-clamp-1 mb-2 group-hover:text-primary transition-colors duration-300">{shop.shop_name}</h3>
+                        <h3 className="font-bold text-xl line-clamp-1 mb-2 group-hover:text-primary transition-colors duration-300">{shop.shopName}</h3>
                         <div className="flex items-center gap-3 flex-wrap">
-                          {shop.craft_type && (
+                          {shop.craftType && (
                             <Badge variant="outline" className="text-xs border-primary/30 text-primary/80">
-                              {shop.craft_type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              {shop.craftType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Badge>
                           )}
                           {shop.region && (
@@ -448,15 +444,15 @@ export const ShopDirectoryPage: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       {shop.description && (
                         <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
                           {shop.description}
                         </p>
                       )}
 
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full group-hover:bg-gradient-primary group-hover:text-white group-hover:border-transparent transition-all duration-300 group-hover:shadow-glow"
                       >
                         <span className="group-hover:scale-105 transition-transform duration-300">Explorar tienda</span>

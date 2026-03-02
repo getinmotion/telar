@@ -1,5 +1,7 @@
 import axios from 'axios';
-import { toastError } from '@/utils/toast.utils';
+import { toastSuccess, toastError } from '@/utils/toast.utils';
+
+const MUTATION_METHODS = new Set(['post', 'patch', 'put', 'delete']);
 
 const telarApi = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -14,11 +16,17 @@ telarApi.interceptors.request.use((config) => {
 });
 
 telarApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const method = response.config.method?.toLowerCase() ?? '';
+    if (MUTATION_METHODS.has(method)) {
+      toastSuccess(response);
+    }
+    return response;
+  },
   (error) => {
     toastError(error);
     return Promise.reject(error);
-  }
+  },
 );
 
 export { telarApi };

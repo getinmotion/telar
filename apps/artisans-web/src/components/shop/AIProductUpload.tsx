@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { PriceInput } from '@/components/ui/price-input';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/components/ui/use-toast';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import {
@@ -241,30 +242,9 @@ export const AIProductUpload: React.FC = () => {
           console.log(`Subiendo imagen ${index + 1}/${optimizedImages.length}: ${fileName} (${Math.round(image.size / 1024)}KB)`);
 
           try {
-            const { data, error } = await supabase.storage
-              .from('images')
-              .upload(`products/${fileName}`, image, {
-                cacheControl: '3600',
-                upsert: false
-              });
-
-            if (error) {
-              console.error(`Error específico subiendo imagen ${index + 1}:`, {
-                error,
-                fileName,
-                fileSize: image.size,
-                fileType: image.type
-              });
-              throw new Error(`Error al subir imagen "${image.name}": ${error.message}`);
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-              .from('images')
-              .getPublicUrl(data.path);
-
-            console.log(`✅ Imagen ${index + 1} subida exitosamente:`, { fileName, url: publicUrl });
-            return publicUrl;
-
+            const result = await uploadImage(image, UploadFolder.PRODUCTS);
+            console.log(`✅ Imagen ${index + 1} subida exitosamente:`, { url: result.url });
+            return result.url;
           } catch (uploadError) {
             console.error(`Error en proceso de subida imagen ${index + 1}:`, uploadError);
             throw new Error(`No se pudo subir la imagen "${image.name}". Verifica tu conexión e inténtalo de nuevo.`);

@@ -5,97 +5,57 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { MotionLogo } from '@/components/MotionLogo';
 import { useIsModerator } from '@/hooks/useIsModerator';
+import { MotionLogo } from '@/components/MotionLogo';
+import { login } from '@/pages/auth/actions/login.actions';
+import { toast } from 'sonner';
 
 export default function ModerationLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, user, loading: authLoading } = useAuth();
-  const { isModerator, loading: checkingModeratorStatus } = useIsModerator();
-  const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  const { isModerator } = useIsModerator();
 
-  // Si ya está autenticado y es moderador, redirigir
+  // Si ya está autenticado y es moderador al llegar a la página, redirigir directamente
   useEffect(() => {
-    if (user && !checkingModeratorStatus) {
-      if (isModerator) {
-        navigate('/', { replace: true });
-      } else {
-        // Usuario autenticado pero no es moderador
-        toast({
-          title: "Acceso denegado",
-          description: "No tienes permisos de moderador",
-          variant: "destructive",
-        });
-        setChecking(false);
-      }
+    if (!authLoading && user && isModerator) {
+      navigate('/', { replace: true });
     }
-  }, [user, isModerator, checkingModeratorStatus, navigate, toast]);
+  }, [authLoading, user, isModerator, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
-      toast({
-        title: "Campos requeridos",
-        description: "Por favor completa todos los campos",
-        variant: "destructive",
+      toast.warning('Campos requeridos', {
+        description: 'Por favor completa todos los campos',
       });
       return;
     }
 
-    setChecking(true);
+    setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Credenciales incorrectas",
-            description: "El email o la contraseña no son correctos",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error al iniciar sesión",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        setChecking(false);
-        return;
-      }
-
-      // Después de login exitoso, el useEffect verificará permisos
-      toast({
-        title: "Autenticación exitosa",
-        description: "Verificando permisos de moderador...",
-      });
-      setChecking(false);
-
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error al iniciar sesión. Por favor intenta nuevamente.",
-        variant: "destructive",
-      });
-      setChecking(false);
+      await login({ email, password });
+      // Navegar directamente — ModeratorProtectedRoute verifica el acceso
+      navigate('/', { replace: true });
+    } catch {
+      // toastError ya es llamado por login.actions.ts
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (authLoading || checking || checkingModeratorStatus) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fcf7ec]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">
-            {checking ? 'Autenticando...' : 'Verificando permisos...'}
+            {isLoading ? 'Autenticando...' : 'Verificando permisos...'}
           </p>
         </div>
       </div>
@@ -176,9 +136,9 @@ export default function ModerationLogin() {
             <Button
               type="submit"
               className="w-full h-12 rounded-xl"
-              disabled={checking}
+              disabled={isLoading}
             >
-              {checking ? 'Verificando...' : 'Acceder al Panel'}
+              {isLoading ? 'Verificando...' : 'Acceder al Panel'}
             </Button>
           </form>
 

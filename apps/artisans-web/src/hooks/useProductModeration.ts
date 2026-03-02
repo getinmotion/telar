@@ -1,6 +1,14 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import {
+  getModerationQueue,
+  moderateProduct as moderateProductApi,
+  updateShopMarketplaceApproval,
+  getProductHistoryByProductId,
+  ModerationProductApi,
+  ProductModerationHistoryApi,
+} from '@/services/moderation.actions';
 
 export interface ModerationProduct {
   id: string;
@@ -48,7 +56,7 @@ export interface ModerationHistory {
   moderator_id: string | null;
   artisan_id: string | null;
   comment: string | null;
-  edits_made: Record<string, any>;
+  edits_made: Record<string, unknown>;
   created_at: string;
 }
 
@@ -75,7 +83,60 @@ interface ProductPagination {
   totalPages: number;
 }
 
+// Mapea historial camelCase de NestJS → snake_case del componente
+function mapHistory(h: ProductModerationHistoryApi): ModerationHistory {
+  return {
+    id: h.id,
+    product_id: h.productId,
+    previous_status: h.previousStatus ?? null,
+    new_status: h.newStatus,
+    moderator_id: h.moderatorId ?? null,
+    artisan_id: h.artisanId ?? null,
+    comment: h.comment ?? null,
+    edits_made: h.editsMade ?? {},
+    created_at: h.createdAt,
+  };
+}
+
+// Mapea respuesta camelCase de NestJS → snake_case del componente
+function mapProduct(p: ModerationProductApi): ModerationProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description ?? '',
+    short_description: p.shortDescription ?? '',
+    price: p.price,
+    compare_price: p.comparePrice,
+    category: p.subcategory ?? '',
+    subcategory: p.subcategory,
+    images: p.images ?? [],
+    tags: p.tags ?? [],
+    materials: p.materials ?? [],
+    techniques: p.techniques ?? [],
+    inventory: p.inventory,
+    sku: p.sku,
+    moderation_status: p.moderationStatus,
+    active: p.active,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+    weight: p.weight,
+    dimensions: p.dimensions ?? null,
+    shipping_data_complete: p.shippingDataComplete,
+    artisan_shops: {
+      id: p.shop?.id ?? '',
+      shop_name: p.shop?.shopName ?? '',
+      shop_slug: p.shop?.shopSlug ?? '',
+      user_id: p.shop?.userId ?? '',
+      region: p.shop?.region ?? null,
+      craft_type: p.shop?.craftType ?? null,
+      logo_url: p.shop?.logoUrl ?? null,
+      marketplace_approved: p.shop?.marketplaceApproved ?? undefined,
+    },
+  };
+}
+
 export const useProductModeration = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<ModerationProduct[]>([]);
   const [counts, setCounts] = useState<ModerationCounts>({
     pending_moderation: 0,
@@ -98,55 +159,28 @@ export const useProductModeration = () => {
     status: string = 'pending_moderation',
     advancedFilters?: AdvancedFilters,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
   ) => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-
-      const url = new URL(`https://ylooqmqmoufqtxvetxuj.supabase.co/functions/v1/get-moderation-queue`);
-      url.searchParams.set('status', status);
-      url.searchParams.set('page', String(page));
-      url.searchParams.set('pageSize', String(pageSize));
-      
-      if (advancedFilters) {
-        if (advancedFilters.search) url.searchParams.set('search', advancedFilters.search);
-        if (advancedFilters.category && advancedFilters.category !== 'all') {
-          url.searchParams.set('category', advancedFilters.category);
-        }
-        if (advancedFilters.region && advancedFilters.region !== 'all') {
-          url.searchParams.set('region', advancedFilters.region);
-        }
-        if (advancedFilters.onlyNonMarketplace) {
-          url.searchParams.set('only_non_marketplace', 'true');
-        }
-      }
-
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
+      const result = await getModerationQueue({
+        status,
+        page,
+        pageSize,
+        search: advancedFilters?.search,
+        category: advancedFilters?.category,
+        region: advancedFilters?.region,
+        onlyNonMarketplace: advancedFilters?.onlyNonMarketplace,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch moderation queue');
-      }
-
-      const data = await response.json();
-      setProducts(data.products || []);
-      setCounts(data.counts || counts);
+      setProducts((result.data ?? []).map(mapProduct));
       setPagination({
-        page: data.page || page,
-        pageSize: data.pageSize || pageSize,
-        total: data.total || 0,
-        totalPages: data.totalPages || Math.ceil((data.total || 0) / pageSize),
+        page: result.page ?? page,
+        pageSize,
+        total: result.total ?? 0,
+        totalPages: Math.ceil((result.total ?? 0) / pageSize),
       });
-    } catch (error) {
-      console.error('Error fetching moderation queue:', error);
+    } catch {
       toast.error('Error al cargar la cola de moderación');
     } finally {
       setLoading(false);
@@ -157,120 +191,65 @@ export const useProductModeration = () => {
     productId: string,
     action: 'approve' | 'approve_with_edits' | 'request_changes' | 'reject',
     comment?: string,
-    edits?: Record<string, any>
+    edits?: Record<string, unknown>,
   ) => {
     setModerating(true);
+
+    const currentProduct = products.find((p) => p.id === productId);
+    const previousStatus = currentProduct?.moderation_status;
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-
-      const response = await fetch(
-        `https://ylooqmqmoufqtxvetxuj.supabase.co/functions/v1/moderate-product`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            productId,
-            action,
-            comment,
-            edits,
-          }),
-        }
+      await moderateProductApi(
+        productId,
+        action,
+        comment,
+        edits,
+        user?.id,
+        previousStatus,
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to moderate product');
-      }
-
-      const result = await response.json();
-      toast.success(result.message || 'Producto moderado exitosamente');
-      
-      // Remove from current list
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      
-      return result;
-    } catch (error) {
-      console.error('Error moderating product:', error);
+      toast.success('Producto moderado exitosamente');
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch {
       toast.error('Error al moderar el producto');
-      throw error;
+      throw new Error('moderation failed');
     } finally {
       setModerating(false);
     }
-  }, []);
+  }, [products, user?.id]);
 
-  const updateShopMarketplaceApproval = useCallback(async (
+  const updateShopMarketplaceApprovalFn = useCallback(async (
     shopId: string,
     approved: boolean,
-    comment?: string
   ) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-
-      const response = await fetch(
-        `https://ylooqmqmoufqtxvetxuj.supabase.co/functions/v1/moderate-shop-marketplace`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            shopId,
-            approved,
-            comment,
-          }),
-        }
+      await updateShopMarketplaceApproval(shopId, approved);
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.artisan_shops?.id === shopId) {
+            return {
+              ...p,
+              artisan_shops: { ...p.artisan_shops, marketplace_approved: approved },
+            };
+          }
+          return p;
+        }),
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update shop approval');
-      }
-
-      const result = await response.json();
-      
-      // Update the shop in our local products list
-      setProducts(prev => prev.map(p => {
-        if (p.artisan_shops?.id === shopId) {
-          return {
-            ...p,
-            artisan_shops: {
-              ...p.artisan_shops,
-              marketplace_approved: approved,
-            }
-          };
-        }
-        return p;
-      }));
-      
-      return result;
-    } catch (error) {
-      console.error('Error updating shop marketplace approval:', error);
+    } catch {
       toast.error('Error al actualizar la aprobación de la tienda');
-      throw error;
+      throw new Error('approval update failed');
     }
   }, []);
 
-  const fetchProductHistory = useCallback(async (productId: string): Promise<ModerationHistory[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('product_moderation_history')
-        .select('*')
-        .eq('product_id', productId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data || []) as ModerationHistory[];
-    } catch (error) {
-      console.error('Error fetching product history:', error);
-      return [];
-    }
-  }, []);
+  const fetchProductHistory: (productId?: string) => Promise<ModerationHistory[]> =
+    useCallback(async (productId?: string) => {
+      if (!productId) return [];
+      try {
+        const history = await getProductHistoryByProductId(productId);
+        return history.map(mapHistory);
+      } catch {
+        return [];
+      }
+    }, []);
 
   return {
     products,
@@ -280,7 +259,7 @@ export const useProductModeration = () => {
     moderating,
     fetchModerationQueue,
     moderateProduct,
-    updateShopMarketplaceApproval,
+    updateShopMarketplaceApproval: updateShopMarketplaceApprovalFn,
     fetchProductHistory,
   };
 };

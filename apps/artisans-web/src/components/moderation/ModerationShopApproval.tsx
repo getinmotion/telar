@@ -6,12 +6,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Store, 
-  MapPin, 
-  Palette, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Store,
+  MapPin,
+  Palette,
+  CheckCircle,
+  XCircle,
   Globe,
   AlertTriangle,
   Loader2
@@ -20,12 +20,12 @@ import { toast } from 'sonner';
 
 interface ShopInfo {
   id: string;
-  shop_name: string;
-  shop_slug: string;
+  shopName: string;
+  shopSlug: string;
   region: string | null;
-  craft_type: string | null;
-  logo_url: string | null;
-  marketplace_approved?: boolean;
+  craftType: string | null;
+  logoUrl: string | null;
+  marketplaceApproved?: boolean;
 }
 
 interface ModerationShopApprovalProps {
@@ -37,14 +37,14 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
   shop,
   onApprovalChange,
 }) => {
-  const [isApproved, setIsApproved] = useState(shop.marketplace_approved || false);
+  const [isApproved, setIsApproved] = useState(shop.marketplaceApproved || false);
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleToggle = (checked: boolean) => {
     setIsApproved(checked);
-    setHasChanges(checked !== shop.marketplace_approved);
+    setHasChanges(checked !== shop.marketplaceApproved);
   };
 
   const handleSave = async () => {
@@ -54,8 +54,8 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
       setHasChanges(false);
       setComment('');
       toast.success(
-        isApproved 
-          ? 'Tienda aprobada para marketplace' 
+        isApproved
+          ? 'Tienda aprobada para marketplace'
           : 'Tienda removida del marketplace'
       );
     } catch (error) {
@@ -76,10 +76,10 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
       <CardContent className="space-y-4">
         {/* Shop Info */}
         <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-          {shop.logo_url ? (
+          {shop.logoUrl ? (
             <img
-              src={shop.logo_url}
-              alt={shop.shop_name}
+              src={shop.logoUrl}
+              alt={shop.shopName}
               className="w-12 h-12 rounded-full object-cover border"
             />
           ) : (
@@ -88,7 +88,7 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
             </div>
           )}
           <div className="flex-1">
-            <h4 className="font-medium">{shop.shop_name}</h4>
+            <h4 className="font-medium">{shop.shopName}</h4>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {shop.region && (
                 <span className="flex items-center gap-1">
@@ -96,16 +96,16 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
                   {shop.region}
                 </span>
               )}
-              {shop.craft_type && (
+              {shop.craftType && (
                 <span className="flex items-center gap-1">
                   <Palette className="w-3 h-3" />
-                  {shop.craft_type}
+                  {shop.craftType}
                 </span>
               )}
             </div>
           </div>
-          <Badge variant={shop.marketplace_approved ? 'default' : 'secondary'}>
-            {shop.marketplace_approved ? (
+          <Badge variant={shop.marketplaceApproved ? 'default' : 'secondary'}>
+            {shop.marketplaceApproved ? (
               <><CheckCircle className="w-3 h-3 mr-1" /> En Marketplace</>
             ) : (
               <><XCircle className="w-3 h-3 mr-1" /> No en Marketplace</>
@@ -131,7 +131,7 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
         </div>
 
         {/* Info boxes */}
-        {isApproved && !shop.marketplace_approved && (
+        {isApproved && !shop.marketplaceApproved && (
           <Alert className="bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-700 dark:text-emerald-400">
@@ -140,7 +140,7 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
           </Alert>
         )}
 
-        {!isApproved && shop.marketplace_approved && (
+        {!isApproved && shop.marketplaceApproved && (
           <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-700 dark:text-amber-400">
@@ -164,8 +164,8 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
 
         {/* Save button */}
         {hasChanges && (
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={saving}
             className="w-full"
             variant={isApproved ? 'default' : 'destructive'}
@@ -183,7 +183,7 @@ export const ModerationShopApproval: React.FC<ModerationShopApprovalProps> = ({
 
         {/* Note */}
         <p className="text-xs text-muted-foreground text-center">
-          💡 La tienda del artesano funciona independientemente en su URL propia ({shop.shop_slug}.telar.co)
+          💡 La tienda del artesano funciona independientemente en su URL propia ({shop.shopSlug}.telar.co)
         </p>
       </CardContent>
     </Card>

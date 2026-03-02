@@ -16,11 +16,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { 
-  Store, 
-  CheckCircle, 
-  XCircle, 
-  Package, 
+import {
+  Store,
+  CheckCircle,
+  XCircle,
+  Package,
   Calendar,
   ExternalLink,
   AlertTriangle,
@@ -129,9 +129,9 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
     }
   };
 
-  const canPublish = (shop.product_counts?.approved || 0) > 0;
-  const isPublished = shop.publish_status === 'published';
-  const isApproved = shop.marketplace_approved === true;
+  const canPublish = (shop.productCounts?.approved || 0) > 0;
+  const isPublished = shop.publishStatus === 'published';
+  const isApproved = shop.marketplaceApproved === true;
 
   return (
     <div className="space-y-4">
@@ -141,12 +141,14 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
           <div className="flex items-start gap-4">
             {/* Logo */}
             <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-              {shop.logo_url ? (
-                <img
-                  src={shop.logo_url}
-                  alt={shop.shop_name}
-                  className="w-full h-full object-cover"
-                />
+              {shop.logoUrl ? (
+                <div>
+                  <img
+                    src={shop.logoUrl}
+                    alt={shop.shopName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Store className="w-8 h-8 text-muted-foreground" />
@@ -158,27 +160,27 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="text-2xl mb-1">{shop.shop_name}</CardTitle>
+                  <CardTitle className="text-2xl mb-1">{shop.shopName}</CardTitle>
                   <p className="text-sm text-muted-foreground mb-2">
-                    @{shop.shop_slug}
+                    @{shop.shopSlug}
                   </p>
                   <div className="flex flex-wrap gap-2 text-sm">
                     {shop.region && (
                       <Badge variant="secondary">📍 {shop.region}</Badge>
                     )}
-                    {shop.craft_type && (
-                      <Badge variant="secondary">🎨 {shop.craft_type}</Badge>
+                    {shop.craftType && (
+                      <Badge variant="secondary">🎨 {shop.craftType}</Badge>
                     )}
                   </div>
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
                   asChild
                 >
                   <a
-                    href={`https://${shop.shop_slug}.telar.co`}
+                    href={`https://${shop.shopSlug}.telar.co`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -206,7 +208,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               <Package className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">Total Productos</span>
             </div>
-            <p className="text-2xl font-bold">{shop.product_counts?.total || 0}</p>
+            <p className="text-2xl font-bold">{shop.productCounts?.total || 0}</p>
           </CardContent>
         </Card>
 
@@ -217,7 +219,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               <span className="text-sm font-medium">Aprobados</span>
             </div>
             <p className="text-2xl font-bold text-success">
-              {shop.product_counts?.approved || 0}
+              {shop.productCounts?.approved || 0}
             </p>
           </CardContent>
         </Card>
@@ -229,9 +231,9 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               <span className="text-sm font-medium">Creada</span>
             </div>
             <p className="text-sm">
-              {formatDistanceToNow(new Date(shop.created_at), { 
-                addSuffix: true, 
-                locale: es 
+              {formatDistanceToNow(new Date(shop.createdAt), {
+                addSuffix: true,
+                locale: es
               })}
             </p>
           </CardContent>
@@ -248,42 +250,42 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {shop.contact_info?.phone && (
+            {shop.contactConfig?.phone && (
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <a 
-                  href={`tel:${shop.contact_info.phone}`} 
+                <a
+                  href={`tel:${shop.contactConfig.phone}`}
                   className="text-primary hover:underline"
                 >
-                  {shop.contact_info.phone}
+                  {shop.contactConfig.phone}
                 </a>
               </div>
             )}
-            {shop.contact_info?.whatsapp && (
+            {shop.contactConfig?.whatsapp && (
               <div className="flex items-center gap-3">
                 <MessageCircle className="w-4 h-4 text-success" />
-                <a 
-                  href={`https://wa.me/57${shop.contact_info.whatsapp.replace(/\D/g, '')}`} 
+                <a
+                  href={`https://wa.me/57${shop.contactConfig.whatsapp.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
-                  WhatsApp: {shop.contact_info.whatsapp}
+                  WhatsApp: {shop.contactConfig.whatsapp}
                 </a>
               </div>
             )}
-            {shop.contact_info?.email && (
+            {shop.contactConfig?.email && (
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-muted-foreground" />
-                <a 
-                  href={`mailto:${shop.contact_info.email}`} 
+                <a
+                  href={`mailto:${shop.contactConfig.email}`}
                   className="text-primary hover:underline"
                 >
-                  {shop.contact_info.email}
+                  {shop.contactConfig.email}
                 </a>
               </div>
             )}
-            {!shop.contact_info?.phone && !shop.contact_info?.whatsapp && !shop.contact_info?.email && (
+            {!shop.contactConfig?.phone && !shop.contactConfig?.whatsapp && !shop.contactConfig?.email && (
               <p className="text-muted-foreground text-sm">Sin información de contacto configurada</p>
             )}
           </div>
@@ -293,15 +295,15 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
       {/* Logo Edit Card */}
       <ModerationLogoEditCard
         shopId={shop.id}
-        shopName={shop.shop_name}
-        currentLogoUrl={shop.logo_url || null}
+        shopName={shop.shopName}
+        currentLogoUrl={shop.logoUrl || null}
         onLogoUpdated={onRefresh}
       />
 
       {/* Bank Data Card */}
       <ModerationBankDataCard
         shopId={shop.id}
-        idContraparty={shop.id_contraparty || null}
+        idContraparty={shop.idContraparty || null}
         onBankDataCreated={onRefresh}
       />
 
@@ -333,7 +335,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               </div>
             </div>
             <Badge variant={isPublished ? 'default' : 'secondary'}>
-              {shop.publish_status || 'pending_publish'}
+              {shop.publishStatus || 'pending_publish'}
             </Badge>
           </div>
 
@@ -351,7 +353,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                <strong>{shop.product_counts?.approved} producto(s) aprobado(s).</strong> Al publicar, la tienda será visible en su subdominio ({shop.shop_slug}.telar.co).
+                <strong>{shop.productCounts?.approved} producto(s) aprobado(s).</strong> Al publicar, la tienda será visible en su subdominio ({shop.shopSlug}.telar.co).
               </AlertDescription>
             </Alert>
           )}
@@ -383,7 +385,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               )}
               {isPublished ? 'Ya publicada' : 'Publicar Tienda'}
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"
@@ -428,11 +430,11 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
                   </>
                 )}
               </div>
-              {shop.marketplace_approved_at && (
+              {shop.marketplaceApprovedAt && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  {formatDistanceToNow(new Date(shop.marketplace_approved_at), { 
-                    addSuffix: true, 
-                    locale: es 
+                  {formatDistanceToNow(new Date(shop.marketplaceApprovedAt), {
+                    addSuffix: true,
+                    locale: es
                   })}
                 </p>
               )}
@@ -485,7 +487,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
               )}
               {isApproved ? 'Ya aprobada' : 'Aprobar para Marketplace'}
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"
@@ -517,7 +519,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Esta acción eliminará permanentemente la tienda, todos sus productos, 
+                Esta acción eliminará permanentemente la tienda, todos sus productos,
                 analytics y datos relacionados. Esta acción no se puede deshacer.
               </AlertDescription>
             </Alert>
@@ -533,7 +535,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
                 <AlertDialogHeader>
                   <AlertDialogTitle className="text-destructive flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
-                    ¿Eliminar "{shop.shop_name}"?
+                    ¿Eliminar "{shop.shopName}"?
                   </AlertDialogTitle>
                   <AlertDialogDescription className="space-y-3">
                     <p>
@@ -541,7 +543,7 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
                     </p>
                     <ul className="list-disc list-inside text-sm space-y-1">
                       <li>La tienda y toda su configuración</li>
-                      <li>{shop.product_counts?.total || 0} productos</li>
+                      <li>{shop.productCounts?.total || 0} productos</li>
                       <li>Analytics e historial</li>
                       <li>Todos los datos relacionados</li>
                     </ul>

@@ -28,26 +28,26 @@ const HeroSliderWizardPage: React.FC = () => {
   // Crear tema desde la tienda
   const shopData = shop as any;
   const theme = {
-    palette: shopData.primary_colors 
+    palette: shopData.primary_colors
       ? convertLegacyToNewPalette(shopData.primary_colors)
       : {
-          primary: { main: '#3b82f6', dark: '#2563eb', light: '#60a5fa' },
-          secondary: { main: '#8b5cf6', dark: '#7c3aed', light: '#a78bfa' },
-          accent: { main: '#f59e0b', dark: '#d97706', light: '#fbbf24' },
-          neutral: { main: '#6b7280', dark: '#4b5563', light: '#9ca3af' },
-          background: { main: '#ffffff', dark: '#f9fafb', light: '#ffffff' },
-          success: { main: '#10b981', dark: '#059669', light: '#34d399' },
-          warning: { main: '#f59e0b', dark: '#d97706', light: '#fbbf24' },
-          error: { main: '#ef4444', dark: '#dc2626', light: '#f87171' },
-          info: { main: '#3b82f6', dark: '#2563eb', light: '#60a5fa' }
-        }
+        primary: { main: '#3b82f6', dark: '#2563eb', light: '#60a5fa' },
+        secondary: { main: '#8b5cf6', dark: '#7c3aed', light: '#a78bfa' },
+        accent: { main: '#f59e0b', dark: '#d97706', light: '#fbbf24' },
+        neutral: { main: '#6b7280', dark: '#4b5563', light: '#9ca3af' },
+        background: { main: '#ffffff', dark: '#f9fafb', light: '#ffffff' },
+        success: { main: '#10b981', dark: '#059669', light: '#34d399' },
+        warning: { main: '#f59e0b', dark: '#d97706', light: '#fbbf24' },
+        error: { main: '#ef4444', dark: '#dc2626', light: '#f87171' },
+        info: { main: '#3b82f6', dark: '#2563eb', light: '#60a5fa' }
+      }
   };
 
   return (
     <ShopThemeProvider theme={theme}>
       <div className="min-h-screen bg-background py-8 px-4">
         <Helmet>
-          <title>Configurar Hero Slider - {shop.shop_name}</title>
+          <title>{`Configurar Hero Slider - ${shop.shopName}`}</title>
           <meta name="description" content="Configura el hero slider de tu tienda con asistencia de IA" />
         </Helmet>
 
