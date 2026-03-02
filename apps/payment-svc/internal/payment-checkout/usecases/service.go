@@ -17,14 +17,16 @@ type CheckoutService struct {
 	pricingEngine *PricingEngine
 	gateways      map[string]ports.PaymentGateway
 	validators    map[string]ports.WebhookValidator
+	notifier      ports.NotificationGateway
 	logger        *slog.Logger
 }
 
 func NewCheckoutService(
 	repo ports.CheckoutRepository,
 	uow ports.UnitOfWork,
-	gateways map[string]ports.PaymentGateway, // <--- Recibir el mapa
+	gateways map[string]ports.PaymentGateway,
 	validators map[string]ports.WebhookValidator,
+	notifier ports.NotificationGateway,
 	logger *slog.Logger,
 ) *CheckoutService {
 	return &CheckoutService{
@@ -33,6 +35,7 @@ func NewCheckoutService(
 		pricingEngine: NewPricingEngine(repo),
 		gateways:      gateways,
 		validators:    validators,
+		notifier:      notifier,
 		logger:        logger,
 	}
 }
