@@ -295,10 +295,7 @@ export class AgentTasksController {
     description: 'Tarea actualizada exitosamente',
   })
   @ApiResponse({ status: 404, description: 'Tarea no encontrada' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateAgentTaskDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateDto: UpdateAgentTaskDto) {
     return await this.agentTasksService.update(id, updateDto);
   }
 

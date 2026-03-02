@@ -25,9 +25,7 @@ import { Notification } from './entities/notification.entity';
 @ApiTags('notifications')
 @Controller('notifications')
 export class NotificationsController {
-  constructor(
-    private readonly notificationsService: NotificationsService,
-  ) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
   @ApiOperation({
@@ -127,8 +125,7 @@ export class NotificationsController {
   async countUnreadByUserId(
     @Param('userId') userId: string,
   ): Promise<{ count: number }> {
-    const count =
-      await this.notificationsService.countUnreadByUserId(userId);
+    const count = await this.notificationsService.countUnreadByUserId(userId);
     return { count };
   }
 
@@ -220,14 +217,18 @@ export class NotificationsController {
     status: 200,
     description: 'Notificaciones marcadas como leídas',
     schema: {
-      example: { message: 'Todas las notificaciones han sido marcadas como leídas' },
+      example: {
+        message: 'Todas las notificaciones han sido marcadas como leídas',
+      },
     },
   })
   async markAllAsReadByUserId(
     @Param('userId') userId: string,
   ): Promise<{ message: string }> {
     await this.notificationsService.markAllAsReadByUserId(userId);
-    return { message: 'Todas las notificaciones han sido marcadas como leídas' };
+    return {
+      message: 'Todas las notificaciones han sido marcadas como leídas',
+    };
   }
 
   @Delete(':id')
@@ -257,7 +258,8 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Eliminar todas las notificaciones de un usuario',
-    description: 'Elimina permanentemente todas las notificaciones de un usuario.',
+    description:
+      'Elimina permanentemente todas las notificaciones de un usuario.',
   })
   @ApiParam({
     name: 'userId',

@@ -102,6 +102,14 @@ export class ArtisanShopsQueryDto {
 
   // Filtros de texto
   @ApiPropertyOptional({
+    description: 'Búsqueda por nombre de tienda',
+    example: 'artesanías',
+  })
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @ApiPropertyOptional({
     description: 'Slug de la tienda',
     example: 'artesanias-del-valle',
   })

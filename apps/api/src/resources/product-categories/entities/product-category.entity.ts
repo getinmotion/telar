@@ -53,7 +53,12 @@ export class ProductCategory extends BaseEntity {
     example: 1,
     default: 0,
   })
-  @Column({ type: 'integer', name: 'display_order', nullable: true, default: 0 })
+  @Column({
+    type: 'integer',
+    name: 'display_order',
+    nullable: true,
+    default: 0,
+  })
   displayOrder: number | null;
 
   @ApiProperty({

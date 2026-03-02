@@ -4,7 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, QueryDeepPartialEntity } from 'typeorm';
 import { Cart, CartStatus, SaleContext } from './entities/cart.entity';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -140,10 +140,7 @@ export class CartService {
     await this.findOne(id);
 
     // Si se actualiza el contexto a tenant, verificar que hay contextShopId
-    if (
-      updateDto.context === SaleContext.TENANT &&
-      !updateDto.contextShopId
-    ) {
+    if (updateDto.context === SaleContext.TENANT && !updateDto.contextShopId) {
       throw new BadRequestException(
         'contextShopId es requerido cuando el contexto es tenant',
       );
@@ -179,7 +176,9 @@ export class CartService {
     // Verificar que existe
     const cart = await this.findOne(id);
 
-    const updateData: Partial<Cart> = { status: updateStatusDto.status };
+    const updateData: QueryDeepPartialEntity<Cart> = {
+      status: updateStatusDto.status,
+    };
 
     // Actualizar timestamps según el estado
     if (updateStatusDto.status === CartStatus.LOCKED) {
@@ -262,9 +261,7 @@ export class CartService {
       }
 
       // Convertir precio a unidades menores (centavos)
-      const unitPriceMinor = Math.round(
-        Number(product.price) * 100,
-      ).toString();
+      const unitPriceMinor = Math.round(Number(product.price) * 100).toString();
 
       // Construir metadata para variante
       const metadata = item.variantId ? { variantId: item.variantId } : {};

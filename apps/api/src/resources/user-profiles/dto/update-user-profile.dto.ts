@@ -6,4 +6,3 @@ import { OmitType } from '@nestjs/swagger';
 export class UpdateUserProfileDto extends PartialType(
   OmitType(CreateUserProfileDto, ['userId'] as const),
 ) {}
-

@@ -165,7 +165,10 @@ export class AgentTasksService {
     await this.getById(id);
 
     // Si se está marcando como completada, agregar la fecha
-    if (updateDto.status === TaskStatus.COMPLETED && !updateDto.progressPercentage) {
+    if (
+      updateDto.status === TaskStatus.COMPLETED &&
+      !updateDto.progressPercentage
+    ) {
       updateDto.progressPercentage = 100;
     }
 
@@ -225,9 +228,7 @@ export class AgentTasksService {
     progressPercentage: number,
   ): Promise<AgentTask> {
     if (progressPercentage < 0 || progressPercentage > 100) {
-      throw new BadRequestException(
-        'El progreso debe estar entre 0 y 100',
-      );
+      throw new BadRequestException('El progreso debe estar entre 0 y 100');
     }
 
     await this.getById(id);

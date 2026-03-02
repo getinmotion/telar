@@ -26,7 +26,8 @@ export class CartShippingInfoService {
       postalCode: createCartShippingInfoDto.postalCode,
       descEnvio: createCartShippingInfoDto.descEnvio,
       numGuia: createCartShippingInfoDto.numGuia,
-      valorFleteMinor: createCartShippingInfoDto.valorFleteMinor?.toString() || '0',
+      valorFleteMinor:
+        createCartShippingInfoDto.valorFleteMinor?.toString() || '0',
       valorSobreFleteMinor:
         createCartShippingInfoDto.valorSobreFleteMinor?.toString() || '0',
       valorTotalFleteMinor:

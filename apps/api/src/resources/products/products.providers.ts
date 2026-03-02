@@ -8,4 +8,3 @@ export const productsProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

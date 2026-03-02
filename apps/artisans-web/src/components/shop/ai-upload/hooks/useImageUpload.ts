@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 
 interface UploadProgress {
   fileName: string;
@@ -32,7 +32,7 @@ export const useImageUpload = () => {
     const sanitizedName = file.name
       .replace(/[^a-zA-Z0-9.-]/g, '_')
       .substring(0, 50);
-    
+
     const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     return `${Date.now()}_${index}_${sanitizedName}.${extension}`;
   };
@@ -43,7 +43,7 @@ export const useImageUpload = () => {
     }
 
     setIsUploading(true);
-    
+
     // Initialize progress tracking
     const initialProgress: UploadProgress[] = images.map((file) => ({
       fileName: file.name,
@@ -61,21 +61,12 @@ export const useImageUpload = () => {
         }
       }
 
-      // Check authentication first (before any uploads)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Usuario no autenticado - por favor inicia sesión');
-      }
-      console.log(`✅ User authenticated: ${user.id}`);
-
-      // Upload images with progress tracking and retry logic
+      // Upload images with progress tracking
       const uploadPromises = images.map(async (image, index) => {
-        // Update progress to optimizing
-        setUploadProgress(prev => prev.map((item, i) => 
+        setUploadProgress(prev => prev.map((item, i) =>
           i === index ? { ...item, status: 'optimizing', progress: 5 } : item
         ));
 
-        // Optimize image before upload
         let optimizedImage: File;
         try {
           optimizedImage = await optimizeImage(image, ImageOptimizePresets.product);
@@ -85,121 +76,29 @@ export const useImageUpload = () => {
           optimizedImage = image;
         }
 
-        const fileName = createSafeFileName(optimizedImage, index);
-
-        // Update progress to uploading
-        setUploadProgress(prev => prev.map((item, i) => 
+        setUploadProgress(prev => prev.map((item, i) =>
           i === index ? { ...item, status: 'uploading', progress: 15 } : item
         ));
 
-        const attemptUpload = async (retryCount = 0): Promise<string> => {
-          try {
-            console.log(`🔄 Uploading image ${index + 1}: ${fileName} (attempt ${retryCount + 1})`);
-            console.log(`📊 Image details:`, {
-              originalSize: Math.round(image.size / 1024) + 'KB',
-              optimizedSize: Math.round(optimizedImage.size / 1024) + 'KB',
-              type: optimizedImage.type,
-              name: optimizedImage.name,
-              fileName: fileName,
-            });
-
-            // Upload directly to root path to avoid subfolder permission issues
-            const uploadResponse = await supabase.storage
-              .from('images')
-              .upload(fileName, optimizedImage, {
-                contentType: optimizedImage.type,
-                cacheControl: '3600',
-                upsert: false
-              });
-
-            console.log(`📥 Upload response for ${fileName}:`, {
-              hasData: !!uploadResponse.data,
-              hasError: !!uploadResponse.error,
-              dataPath: uploadResponse.data?.path
-            });
-
-            // Enhanced error handling with response validation
-            if (uploadResponse.error) {
-              console.error(`❌ Storage upload error for ${fileName}:`, uploadResponse.error);
-              
-              // Check if error message contains JSON parsing issues
-              if (uploadResponse.error.message?.includes('mime type application/json')) {
-                console.error(`🚨 JSON MIME type error detected - this indicates Supabase returned an error response instead of accepting the file`);
-                console.error(`🔍 Full error context:`, {
-                  message: uploadResponse.error.message,
-                  bucket: 'images',
-                  path: fileName,
-                  userId: user.id,
-                  fileType: image.type,
-                  fileSize: image.size,
-                  retryCount
-                });
-                
-                // If first attempt, try with different approach
-                if (retryCount === 0) {
-                  console.log(`🔄 Retrying upload with different configuration...`);
-                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-                  return attemptUpload(1);
-                }
-              }
-              
-              throw new Error(`Error subiendo ${image.name}: ${uploadResponse.error.message}`);
-            }
-
-            // Validate response data
-            if (!uploadResponse.data || !uploadResponse.data.path) {
-              throw new Error(`Respuesta inválida del servidor para ${image.name}`);
-            }
-
-            // Update progress to 70%
-            setUploadProgress(prev => prev.map((item, i) => 
-              i === index ? { ...item, progress: 70 } : item
-            ));
-
-            // Get public URL
-            const { data: { publicUrl } } = supabase.storage
-              .from('images')
-              .getPublicUrl(uploadResponse.data.path);
-
-            // Validate public URL
-            if (!publicUrl || !publicUrl.includes(fileName)) {
-              throw new Error(`URL pública inválida para ${image.name}`);
-            }
-
-            // Update progress to completed
-            setUploadProgress(prev => prev.map((item, i) => 
-              i === index ? { ...item, status: 'completed', progress: 100 } : item
-            ));
-
-            console.log(`✅ Image ${index + 1} uploaded successfully:`, publicUrl);
-            return publicUrl;
-
-          } catch (uploadError) {
-            console.error(`💥 Upload attempt ${retryCount + 1} failed for ${fileName}:`, uploadError);
-            
-            // If it's the first attempt and not a JSON mime type error, retry once
-            if (retryCount === 0 && !uploadError.message?.includes('mime type application/json')) {
-              console.log(`🔄 Retrying upload for ${fileName}...`);
-              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-              return attemptUpload(1);
-            }
-            
-            throw uploadError;
-          }
-        };
-
         try {
-          return await attemptUpload();
+          console.log(`🔄 Uploading image ${index + 1}: ${optimizedImage.name}`);
+          const result = await uploadImage(optimizedImage, UploadFolder.PRODUCTS);
+
+          setUploadProgress(prev => prev.map((item, i) =>
+            i === index ? { ...item, status: 'completed', progress: 100 } : item
+          ));
+
+          console.log(`✅ Image ${index + 1} uploaded successfully:`, result.url);
+          return result.url;
         } catch (uploadError) {
-          // Update progress to error
-          setUploadProgress(prev => prev.map((item, i) => 
-            i === index ? { 
-              ...item, 
-              status: 'error', 
+          console.error(`💥 Upload failed for ${optimizedImage.name}:`, uploadError);
+          setUploadProgress(prev => prev.map((item, i) =>
+            i === index ? {
+              ...item,
+              status: 'error',
               error: uploadError instanceof Error ? uploadError.message : 'Error desconocido'
             } : item
           ));
-
           throw uploadError;
         }
       });

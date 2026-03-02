@@ -12,12 +12,12 @@ import { ModerationImageEditor } from './ModerationImageEditor';
 import { ModerationShopApproval } from './ModerationShopApproval';
 import { ModerationHistory } from './ModerationHistory';
 import { ModerationStatusBadge } from './ModerationStatusBadge';
-import { 
-  Save, 
-  RotateCcw, 
-  CheckCircle, 
-  Edit, 
-  AlertCircle, 
+import {
+  Save,
+  RotateCcw,
+  CheckCircle,
+  Edit,
+  AlertCircle,
   XCircle,
   Package,
   Store,
@@ -36,10 +36,9 @@ interface ProductDimensions {
 interface ProductEdits {
   name: string;
   description: string;
-  short_description: string;
+  shortDescription: string;
   price: number;
-  compare_price: number | null;
-  category: string;
+  comparePrice: number | null;
   subcategory: string | null;
   images: string[];
   tags: string[];
@@ -88,10 +87,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
   const [edits, setEdits] = useState<ProductEdits>({
     name: '',
     description: '',
-    short_description: '',
+    shortDescription: '',
     price: 0,
-    compare_price: null,
-    category: '',
+    comparePrice: null,
     subcategory: null,
     images: [],
     tags: [],
@@ -110,10 +108,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
     setEdits({
       name: product.name,
       description: product.description || '',
-      short_description: product.short_description || '',
+      shortDescription: product.short_description || '',
       price: product.price,
-      compare_price: product.compare_price,
-      category: product.category || '',
+      comparePrice: product.compare_price,
       subcategory: product.subcategory,
       images: Array.isArray(product.images) ? product.images : [],
       tags: Array.isArray(product.tags) ? product.tags : [],
@@ -134,10 +131,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
     return (
       edits.name !== product.name ||
       edits.description !== (product.description || '') ||
-      edits.short_description !== (product.short_description || '') ||
+      edits.shortDescription !== (product.short_description || '') ||
       edits.price !== product.price ||
-      edits.compare_price !== product.compare_price ||
-      edits.category !== (product.category || '') ||
+      edits.comparePrice !== product.compare_price ||
       edits.subcategory !== product.subcategory ||
       JSON.stringify(edits.images) !== JSON.stringify(product.images || []) ||
       JSON.stringify(edits.tags) !== JSON.stringify(product.tags || []) ||
@@ -154,10 +150,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
     setEdits({
       name: product.name,
       description: product.description || '',
-      short_description: product.short_description || '',
+      shortDescription: product.short_description || '',
       price: product.price,
-      compare_price: product.compare_price,
-      category: product.category || '',
+      comparePrice: product.compare_price,
       subcategory: product.subcategory,
       images: Array.isArray(product.images) ? product.images : [],
       tags: Array.isArray(product.tags) ? product.tags : [],
@@ -178,7 +173,7 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
 
     const editedFields = hasEdits() ? edits : undefined;
     const finalAction = editedFields ? 'approve_with_edits' : action;
-    
+
     await onModerate(finalAction, comment || undefined, editedFields);
   };
 
@@ -251,8 +246,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
               <div className="space-y-2">
                 <Label>Descripción corta</Label>
                 <Input
-                  value={edits.short_description}
-                  onChange={(e) => setEdits(prev => ({ ...prev, short_description: e.target.value }))}
+                  value={edits.shortDescription}
+                  onChange={(e) => setEdits(prev => ({ ...prev, shortDescription: e.target.value }))}
                   placeholder="Breve descripción para listados..."
                 />
               </div>
@@ -286,8 +281,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                   <Label>Precio anterior ($)</Label>
                   <Input
                     type="number"
-                    value={edits.compare_price || ''}
-                    onChange={(e) => setEdits(prev => ({ ...prev, compare_price: e.target.value ? Number(e.target.value) : null }))}
+                    value={edits.comparePrice || ''}
+                    onChange={(e) => setEdits(prev => ({ ...prev, comparePrice: e.target.value ? Number(e.target.value) : null }))}
                     placeholder="Opcional"
                   />
                 </div>
@@ -341,9 +336,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     step="0.1"
                     min="0"
                     value={edits.weight ?? ''}
-                    onChange={(e) => setEdits(prev => ({ 
-                      ...prev, 
-                      weight: e.target.value ? Number(e.target.value) : null 
+                    onChange={(e) => setEdits(prev => ({
+                      ...prev,
+                      weight: e.target.value ? Number(e.target.value) : null
                     }))}
                     placeholder="ej: 0.5"
                   />
@@ -355,8 +350,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     step="0.1"
                     min="0"
                     value={edits.dimensions?.length ?? ''}
-                    onChange={(e) => setEdits(prev => ({ 
-                      ...prev, 
+                    onChange={(e) => setEdits(prev => ({
+                      ...prev,
                       dimensions: {
                         ...prev.dimensions,
                         length: e.target.value ? Number(e.target.value) : null,
@@ -374,8 +369,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     step="0.1"
                     min="0"
                     value={edits.dimensions?.width ?? ''}
-                    onChange={(e) => setEdits(prev => ({ 
-                      ...prev, 
+                    onChange={(e) => setEdits(prev => ({
+                      ...prev,
                       dimensions: {
                         ...prev.dimensions,
                         length: prev.dimensions?.length ?? null,
@@ -393,8 +388,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     step="0.1"
                     min="0"
                     value={edits.dimensions?.height ?? ''}
-                    onChange={(e) => setEdits(prev => ({ 
-                      ...prev, 
+                    onChange={(e) => setEdits(prev => ({
+                      ...prev,
                       dimensions: {
                         ...prev.dimensions,
                         length: prev.dimensions?.length ?? null,
@@ -421,9 +416,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Categoría</Label>
-                  <Select 
-                    value={edits.category} 
-                    onValueChange={(v) => setEdits(prev => ({ ...prev, category: v }))}
+                  <Select
+                    value={edits.subcategory || ''}
+                    onValueChange={(v) => setEdits(prev => ({ ...prev, subcategory: v || null }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar..." />
@@ -436,11 +431,11 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Subcategoría</Label>
+                  <Label>Subcategoría (texto libre)</Label>
                   <Input
                     value={edits.subcategory || ''}
                     onChange={(e) => setEdits(prev => ({ ...prev, subcategory: e.target.value || null }))}
-                    placeholder="Opcional"
+                    placeholder="O escribe manualmente..."
                   />
                 </div>
               </div>

@@ -30,7 +30,8 @@ import { EventBus } from "@/utils/eventBus";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationTemplates } from "@/services/notificationService";
 import { BANKS_DATA } from "@/data/cobreBankData";
-import { supabase } from "@/integrations/supabase/client";
+import { getCounterparty } from "@/services/cobre.actions";
+import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,7 +87,7 @@ export const BankDataPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Check if artisan_shops has id_contraparty and fetch counterparty data
+  // Verificar si la tienda tiene id_contraparty y cargar datos de la contraparte
   useEffect(() => {
     const fetchCounterpartyData = async () => {
       if (!user?.id) {
@@ -95,44 +96,19 @@ export const BankDataPage: React.FC = () => {
       }
 
       try {
-        // First check if artisan_shops has id_contraparty
-        const { data: shopData, error: shopError } = await supabase
-          .from("artisan_shops")
-          .select("id_contraparty")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const shop = await getArtisanShopByUserId(user.id);
 
-        if (shopError) {
-          console.error("Error fetching shop data:", shopError);
-          setLoadingCounterparty(false);
-          return;
-        }
-
-        if (!shopData?.id_contraparty) {
+        if (!shop?.idContraparty) {
           setHasCounterparty(false);
           setLoadingCounterparty(false);
           return;
         }
 
-        // If id_contraparty exists, call the edge function
         setHasCounterparty(true);
-
-        const { data, error } = await supabase.functions.invoke(
-          "get-counterparty",
-          {
-            body: { counterparty_id: shopData.id_contraparty },
-          }
-        );
-
-        if (error) {
-          console.error("Error fetching counterparty:", error);
-          setLoadingCounterparty(false);
-          return;
-        }
-
+        const data = await getCounterparty(shop.idContraparty);
         setCounterpartyData(data.metadata as Metadata);
-      } catch (err) {
-        console.error("Error in fetchCounterpartyData:", err);
+      } catch {
+        // Sin datos de contraparte disponibles
       } finally {
         setLoadingCounterparty(false);
       }
@@ -180,7 +156,7 @@ export const BankDataPage: React.FC = () => {
       const bank = BANKS_DATA.find(
         (b) => b.name === counterpartyData.beneficiary_institution || b.code === counterpartyData.beneficiary_institution
       );
-      
+
       setFormData({
         holder_name: counterpartyData.counterparty_fullname || "",
         document_type: counterpartyData.counterparty_id_type || "cc",
@@ -211,7 +187,7 @@ export const BankDataPage: React.FC = () => {
     if (!formData.account_type) {
       formData.account_type = "ch"; // Default to savings if somehow empty
     }
-    
+
     setSaving(true);
 
     let result;
@@ -241,17 +217,16 @@ export const BankDataPage: React.FC = () => {
       await NotificationTemplates.bankDataConfigured(user.id);
 
       if (isEditing) {
-        // Refresh page to show updated read-only view
         setIsEditing(false);
         setLoadingCounterparty(true);
-        // Re-fetch counterparty data
-        const { data } = await supabase.functions.invoke("get-counterparty", {
-          body: { counterparty_id: result.id_contraparty },
-        });
-        if (data?.metadata) {
-          setCounterpartyData(data.metadata as Metadata);
+        try {
+          const data = await getCounterparty(result.id_contraparty);
+          if (data?.metadata) {
+            setCounterpartyData(data.metadata as Metadata);
+          }
+        } finally {
+          setLoadingCounterparty(false);
         }
-        setLoadingCounterparty(false);
       } else {
         // Redirect to dashboard for new creation
         navigate("/dashboard");
@@ -469,9 +444,9 @@ export const BankDataPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Button 
-              variant="ghost" 
-              onClick={isEditMode ? handleCancelEdit : () => navigate(-1)} 
+            <Button
+              variant="ghost"
+              onClick={isEditMode ? handleCancelEdit : () => navigate(-1)}
               className="mb-6"
             >
               {isEditMode ? (
@@ -497,8 +472,8 @@ export const BankDataPage: React.FC = () => {
                     {isEditMode ? "Editar Datos Bancarios" : "Datos Bancarios"}
                   </h1>
                   <p className="text-muted-foreground">
-                    {isEditMode 
-                      ? "Actualiza tu información bancaria" 
+                    {isEditMode
+                      ? "Actualiza tu información bancaria"
                       : "Para recibir los pagos de tus ventas"}
                   </p>
                 </div>
@@ -524,159 +499,159 @@ export const BankDataPage: React.FC = () => {
                   </Alert>
                 )}
 
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="holder_name">Nombre del Titular *</Label>
-                  <Input
-                    id="holder_name"
-                    value={formData.holder_name}
-                    onChange={(e) =>
-                      handleChange("holder_name", e.target.value)
-                    }
-                    placeholder="Nombre completo como aparece en la cuenta"
-                    required
-                  />
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="holder_name">Nombre del Titular *</Label>
+                    <Input
+                      id="holder_name"
+                      value={formData.holder_name}
+                      onChange={(e) =>
+                        handleChange("holder_name", e.target.value)
+                      }
+                      placeholder="Nombre completo como aparece en la cuenta"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="document_type">Tipo de Documento *</Label>
+                    <Select
+                      value={formData.document_type}
+                      onValueChange={(value) =>
+                        handleChange("document_type", value)
+                      }
+                    >
+                      <SelectTrigger id="document_type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cc">Cédula de Ciudadanía</SelectItem>
+                        <SelectItem value="pa">Pasaporte</SelectItem>
+                        <SelectItem value="nit">NIT</SelectItem>
+                        <SelectItem value="ce">Cédula de Extranjería</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="document_number">Número de Documento *</Label>
+                    <Input
+                      id="document_number"
+                      value={formData.document_number}
+                      onChange={(e) =>
+                        handleChange("document_number", e.target.value)
+                      }
+                      placeholder="Ej: 1234567890"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="account_type">Tipo de Cuenta *</Label>
+                    <Select
+                      value={formData.account_type}
+                      onValueChange={(value) =>
+                        handleChange("account_type", value)
+                      }
+                    >
+                      <SelectTrigger id="account_type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ch">Ahorros</SelectItem>
+                        <SelectItem value="cc">Corriente</SelectItem>
+                        <SelectItem value="r2p">R2P</SelectItem>
+                        <SelectItem value="dp">Deposito electronico</SelectItem>
+                        <SelectItem value="breb-key">Llave Bre-b</SelectItem>
+                        <SelectItem value="r2p_breb">Recaudo Bre-b</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bank_name">Banco *</Label>
+                    <Select
+                      value={formData.bank_code}
+                      onValueChange={(bankName) =>
+                        handleChange("bank_code", bankName)
+                      }
+                    >
+                      <SelectTrigger id="bank_code">
+                        <SelectValue placeholder="Selecciona tu banco" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BANKS_DATA.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="account_number">
+                      {formData.account_type === "breb-key" || formData.account_type === "r2p_breb"
+                        ? "Llave Bre-b *"
+                        : "Número de Cuenta *"}
+                    </Label>
+                    <Input
+                      id="account_number"
+                      value={formData.account_number}
+                      onChange={(e) => {
+                        const isBreBType = formData.account_type === "breb-key" || formData.account_type === "r2p_breb";
+                        const value = isBreBType
+                          ? e.target.value // Permite alfanumérico y @ para Bre-b
+                          : e.target.value.replace(/\D/g, ""); // Solo números para otros tipos
+                        handleChange("account_number", value);
+                      }}
+                      placeholder={
+                        formData.account_type === "breb-key" || formData.account_type === "r2p_breb"
+                          ? "Ej: @tunombre o llave Bre-b"
+                          : "Solo números"
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="country">País</Label>
+                    <Input
+                      id="country"
+                      value={formData.country}
+                      onChange={(e) => handleChange("country", e.target.value)}
+                      disabled
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Moneda</Label>
+                    <Input
+                      id="currency"
+                      value={formData.currency}
+                      onChange={(e) => handleChange("currency", e.target.value)}
+                      disabled
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="document_type">Tipo de Documento *</Label>
-                  <Select
-                    value={formData.document_type}
-                    onValueChange={(value) =>
-                      handleChange("document_type", value)
-                    }
+                <div className="flex gap-4 pt-4">
+                  <Button type="submit" disabled={saving} className="flex-1">
+                    {saving ? "Guardando..." : "Guardar Datos Bancarios"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate(-1)}
                   >
-                    <SelectTrigger id="document_type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cc">Cédula de Ciudadanía</SelectItem>
-                      <SelectItem value="pa">Pasaporte</SelectItem>
-                      <SelectItem value="nit">NIT</SelectItem>
-                      <SelectItem value="ce">Cédula de Extranjería</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Cancelar
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="document_number">Número de Documento *</Label>
-                  <Input
-                    id="document_number"
-                    value={formData.document_number}
-                    onChange={(e) =>
-                      handleChange("document_number", e.target.value)
-                    }
-                    placeholder="Ej: 1234567890"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="account_type">Tipo de Cuenta *</Label>
-                  <Select
-                    value={formData.account_type}
-                    onValueChange={(value) =>
-                      handleChange("account_type", value)
-                    }
-                  >
-                    <SelectTrigger id="account_type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ch">Ahorros</SelectItem>
-                      <SelectItem value="cc">Corriente</SelectItem>
-                      <SelectItem value="r2p">R2P</SelectItem>
-                      <SelectItem value="dp">Deposito electronico</SelectItem>
-                      <SelectItem value="breb-key">Llave Bre-b</SelectItem>
-                      <SelectItem value="r2p_breb">Recaudo Bre-b</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bank_name">Banco *</Label>
-                  <Select
-                    value={formData.bank_code}
-                    onValueChange={(bankName) =>
-                      handleChange("bank_code", bankName)
-                    }
-                  >
-                    <SelectTrigger id="bank_code">
-                      <SelectValue placeholder="Selecciona tu banco" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BANKS_DATA.map((bank) => (
-                        <SelectItem key={bank.code} value={bank.code}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="account_number">
-                    {formData.account_type === "breb-key" || formData.account_type === "r2p_breb" 
-                      ? "Llave Bre-b *" 
-                      : "Número de Cuenta *"}
-                  </Label>
-                  <Input
-                    id="account_number"
-                    value={formData.account_number}
-                    onChange={(e) => {
-                      const isBreBType = formData.account_type === "breb-key" || formData.account_type === "r2p_breb";
-                      const value = isBreBType 
-                        ? e.target.value // Permite alfanumérico y @ para Bre-b
-                        : e.target.value.replace(/\D/g, ""); // Solo números para otros tipos
-                      handleChange("account_number", value);
-                    }}
-                    placeholder={
-                      formData.account_type === "breb-key" || formData.account_type === "r2p_breb"
-                        ? "Ej: @tunombre o llave Bre-b"
-                        : "Solo números"
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="country">País</Label>
-                  <Input
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) => handleChange("country", e.target.value)}
-                    disabled
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Moneda</Label>
-                  <Input
-                    id="currency"
-                    value={formData.currency}
-                    onChange={(e) => handleChange("currency", e.target.value)}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={saving} className="flex-1">
-                  {saving ? "Guardando..." : "Guardar Datos Bancarios"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </motion.div>
+              </form>
+            </Card>
+          </motion.div>
+        </div>
       </div>
-    </div>
     </>
   );
 };

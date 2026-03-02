@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { formatCurrency } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,12 +8,12 @@ import { useCart } from '@/contexts/ShoppingCartContext';
 import { useWishlist } from '@/hooks/useWishlist';
 import { ProductRating } from '@/components/trust/ProductRating';
 import { StockBadge } from '@/components/trust/StockBadge';
-import { 
-  Eye, 
-  Heart, 
-  ShoppingCart, 
-  Star, 
-  ChevronLeft, 
+import {
+  Eye,
+  Heart,
+  ShoppingCart,
+  Star,
+  ChevronLeft,
   ChevronRight,
   Share2,
   Truck,
@@ -44,21 +45,15 @@ interface ProductCardProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onProductClick, 
-  size = 'medium' 
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onProductClick,
+  size = 'medium'
 }) => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const formatPrice = (price: number) => 
-    new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(price);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -84,7 +79,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const images = Array.isArray(product.images) ? product.images : 
+  const images = Array.isArray(product.images) ? product.images :
     product.images ? [product.images] : ['/placeholder.svg'];
 
   const nextImage = () => {
@@ -106,11 +101,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <Card 
+    <Card
       variant="elevated"
       className={`${cardSizeClasses[size]} group cursor-pointer overflow-hidden hover:scale-[1.02] transition-all duration-300`}
     >
-      <div 
+      <div
         className="relative aspect-square overflow-hidden bg-gray-100"
         onClick={() => onProductClick(product)}
       >
@@ -140,15 +135,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-            
+
             {/* Image Indicators */}
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
               {images.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    index === currentImageIndex ? 'bg-neon-green w-3' : 'bg-white/60'
-                  }`}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentImageIndex ? 'bg-neon-green w-3' : 'bg-white/60'
+                    }`}
                 />
               ))}
             </div>
@@ -176,8 +170,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Stock Status */}
         {product.inventory <= 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute top-2 right-2 text-xs"
           >
             Sin stock
@@ -187,24 +181,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Quick Actions Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2">
           <QuickViewModal product={product}>
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               className="bg-white hover:bg-white/90 text-charcoal"
             >
               <Eye className="h-4 w-4" />
             </Button>
           </QuickViewModal>
-          
-          <Button 
-            size="icon" 
+
+          <Button
+            size="icon"
             onClick={handleWishlist}
             className="bg-white hover:bg-white/90 text-charcoal"
           >
             <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
           </Button>
-          
-          <Button 
-            size="icon" 
+
+          <Button
+            size="icon"
             onClick={handleAddToCart}
             disabled={product.inventory <= 0}
             className="bg-neon-green hover:bg-neon-green-400 text-deep-green"
@@ -213,15 +207,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Button>
         </div>
       </div>
-      
+
       <CardContent className="p-4" onClick={() => onProductClick(product)}>
         {/* Rating */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star 
-                key={i} 
-                className={`h-3 w-3 ${i < 4 ? 'text-neon-green fill-current' : 'text-gray-300'}`} 
+              <Star
+                key={i}
+                className={`h-3 w-3 ${i < 4 ? 'text-neon-green fill-current' : 'text-gray-300'}`}
               />
             ))}
           </div>
@@ -239,20 +233,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.short_description}
           </p>
         )}
-        
+
         {/* Pricing */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex flex-col">
             <span className="text-xl font-bold text-charcoal">
-              {formatPrice(product.price)}
+              {formatCurrency(product.price)}
             </span>
             {product.compare_price && product.compare_price > product.price && (
               <span className="text-sm text-gray-500 line-through">
-                {formatPrice(product.compare_price)}
+                {formatCurrency(product.compare_price)}
               </span>
             )}
           </div>
-          
+
           <Button
             size="sm"
             variant="neon"
@@ -271,7 +265,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <Truck className="h-3 w-3 text-neon-green-600" />
             <span>Envío gratis</span>
           </div>
-          
+
           {product.inventory <= 5 && product.inventory > 0 && (
             <span className="text-orange-600 font-semibold">
               ¡{product.inventory} left!
@@ -305,14 +299,8 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, children }) =>
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
-  const formatPrice = (price: number) => 
-    new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(price);
 
-  const images = Array.isArray(product.images) ? product.images : 
+  const images = Array.isArray(product.images) ? product.images :
     product.images ? [product.images] : ['/placeholder.svg'];
 
   const handleAddToCart = async () => {
@@ -339,16 +327,15 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, children }) =>
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {images.length > 1 && (
               <div className="flex gap-2 overflow-auto">
                 {images.map((image: string, index: number) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${
-                      selectedImageIndex === index ? 'border-primary' : 'border-muted'
-                    }`}
+                    className={`relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImageIndex === index ? 'border-primary' : 'border-muted'
+                      }`}
                   >
                     <img
                       src={image}
@@ -368,9 +355,9 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, children }) =>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`h-4 w-4 ${i < 4 ? 'text-yellow-400 fill-current' : 'text-muted-foreground'}`} 
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < 4 ? 'text-yellow-400 fill-current' : 'text-muted-foreground'}`}
                     />
                   ))}
                 </div>
@@ -382,17 +369,17 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, children }) =>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-primary">
-                  {formatPrice(product.price)}
+                  {formatCurrency(product.price)}
                 </span>
                 {product.compare_price && product.compare_price > product.price && (
                   <span className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.compare_price)}
+                    {formatCurrency(product.compare_price)}
                   </span>
                 )}
               </div>
               {product.compare_price && product.compare_price > product.price && (
                 <p className="text-sm text-green-600 font-medium">
-                  Ahorras {formatPrice(product.compare_price - product.price)} ({Math.round(((product.compare_price - product.price) / product.compare_price) * 100)}%)
+                  Ahorras {formatCurrency(product.compare_price - product.price)} ({Math.round(((product.compare_price - product.price) / product.compare_price) * 100)}%)
                 </p>
               )}
             </div>

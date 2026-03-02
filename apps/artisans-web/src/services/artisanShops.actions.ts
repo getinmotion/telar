@@ -14,6 +14,34 @@ import type {
 } from '@/types/artisanShop.types';
 
 /**
+ * Obtiene todas las tiendas publicadas para el directorio público
+ * Endpoint: GET /artisan-shops?active=true&publishStatus=published
+ */
+export const getPublishedArtisanShops = async (): Promise<ArtisanShop[]> => {
+  try {
+    const response = await telarApi.get<{ data: ArtisanShop[]; total: number }>(
+      '/artisan-shops',
+      {
+        params: {
+          active: true,
+          publishStatus: 'published',
+          limit: 100,
+          page: 1,
+          sortBy: 'created_at',
+          order: 'DESC',
+        },
+      }
+    );
+    return response.data.data ?? [];
+  } catch (error: any) {
+    if (error.response?.data) {
+      throw error.response.data as ArtisanShopErrorResponse;
+    }
+    throw error;
+  }
+};
+
+/**
  * Obtiene una tienda por su ID
  * @param shopId - ID de la tienda
  * @returns La tienda o null si no existe

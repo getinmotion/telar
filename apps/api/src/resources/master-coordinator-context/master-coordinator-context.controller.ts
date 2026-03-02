@@ -46,7 +46,10 @@ export class MasterCoordinatorContextController {
     description: 'Contexto creado exitosamente',
   })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
-  @ApiResponse({ status: 409, description: 'Ya existe un contexto para este usuario' })
+  @ApiResponse({
+    status: 409,
+    description: 'Ya existe un contexto para este usuario',
+  })
   async create(@Body() createDto: CreateMasterCoordinatorContextDto) {
     return await this.masterCoordinatorContextService.create(createDto);
   }

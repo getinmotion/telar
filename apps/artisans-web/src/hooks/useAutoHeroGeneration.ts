@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { validateBrandCompleteness } from '@/utils/brandValidation';
 import { buildCulturalContext } from '@/utils/culturalContextBuilder';
@@ -129,21 +130,8 @@ export const useAutoHeroGeneration = () => {
           // Optimize reference image before upload
           const optimizedFile = await optimizeImage(options.referenceImageFile, ImageOptimizePresets.hero);
 
-          const fileName = `${shopId}/reference-${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('hero-images')
-            .upload(fileName, optimizedFile, {
-              contentType: optimizedFile.type,
-              upsert: true
-            });
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('hero-images')
-            .getPublicUrl(fileName);
-
-          referenceImageUrl = publicUrl;
+          const uploadResult = await uploadImage(optimizedFile, UploadFolder.HERO);
+          referenceImageUrl = uploadResult.url;
         } catch (error) {
           console.error('[AutoHeroGen] Error subiendo imagen de referencia:', error);
           // Continuar sin imagen de referencia
@@ -214,27 +202,20 @@ export const useAutoHeroGeneration = () => {
           }
 
           const base64Data = imageData.imageBase64.split(',')[1] || imageData.imageBase64;
-          const fileName = `${shopId}/hero-${Date.now()}-${index}.png`;
+          const blob = new Blob(
+            [Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))],
+            { type: 'image/png' }
+          );
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('hero-images')
-            .upload(fileName,
-              Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)),
-              {
-                contentType: 'image/png',
-                upsert: true
-              }
-            );
-
-          if (uploadError) {
+          let publicUrl: string;
+          try {
+            const uploadResult = await uploadImage(blob, UploadFolder.HERO, `hero-${Date.now()}-${index}.png`);
+            publicUrl = uploadResult.url;
+          } catch (uploadError) {
             console.error(`[AutoHeroGen] Error subiendo imagen ${index + 1}:`, uploadError);
             imageUrls.push(shop.logoUrl || placeholderUrls[index]);
             continue;
           }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('hero-images')
-            .getPublicUrl(fileName);
 
           imageUrls.push(publicUrl);
 

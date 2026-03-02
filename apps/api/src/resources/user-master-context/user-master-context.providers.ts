@@ -9,4 +9,3 @@ export const userMasterContextProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

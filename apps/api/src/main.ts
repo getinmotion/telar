@@ -66,10 +66,7 @@ async function bootstrap() {
       'Acciones y puntos de madurez empresarial de usuarios',
     )
     .addTag('products', 'Productos de artesanos en el marketplace')
-    .addTag(
-      'product-categories',
-      'Categorías de productos con jerarquía',
-    )
+    .addTag('product-categories', 'Categorías de productos con jerarquía')
     .addTag('agent-tasks', 'Tareas creadas por agentes IA para usuarios')
     .addTag(
       'agent-deliverables',
@@ -101,9 +98,19 @@ async function bootstrap() {
       'cart-shipping-info',
       'Información de envío asociada a carritos de compra',
     )
+    .addTag('notifications', 'Sistema de notificaciones para usuarios')
     .addTag(
-      'notifications',
-      'Sistema de notificaciones para usuarios',
+      'product-moderation-history',
+      'Historial de moderación de productos',
+    )
+    .addTag('product-variants', 'Variantes de productos con SKU y stock')
+    .addTag(
+      'inventory-movements',
+      'Movimientos de inventario para control de stock',
+    )
+    .addTag(
+      'file-upload',
+      'Subida y gestión de archivos en AWS S3/Lightsail',
     )
     .addBearerAuth(
       {
@@ -128,6 +135,8 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3040;
   await app.listen(port);
   console.info('🚝 Servidor ejecutandose en el Puerto:', port);
-  console.info(`📚 Documentación Swagger disponible en: http://localhost:${port}/api/docs`);
+  console.info(
+    `📚 Documentación Swagger disponible en: http://localhost:${port}/api/docs`,
+  );
 }
 bootstrap();

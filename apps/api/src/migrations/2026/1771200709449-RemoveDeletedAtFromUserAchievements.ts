@@ -5,9 +5,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *
  * La tabla user_achievements ya no usará soft delete
  */
-export class RemoveDeletedAtFromUserAchievements1771200709449
-  implements MigrationInterface
-{
+export class RemoveDeletedAtFromUserAchievements1771200709449 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE public.user_achievements

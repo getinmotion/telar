@@ -498,9 +498,7 @@ export class AuthService {
    * Manejar callback de Google OAuth
    * Crea o actualiza usuario y devuelve JWT + información adicional
    */
-  async handleGoogleCallback(
-    googleAuthDto: any,
-  ): Promise<{
+  async handleGoogleCallback(googleAuthDto: any): Promise<{
     user: Partial<User>;
     userMasterContext: any | null;
     artisanShop: any | null;
@@ -536,7 +534,8 @@ export class AuthService {
       } else {
         // Usuario NO existe: crear nuevo usuario
         // Generar contraseña temporal para Google OAuth (no será usada)
-        const tempPassword = Math.random().toString(36).substring(2, 15) +
+        const tempPassword =
+          Math.random().toString(36).substring(2, 15) +
           Math.random().toString(36).substring(2, 15);
 
         const newUser = await this.usersService.create({
@@ -548,7 +547,8 @@ export class AuthService {
           rawUserMetaData: {
             first_name: googleAuthDto.firstName || '',
             last_name: googleAuthDto.lastName || '',
-            full_name: `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
+            full_name:
+              `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
             profile_picture: googleAuthDto.profilePhoto,
             google_id: googleAuthDto.googleId,
             oauth_provider: 'google',
@@ -563,7 +563,8 @@ export class AuthService {
             userId: newUser.id,
             firstName: googleAuthDto.firstName || '',
             lastName: googleAuthDto.lastName || '',
-            fullName: `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
+            fullName:
+              `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
             whatsappE164: undefined,
             department: undefined,
             city: undefined,

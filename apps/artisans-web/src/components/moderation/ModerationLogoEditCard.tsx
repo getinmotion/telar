@@ -2,17 +2,18 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Loader2, 
-  ImageIcon, 
-  Upload, 
-  Save, 
+import {
+  Loader2,
+  ImageIcon,
+  Upload,
+  Save,
   X,
   CheckCircle,
   XCircle,
   Pencil
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { toast } from 'sonner';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
 
@@ -72,28 +73,10 @@ export const ModerationLogoEditCard: React.FC<ModerationLogoEditCardProps> = ({
       // Optimize image before upload
       console.log('[ModerationLogoEditCard] Optimizing logo...');
       const optimizedFile = await optimizeImage(selectedFile, ImageOptimizePresets.logo);
-      
+
       // Upload to storage
-      const fileName = `${shopId}-${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-      const filePath = `logos/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('brand-assets')
-        .upload(filePath, optimizedFile, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw new Error('Error al subir la imagen');
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('brand-assets')
-        .getPublicUrl(filePath);
-
-      const newLogoUrl = urlData.publicUrl;
+      const uploadResult = await uploadImage(optimizedFile, UploadFolder.BRANDS);
+      const newLogoUrl = uploadResult.url;
 
       // Call edge function to update
       const { data, error: updateError } = await supabase.functions.invoke(
@@ -173,7 +156,7 @@ export const ModerationLogoEditCard: React.FC<ModerationLogoEditCardProps> = ({
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                
+
                 {!selectedFile ? (
                   <Button
                     variant="outline"
@@ -222,7 +205,7 @@ export const ModerationLogoEditCard: React.FC<ModerationLogoEditCardProps> = ({
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  {hasLogo 
+                  {hasLogo
                     ? 'Puedes cambiar el logo de esta tienda.'
                     : 'Esta tienda no tiene logo configurado.'}
                 </p>

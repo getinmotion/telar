@@ -102,7 +102,9 @@ export class CreateUserMasterContextDto {
     },
   })
   @IsOptional()
-  @IsObject({ message: 'El contexto de generación de tareas debe ser un objeto' })
+  @IsObject({
+    message: 'El contexto de generación de tareas debe ser un objeto',
+  })
   taskGenerationContext?: object;
 
   @ApiPropertyOptional({
@@ -111,6 +113,8 @@ export class CreateUserMasterContextDto {
     default: 'es',
   })
   @IsOptional()
-  @IsString({ message: 'La preferencia de idioma debe ser una cadena de texto' })
+  @IsString({
+    message: 'La preferencia de idioma debe ser una cadena de texto',
+  })
   languagePreference?: string;
 }
