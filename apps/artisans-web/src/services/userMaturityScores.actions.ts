@@ -22,14 +22,13 @@ export const getUserMaturityScoresByUserId = async (
 ): Promise<UserMaturityScore[]> => {
   try {
     const response = await telarApi.get<UserMaturityScore[]>(
-      `/telar/server/user-maturity-scores/user/${userId}`
+      `/user-maturity-scores/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[userMaturityScores] Error fetching scores:', error);
     throw new Error(
       error.response?.data?.message || 'Failed to fetch maturity scores'
     );
@@ -48,7 +47,6 @@ export const getLatestMaturityScore = async (
     const scores = await getUserMaturityScoresByUserId(userId);
     return scores.length > 0 ? scores[0] : null;
   } catch (error: any) {
-    console.error('[userMaturityScores] Error fetching latest score:', error);
     return null;
   }
 };
@@ -71,7 +69,7 @@ export const hasMaturityScores = async (userId: string): Promise<boolean> => {
 
 /**
  * Create a new maturity score
- * POST /telar/server/user-maturity-scores
+ * POST /user-maturity-scores
  * 
  * @param payload - Maturity score data
  * @returns Created maturity score
@@ -81,12 +79,11 @@ export const createUserMaturityScore = async (
 ): Promise<UserMaturityScore> => {
   try {
     const response = await telarApi.post<UserMaturityScore>(
-      '/telar/server/user-maturity-scores',
+      '/user-maturity-scores',
       payload
     );
     return response.data;
   } catch (error: any) {
-    console.error('[userMaturityScores] Error creating score:', error);
     const errorData: UserMaturityScoreErrorResponse = error.response?.data;
     throw new Error(
       errorData?.message || 'Failed to create maturity score'
@@ -98,7 +95,7 @@ export const createUserMaturityScore = async (
 
 /**
  * Delete all maturity scores for a user
- * DELETE /telar/server/user-maturity-scores/user/{user_id}
+ * DELETE /user-maturity-scores/user/{user_id}
  * 
  * NOTE: This endpoint might not exist yet. If it doesn't, you'll need to create it.
  * Used for debug/reset operations.
@@ -111,14 +108,12 @@ export const deleteUserMaturityScores = async (
 ): Promise<void> => {
   try {
     await telarApi.delete(
-      `/telar/server/user-maturity-scores/user/${userId}`
+      `/user-maturity-scores/user/${userId}`
     );
   } catch (error: any) {
-    console.error('[userMaturityScores] Error deleting scores:', error);
     // Don't throw - this is for debug operations
     // If endpoint doesn't exist, log a TODO
     if (error.response?.status === 404) {
-      console.warn('[userMaturityScores] DELETE endpoint not yet implemented');
     }
   }
 };

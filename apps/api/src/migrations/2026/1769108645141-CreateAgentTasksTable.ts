@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAgentTasksTable1769108645141
-  implements MigrationInterface
-{
+export class CreateAgentTasksTable1769108645141 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Habilitar extensión UUID
     await queryRunner.query(`

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { ModeratorProtectedRoute } from '@/components/auth/ModeratorProtectedRoute';
 import ModerationLogin from './pages/moderation/ModerationLogin';
 import ModerationPage from './pages/ModerationPage';
@@ -19,28 +20,29 @@ export const ModerationApp: React.FC = () => {
             <ModerationPage />
           </ModeratorProtectedRoute>
         } />
-        
+
         {/* Login page for moderators */}
         <Route path="/login" element={<ModerationLogin />} />
-        
+
         {/* Moderation panel */}
         <Route path="/moderacion" element={
           <ModeratorProtectedRoute>
             <ModerationPage />
           </ModeratorProtectedRoute>
         } />
-        
+
         {/* Queue views */}
         <Route path="/queue/:status" element={
           <ModeratorProtectedRoute>
             <ModerationPage />
           </ModeratorProtectedRoute>
         } />
-        
+
         {/* Redirect any other path to root */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster />
+      <SonnerToaster richColors position="bottom-right" />
     </div>
   );
 };

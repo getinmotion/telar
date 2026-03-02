@@ -56,7 +56,8 @@ export class CreateAgentTaskDto {
 
   @ApiPropertyOptional({
     description: 'Descripción detallada de la tarea',
-    example: 'Registrar el RUT en el sistema para activar funcionalidades de facturación',
+    example:
+      'Registrar el RUT en el sistema para activar funcionalidades de facturación',
   })
   @IsOptional()
   @IsString({ message: 'La descripción debe ser una cadena de texto' })

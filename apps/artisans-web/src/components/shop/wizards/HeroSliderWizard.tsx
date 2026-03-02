@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -48,9 +49,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
   const [autoplay, setAutoplay] = useState(true);
   const [duration, setDuration] = useState(5);
   const [showBrandValidation, setShowBrandValidation] = useState(false);
-  const [brandValidation, setBrandValidation] = useState({ 
-    completionPercentage: 0, 
-    missingFields: [] as string[] 
+  const [brandValidation, setBrandValidation] = useState({
+    completionPercentage: 0,
+    missingFields: [] as string[]
   });
   const [shop, setShop] = useState<any>(null);
   const [showAIConfirmModal, setShowAIConfirmModal] = useState(false);
@@ -59,7 +60,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
     referenceText?: string;
     referenceImageFile?: File;
   } | null>(null);
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const { generateHeroSlides, isGenerating } = useAutoHeroGeneration();
@@ -109,7 +110,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
 
     if (!error && data) {
       setShop(data);
-      
+
       // Si tiene slides existentes, ir directo a preview
       if (data.hero_config && typeof data.hero_config === 'object' && 'slides' in data.hero_config) {
         const heroConfig = data.hero_config as any;
@@ -138,18 +139,18 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
       });
       return;
     }
-    
+
     setPendingGeneration({ isAddingNew: true });
     setShowAIConfirmModal(true);
   };
 
   const handleAIConfirm = async (
-    mode: 'ai' | 'upload', 
+    mode: 'ai' | 'upload',
     references?: { text?: string; imageFile?: File },
     manualContent?: ManualSlideContent
   ) => {
     setShowAIConfirmModal(false);
-    
+
     const isAddingNew = pendingGeneration?.isAddingNew || false;
 
     // Handle manual upload mode (no AI)
@@ -159,21 +160,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         const file = manualContent.imageFile;
         console.log('[HeroSliderWizard] Optimizing manual upload image...');
         const optimizedFile = await optimizeImage(file, ImageOptimizePresets.hero);
-        
-        const fileName = `${shopId}/hero-manual-${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('hero-images')
-          .upload(fileName, optimizedFile, {
-            contentType: optimizedFile.type,
-            upsert: true
-          });
 
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('hero-images')
-          .getPublicUrl(fileName);
+        const uploadResult = await uploadImage(optimizedFile, UploadFolder.HERO);
+        const publicUrl = uploadResult.url;
 
         const newSlide: HeroSlide = {
           id: `slide-${Date.now()}`,
@@ -198,7 +187,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             description: 'Tu imagen ha sido subida exitosamente',
           });
         }
-        
+
         setPendingGeneration(null);
         return;
       } catch (error) {
@@ -212,31 +201,31 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         return;
       }
     }
-    
+
     // AI generation mode
     const count = 1;
-    
-    console.log('[HeroWizard] Iniciando generación IA:', { 
-      shopId, 
+
+    console.log('[HeroWizard] Iniciando generación IA:', {
+      shopId,
       count,
       mode,
       hasReferences: !!references
     });
-    
-    const result = await generateHeroSlides(shopId, { 
+
+    const result = await generateHeroSlides(shopId, {
       autoSave: false,
       count,
       referenceText: references?.text,
       referenceImageFile: references?.imageFile
     });
-    
+
     console.log('[HeroWizard] Resultado de generación:', {
       success: result.success,
       slideCount: result.slides?.length,
       needsBrandInfo: result.needsBrandInfo,
       missingFields: result.missingFields
     });
-    
+
     if (result.needsBrandInfo) {
       setShowBrandValidation(true);
       setBrandValidation({
@@ -263,7 +252,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         });
       }
     }
-    
+
     setPendingGeneration(null);
   };
 
@@ -287,14 +276,14 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
   const handleDeleteSlide = (index: number) => {
     const newSlides = slides.filter((_, i) => i !== index);
     setSlides(newSlides);
-    
+
     toast({
       title: 'Slide eliminado',
-      description: newSlides.length === 0 
-        ? 'Todos los slides han sido eliminados' 
+      description: newSlides.length === 0
+        ? 'Todos los slides han sido eliminados'
         : 'El slide ha sido eliminado exitosamente'
     });
-    
+
     // Si se eliminaron todos, volver al paso de generación
     if (newSlides.length === 0) {
       setStep('generate');
@@ -338,26 +327,14 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
 
       if (imageData?.imageBase64) {
         const base64Data = imageData.imageBase64.split(',')[1] || imageData.imageBase64;
-        const fileName = `${shopId}/hero-regenerated-${Date.now()}-${index}.png`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('hero-images')
-          .upload(fileName, 
-            Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)), 
-            {
-              contentType: 'image/png',
-              upsert: true
-            }
-          );
+        const blob = new Blob(
+          [Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))],
+          { type: 'image/png' }
+        );
+        const uploadResult = await uploadImage(blob, UploadFolder.HERO, `hero-regenerated-${Date.now()}-${index}.png`);
 
-        if (uploadError) throw uploadError;
+        handleSlideUpdate(index, 'imageUrl', uploadResult.url);
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('hero-images')
-          .getPublicUrl(fileName);
-
-        handleSlideUpdate(index, 'imageUrl', publicUrl);
-        
         toast({
           title: '✅ Imagen Regenerada',
           description: 'Se generó una nueva imagen exitosamente'
@@ -398,9 +375,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
 
       // Limpiar localStorage después de publicar exitosamente
       localStorage.removeItem(`hero_wizard_${shopId}`);
-      
+
       EventBus.publish('shop.customized', { shopId });
-      
+
       toast({
         title: '🚀 Hero Slider Publicado',
         description: 'Tu hero slider está activo en tu tienda pública'
@@ -451,9 +428,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             {Object.keys(stepTitles).indexOf(step) + 1} / 4
           </Badge>
         </div>
-        
+
         <Progress value={stepProgress[step]} className="h-2" />
-        
+
         <div className="flex gap-2 text-sm">
           {Object.entries(stepTitles).map(([key, title], index) => (
             <div key={key} className="flex items-center gap-2">
@@ -481,9 +458,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
               <AIDisclaimer variant="banner" context="generate" className="mt-4" />
             </div>
 
-            <Button 
-              size="lg" 
-              onClick={handleGenerateClick} 
+            <Button
+              size="lg"
+              onClick={handleGenerateClick}
               disabled={isGenerating}
               className="w-full"
             >
@@ -545,7 +522,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 )}
               </Button>
             )}
-            
+
             <div className="flex gap-4">
               <Button variant="outline" className="flex-1" onClick={handleGenerateClick}>
                 <Wand2 className="w-4 h-4 mr-2" />
@@ -560,9 +537,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 Me gusta, publicar
               </Button>
             </div>
-            
-            <Button 
-              variant="destructive" 
+
+            <Button
+              variant="destructive"
               onClick={handleDeleteAllSlides}
               className="w-full"
             >
@@ -584,8 +561,8 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="slides">
                 {(provided) => (
-                  <div 
-                    {...provided.droppableProps} 
+                  <div
+                    {...provided.droppableProps}
                     ref={provided.innerRef}
                     className="space-y-4"
                   >
@@ -718,7 +695,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 )}
               </Button>
             )}
-            
+
             <div className="flex gap-4">
               <Button variant="outline" onClick={() => setStep('preview')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -729,9 +706,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            
-            <Button 
-              variant="destructive" 
+
+            <Button
+              variant="destructive"
               onClick={handleDeleteAllSlides}
               className="w-full"
             >

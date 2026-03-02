@@ -30,7 +30,7 @@ export const ProductEditPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <Helmet>
-        <title>Editar Producto - {shop.shop_name}</title>
+        <title>{`Editar Producto - ${shop.shopName}`}</title>
       </Helmet>
 
       <div className="max-w-4xl mx-auto">

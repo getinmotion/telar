@@ -21,7 +21,7 @@ export const useMaturityScoresSaver = () => {
       
       console.log('Saving maturity scores to database:', { userId: user.id, scores });
 
-      // ✅ Migrado a endpoint NestJS (POST /telar/server/user-maturity-scores)
+      // ✅ Migrado a endpoint NestJS (POST /user-maturity-scores)
       const data = await createUserMaturityScore({
         userId: user.id,
         ideaValidation: scores.ideaValidation,

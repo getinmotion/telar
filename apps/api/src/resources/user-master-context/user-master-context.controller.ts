@@ -135,9 +135,7 @@ export class UserMasterContextController {
   })
   @ApiResponse({ status: 404, description: 'Contexto no encontrado' })
   async updateAssessmentDate(@Param('userId') userId: string) {
-    return await this.userMasterContextService.updateLastAssessmentDate(
-      userId,
-    );
+    return await this.userMasterContextService.updateLastAssessmentDate(userId);
   }
 
   /**

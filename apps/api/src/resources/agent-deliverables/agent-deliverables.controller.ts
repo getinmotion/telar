@@ -102,7 +102,8 @@ export class AgentDeliverablesController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Obtener entregables por agente',
-    description: 'Obtiene todos los entregables generados por un agente específico',
+    description:
+      'Obtiene todos los entregables generados por un agente específico',
   })
   @ApiParam({
     name: 'agentId',
@@ -166,7 +167,8 @@ export class AgentDeliverablesController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Obtener entregables por tarea',
-    description: 'Obtiene todos los entregables asociados a una tarea específica',
+    description:
+      'Obtiene todos los entregables asociados a una tarea específica',
   })
   @ApiParam({
     name: 'taskId',

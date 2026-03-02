@@ -91,9 +91,7 @@ export class UserMaturityScoresService {
   /**
    * Obtener el score promedio de un usuario
    */
-  async getAverageByUserId(
-    userId: string,
-  ): Promise<{
+  async getAverageByUserId(userId: string): Promise<{
     ideaValidation: number;
     userExperience: number;
     marketFit: number;
@@ -193,23 +191,17 @@ export class UserMaturityScoresService {
         ideaValidation: calculateTrend(
           latest.ideaValidation,
           previous.ideaValidation,
-        ) as 'up' | 'down' | 'stable',
+        ),
         userExperience: calculateTrend(
           latest.userExperience,
           previous.userExperience,
-        ) as 'up' | 'down' | 'stable',
-        marketFit: calculateTrend(
-          latest.marketFit,
-          previous.marketFit,
-        ) as 'up' | 'down' | 'stable',
+        ),
+        marketFit: calculateTrend(latest.marketFit, previous.marketFit),
         monetization: calculateTrend(
           latest.monetization,
           previous.monetization,
-        ) as 'up' | 'down' | 'stable',
-        total: calculateTrend(
-          latest.totalScore,
-          previous.totalScore,
-        ) as 'up' | 'down' | 'stable',
+        ),
+        total: calculateTrend(latest.totalScore, previous.totalScore),
       },
     };
   }

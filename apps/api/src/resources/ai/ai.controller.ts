@@ -14,10 +14,12 @@ import {
 } from '@nestjs/swagger';
 import { AiService } from './ai.service';
 import { MasterCoordinatorService } from './services/master-coordinator.service';
+import { BrandAiAssistantService } from './services/brand-ai-assistant.service';
 import { GenerateShopSuggestionsDto } from './dto/generate-shop-suggestions.dto';
 import { GenerateProductSuggestionsDto } from './dto/generate-product-suggestions.dto';
 import { ExtractBusinessInfoDto } from './dto/extract-business-info.dto';
 import { MasterCoordinatorDto } from './dto/master-coordinator.dto';
+import { BrandAiAssistantDto } from './dto/brand-ai-assistant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('ai')
@@ -26,6 +28,7 @@ export class AiController {
   constructor(
     private readonly aiService: AiService,
     private readonly masterCoordinatorService: MasterCoordinatorService,
+    private readonly brandAiAssistantService: BrandAiAssistantService,
   ) {}
 
   /**
@@ -116,9 +119,7 @@ export class AiController {
     status: 404,
     description: 'Tienda no encontrada',
   })
-  async generateProductSuggestions(
-    @Body() dto: GenerateProductSuggestionsDto,
-  ) {
+  async generateProductSuggestions(@Body() dto: GenerateProductSuggestionsDto) {
     return await this.aiService.generateProductSuggestions(dto);
   }
 
@@ -203,5 +204,49 @@ export class AiController {
   })
   async masterCoordinator(@Body() dto: MasterCoordinatorDto) {
     return await this.masterCoordinatorService.coordinate(dto);
+  }
+
+  /**
+   * POST /ai/brand-assistant
+   * Asistente de IA para identidad de marca — 4 acciones disponibles:
+   * generate_claim | extract_colors | generate_color_palette | diagnose_brand_identity
+   */
+  @Post('brand-assistant')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Asistente de IA para identidad de marca',
+    description: `Ejecuta acciones de IA sobre la identidad de marca del artesano:
+- **generate_claim**: Genera 3 claims personalizados usando el contexto del usuario (requiere userId)
+- **extract_colors**: Extrae 3-5 colores dominantes de un logo por visión (requiere logoUrl)
+- **generate_color_palette**: Genera paleta secundaria complementaria (requiere primaryColors)
+- **diagnose_brand_identity**: Diagnóstico completo con scores por dimensión`,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Acción ejecutada exitosamente',
+    schema: {
+      example: {
+        claims: [
+          {
+            text: 'Tejidos que cuentan tu historia',
+            reasoning: 'Captura la personalización y el origen artesanal',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Acción inválida o parámetros faltantes',
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al comunicarse con el servicio de IA',
+  })
+  async brandAiAssistant(@Body() dto: BrandAiAssistantDto) {
+    return await this.brandAiAssistantService.execute(dto);
   }
 }

@@ -130,10 +130,7 @@ export class WishlistController {
     description: 'Wishlist item actualizado exitosamente',
   })
   @ApiResponse({ status: 404, description: 'Wishlist item no encontrado' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateWishlistDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateDto: UpdateWishlistDto) {
     return await this.wishlistService.update(id, updateDto);
   }
 

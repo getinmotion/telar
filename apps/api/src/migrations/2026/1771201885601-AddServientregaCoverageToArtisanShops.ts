@@ -8,9 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Default: false
  * NOT NULL
  */
-export class AddServientregaCoverageToArtisanShops1771201885601
-  implements MigrationInterface
-{
+export class AddServientregaCoverageToArtisanShops1771201885601 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE shop.artisan_shops

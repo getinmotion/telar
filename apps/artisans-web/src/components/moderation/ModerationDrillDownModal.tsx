@@ -43,9 +43,9 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const filteredShops = useMemo(() => {
-    let result = shops.filter(s => 
-      s.shop_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.craft_type?.toLowerCase().includes(search.toLowerCase()) ||
+    let result = shops.filter(s =>
+      s.shopName.toLowerCase().includes(search.toLowerCase()) ||
+      s.craftType?.toLowerCase().includes(search.toLowerCase()) ||
       s.region?.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -53,13 +53,13 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
       let comparison = 0;
       switch (sortField) {
         case 'name':
-          comparison = a.shop_name.localeCompare(b.shop_name);
+          comparison = a.shopName.localeCompare(b.shopName);
           break;
         case 'date':
-          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           break;
         case 'bank':
-          comparison = (a.has_bank_data ? 1 : 0) - (b.has_bank_data ? 1 : 0);
+          comparison = (a.hasBankData ? 1 : 0) - (b.hasBankData ? 1 : 0);
           break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -104,7 +104,7 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
     if (type === 'shops') {
       csv = 'Nombre,Tipo,Región,Datos Bancarios,Marketplace,Estado,Creada\n';
       filteredShops.forEach(s => {
-        csv += `"${s.shop_name}","${s.craft_type || ''}","${s.region || ''}",${s.has_bank_data ? 'Sí' : 'No'},${s.marketplace_approved ? 'Aprobada' : 'Pendiente'},"${s.publish_status || 'pending'}","${s.created_at}"\n`;
+        csv += `"${s.shopName}","${s.craftType || ''}","${s.region || ''}",${s.hasBankData ? 'Sí' : 'No'},${s.marketplaceApproved ? 'Aprobada' : 'Pendiente'},"${s.publishStatus || 'pending'}","${s.createdAt}"\n`;
       });
     } else {
       csv = 'Nombre,Tienda,Estado,Precio,Creado\n';
@@ -193,23 +193,23 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {shop.logo_url ? (
-                          <img src={shop.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                        {shop.logoUrl ? (
+                          <img src={shop.logoUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                             <Store className="w-5 h-5 text-muted-foreground" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate">{shop.shop_name}</h4>
+                          <h4 className="font-medium truncate">{shop.shopName}</h4>
                           <p className="text-sm text-muted-foreground">
-                            {shop.craft_type || 'Sin tipo'} {shop.region && `• ${shop.region}`}
+                            {shop.craftType || 'Sin tipo'} {shop.region && `• ${shop.region}`}
                           </p>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <div className="flex gap-1">
-                          {shop.has_bank_data ? (
+                          {shop.hasBankData ? (
                             <Badge variant="outline" className="text-xs border-success text-success">
                               <CreditCard className="w-3 h-3 mr-1" />
                               Banco
@@ -220,7 +220,7 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
                               Sin banco
                             </Badge>
                           )}
-                          {shop.marketplace_approved && (
+                          {shop.marketplaceApproved && (
                             <Badge variant="outline" className="text-xs border-success text-success">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               MP
@@ -228,7 +228,7 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(shop.created_at), { addSuffix: true, locale: es })}
+                          {formatDistanceToNow(new Date(shop.createdAt), { addSuffix: true, locale: es })}
                         </span>
                       </div>
                     </div>

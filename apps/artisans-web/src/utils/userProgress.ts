@@ -288,7 +288,7 @@ const checkSupabaseUserProgress = async (userId: string) => {
     console.log('🔍 Checking Supabase for user progress:', userId);
     
     // Check for maturity scores
-    // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+    // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
     const maturityData = await getLatestMaturityScore(userId);
 
     // Check for user agents

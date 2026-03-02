@@ -1,8 +1,8 @@
 /**
  * Unified Progress Hook
  * Single source of truth for all progress calculations
- * 
- * OPTIMIZATION: Uses useCallback and useRef to prevent infinite loops
+ *
+ * ✅ OPTIMIZED: Uses useCallback, useRef, and debouncing to prevent infinite loops
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -18,18 +18,28 @@ export const useUnifiedProgress = () => {
   const [unifiedProgress, setUnifiedProgress] = useState<UnifiedProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ OPTIMIZATION: Track previous progress for milestone change detection
+  // ✅ OPTIMIZATION: Track previous values to prevent unnecessary recalculations
   const prevProgressRef = useRef<UnifiedProgress | null>(null);
   const hasCalculatedRef = useRef(false);
 
-  // ✅ OPTIMIZATION: Memoize calculateProgress with useCallback
-  const calculateProgress = useCallback(() => {
-    console.log('🔄 [UnifiedProgress] Calculating progress...', {
-      hasGrowthData: !!masterState.growth.nivel_madurez,
-      hasProgress: !!progress,
-      productsCount: masterState.inventario.productos.length
-    });
+  // ✅ OPTIMIZATION: Track previous values for deep comparison
+  const prevValuesRef = useRef({
+    maturityScoresString: '',
+    productsCount: 0,
+    hasShop: false,
+    hasLogo: false,
+    colorsCount: 0,
+    hasNit: false,
+    level: 1,
+    xp: 0,
+    nextLevelXP: 100
+  });
 
+  // ✅ OPTIMIZATION: Debounce ref para evitar múltiples cálculos
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ✅ OPTIMIZATION: Memoize calculateProgress with stable dependencies
+  const calculateProgress = useCallback(() => {
     // Get base maturity scores from master state (now from user_master_context)
     const baseScores: MaturityScores = masterState.growth.nivel_madurez || {
       ideaValidation: 0,
@@ -38,10 +48,31 @@ export const useUnifiedProgress = () => {
       monetization: 0
     };
 
-    console.log('📊 [UnifiedProgress] Using real maturity scores from user_master_context:', {
-      scores: baseScores,
-      source: 'user_master_context.task_generation_context.maturityScores'
-    });
+    // ✅ OPTIMIZATION: Compare primitive values instead of objects
+    const currentValues = {
+      maturityScoresString: JSON.stringify(baseScores),
+      productsCount: masterState.inventario.productos.length,
+      hasShop: masterState.tienda.has_shop,
+      hasLogo: !!masterState.marca.logo,
+      colorsCount: masterState.marca.colores?.length || 0,
+      hasNit: !!masterState.perfil.nit,
+      level: progress?.level || 1,
+      xp: progress?.experiencePoints || 0,
+      nextLevelXP: progress?.nextLevelXp || 100
+    };
+
+    // ✅ OPTIMIZATION: Skip calculation if nothing changed
+    const hasChanged = Object.keys(currentValues).some(
+      key => currentValues[key as keyof typeof currentValues] !==
+             prevValuesRef.current[key as keyof typeof currentValues]
+    );
+
+    if (!hasChanged && hasCalculatedRef.current) {
+      return;
+    }
+
+    // Update prev values
+    prevValuesRef.current = currentValues;
 
     // Get gamification data from user progress
     const gamificationData = {
@@ -52,17 +83,6 @@ export const useUnifiedProgress = () => {
 
     // Calculate unified progress
     const unified = calculateUnifiedProgress(masterState, baseScores, gamificationData);
-
-    console.log('✅ [UnifiedProgress] Progress calculated:', {
-      totalProgress: unified.totalProgress,
-      milestones: Object.keys(unified.milestones).map(key => ({
-        id: key,
-        progress: unified.milestones[key as keyof typeof unified.milestones].progress,
-        status: unified.milestones[key as keyof typeof unified.milestones].status
-      })),
-      maturityScores: unified.maturityScores,
-      level: unified.gamification.level
-    });
 
     // Detect milestone state changes and publish events using ref
     const prevProgress = prevProgressRef.current;
@@ -106,29 +126,43 @@ export const useUnifiedProgress = () => {
     setUnifiedProgress(unified);
     setLoading(false);
     hasCalculatedRef.current = true;
+  }, []); // ✅ OPTIMIZATION: Empty deps - all values come from refs and current state
+
+  // ✅ OPTIMIZATION: Debounced calculation trigger
+  const triggerCalculation = useCallback(() => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new timer - debounce 500ms
+    debounceTimerRef.current = setTimeout(() => {
+      calculateProgress();
+    }, 500);
+  }, [calculateProgress]);
+
+  // Initial calculation when component mounts or critical data changes
+  useEffect(() => {
+    // Only trigger if we have essential data
+    if (masterState && progress !== undefined) {
+      triggerCalculation();
+    }
   }, [
-    // ✅ OPTIMIZATION: Use specific primitive/stable dependencies
-    masterState.growth.nivel_madurez,
+    // ✅ OPTIMIZATION: Only track primitive changes
     masterState.inventario.productos.length,
     masterState.tienda.has_shop,
-    masterState.marca.logo,
+    !!masterState.marca.logo,
     masterState.marca.colores?.length,
-    masterState.perfil.nit,
+    !!masterState.perfil.nit,
     progress?.level,
     progress?.experiencePoints,
-    progress?.nextLevelXp
+    triggerCalculation
   ]);
-
-  // Initial calculation - run only once when dependencies are stable
-  useEffect(() => {
-    calculateProgress();
-  }, [calculateProgress]);
 
   // Recalculate on events - separate effect with stable callback
   useEffect(() => {
     const handleEvent = () => {
-      console.log('📢 [UnifiedProgress] Event received, recalculating...');
-      calculateProgress();
+      triggerCalculation();
     };
 
     const unsubscribers = [
@@ -142,12 +176,15 @@ export const useUnifiedProgress = () => {
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
+      // Clean up debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
-  }, [calculateProgress]);
+  }, [triggerCalculation]);
 
   // ✅ OPTIMIZATION: Stable refresh function
   const refreshProgress = useCallback(() => {
-    console.log('🔄 [UnifiedProgress] Manual refresh requested');
     calculateProgress();
   }, [calculateProgress]);
 

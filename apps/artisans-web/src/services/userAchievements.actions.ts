@@ -18,17 +18,16 @@ import {
  * @returns Array de logros con relación a user
  * @throws Error si la petición falla
  * 
- * Endpoint: GET /telar/server/user-achievements
+ * Endpoint: GET /user-achievements
  */
 export const getUserAchievements = async (): Promise<UserAchievement[]> => {
   try {
     const response = await telarApi.get<GetUserAchievementsResponse>(
-      '/telar/server/user-achievements'
+      '/user-achievements'
     );
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error fetching user achievements:', error);
     throw error;
   }
 };
@@ -39,20 +38,19 @@ export const getUserAchievements = async (): Promise<UserAchievement[]> => {
  * @returns El logro creado
  * @throws Error si la petición falla
  * 
- * Endpoint: POST /telar/server/user-achievements
+ * Endpoint: POST /user-achievements
  */
 export const createUserAchievement = async (
   payload: CreateUserAchievementPayload
 ): Promise<UserAchievement> => {
   try {
     const response = await telarApi.post<CreateUserAchievementResponse>(
-      '/telar/server/user-achievements',
+      '/user-achievements',
       payload
     );
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error creating user achievement:', error);
     throw error;
   }
 };
@@ -64,7 +62,7 @@ export const createUserAchievement = async (
  * @returns El logro actualizado
  * @throws Error si la petición falla
  * 
- * Endpoint: PATCH /telar/server/user-achievements/{id}
+ * Endpoint: PATCH /user-achievements/{id}
  */
 export const updateUserAchievement = async (
   achievementId: string,
@@ -72,13 +70,12 @@ export const updateUserAchievement = async (
 ): Promise<UserAchievement> => {
   try {
     const response = await telarApi.patch<UpdateUserAchievementResponse>(
-      `/telar/server/user-achievements/${achievementId}`,
+      `/user-achievements/${achievementId}`,
       payload
     );
 
     return response.data.data;
   } catch (error: any) {
-    console.error('[userAchievements.actions] Error updating user achievement:', error);
     throw error;
   }
 };

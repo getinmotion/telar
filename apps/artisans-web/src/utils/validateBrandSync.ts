@@ -20,7 +20,7 @@ interface ValidationResult {
 export async function validateAndSyncBrandData(userId: string): Promise<ValidationResult> {
   try {
 
-    // ✅ Migrado a NestJS - GET /telar/server/user-master-context/user/{user_id}
+    // ✅ Migrado a NestJS - GET /user-master-context/user/{user_id}
     const contextData = await getUserMasterContextByUserId(userId);
 
     if (!contextData) {
@@ -43,7 +43,7 @@ export async function validateAndSyncBrandData(userId: string): Promise<Validati
       };
     }
 
-    // ✅ Migrado a NestJS - GET /telar/server/artisan-shops/user/{user_id}
+    // ✅ Migrado a NestJS - GET /artisan-shops/user/{user_id}
     const shopData = await getArtisanShopByUserId(userId).catch((error) => {
       console.error('[validateBrandSync] Error getting shop:', error);
       return null;

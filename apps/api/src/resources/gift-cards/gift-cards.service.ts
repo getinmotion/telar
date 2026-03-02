@@ -34,9 +34,7 @@ export class GiftCardsService {
     // Validar que initialAmount sea mayor a 0
     const initialAmount = parseFloat(createDto.initialAmount);
     if (initialAmount <= 0) {
-      throw new BadRequestException(
-        'El monto inicial debe ser mayor a 0',
-      );
+      throw new BadRequestException('El monto inicial debe ser mayor a 0');
     }
 
     // Validar que remainingAmount sea mayor o igual a 0
@@ -174,9 +172,7 @@ export class GiftCardsService {
     if (updateDto.initialAmount) {
       const initialAmount = parseFloat(updateDto.initialAmount);
       if (initialAmount <= 0) {
-        throw new BadRequestException(
-          'El monto inicial debe ser mayor a 0',
-        );
+        throw new BadRequestException('El monto inicial debe ser mayor a 0');
       }
     }
 

@@ -104,7 +104,8 @@ export class ProductsQueryDto {
 
   @ApiPropertyOptional({
     description: 'IDs de productos (separados por coma)',
-    example: '123e4567-e89b-12d3-a456-426614174000,223e4567-e89b-12d3-a456-426614174000',
+    example:
+      '123e4567-e89b-12d3-a456-426614174000,223e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()
   @IsString()
@@ -238,4 +239,43 @@ export class ProductsQueryDto {
   @IsOptional()
   @IsString()
   exclude?: string;
+
+  // Filtro de moderación (uso interno / admin)
+  @ApiPropertyOptional({
+    description: 'Estado de moderación del producto',
+    enum: [
+      'draft',
+      'pending_moderation',
+      'approved',
+      'approved_with_edits',
+      'changes_requested',
+      'rejected',
+      'archived',
+    ],
+    example: 'pending_moderation',
+  })
+  @IsOptional()
+  @IsString()
+  moderationStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID de la tienda para filtrar productos',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Solo tiendas sin aprobación en marketplace',
+    example: true,
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  onlyNonMarketplace?: boolean;
 }

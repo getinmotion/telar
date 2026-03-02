@@ -30,7 +30,6 @@ export default {
       });
 
       if (error) {
-        console.error("API Error:", error);
         toast({
           title: "Error",
           description: "No se pudieron guardar los datos bancarios",
@@ -44,7 +43,6 @@ export default {
         id_contraparty: data?.id_contraparty 
       };
     } catch (error) {
-      console.error("API Error:", error);
       toast({
         title: "Error",
         description: "No se pudieron guardar los datos bancarios",

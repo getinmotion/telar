@@ -18,4 +18,3 @@ export class LoginDto {
   @IsNotEmpty({ message: 'La contraseña es obligatoria' })
   password: string;
 }
-

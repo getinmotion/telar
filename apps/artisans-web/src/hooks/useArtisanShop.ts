@@ -105,7 +105,7 @@ export const useArtisanShop = () => {
       let slug = baseSlug;
       let counter = 1;
 
-      // ✅ Migrado a NestJS - GET /telar/server/artisan-shops/slug/{slug}
+      // ✅ Migrado a NestJS - GET /artisan-shops/slug/{slug}
       // Genera un slug único verificando disponibilidad
       while (!(await isSlugAvailable(slug))) {
         slug = `${baseSlug}-${counter}`;
@@ -286,27 +286,25 @@ export const useArtisanShop = () => {
     try {
       const data = await getArtisanShopByUserId(user.id);
 
-      console.log('verificando user', user)
-
-
       if (data) {
         setShop(data as any);
       }
-    } catch (err) {
-      console.error('[useArtisanShop] Force refresh error:', err);
+    } catch {
+      // silently ignore force refresh errors
     }
   };
 
   useEffect(() => {
-
     if (user === null) {
-      // Solo si explícitamente NO hay usuario (no undefined/loading)
+      // Sin usuario — limpiar estado
       setLoading(false);
       setShop(null);
       setInitialCheckComplete(true);
+    } else if (user?.id && !isFetchingRef.current) {
+      // Usuario autenticado — cargar tienda
+      fetchShop();
     }
-    // Si user es undefined, esperamos - NO hacemos nada
-  }, [user?.id]); // Removed 'shop' to prevent race conditions
+  }, [user?.id]);
 
   // Listen for shop-updated events to auto-refresh
   useEffect(() => {

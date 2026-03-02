@@ -26,7 +26,7 @@ import { useIsModerator } from '@/hooks/useIsModerator';
 const ProductModerationPage: React.FC = () => {
   const { isModerationSubdomain } = useSubdomain();
   const { isAdmin } = useIsModerator();
-  
+
   // Products
   const {
     products,
@@ -66,7 +66,7 @@ const ProductModerationPage: React.FC = () => {
 
   // UI State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'shops'>('dashboard');
-  
+
   // Products state
   const [activeFilter, setActiveFilter] = useState('pending_moderation');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
@@ -159,14 +159,14 @@ const ProductModerationPage: React.FC = () => {
     edits?: Record<string, any>
   ) => {
     if (!selectedProduct) return;
-    
+
     await moderateProduct(selectedProduct.id, action, comment, edits);
     setSelectedProduct(null);
     fetchQueue();
   };
 
-  const handleShopApprovalChange = async (shopId: string, approved: boolean, comment?: string) => {
-    const success = await toggleMarketplaceApproval(shopId, approved, comment);
+  const handleShopApprovalChange = async (shopId: string, approved: boolean, _comment?: string) => {
+    const success = await toggleMarketplaceApproval(shopId, approved);
     if (success) {
       fetchShopsQueue();
     }
@@ -205,8 +205,8 @@ const ProductModerationPage: React.FC = () => {
     setSelectedShop(null);
   };
 
-  const handleDeleteShop = async (shopId: string, reason: string) => {
-    const success = await deleteShop(shopId, reason);
+  const handleDeleteShop = async (shopId: string, _reason?: string) => {
+    const success = await deleteShop(shopId);
     if (success) {
       setSelectedShop(null);
       fetchShopsQueue();
@@ -215,8 +215,8 @@ const ProductModerationPage: React.FC = () => {
 
   // Bulk actions
   const handleToggleSelection = (shopId: string) => {
-    setSelectedShops(prev => 
-      prev.includes(shopId) 
+    setSelectedShops(prev =>
+      prev.includes(shopId)
         ? prev.filter(id => id !== shopId)
         : [...prev, shopId]
     );
@@ -229,7 +229,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkApprove = async () => {
     if (selectedShops.length === 0) return;
-    
+
     // Validate IDs exist in current list
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
@@ -239,14 +239,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkToggleMarketplaceApproval(
-        validIds, 
+        validIds,
         true,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas aprobadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -258,7 +258,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkReject = async () => {
     if (selectedShops.length === 0) return;
-    
+
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
       handleClearSelection();
@@ -267,14 +267,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkToggleMarketplaceApproval(
-        validIds, 
+        validIds,
         false,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas rechazadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -286,7 +286,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkDelete = async (reason: string) => {
     if (selectedShops.length === 0) return;
-    
+
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
       handleClearSelection();
@@ -295,14 +295,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkDeleteShops(
         validIds,
         reason,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas eliminadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -316,7 +316,7 @@ const ProductModerationPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       {isModerationSubdomain && <ModerationHeader />}
-      
+
       <div className={isModerationSubdomain ? "pt-16" : ""}>
         {/* Title bar */}
         <div className="border-b bg-card">
@@ -328,8 +328,8 @@ const ProductModerationPage: React.FC = () => {
                   Revisa productos y aprueba tiendas para el marketplace
                 </p>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={activeTab === 'dashboard' ? statsLoading : activeTab === 'products' ? loading : shopsLoading}
@@ -368,9 +368,9 @@ const ProductModerationPage: React.FC = () => {
         {/* Tab Content */}
         <Tabs value={activeTab} className="container mx-auto px-4">
           <TabsContent value="dashboard" className="mt-0 py-6">
-            <ModerationDashboard 
-              stats={moderationStats} 
-              loading={statsLoading} 
+            <ModerationDashboard
+              stats={moderationStats}
+              loading={statsLoading}
             />
           </TabsContent>
 

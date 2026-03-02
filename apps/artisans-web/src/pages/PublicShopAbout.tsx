@@ -148,11 +148,11 @@ const PublicShopAbout: React.FC = () => {
   const navigate = useNavigate();
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Preview mode detection
   const urlParams = new URLSearchParams(window.location.search);
   const isPreviewMode = urlParams.get('preview') === 'true';
-  
+
   // Auth state for ownership verification
   const [authLoaded, setAuthLoaded] = useState(!isPreviewMode);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -162,7 +162,7 @@ const PublicShopAbout: React.FC = () => {
   // Auth listener for preview mode
   useEffect(() => {
     if (!isPreviewMode) return;
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'INITIAL_SESSION' && !authLoadedRef.current) {
         authLoadedRef.current = true;
@@ -212,7 +212,7 @@ const PublicShopAbout: React.FC = () => {
       if (isPreviewMode && currentUser) {
         const ownerCheck = data?.user_id === currentUser.id;
         setIsOwner(ownerCheck);
-        
+
         // If preview mode but not owner, redirect
         if (!ownerCheck && data?.publish_status !== 'published') {
           navigate('/tiendas');
@@ -253,7 +253,7 @@ const PublicShopAbout: React.FC = () => {
   return (
     <ShopThemeProvider theme={theme}>
       <Helmet>
-        <title>Sobre Nosotros - {shop.shop_name}</title>
+        <title>{`Sobre Nosotros - ${shop.shopName}`}</title>
         <meta name="description" content={aboutContent.story || shop.description} />
       </Helmet>
 
@@ -283,9 +283,9 @@ const PublicShopAbout: React.FC = () => {
         logoUrl={shop.logo_url}
         shopSlug={shop.shop_slug}
       />
-      
+
       <AboutPageContent aboutContent={aboutContent} shopName={shop.shop_name} />
-      
+
       <ShopFooter
         shopName={shop.shop_name}
         contactEmail={shop.contact_info?.email}

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   BaseEntity,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   AfterLoad,
 } from 'typeorm';
@@ -82,10 +83,7 @@ export class Product extends BaseEntity {
 
   @ApiPropertyOptional({
     description: 'URLs de imágenes del producto',
-    example: [
-      'https://example.com/img1.jpg',
-      'https://example.com/img2.jpg',
-    ],
+    example: ['https://example.com/img1.jpg', 'https://example.com/img2.jpg'],
     type: [String],
   })
   @Column({ type: 'jsonb', default: '[]' })
@@ -95,7 +93,6 @@ export class Product extends BaseEntity {
     description: 'Categoría del producto',
     example: 'Cerámica',
   })
-
   @ApiPropertyOptional({
     description: 'Subcategoría del producto',
     example: 'Decoración',
@@ -217,7 +214,12 @@ export class Product extends BaseEntity {
     description: 'Indica si se fabrica bajo pedido',
     default: false,
   })
-  @Column({ type: 'boolean', name: 'made_to_order', nullable: true, default: false })
+  @Column({
+    type: 'boolean',
+    name: 'made_to_order',
+    nullable: true,
+    default: false,
+  })
   madeToOrder: boolean | null;
 
   @ApiPropertyOptional({
@@ -225,7 +227,12 @@ export class Product extends BaseEntity {
     example: 7,
     default: 7,
   })
-  @Column({ type: 'integer', name: 'lead_time_days', nullable: true, default: 7 })
+  @Column({
+    type: 'integer',
+    name: 'lead_time_days',
+    nullable: true,
+    default: 7,
+  })
   leadTimeDays: number | null;
 
   @ApiPropertyOptional({
@@ -332,6 +339,11 @@ export class Product extends BaseEntity {
   })
   @JoinColumn({ name: 'category_id' })
   category: ProductCategory | null;
+
+  // Relación 1:N con ProductVariant (un producto puede tener múltiples variantes)
+  @ApiPropertyOptional({ description: 'Variantes del producto', type: 'array' })
+  @OneToMany('ProductVariant', 'product')
+  variants?: unknown[];
 
   /**
    * Transform relative image paths to full CDN URLs after loading from database

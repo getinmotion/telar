@@ -4,6 +4,7 @@ import { Home, MapPin, Camera, Video, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
+import { UploadFolder } from '@/services/fileUpload.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { AITextArea } from './AITextArea';
 
@@ -21,7 +22,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
     >
       {/* Storytelling Header */}
       <div className="text-center space-y-4">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
@@ -41,7 +42,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
 
       <div className="space-y-6 max-w-xl mx-auto">
         {/* Location */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -64,7 +65,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
         </motion.div>
 
         {/* Description with AI */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -81,7 +82,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
         </motion.div>
 
         {/* Workshop Photos */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -96,8 +97,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
             value={data.workshopPhotos}
             onChange={(urls) => onChange({ workshopPhotos: urls })}
             maxFiles={6}
-            bucket="artisan-profiles"
-            folder="workshop"
+            uploadFolder={UploadFolder.PROFILES}
             placeholder="Interior, exterior, herramientas, proceso de trabajo"
           />
           <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
@@ -107,7 +107,7 @@ export const Step4Workshop: React.FC<Step4WorkshopProps> = ({ data, onChange }) 
         </motion.div>
 
         {/* Video */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}

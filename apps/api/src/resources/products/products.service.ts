@@ -48,32 +48,55 @@ export class ProductsService {
   async getAll(
     query: ProductsQueryDto,
   ): Promise<{ data: Product[]; total: number; page: number; limit: number }> {
-    const { page = 1, limit = 20, sortBy = 'created_at', order = 'DESC' } =
-      query;
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = 'created_at',
+      order = 'DESC',
+    } = query;
 
     const queryBuilder: SelectQueryBuilder<Product> = this.productsRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.shop', 'shop')
       .leftJoinAndSelect('product.category', 'category');
 
-    // Filtro: Solo productos activos por defecto
-    queryBuilder.andWhere('product.active = :active', { active: true });
+    // Filtro: active — omitir cuando se especifica moderationStatus (vista de moderación admin)
+    if (!query.moderationStatus) {
+      queryBuilder.andWhere('product.active = :active', { active: true });
+    }
+
+    // Filtro: Estado de moderación (admin/moderación)
+    if (query.moderationStatus) {
+      queryBuilder.andWhere('product.moderationStatus = :moderationStatus', {
+        moderationStatus: query.moderationStatus,
+      });
+    }
+
+    // Filtro: Shop ID directo
+    if (query.shopId) {
+      queryBuilder.andWhere('product.shopId = :shopId', {
+        shopId: query.shopId,
+      });
+    }
+
+    // Filtro: Solo productos cuya tienda NO tiene aprobación marketplace
+    if (query.onlyNonMarketplace) {
+      queryBuilder.andWhere('shop.marketplace_approved IS DISTINCT FROM true');
+    }
 
     // Filtro: Categoría única
     if (query.category) {
-      queryBuilder.andWhere(
-        'LOWER(product.subcategory) = LOWER(:category)',
-        { category: query.category },
-      );
+      queryBuilder.andWhere('LOWER(product.subcategory) = LOWER(:category)', {
+        category: query.category,
+      });
     }
 
     // Filtro: Múltiples categorías (OR)
     if (query.categories) {
       const categoryList = query.categories.split(',').map((c) => c.trim());
-      queryBuilder.andWhere(
-        'LOWER(product.subcategory) IN (:...categories)',
-        { categories: categoryList.map((c) => c.toLowerCase()) },
-      );
+      queryBuilder.andWhere('LOWER(product.subcategory) IN (:...categories)', {
+        categories: categoryList.map((c) => c.toLowerCase()),
+      });
     }
 
     // Filtro: Tipos de artesanía (crafts) - busca en shop.craftType
@@ -668,5 +691,21 @@ export class ProductsService {
         product.shop?.bankDataStatus === 'complete' &&
         (product.shippingDataComplete || false) === true,
     }));
+  }
+
+  /**
+   * Contar productos aprobados de una tienda
+   */
+  async countApprovedByShopId(shopId: string): Promise<number> {
+    if (!shopId) {
+      throw new BadRequestException('El ID de la tienda es requerido');
+    }
+
+    return await this.productsRepository.count({
+      where: {
+        shopId,
+        moderationStatus: In(['approved', 'approved_with_edits']),
+      },
+    });
   }
 }

@@ -18,12 +18,11 @@ export const getUserProfileByUserId = async (
   try {
     // Llamada al endpoint de user-profiles del backend NestJS
     const response = await telarApi.get<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles/by-user/${userId}`
+      `/user-profiles/by-user/${userId}`
     );
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al obtener perfil del usuario:', error);
 
     // Si el backend retorna un error estructurado, lanzarlo tal cual
     if (error.response?.data) {
@@ -63,13 +62,12 @@ export const createUserProfile = async (
 ): Promise<GetUserProfileByUserIdSuccessResponse> => {
   try {
     const response = await telarApi.post<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles`,
+      `/user-profiles`,
       payload
     );
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al crear perfil:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;
@@ -93,13 +91,12 @@ export const updateUserProfileById = async (
 ): Promise<GetUserProfileByUserIdSuccessResponse> => {
   try {
     const response = await telarApi.patch<GetUserProfileByUserIdSuccessResponse>(
-      `/telar/server/user-profiles/${profileId}`,
+      `/user-profiles/${profileId}`,
       payload
     );
 
     return response.data;
   } catch (error: any) {
-    console.error('[UserProfiles] Error al actualizar perfil por ID:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;
@@ -136,7 +133,6 @@ export const updateUserProfile = async (
     // PASO 2: Usar la función optimizada con el ID
     return updateUserProfileById(currentProfile.id, payload);
   } catch (error: any) {
-    console.error('[UserProfiles] Error al actualizar perfil:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProfileErrorResponse;

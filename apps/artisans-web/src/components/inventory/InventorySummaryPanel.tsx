@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatCurrency } from '@/utils/currency';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,14 +7,6 @@ import { Package, AlertTriangle, ShoppingBag, DollarSign, Plus } from 'lucide-re
 import { useInventory, type Product, type ProductVariant } from '@/hooks/useInventory';
 import { Skeleton } from '@/components/ui/skeleton';
 // Format currency helper
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
-};
 
 interface InventorySummaryPanelProps {
   shopId?: string;
@@ -21,10 +14,10 @@ interface InventorySummaryPanelProps {
   onAddProduct?: () => void;
 }
 
-export function InventorySummaryPanel({ 
-  shopId, 
+export function InventorySummaryPanel({
+  shopId,
   onOpenInventory,
-  onAddProduct 
+  onAddProduct
 }: InventorySummaryPanelProps) {
   const { fetchProducts, fetchVariants, fetchLowStockVariants, loading } = useInventory();
   const [products, setProducts] = useState<Product[]>([]);
@@ -43,12 +36,12 @@ export function InventorySummaryPanel({
   const loadInventoryData = async () => {
     const productsData = await fetchProducts(shopId);
     setProducts(productsData.slice(0, 5)); // Only show top 5
-    
+
     // Calculate stats
     const active = productsData.filter(p => p.active).length;
     const draft = productsData.filter(p => !p.active).length;
     const withoutPrice = productsData.filter(p => !p.price || p.price === 0).length;
-    
+
     setStats({
       total: productsData.length,
       active,
@@ -167,8 +160,8 @@ export function InventorySummaryPanel({
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         {product.images?.[0] ? (
-                          <img 
-                            src={product.images[0]} 
+                          <img
+                            src={product.images[0]}
                             alt={product.name}
                             className="w-10 h-10 rounded object-cover"
                           />
@@ -197,7 +190,7 @@ export function InventorySummaryPanel({
                       )}
                     </td>
                     <td className="p-3">
-                      <Badge 
+                      <Badge
                         variant={product.active ? "default" : "secondary"}
                         className="text-xs"
                       >

@@ -83,7 +83,6 @@ export class UserMasterContextService {
       relations: ['user'],
     });
 
-
     return context; // Puede ser null si el usuario no tiene contexto
   }
 

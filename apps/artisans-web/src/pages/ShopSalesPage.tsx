@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { 
-  ArrowLeft, 
-  Package, 
-  DollarSign, 
-  TrendingUp, 
-  Truck, 
+import {
+  ArrowLeft,
+  Package,
+  DollarSign,
+  TrendingUp,
+  Truck,
   MapPin,
   Search,
   Filter,
@@ -39,7 +39,7 @@ export default function ShopSalesPage() {
   const navigate = useNavigate();
   const { shop } = useArtisanShop();
   const { orders, loading, stats, fetchOrders, updateTrackingNumber, markAsPickedUp } = useShopOrders(shop?.id);
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
@@ -54,8 +54,8 @@ export default function ShopSalesPage() {
     // Filter by tab
     switch (activeTab) {
       case 'pending':
-        filtered = filtered.filter(o => 
-          (o.status === 'pending' || o.status === 'confirmed') && 
+        filtered = filtered.filter(o =>
+          (o.status === 'pending' || o.status === 'confirmed') &&
           orderRequiresShipping(o)
         );
         break;
@@ -86,7 +86,7 @@ export default function ShopSalesPage() {
   // Chart data - aggregate orders by date
   const chartData = useMemo(() => {
     const dateMap = new Map<string, number>();
-    
+
     orders.forEach(order => {
       if (order.payment_status === 'paid') {
         const date = format(new Date(order.created_at), 'dd MMM', { locale: es });
@@ -101,11 +101,11 @@ export default function ShopSalesPage() {
 
   const handleSaveTracking = async () => {
     if (!selectedOrder || !trackingInput.trim()) return;
-    
+
     setIsSubmitting(true);
     const success = await updateTrackingNumber(selectedOrder.id, trackingInput.trim());
     setIsSubmitting(false);
-    
+
     if (success) {
       setTrackingDialogOpen(false);
       setTrackingInput('');
@@ -133,35 +133,35 @@ export default function ShopSalesPage() {
 
   const getStatusBadge = (order: ShopOrder) => {
     const isPickup = !orderRequiresShipping(order);
-    
+
     if (order.status === 'delivered' || order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'picked_up') {
       return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         {isPickup ? 'Recogido' : 'Entregado'}
       </Badge>;
     }
-    
+
     if (order.status === 'shipped' || order.fulfillment_status === 'shipped') {
       return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
         <Truck className="w-3 h-3 mr-1" />
         Enviado
       </Badge>;
     }
-    
+
     if (isPickup) {
       return <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
         <MapPin className="w-3 h-3 mr-1" />
         Retiro local
       </Badge>;
     }
-    
+
     if (orderNeedsTracking(order)) {
       return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
         <AlertCircle className="w-3 h-3 mr-1" />
         Sin guía
       </Badge>;
     }
-    
+
     return <Badge className="bg-muted text-muted-foreground">
       <Clock className="w-3 h-3 mr-1" />
       Pendiente
@@ -200,7 +200,7 @@ export default function ShopSalesPage() {
   return (
     <>
       <Helmet>
-        <title>Mis Ventas - {shop.shop_name} | Telar</title>
+        <title>{`Mis Ventas - ${shop.shopName} | Telar`}</title>
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -214,7 +214,7 @@ export default function ShopSalesPage() {
                 </Button>
                 <div>
                   <h1 className="text-2xl font-bold">Mis Ventas</h1>
-                  <p className="text-sm text-muted-foreground">{shop.shop_name}</p>
+                  <p className="text-sm text-muted-foreground">{shop.shopName}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -319,17 +319,17 @@ export default function ShopSalesPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="hsl(var(--muted-foreground))" 
+                      <XAxis
+                        dataKey="date"
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                       />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
-                        tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`}
+                        tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                       />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value: number) => [formatCurrency(value), 'Ventas']}
                         contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
@@ -460,13 +460,13 @@ export default function ShopSalesPage() {
 }
 
 // Order Row Component
-function OrderRow({ 
-  order, 
-  onAddTracking, 
+function OrderRow({
+  order,
+  onAddTracking,
   onMarkAsPickedUp,
   formatCurrency,
   getStatusBadge
-}: { 
+}: {
   order: ShopOrder;
   onAddTracking: () => void;
   onMarkAsPickedUp: () => void;
@@ -517,8 +517,8 @@ function OrderRow({
             {!isDelivered && (
               <>
                 {isPickup ? (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={onMarkAsPickedUp}
                     className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
@@ -527,8 +527,8 @@ function OrderRow({
                     Marcar recogido
                   </Button>
                 ) : needsTracking ? (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     onClick={onAddTracking}
                     className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30"
                   >
@@ -549,7 +549,7 @@ function OrderRow({
                 variant="ghost"
                 asChild
               >
-                <a 
+                <a
                   href={`https://wa.me/57${order.customer_phone.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
