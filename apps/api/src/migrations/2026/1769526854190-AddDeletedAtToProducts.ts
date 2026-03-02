@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddDeletedAtToProducts1769526854190
-  implements MigrationInterface
-{
+export class AddDeletedAtToProducts1769526854190 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Agregar columna deleted_at para soft delete
     await queryRunner.query(`

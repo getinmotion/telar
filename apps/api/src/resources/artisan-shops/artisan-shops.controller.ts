@@ -125,7 +125,10 @@ export class ArtisanShopsController {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
+          id: {
+            type: 'string',
+            example: '123e4567-e89b-12d3-a456-426614174000',
+          },
           shopName: { type: 'string', example: 'Artesanías del Valle' },
           shopSlug: { type: 'string', example: 'artesanias-del-valle' },
           description: { type: 'string' },

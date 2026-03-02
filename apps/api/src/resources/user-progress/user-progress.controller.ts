@@ -46,7 +46,10 @@ export class UserProgressController {
     description: 'Registro de progreso creado exitosamente',
   })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
-  @ApiResponse({ status: 409, description: 'Ya existe progreso para este usuario' })
+  @ApiResponse({
+    status: 409,
+    description: 'Ya existe progreso para este usuario',
+  })
   async create(@Body() createDto: CreateUserProgressDto) {
     return await this.userProgressService.create(createDto);
   }

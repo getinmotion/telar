@@ -27,9 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @ApiTags('user-profiles')
 @Controller('user-profiles')
 export class UserProfilesController {
-  constructor(
-    private readonly userProfilesService: UserProfilesService,
-  ) {}
+  constructor(private readonly userProfilesService: UserProfilesService) {}
 
   /**
    * POST /user-profiles
@@ -216,4 +214,3 @@ export class UserProfilesController {
     return await this.userProfilesService.delete(id);
   }
 }
-

@@ -252,8 +252,6 @@ export class UserProgressService {
       });
 
       if (!currentProgress) {
-
-
         currentProgress = this.userProgressRepository.create({
           userId,
           experiencePoints: 0,
@@ -265,9 +263,8 @@ export class UserProgressService {
           totalTimeSpent: 0,
         });
 
-        currentProgress = await this.userProgressRepository.save(
-          currentProgress,
-        );
+        currentProgress =
+          await this.userProgressRepository.save(currentProgress);
       }
 
       // PASO 2: Calcular nuevos valores
@@ -312,10 +309,7 @@ export class UserProgressService {
       }
 
       // Actualizar progreso
-      await this.userProgressRepository.update(
-        { userId },
-        updateData,
-      );
+      await this.userProgressRepository.update({ userId }, updateData);
 
       // PASO 5: Verificar y desbloquear logros
       const unlockedAchievements = await this.checkAndUnlockAchievements(
@@ -326,8 +320,6 @@ export class UserProgressService {
           longest_streak: streakData.longest_streak,
         },
       );
-
-
 
       // PASO 6: Retornar respuesta completa
       return {
@@ -377,9 +369,7 @@ export class UserProgressService {
         select: ['achievementId'],
       });
 
-      const alreadyUnlocked = new Set(
-        unlockedIds.map((a) => a.achievementId),
-      );
+      const alreadyUnlocked = new Set(unlockedIds.map((a) => a.achievementId));
 
       // Obtener catálogo de logros desde la base de datos
       const catalog = await this.dataSource.query(
@@ -387,9 +377,7 @@ export class UserProgressService {
       );
 
       if (!catalog || catalog.length === 0) {
-        this.logger.warn(
-          `[CheckAchievements] No achievements catalog found`,
-        );
+        this.logger.warn(`[CheckAchievements] No achievements catalog found`);
         return [];
       }
 
@@ -442,7 +430,6 @@ export class UserProgressService {
               description: achievement.description,
               icon: achievement.icon,
             });
-
           } catch (error) {
             // Si hay error (posiblemente duplicado), continuar con el siguiente
             this.logger.warn(

@@ -135,7 +135,8 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtener productos destacados para marketplace',
-    description: 'Productos destacados con datos enriquecidos (stock, rating, reviews)',
+    description:
+      'Productos destacados con datos enriquecidos (stock, rating, reviews)',
   })
   @ApiResponse({
     status: 200,
@@ -172,7 +173,8 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtener un producto para marketplace',
-    description: 'Producto individual con datos enriquecidos (stock, rating, reviews)',
+    description:
+      'Producto individual con datos enriquecidos (stock, rating, reviews)',
   })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiResponse({

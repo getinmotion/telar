@@ -7,9 +7,6 @@ export class UpdateEmailVerificationDto {
     example: '2026-01-14T10:00:00.000Z',
   })
   @IsOptional()
-  @IsDateString(
-    {},
-    { message: 'La fecha de uso debe ser válida (ISO 8601)' },
-  )
+  @IsDateString({}, { message: 'La fecha de uso debe ser válida (ISO 8601)' })
   usedAt?: string;
 }

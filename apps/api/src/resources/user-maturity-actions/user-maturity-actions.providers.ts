@@ -9,4 +9,3 @@ export const userMaturityActionsProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

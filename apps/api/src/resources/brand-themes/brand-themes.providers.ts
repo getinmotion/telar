@@ -9,4 +9,3 @@ export const brandThemesProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

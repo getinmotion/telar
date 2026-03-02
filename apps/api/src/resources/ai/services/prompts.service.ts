@@ -33,10 +33,7 @@ export class PromptsService {
   /**
    * Reemplaza placeholders en un prompt con valores reales
    */
-  replacePlaceholders(
-    template: string,
-    values: Record<string, any>,
-  ): string {
+  replacePlaceholders(template: string, values: Record<string, any>): string {
     let result = template;
 
     for (const [key, value] of Object.entries(values)) {

@@ -5,9 +5,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *
  * La tabla products ya no usará soft delete
  */
-export class RemoveDeletedAtFromProducts1771203002659
-  implements MigrationInterface
-{
+export class RemoveDeletedAtFromProducts1771203002659 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE shop.products

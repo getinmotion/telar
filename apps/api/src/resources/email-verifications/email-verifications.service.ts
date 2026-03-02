@@ -28,8 +28,7 @@ export class EmailVerificationsService {
   async create(
     createDto: CreateEmailVerificationDto,
   ): Promise<EmailVerification> {
-    const newVerification =
-      this.emailVerificationsRepository.create(createDto);
+    const newVerification = this.emailVerificationsRepository.create(createDto);
     return await this.emailVerificationsRepository.save(newVerification);
   }
 
@@ -281,7 +280,9 @@ export class EmailVerificationsService {
     });
 
     if (!updatedUser) {
-      throw new NotFoundException('Usuario no encontrado después de actualizar');
+      throw new NotFoundException(
+        'Usuario no encontrado después de actualizar',
+      );
     }
 
     // 5. Marcar token como usado SOLO si la confirmación fue exitosa

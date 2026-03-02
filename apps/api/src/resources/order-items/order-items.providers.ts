@@ -6,8 +6,7 @@ import { Product } from '../products/entities/product.entity';
 export const orderItemsProviders = [
   {
     provide: 'ORDER_ITEMS_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(OrderItem),
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(OrderItem),
     inject: ['DATA_SOURCE'],
   },
   {

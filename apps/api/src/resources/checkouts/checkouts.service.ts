@@ -148,10 +148,7 @@ export class CheckoutsService {
   /**
    * Actualizar un checkout
    */
-  async update(
-    id: string,
-    updateDto: UpdateCheckoutDto,
-  ): Promise<Checkout> {
+  async update(id: string, updateDto: UpdateCheckoutDto): Promise<Checkout> {
     // Verificar que existe
     await this.findOne(id);
 

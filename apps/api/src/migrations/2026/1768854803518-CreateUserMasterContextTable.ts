@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateUserMasterContextTable1768854803518
-  implements MigrationInterface
-{
+export class CreateUserMasterContextTable1768854803518 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión UUID
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);

@@ -68,11 +68,13 @@ export class GiftCardsController {
 
   @Get('user/:email')
   @ApiOperation({
-    summary: 'Obtener gift cards por email de usuario (comprador o destinatario)',
+    summary:
+      'Obtener gift cards por email de usuario (comprador o destinatario)',
   })
   @ApiParam({
     name: 'email',
-    description: 'Email del usuario (busca en purchaser_email y recipient_email)',
+    description:
+      'Email del usuario (busca en purchaser_email y recipient_email)',
   })
   @ApiResponse({
     status: 200,
