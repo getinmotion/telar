@@ -1,3 +1,5 @@
+// internal/payment-checkout/module.go
+
 package paymentcheckout
 
 import (
@@ -12,10 +14,6 @@ import (
 type Module struct {
 	handler *handlers.HTTPHandler
 }
-
-// internal/payment-checkout/module.go
-
-// internal/payment-checkout/module.go
 
 func (m *Module) Provide(c *bootstrap.Container) error {
 	repo := adapters.NewPostgresRepository(c.PgPool)
@@ -36,11 +34,15 @@ func (m *Module) Provide(c *bootstrap.Container) error {
 		"cobre": cobreValidator,
 	}
 
+	// Notifier
+	notifier := adapters.NewHTTPNotifier(c.Config.CentralAppURL)
+
 	service := usecases.NewCheckoutService(
 		repo,
 		repo,
 		gateways,
 		validators,
+		notifier,
 		c.Logger,
 	)
 

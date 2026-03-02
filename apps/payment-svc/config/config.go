@@ -51,6 +51,9 @@ type Config struct {
 	// Proveedores de Pagos
 	Cobre CobreConfig
 	Wompi WompiConfig
+
+	// CentralAppURL string // URL de la aplicación central para notificaciones (opcional)
+	CentralAppURL string
 }
 
 func Load() *Config {
@@ -81,6 +84,7 @@ func Load() *Config {
 		// 	EventsSecret: getenv("WOMPI_EVENTS_SECRET", ""),
 		// 	BaseURL:      getenv("WOMPI_URL", "https://production.wompi.co/v1"),
 		// },
+		CentralAppURL: getenv("CENTRAL_APP_URL", "http://localhost:3000"),
 	}
 
 	// No loguear secretos en producción, aquí solo imprimimos estructura básica
