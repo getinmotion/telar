@@ -27,7 +27,7 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
   }, []);
 
   useEffect(() => {
-    if (products.length > 0 && categories.length > 0) {
+    if (products?.length > 0 && categories?.length > 0) {
       processCounts();
     }
   }, [products, categories]);

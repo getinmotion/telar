@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateUserProfilesTable1768411279610
-  implements MigrationInterface
-{
+export class CreateUserProfilesTable1768411279610 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Crear el schema artesanos si no existe
     await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS artesanos`);

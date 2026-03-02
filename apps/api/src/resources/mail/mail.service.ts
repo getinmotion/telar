@@ -31,7 +31,8 @@ export class MailService {
         name,
         verificationUrl,
         logoUrl: ImageUrlBuilder.buildUrl(
-          this.configService.get<string>('LOGO_URL') || '/images/platform/telar-logo.png',
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
         ),
         year: new Date().getFullYear(),
       },
@@ -115,4 +116,3 @@ export class MailService {
     });
   }
 }
-

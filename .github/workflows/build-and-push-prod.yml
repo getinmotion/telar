@@ -262,6 +262,7 @@ jobs:
             VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY }}
             VITE_SEMANTIC_SEARCH_API_URL=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL }}
             VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY }}
+            VITE_API_PAYMENT_URL=${{ secrets.PROD_MARKETPLACE_VITE_API_PAYMENT_URL }}
             VITE_BACKEND_URL=${{ secrets.PROD_VITE_BACKEND_URL }}
           cache-from: type=gha,scope=gim-marketplace-web-prod
           cache-to: type=gha,scope=gim-marketplace-web-prod,mode=max

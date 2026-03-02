@@ -314,7 +314,9 @@ export class AiService {
           userText,
         );
       const hasBrandNegation =
-        /\b(no tengo  nombre|sin nombre|no name|without name)\b/i.test(userText);
+        /\b(no tengo {2}nombre|sin nombre|no name|without name)\b/i.test(
+          userText,
+        );
 
       this.logger.log('Analizando descripción de negocio', {
         preview: userText.substring(0, 100),
@@ -391,7 +393,10 @@ export class AiService {
           { role: 'user', content: userText },
         ],
         tools,
-        tool_choice: { type: 'function', function: { name: 'extract_business_info' } },
+        tool_choice: {
+          type: 'function',
+          function: { name: 'extract_business_info' },
+        },
         max_tokens: 500,
         temperature: 0.7,
       });
@@ -407,7 +412,10 @@ export class AiService {
       try {
         extractedInfo = JSON.parse(toolCall.function.arguments);
       } catch (parseError) {
-        this.logger.error('Error parseando respuesta de OpenAI', parseError.stack);
+        this.logger.error(
+          'Error parseando respuesta de OpenAI',
+          parseError.stack,
+        );
         throw new InternalServerErrorException(
           'Error al procesar la respuesta de IA',
         );
@@ -515,11 +523,7 @@ export class AiService {
       } else if (isPersonalName && !hasExplicitBrandName) {
         shouldMarkAsNoName = true;
         correctionReason = 'Nombre personal sin contexto de marca';
-      } else if (
-        veryLowConfidence &&
-        hasFirstPerson &&
-        !hasExplicitBrandName
-      ) {
+      } else if (veryLowConfidence && hasFirstPerson && !hasExplicitBrandName) {
         shouldMarkAsNoName = true;
         correctionReason =
           'Confianza muy baja + primera persona + sin nombre explícito';
@@ -592,7 +596,10 @@ export class AiService {
         },
       };
     } catch (error) {
-      this.logger.error('Error extrayendo información del negocio', error.stack);
+      this.logger.error(
+        'Error extrayendo información del negocio',
+        error.stack,
+      );
 
       // Si es una excepción de NestJS, relanzarla
       if (

@@ -7,8 +7,7 @@ import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 export const checkoutsProviders = [
   {
     provide: 'CHECKOUTS_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(Checkout),
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(Checkout),
     inject: ['DATA_SOURCE'],
   },
   {

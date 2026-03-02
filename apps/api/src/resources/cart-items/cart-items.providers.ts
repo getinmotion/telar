@@ -7,8 +7,7 @@ import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 export const cartItemsProviders = [
   {
     provide: 'CART_ITEMS_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(CartItem),
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(CartItem),
     inject: ['DATA_SOURCE'],
   },
   {

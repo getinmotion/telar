@@ -14,6 +14,64 @@ import type {
 } from '@/types/artisanShop.types';
 
 /**
+ * Obtiene todas las tiendas publicadas para el directorio público
+ * Endpoint: GET /artisan-shops?active=true&publishStatus=published
+ */
+export const getPublishedArtisanShops = async (): Promise<ArtisanShop[]> => {
+  try {
+    const response = await telarApi.get<{ data: ArtisanShop[]; total: number }>(
+      '/artisan-shops',
+      {
+        params: {
+          active: true,
+          publishStatus: 'published',
+          limit: 100,
+          page: 1,
+          sortBy: 'created_at',
+          order: 'DESC',
+        },
+      }
+    );
+    return response.data.data ?? [];
+  } catch (error: any) {
+    if (error.response?.data) {
+      throw error.response.data as ArtisanShopErrorResponse;
+    }
+    throw error;
+  }
+};
+
+/**
+ * Obtiene una tienda por su ID
+ * @param shopId - ID de la tienda
+ * @returns La tienda o null si no existe
+ *
+ * Endpoint: GET /artisan-shops/:id
+ */
+export const getArtisanShopById = async (
+  shopId: string
+): Promise<ArtisanShop | null> => {
+  try {
+    const response = await telarApi.get<ArtisanShop>(
+      `/artisan-shops/${shopId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    // Si es 404, la tienda no existe (es válido)
+    if (error.response?.status === 404) {
+      return null;
+    }
+
+
+    // Para otros errores, lanzar la respuesta estructurada
+    if (error.response?.data) {
+      throw error.response.data as ArtisanShopErrorResponse;
+    }
+    throw error;
+  }
+};
+
+/**
  * Obtiene la tienda de un artesano por su user_id
  * @param userId - ID del usuario propietario
  * @returns La tienda del artesano o null si no existe
@@ -23,7 +81,7 @@ export const getArtisanShopByUserId = async (
 ): Promise<ArtisanShop | null> => {
   try {
     const response = await telarApi.get<ArtisanShop>(
-      `/telar/server/artisan-shops/user/${userId}`
+      `/artisan-shops/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
@@ -45,14 +103,14 @@ export const getArtisanShopByUserId = async (
  * @param shopSlug - Slug de la tienda
  * @returns La tienda o null si no existe
  * 
- * Endpoint: GET /telar/server/artisan-shops/slug/{slug}
+ * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const getArtisanShopBySlug = async (
   shopSlug: string
 ): Promise<ArtisanShop | null> => {
   try {
     const response = await telarApi.get<ArtisanShop>(
-      `/telar/server/artisan-shops/slug/${shopSlug}`
+      `/artisan-shops/slug/${shopSlug}`
     );
     return response.data;
   } catch (error: any) {
@@ -61,7 +119,6 @@ export const getArtisanShopBySlug = async (
       return null;
     }
 
-    console.error('[ArtisanShops] Error al obtener tienda por slug:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -76,14 +133,13 @@ export const getArtisanShopBySlug = async (
  * @param slug - Slug a verificar
  * @returns true si está disponible (no existe), false si ya existe
  * 
- * Endpoint: GET /telar/server/artisan-shops/slug/{slug}
+ * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const isSlugAvailable = async (slug: string): Promise<boolean> => {
   try {
     const shop = await getArtisanShopBySlug(slug);
     return shop === null; // null = no existe = disponible
   } catch (error) {
-    console.error('[ArtisanShops] Error al verificar disponibilidad de slug:', error);
     return false; // En caso de error, asumir que no está disponible
   }
 };
@@ -98,7 +154,6 @@ export const hasArtisanShop = async (userId: string): Promise<boolean> => {
     const shop = await getArtisanShopByUserId(userId);
     return shop !== null;
   } catch (error) {
-    console.error('[ArtisanShops] Error al verificar existencia:', error);
     return false;
   }
 };
@@ -113,12 +168,11 @@ export const createArtisanShop = async (
 ): Promise<ArtisanShop> => {
   try {
     const response = await telarApi.post<ArtisanShop>(
-      `/telar/server/artisan-shops`,
+      `/artisan-shops`,
       payload
     );
     return response.data;
   } catch (error: any) {
-    console.error('[ArtisanShops] Error al crear tienda:', error);
     if (error.response?.data) {
       throw error.response.data as ArtisanShopErrorResponse;
     }
@@ -138,12 +192,11 @@ export const updateArtisanShop = async (
 ): Promise<ArtisanShop> => {
   try {
     const response = await telarApi.patch<ArtisanShop>(
-      `/telar/server/artisan-shops/${shopId}`,
+      `/artisan-shops/${shopId}`,
       payload
     );
     return response.data;
   } catch (error: any) {
-    console.error('[ArtisanShops] Error al actualizar tienda:', error);
     if (error.response?.data) {
       throw error.response.data as ArtisanShopErrorResponse;
     }
@@ -165,13 +218,11 @@ export const updateArtisanShopByUserId = async (
     // Primero obtener la tienda para tener el shopId
     const shop = await getArtisanShopByUserId(userId);
     if (!shop) {
-      console.warn(`[ArtisanShops] No se encontró tienda para userId: ${userId}`);
       return null;
     }
 
     return await updateArtisanShop(shop.id, payload);
   } catch (error) {
-    console.error('[ArtisanShops] Error al actualizar tienda por userId:', error);
     throw error;
   }
 };

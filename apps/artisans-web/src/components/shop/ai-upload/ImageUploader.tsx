@@ -2,18 +2,16 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 
 interface ImageUploaderProps {
   value: string[];
   onChange: (urls: string[]) => void;
   maxFiles?: number;
-  bucket: string;
-  folder?: string;
+  uploadFolder: UploadFolder;
   aspectRatio?: 'square' | 'landscape' | 'portrait';
   placeholder?: string;
   className?: string;
@@ -23,46 +21,21 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   value = [],
   onChange,
   maxFiles = 5,
-  bucket,
-  folder = '',
+  uploadFolder,
   aspectRatio = 'landscape',
   placeholder = 'Arrastra imágenes o haz clic para subir',
   className,
 }) => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
   const uploadFile = async (file: File): Promise<string | null> => {
-    if (!user) return null;
-
     try {
-      // Optimize image before upload
       const optimizedFile = await optimizeImage(file, ImageOptimizePresets.product);
       console.log(`[ImageUploader] Optimized: ${Math.round(file.size / 1024)}KB → ${Math.round(optimizedFile.size / 1024)}KB`);
 
-      const fileExt = optimizedFile.name.split('.').pop();
-      const fileName = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, optimizedFile, { upsert: true });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        toast({
-          title: "Error al subir imagen",
-          description: uploadError.message || "No se pudo subir la imagen. Verifica que el bucket exista.",
-          variant: "destructive",
-        });
-        return null;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
-
-      return urlData?.publicUrl || null;
+      const result = await uploadImage(optimizedFile, uploadFolder);
+      return result.url;
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
@@ -137,8 +110,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           {...getRootProps()}
           className={cn(
             "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-            isDragActive 
-              ? "border-primary bg-primary/5" 
+            isDragActive
+              ? "border-primary bg-primary/5"
               : "border-muted-foreground/25 hover:border-primary/50",
             uploading && "opacity-50 cursor-not-allowed"
           )}
@@ -165,8 +138,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {value.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {value.map((url, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={cn("relative group rounded-lg overflow-hidden bg-muted", aspectRatioClass)}
             >
               <img

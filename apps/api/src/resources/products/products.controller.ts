@@ -135,7 +135,8 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtener productos destacados para marketplace',
-    description: 'Productos destacados con datos enriquecidos (stock, rating, reviews)',
+    description:
+      'Productos destacados con datos enriquecidos (stock, rating, reviews)',
   })
   @ApiResponse({
     status: 200,
@@ -172,7 +173,8 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtener un producto para marketplace',
-    description: 'Producto individual con datos enriquecidos (stock, rating, reviews)',
+    description:
+      'Producto individual con datos enriquecidos (stock, rating, reviews)',
   })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiResponse({
@@ -234,6 +236,37 @@ export class ProductsController {
   })
   async getFeaturedProducts() {
     return await this.productsService.getFeaturedProducts();
+  }
+
+  /**
+   * GET /products/shop/:shopId/approved-count
+   * Contar productos aprobados de una tienda
+   */
+  @Get('shop/:shopId/approved-count')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Contar productos aprobados de una tienda',
+    description:
+      'Retorna el número de productos con moderation_status "approved" o "approved_with_edits" de una tienda',
+  })
+  @ApiParam({
+    name: 'shopId',
+    description: 'ID de la tienda (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Cantidad de productos aprobados',
+    schema: {
+      example: { count: 15 },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'ID de tienda inválido' })
+  async countApprovedByShopId(
+    @Param('shopId') shopId: string,
+  ): Promise<{ count: number }> {
+    const count = await this.productsService.countApprovedByShopId(shopId);
+    return { count };
   }
 
   /**

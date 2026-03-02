@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/utils/currency';
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LazyImage } from './LazyImage';
 import { useCart } from '@/contexts/ShoppingCartContext';
@@ -112,9 +113,8 @@ export const NeumorphicProductCard: React.FC<NeumorphicProductCardProps> = ({
             className="absolute top-3 right-3 w-9 h-9 rounded-full bg-neumorphic-surface shadow-neumorphic hover:shadow-neumorphic-hover flex items-center justify-center transition-all duration-300"
           >
             <Heart
-              className={`w-4 h-4 transition-colors ${
-                isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'
-              }`}
+              className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'
+                }`}
             />
           </button>
 
@@ -143,11 +143,10 @@ export const NeumorphicProductCard: React.FC<NeumorphicProductCardProps> = ({
                       e.stopPropagation();
                       setCurrentImageIndex(index);
                     }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      index === currentImageIndex
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentImageIndex
                         ? 'bg-foreground w-4'
                         : 'bg-muted-foreground/40'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -169,7 +168,7 @@ export const NeumorphicProductCard: React.FC<NeumorphicProductCardProps> = ({
 
           <div className="flex items-center justify-between gap-3">
             <span className="text-2xl font-bold text-foreground">
-              ${price.toLocaleString('es-CO')}
+              {formatCurrency(price)}
             </span>
 
             <button

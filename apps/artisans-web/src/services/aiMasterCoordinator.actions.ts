@@ -23,12 +23,11 @@ export const invokeMasterCoordinator = async <T = any>(
 ): Promise<T> => {
   try {
     const response = await telarApi.post<T>(
-      `/telar/server/ai/master-coordinator`,
+      `/ai/master-coordinator`,
       request
     );
     return response.data;
   } catch (error: any) {
-    console.error('[AIMasterCoordinator] Error al invocar coordinador:', error);
     
     if (error.response?.data) {
       throw error.response.data as MasterCoordinatorErrorResponse;

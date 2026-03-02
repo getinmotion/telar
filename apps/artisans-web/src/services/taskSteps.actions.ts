@@ -24,7 +24,7 @@ export const getTaskStepsByUserId = async (
 ): Promise<TaskStep[]> => {
   try {
     const response = await telarApi.get<TaskStep[]>(
-      `/telar/server/task-steps/user/${userId}`
+      `/task-steps/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
@@ -33,7 +33,6 @@ export const getTaskStepsByUserId = async (
       return [];
     }
 
-    console.error('[TaskSteps] Error al obtener task steps:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -53,12 +52,11 @@ export const createTaskStep = async (
 ): Promise<TaskStep> => {
   try {
     const response = await telarApi.post<{ success: true; data: TaskStep }>(
-      `/telar/server/task-steps`,
+      `/task-steps`,
       payload
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[TaskSteps] Error al crear task step:', error);
 
     if (error.response?.data) {
       throw error.response.data as TaskStepErrorResponse;
@@ -79,12 +77,11 @@ export const updateTaskStep = async (
 ): Promise<TaskStep> => {
   try {
     const response = await telarApi.patch<{ success: true; data: TaskStep }>(
-      `/telar/server/task-steps/${stepId}`,
+      `/task-steps/${stepId}`,
       payload
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[TaskSteps] Error al actualizar task step:', error);
 
     if (error.response?.data) {
       throw error.response.data as TaskStepErrorResponse;
@@ -100,10 +97,9 @@ export const updateTaskStep = async (
  */
 export const deleteTaskStep = async (stepId: string): Promise<boolean> => {
   try {
-    await telarApi.delete(`/telar/server/task-steps/${stepId}`);
+    await telarApi.delete(`/task-steps/${stepId}`);
     return true;
   } catch (error: any) {
-    console.error('[TaskSteps] Error al eliminar task step:', error);
 
     if (error.response?.data) {
       throw error.response.data as TaskStepErrorResponse;

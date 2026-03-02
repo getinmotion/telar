@@ -79,6 +79,55 @@ export class AuthController {
   }
 
   /**
+   * POST /auth/register-marketplace
+   * Registrar un nuevo comprador para marketplace (sin verificación de email)
+   */
+  @Post('register-marketplace')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      'Registrar un nuevo comprador para marketplace (activación inmediata, sin verificación de email)',
+    description:
+      'Registro simplificado para compradores del marketplace. Crea el usuario con accountType=buyer, lo activa automáticamente y retorna el token JWT sin requerir verificación de email.',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Usuario registrado exitosamente y activado. Retorna token JWT para acceso inmediato.',
+    schema: {
+      example: {
+        success: true,
+        message: 'Cuenta creada exitosamente. Ya puedes empezar a comprar.',
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'buyer@example.com',
+          phone: '+573001234567',
+          role: 'user',
+          emailConfirmedAt: '2026-02-27T10:00:00.000Z',
+          createdAt: '2026-02-27T10:00:00.000Z',
+        },
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'El email ya está registrado',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos de entrada inválidos o las contraseñas no coinciden',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al crear el perfil de usuario',
+  })
+  async registerMarketplace(@Body() registerDto: RegisterDto) {
+    return await this.authService.registerMarketplace(registerDto);
+  }
+
+  /**
    * POST /auth/login
    * Iniciar sesión
    */

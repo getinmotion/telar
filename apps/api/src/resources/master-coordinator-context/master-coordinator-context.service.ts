@@ -87,9 +87,7 @@ export class MasterCoordinatorContextService {
   /**
    * Obtener o crear contexto para un usuario
    */
-  async getOrCreate(
-    userId: string,
-  ): Promise<MasterCoordinatorContext> {
+  async getOrCreate(userId: string): Promise<MasterCoordinatorContext> {
     let context = await this.getByUserId(userId);
 
     if (!context) {
@@ -229,9 +227,9 @@ export class MasterCoordinatorContextService {
   /**
    * Obtener contextos inactivos (última interacción hace más de X días)
    */
-  async getInactiveContexts(daysInactive: number = 30): Promise<
-    MasterCoordinatorContext[]
-  > {
+  async getInactiveContexts(
+    daysInactive: number = 30,
+  ): Promise<MasterCoordinatorContext[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysInactive);
 

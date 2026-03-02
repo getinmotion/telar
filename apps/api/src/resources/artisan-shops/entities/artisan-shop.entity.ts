@@ -223,7 +223,12 @@ export class ArtisanShop extends BaseEntity {
     description: 'Paso actual de creación',
     default: 0,
   })
-  @Column({ type: 'integer', name: 'creation_step', nullable: true, default: 0 })
+  @Column({
+    type: 'integer',
+    name: 'creation_step',
+    nullable: true,
+    default: 0,
+  })
   creationStep: number | null;
 
   @ApiPropertyOptional({
@@ -271,7 +276,8 @@ export class ArtisanShop extends BaseEntity {
   @Column({
     type: 'jsonb',
     name: 'about_content',
-    default: '{"story": "", "title": "", "values": [], "vision": "", "mission": ""}',
+    default:
+      '{"story": "", "title": "", "values": [], "vision": "", "mission": ""}',
   })
   aboutContent: object;
 

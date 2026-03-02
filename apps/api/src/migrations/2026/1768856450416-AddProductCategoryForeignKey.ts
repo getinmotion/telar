@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddProductCategoryForeignKey1768856450416
-  implements MigrationInterface
-{
+export class AddProductCategoryForeignKey1768856450416 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Agregar la clave foránea a product_categories
     // Nota: category_id permanece NULLABLE por ahora

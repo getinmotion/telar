@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateBrandThemesTable1768850117397
-  implements MigrationInterface
-{
+export class CreateBrandThemesTable1768850117397 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión UUID
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);

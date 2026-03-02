@@ -8,9 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *
  * user_type final: 'regular', 'premium', 'enterprise', 'shop_owner', 'admin'
  */
-export class AddShopOwnerAndAdminToUserType1771189800415
-  implements MigrationInterface
-{
+export class AddShopOwnerAndAdminToUserType1771189800415 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Agregar 'shop_owner' al ENUM user_type si no existe
     await queryRunner.query(`

@@ -68,11 +68,9 @@ export const createNotification = async (params: CreateNotificationParams): Prom
       .insert(notificationData);
 
     if (error) {
-      console.error('[NotificationService] Error creating notification:', error, { type, userId });
       return false;
     }
 
-    console.log('[NotificationService] Notification created:', { type, userId, title });
 
     // Enviar email de notificación de forma asíncrona (no bloquea)
     supabase.functions
@@ -81,16 +79,13 @@ export const createNotification = async (params: CreateNotificationParams): Prom
       })
       .then(({ data, error }) => {
         if (error) {
-          console.error('[NotificationService] Email notification error:', error);
         } else {
-          console.log('[NotificationService] Email notification sent:', data);
         }
       })
       .catch(err => console.error('[NotificationService] Email exception:', err));
 
     return true;
   } catch (err) {
-    console.error('[NotificationService] Exception creating notification:', err, { type, userId });
     return false;
   }
 };

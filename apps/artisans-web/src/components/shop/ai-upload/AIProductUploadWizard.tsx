@@ -10,8 +10,9 @@ import { useWizardState } from './hooks/useWizardState';
 import { ArrowLeft, Store, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 
 const STEPS = [
   { title: 'Imágenes', description: 'Sube las fotos de tu producto' },
@@ -25,31 +26,23 @@ export const AIProductUploadWizard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [hasShop, setHasShop] = useState<boolean | null>(null);
   const [isCheckingShop, setIsCheckingShop] = useState(true);
-  
+
+  const { user } = useAuth();
+
   // Check if we should continue from a draft (only restore state if ?continue=true)
   const shouldContinue = new URLSearchParams(window.location.search).get('continue') === 'true';
   const { wizardState, updateWizardState, resetWizard } = useWizardState(shouldContinue);
 
-  // Check if user has a shop on component mount
+  // Verifica si el usuario tiene tienda usando el backend NestJS
   useEffect(() => {
+    if (!user) return;
+
     const checkUserShop = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setHasShop(false);
-          setIsCheckingShop(false);
-          return;
-        }
-
-        const { data: shop } = await supabase
-          .from('artisan_shops')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-
-        setHasShop(!!shop);
-      } catch (error) {
-        console.error('Error checking shop:', error);
+        const shop = await getArtisanShopByUserId(user.id);
+        setHasShop(!!shop?.id);
+      } catch {
+        // Si el endpoint lanza 404 significa que no tiene tienda
         setHasShop(false);
       } finally {
         setIsCheckingShop(false);
@@ -57,7 +50,7 @@ export const AIProductUploadWizard: React.FC = () => {
     };
 
     checkUserShop();
-  }, []);
+  }, [user]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -181,22 +174,22 @@ export const AIProductUploadWizard: React.FC = () => {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">¡Necesitas crear tu tienda primero!</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Para poder subir productos, primero debes crear tu tienda artesanal. 
+                Para poder subir productos, primero debes crear tu tienda artesanal.
                 Es rápido y fácil con nuestro asistente inteligente.
               </p>
             </div>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               onClick={() => window.location.href = '/crear-tienda'}
               className="w-full max-w-sm"
             >
               <Store className="w-4 h-4 mr-2" />
               Crear mi tienda ahora
             </Button>
-            
+
             <p className="text-sm text-muted-foreground">
               Una vez creada tu tienda, podrás regresar aquí para subir tus productos
             </p>

@@ -54,8 +54,8 @@ export class AnalyticsEventsService {
     }
 
     const newEvent = this.analyticsEventsRepository.create(insertData);
-    const savedEvent: AnalyticsEvent = await this.analyticsEventsRepository.save(newEvent);
-
+    const savedEvent: AnalyticsEvent =
+      await this.analyticsEventsRepository.save(newEvent);
 
     return {
       success: true,

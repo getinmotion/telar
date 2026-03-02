@@ -98,7 +98,11 @@ export class Cart extends BaseEntity {
     required: false,
     nullable: true,
   })
-  @Column({ type: 'timestamp with time zone', name: 'locked_at', nullable: true })
+  @Column({
+    type: 'timestamp with time zone',
+    name: 'locked_at',
+    nullable: true,
+  })
   lockedAt?: Date | null;
 
   @ApiProperty({
@@ -106,7 +110,11 @@ export class Cart extends BaseEntity {
     required: false,
     nullable: true,
   })
-  @Column({ type: 'timestamp with time zone', name: 'converted_at', nullable: true })
+  @Column({
+    type: 'timestamp with time zone',
+    name: 'converted_at',
+    nullable: true,
+  })
   convertedAt?: Date | null;
 
   // Relaciones

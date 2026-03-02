@@ -10,4 +10,3 @@ export class RequestPasswordRecoveryDto {
   @IsNotEmpty({ message: 'El email es obligatorio' })
   email: string;
 }
-

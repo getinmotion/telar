@@ -1,5 +1,6 @@
 import React from 'react';
 import { LazyImage } from './LazyImage';
+import { formatCurrency } from '@/utils/currency';
 
 interface Product {
   id: string;
@@ -13,20 +14,12 @@ interface ProductCardProps {
   onClick: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onClick 
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onClick
 }) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
   return (
-    <div 
+    <div
       className="group cursor-pointer"
       onClick={onClick}
     >
@@ -37,14 +30,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </div>
-      
+
       <div className="mt-4 space-y-2">
         <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
           {product.name}
         </h3>
-        
+
         <p className="text-sm font-medium text-foreground">
-          {formatPrice(product.price)}
+          {formatCurrency(product.price)}
         </p>
       </div>
     </div>

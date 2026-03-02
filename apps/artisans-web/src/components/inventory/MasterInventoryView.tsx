@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useMasterAgent } from '@/context/MasterAgentContext';
+import { formatCurrency } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -32,18 +33,18 @@ export const MasterInventoryView: React.FC = () => {
       const productsNeedingComments = masterState.inventario.productos.filter(
         (p: any) => p.moderation_status === 'rejected' || p.moderation_status === 'changes_requested'
       );
-      
+
       if (productsNeedingComments.length === 0) return;
-      
+
       const productIds = productsNeedingComments.map((p: any) => p.id);
-      
+
       const { data } = await supabase
         .from('product_moderation_history')
         .select('product_id, comment, created_at')
         .in('product_id', productIds)
         .in('new_status', ['rejected', 'changes_requested'])
         .order('created_at', { ascending: false });
-      
+
       if (data) {
         const commentsMap: Record<string, string> = {};
         data.forEach((record) => {
@@ -54,7 +55,7 @@ export const MasterInventoryView: React.FC = () => {
         setModerationComments(commentsMap);
       }
     };
-    
+
     if (masterState.inventario.productos.length > 0) {
       fetchModerationComments();
     }
@@ -69,7 +70,7 @@ export const MasterInventoryView: React.FC = () => {
 
   const handleDeleteProduct = async () => {
     if (!productToDelete) return;
-    
+
     const success = await deleteProduct(productToDelete.id);
     if (success) {
       setProductToDelete(null);
@@ -250,15 +251,15 @@ export const MasterInventoryView: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {product.price ? `$${product.price.toLocaleString()}` : (
+                    {product.price ? formatCurrency(product.price) : (
                       <Badge variant="outline" className="text-red-600 border-red-600">
                         Sin precio
                       </Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <ModerationFeedbackBadge 
-                      status={product.moderation_status} 
+                    <ModerationFeedbackBadge
+                      status={product.moderation_status}
                       comment={moderationComments[product.id]}
                       productId={product.id}
                       productName={product.name}

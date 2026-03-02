@@ -139,10 +139,7 @@ export class UserRolesService {
     const userRole = await this.findOne(id);
 
     // Si se intenta cambiar el rol o el usuario, verificar que no exista ya
-    if (
-      updateUserRoleDto.role &&
-      updateUserRoleDto.role !== userRole.role
-    ) {
+    if (updateUserRoleDto.role && updateUserRoleDto.role !== userRole.role) {
       const existingRole = await this.userRoleRepository.findOne({
         where: {
           userId: userRole.userId,

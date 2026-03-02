@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { StockManager } from '@/components/inventory/StockManager';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
+import { UploadFolder } from '@/services/fileUpload.actions';
 import { Loader2, Save, ArrowLeft, Send, AlertCircle, CheckCircle, MapPin } from 'lucide-react';
 import { Product } from '@/types/artisan';
 
@@ -167,11 +168,11 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
   // Check if shipping data is complete for moderation submission
   const hasCompleteShippingData = !!(
-    formData.weight && 
-    formData.weight > 0 && 
+    formData.weight &&
+    formData.weight > 0 &&
     formData.dimensions &&
-    formData.dimensions.length > 0 && 
-    formData.dimensions.width > 0 && 
+    formData.dimensions.length > 0 &&
+    formData.dimensions.width > 0 &&
     formData.dimensions.height > 0
   );
 
@@ -236,7 +237,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
   const handleStockChange = async (newStock: number) => {
     setFormData(prev => ({ ...prev, inventory: newStock }));
-    
+
     // Also update product table
     await supabase
       .from('products')
@@ -362,14 +363,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.length ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: e.target.value ? Number(e.target.value) : 0,
                     width: formData.dimensions?.width ?? 0,
                     height: formData.dimensions?.height ?? 0
-                  } 
+                  }
                 })}
                 placeholder="Largo"
               />
@@ -383,14 +384,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.width ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: formData.dimensions?.length ?? 0,
                     width: e.target.value ? Number(e.target.value) : 0,
                     height: formData.dimensions?.height ?? 0
-                  } 
+                  }
                 })}
                 placeholder="Ancho"
               />
@@ -404,14 +405,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.height ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: formData.dimensions?.length ?? 0,
                     width: formData.dimensions?.width ?? 0,
                     height: e.target.value ? Number(e.target.value) : 0
-                  } 
+                  }
                 })}
                 placeholder="Alto"
               />
@@ -486,8 +487,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
             value={formData.images}
             onChange={(urls) => setFormData({ ...formData, images: urls })}
             maxFiles={10}
-            bucket="product-images"
-            folder="products"
+            uploadFolder={UploadFolder.PRODUCTS}
             aspectRatio="square"
             placeholder="Arrastra imágenes del producto o haz clic para subir"
           />
@@ -504,7 +504,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           <ArrowLeft className="w-4 h-4 mr-2" />
           Cancelar
         </Button>
-        
+
         <Button
           type="submit"
           variant="outline"

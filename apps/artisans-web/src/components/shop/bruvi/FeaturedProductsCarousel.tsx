@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/utils/currency';
 import {
   Carousel,
   CarouselContent,
@@ -23,13 +24,6 @@ interface FeaturedProductsCarouselProps {
   onProductClick: (productId: string) => void;
 }
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0
-  }).format(price);
-};
 
 export const FeaturedProductsCarousel: React.FC<FeaturedProductsCarouselProps> = ({
   products,
@@ -101,7 +95,7 @@ export const FeaturedProductsCarousel: React.FC<FeaturedProductsCarouselProps> =
                       </h3>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-primary">
-                          {formatPrice(product.price)}
+                          {formatCurrency(product.price)}
                         </span>
                         <Button
                           size="sm"

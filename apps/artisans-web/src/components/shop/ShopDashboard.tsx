@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/utils/currency';
 import {
   Store,
   Package,
@@ -936,7 +937,7 @@ export const ShopDashboard: React.FC = () => {
                               )}
                             </div>
                             <p className="text-base lg:text-lg font-bold text-primary mt-1">
-                              ${product.price.toLocaleString('es-CO')}
+                              {formatCurrency(product.price)}
                             </p>
                           </div>
                           <Button

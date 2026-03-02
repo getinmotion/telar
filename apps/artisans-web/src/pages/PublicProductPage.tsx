@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { formatCurrency } from '@/utils/currency';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
@@ -29,7 +30,7 @@ export const PublicProductPage: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const isPreviewMode = searchParams.get('preview') === 'true';
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -61,7 +62,7 @@ export const PublicProductPage: React.FC = () => {
   useEffect(() => {
     const fetchProductData = async () => {
       if (!shopSlug || !productId) return;
-      
+
       if (isPreviewMode && !authLoadedRef.current) {
         return;
       }
@@ -149,7 +150,7 @@ export const PublicProductPage: React.FC = () => {
 
   const shopData = shop as any;
   const theme = {
-    palette: shopData.primary_colors && shopData.secondary_colors 
+    palette: shopData.primary_colors && shopData.secondary_colors
       ? convertLegacyToNewPalette(shopData.primary_colors, shopData.secondary_colors)
       : convertLegacyToNewPalette(),
     brandClaim: shopData.brand_claim,
@@ -159,9 +160,9 @@ export const PublicProductPage: React.FC = () => {
   return (
     <ShoppingCartProvider>
       <ShopThemeProvider theme={theme}>
-        <ProductPageContent 
-          shop={shop} 
-          product={product} 
+        <ProductPageContent
+          shop={shop}
+          product={product}
           relatedProducts={relatedProducts}
           isOwner={isOwner}
           isPreviewMode={isPreviewMode}
@@ -179,17 +180,17 @@ interface ProductPageContentProps {
   isPreviewMode: boolean;
 }
 
-const ProductPageContent: React.FC<ProductPageContentProps> = ({ 
-  shop, product, relatedProducts, isOwner, isPreviewMode 
+const ProductPageContent: React.FC<ProductPageContentProps> = ({
+  shop, product, relatedProducts, isOwner, isPreviewMode
 }) => {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const { addToCart } = useCart();
-  
+
   const productData = product as any;
   const moderationStatus = productData?.moderation_status;
   const showModerationBadge = isOwner && isPreviewMode && moderationStatus && moderationStatus !== 'approved';
-  
+
   const getModerationLabel = (status: string) => {
     const labels: Record<string, string> = {
       'pending_moderation': 'Pendiente de Aprobación',
@@ -200,13 +201,6 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
     return labels[status] || status;
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
 
   const handleAddToCart = async () => {
     try {
@@ -231,7 +225,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
   return (
     <>
       <Helmet>
-        <title>{product.name} - {shop.shop_name}</title>
+        <title>{`${product.name} - ${shop.shopName}`}</title>
         <meta name="description" content={product.description || `${product.name} - Artesanía de ${shop.shop_name}`} />
         <meta property="og:title" content={product.name} />
         <meta property="og:description" content={product.description || `Artesanía de ${shop.shop_name}`} />
@@ -255,7 +249,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
             </div>
           </div>
         )}
-        
+
         {/* Moderation Banner */}
         {showModerationBadge && (
           <div className="bg-warning/20 border-b border-warning px-4 py-2">
@@ -269,24 +263,24 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
         )}
 
         {/* Promo Banner */}
-        <PromoBanner 
-          region={shop.region?.replace(/_/g, ' ')} 
+        <PromoBanner
+          region={shop.region?.replace(/_/g, ' ')}
           craftType={shop.craft_type?.replace(/-/g, ' ')}
         />
-        
+
         {/* Navbar */}
-        <ShopNavbar 
-          shopName={shop.shop_name} 
+        <ShopNavbar
+          shopName={shop.shop_name}
           logoUrl={shop.logo_url || undefined}
           shopSlug={shop.shop_slug}
         />
-        
+
         {/* Breadcrumb */}
         <div className="border-b border-border/50 bg-card/50">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => navigate(`/tienda/${shop.shop_slug}${isPreviewMode ? '?preview=true' : ''}`)}
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -304,7 +298,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
         <section className="py-12 md:py-16">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-              
+
               {/* Gallery - Left */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -314,7 +308,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                 {/* Main Image */}
                 <div className="aspect-square rounded-3xl overflow-hidden bg-cream-200 shadow-elegant mb-4">
                   {images.length > 0 ? (
-                    <img 
+                    <img
                       src={images[selectedImage] || images[0]}
                       alt={product.name}
                       className="w-full h-full object-cover"
@@ -325,7 +319,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                     </div>
                   )}
                 </div>
-                
+
                 {/* Thumbnails */}
                 {images.length > 1 && (
                   <div className="grid grid-cols-4 gap-3">
@@ -333,11 +327,10 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                          selectedImage === index 
-                            ? 'border-primary ring-2 ring-primary/20' 
-                            : 'border-transparent hover:border-border'
-                        }`}
+                        className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${selectedImage === index
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-transparent hover:border-border'
+                          }`}
                       >
                         <img src={image} alt="" className="w-full h-full object-cover" />
                       </button>
@@ -359,15 +352,15 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                     {techniques[0] || 'Artesanía'} · {product.category || 'Pieza única'}
                     {product.inventory && product.inventory <= 5 && ' · Serie limitada'}
                   </p>
-                  
+
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
                     {product.name}
                   </h1>
-                  
+
                   {/* Rating placeholder */}
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(i => (
+                      {[1, 2, 3, 4, 5].map(i => (
                         <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
                       ))}
                     </div>
@@ -378,11 +371,11 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                 {/* Price */}
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl font-bold text-foreground">
-                    {formatPrice(product.price)}
+                    {formatCurrency(product.price)}
                   </span>
                   {product.compare_price && product.compare_price > product.price && (
                     <span className="text-lg text-muted-foreground line-through">
-                      {formatPrice(product.compare_price)}
+                      {formatCurrency(product.compare_price)}
                     </span>
                   )}
                 </div>
@@ -410,7 +403,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                 )}
 
                 {/* Add to Cart */}
-                <Button 
+                <Button
                   onClick={handleAddToCart}
                   disabled={product.inventory === 0}
                   size="lg"
@@ -425,10 +418,10 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                   <div className="p-4 bg-secondary/10 rounded-xl border border-secondary/20">
                     <div className="flex items-center gap-2 text-sm">
                       <Truck className="w-4 h-4 text-secondary" />
-                      <span>Te faltan <strong>{formatPrice(remaining)}</strong> para obtener envío gratuito</span>
+                      <span>Te faltan <strong>{formatCurrency(remaining)}</strong> para obtener envío gratuito</span>
                     </div>
                     <div className="mt-2 h-2 bg-secondary/20 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-secondary rounded-full transition-all"
                         style={{ width: `${Math.min((product.price / freeShippingThreshold) * 100, 100)}%` }}
                       />
@@ -466,8 +459,8 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                 Hecha con tradición
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Cada pieza nace en el taller de {shop.shop_name}, donde la técnica y la tradición 
-                se mezclan para crear algo verdaderamente único. No es producción industrial: 
+                Cada pieza nace en el taller de {shop.shop_name}, donde la técnica y la tradición
+                se mezclan para crear algo verdaderamente único. No es producción industrial:
                 es un oficio que ha pasado por generaciones.
               </p>
             </div>
@@ -481,7 +474,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
               <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground text-center mb-10">
                 También te puede interesar
               </h2>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {relatedProducts.slice(0, 4).map((relatedProduct, index) => (
                   <motion.div
@@ -496,7 +489,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                     <div className="bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all border border-border/30">
                       <div className="aspect-square overflow-hidden bg-cream-200">
                         {(relatedProduct.images as any)?.[0] ? (
-                          <img 
+                          <img
                             src={(relatedProduct.images as any)[0]}
                             alt={relatedProduct.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -512,7 +505,7 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
                           {relatedProduct.name}
                         </h3>
                         <span className="font-bold text-primary">
-                          {formatPrice(relatedProduct.price)}
+                          {formatCurrency(relatedProduct.price)}
                         </span>
                       </div>
                     </div>
@@ -524,14 +517,14 @@ const ProductPageContent: React.FC<ProductPageContentProps> = ({
         )}
 
         {/* Reviews */}
-        <ProductReviewsSection 
+        <ProductReviewsSection
           averageRating={4.8}
           totalReviews={12}
           onWriteReview={() => toast.info('Función de reseñas próximamente')}
         />
 
         {/* Footer */}
-        <ShopFooter 
+        <ShopFooter
           shopName={shop.shop_name}
           contactEmail={(shop.contact_info as any)?.email}
           contactPhone={(shop.contact_info as any)?.phone}

@@ -9,4 +9,3 @@ export const artisanShopsProviders = [
     inject: ['DATA_SOURCE'],
   },
 ];
-

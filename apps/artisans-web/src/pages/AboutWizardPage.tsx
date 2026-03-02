@@ -26,7 +26,7 @@ const AboutWizardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <Helmet>
-        <title>Configurar Sección Nosotros - {shop.shop_name}</title>
+        <title>{`Configurar Sección Nosotros - ${shop.shopName}`}</title>
         <meta name="description" content="Crea la historia de tu marca con asistencia de IA" />
       </Helmet>
 

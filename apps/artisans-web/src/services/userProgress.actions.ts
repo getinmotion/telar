@@ -26,7 +26,7 @@ export const getUserProgressByUserId = async (
 ): Promise<UserProgress | null> => {
   try {
     const response = await telarApi.get<UserProgress>(
-      `/telar/server/user-progress/user/${userId}`
+      `/user-progress/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
@@ -35,7 +35,6 @@ export const getUserProgressByUserId = async (
       return null;
     }
 
-    console.error('[UserProgress] Error al obtener progreso:', error);
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
@@ -55,7 +54,6 @@ export const hasUserProgress = async (userId: string): Promise<boolean> => {
     const progress = await getUserProgressByUserId(userId);
     return progress !== null;
   } catch (error) {
-    console.error('[UserProgress] Error al verificar existencia:', error);
     return false;
   }
 };
@@ -70,12 +68,11 @@ export const createUserProgress = async (
 ): Promise<UserProgress> => {
   try {
     const response = await telarApi.post<GetUserProgressSuccessResponse>(
-      `/telar/server/user-progress`,
+      `/user-progress`,
       payload
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al crear progreso:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }
@@ -95,12 +92,11 @@ export const updateUserProgressById = async (
 ): Promise<UserProgress> => {
   try {
     const response = await telarApi.patch<GetUserProgressSuccessResponse>(
-      `/telar/server/user-progress/${progressId}`,
+      `/user-progress/${progressId}`,
       payload
     );
     return response.data.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso por ID:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }
@@ -130,7 +126,6 @@ export const updateUserProgress = async (
     // PASO 2: Usar la función optimizada con el ID
     return updateUserProgressById(currentProgress.id, payload);
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso:', error);
 
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
@@ -175,12 +170,11 @@ export const updateUserProgressWithRewards = async (
 ): Promise<UpdateUserProgressSuccessResponse> => {
   try {
     const response = await telarApi.post<UpdateUserProgressSuccessResponse>(
-      `/telar/server/user-progress/update`,
+      `/user-progress/update`,
       payload
     );
     return response.data;
   } catch (error: any) {
-    console.error('[UserProgress] Error al actualizar progreso con recompensas:', error);
     if (error.response?.data) {
       throw error.response.data as UserProgressErrorResponse;
     }
