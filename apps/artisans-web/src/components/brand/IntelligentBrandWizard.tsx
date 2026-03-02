@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client'; // solo para Storage
+import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { extractColors, generateColorPalette, generateClaim, diagnoseBrandIdentity } from '@/services/brandAiAssistant.actions';
 import { createAgentTasksBulk } from '@/services/agentTasks.actions';
@@ -176,13 +177,12 @@ export const IntelligentBrandWizard: React.FC = () => {
       // Optimize logo before upload
       const optimizedFile = await optimizeImage(logoFile, ImageOptimizePresets.logo);
 
-      // 1. Subir a Supabase Storage
-      const fileName = `${user.id}/logo_${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-      const { error: uploadError } = await supabase.storage
-        .from('brand-assets')
-        .upload(fileName, optimizedFile, { upsert: true });
-
-      if (uploadError) {
+      // 1. Subir a S3
+      let publicUrl: string;
+      try {
+        const uploadResult = await uploadImage(optimizedFile, UploadFolder.BRANDS);
+        publicUrl = uploadResult.url;
+      } catch {
         toast({
           title: 'Error',
           description: 'No se pudo subir el logo. Intenta de nuevo.',
@@ -191,10 +191,6 @@ export const IntelligentBrandWizard: React.FC = () => {
         setStep('upload-logo');
         return;
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('brand-assets')
-        .getPublicUrl(fileName);
 
       setLogoUrl(publicUrl);
 

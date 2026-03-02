@@ -37,7 +37,7 @@ export const ShopPage: React.FC = () => {
   const navigate = useNavigate();
   const { getCategoryBySlug } = useCategories();
   const { addToCart } = useCart();
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CategoryFilters>({
@@ -48,17 +48,11 @@ export const ShopPage: React.FC = () => {
   const categorySlug = searchParams.get('category');
   const selectedCategory = categorySlug ? getCategoryBySlug(categorySlug) : null;
 
-  const formatPrice = (price: number) => 
-    new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(price);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
         .from('products')
         .select('*')
@@ -142,15 +136,15 @@ export const ShopPage: React.FC = () => {
     <>
       <Helmet>
         <title>
-          {selectedCategory 
-            ? `${selectedCategory.name} - Productos Artesanales` 
+          {selectedCategory
+            ? `${selectedCategory.name} - Productos Artesanales`
             : 'Tienda de Productos Artesanales'
           }
         </title>
-        <meta 
-          name="description" 
+        <meta
+          name="description"
           content={
-            selectedCategory 
+            selectedCategory
               ? `Descubre ${selectedCategory.name.toLowerCase()} artesanales únicos. ${selectedCategory.description}`
               : 'Explora nuestra colección completa de productos artesanales colombianos hechos a mano.'
           }
@@ -159,7 +153,7 @@ export const ShopPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-subtle">
         <ModernHeader showBreadcrumbs />
-        
+
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">

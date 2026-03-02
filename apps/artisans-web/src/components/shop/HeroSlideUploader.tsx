@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
 
@@ -86,31 +87,12 @@ export const HeroSlideUploader: React.FC<HeroSlideUploaderProps> = ({
   };
 
   const uploadImageToStorage = async (file: File): Promise<string> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuario no autenticado');
-
     // Optimize image before upload
     const optimizedFile = await optimizeImage(file, ImageOptimizePresets.hero);
     console.log(`[HeroSlideUploader] Optimized: ${Math.round(file.size / 1024)}KB → ${Math.round(optimizedFile.size / 1024)}KB`);
 
-    const fileExt = optimizedFile.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-    const { data, error } = await supabase.storage
-      .from('hero-images')
-      .upload(fileName, optimizedFile, {
-        contentType: optimizedFile.type,
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (error) throw error;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('hero-images')
-      .getPublicUrl(data.path);
-
-    return publicUrl;
+    const result = await uploadImage(optimizedFile, UploadFolder.HERO);
+    return result.url;
   };
 
   const handleGenerateWithAI = async () => {
@@ -237,11 +219,10 @@ export const HeroSlideUploader: React.FC<HeroSlideUploaderProps> = ({
       {!uploadedImage ? (
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
-            isDragActive
+          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${isDragActive
               ? 'border-primary bg-primary/5'
               : 'border-muted-foreground/25 hover:border-primary/50'
-          }`}
+            }`}
         >
           <input {...getInputProps()} />
           <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />

@@ -1,11 +1,25 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  getProductsByShopId,
+  getProductById,
+  createProduct as createProductAction,
+  updateProduct as updateProductAction,
+  deleteProduct as deleteProductAction,
+} from '@/services/products.actions';
+import {
+  getVariantsByProductId,
+  getLowStockVariants,
+  createVariant as createVariantAction,
+  updateVariant as updateVariantAction,
+  adjustVariantStock,
+} from '@/services/productVariants.actions';
+import { getMovementsByVariantId } from '@/services/inventoryMovements.actions';
 
 export interface MarketplaceLink {
   url: string;
   item_id?: string;
-  asin?: string; // Amazon ASIN
+  asin?: string;
   price?: number;
   stock?: number;
   sync_enabled?: boolean;
@@ -78,26 +92,15 @@ export interface InventoryMovement {
 export function useInventory() {
   const [loading, setLoading] = useState(false);
 
-  // ============= PRODUCTS =============
-  
-  const fetchProducts = async (shopId?: string) => {
+  // ============= PRODUCTS (NestJS) =============
+
+  const fetchProducts = async (shopId?: string): Promise<Product[]> => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (shopId) {
-        query = query.eq('shop_id', shopId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data as Product[];
-    } catch (error: any) {
-      console.error('Error fetching products:', error);
+      if (!shopId) return [];
+      const data = await getProductsByShopId(shopId);
+      return data as unknown as Product[];
+    } catch {
       toast.error('Error al cargar productos');
       return [];
     } finally {
@@ -105,307 +108,62 @@ export function useInventory() {
     }
   };
 
-  const createProduct = async (productData: any) => {
+  const createProduct = async (productData: any): Promise<Product | null> => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .insert([productData])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success('Producto creado exitosamente');
-      return data as Product;
-    } catch (error: any) {
-      console.error('Error creating product:', error);
-      toast.error('Error al crear producto');
+      const data = await createProductAction(productData);
+      return data as unknown as Product;
+    } catch {
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProduct = async (productId: string, updates: Partial<Product>) => {
+  const updateProduct = async (
+    productId: string,
+    updates: Partial<Product>
+  ): Promise<Product | null> => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .update(updates as any)
-        .eq('id', productId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success('Producto actualizado');
-      return data as Product;
-    } catch (error: any) {
-      console.error('Error updating product:', error);
-      toast.error('Error al actualizar producto');
+      const data = await updateProductAction(productId, updates as any);
+      return data as unknown as Product;
+    } catch {
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteProduct = async (productId: string) => {
+  const deleteProduct = async (productId: string): Promise<boolean> => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-      
-      if (error) throw error;
-      
-      toast.success('Producto eliminado');
+      await deleteProductAction(productId);
       return true;
-    } catch (error: any) {
-      console.error('Error deleting product:', error);
-      toast.error('Error al eliminar producto');
+    } catch {
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // ============= VARIANTS =============
-  
-  const fetchVariants = async (productId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('product_variants')
-        .select('*')
-        .eq('product_id', productId)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as ProductVariant[];
-    } catch (error: any) {
-      console.error('Error fetching variants:', error);
-      return [];
-    }
-  };
-
-  const createVariant = async (variantData: any) => {
-    try {
-      const { data, error } = await supabase
-        .from('product_variants')
-        .insert([variantData])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success('Variante creada');
-      return data as ProductVariant;
-    } catch (error: any) {
-      console.error('Error creating variant:', error);
-      toast.error('Error al crear variante');
-      return null;
-    }
-  };
-
-  const updateVariant = async (variantId: string, updates: Partial<ProductVariant>) => {
-    try {
-      const { data, error } = await supabase
-        .from('product_variants')
-        .update(updates)
-        .eq('id', variantId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success('Variante actualizada');
-      return data as ProductVariant;
-    } catch (error: any) {
-      console.error('Error updating variant:', error);
-      toast.error('Error al actualizar variante');
-      return null;
-    }
-  };
-
-  // ============= STOCK MOVEMENTS =============
-  
-  const adjustStock = async (
-    variantId: string, 
-    qty: number, 
-    type: 'IN' | 'OUT' | 'ADJUST',
-    reason?: string
-  ) => {
-    try {
-      setLoading(true);
-      
-      // Create movement record
-      const { error: movementError } = await supabase
-        .from('inventory_movements')
-        .insert({
-          product_variant_id: variantId,
-          type,
-          qty,
-          reason
-        });
-      
-      if (movementError) throw movementError;
-      
-      // Update variant stock
-      const { data: variant, error: fetchError } = await supabase
-        .from('product_variants')
-        .select('stock')
-        .eq('id', variantId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      const newStock = type === 'OUT' 
-        ? variant.stock - qty 
-        : type === 'IN' 
-        ? variant.stock + qty 
-        : qty;
-      
-      const { error: updateError } = await supabase
-        .from('product_variants')
-        .update({ stock: newStock })
-        .eq('id', variantId);
-      
-      if (updateError) throw updateError;
-      
-      toast.success('Stock actualizado');
-      return true;
-    } catch (error: any) {
-      console.error('Error adjusting stock:', error);
-      toast.error('Error al ajustar stock');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMovements = async (variantId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('inventory_movements')
-        .select('*')
-        .eq('product_variant_id', variantId)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      return data as InventoryMovement[];
-    } catch (error: any) {
-      console.error('Error fetching movements:', error);
-      return [];
-    }
-  };
-
-  // ============= MATERIALS =============
-  
-  const fetchMaterials = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('materials')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data as Material[];
-    } catch (error: any) {
-      console.error('Error fetching materials:', error);
-      return [];
-    }
-  };
-
-  const createMaterial = async (materialData: any) => {
-    try {
-      const { data, error } = await supabase
-        .from('materials')
-        .insert([materialData])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      toast.success('Material creado');
-      return data as Material;
-    } catch (error: any) {
-      console.error('Error creating material:', error);
-      toast.error('Error al crear material');
-      return null;
-    }
-  };
-
-  // ============= LOW STOCK ALERTS =============
-  
-  const fetchLowStockVariants = async (shopId?: string) => {
-    try {
-      // Fetch all variants and filter in JS since we can't use dynamic column comparison
-      let query = supabase
-        .from('product_variants')
-        .select(`
-          *,
-          products!inner(shop_id, name, active)
-        `)
-        .eq('status', 'active');
-      
-      if (shopId) {
-        query = query.eq('products.shop_id', shopId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      // Filter where stock <= min_stock
-      const lowStock = (data || []).filter(v => v.stock <= v.min_stock);
-      return lowStock;
-    } catch (error: any) {
-      console.error('Error fetching low stock:', error);
-      return [];
-    }
-  };
-
-  // ============= DIRECT PRODUCT STOCK ADJUSTMENT =============
-  
   const adjustProductStock = async (
     productId: string,
     change: number,
-    channel: string,
-    notes?: string
-  ) => {
+    _channel: string,
+    _notes?: string
+  ): Promise<boolean> => {
     try {
       setLoading(true);
-      
-      // Get current product
-      const { data: product, error: fetchError } = await supabase
-        .from('products')
-        .select('inventory')
-        .eq('id', productId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
+      const product = await getProductById(productId);
+      if (!product) throw new Error('Producto no encontrado');
+
       const currentInventory = product.inventory ?? 0;
       const newInventory = Math.max(0, currentInventory + change);
-      
-      // Update product inventory
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({ inventory: newInventory })
-        .eq('id', productId);
-      
-      if (updateError) throw updateError;
-      
-      // Create movement record (storing in inventory_movements for history)
-      // Note: This requires a variant_id but we're tracking at product level
-      // In a real scenario, you might want a separate table for product-level movements
-      
-      toast.success(change > 0 ? 'Stock agregado' : 'Stock reducido');
+
+      await updateProductAction(productId, { inventory: newInventory } as any);
       return true;
-    } catch (error: any) {
-      console.error('Error adjusting product stock:', error);
+    } catch {
       toast.error('Error al ajustar stock');
       return false;
     } finally {
@@ -416,71 +174,44 @@ export function useInventory() {
   const duplicateProduct = async (productId: string): Promise<Product | null> => {
     try {
       setLoading(true);
-      
-      // Fetch the original product with all fields
-      const { data: original, error: fetchError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-      
-      if (fetchError || !original) {
-        throw fetchError || new Error('Producto no encontrado');
-      }
-      
-      // Generate new SKU
+      const original = await getProductById(productId);
+      if (!original) throw new Error('Producto no encontrado');
+
       const timestamp = Date.now().toString(36);
-      const newSku = original.sku 
+      const newSku = original.sku
         ? `${original.sku}-copy-${timestamp}`
         : `copy-${timestamp}`;
-      
-      // Create duplicate with modified fields
+
       const duplicateData = {
         shop_id: original.shop_id,
         name: `${original.name} (Copia)`,
         description: original.description,
-        short_description: original.short_description,
+        short_description: (original as any).short_description,
         category: original.category,
-        subcategory: original.subcategory,
-        category_id: original.category_id,
+        subcategory: (original as any).subcategory,
         price: original.price,
-        compare_price: original.compare_price,
+        compare_price: (original as any).compare_price,
         images: original.images,
-        tags: original.tags,
-        materials: original.materials,
-        techniques: original.techniques,
-        weight: original.weight,
-        dimensions: original.dimensions,
-        production_time: original.production_time,
-        production_time_hours: original.production_time_hours,
-        customizable: original.customizable,
-        made_to_order: original.made_to_order,
-        lead_time_days: original.lead_time_days,
-        requires_customization: original.requires_customization,
-        seo_data: original.seo_data,
-        // Reset fields for new product
+        tags: (original as any).tags,
+        materials: (original as any).materials,
+        techniques: (original as any).techniques,
+        weight: (original as any).weight,
+        dimensions: (original as any).dimensions,
+        production_time: (original as any).production_time,
+        customizable: (original as any).customizable,
+        seo_data: (original as any).seo_data,
         sku: newSku,
         inventory: 0,
         active: false,
         featured: false,
         moderation_status: 'draft',
-        marketplace_links: null,
         shipping_data_complete: false,
         ready_for_checkout: false,
       };
-      
-      const { data: newProduct, error: insertError } = await supabase
-        .from('products')
-        .insert([duplicateData])
-        .select()
-        .single();
-      
-      if (insertError) throw insertError;
-      
-      toast.success('Producto duplicado como borrador');
-      return newProduct as Product;
-    } catch (error: any) {
-      console.error('Error duplicating product:', error);
+
+      const newProduct = await createProductAction(duplicateData);
+      return newProduct as unknown as Product;
+    } catch {
       toast.error('Error al duplicar producto');
       return null;
     } finally {
@@ -488,25 +219,106 @@ export function useInventory() {
     }
   };
 
+  // ============= VARIANTS (NestJS) =============
+
+  const fetchVariants = async (productId: string): Promise<ProductVariant[]> => {
+    try {
+      const data = await getVariantsByProductId(productId);
+      return data as unknown as ProductVariant[];
+    } catch {
+      return [];
+    }
+  };
+
+  const createVariant = async (variantData: any): Promise<ProductVariant | null> => {
+    try {
+      const data = await createVariantAction(variantData);
+      return data as unknown as ProductVariant;
+    } catch {
+      return null;
+    }
+  };
+
+  const updateVariant = async (
+    variantId: string,
+    updates: Partial<ProductVariant>
+  ): Promise<ProductVariant | null> => {
+    try {
+      const data = await updateVariantAction(variantId, updates as any);
+      return data as unknown as ProductVariant;
+    } catch {
+      return null;
+    }
+  };
+
+  // ============= STOCK DE VARIANTES (NestJS) =============
+  // Mapeo: IN → add | OUT → subtract | ADJUST → set
+
+  const adjustStock = async (
+    variantId: string,
+    qty: number,
+    type: 'IN' | 'OUT' | 'ADJUST',
+    _reason?: string
+  ): Promise<boolean> => {
+    const operationMap: Record<string, 'add' | 'subtract' | 'set'> = {
+      IN: 'add',
+      OUT: 'subtract',
+      ADJUST: 'set',
+    };
+    try {
+      setLoading(true);
+      await adjustVariantStock(variantId, qty, operationMap[type]);
+      return true;
+    } catch {
+      toast.error('Error al ajustar stock');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMovements = async (variantId: string): Promise<InventoryMovement[]> => {
+    try {
+      const data = await getMovementsByVariantId(variantId);
+      return data as unknown as InventoryMovement[];
+    } catch {
+      return [];
+    }
+  };
+
+  const fetchLowStockVariants = async (shopId?: string) => {
+    try {
+      const variants = await getLowStockVariants();
+
+      if (!shopId) return variants;
+
+      // Filtrar por tienda: obtenemos los productos del shop y cruzamos
+      const shopProducts = await getProductsByShopId(shopId);
+      const shopProductIds = new Set(shopProducts.map((p) => p.id));
+      return variants.filter((v) => shopProductIds.has(v.product_id));
+    } catch {
+      return [];
+    }
+  };
+
+  // ============= MATERIALS (TODO: pendiente de resource NestJS) =============
+
   return {
     loading,
-    // Products
+    // Products (NestJS)
     fetchProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     duplicateProduct,
-    // Variants
+    adjustProductStock,
+    // Variants (NestJS)
     fetchVariants,
     createVariant,
     updateVariant,
-    // Stock
+    // Stock (NestJS)
     adjustStock,
-    adjustProductStock,
     fetchMovements,
     fetchLowStockVariants,
-    // Materials
-    fetchMaterials,
-    createMaterial
   };
 }

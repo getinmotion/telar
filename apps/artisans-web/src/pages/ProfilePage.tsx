@@ -38,7 +38,7 @@ const ProfilePage: React.FC = () => {
   const { shop, loading: shopLoading } = useArtisanShop();
   const { preferences, loading: prefsLoading, saving: prefsSaving, updateCategory } = useEmailPreferences();
   const { masterState } = useMasterAgent();
-  
+
   const [activeSection, setActiveSection] = useState<ProfileSection>('personal');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [hasBankData, setHasBankData] = useState(false);
@@ -57,10 +57,10 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const checkBankData = async () => {
       if (!user?.id) return;
-      
+
       try {
         const data = await getArtisanShopByUserId(user.id);
-        
+
         if (data?.idContraparty) {
           setHasBankData(true);
           setBankStatus('complete');
@@ -69,7 +69,7 @@ const ProfilePage: React.FC = () => {
         console.error('Error checking bank data:', error);
       }
     };
-    
+
     checkBankData();
   }, [user?.id]);
 
@@ -156,9 +156,9 @@ const ProfilePage: React.FC = () => {
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-4">
           <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => navigate('/dashboard')}
               className="gap-1 sm:gap-2 px-2 sm:px-3"
             >
@@ -166,11 +166,11 @@ const ProfilePage: React.FC = () => {
               <span className="hidden sm:inline">Volver al Dashboard</span>
               <span className="sm:hidden">Volver</span>
             </Button>
-            
+
             {/* Mobile logout button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowLogoutDialog(true)}
               className="lg:hidden text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
             >
@@ -185,8 +185,8 @@ const ProfilePage: React.FC = () => {
         <div className="mb-4 sm:mb-6">
           <ProfileHeaderCompact
             fullName={profile?.fullName || ''}
-            brandName={profile?.brandName || shop?.shop_name}
-            avatarUrl={profile?.avatarUrl || shop?.logo_url}
+            brandName={profile?.brandName || shop?.shopName}
+            avatarUrl={profile?.avatarUrl || shop?.logoUrl}
             maturityLevel={maturityLevel}
             isVerified={!!profile?.rut && !profile?.rutPendiente}
             email={user?.email}

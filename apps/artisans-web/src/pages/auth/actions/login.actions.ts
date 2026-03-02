@@ -1,11 +1,12 @@
 import { telarApi } from "@/integrations/api/telarApi";
-import { 
-  LoginPayload, 
-  LoginSuccessResponse,
-  GetProfileSuccessResponse,
-  RefreshTokenSuccessResponse
+import {
+    LoginPayload,
+    LoginSuccessResponse,
+    GetProfileSuccessResponse,
+    RefreshTokenSuccessResponse
 } from "../types/login.types";
 import { useAuthStore } from "@/stores/authStore";
+import { toastError } from "@/utils/toast.utils";
 
 /**
  * Iniciar sesión en el backend NestJS
@@ -20,7 +21,7 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
             '/auth/login',
             loginPayload
         );
-        
+
         // ✅ Guardar toda la información en el store de Zustand
         useAuthStore.getState().setAuthData({
             user: response.data.user,
@@ -29,13 +30,13 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
             userMaturityActions: response.data.userMaturityActions,
             access_token: response.data.access_token
         });
-        
+
         // ✅ Notificar al AuthProvider que se completó el login
         window.dispatchEvent(new Event('auth:login'));
-        
+
         return response.data;
     } catch (error) {
-        console.error('❌ Error al iniciar sesión:', error);
+        toastError(error);
         throw error;
     }
 }
@@ -51,10 +52,9 @@ export const getCurrentUser = async (): Promise<GetProfileSuccessResponse> => {
         const response = await telarApi.get<GetProfileSuccessResponse>(
             '/auth/profile'
         );
-        
+
         return response.data;
     } catch (error) {
-        console.error('❌ Error al obtener perfil del usuario:', error);
         throw error;
     }
 }
@@ -70,16 +70,14 @@ export const refreshToken = async (): Promise<RefreshTokenSuccessResponse> => {
         const response = await telarApi.post<RefreshTokenSuccessResponse>(
             '/auth/refresh'
         );
-        
+
         // Actualizar el token en localStorage
         if (response.data.access_token) {
             localStorage.setItem('telar_token', response.data.access_token);
         }
-        
+
         return response.data;
     } catch (error) {
-        console.error('❌ Error al refrescar token:', error);
-        // Si falla el refresh, limpiar el token inválido
         localStorage.removeItem('telar_token');
         localStorage.removeItem('telar_user');
         throw error;
