@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { WizardState } from '../hooks/useWizardState';
 import { supabase } from '@/integrations/supabase/client';
+import { deleteUploadedFile } from '@/services/fileUpload.actions';
 import { toast } from 'sonner';
 import { EventBus } from '@/utils/eventBus';
 import { useGamificationRewards } from '@/hooks/useGamificationRewards';
@@ -43,17 +44,17 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
   // Check if shipping data is complete
   const hasCompleteShippingData = !!(
-    wizardState.weight && 
-    wizardState.weight > 0 && 
-    wizardState.dimensions?.length && 
-    wizardState.dimensions?.width && 
+    wizardState.weight &&
+    wizardState.weight > 0 &&
+    wizardState.dimensions?.length &&
+    wizardState.dimensions?.width &&
     wizardState.dimensions?.height
   );
 
   // Comprehensive validation before publishing
   const validateForPublishing = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    
+
     console.log('🔍 VALIDACIÓN PRE-PUBLICACIÓN...');
     console.log('📋 Estado del wizard:', {
       imagesCount: wizardState.images.length,
@@ -66,19 +67,19 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
     if (!wizardState.images || wizardState.images.length === 0) {
       errors.push('Debes subir al menos una imagen');
     }
-    
+
     if (!wizardState.name?.trim()) {
       errors.push('El nombre del producto es obligatorio');
     }
-    
+
     if (!wizardState.description?.trim()) {
       errors.push('La descripción del producto es obligatoria');
     }
-    
+
     if (!wizardState.price || wizardState.price <= 0) {
       errors.push('Debes establecer un precio válido');
     }
-    
+
     if (!wizardState.category?.trim()) {
       errors.push('Debes seleccionar una categoría');
     }
@@ -101,11 +102,11 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         return result;
       } catch (error) {
         console.log(`❌ Intento ${attempt} falló:`, error);
-        
+
         if (attempt === maxRetries) {
           throw error;
         }
-        
+
         const delay = delayMs * Math.pow(2, attempt - 1); // Exponential backoff
         console.log(`⏰ Esperando ${delay}ms antes del próximo intento...`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -116,7 +117,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
   const handlePublish = async () => {
     console.log('🚀 INICIANDO PROCESO DE PUBLICACIÓN ROBUSTO...');
-    
+
     // Validación inicial
     const validation = validateForPublishing();
     if (!validation.isValid) {
@@ -126,7 +127,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       });
       return;
     }
-    
+
     setIsPublishing(true);
     let uploadedImageUrls: string[] = [];
 
@@ -134,17 +135,17 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       // PASO 1: Verificar autenticación con detalles completos
       console.log('🔐 VERIFICANDO AUTENTICACIÓN...');
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) {
         console.error('❌ ERROR DE AUTENTICACIÓN:', authError);
         throw new Error(`Error de autenticación: ${authError.message}`);
       }
-      
+
       if (!user) {
         console.error('❌ USUARIO NO AUTENTICADO');
         throw new Error('Usuario no autenticado. Por favor, inicia sesión.');
       }
-      
+
       console.log('✅ USUARIO AUTENTICADO:', {
         id: user.id,
         email: user.email,
@@ -159,10 +160,10 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('🏪 RESULTADO CONSULTA TIENDA:', { 
-        shopData, 
+      console.log('🏪 RESULTADO CONSULTA TIENDA:', {
+        shopData,
         shopError,
-        userId: user.id 
+        userId: user.id
       });
 
       if (shopError) {
@@ -190,17 +191,17 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
       // PASO 3: Validar y subir imágenes
       console.log('📸 PROCESANDO IMÁGENES...');
-      
+
       if (wizardState.images && wizardState.images.length > 0) {
         console.log(`📤 SUBIENDO ${wizardState.images.length} IMÁGENES...`);
-        toast.info('Subiendo imágenes...', { 
-          description: `Procesando ${wizardState.images.length} imagen(es)` 
+        toast.info('Subiendo imágenes...', {
+          description: `Procesando ${wizardState.images.length} imagen(es)`
         });
-        
+
         try {
           uploadedImageUrls = await uploadImages(wizardState.images);
           console.log('✅ IMÁGENES SUBIDAS EXITOSAMENTE:', uploadedImageUrls);
-          
+
           if (uploadedImageUrls.length === 0) {
             throw new Error('No se pudieron generar URLs válidas para las imágenes');
           }
@@ -248,14 +249,14 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
       // PASO 5: Insertar producto con manejo de errores RLS específico
       console.log('💾 INSERTANDO PRODUCTO EN BASE DE DATOS...');
-      toast.info('Creando producto...', { 
-        description: 'Guardando en la base de datos' 
+      toast.info('Creando producto...', {
+        description: 'Guardando en la base de datos'
       });
 
       // Llamar a la Edge Function para categorización automática y creación
       console.log('🤖 Llamando a edge function para categorización automática...');
-      toast.info('Categorizando producto con IA...', { 
-        description: 'Analizando materiales, técnicas y categoría' 
+      toast.info('Categorizando producto con IA...', {
+        description: 'Analizando materiales, técnicas y categoría'
       });
 
       const { data: functionData, error: productError } = await supabase.functions.invoke('categorize-product', {
@@ -294,10 +295,10 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         });
       }
 
-      console.log('📦 RESULTADO INSERCIÓN:', { 
-        createdProduct, 
+      console.log('📦 RESULTADO INSERCIÓN:', {
+        createdProduct,
         productError,
-        insertData: productData 
+        insertData: productData
       });
 
       if (productError) {
@@ -307,23 +308,23 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
           hint: productError.hint,
           code: productError.code
         });
-        
+
         // Manejo específico de errores RLS
-        if (productError.message?.includes('row-level security') || 
-            productError.code === '42501' || 
-            productError.message?.includes('policy')) {
+        if (productError.message?.includes('row-level security') ||
+          productError.code === '42501' ||
+          productError.message?.includes('policy')) {
           throw new Error('Error de permisos: No tienes autorización para crear productos en esta tienda');
         }
-        
+
         // Otros errores específicos
         if (productError.code === '23503') {
           throw new Error('Error de referencia: La tienda especificada no existe');
         }
-        
+
         if (productError.code === '23505') {
           throw new Error('Error de duplicado: Ya existe un producto con esos datos');
         }
-        
+
         throw new Error(`Error creando producto: ${productError.message}`);
       }
 
@@ -334,8 +335,8 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       // PASO 6: Insertar variantes si existen
       if (wizardState.hasVariants && wizardState.variants && wizardState.variants.length > 0) {
         console.log('🎨 INSERTANDO VARIANTES...');
-        toast.info('Guardando variantes...', { 
-          description: `Creando ${wizardState.variants.length} variante(s)` 
+        toast.info('Guardando variantes...', {
+          description: `Creando ${wizardState.variants.length} variante(s)`
         });
 
         const variantsToInsert = wizardState.variants.map((variant, index) => ({
@@ -364,11 +365,11 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
       // PASO 7: Verificar inserción con reintentos y timeout
       console.log('🔍 VERIFICANDO INSERCIÓN DEL PRODUCTO...');
-      
+
       let verifyAttempts = 0;
       const maxVerifyAttempts = 5;
       let verificationSuccessful = false;
-      
+
       while (verifyAttempts < maxVerifyAttempts && !verificationSuccessful) {
         try {
           const { data: verifyProduct, error: verifyError } = await supabase
@@ -376,7 +377,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
             .select('id, name, shop_id, active, created_at')
             .eq('id', createdProduct.id)
             .single();
-          
+
           if (!verifyError && verifyProduct) {
             console.log('✅ PRODUCTO VERIFICADO EXITOSAMENTE:', {
               id: verifyProduct.id,
@@ -387,10 +388,10 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
             verificationSuccessful = true;
             break;
           }
-          
+
           verifyAttempts++;
           console.log(`⏳ Intento de verificación ${verifyAttempts}/${maxVerifyAttempts}...`);
-          
+
           if (verifyAttempts < maxVerifyAttempts) {
             await new Promise(resolve => setTimeout(resolve, 1500));
           }
@@ -399,7 +400,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
           verifyAttempts++;
         }
       }
-      
+
       if (!verificationSuccessful) {
         console.error('❌ NO SE PUDO VERIFICAR LA INSERCIÓN DEL PRODUCTO');
         throw new Error('El producto se creó pero no se puede verificar en la base de datos. Revisa tu tienda manualmente.');
@@ -436,12 +437,12 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       const productCount = (existingProductsCount || 0) + 1;
 
       // PASO 9: 🎯 GAMIFICACIÓN - Otorgar XP por subir producto
-      const xpAmount = isFirstProduct 
-        ? XP_REWARDS.PRODUCT_UPLOAD + XP_REWARDS.FIRST_PRODUCT 
+      const xpAmount = isFirstProduct
+        ? XP_REWARDS.PRODUCT_UPLOAD + XP_REWARDS.FIRST_PRODUCT
         : XP_REWARDS.PRODUCT_UPLOAD;
-      
-      const xpReason = isFirstProduct 
-        ? '¡Primer Producto Subido! 🎉' 
+
+      const xpReason = isFirstProduct
+        ? '¡Primer Producto Subido! 🎉'
         : 'Producto Subido';
 
       console.log(`🎯 Awarding ${xpAmount} XP for product upload (first: ${isFirstProduct})`);
@@ -449,7 +450,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
       // PASO 10: Notify Master Coordinator
       console.log('📢 PUBLICANDO EVENTO AL MASTER COORDINATOR...');
-      EventBus.publish('inventory.updated', { 
+      EventBus.publish('inventory.updated', {
         productId: createdProduct.id,
         shopId: shopData.id,
         action: 'product_created',
@@ -458,8 +459,8 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       console.log('✅ Evento publicado al Master Coordinator');
 
       // Publicar evento de milestone para progreso
-      EventBus.publish('product.wizard.completed', { 
-        userId: user.id, 
+      EventBus.publish('product.wizard.completed', {
+        userId: user.id,
         taskId: taskId || 'inventory-first-products',
         productId: createdProduct.id,
         isFirstProduct,
@@ -507,14 +508,14 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         name: createdProduct.name,
         shop_id: createdProduct.shop_id
       });
-      
+
       setPublishedProductId(createdProduct.id);
       setPublishedProductName(productData.name);
       setShowSuccessModal(true);
-      
+
       // Clear wizard state immediately after successful publish
       onPublish();
-      
+
       toast.success('¡Producto publicado exitosamente!', {
         description: `"${productData.name}" ya está disponible en tu tienda`,
         duration: 4000
@@ -536,10 +537,10 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         console.error('[Step5Review] Error sending email notification:', emailError);
         // Don't throw - email failure shouldn't block the flow
       }
-      
+
       // PASO 12: Producto publicado - modal permanece abierto hasta que usuario decida
       console.log('🏁 PUBLICACIÓN COMPLETADA - Modal de éxito abierto');
-      
+
     } catch (error) {
       console.error('❌ ERROR CRÍTICO EN PUBLICACIÓN:', {
         error: error instanceof Error ? error.message : error,
@@ -556,24 +557,14 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       // Rollback: limpiar imágenes subidas si el producto falló
       if (uploadedImageUrls.length > 0) {
         console.log('🗑️ INICIANDO ROLLBACK DE IMÁGENES...');
-        try {
-          const imageNames = uploadedImageUrls.map(url => {
-            const parts = url.split('/');
-            return parts[parts.length - 1];
-          });
-          
-          const { error: deleteError } = await supabase.storage
-            .from('images')
-            .remove(imageNames.map(name => `products/${name}`));
-          
-          if (deleteError) {
-            console.error('❌ ERROR EN ROLLBACK:', deleteError);
-          } else {
-            console.log('✅ ROLLBACK COMPLETADO - IMÁGENES ELIMINADAS');
-          }
-        } catch (cleanupError) {
-          console.error('❌ ERROR DURANTE ROLLBACK:', cleanupError);
-        }
+        await Promise.allSettled(
+          uploadedImageUrls.map(url =>
+            deleteUploadedFile(url).catch(err =>
+              console.error('❌ ERROR EN ROLLBACK de imagen:', url, err)
+            )
+          )
+        );
+        console.log('✅ ROLLBACK COMPLETADO');
       }
 
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -593,23 +584,23 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
   // Save as draft function
   const handleSaveDraft = async () => {
     console.log('💾 GUARDANDO COMO BORRADOR...');
-    
+
     // Minimal validation for draft
     if (!wizardState.images || wizardState.images.length === 0) {
       toast.error('Debes subir al menos una imagen');
       return;
     }
-    
+
     if (!wizardState.name?.trim()) {
       toast.error('El nombre del producto es obligatorio');
       return;
     }
-    
+
     if (!wizardState.price || wizardState.price <= 0) {
       toast.error('Debes establecer un precio válido');
       return;
     }
-    
+
     setIsSavingDraft(true);
     let uploadedImageUrls: string[] = [];
 
@@ -635,7 +626,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       if (wizardState.images.length > 0) {
         toast.info('Subiendo imágenes...', { description: `Procesando ${wizardState.images.length} imagen(es)` });
         uploadedImageUrls = await uploadImages(wizardState.images);
-        
+
         if (uploadedImageUrls.length === 0) {
           throw new Error('No se pudieron subir las imágenes');
         }
@@ -681,10 +672,10 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       }
 
       console.log('✅ BORRADOR GUARDADO:', draftProduct.id);
-      
+
       // Clear wizard state after successful draft save
       onPublish();
-      
+
       toast.success('Borrador guardado', {
         description: 'Puedes completar los datos de envío desde tu inventario',
         action: {
@@ -692,29 +683,24 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
           onClick: () => navigate('/dashboard/inventory')
         }
       });
-      
+
       // Navigate to inventory
       navigate('/dashboard/inventory');
-      
+
     } catch (error) {
       console.error('❌ ERROR GUARDANDO BORRADOR:', error);
-      
+
       // Rollback images if needed
       if (uploadedImageUrls.length > 0) {
-        try {
-          const imageNames = uploadedImageUrls.map(url => {
-            const parts = url.split('/');
-            return parts[parts.length - 1];
-          });
-          
-          await supabase.storage
-            .from('images')
-            .remove(imageNames.map(name => `products/${name}`));
-        } catch (cleanupError) {
-          console.error('Error en rollback:', cleanupError);
-        }
+        await Promise.allSettled(
+          uploadedImageUrls.map(url =>
+            deleteUploadedFile(url).catch(err =>
+              console.error('Error en rollback de imagen:', url, err)
+            )
+          )
+        );
       }
-      
+
       toast.error('Error al guardar borrador', {
         description: error instanceof Error ? error.message : 'Error desconocido'
       });
@@ -744,7 +730,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
                 <Edit3 className="w-4 h-4" />
               </Button>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {wizardState.images.map((image, index) => (
                 <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
@@ -838,8 +824,8 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {wizardState.variants.map((variant) => (
-                    <div 
-                      key={variant.id} 
+                    <div
+                      key={variant.id}
                       className="p-2 bg-muted/50 rounded-lg text-sm"
                     >
                       <div className="flex flex-wrap gap-1 mb-1">
@@ -875,18 +861,17 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
                   <p className="text-sm font-medium">{progress.fileName}</p>
                   <div className="w-full bg-muted rounded-full h-2">
                     <motion.div
-                      className={`h-2 rounded-full ${
-                        progress.status === 'error' ? 'bg-destructive' :
-                        progress.status === 'completed' ? 'bg-success' :
-                        'bg-primary'
-                      }`}
+                      className={`h-2 rounded-full ${progress.status === 'error' ? 'bg-destructive' :
+                          progress.status === 'completed' ? 'bg-success' :
+                            'bg-primary'
+                        }`}
                       initial={{ width: 0 }}
                       animate={{ width: `${progress.progress}%` }}
                       transition={{ duration: 0.3 }}
                     />
                   </div>
                 </div>
-                
+
                 {progress.status === 'completed' && <Check className="w-4 h-4 text-success" />}
                 {progress.status === 'error' && <span className="text-xs text-destructive">{progress.error}</span>}
               </div>
@@ -951,7 +936,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
             </span>
           </div>
         </div>
-        
+
         {!hasCompleteShippingData && (
           <div className="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg">
             <p className="text-xs text-muted-foreground">

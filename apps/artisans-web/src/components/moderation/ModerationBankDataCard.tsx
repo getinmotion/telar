@@ -11,41 +11,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Loader2, 
-  Building2, 
-  User, 
-  CreditCard, 
-  FileText, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Loader2,
+  Building2,
+  User,
+  CreditCard,
+  FileText,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Plus,
   Save,
   X
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { BANKS_DATA } from '@/data/cobreBankData';
 import { toast } from 'sonner';
+import { getCounterparty, createCounterpartyAdmin, CounterpartyResponse } from '@/services/cobre.actions';
 
-interface CounterpartyData {
-  id: string;
-  alias?: string;
-  holder_name?: string;
-  bank_name?: string;
-  account_number?: string;
-  account_type?: string;
-  document_type?: string;
-  document_number?: string;
-  status?: string;
-  metadata?: {
-    counterparty_fullname?: string;
-    beneficiary_institution?: string;
-    account_number?: string;
-    counterparty_id_type?: string;
-    counterparty_id_number?: string;
-  };
-}
 
 interface ModerationBankDataCardProps {
   shopId: string;
@@ -78,7 +60,7 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [bankData, setBankData] = useState<CounterpartyData | null>(null);
+  const [bankData, setBankData] = useState<CounterpartyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState<BankFormData>(initialFormData);
@@ -91,29 +73,14 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
 
   const fetchCounterpartyData = async () => {
     if (!idContraparty) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        setError('No autorizado');
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase.functions.invoke(
-        'get-counterparty',
-        { body: { counterparty_id: idContraparty } }
-      );
-
-      if (fetchError) {
-        throw new Error('Error al obtener datos bancarios');
-      }
-
+      const data = await getCounterparty(idContraparty);
       setBankData(data);
-    } catch (err) {
-      console.error('Error fetching counterparty:', err);
+    } catch {
       setError('No se pudieron cargar los datos bancarios');
     } finally {
       setLoading(false);
@@ -133,31 +100,13 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
 
     setSaving(true);
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke(
-        'create-counterparty-admin',
-        { 
-          body: { 
-            shopId, 
-            bankData: formData 
-          } 
-        }
-      );
-
-      if (invokeError) {
-        throw new Error(invokeError.message || 'Error al crear datos bancarios');
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
+      await createCounterpartyAdmin(shopId, formData);
       toast.success('Datos bancarios creados exitosamente');
       setIsFormOpen(false);
       setFormData(initialFormData);
       onBankDataCreated?.();
-    } catch (err: any) {
-      console.error('Error creating bank data:', err);
-      toast.error(err.message || 'Error al crear datos bancarios');
+    } catch {
+      toast.error('Error al crear datos bancarios');
     } finally {
       setSaving(false);
     }
@@ -442,7 +391,7 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
                   {bankData.metadata?.counterparty_fullname || bankData.alias || 'N/A'}
                 </p>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Building2 className="w-3 h-3" />
@@ -452,7 +401,7 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
                   {getBankName(bankData.metadata?.beneficiary_institution || '') || 'N/A'}
                 </p>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CreditCard className="w-3 h-3" />
@@ -462,7 +411,7 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
                   {maskAccountNumber(bankData.metadata?.account_number || '')}
                 </p>
               </div>
-              
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <FileText className="w-3 h-3" />
@@ -478,7 +427,7 @@ export const ModerationBankDataCard: React.FC<ModerationBankDataCardProps> = ({
                 </p>
               </div>
             </div>
-            
+
             <div className="pt-2 border-t">
               <p className="text-xs text-muted-foreground">
                 ID Contraparty: <code className="bg-muted px-1 rounded">{idContraparty}</code>

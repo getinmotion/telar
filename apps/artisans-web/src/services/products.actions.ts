@@ -106,6 +106,20 @@ function toBackendPayload(data: Record<string, any>): Record<string, any> {
 }
 
 /**
+ * Obtener un producto por ID
+ * Endpoint: GET /products/:id
+ */
+export async function getProductById(productId: string): Promise<Product | null> {
+  try {
+    const response = await telarApi.get<BackendProductDTO>(`/products/${productId}`);
+    return mapProductFromDTO(response.data);
+  } catch (error: any) {
+    if (error.response?.status === 404) return null;
+    throw error;
+  }
+}
+
+/**
  * Obtener todos los productos de una tienda
  * Endpoint: GET /products/shop/:shopId
  */
@@ -162,6 +176,17 @@ export async function deleteProduct(productId: string): Promise<void> {
 export async function getProductsByUserId(userId: string): Promise<Product[]> {
   const response = await telarApi.get<BackendProductDTO[]>(
     `/products/user/${userId}`
+  );
+  return response.data.map(mapProductFromDTO);
+}
+
+/**
+ * Obtener productos de una tienda para el marketplace (solo aprobados)
+ * Endpoint: GET /products/marketplace/shop/:shopId
+ */
+export async function getMarketplaceProductsByShopId(shopId: string): Promise<Product[]> {
+  const response = await telarApi.get<BackendProductDTO[]>(
+    `/products/marketplace/shop/${shopId}`
   );
   return response.data.map(mapProductFromDTO);
 }

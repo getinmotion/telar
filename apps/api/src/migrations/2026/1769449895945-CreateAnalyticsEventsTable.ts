@@ -1,13 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAnalyticsEventsTable1769449895945
-  implements MigrationInterface
-{
+export class CreateAnalyticsEventsTable1769449895945 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión para UUID si no está habilitada
-    await queryRunner.query(
-      `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`,
-    );
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
     // Crear tabla analytics_events
     await queryRunner.query(`

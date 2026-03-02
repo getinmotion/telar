@@ -81,7 +81,12 @@ export class UserMasterContext extends BaseEntity {
     example: 1,
     default: 1,
   })
-  @Column({ type: 'integer', name: 'context_version', nullable: true, default: 1 })
+  @Column({
+    type: 'integer',
+    name: 'context_version',
+    nullable: true,
+    default: 1,
+  })
   contextVersion: number | null;
 
   @ApiPropertyOptional({
@@ -119,7 +124,12 @@ export class UserMasterContext extends BaseEntity {
     example: 'es',
     default: 'es',
   })
-  @Column({ type: 'text', name: 'language_preference', nullable: true, default: 'es' })
+  @Column({
+    type: 'text',
+    name: 'language_preference',
+    nullable: true,
+    default: 'es',
+  })
   languagePreference: string | null;
 
   @ApiPropertyOptional({

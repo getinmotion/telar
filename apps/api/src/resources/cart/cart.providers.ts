@@ -23,8 +23,7 @@ export const cartProviders = [
   },
   {
     provide: 'CART_ITEMS_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(CartItem),
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(CartItem),
     inject: ['DATA_SOURCE'],
   },
 ];

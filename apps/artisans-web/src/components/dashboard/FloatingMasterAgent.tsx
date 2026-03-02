@@ -112,110 +112,113 @@ export const FloatingMasterAgent: React.FC<FloatingMasterAgentProps> = ({
   };
 
   return (
-    <div className="floating-agent-container fixed bottom-6 right-6 z-[10000]">
-      {/* Floating Button - Enhanced Visibility */}
-      {!isExpanded && (
-        <div className="relative">
-          {/* Permanent pulse background */}
-          <div className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-30" />
-          
-          <Button
-            onClick={() => setIsExpanded(true)}
-            className={`relative rounded-full h-20 w-20 ${getMoodColor()} hover:scale-125 transition-all duration-300 shadow-2xl ring-4 ring-background/50 animate-float`}
-            size="icon"
-          >
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
-            
-            <MessageCircle className="h-9 w-9 text-white relative z-10" />
-            
-            {shouldShowProactive && (
-              <div className="absolute -top-1 -right-1 h-5 w-5 bg-destructive rounded-full animate-pulse ring-2 ring-background z-20" />
-            )}
-            
-            {/* Always visible indicator */}
-            <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-success rounded-full ring-2 ring-background z-20 animate-pulse" />
-          </Button>
-        </div>
-      )}
+    // <div className="floating-agent-container fixed bottom-6 right-6 z-[10000]">
+    //   {/* Floating Button - Enhanced Visibility */}
+    //   {!isExpanded && (
+    //     <div className="relative">
+    //       {/* Permanent pulse background */}
+    //       <div className="absolute inset-0 rounded-full bg-primary/40 animate-ping opacity-30" />
 
-      {/* Expanded Panel */}
-      {isExpanded && (
-        <Card className="w-80 neumorphic animate-scale-in">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className={`h-12 w-12 ${getMoodColor()} shadow-md animate-glow-pulse`}>
-                  <AvatarFallback className="text-white text-xl">
-                    🧙‍♂️
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-lg">{t.masterAgent}</CardTitle>
-                  <Badge variant="secondary" className="text-xs shadow-neumorphic-inset">
-                    {t.taskSlots.replace('{active}', activeTasksCount.toString())}
-                  </Badge>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsExpanded(false)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {/* Enhanced Contextual Message */}
-            <div className="neumorphic-inset rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-4 h-4 text-primary" />
-                <span className="font-display font-semibold text-foreground text-sm">Tu Maestro Artesano</span>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                {getContextualMessage()}
-              </p>
-            </div>
+    //       <Button
+    //         onClick={() => setIsExpanded(true)}
+    //         className={`relative rounded-full h-20 w-20 ${getMoodColor()} hover:scale-125 transition-all duration-300 shadow-2xl ring-4 ring-background/50 animate-float`}
+    //         size="icon"
+    //       >
+    //         {/* Gradient overlay */}
+    //         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center p-2 bg-muted/30 rounded">
-                <div className="text-lg font-bold text-success">{completedTasksCount}</div>
-                <div className="text-xs text-muted-foreground">Completadas</div>
-              </div>
-              <div className="text-center p-2 bg-muted/30 rounded">
-                <div className="text-lg font-bold text-primary">{activeTasksCount}</div>
-                <div className="text-xs text-muted-foreground">Activas</div>
-              </div>
-            </div>
+    //         <MessageCircle className="h-9 w-9 text-white relative z-10" />
 
-            {/* Enhanced Action Buttons */}
-            <div className="space-y-3">
-              <Button 
-                onClick={onStartChat} 
-                className="w-full btn-capsule" 
-                size="sm"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Conversar con el Maestro
-              </Button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button onClick={onViewProgress} variant="outline" size="sm">
-                  <TrendingUp className="w-4 h-4 mr-1" />
-                  Progreso
-                </Button>
-                <Button onClick={onHelp} variant="outline" size="sm">
-                  <Brain className="w-4 h-4 mr-1" />
-                  Guía
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    //         {shouldShowProactive && (
+    //           <div className="absolute -top-1 -right-1 h-5 w-5 bg-destructive rounded-full animate-pulse ring-2 ring-background z-20" />
+    //         )}
+
+    //         {/* Always visible indicator */}
+    //         <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-success rounded-full ring-2 ring-background z-20 animate-pulse" />
+    //       </Button>
+    //     </div>
+    //   )}
+
+    //   {/* Expanded Panel */}
+    //   {isExpanded && (
+    //     <Card className="w-80 neumorphic animate-scale-in">
+    //       <CardHeader className="pb-3">
+    //         <div className="flex items-center justify-between">
+    //           <div className="flex items-center gap-3">
+    //             <Avatar className={`h-12 w-12 ${getMoodColor()} shadow-md animate-glow-pulse`}>
+    //               <AvatarFallback className="text-white text-xl">
+    //                 🧙‍♂️
+    //               </AvatarFallback>
+    //             </Avatar>
+    //             <div>
+    //               <CardTitle className="text-lg">{t.masterAgent}</CardTitle>
+    //               <Badge variant="secondary" className="text-xs shadow-neumorphic-inset">
+    //                 {t.taskSlots.replace('{active}', activeTasksCount.toString())}
+    //               </Badge>
+    //             </div>
+    //           </div>
+    //           <Button
+    //             variant="ghost"
+    //             size="icon"
+    //             onClick={() => setIsExpanded(false)}
+    //             className="h-8 w-8"
+    //           >
+    //             <X className="h-4 w-4" />
+    //           </Button>
+    //         </div>
+    //       </CardHeader>
+
+    //       <CardContent className="space-y-4">
+    //         {/* Enhanced Contextual Message */}
+    //         <div className="neumorphic-inset rounded-lg p-4">
+    //           <div className="flex items-center gap-2 mb-2">
+    //             <Crown className="w-4 h-4 text-primary" />
+    //             <span className="font-display font-semibold text-foreground text-sm">Tu Maestro Artesano</span>
+    //           </div>
+    //           <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+    //             {getContextualMessage()}
+    //           </p>
+    //         </div>
+
+    //         {/* Quick Stats */}
+    //         <div className="grid grid-cols-2 gap-2">
+    //           <div className="text-center p-2 bg-muted/30 rounded">
+    //             <div className="text-lg font-bold text-success">{completedTasksCount}</div>
+    //             <div className="text-xs text-muted-foreground">Completadas</div>
+    //           </div>
+    //           <div className="text-center p-2 bg-muted/30 rounded">
+    //             <div className="text-lg font-bold text-primary">{activeTasksCount}</div>
+    //             <div className="text-xs text-muted-foreground">Activas</div>
+    //           </div>
+    //         </div>
+
+    //         {/* Enhanced Action Buttons */}
+    //         <div className="space-y-3">
+    //           <Button 
+    //             onClick={onStartChat} 
+    //             className="w-full btn-capsule" 
+    //             size="sm"
+    //           >
+    //             <MessageSquare className="w-4 h-4 mr-2" />
+    //             Conversar con el Maestro
+    //           </Button>
+    //           <div className="grid grid-cols-2 gap-2">
+    //             <Button onClick={onViewProgress} variant="outline" size="sm">
+    //               <TrendingUp className="w-4 h-4 mr-1" />
+    //               Progreso
+    //             </Button>
+    //             <Button onClick={onHelp} variant="outline" size="sm">
+    //               <Brain className="w-4 h-4 mr-1" />
+    //               Guía
+    //             </Button>
+    //           </div>
+    //         </div>
+    //       </CardContent>
+    //     </Card>
+    //   )}
+    // </div>
+    <div>
+
     </div>
   );
 };

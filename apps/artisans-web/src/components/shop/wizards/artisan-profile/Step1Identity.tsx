@@ -4,6 +4,7 @@ import { User, Camera, Video, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
+import { UploadFolder } from '@/services/fileUpload.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 
 interface Step1IdentityProps {
@@ -20,7 +21,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({ data, onChange }) 
     >
       {/* Storytelling Header */}
       <div className="text-center space-y-4">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
@@ -40,7 +41,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({ data, onChange }) 
 
       <div className="space-y-6 max-w-xl mx-auto">
         {/* Photo uploader - prominent */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -55,8 +56,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({ data, onChange }) 
             value={data.artisanPhoto ? [data.artisanPhoto] : []}
             onChange={(urls) => onChange({ artisanPhoto: urls[0] })}
             maxFiles={1}
-            bucket="artisan-profiles"
-            folder="photos"
+            uploadFolder={UploadFolder.PROFILES}
             aspectRatio="square"
             placeholder="Una foto donde se vea tu rostro claramente"
           />
@@ -67,7 +67,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({ data, onChange }) 
         </motion.div>
 
         {/* Name fields */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -104,7 +104,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({ data, onChange }) 
         </motion.div>
 
         {/* Video optional */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}

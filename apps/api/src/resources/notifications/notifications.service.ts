@@ -40,9 +40,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException(
-        `Notificación con ID ${id} no encontrada`,
-      );
+      throw new NotFoundException(`Notificación con ID ${id} no encontrada`);
     }
 
     return notification;

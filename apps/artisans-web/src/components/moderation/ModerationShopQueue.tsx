@@ -79,41 +79,40 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
         <div className="space-y-2 p-2">
           {shops.map((shop) => {
             const isSelected = selectedShopId === shop.id;
-            const isApproved = shop.marketplace_approved === true;
+            const isApproved = shop.marketplaceApproved === true;
             const isChecked = selectedShops.includes(shop.id);
-            
+
             return (
               <Card
                 key={shop.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  isSelected ? 'ring-2 ring-primary shadow-lg' : ''
-                } ${isChecked ? 'bg-primary/5 border-primary/30' : ''}`}
+                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary shadow-lg' : ''
+                  } ${isChecked ? 'bg-primary/5 border-primary/30' : ''}`}
                 onClick={() => onSelectShop(shop)}
               >
                 <CardContent className="p-3">
                   <div className="flex gap-3">
                     {/* Checkbox for selection mode */}
                     {selectionMode && onToggleSelection && (
-                      <div 
+                      <div
                         className="flex items-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           onToggleSelection(shop.id);
                         }}
                       >
-                        <Checkbox 
+                        <Checkbox
                           checked={isChecked}
                           onCheckedChange={() => onToggleSelection(shop.id)}
                         />
                       </div>
                     )}
-                    
+
                     {/* Logo */}
                     <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                      {shop.logo_url ? (
+                      {shop.logoUrl ? (
                         <img
-                          src={shop.logo_url}
-                          alt={shop.shop_name}
+                          src={shop.logoUrl}
+                          alt={shop.shopName}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -127,7 +126,7 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h4 className="font-medium text-sm truncate">
-                          {shop.shop_name}
+                          {shop.shopName}
                         </h4>
                         {isApproved ? (
                           <Badge variant="default" className="shrink-0 text-xs">
@@ -148,16 +147,16 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
                             📍 {shop.region}
                           </span>
                         )}
-                        {shop.craft_type && (
+                        {shop.craftType && (
                           <span className="flex items-center gap-1">
-                            🎨 {shop.craft_type}
+                            🎨 {shop.craftType}
                           </span>
                         )}
                       </div>
 
                       {/* Bank Data Badge */}
                       <div className="flex items-center gap-2 mt-2">
-                        {shop.has_bank_data ? (
+                        {shop.hasBankData ? (
                           <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
                             <CreditCard className="w-3 h-3 mr-1" />
                             Datos bancarios ✓
@@ -170,18 +169,18 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
                         )}
                       </div>
 
-                      {shop.product_counts && (
+                      {shop.productCounts && (
                         <div className="flex items-center gap-3 mt-2 text-xs">
                           <span className="flex items-center gap-1">
                             <Package className="w-3 h-3" />
-                            {shop.product_counts.total} productos
+                            {shop.productCounts.total} productos
                           </span>
                           <span className="text-success">
-                            ✓ {shop.product_counts.approved} aprobados
+                            ✓ {shop.productCounts.approved} aprobados
                           </span>
-                          {shop.product_counts.pending > 0 && (
+                          {shop.productCounts.pending > 0 && (
                             <span className="text-warning">
-                              ⏳ {shop.product_counts.pending} pendientes
+                              ⏳ {shop.productCounts.pending} pendientes
                             </span>
                           )}
                         </div>

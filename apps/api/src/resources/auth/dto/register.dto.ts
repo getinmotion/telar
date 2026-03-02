@@ -61,7 +61,9 @@ export class RegisterDto {
     description: 'Confirmación de la contraseña',
     example: 'Password123!',
   })
-  @IsString({ message: 'La confirmación de contraseña debe ser una cadena de texto' })
+  @IsString({
+    message: 'La confirmación de contraseña debe ser una cadena de texto',
+  })
   @IsNotEmpty({ message: 'La confirmación de contraseña es obligatoria' })
   passwordConfirmation: string;
 

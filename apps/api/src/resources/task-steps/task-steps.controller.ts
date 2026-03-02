@@ -75,7 +75,8 @@ export class TaskStepsController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Obtener pasos por tarea',
-    description: 'Obtiene todos los pasos de una tarea específica ordenados por stepNumber',
+    description:
+      'Obtiene todos los pasos de una tarea específica ordenados por stepNumber',
   })
   @ApiParam({
     name: 'taskId',

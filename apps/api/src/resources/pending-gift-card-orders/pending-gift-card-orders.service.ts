@@ -78,9 +78,7 @@ export class PendingGiftCardOrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException(
-        `Orden pendiente con ID ${id} no encontrada`,
-      );
+      throw new NotFoundException(`Orden pendiente con ID ${id} no encontrada`);
     }
 
     return order;

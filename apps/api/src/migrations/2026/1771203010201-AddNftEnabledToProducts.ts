@@ -8,9 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Default: false
  * NOT NULL
  */
-export class AddNftEnabledToProducts1771203010201
-  implements MigrationInterface
-{
+export class AddNftEnabledToProducts1771203010201 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE shop.products

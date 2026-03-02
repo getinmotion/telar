@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateEmailVerificationsTable1768422393326
-  implements MigrationInterface
-{
+export class CreateEmailVerificationsTable1768422393326 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Crear tabla email_verifications en el schema public
     await queryRunner.query(`

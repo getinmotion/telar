@@ -27,9 +27,7 @@ export class UserProfilesService {
     });
 
     if (existingProfile) {
-      throw new ConflictException(
-        'Ya existe un perfil para este usuario',
-      );
+      throw new ConflictException('Ya existe un perfil para este usuario');
     }
 
     const newProfile = this.userProfilesRepository.create(createDto);
@@ -145,4 +143,3 @@ export class UserProfilesService {
     });
   }
 }
-

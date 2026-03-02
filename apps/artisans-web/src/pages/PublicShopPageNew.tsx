@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
+import { getProductsByShopId, getMarketplaceProductsByShopId } from '@/services/products.actions';
 import { ShopThemeProvider } from '@/contexts/ShopThemeContext';
 import { ShopNavbar } from '@/components/shop/ShopNavbar';
 import { ShopFooter } from '@/components/shop/ShopFooter';
 import { ShoppingCartProvider } from '@/contexts/ShoppingCartContext';
 import { Button } from '@/components/ui/button';
 import { Eye, ArrowLeft } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
 
 // Bruvi-style components
 import { PromoBanner } from '@/components/shop/bruvi/PromoBanner';
@@ -24,70 +24,36 @@ import { ImpactSection } from '@/components/shop/bruvi/ImpactSection';
 export default function PublicShopPageNew() {
   const { shopSlug } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser, loading: authLoading } = useAuth();
   const [shop, setShop] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  
-  const [authLoaded, setAuthLoaded] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const authLoadedRef = useRef(false);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const isPreviewRequest = urlParams.get('preview') === 'true';
+  const isPreviewRequest = new URLSearchParams(window.location.search).get('preview') === 'true';
+
+  // Para modo preview esperamos que auth resuelva; en vista pública cargamos de inmediato
+  const authLoaded = !isPreviewRequest || !authLoading;
 
   useEffect(() => {
-    if (!isPreviewRequest) {
-      setAuthLoaded(true);
-      return;
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'INITIAL_SESSION') {
-          authLoadedRef.current = true;
-          setCurrentUser(session?.user || null);
-          setAuthLoaded(true);
-        } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          authLoadedRef.current = true;
-          setCurrentUser(session?.user || null);
-          setAuthLoaded(true);
-        }
-      }
-    );
-
-    const timeout = setTimeout(() => {
-      if (!authLoadedRef.current) {
-        setAuthLoaded(true);
-      }
-    }, 1500);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authLoaded) return;
+    if (!authLoaded || !shopSlug) return;
 
     const fetchShopData = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const previewMode = urlParams.get('preview') === 'true';
-        setIsPreviewMode(previewMode);
-        
-        const shopData = await getArtisanShopBySlug(shopSlug!);
+        setIsPreviewMode(isPreviewRequest);
+
+        const shopData = await getArtisanShopBySlug(shopSlug);
 
         if (!shopData) {
           setLoading(false);
           return;
         }
 
-        const ownerCheck = currentUser && shopData.userId === currentUser.id;
+        // Solo el dueño en modo preview tiene vista completa (todos los productos)
+        const ownerCheck = isPreviewRequest && !!currentUser && shopData.userId === currentUser.id;
         setIsOwner(ownerCheck);
-        
+
         if (ownerCheck) {
           setShop(shopData);
         } else {
@@ -98,17 +64,12 @@ export default function PublicShopPageNew() {
           setShop(shopData);
         }
 
-        let productsQuery = supabase
-          .from('products')
-          .select('*')
-          .eq('shop_id', shopData.id);
+        // Dueño: todos los productos | Público: solo aprobados vía marketplace
+        const productsData = ownerCheck
+          ? await getProductsByShopId(shopData.id)
+          : await getMarketplaceProductsByShopId(shopData.id);
 
-        if (!ownerCheck) {
-          productsQuery = productsQuery.in('moderation_status', ['approved', 'approved_with_edits']);
-        }
-
-        const { data: productsData } = await productsQuery;
-        setProducts(productsData || []);
+        setProducts(productsData);
       } catch (error) {
         console.error('Error fetching shop:', error);
       } finally {
@@ -116,16 +77,14 @@ export default function PublicShopPageNew() {
       }
     };
 
-    if (shopSlug) {
-      fetchShopData();
-    }
-  }, [shopSlug, navigate, authLoaded, currentUser]);
+    fetchShopData();
+  }, [shopSlug, authLoaded, navigate]);
 
   // Calculate categories from products
   const categories = useMemo(() => {
     const categoryMap = new Map<string, number>();
     products.forEach(product => {
-      const cat = product.category || shop?.craft_type || 'artesanías';
+      const cat = product.category || shop?.craftType || 'artesanías';
       categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
     });
     return Array.from(categoryMap.entries()).map(([name, count]) => ({
@@ -133,7 +92,7 @@ export default function PublicShopPageNew() {
       icon: '✨',
       count
     }));
-  }, [products, shop?.craft_type]);
+  }, [products, shop?.craftType]);
 
   const handleProductClick = (productId: string) => {
     const previewParam = isPreviewMode ? '?preview=true' : '';
@@ -169,8 +128,8 @@ export default function PublicShopPageNew() {
 
   const theme = {
     palette: {
-      primary: { '500': shop.primary_colors?.[0] || '#142239' },
-      secondary: { '500': shop.secondary_colors?.[0] || '#ffc716' },
+      primary: { '500': shop.primaryColors?.[0] || '#142239' },
+      secondary: { '500': shop.secondaryColors?.[0] || '#ffc716' },
       accent: { '500': '#f48c5f' },
       neutral: { '500': '#78716c', '50': '#fafaf9', '900': '#1c1917' },
       success: { '500': '#3AA76D' },
@@ -180,18 +139,18 @@ export default function PublicShopPageNew() {
     }
   };
 
-  const heroImage = shop.hero_config?.slides?.[0]?.imageUrl || 
-                    shop.hero_config?.slides?.[0]?.image || 
-                    shop.banner_url || 
-                    shop.logo_url;
+  const heroImage = shop.heroConfig?.slides?.[0]?.imageUrl ||
+    shop.heroConfig?.slides?.[0]?.image ||
+    shop.bannerUrl ||
+    shop.logoUrl;
 
   return (
     <ShoppingCartProvider>
       <ShopThemeProvider theme={theme}>
         <div className="min-h-screen bg-background">
           <Helmet>
-            <title>{shop.shop_name} - Tienda Artesanal</title>
-            <meta name="description" content={shop.description} />
+            <title>{`${shop.shopName} - Tienda Artesanal`}</title>
+            <meta name="description" content={shop.description ?? ''} />
           </Helmet>
 
           {/* Preview Header */}
@@ -203,8 +162,8 @@ export default function PublicShopPageNew() {
                   <span className="font-medium">Vista Previa</span>
                   <span className="text-sm opacity-80 hidden sm:inline">- Esta tienda aún no está publicada</span>
                 </div>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   size="sm"
                   onClick={() => navigate('/mi-tienda')}
                   className="flex items-center gap-2"
@@ -217,25 +176,25 @@ export default function PublicShopPageNew() {
           )}
 
           {/* 1. Promo Banner */}
-          <PromoBanner 
-            region={shop.region?.replace(/_/g, ' ')} 
-            craftType={shop.craft_type?.replace(/-/g, ' ')}
+          <PromoBanner
+            region={shop.region?.replace(/_/g, ' ')}
+            craftType={shop.craftType?.replace(/-/g, ' ')}
           />
 
           {/* 2. Navbar */}
-          <ShopNavbar 
-            shopName={shop.shop_name}
-            logoUrl={shop.logo_url}
+          <ShopNavbar
+            shopName={shop.shopName}
+            logoUrl={shop.logoUrl}
             shopSlug={shopSlug}
-            artisanProfileCompleted={shop.artisan_profile_completed}
+            artisanProfileCompleted={shop.artisanProfileCompleted}
           />
 
           {/* 3. Hero Principal - Bruvi Style */}
           <BruviStyleHero
-            shopName={shop.shop_name}
-            description={shop.description || shop.brand_claim}
+            shopName={shop.shopName}
+            description={shop.description || shop.brandClaim}
             heroImage={heroImage}
-            logoUrl={shop.logo_url}
+            logoUrl={shop.logoUrl}
             onViewProducts={scrollToProducts}
             onKnowArtisan={scrollToStory}
           />
@@ -264,29 +223,29 @@ export default function PublicShopPageNew() {
           {/* 7. Storytelling Block */}
           <section id="historia">
             <StorytellingBlock
-              shopName={shop.shop_name}
-              story={shop.story || shop.about_content?.story}
-              imageUrl={shop.banner_url || shop.logo_url}
+              shopName={shop.shopName}
+              story={shop.story || shop.aboutContent?.story}
+              imageUrl={shop.bannerUrl || shop.logoUrl}
               onKnowMore={() => {
                 const preview = isPreviewMode ? '?preview=true' : '';
-                navigate(`/tienda/${shopSlug}/${shop.artisan_profile_completed ? 'perfil-artesanal' : 'nosotros'}${preview}`);
+                navigate(`/tienda/${shopSlug}/${shop.artisanProfileCompleted ? 'perfil-artesanal' : 'nosotros'}${preview}`);
               }}
             />
           </section>
 
           {/* 8. Testimonials */}
-          <TestimonialsSection shopName={shop.shop_name} />
+          <TestimonialsSection shopName={shop.shopName} />
 
           {/* 9. Impact Section */}
           <ImpactSection />
 
           {/* 10. Footer */}
-          <ShopFooter 
-            shopName={shop.shop_name}
-            contactEmail={shop.contact_info?.email}
-            contactPhone={shop.contact_info?.phone}
-            address={shop.contact_info?.address}
-            socialLinks={shop.social_links}
+          <ShopFooter
+            shopName={shop.shopName}
+            contactEmail={shop.contactConfig?.email}
+            contactPhone={shop.contactConfig?.phone}
+            address={shop.contactConfig?.address}
+            socialLinks={shop.socialLinks}
           />
         </div>
       </ShopThemeProvider>

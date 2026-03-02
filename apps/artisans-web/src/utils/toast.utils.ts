@@ -6,14 +6,14 @@
 import { toast } from 'sonner';
 
 const MESSAGES_HTTP: Record<number, string> = {
-  200: 'OK',
+  200: 'Operación exitosa',
   201: 'Creado correctamente',
-  204: 'Actualizado correctamente',
+  204: 'Eliminado correctamente',
   400: 'Solicitud incorrecta',
   401: 'No autorizado',
-  403: 'Prohibido',
+  403: 'Acceso prohibido',
   404: 'Registro no encontrado',
-  409: 'Conflicto',
+  409: 'Conflicto con el estado actual',
   500: 'Error interno del servidor',
 };
 
@@ -91,7 +91,6 @@ function showToast({
   if (statusCode >= 200 && statusCode < 300) {
     toast.success(finalMessage, { duration: 3000 });
   } else if (statusCode >= 400 && statusCode < 500) {
-    console.log('es un warning')
     toast.warning(finalMessage, {
       duration: 4000,
       description: `Código de error: ${statusCode}`,
