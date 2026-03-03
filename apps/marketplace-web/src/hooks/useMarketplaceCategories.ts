@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { telarApiPublic } from '@/integrations/api/telarApi';
 import { MarketplaceCategory, getStoryblokImageUrl } from '@/types/storyblok';
 import { FALLBACK_MARKETPLACE_CATEGORIES } from '@/lib/marketplaceCategories';
 
@@ -25,18 +25,11 @@ export function useMarketplaceCategories() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke('storyblok-cms', {
-        body: { action: 'categories' }
+      const response = await telarApiPublic.post<{ data: MarketplaceCategory[] }>('/cms', {
+        action: 'categories',
       });
 
-      if (invokeError) {
-        console.error('Error fetching categories from CMS:', invokeError);
-        setError(invokeError.message);
-        // Keep fallback categories
-        return;
-      }
-
-      const cmsCategories = data?.data as MarketplaceCategory[];
+      const cmsCategories = response.data.data;
       
       if (cmsCategories && cmsCategories.length > 0) {
         // Transform CMS categories to local format, filtering out invalid entries
@@ -58,10 +51,9 @@ export function useMarketplaceCategories() {
       } else {
         console.log('No CMS categories found, using fallback');
       }
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      // Keep fallback categories
+    } catch (err: any) {
+      const message = err?.response?.data?.message ?? err?.message ?? 'Error al cargar categorías';
+      setError(message);
     } finally {
       setLoading(false);
     }

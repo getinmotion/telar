@@ -21,7 +21,10 @@ import { ProductVariantsService } from './product-variants.service';
 import { CreateProductVariantDto } from './dto/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { QueryProductVariantDto } from './dto/query-product-variant.dto';
-import { ProductVariant, VariantStatus } from './entities/product-variant.entity';
+import {
+  ProductVariant,
+  VariantStatus,
+} from './entities/product-variant.entity';
 
 @ApiTags('product-variants')
 @Controller('product-variants')
@@ -39,15 +42,15 @@ export class ProductVariantsController {
     type: ProductVariant,
   })
   @ApiResponse({ status: 409, description: 'SKU ya existe' })
-  create(
-    @Body() createDto: CreateProductVariantDto,
-  ): Promise<ProductVariant> {
+  create(@Body() createDto: CreateProductVariantDto): Promise<ProductVariant> {
     return this.productVariantsService.create(createDto);
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener todas las variantes con filtros y paginación' })
+  @ApiOperation({
+    summary: 'Obtener todas las variantes con filtros y paginación',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de variantes',
@@ -193,7 +196,9 @@ export class ProductVariantsController {
 
   @Delete(':id/hard')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Eliminar permanentemente una variante (hard delete)' })
+  @ApiOperation({
+    summary: 'Eliminar permanentemente una variante (hard delete)',
+  })
   @ApiParam({ name: 'id', description: 'ID de la variante' })
   @ApiResponse({
     status: 200,

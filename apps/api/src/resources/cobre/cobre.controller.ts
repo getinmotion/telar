@@ -9,7 +9,7 @@ import { CreateCounterpartySelfDto } from './dto/create-counterparty-self.dto';
 @ApiTags('cobre')
 @Controller('cobre')
 export class CobreController {
-  constructor(private readonly cobreService: CobreService) { }
+  constructor(private readonly cobreService: CobreService) {}
 
   @Post('counterparty')
   @HttpCode(HttpStatus.OK)
@@ -43,9 +43,13 @@ export class CobreController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Crear contraparte para una tienda (admin)',
-    description: 'Crea una contraparte en Cobre y la vincula a la tienda actualizando id_contraparty',
+    description:
+      'Crea una contraparte en Cobre y la vincula a la tienda actualizando id_contraparty',
   })
-  @ApiResponse({ status: 201, description: 'Contraparte creada y vinculada a la tienda' })
+  @ApiResponse({
+    status: 201,
+    description: 'Contraparte creada y vinculada a la tienda',
+  })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   @ApiResponse({ status: 500, description: 'Error interno o de Cobre API' })
   async createCounterpartyAdmin(
@@ -58,10 +62,14 @@ export class CobreController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Crear o reemplazar contraparte del artesano autenticado',
-    description: 'Crea una contraparte en Cobre para la tienda del artesano y actualiza id_contraparty',
+    description:
+      'Crea una contraparte en Cobre para la tienda del artesano y actualiza id_contraparty',
   })
   @ApiResponse({ status: 201, description: 'Contraparte creada y vinculada' })
-  @ApiResponse({ status: 400, description: 'Usuario sin tienda o datos inválidos' })
+  @ApiResponse({
+    status: 400,
+    description: 'Usuario sin tienda o datos inválidos',
+  })
   async createCounterpartySelf(
     @Body() dto: CreateCounterpartySelfDto,
   ): Promise<{ id_contraparty: string }> {
