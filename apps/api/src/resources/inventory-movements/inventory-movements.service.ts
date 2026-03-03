@@ -5,7 +5,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { InventoryMovement, MovementType } from './entities/inventory-movement.entity';
+import {
+  InventoryMovement,
+  MovementType,
+} from './entities/inventory-movement.entity';
 import { CreateInventoryMovementDto } from './dto/create-inventory-movement.dto';
 import { UpdateInventoryMovementDto } from './dto/update-inventory-movement.dto';
 import { QueryInventoryMovementDto } from './dto/query-inventory-movement.dto';
@@ -25,9 +28,7 @@ export class InventoryMovementsService {
   ): Promise<InventoryMovement> {
     // Validar que qty sea positivo
     if (createDto.qty <= 0) {
-      throw new BadRequestException(
-        'La cantidad debe ser un número positivo',
-      );
+      throw new BadRequestException('La cantidad debe ser un número positivo');
     }
 
     // TODO: Validar que product_variant_id exista
@@ -188,9 +189,7 @@ export class InventoryMovementsService {
 
     // Validar qty si se proporciona
     if (updateDto.qty !== undefined && updateDto.qty <= 0) {
-      throw new BadRequestException(
-        'La cantidad debe ser un número positivo',
-      );
+      throw new BadRequestException('La cantidad debe ser un número positivo');
     }
 
     // Actualizar

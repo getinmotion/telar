@@ -11,4 +11,4 @@ import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
   providers: [CobreService],
   exports: [CobreService],
 })
-export class CobreModule { }
+export class CobreModule {}

@@ -22,7 +22,10 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { FileUploadService } from './file-upload.service';
-import { CreateFileUploadDto, UploadFolder } from './dto/create-file-upload.dto';
+import {
+  CreateFileUploadDto,
+  UploadFolder,
+} from './dto/create-file-upload.dto';
 import { DeleteFileDto } from './dto/delete-file.dto';
 
 @ApiTags('file-upload')
