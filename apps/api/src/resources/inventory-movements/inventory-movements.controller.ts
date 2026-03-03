@@ -10,12 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { InventoryMovementsService } from './inventory-movements.service';
 import { CreateInventoryMovementDto } from './dto/create-inventory-movement.dto';
 import { UpdateInventoryMovementDto } from './dto/update-inventory-movement.dto';
@@ -127,8 +122,7 @@ export class InventoryMovementsController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary:
-      'Actualizar un movimiento (NO RECOMENDADO - usar con precaución)',
+    summary: 'Actualizar un movimiento (NO RECOMENDADO - usar con precaución)',
   })
   @ApiParam({ name: 'id', description: 'ID del movimiento' })
   @ApiResponse({

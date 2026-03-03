@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsObject, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsObject,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class BankDataDto {
@@ -23,7 +28,10 @@ export class BankDataDto {
   @IsNotEmpty()
   bank_code: string;
 
-  @ApiProperty({ example: 'ch', enum: ['ch', 'cc', 'r2p', 'dp', 'breb-key', 'r2p_breb'] })
+  @ApiProperty({
+    example: 'ch',
+    enum: ['ch', 'cc', 'r2p', 'dp', 'breb-key', 'r2p_breb'],
+  })
   @IsString()
   @IsNotEmpty()
   account_type: string;

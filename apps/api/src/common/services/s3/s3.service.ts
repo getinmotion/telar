@@ -55,7 +55,8 @@ export class S3Service {
     this.bucket = bucket;
     this.region = region;
     this.acl = this.configService.get<string>('AWS_S3_ACL', 'public-read');
-    this.cdnBaseUrl = cdnBaseUrl || `https://${bucket}.s3.${region}.amazonaws.com`;
+    this.cdnBaseUrl =
+      cdnBaseUrl || `https://${bucket}.s3.${region}.amazonaws.com`;
 
     this.s3Client = new S3Client({
       region: this.region,

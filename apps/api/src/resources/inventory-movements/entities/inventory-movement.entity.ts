@@ -16,8 +16,8 @@ import { User } from '../../users/entities/user.entity';
  * Enum para tipos de movimiento de inventario
  */
 export enum MovementType {
-  IN = 'IN',         // Entrada de inventario (compras, devoluciones de clientes)
-  OUT = 'OUT',       // Salida de inventario (ventas, devoluciones a proveedores)
+  IN = 'IN', // Entrada de inventario (compras, devoluciones de clientes)
+  OUT = 'OUT', // Salida de inventario (ventas, devoluciones a proveedores)
   ADJUST = 'ADJUST', // Ajuste manual (correcciones, pérdidas, daños)
 }
 
@@ -58,7 +58,8 @@ export class InventoryMovement {
   type: MovementType;
 
   @ApiProperty({
-    description: 'Cantidad del movimiento (siempre positivo, el tipo indica dirección)',
+    description:
+      'Cantidad del movimiento (siempre positivo, el tipo indica dirección)',
     example: 10,
   })
   @Column({ type: 'integer' })
