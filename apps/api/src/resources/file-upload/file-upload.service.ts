@@ -78,7 +78,9 @@ export class FileUploadService {
   /**
    * Eliminar un archivo de S3
    */
-  async deleteFile(keyOrUrl: string): Promise<{ success: boolean; key: string }> {
+  async deleteFile(
+    keyOrUrl: string,
+  ): Promise<{ success: boolean; key: string }> {
     // Extraer key si es una URL
     const key = this.s3Service.extractKeyFromUrl(keyOrUrl);
 

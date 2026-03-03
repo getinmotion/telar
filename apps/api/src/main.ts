@@ -108,10 +108,8 @@ async function bootstrap() {
       'inventory-movements',
       'Movimientos de inventario para control de stock',
     )
-    .addTag(
-      'file-upload',
-      'Subida y gestión de archivos en AWS S3/Lightsail',
-    )
+    .addTag('file-upload', 'Subida y gestión de archivos en AWS S3/Lightsail')
+    .addTag('cms', 'Gestión de contenido con Storyblok CMS')
     .addBearerAuth(
       {
         type: 'http',

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { telarApiPublic } from '@/integrations/api/telarApi';
 import {
   BlogArticle,
   BlogArticleListResponse,
@@ -16,17 +16,15 @@ async function callCMS<T>(
   params?: Record<string, unknown>
 ): Promise<StoryblokResponse<T>> {
   try {
-    const { data, error } = await supabase.functions.invoke('storyblok-cms', {
-      body: { action, ...params },
+    const response = await telarApiPublic.post<{ data: T }>('/cms', {
+      action,
+      ...params,
     });
 
-    if (error) {
-      return { data: null, error: error.message };
-    }
-
-    return { data: (data?.data ?? data) as T, error: null };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+    return { data: response.data.data, error: null };
+  } catch (err: any) {
+    const message =
+      err?.response?.data?.message ?? err?.message ?? 'Error al obtener contenido CMS';
     return { data: null, error: message };
   }
 }
