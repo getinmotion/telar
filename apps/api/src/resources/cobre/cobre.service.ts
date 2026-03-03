@@ -224,7 +224,9 @@ export class CobreService {
 
       const counterpartyId = response.data?.id;
       if (!counterpartyId) {
-        throw new InternalServerErrorException('Cobre no retornó un ID de contraparte');
+        throw new InternalServerErrorException(
+          'Cobre no retornó un ID de contraparte',
+        );
       }
 
       // Persistir el id_contraparty en la tienda
@@ -233,7 +235,9 @@ export class CobreService {
         bankDataStatus: 'complete',
       });
 
-      this.logger.debug(`Counterparty ${counterpartyId} linked to shop ${shopId}`);
+      this.logger.debug(
+        `Counterparty ${counterpartyId} linked to shop ${shopId}`,
+      );
       return { id_contraparty: counterpartyId };
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -248,7 +252,10 @@ export class CobreService {
       }
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error('Create Counterparty Admin Error:', message);
-      throw new InternalServerErrorException({ error: 'Internal Server Error', message });
+      throw new InternalServerErrorException({
+        error: 'Internal Server Error',
+        message,
+      });
     }
   }
 
@@ -261,7 +268,9 @@ export class CobreService {
   ): Promise<{ id_contraparty: string }> {
     const shop = await this.artisanShopsService.getByUserId(dto.userId);
     if (!shop) {
-      throw new BadRequestException('No se encontró una tienda para este usuario');
+      throw new BadRequestException(
+        'No se encontró una tienda para este usuario',
+      );
     }
     return this.createCounterpartyAdmin(shop.id, dto.bankData);
   }

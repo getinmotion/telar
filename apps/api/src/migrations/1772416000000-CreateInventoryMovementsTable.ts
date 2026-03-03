@@ -1,4 +1,11 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey, TableCheck } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableForeignKey,
+  TableCheck,
+} from 'typeorm';
 
 export class CreateInventoryMovementsTable1772416000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -113,7 +120,8 @@ export class CreateInventoryMovementsTable1772416000000 implements MigrationInte
       'inventory_movements',
       new TableCheck({
         name: 'inventory_movements_type_check',
-        expression: "type = ANY (ARRAY['IN'::text, 'OUT'::text, 'ADJUST'::text])",
+        expression:
+          "type = ANY (ARRAY['IN'::text, 'OUT'::text, 'ADJUST'::text])",
       }),
     );
   }
