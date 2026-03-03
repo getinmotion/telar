@@ -6,7 +6,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Repository, Like } from 'typeorm';
-import { ProductVariant, VariantStatus } from './entities/product-variant.entity';
+import {
+  ProductVariant,
+  VariantStatus,
+} from './entities/product-variant.entity';
 import { CreateProductVariantDto } from './dto/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product-variant.dto';
 import { QueryProductVariantDto } from './dto/query-product-variant.dto';
@@ -21,9 +24,7 @@ export class ProductVariantsService {
   /**
    * Crear una nueva variante de producto
    */
-  async create(
-    createDto: CreateProductVariantDto,
-  ): Promise<ProductVariant> {
+  async create(createDto: CreateProductVariantDto): Promise<ProductVariant> {
     // Verificar que no exista otra variante con el mismo SKU
     const existingVariant = await this.productVariantsRepository.findOne({
       where: { sku: createDto.sku },
@@ -49,7 +50,15 @@ export class ProductVariantsService {
     limit: number;
     totalPages: number;
   }> {
-    const { page = 1, limit = 10, sortBy = 'createdAt', order = 'DESC', productId, status, sku } = queryDto;
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      order = 'DESC',
+      productId,
+      status,
+      sku,
+    } = queryDto;
 
     const queryBuilder = this.productVariantsRepository
       .createQueryBuilder('variant')
@@ -201,17 +210,13 @@ export class ProductVariantsService {
       case 'subtract':
         newStock = variant.stock - quantity;
         if (newStock < 0) {
-          throw new BadRequestException(
-            'El stock no puede ser negativo',
-          );
+          throw new BadRequestException('El stock no puede ser negativo');
         }
         break;
       case 'set':
         newStock = quantity;
         if (newStock < 0) {
-          throw new BadRequestException(
-            'El stock no puede ser negativo',
-          );
+          throw new BadRequestException('El stock no puede ser negativo');
         }
         break;
     }

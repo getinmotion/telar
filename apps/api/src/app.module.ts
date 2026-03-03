@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './resources/auth/auth.module';
 import { UsersModule } from './resources/users/users.module';
 import { MailModule } from './resources/mail/mail.module';
 import { UserProfilesModule } from './resources/user-profiles/user-profiles.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserProgressModule } from './resources/user-progress/user-progress.module';
 import { EmailVerificationsModule } from './resources/email-verifications/email-verifications.module';
 import { BrandThemesModule } from './resources/brand-themes/brand-themes.module';
@@ -40,6 +39,7 @@ import { ProductVariantsModule } from './resources/product-variants/product-vari
 import { InventoryMovementsModule } from './resources/inventory-movements/inventory-movements.module';
 import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
+import { CmsModule } from './resources/cms/cms.module';
 
 @Module({
   imports: [
@@ -86,6 +86,7 @@ import { S3Module } from './common/services/s3/s3.module';
     ProductVariantsModule,
     InventoryMovementsModule,
     FileUploadModule,
+    CmsModule,
   ],
   controllers: [],
   providers: [],
