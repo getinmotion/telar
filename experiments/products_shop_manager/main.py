@@ -69,9 +69,12 @@ def get_db_sessionmaker():
     engine = create_engine(
         connection_url, 
         poolclass=QueuePool,
-        pool_size=10,        # Mantiene 10 conexiones abiertas listas para usar
-        max_overflow=20      # Permite hasta 20 más si hay pico de tráfico
+        pool_size=10,        
+        max_overflow=20,     
+        pool_pre_ping=True,  # <- LÍNEA NUEVA: Verifica que la conexión esté viva
+        pool_recycle=1800    # <- LÍNEA NUEVA: Destruye y recrea conexiones de más de 30 min
     )
+    # Crear esquemas si no existen
     with engine.connect() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS shop"))
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS taxonomy"))
@@ -271,6 +274,8 @@ class ProductsCore(Base):
     store_id = Column(UUID(as_uuid=False), ForeignKey('shop.stores.id'), nullable=False)
     name = Column(String, nullable=False)
     short_description = Column(String, nullable=False)
+    history = Column(String) # <- NUEVO
+    care_notes = Column(String) # <- NUEVO
     status = Column(String, default='draft')
 
 class ProductArtisanalIdentity(Base):
@@ -281,20 +286,24 @@ class ProductArtisanalIdentity(Base):
     estimated_elaboration_time = Column(String)
     primary_craft_id = Column(UUID(as_uuid=False), ForeignKey('taxonomy.crafts.id'))
     primary_technique_id = Column(UUID(as_uuid=False), ForeignKey('taxonomy.techniques.id'))
+    secondary_technique_id = Column(UUID(as_uuid=False), ForeignKey('taxonomy.techniques.id')) # <- NUEVO
     curatorial_category_id = Column(UUID(as_uuid=False), ForeignKey('taxonomy.curatorial_categories.id'))
     piece_type = Column(String)
     style = Column(String)
     is_collaboration = Column(Boolean, default=False)
 
-class ProductPhysicalSpecs(Base):
-    __tablename__ = 'product_physical_specs'
+class ProductLogistics(Base):
+    __tablename__ = 'product_logistics'
     __table_args__ = {'schema': 'shop', 'extend_existing': True}
     product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id'), primary_key=True)
-    height_cm = Column(Numeric(8,2))
-    width_cm = Column(Numeric(8,2))
-    length_or_diameter_cm = Column(Numeric(8,2))
-    real_weight_kg = Column(Numeric(8,2))
-
+    packaging_type = Column(String)
+    pack_height_cm = Column(Numeric(8,2))
+    pack_width_cm = Column(Numeric(8,2))
+    pack_length_cm = Column(Numeric(8,2))
+    pack_weight_kg = Column(Numeric(8,2))
+    fragility = Column(String)
+    requires_assembly = Column(Boolean, default=False) # <- NUEVO
+    special_protection_notes = Column(String) # <- NUEVO
 class ProductLogistics(Base):
     __tablename__ = 'product_logistics'
     __table_args__ = {'schema': 'shop', 'extend_existing': True}
@@ -333,7 +342,8 @@ menu = st.sidebar.radio("Navegación", [
     "📊 Dashboard Global de Migración",
     "🏷️ Gestor de Taxonomía (Maestros)",
     "🏪 Migración de Tiendas", 
-    "📦 Migración de Productos"
+    "📦 Migración de Productos",
+    "✨ Crear Nuevo Producto"
 ])
 
 if menu == "📊 Dashboard Global de Migración":
@@ -648,86 +658,251 @@ elif menu == "📦 Migración de Productos":
                         st.header("➡️ Nueva Arquitectura")
                         sug = st.session_state.get(f"ai_sug_{p_legacy.id}", {})
                         
-                        with st.form("new_architecture_form"):
+                    with st.form("new_architecture_form"):
                             new_name = st.text_input("Nombre", value=sug.get("new_name", p_legacy.name))
                             new_short_desc = st.text_area("Descripción Corta", value=sug.get("short_description", str(p_legacy.description)[:200] if p_legacy.description else ""))
                             
-
-                            st.subheader("🏷️ Taxonomía Extendida y Atributos")
-                            sel_materials = st.multiselect("Materiales Múltiples", options=list(all_materials.keys()), format_func=lambda x: all_materials[x])
-                            sel_care_tags = st.multiselect("Instrucciones de Cuidado", options=list(all_care_tags.keys()), format_func=lambda x: all_care_tags[x])
-                            sel_badges = st.multiselect("Insignias", options=list(all_badges.keys()), format_func=lambda x: all_badges[x])
+                            # --- NUEVOS CAMPOS CORE ---
+                            c_hist1, c_hist2 = st.columns(2)
+                            history_text = c_hist1.text_area("Historia del Producto", help="El relato detrás de la pieza.")
+                            care_notes_text = c_hist2.text_area("Notas de Cuidado Específicas", help="Instrucciones adicionales a las etiquetas.")
                             
+                            st.subheader("🎨 Identidad Curatorial y Artesanal")
+                            
+                            # Listas de opciones
                             piece_opts = ["funcional", "decorativa", "mixta"]
                             style_opts = ["tradicional", "contemporaneo", "fusion"]
                             proc_opts = ["manual", "mixto", "asistido"]
                             pack_opts = ["Caja Rígida", "Bolsa de Tela", "Tubo", "Huacal", "Sobre"]
+                            fragility_opts = ["bajo", "medio", "alto"]
                             
                             def get_idx(opts, val, default=0): return opts.index(val) if val in opts else default
                             def get_dict_idx(dict_obj, key): 
                                 keys = list(dict_obj.keys())
                                 return keys.index(key) if key in keys else 0
 
-                            col_a, col_b = st.columns(2)
+                            col_a, col_b, col_collab = st.columns(3)
                             piece_type = col_a.selectbox("Tipo de Pieza", piece_opts, index=get_idx(piece_opts, sug.get("piece_type")))
                             style = col_b.selectbox("Estilo", style_opts, index=get_idx(style_opts, sug.get("style")))
+                            is_collab = col_collab.checkbox("¿Es Colaboración?")
                             
                             col_c, col_d = st.columns(2)
                             process_type = col_c.selectbox("Tipo de Proceso", proc_opts, index=get_idx(proc_opts, sug.get("process_type")))
                             elab_time = col_d.text_input("Tiempo de Elaboración", value=sug.get("estimated_elaboration_time", ""))
                             
-                            sel_craft = st.selectbox("Oficio", options=list(crafts.keys()), format_func=lambda x: crafts[x], index=get_dict_idx(crafts, sug.get("primary_craft_id"))) if crafts else None
-                            sel_tech = st.selectbox("Técnica", options=list(techniques.keys()), format_func=lambda x: techniques[x], index=get_dict_idx(techniques, sug.get("primary_technique_id"))) if techniques else None
-                            sel_cat = st.selectbox("Categoría Curatorial", options=list(curatorial_cats.keys()), format_func=lambda x: curatorial_cats[x], index=get_dict_idx(curatorial_cats, sug.get("curatorial_category_id"))) if curatorial_cats else None
+                            # Taxonomía
+                            c_tax1, c_tax2 = st.columns(2)
+                            sel_craft = c_tax1.selectbox("Oficio", options=list(crafts.keys()), format_func=lambda x: crafts[x], index=get_dict_idx(crafts, sug.get("primary_craft_id"))) if crafts else None
+                            sel_cat = c_tax2.selectbox("Categoría Curatorial", options=list(curatorial_cats.keys()), format_func=lambda x: curatorial_cats[x], index=get_dict_idx(curatorial_cats, sug.get("curatorial_category_id"))) if curatorial_cats else None
+                            
+                            # --- TÉCNICA SECUNDARIA AÑADIDA ---
+                            c_tech1, c_tech2 = st.columns(2)
+                            sel_tech = c_tech1.selectbox("Técnica Principal", options=list(techniques.keys()), format_func=lambda x: techniques[x], index=get_dict_idx(techniques, sug.get("primary_technique_id"))) if techniques else None
+                            
+                            # Opción de no tener técnica secundaria (None)
+                            tech_options_sec = [None] + list(techniques.keys())
+                            sel_tech_sec = c_tech2.selectbox("Técnica Secundaria (Opcional)", options=tech_options_sec, format_func=lambda x: techniques[x] if x else "Ninguna") if techniques else None
                             
                             st.subheader("📏 Físico y Logístico")
-                            c1, c2, c3 = st.columns(3)
+                            c1, c2, c3, c4 = st.columns(4)
                             dim_h = c1.number_input("Alto (cm)", value=float(sug.get("dim_height_cm", 0.0)), min_value=0.0)
                             dim_w = c2.number_input("Ancho (cm)", value=float(sug.get("dim_width_cm", 0.0)), min_value=0.0)
                             dim_l = c3.number_input("Largo/Diam (cm)", value=float(sug.get("dim_length_cm", 0.0)), min_value=0.0)
+                            real_w = c4.number_input("Peso Real (kg)", value=float(sug.get("real_weight_kg", p_legacy.weight or 0.0)), min_value=0.0)
                             
-                            real_w = st.number_input("Peso Real (kg)", value=float(sug.get("real_weight_kg", p_legacy.weight or 0.0)), min_value=0.0)
-                            pack_type = st.selectbox("Embalaje", pack_opts, index=get_idx(pack_opts, sug.get("packaging_type")))
-                            pack_weight = st.number_input("Peso Pack (kg)", value=float(sug.get("pack_weight_kg", real_w * 1.1)), min_value=0.0)
+                            st.markdown("**Empaque y Envío**")
+                            pc1, pc2, pc3 = st.columns(3)
+                            pack_type = pc1.selectbox("Embalaje", pack_opts, index=get_idx(pack_opts, sug.get("packaging_type")))
+                            fragility_level = pc2.selectbox("Nivel de Fragilidad", fragility_opts, index=1) # Medio por defecto
+                            req_assembly = pc3.checkbox("Requiere Ensamblaje")
+                            
+                            pc4, pc5, pc6, pc7 = st.columns(4)
+                            p_dim_h = pc4.number_input("Pack Alto (cm)", value=float(sug.get("dim_height_cm", 0.0)), min_value=0.0)
+                            p_dim_w = pc5.number_input("Pack Ancho (cm)", value=float(sug.get("dim_width_cm", 0.0)), min_value=0.0)
+                            p_dim_l = pc6.number_input("Pack Largo (cm)", value=float(sug.get("dim_length_cm", 0.0)), min_value=0.0)
+                            pack_weight = pc7.number_input("Peso Pack (kg)", value=float(sug.get("pack_weight_kg", real_w * 1.1)), min_value=0.0)
+                            
+                            special_notes = st.text_area("Notas Especiales de Protección (Logística)")
+
+                            st.subheader("🏷️ Taxonomía Extendida (Materiales y Atributos)")
+                            sel_materials = st.multiselect("Materiales Múltiples", options=list(all_materials.keys()), format_func=lambda x: all_materials[x])
+                            sel_care_tags = st.multiselect("Instrucciones de Cuidado", options=list(all_care_tags.keys()), format_func=lambda x: all_care_tags[x])
+                            sel_badges = st.multiselect("Insignias", options=list(all_badges.keys()), format_func=lambda x: all_badges[x])
 
                             if st.form_submit_button("💾 Guardar Revisión Humana", use_container_width=True):
-                                # --- NUEVA VALIDACIÓN DE TÉCNICA ---
                                 if not sel_tech:
-                                    st.error("⚠️ Error: Para mantener la integridad curatorial, debes seleccionar al menos una 'Técnica' principal antes de guardar.")
+                                    st.error("⚠️ Error: Debes seleccionar al menos una 'Técnica' principal.")
+                                elif sel_tech == sel_tech_sec:
+                                    st.error("⚠️ Error: La técnica principal y secundaria no pueden ser la misma.")
                                 else:
-                                    # Validamos que la tienda nueva (Store) ya exista antes de guardar el producto
                                     target_store = db.query(Store).filter(Store.legacy_id == p_legacy.shop_id).first()
-                                    
                                     if not target_store:
-                                        st.error("⚠️ Esta tienda aún no ha sido migrada a la tabla 'stores'. Debes migrarla primero en la pestaña 'Migración de Tiendas'.")
+                                        st.error("⚠️ Esta tienda no ha sido migrada a la tabla 'stores'.")
                                     else:
                                         try:
-                                            core = ProductsCore(store_id=target_store.id, name=new_name, short_description=new_short_desc, status='draft')
+                                            core = ProductsCore(
+                                                store_id=target_store.id, name=new_name, short_description=new_short_desc, 
+                                                history=history_text, care_notes=care_notes_text, status='draft'
+                                            )
                                             db.add(core)
                                             db.flush() 
                                             
                                             db.add(ProductArtisanalIdentity(
                                                 product_id=core.id, process_type=process_type, estimated_elaboration_time=elab_time,
-                                                primary_craft_id=sel_craft, primary_technique_id=sel_tech, curatorial_category_id=sel_cat,
-                                                piece_type=piece_type, style=style
+                                                primary_craft_id=sel_craft, primary_technique_id=sel_tech, 
+                                                secondary_technique_id=sel_tech_sec, curatorial_category_id=sel_cat,
+                                                piece_type=piece_type, style=style, is_collaboration=is_collab
                                             ))
                                             
                                             db.add(ProductPhysicalSpecs(product_id=core.id, height_cm=dim_h, width_cm=dim_w, length_or_diameter_cm=dim_l, real_weight_kg=real_w))
-                                            db.add(ProductLogistics(product_id=core.id, packaging_type=pack_type, fragility='medio', pack_weight_kg=pack_weight))
+                                            db.add(ProductLogistics(
+                                                product_id=core.id, packaging_type=pack_type, fragility=fragility_level, 
+                                                pack_height_cm=p_dim_h, pack_width_cm=p_dim_w, pack_length_cm=p_dim_l, pack_weight_kg=pack_weight,
+                                                requires_assembly=req_assembly, special_protection_notes=special_notes
+                                            ))
                                             
                                             for mat_id in sel_materials:
                                                 db.add(ProductMaterialLink(product_id=core.id, material_id=mat_id))
-
                                             for ct_id in sel_care_tags:
                                                 db.add(ProductCareTagLink(product_id=core.id, care_tag_id=ct_id))
-
                                             for b_id in sel_badges:
                                                 db.add(ProductBadgeLink(product_id=core.id, badge_id=b_id))
                                                 
                                             db.commit()
-                                            st.success("¡Producto verificado y guardado correctamente en la nueva arquitectura!")
+                                            st.success("¡Producto verificado y guardado correctamente!")
                                         except Exception as e:
                                             db.rollback()
                                             st.error(f"Error en base de datos: {e}")
+elif menu == "✨ Crear Nuevo Producto":
+    st.title("✨ Crear Nuevo Producto")
+    st.info("Crea un producto desde cero directamente en la nueva arquitectura normalizada.")
 
+    # 1. Seleccionar la tienda nueva (Store)
+    stores = db.query(Store).order_by(Store.name).all()
+    if not stores:
+        st.warning("No hay tiendas registradas en la nueva arquitectura. Migra una primero.")
+    else:
+        # Filtro de seguridad por curador (usando legacy_id si fue asignado así)
+        assigned = st.session_state.get("assigned_shops", ["ALL"])
+        store_options = {}
+        for s in stores:
+            if "ALL" in assigned or str(s.legacy_id) in assigned:
+                store_options[str(s.id)] = s.name
+
+        selected_store_id = st.selectbox("1. Selecciona la Tienda / Taller:", options=list(store_options.keys()), format_func=lambda x: store_options[x])
+
+        if selected_store_id:
+            st.markdown("---")
+            
+            # 2. Cargar taxonomías cacheadas en 1 milisegundo
+            crafts, techniques, curatorial_cats, all_materials, all_care_tags, all_badges = get_cached_taxonomies()
+
+            with st.form("create_new_product_form"):
+                st.subheader("📦 Información Base (Core)")
+                new_name = st.text_input("Nombre del Producto")
+                new_short_desc = st.text_area("Descripción Corta (Max 200 caracteres)")
+                
+                c_hist1, c_hist2 = st.columns(2)
+                history_text = c_hist1.text_area("Historia del Producto")
+                care_notes_text = c_hist2.text_area("Notas de Cuidado Específicas")
+                
+                st.subheader("🎨 Identidad Curatorial y Artesanal")
+                
+                if not crafts or not curatorial_cats:
+                    st.warning("⚠️ Asegúrate de tener Oficios y Categorías en el Gestor de Taxonomía.")
+                
+                c_tax1, c_tax2 = st.columns(2)
+                sel_craft = c_tax1.selectbox("Oficio Principal", options=list(crafts.keys()), format_func=lambda x: crafts[x]) if crafts else None
+                sel_cat = c_tax2.selectbox("Categoría Curatorial", options=list(curatorial_cats.keys()), format_func=lambda x: curatorial_cats[x]) if curatorial_cats else None
+                
+                c_tech1, c_tech2 = st.columns(2)
+                sel_tech = c_tech1.selectbox("Técnica Principal", options=list(techniques.keys()), format_func=lambda x: techniques[x]) if techniques else None
+                
+                tech_options_sec = [None] + list(techniques.keys())
+                sel_tech_sec = c_tech2.selectbox("Técnica Secundaria (Opcional)", options=tech_options_sec, format_func=lambda x: techniques[x] if x else "Ninguna") if techniques else None
+                
+                col_a, col_b, col_c = st.columns(3)
+                piece_type = col_a.selectbox("Tipo de Pieza", ["funcional", "decorativa", "mixta"])
+                style = col_b.selectbox("Estilo", ["tradicional", "contemporaneo", "fusion"])
+                is_collab = col_c.checkbox("¿Es Colaboración?")
+
+                c_proc1, c_proc2 = st.columns(2)
+                process_type = c_proc1.selectbox("Tipo de Proceso", ["manual", "mixto", "asistido"])
+                elab_time = c_proc2.text_input("Tiempo de Elaboración (Ej. 5 días)")
+                
+                st.subheader("📏 Especificaciones Físicas (Capa 1)")
+                c1, c2, c3, c4 = st.columns(4)
+                dim_h = c1.number_input("Alto (cm)", min_value=0.0)
+                dim_w = c2.number_input("Ancho (cm)", min_value=0.0)
+                dim_l = c3.number_input("Largo/Diam (cm)", min_value=0.0)
+                real_w = c4.number_input("Peso Real (kg)", min_value=0.0)
+                
+                st.subheader("🚚 Objeto Logístico (Capa 2)")
+                pc1, pc2, pc3 = st.columns(3)
+                pack_type = pc1.selectbox("Embalaje", ["Caja Rígida", "Bolsa de Tela", "Tubo", "Huacal", "Sobre"])
+                fragility_level = pc2.selectbox("Nivel de Fragilidad", ["bajo", "medio", "alto"], index=1)
+                req_assembly = pc3.checkbox("Requiere Ensamblaje")
+                
+                pc4, pc5, pc6, pc7 = st.columns(4)
+                p_dim_h = pc4.number_input("Pack Alto (cm)", min_value=0.0)
+                p_dim_w = pc5.number_input("Pack Ancho (cm)", min_value=0.0)
+                p_dim_l = pc6.number_input("Pack Largo (cm)", min_value=0.0)
+                p_real_w = pc7.number_input("Peso Pack (kg)", min_value=0.0)
+                
+                special_notes = st.text_area("Notas Especiales de Protección (Logística)")
+
+                st.subheader("🏷️ Taxonomía Extendida (Materiales y Atributos)")
+                sel_materials = st.multiselect("Materiales Múltiples", options=list(all_materials.keys()), format_func=lambda x: all_materials[x])
+                sel_care_tags = st.multiselect("Instrucciones de Cuidado", options=list(all_care_tags.keys()), format_func=lambda x: all_care_tags[x])
+                sel_badges = st.multiselect("Insignias (Badges) Curatoriales", options=list(all_badges.keys()), format_func=lambda x: all_badges[x])
+
+                submit_new_prod = st.form_submit_button("💾 Crear Producto Definitivo", use_container_width=True)
+                
+                if submit_new_prod:
+                    if not new_name.strip() or not new_short_desc.strip():
+                        st.error("⚠️ El nombre y la descripción corta son obligatorios.")
+                    elif not sel_craft or not sel_tech:
+                        st.error("⚠️ Debes seleccionar un Oficio y una Técnica Principal.")
+                    elif sel_tech == sel_tech_sec:
+                        st.error("⚠️ La técnica principal y secundaria no pueden ser la misma.")
+                    else:
+                        try:
+                            # 1. Crear Entidad Principal (Core)
+                            core = ProductsCore(
+                                store_id=selected_store_id, name=new_name.strip(), short_description=new_short_desc.strip(), 
+                                history=history_text, care_notes=care_notes_text, status='draft'
+                            )
+                            db.add(core)
+                            db.flush() 
+                            
+                            # 2. Identidad
+                            db.add(ProductArtisanalIdentity(
+                                product_id=core.id, process_type=process_type, estimated_elaboration_time=elab_time,
+                                primary_craft_id=sel_craft, primary_technique_id=sel_tech, secondary_technique_id=sel_tech_sec, 
+                                curatorial_category_id=sel_cat, piece_type=piece_type, style=style, is_collaboration=is_collab
+                            ))
+                            
+                            # 3. Físico y Logístico
+                            db.add(ProductPhysicalSpecs(product_id=core.id, height_cm=dim_h, width_cm=dim_w, length_or_diameter_cm=dim_l, real_weight_kg=real_w))
+                            db.add(ProductLogistics(
+                                product_id=core.id, packaging_type=pack_type, fragility=fragility_level, 
+                                pack_height_cm=p_dim_h, pack_width_cm=p_dim_w, pack_length_cm=p_dim_l, pack_weight_kg=p_real_w,
+                                requires_assembly=req_assembly, special_protection_notes=special_notes
+                            ))
+                            
+                            # 4. Tablas Puente (Multi-selects)
+                            for mat_id in sel_materials:
+                                db.add(ProductMaterialLink(product_id=core.id, material_id=mat_id))
+                            for ct_id in sel_care_tags:
+                                db.add(ProductCareTagLink(product_id=core.id, care_tag_id=ct_id))
+                            for b_id in sel_badges:
+                                db.add(ProductBadgeLink(product_id=core.id, badge_id=b_id))
+                                
+                            # 5. Guardar todo
+                            db.commit()
+                            st.success(f"¡El producto '{new_name}' fue creado exitosamente en la tienda seleccionada!")
+                            st.balloons()
+                        except Exception as e:
+                            db.rollback()
+                            st.error(f"Error al crear el producto: {e}")
 db.close()
