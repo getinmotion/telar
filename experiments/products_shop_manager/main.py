@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine, Column, String, Float, Boolean, JSON, ForeignKey, Numeric, text
+from sqlalchemy import create_engine, Column, String, Float, Boolean, JSON, ForeignKey, Numeric, text, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.engine import URL
@@ -111,6 +111,7 @@ def get_cached_legacy_products(shop_id):
         prods = temp_db.query(ProductLegacy.id, ProductLegacy.name).filter(ProductLegacy.shop_id == shop_id).all()
         return {str(p.id): p.name for p in prods}
 # --- 2. CONFIGURACIÓN IA (LLM) ---
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 @st.cache_data(show_spinner=False)
 def suggest_product_migration(_legacy_product, valid_crafts, valid_techniques, valid_cats):
     crafts_ctx = [{"id": str(k), "name": v} for k, v in valid_crafts.items()]
@@ -119,21 +120,27 @@ def suggest_product_migration(_legacy_product, valid_crafts, valid_techniques, v
     
     system_prompt = f"""
     Eres un curador experto y logístico del marketplace artesanal 'Telar'.
-    Tu tarea es migrar datos antiguos y desestructurados a un nuevo formato estandarizado.
+    Tu tarea es migrar datos antiguos, desestructurados y muy extensos a un nuevo formato estandarizado y segmentado.
     
     REGLAS:
-    - Analiza los textos y JSONs antiguos para inferir medidas (en cm) y peso (en kg).
-    - Asigna los IDs de oficio, técnica y categoría SOLO usando estos catálogos. Si no hay coincidencia, usa null.
+    - Extrae la "Historia" (origen cultural, inspiración) separándola de la "Descripción Corta" (enfoque comercial, max 200 chars).
+    - Extrae cualquier "Nota de cuidado" o requerimiento de ensamblaje que mencione el texto original.
+    - Asigna los IDs de oficio, técnica (principal y secundaria) y categoría SOLO usando estos catálogos. Usa null si no hay coincidencia.
     Oficios: {json.dumps(crafts_ctx)}
     Técnicas: {json.dumps(techs_ctx)}
     Categorías Curatoriales: {json.dumps(cats_ctx)}
+    - Analiza las dimensiones, pesos antiguos, y etiquetas (tags) para deducir la fragilidad logística y el empaque ideal.
+    - Usa los datos de "production_time" o "lead_time_days" para llenar el tiempo de elaboración estimado.
     
     DEVUELVE ÚNICAMENTE UN JSON con esta estructura exacta:
     {{
         "new_name": string,
         "short_description": string (max 200 chars),
+        "history": string (la historia detrás de la pieza, si aplica, si no vacio),
+        "care_notes": string (instrucciones de cuidado encontradas, si no vacio),
         "primary_craft_id": string o null,
         "primary_technique_id": string o null,
+        "secondary_technique_id": string o null,
         "curatorial_category_id": string o null,
         "piece_type": "funcional" | "decorativa" | "mixta",
         "style": "tradicional" | "contemporaneo" | "fusion",
@@ -144,17 +151,26 @@ def suggest_product_migration(_legacy_product, valid_crafts, valid_techniques, v
         "dim_length_cm": float,
         "real_weight_kg": float,
         "packaging_type": "Caja Rígida" | "Bolsa de Tela" | "Tubo" | "Huacal" | "Sobre",
+        "fragility": "bajo" | "medio" | "alto",
+        "requires_assembly": boolean,
+        "special_protection_notes": string,
         "pack_weight_kg": float
     }}
     """
 
     user_prompt = f"""
     Producto legacy:
-    Nombre: {legacy_product.name}
-    Descripción: {legacy_product.description}
-    Peso: {legacy_product.weight}
-    Materiales JSON: {json.dumps(legacy_product.materials)}
-    Dimensiones JSON: {json.dumps(legacy_product.dimensions)}
+    Nombre: {_legacy_product.name}
+    Descripción Completa: {_legacy_product.description}
+    Categoría Antigua: {_legacy_product.category} > {_legacy_product.subcategory}
+    Tags: {json.dumps(_legacy_product.tags)}
+    Peso: {_legacy_product.weight}
+    Materiales JSON: {json.dumps(_legacy_product.materials)}
+    Técnicas JSON: {json.dumps(_legacy_product.techniques)}
+    Dimensiones JSON: {json.dumps(_legacy_product.dimensions)}
+    Tiempo Producción Texto: {_legacy_product.production_time}
+    Hecho a pedido: {_legacy_product.made_to_order} (Lead: {_legacy_product.lead_time_days} días)
+    Personalizable: {_legacy_product.customizable}
     """
 
     try:
@@ -171,7 +187,6 @@ def suggest_product_migration(_legacy_product, valid_crafts, valid_techniques, v
     except Exception as e:
         st.error(f"Error LLM: {e}")
         return {}
-
 # --- 3. MODELOS ORM (CON UUIDS Y NOMBRES SQL) ---
 
 # -- TAXONOMÍA --
@@ -235,12 +250,38 @@ class ProductLegacy(Base):
     __table_args__ = {'schema': 'shop', 'extend_existing': True}
     id = Column(UUID(as_uuid=False), primary_key=True)
     shop_id = Column(UUID(as_uuid=False), ForeignKey('shop.artisan_shops.id'))
+    category_id = Column(UUID(as_uuid=False))
     name = Column(String)
     description = Column(String)
-    price = Column(Float)
+    short_description = Column(String)
+    price = Column(Numeric(10, 2))
+    compare_price = Column(Numeric(10, 2))
+    images = Column(JSON)
+    category = Column(String)
+    subcategory = Column(String)
+    tags = Column(JSON)
+    inventory = Column(Integer)
+    sku = Column(String)
+    weight = Column(Numeric(8, 2))
     dimensions = Column(JSON) 
     materials = Column(JSON)
-    weight = Column(Float)
+    techniques = Column(JSON)
+    production_time = Column(String)
+    customizable = Column(Boolean)
+    active = Column(Boolean)
+    featured = Column(Boolean)
+    seo_data = Column(JSON)
+    made_to_order = Column(Boolean)
+    lead_time_days = Column(Integer)
+    production_time_hours = Column(Numeric(5, 2))
+    requires_customization = Column(Boolean)
+    marketplace_links = Column(JSON)
+    moderation_status = Column(String)
+    shipping_data_complete = Column(Boolean)
+    ready_for_checkout = Column(Boolean)
+    allows_local_pickup = Column(Boolean)
+    nft_enabled = Column(Boolean)
+    # Ignoramos created_at, updated_at y embedding para no saturar la memoria innecesariamente
 
 # -- SHOP NUEVO --
 class Store(Base):
@@ -304,16 +345,15 @@ class ProductLogistics(Base):
     fragility = Column(String)
     requires_assembly = Column(Boolean, default=False) # <- NUEVO
     special_protection_notes = Column(String) # <- NUEVO
-class ProductLogistics(Base):
-    __tablename__ = 'product_logistics'
+
+class ProductProduction(Base):
+    __tablename__ = 'product_production'
     __table_args__ = {'schema': 'shop', 'extend_existing': True}
-    product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id'), primary_key=True)
-    packaging_type = Column(String)
-    pack_height_cm = Column(Numeric(8,2))
-    pack_width_cm = Column(Numeric(8,2))
-    pack_length_cm = Column(Numeric(8,2))
-    pack_weight_kg = Column(Numeric(8,2))
-    fragility = Column(String)
+    product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id', ondelete="CASCADE"), primary_key=True)
+    availability_type = Column(String, nullable=False) # 'en_stock', 'bajo_pedido', 'edicion_limitada'
+    production_time_days = Column(Integer)
+    monthly_capacity = Column(Integer)
+    requirements_to_start = Column(String)
 
 class ProductMaterialLink(Base):
     __tablename__ = 'product_materials_link'
@@ -333,6 +373,95 @@ class ProductBadgeLink(Base):
     id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id'))
     badge_id = Column(UUID(as_uuid=False), ForeignKey('taxonomy.badges.id'))
+# -- NUEVO CATÁLOGO DE ATRIBUTOS EAV --
+class ProductCategory(Base):
+    __tablename__ = 'product_categories'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    parent_id = Column(UUID(as_uuid=False), ForeignKey('shop.product_categories.id'))
+    is_active = Column(Boolean, default=True)
+# --- MODELOS EAV NORMALIZADOS ---
+class Attribute(Base):
+    __tablename__ = 'attributes'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    code = Column(String, unique=True, nullable=False) 
+    name = Column(String, nullable=False)
+    ui_type = Column(String, default='text') 
+    data_type = Column(String, default='string')
+    unit = Column(String)
+    validation_rules = Column(JSON, default={})
+
+class AttributeOption(Base):
+    __tablename__ = 'attribute_options'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    attribute_id = Column(UUID(as_uuid=False), ForeignKey('shop.attributes.id', ondelete="CASCADE"), nullable=False)
+    value = Column(String, nullable=False) # Ej: "S", "M", "L", "Rojo"
+
+class CategoryAttributeSet(Base):
+    __tablename__ = 'category_attribute_sets'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    category_id = Column(UUID(as_uuid=False), ForeignKey('shop.product_categories.id', ondelete="CASCADE"), primary_key=True)
+    attribute_id = Column(UUID(as_uuid=False), ForeignKey('shop.attributes.id', ondelete="CASCADE"), primary_key=True)
+    is_variant_axis = Column(Boolean, default=False) 
+    required_at = Column(String, default='publish')
+
+class ShopAttribute(Base):
+    __tablename__ = 'attributes'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    code = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    ui_type = Column(String, default='text')
+    data_type = Column(String, default='string')
+    unit = Column(String)
+    validation_rules = Column(JSON, default={})
+
+class ShopAttributeOption(Base):
+    __tablename__ = 'attribute_options'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    attribute_id = Column(UUID(as_uuid=False), ForeignKey('shop.attributes.id'))
+    value = Column(String, nullable=False)
+    hex_color = Column(String)
+    sort_order = Column(Integer, default=0)
+
+class ProductAttributeValue(Base):
+    __tablename__ = 'product_attribute_values'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id'), primary_key=True)
+    attribute_id = Column(UUID(as_uuid=False), ForeignKey('shop.attributes.id'), primary_key=True)
+    value_text = Column(String)
+    value_option_id = Column(UUID(as_uuid=False), ForeignKey('shop.attribute_options.id'))
+class ProductPhysicalSpecs(Base):
+    __tablename__ = 'product_physical_specs'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    product_id = Column(String, ForeignKey('shop.products_core.id'), primary_key=True)
+    height_cm = Column(Numeric(8,2))
+    width_cm = Column(Numeric(8,2))
+    length_or_diameter_cm = Column(Numeric(8,2))
+    real_weight_kg = Column(Numeric(8,2))
+class ProductVariant(Base):
+    __tablename__ = 'product_variants'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
+    product_id = Column(UUID(as_uuid=False), ForeignKey('shop.products_core.id', ondelete="CASCADE"), nullable=False)
+    sku = Column(String, unique=True)
+    stock_quantity = Column(Integer, default=0)
+    base_price_minor = Column(Integer, nullable=False) 
+    currency = Column(String, default='COP')
+    is_active = Column(Boolean, default=True)
+
+class VariantAttributeValue(Base):
+    __tablename__ = 'variant_attribute_values'
+    __table_args__ = {'schema': 'shop', 'extend_existing': True}
+    variant_id = Column(UUID(as_uuid=False), ForeignKey('shop.product_variants.id'), primary_key=True)
+    attribute_id = Column(UUID(as_uuid=False), ForeignKey('shop.attributes.id'), primary_key=True)
+    value_text = Column(String)
+    value_option_id = Column(UUID(as_uuid=False), ForeignKey('shop.attribute_options.id'))
 
 SessionLocal = get_db_sessionmaker()
 db = SessionLocal()
@@ -437,8 +566,11 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
         
     st.markdown("---")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🌳 Árbol: Oficios y Técnicas", "🪵 Materiales", "🏛️ Cat. Curatoriales", "🏅 Insignias (Badges)", "🏷️ Care Tags"])
-    
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "🌳 Oficios", "🪵 Materiales", "🏛️ Cat. Curatoriales", 
+        "🏅 Badges", "🏷️ Care Tags", 
+        "🗂️ Categorías de Producto (Jerarquía)", "⚙️ Atributos EAV"
+    ])
     # --- TAB 1: ÁRBOL DE OFICIOS Y TÉCNICAS ---
     with tab1:
         col_tree, col_forms = st.columns([1, 1], gap="large")
@@ -477,7 +609,7 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
             mats = db.query(TaxonomyMaterial).all()
             df_mats = pd.DataFrame([{"id": str(m.id), "Nombre": m.name, "Orgánico": m.is_organic, "Sustentable": m.is_sustainable} for m in mats])
             if not df_mats.empty:
-                edited_mats = st.data_editor(df_mats, column_config={"id": None}, hide_index=True, use_container_width=True, key="ed_mat")
+                edited_mats = st.data_editor(df_mats, column_config={"id": None}, hide_index=True, width="stretch", key="ed_mat")
                 if st.button("💾 Guardar Ediciones de Materiales"):
                     for _, row in edited_mats.iterrows():
                         db_m = db.query(TaxonomyMaterial).filter(TaxonomyMaterial.id == row['id']).first()
@@ -504,7 +636,7 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
             cats = db.query(TaxonomyCategory).all()
             df_cats = pd.DataFrame([{"id": str(c.id), "Nombre": c.name} for c in cats])
             if not df_cats.empty:
-                edited_cats = st.data_editor(df_cats, column_config={"id": None}, hide_index=True, use_container_width=True, key="ed_cat")
+                edited_cats = st.data_editor(df_cats, column_config={"id": None}, hide_index=True, width='stretch', key="ed_cat")
                 if st.button("💾 Guardar Ediciones de Categorías"):
                     for _, row in edited_cats.iterrows():
                         db_c = db.query(TaxonomyCategory).filter(TaxonomyCategory.id == row['id']).first()
@@ -527,7 +659,7 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
             df_badges = pd.DataFrame([{"id": str(b.id), "Código": b.code, "Nombre": b.name, "Target": b.target_type} for b in badges])
             if not df_badges.empty:
                 # Ocultamos el ID y protegemos el Código (no se debería editar fácilmente si se usa en lógica)
-                edited_badges = st.data_editor(df_badges, column_config={"id": None, "Código": st.column_config.TextColumn(disabled=True)}, hide_index=True, use_container_width=True, key="ed_bad")
+                edited_badges = st.data_editor(df_badges, column_config={"id": None, "Código": st.column_config.TextColumn(disabled=True)}, hide_index=True, width='stretch', key="ed_bad")
                 if st.button("💾 Guardar Ediciones de Insignias"):
                     for _, row in edited_badges.iterrows():
                         db_b = db.query(TaxonomyBadge).filter(TaxonomyBadge.id == row['id']).first()
@@ -554,7 +686,7 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
             tags = db.query(TaxonomyCareTag).all()
             df_tags = pd.DataFrame([{"id": str(ct.id), "Instrucción": ct.name} for ct in tags])
             if not df_tags.empty:
-                edited_tags = st.data_editor(df_tags, column_config={"id": None}, hide_index=True, use_container_width=True, key="ed_tag")
+                edited_tags = st.data_editor(df_tags, column_config={"id": None}, hide_index=True, width='stretch', key="ed_tag")
                 if st.button("💾 Guardar Ediciones de Etiquetas"):
                     for _, row in edited_tags.iterrows():
                         db_t = db.query(TaxonomyCareTag).filter(TaxonomyCareTag.id == row['id']).first()
@@ -567,6 +699,145 @@ elif menu == "🏷️ Gestor de Taxonomía (Maestros)":
                 if st.form_submit_button("Crear Nueva") and ct_name.strip():
                     db.add(TaxonomyCareTag(name=ct_name.strip()))
                     db.commit(); get_cached_taxonomies.clear(); st.rerun()
+# --- TAB 6: CATEGORÍAS DE PRODUCTO (JERARQUÍA) ---
+    with tab6:
+        st.subheader("🗂️ Árbol de Categorías de Producto")
+        st.caption("Estas son las categorías comerciales (ej. Ropa Exterior > Chaquetas).")
+        
+        c1, c2 = st.columns([1, 1], gap="large")
+        with c1:
+            st.markdown("**Jerarquía Actual:**")
+            # Consultamos solo las categorías "Padre" (las que no tienen parent_id)
+            root_cats = db.query(ProductCategory).filter(ProductCategory.parent_id == None).all()
+            if not root_cats:
+                st.info("No hay categorías creadas.")
+            else:
+                for root in root_cats:
+                    with st.expander(f"📁 {root.name}"):
+                        subs = db.query(ProductCategory).filter(ProductCategory.parent_id == root.id).all()
+                        for s in subs:
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp; └─ 📄 {s.name}")
+        with c2:
+            st.markdown("**Crear Categoría:**")
+            with st.form("form_prod_cat"):
+                cat_name = st.text_input("Nombre de la Categoría")
+                cat_slug = st.text_input("Slug (URL ej. ropa-exterior)")
+                
+                # Selector para elegir si es Padre o Subcategoría
+                parent_opts = {"Ninguno (Categoría Principal)": None}
+                for c in db.query(ProductCategory).all():
+                    parent_opts[f"{c.name}"] = c.id
+                    
+                sel_parent = st.selectbox("Categoría Padre", options=list(parent_opts.keys()))
+                
+                if st.form_submit_button("Guardar Categoría") and cat_name.strip() and cat_slug.strip():
+                    db.add(ProductCategory(
+                        name=cat_name.strip(), 
+                        slug=cat_slug.strip().lower().replace(" ", "-"),
+                        parent_id=parent_opts[sel_parent]
+                    ))
+                    db.commit(); st.rerun()
+
+# --- TAB 7: GESTOR DE ATRIBUTOS EAV (Normalizado) ---
+    with tab7:
+        st.subheader("⚙️ Atributos Globales y Mapeo por Categoría")
+        st.caption("Crea atributos reutilizables (ej. Talla) y asígnalos a las categorías que los necesiten.")
+        
+        col_eav1, col_eav2 = st.columns([1, 1], gap="large")
+        
+# COLUMNA DERECHA: BANCO GLOBAL DE ATRIBUTOS
+        with col_eav2:
+            st.markdown("### 1. Banco Global de Atributos")
+            with st.form("form_new_attr_global"):
+                a_code = st.text_input("Código único (ej. talla_ropa, color_base)")
+                a_name = st.text_input("Nombre público (ej. Talla, Color)")
+                
+                c_a1, c_a2 = st.columns(2)
+                a_ui = c_a1.selectbox("Tipo de Interfaz", ["text", "select", "color", "number"])
+                a_data = c_a2.selectbox("Tipo de Dato DB", ["string", "number", "boolean"])
+                
+                a_unit = st.text_input("Unidad de medida (ej. cm, ml) - Opcional")
+                
+                if st.form_submit_button("Crear Atributo Global") and a_name.strip() and a_code.strip():
+                    try:
+                        db.add(Attribute(
+                            code=a_code.strip().lower(), 
+                            name=a_name.strip(), 
+                            ui_type=a_ui, 
+                            data_type=a_data,
+                            unit=a_unit.strip() if a_unit.strip() else None
+                        ))
+                        db.commit(); st.rerun()
+                    except Exception as e:
+                        db.rollback(); st.error("Error: Posiblemente el código ya existe.")
+            
+            st.markdown("**Atributos Existentes:**")
+            all_attrs = db.query(Attribute).order_by(Attribute.name).all()
+            for attr in all_attrs:
+                # Usamos ui_type en lugar de display_type
+                with st.expander(f"🧩 {attr.name} ({attr.ui_type}) | Code: {attr.code}"):
+                    st.caption(f"Dato: {attr.data_type} | Unidad: {attr.unit or 'N/A'}")
+                    if attr.ui_type in ['select', 'color']:
+                        opts = db.query(AttributeOption).filter(AttributeOption.attribute_id == attr.id).all()
+                        st.write(f"Opciones: {', '.join([o.value for o in opts]) if opts else 'Ninguna'}")
+                        with st.form(f"add_opt_{attr.id}"):
+                            new_val = st.text_input("Añadir opción (ej. Rojo, XL):")
+                            if st.form_submit_button("Añadir") and new_val:
+                                db.add(AttributeOption(attribute_id=attr.id, value=new_val.strip()))
+                                db.commit(); st.rerun()
+        # COLUMNA IZQUIERDA: MAPEO A CATEGORÍAS
+        with col_eav1:
+            st.markdown("### 2. Mapeo a Categorías")
+            cats_for_eav = db.query(ProductCategory).order_by(ProductCategory.name).all()
+            
+            if not cats_for_eav:
+                st.warning("Crea al menos una Categoría de Producto en la pestaña anterior.")
+            elif not all_attrs:
+                st.info("Crea un Atributo Global en el panel de la derecha primero.")
+            else:
+                cat_options = {str(c.id): c.name for c in cats_for_eav}
+                selected_cat = st.selectbox("Selecciona la Categoría:", options=list(cat_options.keys()), format_func=lambda x: cat_options[x])
+                
+                if selected_cat:
+                    st.markdown("---")
+                    st.markdown(f"**Atributos requeridos para '{cat_options[selected_cat]}':**")
+                    
+                    # Mostrar los atributos ya enlazados
+                    mapped_sets = db.query(CategoryAttributeSet).filter(CategoryAttributeSet.category_id == selected_cat).all()
+                    mapped_attr_ids = [str(m.attribute_id) for m in mapped_sets]
+                    
+                    if not mapped_sets:
+                        st.info("Ningún atributo asignado todavía.")
+                    else:
+                        for m_set in mapped_sets:
+                            attr_obj = db.query(Attribute).filter(Attribute.id == m_set.attribute_id).first()
+                            if attr_obj:
+                                st.markdown(f"- **{attr_obj.name}** | Variante: {'✅' if m_set.is_variant_axis else '❌'} | Requerido en: `{m_set.required_at}`")
+                    
+                    st.markdown("---")
+                    # Formulario para enlazar un nuevo atributo a esta categoría
+                    with st.form("form_map_attr"):
+                        st.markdown("**Enlazar nuevo atributo:**")
+                        # Filtramos para no mostrar los que ya están asignados
+                        available_attrs = {str(a.id): a.name for a in all_attrs if str(a.id) not in mapped_attr_ids}
+                        
+                        if not available_attrs:
+                            st.success("Esta categoría ya tiene todos los atributos globales asignados.")
+                            st.form_submit_button("Guardar Enlace", disabled=True)
+                        else:
+                            sel_attr_to_map = st.selectbox("Atributo", options=list(available_attrs.keys()), format_func=lambda x: available_attrs[x])
+                            is_var = st.checkbox("¿Es Eje de Variante? (Genera SKU)")
+                            req_stage = st.selectbox("¿Cuándo es obligatorio?", ["draft", "publish"], index=1)
+                            
+                            if st.form_submit_button("Guardar Enlace") and sel_attr_to_map:
+                                db.add(CategoryAttributeSet(
+                                    category_id=selected_cat,
+                                    attribute_id=sel_attr_to_map,
+                                    is_variant_axis=is_var,
+                                    required_at=req_stage
+                                ))
+                                db.commit(); st.rerun()
+
 elif menu == "🏪 Migración de Tiendas":
     st.title("Migración Rápida de Tiendas 🏪")
     st.info("Crea el perfil base de la tienda en la nueva arquitectura para desbloquear la migración de sus productos. Podrás enriquecer estos datos más adelante.")
@@ -595,7 +866,7 @@ elif menu == "🏪 Migración de Tiendas":
                     default_slug = str(legacy_shop.shop_name).lower().replace(" ", "-").replace("ñ", "n") if legacy_shop.shop_name else f"tienda-{str(uuid.uuid4())[:6]}"
                     new_slug = st.text_input("Slug (URL único)", value=default_slug)
                     
-                    if st.form_submit_button("🚀 Crear Perfil Base", use_container_width=True):
+                    if st.form_submit_button("🚀 Crear Perfil Base", width='stretch'):
                         try:
                             new_store = Store(
                                 user_id=legacy_shop.user_id, # <- LÍNEA NUEVA
@@ -642,14 +913,54 @@ elif menu == "📦 Migración de Productos":
                     col_left, col_right = st.columns([1, 1.2], gap="large")
                     
                     with col_left:
-                        st.header("⬅️ Data Original")
-                        st.markdown(f"**Nombre:** {p_legacy.name}")
-                        st.markdown(f"**Desc:** {p_legacy.description}")
-                        st.markdown(f"**Peso Viejo:** {p_legacy.weight} kg")
-                        st.json(p_legacy.materials if p_legacy.materials else {})
-                        st.json(p_legacy.dimensions if p_legacy.dimensions else {})
+                        st.header("⬅️ Data Original (Legacy)")
                         
-                        if st.button("✨ Autocompletar con IA", type="primary", use_container_width=True):
+                        # Usamos tabs para organizar las +30 columnas limpiamente
+                        t_base, t_fisico, t_prod, t_extra = st.tabs(["📝 Básica", "📏 Físico", "⚙️ Producción", "🔗 Extras"])
+                        
+                        with t_base:
+                            st.markdown(f"**Nombre:** {p_legacy.name}")
+                            st.markdown(f"**SKU:** {p_legacy.sku} | **Inventario:** {p_legacy.inventory}")
+                            st.markdown(f"**Precio:** ${p_legacy.price} | **Categoría:** {p_legacy.category} > {p_legacy.subcategory}")
+                            st.markdown(f"**Estado:** {p_legacy.moderation_status} | **Activo:** {'Sí' if p_legacy.active else 'No'}")
+                            st.markdown("**Descripción:**")
+                            st.info(p_legacy.description if p_legacy.description else "Sin descripción")
+                            if p_legacy.short_description:
+                                st.markdown("**Descripción Corta:**")
+                                st.caption(p_legacy.short_description)
+
+                        with t_fisico:
+                            st.markdown(f"**Peso Viejo:** {p_legacy.weight} kg")
+                            st.markdown("**Dimensiones (JSON):**")
+                            st.json(p_legacy.dimensions if p_legacy.dimensions else {})
+                            st.markdown("**Materiales (JSON):**")
+                            st.json(p_legacy.materials if p_legacy.materials else {})
+                            st.markdown("**Técnicas (JSON):**")
+                            st.json(p_legacy.techniques if p_legacy.techniques else {})
+                            
+                        with t_prod:
+                            st.markdown(f"**Bajo pedido:** {'Sí' if p_legacy.made_to_order else 'No'} | **Días de Lead:** {p_legacy.lead_time_days}")
+                            st.markdown(f"**Tiempo Producción (Texto):** {p_legacy.production_time}")
+                            st.markdown(f"**Horas Producción:** {p_legacy.production_time_hours}")
+                            st.markdown(f"**Personalizable:** {'Sí' if p_legacy.customizable else 'No'} | **Req. Personalización:** {'Sí' if p_legacy.requires_customization else 'No'}")
+                            
+                        with t_extra:
+                            st.markdown(f"**NFT Enabled:** {'Sí' if p_legacy.nft_enabled else 'No'}")
+                            st.markdown(f"**Pickup Local:** {'Sí' if p_legacy.allows_local_pickup else 'No'} | **Shipping Setup:** {'Sí' if p_legacy.shipping_data_complete else 'No'}")
+                            
+                            c_e1, c_e2 = st.columns(2)
+                            with c_e1:
+                                st.markdown("**Imágenes:**")
+                                st.json(p_legacy.images if p_legacy.images else {})
+                            with c_e2:
+                                st.markdown("**Tags:**")
+                                st.json(p_legacy.tags if p_legacy.tags else {})
+                                
+                            st.markdown("**Links Marketplace:**")
+                            st.json(p_legacy.marketplace_links if p_legacy.marketplace_links else {})
+
+                        st.markdown("---")
+                        if st.button("✨ Autocompletar con IA", type="primary", width='stretch'):
                             with st.spinner("🧠 Infiriendo estructura..."):
                                 st.session_state[f"ai_sug_{p_legacy.id}"] = suggest_product_migration(p_legacy, crafts, techniques, curatorial_cats)
                                 st.success("¡Datos extraídos!")
@@ -723,13 +1034,32 @@ elif menu == "📦 Migración de Productos":
                             pack_weight = pc7.number_input("Peso Pack (kg)", value=float(sug.get("pack_weight_kg", real_w * 1.1)), min_value=0.0)
                             
                             special_notes = st.text_area("Notas Especiales de Protección (Logística)")
+                            # --- NUEVA SECCIÓN: PRODUCCIÓN E INVENTARIO ---
+                            st.subheader("⚙️ Producción e Inventario (Variante Base)")
+                            
+                            # Lógica para predecir la disponibilidad según los datos legacy
+                            default_avail = "bajo_pedido" if p_legacy.made_to_order else "en_stock"
+                            avail_opts = ["en_stock", "bajo_pedido", "edicion_limitada"]
+                            
+                            c_inv1, c_inv2, c_inv3 = st.columns(3)
+                            avail_type = c_inv1.selectbox("Disponibilidad", avail_opts, index=get_idx(avail_opts, default_avail))
+                            prod_days = c_inv2.number_input("Días de Producción", value=int(p_legacy.lead_time_days or 0), min_value=0, help="Solo si es bajo pedido")
+                            month_cap = c_inv3.number_input("Capacidad Mensual", value=0, min_value=0, help="¿Cuántos pueden hacer al mes?")
+                            
+                            req_start = st.text_input("Requisitos para iniciar", help="Ej: 50% de anticipo, confirmar medidas, etc.")
+                            
+                            st.markdown("**Stock Físico y Precio (Variante Principal)**")
+                            c_var1, c_var2 = st.columns(2)
+                            new_price = c_var1.number_input("Precio Base (COP)", value=float(p_legacy.price or 100.0), min_value=100.0, step=1000.0)
+                            new_stock = c_var2.number_input("Inventario Real (Stock)", value=int(p_legacy.inventory or 0), min_value=0, step=1)
+                            st.markdown("---")
 
                             st.subheader("🏷️ Taxonomía Extendida (Materiales y Atributos)")
                             sel_materials = st.multiselect("Materiales Múltiples", options=list(all_materials.keys()), format_func=lambda x: all_materials[x])
                             sel_care_tags = st.multiselect("Instrucciones de Cuidado", options=list(all_care_tags.keys()), format_func=lambda x: all_care_tags[x])
                             sel_badges = st.multiselect("Insignias", options=list(all_badges.keys()), format_func=lambda x: all_badges[x])
 
-                            if st.form_submit_button("💾 Guardar Revisión Humana", use_container_width=True):
+                            if st.form_submit_button("💾 Guardar Revisión Humana", width='stretch'):
                                 if not sel_tech:
                                     st.error("⚠️ Error: Debes seleccionar al menos una 'Técnica' principal.")
                                 elif sel_tech == sel_tech_sec:
@@ -760,13 +1090,29 @@ elif menu == "📦 Migración de Productos":
                                                 pack_height_cm=p_dim_h, pack_width_cm=p_dim_w, pack_length_cm=p_dim_l, pack_weight_kg=pack_weight,
                                                 requires_assembly=req_assembly, special_protection_notes=special_notes
                                             ))
-                                            
+                                            db.add(ProductProduction(
+                                                product_id=core.id,
+                                                availability_type=avail_type,
+                                                production_time_days=int(prod_days),
+                                                monthly_capacity=int(month_cap),
+                                                requirements_to_start=req_start.strip() if req_start.strip() else None
+                                            ))
                                             for mat_id in sel_materials:
                                                 db.add(ProductMaterialLink(product_id=core.id, material_id=mat_id))
                                             for ct_id in sel_care_tags:
                                                 db.add(ProductCareTagLink(product_id=core.id, care_tag_id=ct_id))
                                             for b_id in sel_badges:
                                                 db.add(ProductBadgeLink(product_id=core.id, badge_id=b_id))
+                                            
+                                            precio_base = int(new_price * 100)
+                                            variante_base = ProductVariant(
+                                                product_id=core.id,
+                                                sku=p_legacy.sku,
+                                                stock_quantity=int(new_stock),
+                                                base_price_minor=precio_base,
+                                                currency='COP'
+                                            )
+                                            db.add(variante_base)
                                                 
                                             db.commit()
                                             st.success("¡Producto verificado y guardado correctamente!")
@@ -802,10 +1148,22 @@ elif menu == "✨ Crear Nuevo Producto":
                 new_name = st.text_input("Nombre del Producto")
                 new_short_desc = st.text_area("Descripción Corta (Max 200 caracteres)")
                 
-                c_hist1, c_hist2 = st.columns(2)
-                history_text = c_hist1.text_area("Historia del Producto")
-                care_notes_text = c_hist2.text_area("Notas de Cuidado Específicas")
+                # --- NUEVO: CAMPOS DE LA VARIANTE BASE ---
+                st.subheader("⚙️ Producción e Inventario (Variante Base)")
                 
+                c_inv1, c_inv2, c_inv3 = st.columns(3)
+                avail_type = c_inv1.selectbox("Disponibilidad", ["en_stock", "bajo_pedido", "edicion_limitada"])
+                prod_days = c_inv2.number_input("Días de Producción", value=0, min_value=0, help="Si es bajo pedido")
+                month_cap = c_inv3.number_input("Capacidad Mensual", value=0, min_value=0, help="Límite mensual de creación")
+                
+                req_start = st.text_input("Requisitos para iniciar producción", help="Ej: Pago del 50%, diseño aprobado.")
+                
+                st.markdown("**Stock Físico y Precio (Variante Principal)**")
+                c_var1, c_var2, c_var3 = st.columns(3)
+                new_sku = c_var1.text_input("SKU (Opcional)")
+                new_price = c_var2.number_input("Precio Base (COP)", min_value=100.0, step=1000.0)
+                new_stock = c_var3.number_input("Inventario Real (Stock)", min_value=0, step=1)
+                st.markdown("---")
                 st.subheader("🎨 Identidad Curatorial y Artesanal")
                 
                 if not crafts or not curatorial_cats:
@@ -856,7 +1214,7 @@ elif menu == "✨ Crear Nuevo Producto":
                 sel_care_tags = st.multiselect("Instrucciones de Cuidado", options=list(all_care_tags.keys()), format_func=lambda x: all_care_tags[x])
                 sel_badges = st.multiselect("Insignias (Badges) Curatoriales", options=list(all_badges.keys()), format_func=lambda x: all_badges[x])
 
-                submit_new_prod = st.form_submit_button("💾 Crear Producto Definitivo", use_container_width=True)
+                submit_new_prod = st.form_submit_button("💾 Crear Producto Definitivo", width='stretch')
                 
                 if submit_new_prod:
                     if not new_name.strip() or not new_short_desc.strip():
@@ -889,8 +1247,14 @@ elif menu == "✨ Crear Nuevo Producto":
                                 pack_height_cm=p_dim_h, pack_width_cm=p_dim_w, pack_length_cm=p_dim_l, pack_weight_kg=p_real_w,
                                 requires_assembly=req_assembly, special_protection_notes=special_notes
                             ))
+                            db.add(ProductProduction(
+                                product_id=core.id,
+                                availability_type=avail_type,
+                                production_time_days=int(prod_days),
+                                monthly_capacity=int(month_cap),
+                                requirements_to_start=req_start.strip() if req_start.strip() else None
+                            ))
                             
-                            # 4. Tablas Puente (Multi-selects)
                             for mat_id in sel_materials:
                                 db.add(ProductMaterialLink(product_id=core.id, material_id=mat_id))
                             for ct_id in sel_care_tags:
@@ -898,6 +1262,17 @@ elif menu == "✨ Crear Nuevo Producto":
                             for b_id in sel_badges:
                                 db.add(ProductBadgeLink(product_id=core.id, badge_id=b_id))
                                 
+                            # --- NUEVO: CREAR LA VARIANTE BASE ---
+                            variante_base = ProductVariant(
+                                product_id=core.id,
+                                sku=new_sku.strip() if new_sku.strip() else None,
+                                stock_quantity=int(new_stock),
+                                base_price_minor=int(new_price * 100), 
+                                currency='COP'
+                            )
+                            db.add(variante_base)
+                            # -------------------------------------
+
                             # 5. Guardar todo
                             db.commit()
                             st.success(f"¡El producto '{new_name}' fue creado exitosamente en la tienda seleccionada!")
