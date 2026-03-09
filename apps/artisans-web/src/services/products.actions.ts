@@ -57,9 +57,9 @@ function mapProductFromDTO(dto: BackendProductDTO): Product {
     category: categoryName,
     subcategory: dto.subcategory,
     tags: dto.tags || [],
-    inventory: dto.inventory ?? 0,
+    inventory: dto.inventory != null ? Number(dto.inventory) : 0,
     sku: dto.sku,
-    weight: dto.weight,
+    weight: dto.weight != null ? Number(dto.weight) : undefined,
     dimensions: dto.dimensions,
     materials: dto.materials || [],
     techniques: dto.techniques || [],
@@ -100,8 +100,16 @@ function toBackendPayload(data: Record<string, any>): Record<string, any> {
     nft_enabled: 'nftEnabled',
   };
 
+  const numericFields = new Set(['price', 'comparePrice', 'inventory', 'weight']);
+
   return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [fieldMap[key] ?? key, value])
+    Object.entries(data).map(([key, value]) => {
+      const mappedKey = fieldMap[key] ?? key;
+      if (numericFields.has(mappedKey) && value != null && value !== '') {
+        return [mappedKey, Number(value)];
+      }
+      return [mappedKey, value];
+    })
   );
 }
 
