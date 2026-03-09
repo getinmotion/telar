@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
 import { PriceInput } from '@/components/ui/price-input';
+import { WeightInput } from '@/components/ui/WeightInput';
 import { useAIRefinement } from '../hooks/useAIRefinement';
 import { WizardState, VariantOption, ProductVariant } from '../hooks/useWizardState';
 import { SaveDraftButton } from '../components/SaveDraftButton';
@@ -349,19 +350,14 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
           </div>
 
           {/* Weight */}
-          <div>
-            <Label htmlFor="weight">Peso (g)</Label>
-            <Input
+          <div className="col-span-2">
+            <Label htmlFor="weight">Peso</Label>
+            <WeightInput
               id="weight"
-              type="number"
-              value={weight ?? ''}
-              onChange={(e) => onDataChange({ weight: e.target.value ? Number(e.target.value) : undefined })}
-              placeholder="Gramos"
+              value={weight ?? null}
+              onChange={(valueKg) => onDataChange({ weight: valueKg ?? undefined })}
             />
           </div>
-
-          {/* Empty for alignment */}
-          <div></div>
         </div>
 
         {/* Dimensions */}
