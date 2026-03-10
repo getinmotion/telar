@@ -8,17 +8,17 @@ interface SubdomainInfo {
 
 /**
  * Hook para detectar si estamos en el subdominio de moderación
- * Detecta: moderacion.telar.co, moderacion.localhost
+ * Detecta: moderation.telar.co, moderation.localhost
  */
 export const useSubdomain = (): SubdomainInfo => {
   return useMemo(() => {
     const hostname = window.location.hostname;
-    
+
     // Detectar subdominio de moderación
-    const isModerationSubdomain = 
-      hostname.startsWith('moderacion.') || // moderacion.telar.co, moderacion.localhost
-      hostname === 'moderacion.telar.co';
-    
+    const isModerationSubdomain =
+      hostname.startsWith('moderation.') || // moderation.telar.co, moderation.localhost
+      hostname === 'moderation.telar.co';
+
     // Extraer subdomain si existe
     const parts = hostname.split('.');
     const subdomain = parts.length > 2 ? parts[0] : null;
