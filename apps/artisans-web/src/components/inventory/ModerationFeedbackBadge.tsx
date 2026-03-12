@@ -11,12 +11,12 @@ import {
 import { AlertCircle, CheckCircle, Clock, FileEdit, XCircle, Edit, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type ModerationStatus = 
-  | 'draft' 
-  | 'pending_moderation' 
-  | 'approved' 
-  | 'approved_with_edits' 
-  | 'changes_requested' 
+type ModerationStatus =
+  | 'draft'
+  | 'pending_moderation'
+  | 'approved'
+  | 'approved_with_edits'
+  | 'changes_requested'
   | 'rejected'
   | 'archived';
 
@@ -85,29 +85,27 @@ const statusConfig: Record<string, {
   }
 };
 
-export const ModerationFeedbackBadge: React.FC<ModerationFeedbackBadgeProps> = ({ 
-  status, 
+export const ModerationFeedbackBadge: React.FC<ModerationFeedbackBadgeProps> = ({
+  status,
   comment,
   productId,
   productName
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   const normalizedStatus = status || 'draft';
   const config = statusConfig[normalizedStatus] || statusConfig.draft;
-  
+
   const isRejected = normalizedStatus === 'rejected';
   const isChangesRequested = normalizedStatus === 'changes_requested';
   const canShowModal = isRejected || isChangesRequested;
 
   // Always log to debug
-  console.log('[ModerationBadge] Rendering:', { status, normalizedStatus, canShowModal, productName });
 
   const handleBadgeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('[ModerationBadge] Click - opening modal');
     setIsModalOpen(true);
   };
 
@@ -121,8 +119,8 @@ export const ModerationFeedbackBadge: React.FC<ModerationFeedbackBadgeProps> = (
   return (
     <>
       <div className="flex flex-col items-start gap-1">
-        <Badge 
-          variant={config.variant} 
+        <Badge
+          variant={config.variant}
           className={`${config.className} flex items-center gap-1`}
         >
           {config.icon}
@@ -203,7 +201,7 @@ export const ModerationFeedbackBadge: React.FC<ModerationFeedbackBadgeProps> = (
             {/* Acciones */}
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               {productId && (
-                <Button 
+                <Button
                   onClick={handleEditProduct}
                   className="flex-1"
                 >
@@ -211,8 +209,8 @@ export const ModerationFeedbackBadge: React.FC<ModerationFeedbackBadgeProps> = (
                   Editar Producto
                 </Button>
               )}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsModalOpen(false)}
                 className="flex-1"
               >
