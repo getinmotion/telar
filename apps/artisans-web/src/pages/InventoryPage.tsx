@@ -32,7 +32,7 @@ import { getMarketplaceIcon, getMarketplaceColor } from '@/utils/marketplaceUtil
 import { ModerationFeedbackBadge } from '@/components/inventory/ModerationFeedbackBadge';
 import { QuickStockModal } from '@/components/inventory/QuickStockModal';
 import { StockDashboardPanel } from '@/components/inventory/StockDashboardPanel';
-import { supabase } from '@/integrations/supabase/client';
+import { getModerationCommentsForProducts } from '@/services/productModerationHistory.actions';
 
 
 export const InventoryPage: React.FC = () => {
@@ -63,33 +63,24 @@ export const InventoryPage: React.FC = () => {
     loadProducts();
   }, [shop?.id]);
 
-  // Fetch moderation comments for rejected/changes_requested products
+  // ✅ MIGRATED: Fetch moderation comments from NestJS backend
+  // Endpoint: GET /product-moderation-history/product/:productId
   useEffect(() => {
     const fetchModerationComments = async () => {
       const productsNeedingComments = products.filter(
         (p) => p.moderation_status === 'rejected' || p.moderation_status === 'changes_requested'
       );
 
-      if (productsNeedingComments.length === 0) return;
+      if (productsNeedingComments.length === 0) {
+        setModerationComments({});
+        return;
+      }
 
       const productIds = productsNeedingComments.map((p) => p.id);
 
-      const { data } = await supabase
-        .from('product_moderation_history')
-        .select('product_id, comment, created_at')
-        .in('product_id', productIds)
-        .in('new_status', ['rejected', 'changes_requested'])
-        .order('created_at', { ascending: false });
-
-      if (data) {
-        const commentsMap: Record<string, string> = {};
-        data.forEach((record) => {
-          if (!commentsMap[record.product_id] && record.comment) {
-            commentsMap[record.product_id] = record.comment;
-          }
-        });
-        setModerationComments(commentsMap);
-      }
+      // Llamada a NestJS usando el servicio migrado
+      const commentsMap = await getModerationCommentsForProducts(productIds);
+      setModerationComments(commentsMap);
     };
 
     if (products.length > 0) {
