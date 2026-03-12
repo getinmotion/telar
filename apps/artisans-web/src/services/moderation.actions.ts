@@ -134,6 +134,19 @@ export async function getModerationQueue(
   }
 }
 
+const NUMERIC_PRODUCT_FIELDS = new Set(['price', 'comparePrice', 'inventory', 'weight']);
+
+function sanitizeEdits(edits: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(edits).map(([key, value]) => {
+      if (NUMERIC_PRODUCT_FIELDS.has(key) && value != null && value !== '') {
+        return [key, Number(value)];
+      }
+      return [key, value];
+    })
+  );
+}
+
 export async function moderateProduct(
   productId: string,
   action: 'approve' | 'approve_with_edits' | 'request_changes' | 'reject',
@@ -156,7 +169,7 @@ export async function moderateProduct(
   };
 
   if (edits && Object.keys(edits).length > 0) {
-    Object.assign(productPayload, edits);
+    Object.assign(productPayload, sanitizeEdits(edits));
   }
 
   try {
