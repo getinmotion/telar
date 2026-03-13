@@ -16,10 +16,11 @@ func getenv(key, defaultValue string) string {
 
 // CobreConfig configuración específica para el proveedor Cobre
 type CobreConfig struct {
-	APIKey    string
-	APISecret string
-	BalanceID string
-	BaseURL   string
+	APIKey       string
+	APISecret    string
+	BalanceID    string
+	BaseURL      string
+	EventsSecret string
 }
 
 type WompiConfig struct {
@@ -66,10 +67,11 @@ func Load() *Config {
 		SQLDataSource: getenv("SQL_DATA_SOURCE", "postgres://postgres:postgres@localhost:5432/payment_db?sslmode=disable"),
 
 		Cobre: CobreConfig{
-			APIKey:    getenv("COBRE_API_KEY", ""),
-			APISecret: getenv("COBRE_API_SECRET", ""),
-			BalanceID: getenv("COBRE_BALANCE_ID", ""),
-			BaseURL:   getenv("COBRE_URL", "https://api.cobre.co"), // URL ejemplo
+			APIKey:       getenv("COBRE_API_KEY", ""),
+			APISecret:    getenv("COBRE_API_SECRET", ""),
+			BalanceID:    getenv("COBRE_BALANCE_ID", ""),
+			BaseURL:      getenv("COBRE_URL", "https://api.cobre.co"),
+			EventsSecret: getenv("COBRE_EVENTS_SECRET", ""),
 		},
 
 		Wompi: WompiConfig{
