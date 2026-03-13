@@ -58,3 +58,9 @@ type CobreWebhookPayload struct {
 		CreditDebitType string                 `json:"credit_debit_type"`
 	} `json:"content"`
 }
+
+// triggerSplitPayoutRequest define qué esperamos para iniciar un split
+type triggerSplitPayoutRequest struct {
+	CheckoutID string  `json:"checkout_id"`
+	Percentage float64 `json:"percentage"`
+}

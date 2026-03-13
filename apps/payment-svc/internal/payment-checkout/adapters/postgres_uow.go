@@ -186,3 +186,7 @@ func (r *PostgresRepository) SaveLedgerTransaction(ctx context.Context, tx ports
 
 	return nil
 }
+
+func (r *PostgresRepository) PayoutRepo() ports.PayoutRepository {
+	return r
+}
