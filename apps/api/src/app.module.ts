@@ -40,6 +40,7 @@ import { InventoryMovementsModule } from './resources/inventory-movements/invent
 import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
+import { PaymentsModule } from './resources/payments/payments.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { CmsModule } from './resources/cms/cms.module';
     InventoryMovementsModule,
     FileUploadModule,
     CmsModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
