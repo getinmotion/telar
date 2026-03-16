@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCMSBlogArticles } from "@/hooks/useCMSBlogArticles";
 import { ArticleCard } from "@/components/blog/ArticleCard";
@@ -72,8 +71,6 @@ const Blog = () => {
         />
       </Helmet>
 
-      <Navbar />
-      
       <main className="min-h-screen bg-background">
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 px-4">

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import * as WishlistActions from '@/services/wishlist.actions';
 import { useAuth } from "@/contexts/AuthContext";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -52,8 +51,6 @@ const Wishlist = () => {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
-        
         <main className="flex-1">
           <div className="container mx-auto px-6 py-24">
             <div className="text-center max-w-md mx-auto">
@@ -76,8 +73,6 @@ const Wishlist = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
       <main className="flex-1">
         <div className="container mx-auto px-6 py-12">
           
