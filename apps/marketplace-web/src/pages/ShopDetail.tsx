@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
@@ -202,7 +201,6 @@ export default function ShopDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar searchQuery="" onSearchChange={() => {}} />
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-64 w-full mb-8" />
           <Skeleton className="h-32 w-full mb-8" />
@@ -219,7 +217,6 @@ export default function ShopDetail() {
   if (!shop) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar searchQuery="" onSearchChange={() => {}} />
         <div className="container mx-auto px-4 py-16 text-center">
           <Store className="w-24 h-24 mx-auto text-muted-foreground mb-4" />
           <h1 className="text-3xl font-bold mb-4">Tienda no encontrada</h1>
@@ -237,8 +234,6 @@ export default function ShopDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar searchQuery="" onSearchChange={() => {}} />
-
       {/* Back Navigation */}
       <div className="container mx-auto px-6 py-4">
         <Link 

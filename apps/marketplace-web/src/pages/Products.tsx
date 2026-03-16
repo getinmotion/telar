@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useProducts } from "@/contexts/ProductsContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
+import { useSearch } from "@/contexts/SearchContext";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductListItem } from "@/components/ProductListItem";
@@ -176,6 +176,7 @@ const prioritizedDistributedShuffle = <T extends { storeName?: string; canPurcha
 type LimitOption = 50 | 100 | 200 | 500;
 
 const Products = () => {
+  const { searchQuery, setSearchQuery, semanticSearchEnabled, setSemanticSearchEnabled } = useSearch();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -189,14 +190,7 @@ const Products = () => {
     const saved = localStorage.getItem("mobileViewMode");
     return (saved as MobileViewMode) || "2-col";
   });
-  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState<boolean>(() => {
-    const saved = localStorage.getItem("semanticSearchEnabled");
-    return saved !== null ? saved === "true" : true;
-  });
   const isMobile = useIsMobile();
-  
-  // Initialize state from URL params
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || "");
   const [sortBy, setSortBy] = useState<SortOption>(() => (searchParams.get('sortBy') as SortOption) || "relevance");
   const [currentPage, setCurrentPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -215,9 +209,17 @@ const Products = () => {
   const { toast } = useToast();
   const productsContainerRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
-  
+
   // Random seed generated once per session for consistent randomization
   const [randomSeed] = useState(() => Math.floor(Math.random() * 1000000));
+
+  // Initialize searchQuery from URL on mount
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('q');
+    if (queryFromUrl && queryFromUrl !== searchQuery) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, []); // Solo al montar
 
   // Sync state to URL (skip on initial mount)
   useEffect(() => {
@@ -306,14 +308,12 @@ const Products = () => {
   const availableCategories = getUniqueCategoriesFromProducts(products);
 
   // Búsqueda híbrida (semántica + simple)
-  const { 
-    filteredProducts: searchResults, 
-    isSemanticEnabled, 
-    semanticResultsCount 
+  const {
+    filteredProducts: searchResults,
+    isSemanticEnabled,
+    semanticResultsCount
   } = useHybridSearch({
     products,
-    searchQuery,
-    semanticEnabled: semanticSearchEnabled,
     filters,
   });
 
@@ -525,14 +525,6 @@ const Products = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onCategorySearch={handleCategorySearch}
-        semanticSearchEnabled={semanticSearchEnabled}
-        onSemanticSearchToggle={setSemanticSearchEnabled}
-      />
-      
       <main className="flex-1">
         <div className="container mx-auto px-4 lg:px-6 py-8 lg:py-12">
           <div className="mb-8 lg:mb-12">
