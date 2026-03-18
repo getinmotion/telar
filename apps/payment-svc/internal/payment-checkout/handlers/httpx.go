@@ -13,11 +13,15 @@ import (
 )
 
 type HTTPHandler struct {
-	service *usecases.CheckoutService
+	checkoutService *usecases.CheckoutService
+	payoutService   *usecases.PayoutService
 }
 
-func NewHTTPHandler(service *usecases.CheckoutService) *HTTPHandler {
-	return &HTTPHandler{service: service}
+func NewHTTPHandler(checkoutService *usecases.CheckoutService, payoutService *usecases.PayoutService) *HTTPHandler {
+	return &HTTPHandler{
+		checkoutService: checkoutService,
+		payoutService:   payoutService,
+	}
 }
 
 func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
@@ -50,7 +54,7 @@ func (h *HTTPHandler) CreateCheckout(c echo.Context) error {
 	}
 
 	// 4. Llamar al servicio
-	resp, err := h.service.ProcessCheckout(c.Request().Context(), input)
+	resp, err := h.checkoutService.ProcessCheckout(c.Request().Context(), input)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -87,7 +91,7 @@ func (h *HTTPHandler) HandleWompiWebhook(c echo.Context) error {
 	}
 
 	// 3. Pasar al Use Case
-	err = h.service.ProcessPaymentEvent(c.Request().Context(), "wompi", rawPayload, domainEvent)
+	err = h.checkoutService.ProcessPaymentEvent(c.Request().Context(), "wompi", rawPayload, "", "", domainEvent)
 	if err != nil {
 		c.Logger().Error("Error processing webhook: ", err)
 		// Si es un error de firma, no reintentar (400). Si es error interno, 500 para que Wompi reintente.
@@ -101,10 +105,39 @@ func (h *HTTPHandler) HandleWompiWebhook(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// TriggerSplitPayout inicia el desembolso hacia el vendedor
+func (h *HTTPHandler) TriggerSplitPayout(c echo.Context) error {
+	var req triggerSplitPayoutRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	if req.CheckoutID == "" || req.Percentage <= 0 || req.Percentage > 100 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid checkout_id or percentage"})
+	}
+
+	payout, err := h.payoutService.ProcessSplitPayout(c.Request().Context(), req.CheckoutID, req.Percentage)
+	if err != nil {
+		c.Logger().Error("Error processing split payout: ", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, payout)
+}
+
 func (h *HTTPHandler) HandleCobreWebhook(c echo.Context) error {
 	rawPayload, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// 1. Extraer AMBOS headers de Cobre
+	signatureHeader := c.Request().Header.Get("event-signature")
+	timestampHeader := c.Request().Header.Get("event-timestamp") // <--- NUEVO
+
+	if signatureHeader == "" || timestampHeader == "" { // <--- ACTUALIZADO
+		c.Logger().Warn("Cobre webhook missing signature or timestamp header")
+		return c.NoContent(http.StatusUnauthorized) // 401 Rechazado
 	}
 
 	var cobrePayload CobreWebhookPayload
@@ -112,38 +145,56 @@ func (h *HTTPHandler) HandleCobreWebhook(c echo.Context) error {
 		return c.NoContent(http.StatusBadRequest)
 	}
 
-	// Cobre dispara muchos eventos; solo nos interesan los abonos (créditos)
-	if cobrePayload.EventKey != "accounts.balance.credit" {
-		return c.NoContent(http.StatusOK) // Ignoramos otros eventos y respondemos 200
-	}
+	ctx := c.Request().Context()
 
-	// Extraer el ExternalID (Nuestro Intent ID) de la metadata.
-	// Dependiendo del tipo de riel, Cobre lo envía en "mm_external_id" u otros campos.
-	var intentID string
-	if extID, ok := cobrePayload.Content.Metadata["mm_external_id"].(string); ok && extID != "" {
-		intentID = extID
-	} else {
-		// Fallback: Si no está en mm_external_id, es posible que el evento no sea de un checkout nuestro
-		c.Logger().Warn("Webhook de Cobre sin mm_external_id", "cobre_trx_id", cobrePayload.Content.ID)
+	// ==========================================
+	// 1. Manejo de Abonos (Checkouts)
+	// ==========================================
+	if cobrePayload.EventKey == "accounts.balance.credit" {
+		var intentID string
+		if extID, ok := cobrePayload.Content.Metadata["mm_external_id"].(string); ok && extID != "" {
+			intentID = extID
+		} else {
+			c.Logger().Warn("Webhook de Cobre sin mm_external_id", "cobre_trx_id", cobrePayload.Content.ID)
+			return c.NoContent(http.StatusOK)
+		}
+
+		domainEvent := domain.PaymentGatewayEvent{
+			EventID:        cobrePayload.ID,
+			ExternalTxID:   cobrePayload.Content.ID,
+			PaymentLinkID:  intentID,
+			Status:         "APPROVED",
+			AmountMinor:    cobrePayload.Content.Amount,
+			Currency:       cobrePayload.Content.Currency,
+			GatewayPayload: rawPayload,
+		}
+
+		// PASAMOS EL TIMESTAMP AL CASO DE USO DE CHECKOUTS
+		err = h.checkoutService.ProcessPaymentEvent(ctx, "cobre", rawPayload, signatureHeader, timestampHeader, domainEvent)
+		if err != nil {
+			c.Logger().Error("Error processing Cobre webhook: ", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+
 		return c.NoContent(http.StatusOK)
 	}
 
-	// Mapear al Dominio Agnóstico
-	domainEvent := domain.PaymentGatewayEvent{
-		EventID:        cobrePayload.ID, // Event ID de Cobre
-		ExternalTxID:   cobrePayload.Content.ID,
-		PaymentLinkID:  intentID,   // El ID que enviamos en la creación del checkout
-		Status:         "APPROVED", // Si es un evento de account.balance.credit, el dinero entró
-		AmountMinor:    cobrePayload.Content.Amount,
-		Currency:       cobrePayload.Content.Currency,
-		GatewayPayload: rawPayload,
-	}
+	// ==========================================
+	// 2. Manejo de Payouts (Money Movements)
+	// ==========================================
+	if cobrePayload.EventKey == "money_movements.status.completed" ||
+		cobrePayload.EventKey == "money_movements.status.rejected" ||
+		cobrePayload.EventKey == "money_movements.status.failed" {
 
-	// OJO: Tendremos que manejar la firma de Cobre en el futuro
-	err = h.service.ProcessPaymentEvent(c.Request().Context(), "cobre", rawPayload, domainEvent)
-	if err != nil {
-		c.Logger().Error("Error processing Cobre webhook: ", err)
-		return c.NoContent(http.StatusInternalServerError)
+		movementID := cobrePayload.Content.ID // El ID de Cobre
+
+		// PASAMOS EL TIMESTAMP AL CASO DE USO DE PAYOUTS
+		err = h.payoutService.ProcessPayoutWebhook(ctx, movementID, cobrePayload.EventKey, rawPayload, signatureHeader, timestampHeader)
+		if err != nil {
+			c.Logger().Error("Error processing Payout webhook: ", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		return c.NoContent(http.StatusOK)
 	}
 
 	return c.NoContent(http.StatusOK)
