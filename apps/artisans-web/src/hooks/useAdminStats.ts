@@ -396,9 +396,47 @@ export const useAdminStats = () => {
     refetchInterval: 60000, // 1 minute auto-refresh
   });
 
-  // ✅ REMOVED: Realtime WebSocket subscriptions
-  // Now uses polling via react-query's refetchInterval (60s) + refetchOnWindowFocus
-  // This eliminates WebSocket connection errors while maintaining up-to-date stats
+  // Realtime subscriptions for products and orders
+  useEffect(() => {
+    const productsChannel = supabase
+      .channel('admin-products-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        }
+      )
+      .subscribe();
+
+    const ordersChannel = supabase
+      .channel('admin-orders-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        }
+      )
+      .subscribe();
+
+    const shopsChannel = supabase
+      .channel('admin-shops-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'artisan_shops' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(shopsChannel);
+    };
+  }, [queryClient]);
 
   return {
     stats: query.data,
