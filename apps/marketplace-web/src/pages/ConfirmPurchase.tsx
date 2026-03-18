@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -643,8 +642,6 @@ export const ConfirmPurchase: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-
       <div className="container mx-auto px-4 py-6 md:py-8 pb-28 lg:pb-8">
         <h1 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6">Confirmar compra</h1>
 

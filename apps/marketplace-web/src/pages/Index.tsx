@@ -5,22 +5,29 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductListItem } from "@/components/ProductListItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/Navbar";
+import { useSearch } from "@/contexts/SearchContext";
 import { FilterSidebar, FilterState } from "@/components/FilterSidebar";
 import { FilterChips } from "@/components/FilterChips";
 import { SortDropdown, SortOption } from "@/components/SortDropdown";
 import { ViewToggle, ViewMode } from "@/components/ViewToggle";
 import { CategoryBreadcrumb } from "@/components/CategoryBreadcrumb";
-import { HeroSection } from "@/components/HeroSection";
-import { StatsSection } from "@/components/StatsSection";
+// HeroSection original (comentado temporalmente)
+// import { HeroSection } from "@/components/HeroSection";
+// Nuevo HeroSectionV2
+import { HeroSectionV2 } from "@/components/HeroSectionV2";
+// StatsSection original (comentado temporalmente)
+// import { StatsSection } from "@/components/StatsSection";
 import { FeaturedCategories } from "@/components/FeaturedCategories";
 import { FeaturedShops } from "@/components/FeaturedShops";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
-import { ExploreByTrade } from "@/components/ExploreByTrade";
-import { PopularMaterials } from "@/components/PopularMaterials";
+// ExploreByTrade (comentado temporalmente)
+// import { ExploreByTrade } from "@/components/ExploreByTrade";
+// PopularMaterials - Materiales Naturales (comentado temporalmente)
+// import { PopularMaterials } from "@/components/PopularMaterials";
 import { FeaturedArticles } from "@/components/blog/FeaturedArticles";
 import { NewsletterSection } from "@/components/NewsletterSection";
 import { Footer } from "@/components/Footer";
+import heroTextiles from "@/assets/hero-textiles.png";
 import { toast } from "sonner";
 import { getUniqueCategoriesFromProducts } from "@/lib/categoryUtils";
 import { mapArtisanCategory } from "@/lib/productMapper";
@@ -123,22 +130,16 @@ const prioritizedDistributedShuffle = <
 };
 
 const Index = () => {
+  const { searchQuery, setSearchQuery, semanticSearchEnabled, setSemanticSearchEnabled, clearSearch } = useSearch();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const saved = localStorage.getItem("productViewMode");
     return (saved as ViewMode) || "grid";
   });
-  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState<boolean>(
-    () => {
-      const saved = localStorage.getItem("semanticSearchEnabled");
-      return saved !== null ? saved === "true" : true; // Por defecto activado
-    },
-  );
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 10000000],
     categories: [],
@@ -169,10 +170,10 @@ const Index = () => {
         materials: [],
         techniques: [],
       });
-      setSearchQuery("");
+      clearSearch();
       navigate("/", { replace: true });
     }
-  }, [location.search, navigate]);
+  }, [location.search, navigate, clearSearch]);
 
   // Persist view mode preference
   useEffect(() => {
@@ -181,10 +182,7 @@ const Index = () => {
 
   // Persist semantic search preference
   useEffect(() => {
-    localStorage.setItem(
-      "semanticSearchEnabled",
-      String(semanticSearchEnabled),
-    );
+    localStorage.setItem("semanticSearchEnabled", String(semanticSearchEnabled));
   }, [semanticSearchEnabled]);
 
   useEffect(() => {
@@ -230,8 +228,6 @@ const Index = () => {
     semanticResultsCount,
   } = useHybridSearch({
     products,
-    searchQuery,
-    semanticEnabled: semanticSearchEnabled,
     filters,
   });
 
@@ -470,7 +466,7 @@ const Index = () => {
       materials: [],
       techniques: [],
     });
-    setSearchQuery("");
+    clearSearch();
   };
 
   const handleHomeClick = () => {
@@ -496,37 +492,143 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        semanticSearchEnabled={semanticSearchEnabled}
-        onSemanticSearchToggle={setSemanticSearchEnabled}
-        onHomeClick={handleHomeClick}
-      />
-
       {/* Home Page Sections */}
       {isHomePage ? (
         <>
-          <HeroSection />
-          <StatsSection />
+          {/* HeroSection original (comentado temporalmente) */}
+          {/* <HeroSection /> */}
+          {/* Nuevo HeroSectionV2 */}
+          <HeroSectionV2 />
+
+          {/* StatsSection original (comentado temporalmente) */}
+          {/* <StatsSection /> */}
+
+          {/* Nueva sección de valores */}
+          <section className="w-full bg-muted/30 py-12 md:py-16">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-6xl mx-auto">
+
+                {/* Hecho a mano */}
+                <div className="flex flex-col gap-3 text-center">
+                  <h3 className="text-lg md:text-xl font-serif italic text-foreground">
+                    Hecho a mano
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide leading-relaxed">
+                    Cada pieza es creada por talleres artesanales reales que mantienen vivas técnicas tradicionales.
+                  </p>
+                </div>
+
+                {/* Origen cultural */}
+                <div className="flex flex-col gap-3 text-center">
+                  <h3 className="text-lg md:text-xl font-serif italic text-foreground">
+                    Origen cultural
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide leading-relaxed">
+                    Los objetos conservan la historia de la región y las comunidades donde fueron creados.
+                  </p>
+                </div>
+
+                {/* Autenticidad registrada */}
+                <div className="flex flex-col gap-3 text-center">
+                  <h3 className="text-lg md:text-xl font-serif italic text-foreground">
+                    Autenticidad registrada
+                  </h3>
+                  <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide leading-relaxed">
+                    Cada pieza cuenta con una huella digital que documenta su origen, su taller y su proceso artesanal.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
           <FeaturedCategories onCategoryClick={handleCategorySearch} />
 
-          <ExploreByTrade
+          {/* ExploreByTrade - Explora por Oficio Artesanal (comentado temporalmente) */}
+          {/* <ExploreByTrade
             onTradeClick={(craft) => {
               setFilters({ ...filters, crafts: [craft] });
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-          />
+          /> */}
 
           <FeaturedProducts />
-          <PopularMaterials
+
+          {/* PopularMaterials - Materiales Naturales (comentado temporalmente) */}
+          {/* <PopularMaterials
             onMaterialClick={(material) => {
               setFilters({ ...filters, materials: [material] });
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-          />
+          /> */}
+
+          {/* Nueva sección: Un Marketplace Diferente */}
+          <section className="w-full bg-[#2a2a2a] py-20 md:py-32">
+            <div className="container mx-auto px-4 max-w-5xl">
+              <div className="flex flex-col items-center justify-center gap-8 text-center">
+                {/* Subtítulo superior */}
+                <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-[0.3em]">
+                  Un marketplace diferente
+                </p>
+
+                {/* Texto principal en cursiva */}
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif italic text-white leading-relaxed max-w-3xl">
+                  Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.
+                </h2>
+
+                {/* Botón */}
+                <Link to="/about">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="mt-4 border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white bg-transparent uppercase tracking-wider text-sm font-semibold px-8 py-6"
+                  >
+                    Descubrir cómo funciona Telar
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </section>
+
           <FeaturedArticles />
           <FeaturedShops />
+
+          {/* Nueva sección: Comercio Justo */}
+          <section className="w-full bg-muted/20 py-8 md:py-10">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start mx-[10%]">
+
+                {/* Columna 1: Contenido de texto */}
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground">
+                    Comercio justo para quienes crean
+                  </h2>
+
+                  <p className="text-base md:text-lg text-muted-foreground italic leading-relaxed">
+                    Trabajamos directamente con talleres artesanales para asegurar que quienes crean las piezas reciban una compensación justa por su trabajo. Construimos relaciones directas entre quienes crean las piezas y quienes las valoran.
+                  </p>
+
+                  <Link
+                    to="/about"
+                    className="text-foreground hover:text-foreground/80 underline transition-colors text-base font-medium w-fit"
+                  >
+                    Conocer más
+                  </Link>
+                </div>
+
+                {/* Columna 2: Imagen */}
+                <div className="relative rounded-lg overflow-hidden shadow-2xl">
+                  <img
+                    src={heroTextiles}
+                    alt="Artesanía textil colombiana"
+                    className="w-full h-full min-h-[250px] md:min-h-[300px] object-cover"
+                  />
+                </div>
+
+              </div>
+            </div>
+          </section>
+
           <NewsletterSection />
           <Footer />
         </>
