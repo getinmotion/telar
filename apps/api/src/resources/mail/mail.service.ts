@@ -97,6 +97,47 @@ export class MailService {
   }
 
   /**
+   * Enviar email de confirmación de compra exitosa
+   */
+  async sendPaymentConfirmation(
+    email: string,
+    buyerName: string,
+    orderData: {
+      cartId: string;
+      transactionId: string;
+      gatewayCode: string;
+      currency: string;
+      items: Array<{
+        productName: string;
+        quantity: number;
+        formattedPrice: string;
+      }>;
+      totalFormatted: string;
+    },
+  ): Promise<void> {
+    const baseUrl = (
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:1010'
+    ).replace(/\/$/, '');
+    const ordersUrl = `${baseUrl}/orders`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: '¡Compra Confirmada! - GetInMotion',
+      template: './payment-confirmation',
+      context: {
+        buyerName,
+        ...orderData,
+        ordersUrl,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
    * Enviar email personalizado (genérico)
    */
   async sendCustomEmail(

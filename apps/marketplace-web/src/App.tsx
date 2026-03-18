@@ -9,6 +9,8 @@ import { ProductsProvider } from "@/contexts/ProductsContext";
 import { ArtisanShopsProvider } from "@/contexts/ArtisanShopsContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
+import { SearchProvider } from "@/contexts/SearchContext";
+import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -46,38 +48,46 @@ const App = () => (
             <ArtisanShopsProvider>
               <CartProvider>
                 <CheckoutProvider>
-                  <Toaster />
-                  <Sonner />
-                <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/productos" element={<Products />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/tienda/:shopSlug" element={<ShopDetail />} />
-                  <Route path="/tiendas" element={<Shops />} />
-                  <Route path="/tiendas-favoritas" element={<FavoriteShops />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/categorias" element={<Categories />} />
-                  <Route path="/giftcards" element={<GiftCards />} />
-                  <Route path="/recategorize" element={<RecategorizeProducts />} />
-                  <Route path="/create-view" element={<CreateMarketplaceView />} />
-                  <Route path="/confirm-purchase" element={<ConfirmPurchase />} />
-                  <Route path="/payment-pending" element={<PaymentPending />} />
-                  <Route path="/privacidad" element={<Privacy />} />
-                  <Route path="/terminos" element={<Terms />} />
-                  <Route path="/datos-personales" element={<DataTreatment />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogArticle />} />
-                  <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
+                  <SearchProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        {/* Rutas con Layout (con Navbar) */}
+                        <Route element={<Layout />}>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/productos" element={<Products />} />
+                          <Route path="/product/:id" element={<ProductDetail />} />
+                          <Route path="/tienda/:shopSlug" element={<ShopDetail />} />
+                          <Route path="/tiendas" element={<Shops />} />
+                          <Route path="/tiendas-favoritas" element={<FavoriteShops />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="/wishlist" element={<Wishlist />} />
+                          <Route path="/categorias" element={<Categories />} />
+                          <Route path="/giftcards" element={<GiftCards />} />
+                          <Route path="/confirm-purchase" element={<ConfirmPurchase />} />
+                          <Route path="/payment-pending" element={<PaymentPending />} />
+                          <Route path="/privacidad" element={<Privacy />} />
+                          <Route path="/terminos" element={<Terms />} />
+                          <Route path="/datos-personales" element={<DataTreatment />} />
+                          <Route path="/blog" element={<Blog />} />
+                          <Route path="/blog/:slug" element={<BlogArticle />} />
+                          <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
+                        </Route>
+
+                        {/* Rutas SIN Layout (sin Navbar) */}
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/recategorize" element={<RecategorizeProducts />} />
+                        <Route path="/create-view" element={<CreateMarketplaceView />} />
+
+                        {/* Catch-all */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </SearchProvider>
                 </CheckoutProvider>
               </CartProvider>
             </ArtisanShopsProvider>
