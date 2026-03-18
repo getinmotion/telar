@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import GuestAuthModal from "@/components/GuestAuthModal";
@@ -18,6 +19,7 @@ const Cart = () => {
     syncGuestCartToUser,
   } = useCart();
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+        <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <div className="container mx-auto px-4 py-8">
           <p className="text-center">Cargando carrito...</p>
         </div>
@@ -47,6 +50,7 @@ const Cart = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background">
+        <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <div className="container mx-auto px-4 py-16 text-center">
           <ShoppingBag className="w-24 h-24 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
@@ -63,6 +67,7 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">

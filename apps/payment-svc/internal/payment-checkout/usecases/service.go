@@ -11,12 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// PayoutTrigger define el contrato mínimo para disparar un payout desde el webhook.
-// Lo implementa PayoutService.ProcessSplitPayout.
-type PayoutTrigger interface {
-	ProcessSplitPayout(ctx context.Context, checkoutID string, percentage float64) (*domain.Payout, error)
-}
-
 type CheckoutService struct {
 	repo          ports.CheckoutRepository
 	uow           ports.UnitOfWork
@@ -24,7 +18,6 @@ type CheckoutService struct {
 	gateways      map[string]ports.PaymentGateway
 	validators    map[string]ports.WebhookValidator
 	notifier      ports.NotificationGateway
-	payoutTrigger PayoutTrigger // Para disparar auto-payout al confirmar pago
 	logger        *slog.Logger
 }
 
@@ -45,12 +38,6 @@ func NewCheckoutService(
 		notifier:      notifier,
 		logger:        logger,
 	}
-}
-
-// SetPayoutTrigger inyecta el PayoutService después de la construcción
-// para evitar dependencia circular (CheckoutService <-> PayoutService).
-func (s *CheckoutService) SetPayoutTrigger(pt PayoutTrigger) {
-	s.payoutTrigger = pt
 }
 
 type CreateCheckoutInput struct {

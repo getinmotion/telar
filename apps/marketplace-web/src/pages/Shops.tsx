@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
-import { useSearch } from "@/contexts/SearchContext";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,10 +35,10 @@ type LimitOption = 20 | 50 | 100;
 
 const Shops = () => {
   const isMobile = useIsMobile();
-  const { searchQuery } = useSearch();
   const { shops: contextShops, fetchShops: fetchShopsContext } = useArtisanShops();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [selectedCraft, setSelectedCraft] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
@@ -181,6 +181,7 @@ const Shops = () => {
     setSelectedRegion("all");
     setSelectedCraft("all");
     setSortBy("recent");
+    setSearchQuery("");
     setCurrentPage(1);
   };
 
@@ -189,6 +190,11 @@ const Shops = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Navbar 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 px-6 bg-muted/30">

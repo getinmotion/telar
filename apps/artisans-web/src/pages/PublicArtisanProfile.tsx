@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, Clock, Heart, Sparkles, Users, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
 import { ShopThemeProvider } from '@/contexts/ShopThemeContext';
 import { ShopNavbar } from '@/components/shop/ShopNavbar';
@@ -29,7 +30,7 @@ export const PublicArtisanProfile: React.FC = () => {
         setShop(data);
         const shopAny = data as any;
         if (shopAny.artisanProfile) {
-          setProfile(shopAny.artisanProfile as ArtisanProfileData);
+          setProfile(shopAny.artisan_profile as ArtisanProfileData);
         }
       }
       setLoading(false);
@@ -66,10 +67,10 @@ export const PublicArtisanProfile: React.FC = () => {
   return (
     <ShopThemeProvider theme={shop}>
       <div className="min-h-screen bg-background">
-        <ShopNavbar
-          shopName={shop.shopName}
-          logoUrl={shop.logoUrl}
-          shopSlug={shop.shopSlug}
+        <ShopNavbar 
+          shopName={shop.shop_name} 
+          logoUrl={shop.logo_url}
+          shopSlug={shop.shop_slug}
         />
 
         {/* Hero Section */}
@@ -348,7 +349,7 @@ export const PublicArtisanProfile: React.FC = () => {
           </div>
         </section>
 
-        <ShopFooter shopName={shop.shopName} />
+        <ShopFooter shopName={shop.shop_name} />
       </div>
     </ShopThemeProvider>
   );
