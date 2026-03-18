@@ -10,13 +10,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { ArtisanProfileData, LEARNED_FROM_OPTIONS } from '@/types/artisanProfile';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { generateArtisanProfileHistory } from '@/services/ai.actions';
+import { updateArtisanShop } from '@/services/artisanShops.actions';
 
 interface ArtisanProfileDashboardProps {
   data: ArtisanProfileData;
   shopId: string;
   shopSlug: string;
+  shopName: string;
+  craftType: string;
+  region: string;
   onEdit: (section: string) => void;
   onRefresh: () => void;
 }
@@ -86,6 +90,9 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
   data,
   shopId,
   shopSlug,
+  shopName,
+  craftType,
+  region,
   onEdit,
   onRefresh,
 }) => {
@@ -95,17 +102,18 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
 
   const learnedFromLabel = LEARNED_FROM_OPTIONS.find(o => o.value === data.learnedFrom)?.label || data.learnedFrom;
 
+  // ✅ MIGRATED: Regenerate story using NestJS backend
+  // Endpoints: POST /ai/generate-artisan-profile-history + PATCH /artisan-shops/:id
   const handleRegenerateStory = async () => {
     setIsRegenerating(true);
     try {
-      const { data: storyData, error } = await supabase.functions.invoke('generate-artisan-profile-story', {
-        body: {
-          profile: data,
-          shopId,
-        }
+      // Generate new story with AI
+      const storyData = await generateArtisanProfileHistory({
+        profile: data,
+        shopName,
+        craftType,
+        region,
       });
-
-      if (error) throw error;
 
       // Update profile with new story
       const updatedProfile = {
@@ -113,12 +121,9 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
         generatedStory: storyData,
       };
 
-      const { error: updateError } = await supabase
-        .from('artisan_shops')
-        .update({ artisan_profile: updatedProfile as any })
-        .eq('id', shopId);
-
-      if (updateError) throw updateError;
+      await updateArtisanShop(shopId, {
+        artisanProfile: updatedProfile as any,
+      });
 
       toast({
         title: "Historia regenerada",

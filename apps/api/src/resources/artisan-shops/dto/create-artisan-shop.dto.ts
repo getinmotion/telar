@@ -310,6 +310,16 @@ export class CreateArtisanShopDto {
   artisanProfile?: object;
 
   @ApiPropertyOptional({
+    description: 'Indica si el perfil artesanal ha sido completado',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean({
+    message: 'artisanProfileCompleted debe ser un valor booleano',
+  })
+  artisanProfileCompleted?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Estado de los datos bancarios',
     enum: BankDataStatus,
     default: BankDataStatus.NOT_SET,
