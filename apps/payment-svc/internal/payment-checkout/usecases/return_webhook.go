@@ -73,7 +73,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return err
 	}
 
-	// 2. Si el commit fue exitoso y el estado es definitivo, ejecutamos acciones post-commit.
+	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
 	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
 		// Obtenemos el checkout para notificación y auto-payout
