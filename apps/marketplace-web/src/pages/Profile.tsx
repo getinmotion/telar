@@ -6,7 +6,6 @@ import * as AddressesActions from '@/services/addresses.actions';
 import * as UserProfilesActions from '@/services/user-profiles.actions';
 import * as GiftCardsActions from '@/services/gift-cards.actions';
 import * as OrdersActions from '@/services/orders.actions';
-import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -552,8 +551,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold mb-1 md:mb-2">Mi Perfil</h1>
