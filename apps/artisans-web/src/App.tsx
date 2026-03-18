@@ -398,7 +398,14 @@ function App() {
                                 </ProtectedRoute>
                               }
                             />
-                            <Route path="/tienda/:shopSlug/perfil-artesanal" element={<PublicArtisanProfile />} />
+                            <Route
+                              path="/tienda/:shopSlug/perfil-artesanal"
+                              element={
+                                <ShoppingCartProvider>
+                                  <PublicArtisanProfile />
+                                </ShoppingCartProvider>
+                              }
+                            />
 
                             {/* Redirects for navigation consistency */}
                             <Route path="/inventario" element={<Navigate to="/dashboard/inventory" replace />} />
