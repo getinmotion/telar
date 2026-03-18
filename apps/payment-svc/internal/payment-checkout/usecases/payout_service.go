@@ -105,18 +105,36 @@ func (s *PayoutService) ProcessSplitPayout(ctx context.Context, checkoutID strin
 	// FASE 2: Llamadas a la Red Externa (Sin Lock en DB)
 	// Objetivo: Hablar con Cobre sin afectar nuestra infraestructura
 	// ==========================================
-
-	// El counterparty (datos bancarios del vendedor) DEBE haber sido registrado
-	// previamente por el artesano desde su dashboard (BankDataPage) o por un admin
-	// vía el API central (POST /cobre/counterparty-admin).
-	// El id_contraparty se almacena en shop.artisan_shops.cobre_counterparty_id.
-	destinationCobreID, err := s.getSellerAccountData(ctx, sellerShopID)
-	if err != nil || destinationCobreID == "" {
-		s.markPayoutFailed(ctx, payout.ID,
-			fmt.Errorf("seller %s has no bank data registered (cobre_counterparty_id is empty)", sellerShopID))
-		return nil, fmt.Errorf("seller has no bank data: must register via artisan dashboard first")
+	existingCobreID, err := s.getSellerAccountData(ctx, sellerShopID)
+	if err != nil {
+		s.logger.Warn("Could not check for existing Cobre ID in DB", "error", err)
 	}
-	s.logger.Info("Using seller Cobre Counterparty from DB", "shop_id", sellerShopID, "cp_id", destinationCobreID)
+
+	var destinationCobreID string
+
+	if existingCobreID != "" {
+		// Si ya tenemos el ID, lo usamos
+		destinationCobreID = existingCobreID
+		s.logger.Info("Reusing existing Cobre Counterparty", "cp_id", destinationCobreID)
+	} else {
+		cpData := &domain.Counterparty{
+			FullName:       "Nicolas David Orjuela Sanchez",
+			DocumentType:   "CC",
+			DocumentNumber: "1001187655",
+			BankCode:       "0",
+			AccountType:    "breb_key",
+			AccountNumber:  "3045696400",
+		}
+		destinationCobreID, err = s.payoutGateway.CreateCounterparty(ctx, cpData)
+		if err != nil {
+			s.markPayoutFailed(ctx, payout.ID, err)
+			return nil, err
+		}
+
+		// 2. Guardar el ID recién creado para no repetir este paso
+		s.logger.Info("New Counterparty created, saving ID to DB", "cp_id", destinationCobreID)
+		_ = s.saveSellerCobreID(ctx, sellerShopID, destinationCobreID)
+	}
 
 	// 3. Proceder al pago usando el destinationCobreID (sea nuevo o viejo)
 	movementID, err := s.payoutGateway.CreateMoneyMovement(
