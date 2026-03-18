@@ -135,3 +135,16 @@ type PayoutRepository interface {
 	// NUEVO: Para guardar el ID de Cobre después de insertar el Payout inicial
 	UpdatePayoutExternalID(ctx context.Context, tx DBTransaction, payoutID string, externalMovementID string) error
 }
+
+// PaymentNotification contiene los datos que requiere tu API central
+type PaymentNotification struct {
+	GatewayCode   string `json:"gateway_code"`   // ej: "wompi" o "cobre"
+	TransactionID string `json:"transaction_id"` // ID de tu PaymentIntent o externo
+	CartID        string `json:"cart_id"`        // Identificador del carrito
+	Status        string `json:"status"`         // ej: "PAID", "FAILED"
+}
+
+// NotificationGateway define el contrato para avisar a otros servicios
+type NotificationGateway interface {
+	NotifyPaymentConfirmation(ctx context.Context, payload PaymentNotification) error
+}

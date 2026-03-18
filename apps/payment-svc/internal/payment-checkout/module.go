@@ -1,3 +1,5 @@
+// internal/payment-checkout/module.go
+
 package paymentcheckout
 
 import (
@@ -33,11 +35,11 @@ func (m *Module) Provide(c *bootstrap.Container) error {
 		"cobre": cobreValidator,
 	}
 
-	// 4. Notificador (API Central)
+	// Notifier
 	notifier := adapters.NewHTTPNotifier(c.Config.CentralAppURL)
 
-	// 5. Casos de Uso (Servicios de Dominio)
-	checkoutService := usecases.NewCheckoutService(
+	service := usecases.NewCheckoutService(
+		repo,
 		repo,
 		repo, // repo actúa como UoW
 		gateways,
