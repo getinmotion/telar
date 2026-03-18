@@ -6,6 +6,8 @@ import { OpenAIService } from './services/openai.service';
 import { PromptsService } from './services/prompts.service';
 import { MasterCoordinatorService } from './services/master-coordinator.service';
 import { BrandAiAssistantService } from './services/brand-ai-assistant.service';
+import { ArtisanProfileHistoryService } from './services/artisan-profile-history.service';
+import { TranscribeAudioService } from './services/transcribe-audio.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 import { UserMasterContextModule } from '../user-master-context/user-master-context.module';
@@ -34,7 +36,15 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     PromptsService,
     MasterCoordinatorService,
     BrandAiAssistantService,
+    ArtisanProfileHistoryService,
+    TranscribeAudioService,
   ],
-  exports: [AiService, MasterCoordinatorService, BrandAiAssistantService],
+  exports: [
+    AiService,
+    MasterCoordinatorService,
+    BrandAiAssistantService,
+    ArtisanProfileHistoryService,
+    TranscribeAudioService,
+  ],
 })
 export class AiModule {}
