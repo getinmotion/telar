@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,6 @@ import { MapPin, Store } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { normalizeCraft } from "@/lib/normalizationUtils";
-import { cn } from "@/lib/utils";
 
 interface Shop {
   id: string;
@@ -23,7 +21,6 @@ interface Shop {
 }
 
 export const FeaturedShops = () => {
-  const navigate = useNavigate();
   const { shops: contextShops, loading, fetchFeaturedShops } = useArtisanShops();
   const [shops, setShops] = useState<Shop[]>([]);
 
@@ -81,16 +78,13 @@ export const FeaturedShops = () => {
   return (
     <section className="py-20 px-4 bg-background">
       <div className="container mx-auto max-w-7xl">
-        <div className="flex items-center justify-between mb-12">
-          <h2 className="text-2xl lg:text-3xl font-bold text-foreground">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Artesanos Destacados
           </h2>
-          <button
-            onClick={() => navigate("/tiendas")}
-            className="text-foreground hover:text-foreground/80 underline transition-colors text-base"
-          >
-            ver todos los artesanos
-          </button>
+          <p className="text-xl text-muted-foreground">
+            Conoce a los maestros artesanos y sus talleres
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -187,7 +181,13 @@ export const FeaturedShops = () => {
           ))}
         </div>
 
-        {/* Botón "Ver Todos los Artesanos" eliminado - ahora se usa el link en el header */}
+        <div className="text-center mt-12">
+          <Link to="/tiendas">
+            <Button size="lg" variant="outline">
+              Ver Todos los Artesanos
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );

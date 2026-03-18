@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCMSBlogArticle } from "@/hooks/useCMSBlogArticle";
 import { StoryblokRichText } from "@/components/StoryblokRichText";
@@ -38,6 +39,7 @@ const BlogArticle = () => {
   if (isLoading) {
     return (
       <>
+        <Navbar />
         <main className="min-h-screen bg-background py-8 px-4">
           <div className="container mx-auto max-w-4xl">
             <Skeleton className="h-8 w-32 mb-8" />
@@ -59,6 +61,7 @@ const BlogArticle = () => {
   if (error || !article) {
     return (
       <>
+        <Navbar />
         <main className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Artículo no encontrado</h1>
@@ -92,6 +95,8 @@ const BlogArticle = () => {
         <meta property="og:type" content="article" />
       </Helmet>
 
+      <Navbar />
+      
       <main className="min-h-screen bg-background">
         <article className="py-8 px-4">
           <div className="container mx-auto max-w-4xl">

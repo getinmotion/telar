@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,8 @@ const GiftCards = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-16 md:py-24">
