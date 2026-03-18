@@ -190,3 +190,35 @@ func (r *PostgresRepository) SaveLedgerTransaction(ctx context.Context, tx ports
 func (r *PostgresRepository) PayoutRepo() ports.PayoutRepository {
 	return r
 }
+
+func (r *PostgresRepository) PayoutRulesRepo() ports.PayoutRulesRepository {
+	return r
+}
+
+// --- 4. PayoutRulesRepo (Reglas de Dispersión) ---
+
+// FindApplicableRule busca la regla activa para un shop + trigger_event.
+// Prioridad: regla específica de la tienda > regla global (shop_id IS NULL).
+func (r *PostgresRepository) FindApplicableRule(ctx context.Context, shopID string, triggerEvent string) (*domain.PayoutRule, error) {
+	sql := `
+		SELECT id, shop_id, trigger_event, percentage, delay_hours, is_active, created_at
+		FROM payments.payout_rules
+		WHERE trigger_event = $1
+		  AND is_active = true
+		  AND (shop_id = $2::uuid OR shop_id IS NULL)
+		ORDER BY shop_id NULLS LAST
+		LIMIT 1
+	`
+	var rule domain.PayoutRule
+	err := r.db.QueryRow(ctx, sql, triggerEvent, shopID).Scan(
+		&rule.ID, &rule.ShopID, &rule.TriggerEvent,
+		&rule.Percentage, &rule.DelayHours, &rule.IsActive, &rule.CreatedAt,
+	)
+	if err == pgx.ErrNoRows {
+		return nil, nil // No hay regla aplicable
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error buscando payout rule: %w", err)
+	}
+	return &rule, nil
+}

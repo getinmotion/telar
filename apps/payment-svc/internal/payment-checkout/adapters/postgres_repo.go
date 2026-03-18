@@ -410,7 +410,7 @@ func (r *PostgresRepository) UpdatePayoutExternalID(ctx context.Context, tx port
 
 func (r *PostgresRepository) GetShopCobreID(ctx context.Context, shopID string) (string, error) {
 	var id *string
-	sql := `SELECT cobre_counterparty_id FROM shop.artisan_shops WHERE id = $1`
+	sql := `SELECT id_contraparty FROM shop.artisan_shops WHERE id = $1`
 	err := r.db.QueryRow(ctx, sql, shopID).Scan(&id)
 	if err != nil || id == nil {
 		return "", nil // Si no hay nada, devolvemos vacío para crearlo
@@ -419,7 +419,7 @@ func (r *PostgresRepository) GetShopCobreID(ctx context.Context, shopID string) 
 }
 
 func (r *PostgresRepository) SaveShopCobreID(ctx context.Context, shopID string, cobreID string) error {
-	sql := `UPDATE shop.artisan_shops SET cobre_counterparty_id = $1 WHERE id = $2`
+	sql := `UPDATE shop.artisan_shops SET id_contraparty = $1 WHERE id = $2`
 	_, err := r.db.Exec(ctx, sql, cobreID, shopID)
 	return err
 }

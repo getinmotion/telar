@@ -59,11 +59,19 @@ export interface Product {
   craft: string | null;       // tags[1]
   material: string | null;    // tags[0]
 
+  // Especificaciones técnicas
+  dimensions?: { width: number; height: number; length?: number } | string;
+  weight?: string;
+  productionTime?: string | null;
+  leadTimeDays?: number;
+
   // Tienda
   shopId: string;
   storeName: string;
   storeSlug: string;
   logoUrl?: string;
+  bannerUrl?: string;
+  storeDescription?: string;
   region?: string;
   city?: string;
   department?: string;
