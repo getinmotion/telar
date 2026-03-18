@@ -12,4 +12,5 @@ func (h *HTTPHandler) RegisterRoutes(e *echo.Group) {
 	// Nota: Si el grupo 'e' tiene un prefijo como '/api/v1/payments',
 	// la URL final para configurar en el dashboard de Wompi será:
 	e.POST("/webhook/wompi", h.HandleWompiWebhook)
+	e.POST("/payouts/split", h.TriggerSplitPayout)
 }

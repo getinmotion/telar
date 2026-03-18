@@ -9,13 +9,12 @@ import (
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/ports"
 )
 
-func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode string, rawPayload []byte, event domain.PaymentGatewayEvent) error {
+func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode string, rawPayload []byte, signature string, timestamp string, event domain.PaymentGatewayEvent) error {
 
 	// 1. Validar Firma dinámicamente según el proveedor
 	validator, exists := s.validators[providerCode]
 	if exists {
-		// Aquí le pasamos el header de la firma (por ahora vacío)
-		if err := validator.ValidateSignature(rawPayload, ""); err != nil {
+		if err := validator.ValidateSignature(rawPayload, signature, timestamp); err != nil {
 			return fmt.Errorf("invalid signature for %s: %w", providerCode, err)
 		}
 	} else {
@@ -39,15 +38,15 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return fmt.Errorf("intent not found: %w", err)
 	}
 
-	if intent.Status == "SUCCEEDED" || intent.Status == "FAILED" {
+	if intent.Status == "succeeded" || intent.Status == "failed" { // <--- minúsculas
 		return tx.Commit(ctx)
 	}
 
 	var newIntentStatus, newCheckoutStatus string
 	if event.Status == "APPROVED" {
-		newIntentStatus, newCheckoutStatus = "SUCCEEDED", "PAID"
+		newIntentStatus, newCheckoutStatus = "succeeded", "paid" // <--- minúsculas
 	} else if event.Status == "DECLINED" || event.Status == "ERROR" {
-		newIntentStatus, newCheckoutStatus = "FAILED", "FAILED"
+		newIntentStatus, newCheckoutStatus = "failed", "failed" // <--- minúsculas
 	} else {
 		return tx.Commit(ctx)
 	}
@@ -60,7 +59,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	}
 
 	// --- INICIO DE LA LÓGICA DE NOTIFICACIÓN ---
-	if newCheckoutStatus == "PAID" {
+	if newCheckoutStatus == "paid" {
 		// CORRECCIÓN: Quitamos el 'tx' porque la interfaz original solo pide (ctx, checkoutID)
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 
@@ -75,7 +74,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	}
 
 	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
-	if newCheckoutStatus == "PAID" || newCheckoutStatus == "FAILED" {
+	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
 		// Obtenemos el checkout si no lo hemos buscado antes (caso FAILED)
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
