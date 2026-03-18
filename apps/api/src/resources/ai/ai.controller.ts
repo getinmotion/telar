@@ -15,11 +15,15 @@ import {
 import { AiService } from './ai.service';
 import { MasterCoordinatorService } from './services/master-coordinator.service';
 import { BrandAiAssistantService } from './services/brand-ai-assistant.service';
+import { ArtisanProfileHistoryService } from './services/artisan-profile-history.service';
+import { TranscribeAudioService } from './services/transcribe-audio.service';
 import { GenerateShopSuggestionsDto } from './dto/generate-shop-suggestions.dto';
 import { GenerateProductSuggestionsDto } from './dto/generate-product-suggestions.dto';
 import { ExtractBusinessInfoDto } from './dto/extract-business-info.dto';
 import { MasterCoordinatorDto } from './dto/master-coordinator.dto';
 import { BrandAiAssistantDto } from './dto/brand-ai-assistant.dto';
+import { GenerateArtisanProfileHistoryDto } from './dto/artisan-profile-history.dto';
+import { TranscribeAudioDto } from './dto/transcribe-audio.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('ai')
@@ -29,6 +33,8 @@ export class AiController {
     private readonly aiService: AiService,
     private readonly masterCoordinatorService: MasterCoordinatorService,
     private readonly brandAiAssistantService: BrandAiAssistantService,
+    private readonly artisanProfileHistoryService: ArtisanProfileHistoryService,
+    private readonly transcribeAudioService: TranscribeAudioService,
   ) {}
 
   /**
@@ -248,5 +254,83 @@ export class AiController {
   })
   async brandAiAssistant(@Body() dto: BrandAiAssistantDto) {
     return await this.brandAiAssistantService.execute(dto);
+  }
+
+  /**
+   * POST /ai/generate-artisan-profile-history
+   * Genera la historia narrativa del perfil de un artesano
+   */
+  @Post('generate-artisan-profile-history')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generar historia del perfil de artesano',
+    description:
+      'Genera una narrativa documental y emotiva sobre el artesano basándose en su perfil completo, historia cultural y datos de su taller',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Historia generada exitosamente',
+    schema: {
+      example: {
+        heroTitle: 'María Fernández - Tejedora de Tradiciones',
+        heroSubtitle: 'Donde cada hilo cuenta una historia ancestral',
+        claim: 'Tejiendo el alma de mi tierra en cada pieza',
+        timeline: [
+          { year: '8 años', event: 'Aprendió a tejer de su abuela' },
+          { year: '1995', event: 'Fundó su taller comunitario' },
+        ],
+        originStory: 'Desde pequeña, María observaba...',
+        culturalStory: 'La tradición del tejido Wayuu...',
+        craftStory: 'Cada mochila toma aproximadamente...',
+        workshopStory: 'En el corazón de La Guajira...',
+        artisanQuote: 'Tejer es rezar con las manos',
+        closingMessage: 'Cada pieza lleva el espíritu de generaciones...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o incompletos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al generar la historia',
+  })
+  async generateArtisanProfileHistory(
+    @Body() dto: GenerateArtisanProfileHistoryDto,
+  ) {
+    return await this.artisanProfileHistoryService.generateProfileHistory(dto);
+  }
+
+  /**
+   * POST /ai/transcribe-audio
+   * Transcribe audio a texto usando OpenAI Whisper
+   */
+  @Post('transcribe-audio')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Transcribir audio a texto',
+    description:
+      'Transcribe audio en formato base64 a texto usando OpenAI Whisper API. Soporta múltiples idiomas.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Audio transcrito exitosamente',
+    schema: {
+      example: {
+        text: 'Hola, mi nombre es María y soy artesana tejedora de La Guajira...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Audio inválido o datos incompletos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al transcribir el audio',
+  })
+  async transcribeAudio(@Body() dto: TranscribeAudioDto) {
+    return await this.transcribeAudioService.transcribeAudio(dto);
   }
 }

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { transcribeAudio as transcribeAudioAPI } from '@/services/ai.actions';
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
@@ -66,28 +66,30 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
     }
   };
 
+  // ✅ MIGRATED: Transcribe audio using NestJS backend
+  // Endpoint: POST /ai/transcribe-audio
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
-      
+
       reader.onloadend = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
-        
-        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-          body: {
+        try {
+          const base64Audio = (reader.result as string).split(',')[1];
+
+          const response = await transcribeAudioAPI({
             audio: base64Audio,
             language: language === 'es' ? 'es' : 'en'
-          }
-        });
+          });
 
-        if (error) throw error;
-        
-        if (data?.text) {
-          onTranscript(data.text);
+          if (response.text) {
+            onTranscript(response.text);
+          }
+
+          setIsProcessing(false);
+        } catch (apiError) {
+          throw apiError;
         }
-        
-        setIsProcessing(false);
       };
     } catch (error) {
       console.error('Transcription error:', error);
