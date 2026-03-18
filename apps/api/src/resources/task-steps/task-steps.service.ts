@@ -171,10 +171,7 @@ export class TaskStepsService {
   /**
    * Agregar entrada al log de asistencia de IA
    */
-  async addToAiAssistanceLog(
-    id: string,
-    logEntry: object,
-  ): Promise<TaskStep> {
+  async addToAiAssistanceLog(id: string, logEntry: object): Promise<TaskStep> {
     // Verificar que existe
     const taskStep = await this.getById(id);
 

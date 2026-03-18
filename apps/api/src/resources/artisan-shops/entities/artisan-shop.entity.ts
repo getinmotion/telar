@@ -8,11 +8,13 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { BrandTheme } from '../../brand-themes/entities/brand-theme.entity';
 import { Product } from '../../products/entities/product.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 // Enums
 export enum PrivacyLevel {
@@ -221,7 +223,12 @@ export class ArtisanShop extends BaseEntity {
     description: 'Paso actual de creación',
     default: 0,
   })
-  @Column({ type: 'integer', name: 'creation_step', nullable: true, default: 0 })
+  @Column({
+    type: 'integer',
+    name: 'creation_step',
+    nullable: true,
+    default: 0,
+  })
   creationStep: number | null;
 
   @ApiPropertyOptional({
@@ -269,7 +276,8 @@ export class ArtisanShop extends BaseEntity {
   @Column({
     type: 'jsonb',
     name: 'about_content',
-    default: '{"story": "", "title": "", "values": [], "vision": "", "mission": ""}',
+    default:
+      '{"story": "", "title": "", "values": [], "vision": "", "mission": ""}',
   })
   aboutContent: object;
 
@@ -422,4 +430,16 @@ export class ArtisanShop extends BaseEntity {
   @ApiPropertyOptional({ description: 'Productos de la tienda' })
   @OneToMany(() => Product, (product) => product.shop)
   products!: Product[];
+
+  /**
+   * Transform relative image paths to full CDN URLs after loading from database
+   * This runs automatically when TypeORM loads an entity
+   */
+  @AfterLoad()
+  transformImageUrls() {
+    this.logoUrl = ImageUrlBuilder.buildUrl(this.logoUrl);
+    this.bannerUrl = ImageUrlBuilder.buildUrl(this.bannerUrl);
+    this.heroConfig = ImageUrlBuilder.transformObject(this.heroConfig);
+    this.artisanProfile = ImageUrlBuilder.transformObject(this.artisanProfile);
+  }
 }

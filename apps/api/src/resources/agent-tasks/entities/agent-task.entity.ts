@@ -44,10 +44,7 @@ export enum MilestoneCategory {
   'agent_tasks_progress_percentage_check',
   '"progress_percentage" >= 0 AND "progress_percentage" <= 100',
 )
-@Check(
-  'agent_tasks_priority_check',
-  '"priority" >= 1 AND "priority" <= 5',
-)
+@Check('agent_tasks_priority_check', '"priority" >= 1 AND "priority" <= 5')
 export class AgentTask extends BaseEntity {
   @ApiProperty({ description: 'ID único de la tarea' })
   @PrimaryGeneratedColumn('uuid')
@@ -70,7 +67,10 @@ export class AgentTask extends BaseEntity {
   @Column({ type: 'uuid', name: 'conversation_id', nullable: true })
   conversationId: string | null;
 
-  @ApiProperty({ description: 'Título de la tarea', example: 'Completar registro RUT' })
+  @ApiProperty({
+    description: 'Título de la tarea',
+    example: 'Completar registro RUT',
+  })
   @Column({ type: 'text' })
   title: string;
 
@@ -119,7 +119,11 @@ export class AgentTask extends BaseEntity {
   priority: number;
 
   @ApiPropertyOptional({ description: 'Fecha límite de la tarea' })
-  @Column({ type: 'timestamp with time zone', name: 'due_date', nullable: true })
+  @Column({
+    type: 'timestamp with time zone',
+    name: 'due_date',
+    nullable: true,
+  })
   dueDate: Date | null;
 
   @ApiPropertyOptional({ description: 'Fecha de completación de la tarea' })
@@ -173,7 +177,10 @@ export class AgentTask extends BaseEntity {
   @Column({ type: 'integer', name: 'time_spent', default: 0 })
   timeSpent: number;
 
-  @ApiProperty({ description: 'Indica si la tarea está archivada', default: false })
+  @ApiProperty({
+    description: 'Indica si la tarea está archivada',
+    default: false,
+  })
   @Column({ type: 'boolean', name: 'is_archived', default: false })
   isArchived: boolean;
 

@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   Address,
   CreateAddressRequest,
@@ -27,6 +28,7 @@ export const getUserAddresses = async (userId: string): Promise<Address[]> => {
     const response = await telarApi.get<Address[]>(`/addresses/user/${userId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -58,6 +60,7 @@ export const createAddress = async (
     const response = await telarApi.post<AddressResponse>('/addresses', data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -88,6 +91,7 @@ export const updateAddress = async (
     );
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -114,6 +118,7 @@ export const setDefaultAddress = async (
     );
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -133,6 +138,7 @@ export const deleteAddress = async (addressId: string): Promise<void> => {
   try {
     await telarApi.delete(`/addresses/${addressId}`);
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

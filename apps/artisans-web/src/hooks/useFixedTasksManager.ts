@@ -63,14 +63,13 @@ export const useFixedTasksManager = () => {
         });
       const masterContext = masterContextResult;
 
-      // ✅ Migrado a NestJS - GET /telar/server/products/user/{user_id}
+      // ✅ Migrado a NestJS - GET /products/user/{user_id}
       let productCount = 0;
       if (shopData?.id) {
         try {
           const products = await getProductsByUserId(user.id);
           productCount = products.length;
-        } catch (error) {
-          console.error('[useFixedTasksManager] Error fetching products:', error);
+        } catch {
           productCount = 0;
         }
       }
@@ -253,14 +252,8 @@ export const useFixedTasksManager = () => {
         completedTaskIds: Array.from(completed)
       });
 
-      console.log('📋 [FixedTasks] Data loaded:', {
-        completed: Array.from(completed).length,
-        hasShop,
-        productCount
-      });
-
-    } catch (error) {
-      console.error('❌ [FixedTasks] Error loading data:', error);
+    } catch {
+      // silent fail — datos se mantienen del estado previo
     } finally {
       isLoadingRef.current = false;
       setLoading(false);
@@ -275,7 +268,7 @@ export const useFixedTasksManager = () => {
       const task = FIXED_TASKS.find(t => t.id === taskId);
       if (!task) return;
 
-      // ✅ Migrado a NestJS - GET /telar/server/agent-tasks/user/{user_id}
+      // ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
       const allUserTasks = await getAgentTasksByUserId(user.id);
 
       // Buscar si existe una tarea con este agent_id
@@ -291,21 +284,17 @@ export const useFixedTasksManager = () => {
       }
 
       if (existing) {
-        // ✅ Migrado a NestJS - PATCH /telar/server/agent-tasks/{id}
         await updateAgentTask(existing.id, {
           status: 'completed',
-          completedAt: new Date().toISOString(),
           progressPercentage: 100
         });
       } else {
-        // ✅ Migrado a NestJS - POST /telar/server/agent-tasks
         await createAgentTask({
           userId: user.id,
           agentId: taskId,
           title: task.title,
           description: task.description || '',
           status: 'completed',
-          completedAt: new Date().toISOString(),
           progressPercentage: 100,
           priority: task.priority,
           relevance: 'high',
@@ -325,9 +314,8 @@ export const useFixedTasksManager = () => {
         await NotificationTemplates.milestoneCompleted(user.id, task.title, taskId);
       }
 
-      console.log('✅ [FixedTasks] Task completed:', taskId);
-    } catch (error) {
-      console.error('❌ [FixedTasks] Error completing task:', error);
+    } catch {
+      // silent fail
     }
   }, [user, completedTaskIds]);
 

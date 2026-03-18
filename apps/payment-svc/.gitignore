@@ -385,3 +385,6 @@ MigrationBackup/
 
 test/
 bin
+REPORTE_PAYMENT_SVC.md
+.claude
+.vscode

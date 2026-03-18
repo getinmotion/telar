@@ -9,13 +9,12 @@ import (
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/ports"
 )
 
-func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode string, rawPayload []byte, event domain.PaymentGatewayEvent) error {
+func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode string, rawPayload []byte, signature string, timestamp string, event domain.PaymentGatewayEvent) error {
 
 	// 1. Validar Firma dinámicamente según el proveedor
 	validator, exists := s.validators[providerCode]
 	if exists {
-		// Aquí le pasamos el header de la firma (por ahora vacío)
-		if err := validator.ValidateSignature(rawPayload, ""); err != nil {
+		if err := validator.ValidateSignature(rawPayload, signature, timestamp); err != nil {
 			return fmt.Errorf("invalid signature for %s: %w", providerCode, err)
 		}
 	} else {
@@ -39,15 +38,15 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return fmt.Errorf("intent not found: %w", err)
 	}
 
-	if intent.Status == "SUCCEEDED" || intent.Status == "FAILED" {
+	if intent.Status == "succeeded" || intent.Status == "failed" { // <--- minúsculas
 		return tx.Commit(ctx)
 	}
 
 	var newIntentStatus, newCheckoutStatus string
 	if event.Status == "APPROVED" {
-		newIntentStatus, newCheckoutStatus = "SUCCEEDED", "PAID"
+		newIntentStatus, newCheckoutStatus = "succeeded", "paid" // <--- minúsculas
 	} else if event.Status == "DECLINED" || event.Status == "ERROR" {
-		newIntentStatus, newCheckoutStatus = "FAILED", "FAILED"
+		newIntentStatus, newCheckoutStatus = "failed", "failed" // <--- minúsculas
 	} else {
 		return tx.Commit(ctx)
 	}
@@ -60,7 +59,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	}
 
 	// --- INICIO DE LA LÓGICA DE NOTIFICACIÓN ---
-	if newCheckoutStatus == "PAID" {
+	if newCheckoutStatus == "paid" {
 		// CORRECCIÓN: Quitamos el 'tx' porque la interfaz original solo pide (ctx, checkoutID)
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 
@@ -74,37 +73,81 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return err
 	}
 
-	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
-	if newCheckoutStatus == "PAID" || newCheckoutStatus == "FAILED" {
+	// 2. Si el commit fue exitoso y el estado es definitivo, ejecutamos acciones post-commit.
+	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
-		// Obtenemos el checkout si no lo hemos buscado antes (caso FAILED)
+		// Obtenemos el checkout para notificación y auto-payout
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 		cartID := ""
+		shopID := ""
 		if checkout != nil {
 			cartID = checkout.CartID
+			if checkout.ContextShopID != nil {
+				shopID = *checkout.ContextShopID
+			}
 		}
 
+		// 2a. Notificación a la API central (background)
 		payload := ports.PaymentNotification{
-			GatewayCode:   intent.ProviderCode, // "wompi" o "cobre"
-			TransactionID: intent.ID,           // Identificador interno del movimiento
-			CartID:        cartID,              // Para generar guías en tu API central
+			GatewayCode:   intent.ProviderCode,
+			TransactionID: intent.ID,
+			CartID:        cartID,
 			Status:        newCheckoutStatus,
 		}
 
-		// Ejecutamos en background (Goroutine) con un contexto independiente
-		// para no fallar la petición HTTP principal.
 		go func(bgCtx context.Context, p ports.PaymentNotification) {
 			s.logger.Info("Sending payment notification to central API", "cart_id", p.CartID)
 			if err := s.notifier.NotifyPaymentConfirmation(bgCtx, p); err != nil {
-				// Aquí solo logueamos. En un sistema ultra-resiliente podrías implementar
-				// un Outbox Pattern o enviar a RabbitMQ/SQS.
 				s.logger.Error("Failed to notify central API", "error", err, "cart_id", p.CartID)
 			}
 		}(context.Background(), payload)
+
+		// =====================================================
+		// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
+		// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
+		// =====================================================
+		if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
+			go func(bgCtx context.Context, chkID string, sID string) {
+				s.logger.Info("Checking payout rules for auto-payout",
+					"checkout_id", chkID, "shop_id", sID)
+
+				// Buscar regla aplicable: primero específica por tienda, luego global
+				rule, err := s.uow.PayoutRulesRepo().FindApplicableRule(bgCtx, sID, "checkout_paid")
+				if err != nil {
+					s.logger.Error("Error finding payout rule", "error", err, "shop_id", sID)
+					return
+				}
+				if rule == nil {
+					s.logger.Info("No active payout rule found for checkout_paid", "shop_id", sID)
+					return
+				}
+
+				// Si delay_hours > 0, aquí iría la lógica de cola diferida (futuro)
+				if rule.DelayHours > 0 {
+					s.logger.Info("Payout rule has delay, skipping auto-trigger",
+						"delay_hours", rule.DelayHours, "rule_id", rule.ID)
+					return
+				}
+
+				// Ejecutar el payout con el porcentaje de la regla
+				s.logger.Info("Auto-triggering split payout",
+					"checkout_id", chkID, "percentage", rule.Percentage, "rule_id", rule.ID)
+
+				payout, err := s.payoutTrigger.ProcessSplitPayout(bgCtx, chkID, rule.Percentage)
+				if err != nil {
+					s.logger.Error("Auto-payout failed",
+						"error", err, "checkout_id", chkID, "percentage", rule.Percentage)
+					return
+				}
+				s.logger.Info("Auto-payout initiated successfully",
+					"payout_id", payout.ID, "amount_minor", payout.AmountMinor,
+					"percentage", payout.Percentage)
+
+			}(context.Background(), intent.CheckoutID, shopID)
+		}
 	}
 
 	return nil
-	// --- FIN DE LA LÓGICA DE NOTIFICACIÓN ---
 }
 
 func (s *CheckoutService) recordLedgerMovement(ctx context.Context, tx ports.DBTransaction, intent *domain.PaymentIntent, checkout *domain.Checkout, eventID string) error {

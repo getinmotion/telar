@@ -9,9 +9,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * IMPORTANTE: Esta migración solo agrega el valor al ENUM.
  * La migración de datos se hace en MigrateAccountTypeToArtisan
  */
-export class AddArtisanToAccountType1771199577028
-  implements MigrationInterface
-{
+export class AddArtisanToAccountType1771199577028 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       DO $$

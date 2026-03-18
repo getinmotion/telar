@@ -1,10 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { semanticSearch, isSemanticSearchAvailable, mapSemanticResultsToProducts, SearchFilters } from '@/lib/semanticSearchClient';
+import { useSearch } from '@/contexts/SearchContext';
 
 interface UseHybridSearchProps<T extends { id: string; name: string; description?: string; store_name?: string }> {
   products: T[];
-  searchQuery: string;
-  semanticEnabled?: boolean; // Nuevo: control manual de búsqueda semántica
   filters?: {
     priceRange?: [number, number];
     categories?: string[];
@@ -27,18 +26,19 @@ export interface HybridSearchResult<T> {
  * Hook para búsqueda híbrida que combina:
  * 1. Búsqueda semántica (usando la API de AWS Lightsail)
  * 2. Búsqueda simple (filtrado de texto local)
- * 
+ *
  * La búsqueda semántica se usa cuando:
  * - Hay un query de búsqueda
  * - El servicio está disponible
  * - El query tiene más de 2 caracteres
+ *
+ * IMPORTANTE: Consume searchQuery y semanticSearchEnabled del contexto global
  */
 export function useHybridSearch<T extends { id: string; name: string; description?: string; store_name?: string }>({
   products,
-  searchQuery,
-  semanticEnabled: semanticEnabledProp,
   filters,
 }: UseHybridSearchProps<T>): HybridSearchResult<T> {
+  const { searchQuery, semanticSearchEnabled: semanticEnabledProp } = useSearch();
   const [semanticAvailable, setSemanticAvailable] = useState(false);
   const [semanticResultsCount, setSemanticResultsCount] = useState(0);
 
@@ -133,15 +133,21 @@ export function useHybridSearch<T extends { id: string; name: string; descriptio
 
   const [filteredProducts, setFilteredProducts] = useState<T[]>([]);
 
-  // Ejecutar búsqueda cuando cambien los productos o el query
+  // Ejecutar búsqueda cuando cambien los productos o el query (con debounce)
   useEffect(() => {
     // Si no hay productos, no hacer nada
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
-    
-    performHybridSearch().then(setFilteredProducts);
+
+    // Debounce: esperar 500ms después de que el usuario deje de escribir
+    const timeoutId = setTimeout(() => {
+      performHybridSearch().then(setFilteredProducts);
+    }, 500);
+
+    // Limpiar timeout si el usuario sigue escribiendo
+    return () => clearTimeout(timeoutId);
   }, [products, searchQuery, filters, semanticEnabled]);
 
   return {

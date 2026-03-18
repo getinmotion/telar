@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '@/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModerationStatusBadge } from './ModerationStatusBadge';
 import { ModerationHistory } from './ModerationHistory';
-import { 
-  CheckCircle, 
-  Edit, 
-  AlertCircle, 
+import {
+  CheckCircle,
+  Edit,
+  AlertCircle,
   XCircle,
   Store,
   MapPin,
@@ -163,7 +164,7 @@ export const ModerationDetailView: React.FC<ModerationDetailViewProps> = ({
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3" />
-                    ${product.price.toLocaleString()}
+                    {formatCurrency(product.price)}
                   </Badge>
                   <Badge variant="outline">{product.category}</Badge>
                   {product.subcategory && (

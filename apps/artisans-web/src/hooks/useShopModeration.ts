@@ -1,32 +1,44 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  getModerationShops,
+  getShopProductCounts,
+  toggleShopMarketplaceApproval,
+  deleteShopAdmin,
+  publishShopAdmin as publishShopAdminApi,
+} from '@/services/moderation.actions';
+
+// ─── Tipos ─────────────────────────────────────────────────────────────────────
 
 export interface ModerationShop {
+  // Campos directos del API (camelCase, igual que la entidad NestJS)
   id: string;
-  shop_name: string;
-  shop_slug: string;
-  logo_url: string | null;
-  banner_url: string | null;
+  userId: string;
+  shopName: string;
+  shopSlug: string;
+  logoUrl: string | null;       // Ya viene como URL completa (@AfterLoad)
+  bannerUrl: string | null;     // Ya viene como URL completa (@AfterLoad)
   description: string | null;
   region: string | null;
-  craft_type: string | null;
-  marketplace_approved: boolean | null;
-  marketplace_approved_at: string | null;
-  marketplace_approved_by: string | null;
-  publish_status: string | null;
+  craftType: string | null;
+  marketplaceApproved: boolean | null;
+  marketplaceApprovedAt: string | null;
+  marketplaceApprovedBy: string | null;
+  publishStatus: string | null;
   active: boolean;
-  created_at: string;
-  user_id: string;
-  has_bank_data: boolean;
-  id_contraparty: string | null;
-  contact_info?: {
+  createdAt: string;
+  idContraparty: string | null;
+  contactConfig: {
     phone?: string;
     email?: string;
     whatsapp?: string;
     address?: string;
+    hours?: string;
+    map_embed?: string;
   } | null;
-  product_counts?: {
+  // Campos calculados por el hook
+  hasBankData: boolean;
+  productCounts?: {
     total: number;
     approved: number;
     pending: number;
@@ -54,6 +66,8 @@ export interface ShopAdvancedFilters {
   craftType: string;
 }
 
+// ─── Hook ──────────────────────────────────────────────────────────────────────
+
 export const useShopModeration = () => {
   const [shops, setShops] = useState<ModerationShop[]>([]);
   const [counts, setCounts] = useState<ShopFilterCounts>({
@@ -76,137 +90,100 @@ export const useShopModeration = () => {
     filter: string = 'all',
     advancedFilters?: ShopAdvancedFilters,
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
   ) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
-
-      // Construir query params
-      const params = new URLSearchParams({
-        type: 'shops',
+      const result = await getModerationShops({
         filter,
-        page: String(page),
-        pageSize: String(pageSize),
+        page,
+        pageSize,
+        search: advancedFilters?.search,
+        hasBankData: advancedFilters?.hasBankData,
+        region: advancedFilters?.region,
+        craftType: advancedFilters?.craftType,
       });
 
-      if (advancedFilters?.search?.trim()) {
-        params.append('search', advancedFilters.search);
-      }
-      if (advancedFilters?.hasBankData && advancedFilters.hasBankData !== 'all') {
-        params.append('hasBankData', advancedFilters.hasBankData);
-      }
-      if (advancedFilters?.minApprovedProducts && advancedFilters.minApprovedProducts !== 'all') {
-        params.append('minApprovedProducts', advancedFilters.minApprovedProducts);
-      }
-      if (advancedFilters?.region && advancedFilters.region !== 'all') {
-        params.append('region', advancedFilters.region);
-      }
-      if (advancedFilters?.craftType && advancedFilters.craftType !== 'all') {
-        params.append('craftType', advancedFilters.craftType);
-      }
+      const rawShops = result.data ?? [];
 
-      // Llamar al edge function con query params
-      const { data, error } = await supabase.functions.invoke(
-        `get-moderation-queue?${params.toString()}`,
-        { method: 'GET' }
+      // Enriquecer con conteos de productos y campo hasBankData calculado
+      const shopsEnriched = await Promise.all(
+        rawShops.map(async (shop) => {
+          const productCounts = await getShopProductCounts(shop.id);
+          const enriched: ModerationShop = {
+            id: shop.id,
+            userId: shop.userId,
+            shopName: shop.shopName,
+            shopSlug: shop.shopSlug,
+            logoUrl: shop.logoUrl,
+            bannerUrl: shop.bannerUrl ?? null,
+            description: shop.description,
+            region: shop.region,
+            craftType: shop.craftType,
+            marketplaceApproved: shop.marketplaceApproved,
+            marketplaceApprovedAt: shop.marketplaceApprovedAt ?? null,
+            marketplaceApprovedBy: shop.marketplaceApprovedBy ?? null,
+            publishStatus: shop.publishStatus,
+            active: shop.active,
+            createdAt: shop.createdAt,
+            idContraparty: shop.idContraparty,
+            contactConfig: (shop.contactConfig as ModerationShop['contactConfig']) ?? null,
+            hasBankData: shop.idContraparty != null,
+            productCounts,
+          };
+          return enriched;
+        }),
       );
 
-      if (error) throw error;
+      setShops(shopsEnriched);
 
-      // Obtener conteos de productos para cada tienda
-      // Usar id_contraparty directamente del edge function (evita problemas de RLS con tiendas inactivas)
-      const shopsWithCounts = await Promise.all(
-        (data.shops || []).map(async (shop: any) => {
-          const { data: products } = await supabase
-            .from('products')
-            .select('id, moderation_status')
-            .eq('shop_id', shop.id);
+      const allCount = result.total ?? 0;
+      const approvedCount = shopsEnriched.filter((s) => s.marketplaceApproved === true).length;
+      const notApprovedCount = shopsEnriched.filter((s) => !s.marketplaceApproved).length;
 
-          const productCounts = {
-            total: products?.length || 0,
-            approved: products?.filter(p => 
-              p.moderation_status === 'approved' || 
-              p.moderation_status === 'approved_with_edits'
-            ).length || 0,
-            pending: products?.filter(p => 
-              p.moderation_status === 'pending_moderation'
-            ).length || 0,
-          };
-
-          return {
-            ...shop,
-            product_counts: productCounts,
-            // Usar id_contraparty directamente del edge function (ya viene con service role)
-            has_bank_data: shop.id_contraparty != null,
-          };
-        })
-      );
-
-      setShops(shopsWithCounts);
-      setCounts(data.counts || { all: 0, approved: 0, not_approved: 0 });
+      setCounts({ all: allCount, approved: approvedCount, not_approved: notApprovedCount });
       setPagination({
-        page: data.page || page,
-        pageSize: data.pageSize || pageSize,
-        total: data.total || shopsWithCounts.length,
-        totalPages: data.totalPages || Math.ceil((data.total || shopsWithCounts.length) / pageSize),
+        page: result.page ?? page,
+        pageSize,
+        total: result.total ?? 0,
+        totalPages: Math.ceil((result.total ?? 0) / pageSize),
       });
 
-      // Update available regions and craft types
-      if (data.availableRegions) setAvailableRegions(data.availableRegions);
-      if (data.availableCraftTypes) setAvailableCraftTypes(data.availableCraftTypes);
-
-    } catch (error: any) {
-      console.error('Error fetching shops:', error);
+      const regions = [...new Set(shopsEnriched.map((s) => s.region).filter(Boolean) as string[])];
+      const craftTypes = [...new Set(shopsEnriched.map((s) => s.craftType).filter(Boolean) as string[])];
+      setAvailableRegions(regions);
+      setAvailableCraftTypes(craftTypes);
+    } catch {
       toast.error('Error al cargar tiendas');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const toggleMarketplaceApproval = useCallback(async (
-    shopId: string,
-    approved: boolean,
-    comment?: string
-  ) => {
-    try {
+  const toggleMarketplaceApproval: (shopId: string, approved: boolean, comment?: string) => Promise<boolean> =
+    useCallback(async (shopId: string, approved: boolean, comment?: string) => {
+      void comment;
       setUpdating(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
-
-      const { error } = await supabase.functions.invoke('moderate-shop-marketplace', {
-        body: {
-          shopId,
-          approved,
-          comment,
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success(
-        approved 
-          ? '✅ Tienda aprobada para marketplace' 
-          : '❌ Tienda removida del marketplace'
-      );
-
-      return true;
-    } catch (error: any) {
-      console.error('Error toggling marketplace approval:', error);
-      toast.error('Error al actualizar aprobación');
-      return false;
-    } finally {
-      setUpdating(false);
-    }
-  }, []);
+      try {
+        await toggleShopMarketplaceApproval(shopId, approved);
+        toast.success(
+          approved
+            ? 'Tienda aprobada para marketplace'
+            : 'Tienda removida del marketplace',
+        );
+        return true;
+      } catch {
+        toast.error('Error al actualizar aprobación');
+        return false;
+      } finally {
+        setUpdating(false);
+      }
+    }, []);
 
   const bulkToggleMarketplaceApproval = useCallback(async (
     shopIds: string[],
     approved: boolean,
-    onProgress?: (current: number, total: number) => void
+    onProgress?: (current: number, total: number) => void,
   ): Promise<{ success: number; failed: number }> => {
     let success = 0;
     let failed = 0;
@@ -224,47 +201,32 @@ export const useShopModeration = () => {
     return { success, failed };
   }, [toggleMarketplaceApproval]);
 
-  const deleteShop = useCallback(async (
-    shopId: string,
-    reason: string
-  ): Promise<boolean> => {
-    try {
+  const deleteShop: (shopId: string, reason?: string) => Promise<boolean> =
+    useCallback(async (shopId: string, reason?: string) => {
+      void reason;
       setUpdating(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
-
-      const { data, error } = await supabase.functions.invoke('delete-shop', {
-        body: { shopId, reason },
-      });
-
-      if (error) throw error;
-      if (!data?.success) {
-        toast.error(data?.error || 'Error al eliminar tienda');
+      try {
+        await deleteShopAdmin(shopId);
+        toast.success('Tienda eliminada correctamente');
+        return true;
+      } catch {
+        toast.error('Error al eliminar tienda');
         return false;
+      } finally {
+        setUpdating(false);
       }
-
-      toast.success(data.message || 'Tienda eliminada correctamente');
-      return true;
-    } catch (error: any) {
-      console.error('Error deleting shop:', error);
-      toast.error(error.message || 'Error al eliminar tienda');
-      return false;
-    } finally {
-      setUpdating(false);
-    }
-  }, []);
+    }, []);
 
   const bulkDeleteShops = useCallback(async (
     shopIds: string[],
-    reason: string,
-    onProgress?: (current: number, total: number) => void
+    _reason: string,
+    onProgress?: (current: number, total: number) => void,
   ): Promise<{ success: number; failed: number }> => {
     let success = 0;
     let failed = 0;
 
     for (let i = 0; i < shopIds.length; i++) {
-      const result = await deleteShop(shopIds[i], reason);
+      const result = await deleteShop(shopIds[i]);
       if (result) {
         success++;
       } else {
@@ -279,29 +241,16 @@ export const useShopModeration = () => {
   const publishShopAdmin = useCallback(async (
     shopId: string,
     action: 'publish' | 'unpublish',
-    comment?: string
+    comment?: string,
   ): Promise<boolean> => {
+    void comment;
+    setUpdating(true);
     try {
-      setUpdating(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
-
-      const { data, error } = await supabase.functions.invoke('publish-shop-admin', {
-        body: { shopId, action, comment },
-      });
-
-      if (error) throw error;
-      if (!data?.success) {
-        toast.error(data?.error || 'Error al cambiar estado de publicación');
-        return false;
-      }
-
-      toast.success(data.message || (action === 'publish' ? 'Tienda publicada' : 'Tienda despublicada'));
+      await publishShopAdminApi(shopId, action);
+      toast.success(action === 'publish' ? 'Tienda publicada' : 'Tienda despublicada');
       return true;
-    } catch (error: any) {
-      console.error('Error publishing shop:', error);
-      toast.error(error.message || 'Error al cambiar estado de publicación');
+    } catch {
+      toast.error('Error al cambiar estado de publicación');
       return false;
     } finally {
       setUpdating(false);

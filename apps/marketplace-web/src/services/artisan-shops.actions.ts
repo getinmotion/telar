@@ -4,6 +4,7 @@
  */
 
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   ArtisanShop,
   ArtisanShopsResponse,
@@ -54,6 +55,7 @@ export const getArtisanShops = async (
     });
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -84,6 +86,7 @@ export const getFeaturedShops = async (limit: number = 8): Promise<ArtisanShop[]
     });
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -104,6 +107,7 @@ export const getArtisanShopById = async (id: string): Promise<ArtisanShop> => {
     const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/${id}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -124,6 +128,7 @@ export const getArtisanShopBySlug = async (slug: string): Promise<ArtisanShop> =
     const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/slug/${slug}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -144,6 +149,7 @@ export const getShopsByUser = async (userId: string): Promise<ArtisanShop[]> => 
     const response = await telarApi.get<ArtisanShop[]>(`/artisan-shops/user/${userId}`);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -172,6 +178,7 @@ export const createArtisanShop = async (
     const response = await telarApi.post<ArtisanShop>('/artisan-shops', data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -198,6 +205,7 @@ export const updateArtisanShop = async (
     const response = await telarApi.patch<ArtisanShop>(`/artisan-shops/${id}`, data);
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };
@@ -223,6 +231,7 @@ export const deleteArtisanShop = async (
     );
     return response.data;
   } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

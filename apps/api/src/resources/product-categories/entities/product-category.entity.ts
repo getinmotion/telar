@@ -8,9 +8,11 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Product } from '../../products/entities/product.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 @Entity({ name: 'product_categories', schema: 'shop' })
 export class ProductCategory extends BaseEntity {
@@ -51,7 +53,12 @@ export class ProductCategory extends BaseEntity {
     example: 1,
     default: 0,
   })
-  @Column({ type: 'integer', name: 'display_order', nullable: true, default: 0 })
+  @Column({
+    type: 'integer',
+    name: 'display_order',
+    nullable: true,
+    default: 0,
+  })
   displayOrder: number | null;
 
   @ApiProperty({
@@ -100,4 +107,12 @@ export class ProductCategory extends BaseEntity {
   })
   @OneToMany(() => Product, (product) => product.category)
   products: Product[];
+
+  /**
+   * Transform relative image paths to full CDN URLs after loading from database
+   */
+  @AfterLoad()
+  transformImageUrls() {
+    this.imageUrl = ImageUrlBuilder.buildUrl(this.imageUrl);
+  }
 }

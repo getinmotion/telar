@@ -1,16 +1,12 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAchievementsCatalogTable1769543756271
-  implements MigrationInterface
-{
+export class CreateAchievementsCatalogTable1769543756271 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión para UUID si no está habilitada
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
     // Crear schema artesanos si no existe
-    await queryRunner.query(
-      `CREATE SCHEMA IF NOT EXISTS artesanos`,
-    );
+    await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS artesanos`);
 
     // Crear tabla achievements_catalog
     await queryRunner.query(`

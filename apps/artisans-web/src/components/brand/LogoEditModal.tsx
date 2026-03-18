@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { Loader2, Upload, TrendingUp, TrendingDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
@@ -53,16 +54,8 @@ export const LogoEditModal: React.FC<LogoEditModalProps> = ({
       console.log(`[LogoEditModal] Optimized: ${Math.round(newLogoFile.size / 1024)}KB → ${Math.round(optimizedFile.size / 1024)}KB`);
 
       // 1. Upload nuevo logo
-      const fileName = `${user.id}/logo_${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('brand-assets')
-        .upload(fileName, optimizedFile, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('brand-assets')
-        .getPublicUrl(fileName);
+      const uploadResult = await uploadImage(optimizedFile, UploadFolder.BRANDS);
+      const publicUrl = uploadResult.url;
 
       // 2. Extraer colores del nuevo logo
       const { data: colorsData } = await supabase.functions.invoke('brand-ai-assistant', {
@@ -126,7 +119,7 @@ export const LogoEditModal: React.FC<LogoEditModalProps> = ({
 
       toast({
         title: '✅ Logo Actualizado',
-        description: scoreDiff 
+        description: scoreDiff
           ? `Tu score de logo cambió de ${scoreDiff.before.toFixed(1)} a ${scoreDiff.after.toFixed(1)}`
           : 'Tu logo ha sido actualizado y re-diagnosticado',
       });
@@ -221,8 +214,8 @@ export const LogoEditModal: React.FC<LogoEditModalProps> = ({
             <Button variant="outline" onClick={onClose} className="flex-1" disabled={isUploading}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleSave} 
+            <Button
+              onClick={handleSave}
               disabled={!newLogoFile || isUploading}
               className="flex-1"
             >

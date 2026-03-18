@@ -26,7 +26,7 @@ const ContactWizardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <Helmet>
-        <title>Configurar Página de Contacto - {shop.shop_name}</title>
+        <title>{`Configurar Página de Contacto - ${shop.shopName}`}</title>
         <meta name="description" content="Configura tu página de contacto con asistencia de IA" />
       </Helmet>
 

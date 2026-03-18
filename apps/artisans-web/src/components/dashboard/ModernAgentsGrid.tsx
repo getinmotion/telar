@@ -9,7 +9,6 @@ import { getAgentTranslation } from '@/data/agentTranslations';
 import { CollapsibleAgentsSection } from './CollapsibleAgentsSection';
 import { CollapsibleRecommendationsSection } from './CollapsibleRecommendationsSection';
 import { useAgentToggle } from '@/hooks/useAgentToggle';
-import { useRealtimeAgents } from '@/hooks/useRealtimeAgents';
 import { AgentIcon } from './AgentIcon';
 
 interface ModernAgentsGridProps {
@@ -28,10 +27,9 @@ export const ModernAgentsGrid: React.FC<ModernAgentsGridProps> = ({
   language
 }) => {
   const { agents: userAgents, trackAgentUsage, enableAgent, disableAgent, loading, refetch } = useUserData();
-  
-  // Real-time updates
-  useRealtimeAgents({ onAgentChange: refetch });
-  
+
+  // ✅ MIGRATION: Realtime eliminado - refetch manual después de operaciones
+
   // Use the toggle hook
   const { togglingAgents, handleToggleAgent } = useAgentToggle(async (agentId: string, enabled: boolean) => {
     try {

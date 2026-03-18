@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/utils/currency';
 import {
   Store,
   Package,
@@ -31,7 +32,7 @@ import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useProducts } from '@/hooks/useProducts';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { ShopPublishStatusBanner } from '@/components/shop/ShopPublishStatusBanner';
 import { useBankData } from '@/hooks/useBankData';
 import { cn } from '@/lib/utils';
@@ -84,12 +85,7 @@ export const ShopDashboard: React.FC = () => {
 
       const finalDescription = refinedDescription || editedDescription;
 
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({ description: finalDescription })
-        .eq('id', shop.id);
-
-      if (error) throw error;
+      await updateArtisanShop(shop.id, { description: finalDescription });
 
       toast({
         title: "Descripción actualizada",
@@ -125,12 +121,7 @@ export const ShopDashboard: React.FC = () => {
     try {
       const finalName = editedName.trim();
 
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({ shop_name: finalName })
-        .eq('id', shop.id);
-
-      if (error) throw error;
+      await updateArtisanShop(shop.id, { shopName: finalName });
 
       toast({
         title: "Nombre actualizado",
@@ -751,10 +742,10 @@ export const ShopDashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground truncate">Portada de tu tienda</p>
                     </div>
                     <Badge
-                      variant={(shop as any).hero_config?.slides?.length > 0 ? "default" : "destructive"}
+                      variant={shop.heroConfig?.slides?.length > 0 ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
-                      {(shop as any).hero_config?.slides?.length > 0 ? 'OK' : 'Pendiente'}
+                      {shop.heroConfig?.slides?.length > 0 ? 'OK' : 'Pendiente'}
                     </Badge>
                     <button className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0">
                       <ArrowRight className="w-3 h-3" />
@@ -776,10 +767,10 @@ export const ShopDashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground truncate">Tu historia profunda</p>
                     </div>
                     <Badge
-                      variant={(shop as any).artisan_profile_completed ? "default" : "destructive"}
+                      variant={shop.artisanProfileCompleted ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
-                      {(shop as any).artisan_profile_completed ? 'OK' : 'Pendiente'}
+                      {shop.artisanProfileCompleted ? 'OK' : 'Pendiente'}
                     </Badge>
                     <button className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0">
                       <ArrowRight className="w-3 h-3" />
@@ -801,10 +792,10 @@ export const ShopDashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground truncate">Info de contacto</p>
                     </div>
                     <Badge
-                      variant={(shop as any).contact_config?.welcomeMessage ? "default" : "destructive"}
+                      variant={shop.contactConfig?.welcomeMessage ? "default" : "destructive"}
                       className="text-xs flex-shrink-0"
                     >
-                      {(shop as any).contact_config?.welcomeMessage ? 'OK' : 'Pendiente'}
+                      {shop.contactConfig?.welcomeMessage ? 'OK' : 'Pendiente'}
                     </Badge>
                     <button className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0">
                       <ArrowRight className="w-3 h-3" />
@@ -936,7 +927,7 @@ export const ShopDashboard: React.FC = () => {
                               )}
                             </div>
                             <p className="text-base lg:text-lg font-bold text-primary mt-1">
-                              ${product.price.toLocaleString('es-CO')}
+                              {formatCurrency(product.price)}
                             </p>
                           </div>
                           <Button

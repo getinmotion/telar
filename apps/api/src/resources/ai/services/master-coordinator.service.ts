@@ -8,7 +8,11 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { OpenAIService } from './openai.service';
-import { AgentTask } from '../../agent-tasks/entities/agent-task.entity';
+import {
+  AgentTask,
+  TaskRelevance,
+  TaskStatus,
+} from '../../agent-tasks/entities/agent-task.entity';
 import { TaskStep } from '../../task-steps/entities/task-step.entity';
 import { AgentDeliverable } from '../../agent-deliverables/entities/agent-deliverable.entity';
 import { UserProfile } from '../../user-profiles/entities/user-profile.entity';
@@ -18,6 +22,15 @@ import {
   MasterCoordinatorDto,
   MasterCoordinatorAction,
 } from '../dto/master-coordinator.dto';
+import {
+  MaturityScores,
+  TaskData,
+  UserProfileData,
+  TaskSuggestion,
+  AITaskSuggestion,
+  BrandAnalysis,
+  IntelligentQuestion,
+} from '../types/master-coordinator.types';
 
 // FASE 1: WHITELIST DE AGENTES FUNCIONALES
 const ALLOWED_AGENTS = [
@@ -28,14 +41,6 @@ const ALLOWED_AGENTS = [
 ] as const;
 
 type AllowedAgent = (typeof ALLOWED_AGENTS)[number];
-
-// Mapeo de nombres amigables para prompts
-const AGENT_DESCRIPTIONS = {
-  growth: 'Growth (crecimiento y diagnóstico inicial)',
-  inventory: 'Producto/Tienda (productos, inventario, catálogo)',
-  'digital-presence': 'Presencia Digital (tienda online, visibilidad)',
-  brand: 'Marca (identidad, logo, colores, claim)',
-} as const;
 
 @Injectable()
 export class MasterCoordinatorService {
@@ -67,8 +72,7 @@ export class MasterCoordinatorService {
   /**
    * Router principal para coordinar todas las acciones
    */
-  async coordinate(dto: MasterCoordinatorDto): Promise<any> {
-
+  async coordinate(dto: MasterCoordinatorDto): Promise<unknown> {
     switch (dto.action) {
       case MasterCoordinatorAction.EVOLVE_TASKS:
         return await this.evolveTasks(
@@ -78,17 +82,14 @@ export class MasterCoordinatorService {
         );
 
       case MasterCoordinatorAction.GET_COACHING_MESSAGE:
-        return await this.getCoachingMessage(
+        return this.getCoachingMessage(
           dto.currentTasks || [],
           dto.completedTasks || [],
           dto.maturityScores,
         );
 
       case MasterCoordinatorAction.ANALYZE_PROGRESS:
-        return await this.analyzeUserProgress(
-          dto.userId,
-          dto.maturityScores,
-        );
+        return await this.analyzeUserProgress(dto.userId, dto.maturityScores);
 
       case MasterCoordinatorAction.ANALYZE_AND_GENERATE_TASKS:
         return await this.analyzeAndGenerateTasks(
@@ -149,7 +150,7 @@ export class MasterCoordinatorService {
         );
 
       case MasterCoordinatorAction.GENERATE_INTELLIGENT_RECOMMENDATIONS:
-        return await this.generateIntelligentRecommendations(
+        return this.generateIntelligentRecommendations(
           dto.userId,
           dto.maturityScores,
           dto.language || 'es',
@@ -172,19 +173,23 @@ export class MasterCoordinatorService {
    * ACCIÓN 1: Evolucionar tareas basado en completadas
    */
   private async evolveTasks(
-    completedTasks: any[],
-    maturityScores: any,
-    userProfile: any,
-  ): Promise<any> {
-    const suggestions: any[] = [];
+    completedTasks: TaskData[],
+    maturityScores?: MaturityScores,
+    userProfile?: UserProfileData,
+  ): Promise<{
+    suggestions: TaskSuggestion[];
+    totalAnalyzed: number;
+    categoriesCompleted: string[];
+  }> {
+    const suggestions: TaskSuggestion[] = [];
 
     // Analizar patrones de tareas completadas
     const completedCategories = new Set(
-      completedTasks.map((task) => task.agentId || task.agent_id),
+      completedTasks
+        .map((task) => task.agentId || task.agent_id)
+        .filter((id): id is string => id !== undefined),
     );
     const totalCompleted = completedTasks.length;
-
-
 
     // Growth evolution path
     if (completedCategories.has('growth') && totalCompleted >= 2) {
@@ -207,8 +212,7 @@ export class MasterCoordinatorService {
       suggestions.push({
         id: 'inventory-organization-' + Date.now(),
         title: 'Organizar Catálogo de Productos',
-        description:
-          'Estructura tu catálogo con categorías y variantes claras',
+        description: 'Estructura tu catálogo con categorías y variantes claras',
         reason: 'Con productos creados, optimiza su organización',
         impact: 'medium',
         agentId: 'inventory',
@@ -245,7 +249,7 @@ export class MasterCoordinatorService {
 
     // Maturity-based suggestions
     if (maturityScores) {
-      const scores = Object.values(maturityScores) as number[];
+      const scores = Object.values(maturityScores);
       const avgMaturity = scores.reduce((a, b) => a + b, 0) / scores.length;
 
       if (avgMaturity > 60 && !completedCategories.has('digital-presence')) {
@@ -272,8 +276,10 @@ export class MasterCoordinatorService {
         );
         suggestions.push(...aiSuggestions);
       } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error';
         this.logger.warn(
-          `AI suggestions failed, using fallback logic: ${error.message}`,
+          `AI suggestions failed, using fallback logic: ${message}`,
         );
       }
     }
@@ -289,10 +295,10 @@ export class MasterCoordinatorService {
    * Obtener sugerencias de tareas usando IA
    */
   private async getAITaskSuggestions(
-    completedTasks: any[],
-    maturityScores: any,
-    userProfile: any,
-  ): Promise<any[]> {
+    completedTasks: TaskData[],
+    maturityScores?: MaturityScores,
+    userProfile?: UserProfileData,
+  ): Promise<TaskSuggestion[]> {
     const prompt = `
 Eres un coach empresarial experto. Analiza el progreso del usuario y sugiere 2 tareas específicas para continuar su desarrollo.
 
@@ -325,17 +331,14 @@ Responde SOLO con un array JSON de objetos con esta estructura:
         max_tokens: 800,
       });
 
-      const suggestions = JSON.parse(aiResponse);
-      return suggestions.map((suggestion: any) => ({
+      const suggestions = JSON.parse(aiResponse) as AITaskSuggestion[];
+      return suggestions.map((suggestion) => ({
         ...suggestion,
-        id:
-          'ai-' +
-          Date.now() +
-          '-' +
-          Math.random().toString(36).substr(2, 9),
+        id: 'ai-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
       }));
     } catch (error) {
-      this.logger.error(`Error getting AI suggestions: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error getting AI suggestions: ${message}`);
       return [];
     }
   }
@@ -343,11 +346,15 @@ Responde SOLO con un array JSON de objetos con esta estructura:
   /**
    * ACCIÓN 2: Obtener mensaje de coaching
    */
-  private async getCoachingMessage(
-    currentTasks: any[],
-    completedTasks: any[],
-    maturityScores: any,
-  ): Promise<any> {
+  private getCoachingMessage(
+    currentTasks: TaskData[],
+    completedTasks: TaskData[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _maturityScores?: MaturityScores,
+  ): {
+    message: string;
+    stats: { currentTasks: number; completedTasks: number };
+  } {
     const totalTasks = currentTasks.length;
     const completedCount = completedTasks.length;
 
@@ -382,8 +389,15 @@ Responde SOLO con un array JSON de objetos con esta estructura:
    */
   private async analyzeUserProgress(
     userId: string,
-    maturityScores: any,
-  ): Promise<any> {
+    maturityScores?: MaturityScores,
+  ): Promise<{
+    totalTasks: number;
+    completedTasks: number;
+    completionRate: number;
+    maturityScores?: MaturityScores;
+    recentActivity: AgentTask[];
+    suggestions: string[];
+  }> {
     // Obtener historial de tareas del usuario
     const tasks = await this.agentTasksRepository.find({
       where: { userId },
@@ -422,10 +436,10 @@ Responde SOLO con un array JSON de objetos con esta estructura:
    */
   private async analyzeAndGenerateTasks(
     userId: string,
-    userProfile: any,
-    maturityScores: any,
+    userProfile?: UserProfileData,
+    maturityScores?: MaturityScores,
     businessDescription?: string,
-  ): Promise<any> {
+  ): Promise<{ success: boolean; tasks: AgentTask[]; message: string }> {
     try {
       // Obtener información COMPLETA del usuario
       const profile = await this.userProfilesRepository.findOne({
@@ -450,20 +464,20 @@ Responde SOLO con un array JSON de objetos con esta estructura:
       const unifiedProfile = {
         businessName: brandName,
         businessDescription: businessInfo,
-        businessType: profile?.businessType,
-        marketTarget: profile?.targetMarket,
-        currentStage: profile?.currentStage,
-        location: profile?.businessLocation,
-        teamSize: profile?.teamSize,
-        timeAvailability: profile?.timeAvailability,
+        businessType: profile?.businessType ?? undefined,
+        marketTarget: profile?.targetMarket ?? undefined,
+        currentStage: profile?.currentStage ?? undefined,
+        location: profile?.businessLocation ?? undefined,
+        teamSize: profile?.teamSize ?? undefined,
+        timeAvailability: profile?.timeAvailability ?? undefined,
         salesChannels: profile?.salesChannels || [],
-        monthlyRevenueGoal: profile?.monthlyRevenueGoal,
-        yearsInBusiness: profile?.yearsInBusiness,
-        initialInvestment: profile?.initialInvestmentRange,
+        monthlyRevenueGoal: profile?.monthlyRevenueGoal ?? undefined,
+        yearsInBusiness: profile?.yearsInBusiness ?? undefined,
+        initialInvestment: profile?.initialInvestmentRange ?? undefined,
         primarySkills: profile?.primarySkills || [],
         currentChallenges: profile?.currentChallenges || [],
         businessGoals: profile?.businessGoals || [],
-        socialMediaPresence: profile?.socialMediaPresence,
+        socialMediaPresence: profile?.socialMediaPresence ?? undefined,
         maturityScores: maturityData
           ? {
               ideaValidation: maturityData.ideaValidation,
@@ -484,13 +498,14 @@ Responde SOLO con un array JSON de objetos con esta estructura:
         max_tokens: 2000,
       });
 
-      const tasks = JSON.parse(aiResponse);
+      const tasks = JSON.parse(aiResponse) as TaskData[];
 
       // Validar y filtrar solo agentes permitidos
-      const validTasks = tasks.filter((task: any) => {
-        if (!this.isAgentAllowed(task.agent_id)) {
+      const validTasks = tasks.filter((task) => {
+        const agentId = task.agent_id || task.agentId;
+        if (!agentId || !this.isAgentAllowed(agentId)) {
           this.logger.warn(
-            `⚠️ Blocking task with invalid agent: ${task.agent_id} - "${task.title}"`,
+            `⚠️ Blocking task with invalid agent: ${agentId} - "${task.title}"`,
           );
           return false;
         }
@@ -529,21 +544,25 @@ Responde SOLO con un array JSON de objetos con esta estructura:
       }
 
       // Crear las tareas en la base de datos
-      const tasksToInsert = validTasks.map((task: any) => {
+      const tasksToInsert = validTasks.map((task) => {
+        // Mapear relevance string a enum
+        let relevance: TaskRelevance = TaskRelevance.MEDIUM;
+        if (task.relevance === 'high') relevance = TaskRelevance.HIGH;
+        else if (task.relevance === 'low') relevance = TaskRelevance.LOW;
+
         const newTask = this.agentTasksRepository.create({
           userId,
-          agentId: task.agent_id,
+          agentId: task.agent_id || task.agentId || 'growth',
           title: task.title,
           description: task.description,
-          relevance: task.relevance,
+          relevance,
           status: 'pending' as any,
           priority: Math.min(Math.max(task.priority || 3, 1), 5),
         });
         return newTask;
       });
 
-      const insertedTasks =
-        await this.agentTasksRepository.save(tasksToInsert);
+      const insertedTasks = await this.agentTasksRepository.save(tasksToInsert);
 
       this.logger.log(
         `✅ Generated ${insertedTasks.length} personalized tasks for user ${userId}`,
@@ -551,11 +570,11 @@ Responde SOLO con un array JSON de objetos con esta estructura:
 
       // Crear pasos automáticamente para cada tarea
       for (const task of insertedTasks) {
-        const taskWithSteps = tasks.find((t: any) => t.title === task.title);
+        const taskWithSteps = tasks.find((t) => t.title === task.title);
 
         if (taskWithSteps?.steps && taskWithSteps.steps.length > 0) {
           const stepsToInsert = taskWithSteps.steps.map(
-            (step: any, index: number) => {
+            (step, index: number) => {
               return this.taskStepsRepository.create({
                 taskId: task.id,
                 stepNumber: index + 1,
@@ -582,9 +601,8 @@ Responde SOLO con un array JSON de objetos con esta estructura:
         message: `He generado ${insertedTasks.length} tareas específicas para tu negocio: ${businessInfo}`,
       };
     } catch (error) {
-      this.logger.error(
-        `Error generating personalized tasks: ${error.message}`,
-      );
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error generating personalized tasks: ${message}`);
       throw new InternalServerErrorException(
         'Error al generar tareas personalizadas',
       );
@@ -594,7 +612,30 @@ Responde SOLO con un array JSON de objetos con esta estructura:
   /**
    * Helper para construir el prompt de generación de tareas
    */
-  private buildTaskGenerationPrompt(unifiedProfile: any): string {
+  private buildTaskGenerationPrompt(unifiedProfile: {
+    businessName: string;
+    businessDescription: string;
+    businessType?: string;
+    marketTarget?: string;
+    currentStage?: string;
+    location?: string;
+    teamSize?: string;
+    timeAvailability?: string;
+    salesChannels: string[];
+    monthlyRevenueGoal?: number;
+    yearsInBusiness?: number;
+    initialInvestment?: string;
+    primarySkills: string[];
+    currentChallenges: string[];
+    businessGoals: string[];
+    socialMediaPresence?: Record<string, unknown>;
+    maturityScores: {
+      ideaValidation: number;
+      userExperience: number;
+      marketFit: number;
+      monetization: number;
+    } | null;
+  }): string {
     return `
 Eres un Master Coordinator AI experto en emprendimiento. Analiza el PERFIL COMPLETO Y FUSIONADO del usuario y genera tareas ULTRA-PERSONALIZADAS y ESPECÍFICAS para su negocio.
 
@@ -619,12 +660,16 @@ Objetivos del negocio: ${JSON.stringify(unifiedProfile.businessGoals)}
 Presencia en redes: ${JSON.stringify(unifiedProfile.socialMediaPresence)}
 
 PUNTUACIONES DE MADUREZ (PRIORIZAR ÁREAS MÁS BAJAS):
-${unifiedProfile.maturityScores ? `
+${
+  unifiedProfile.maturityScores
+    ? `
 - Validación de idea: ${unifiedProfile.maturityScores.ideaValidation}/100
 - Experiencia de usuario: ${unifiedProfile.maturityScores.userExperience}/100  
 - Ajuste al mercado: ${unifiedProfile.maturityScores.marketFit}/100
 - Monetización: ${unifiedProfile.maturityScores.monetization}/100
-` : 'No hay datos de madurez disponibles'}
+`
+    : 'No hay datos de madurez disponibles'
+}
 
 INSTRUCCIONES CRÍTICAS:
 1. Usa EXACTAMENTE el nombre del negocio "${unifiedProfile.businessName}" en los títulos cuando sea relevante
@@ -706,9 +751,14 @@ Responde SOLO con un array JSON con esta estructura:
    */
   private async startIntelligentConversation(
     userId: string,
-    userProfile: any,
+    userProfile?: UserProfileData,
     conversationContext?: string,
-  ): Promise<any> {
+  ): Promise<{
+    message: string;
+    questions: string[];
+    actionButtons: Array<{ text: string; action: string }>;
+    nextSteps: string[];
+  }> {
     const profile = await this.userProfilesRepository.findOne({
       where: { userId },
     });
@@ -720,8 +770,10 @@ Responde SOLO con un array JSON con esta estructura:
     });
 
     const businessInfo = profile?.businessDescription || 'No definido';
-    const completedTasks = tasks.filter((t) => t.status === 'completed');
-    const pendingTasks = tasks.filter((t) => t.status === 'pending');
+    const completedTasks = tasks.filter(
+      (t) => t.status === TaskStatus.COMPLETED,
+    );
+    const pendingTasks = tasks.filter((t) => t.status === TaskStatus.PENDING);
 
     const prompt = `
 Eres el Master Coordinator, un guía empresarial empático y conversacional. Tu trabajo es hablar con ${profile?.fullName || 'el usuario'} sobre su negocio de forma natural y personalizada.
@@ -755,11 +807,15 @@ Responde en JSON con este formato:
         max_tokens: 1000,
       });
 
-      return JSON.parse(aiResponse);
+      return JSON.parse(aiResponse) as {
+        message: string;
+        questions: string[];
+        actionButtons: Array<{ text: string; action: string }>;
+        nextSteps: string[];
+      };
     } catch (error) {
-      this.logger.error(
-        `Error starting intelligent conversation: ${error.message}`,
-      );
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error starting intelligent conversation: ${message}`);
       throw new InternalServerErrorException(
         'Error al iniciar conversación inteligente',
       );
@@ -771,8 +827,13 @@ Responde en JSON con este formato:
    */
   private async generateIntelligentQuestions(
     userId: string,
-    userProfile: any,
-  ): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _userProfile?: UserProfileData,
+  ): Promise<{
+    success: boolean;
+    questions: IntelligentQuestion[];
+    message: string;
+  }> {
     const profile = await this.userProfilesRepository.findOne({
       where: { userId },
     });
@@ -819,7 +880,7 @@ Responde SOLO con un array JSON:
         max_tokens: 1000,
       });
 
-      const questions = JSON.parse(aiResponse);
+      const questions = JSON.parse(aiResponse) as IntelligentQuestion[];
 
       return {
         success: true,
@@ -827,9 +888,8 @@ Responde SOLO con un array JSON:
         message: `He generado ${questions.length} preguntas inteligentes para enriquecer tu perfil empresarial.`,
       };
     } catch (error) {
-      this.logger.error(
-        `Error generating intelligent questions: ${error.message}`,
-      );
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error generating intelligent questions: ${message}`);
       throw new InternalServerErrorException(
         'Error al generar preguntas inteligentes',
       );
@@ -841,10 +901,16 @@ Responde SOLO con un array JSON:
    */
   private async createTaskSteps(
     taskId: string,
-    taskData: any,
-    profileContext: any,
-  ): Promise<any> {
-    this.logger.log(`🔧 Creating steps for task: ${taskId} - ${taskData.title}`);
+    taskData: TaskData,
+    profileContext?: Record<string, unknown>,
+  ): Promise<{
+    success: boolean;
+    steps: TaskStep[];
+    message: string;
+  }> {
+    this.logger.log(
+      `🔧 Creating steps for task: ${taskId} - ${taskData.title}`,
+    );
 
     // Validar agente permitido
     if (taskData.agent_id && !this.isAgentAllowed(taskData.agent_id)) {
@@ -904,24 +970,35 @@ Responde SOLO con un array JSON:
         max_tokens: 1500,
       });
 
-      const steps = JSON.parse(aiResponse);
+      interface AIStep {
+        step_number?: number;
+        title?: string;
+        description?: string;
+        input_type?: string;
+        validation_criteria?: string | Record<string, unknown>;
+        ai_context_prompt?: string;
+      }
+
+      const steps = JSON.parse(aiResponse) as AIStep[];
 
       // Insertar pasos en la base de datos
-      const stepsToInsert = steps.map((step: any, index: number) => {
+      const stepsToInsert = steps.map((step, index: number) => {
         return this.taskStepsRepository.create({
           taskId,
           stepNumber: step.step_number || index + 1,
           title: step.title || `Paso ${index + 1}`,
           description: step.description || '',
           inputType: step.input_type || 'text',
-          validationCriteria: step.validation_criteria || {},
+          validationCriteria:
+            typeof step.validation_criteria === 'string'
+              ? { criteria: step.validation_criteria }
+              : step.validation_criteria || {},
           aiContextPrompt: step.ai_context_prompt || '',
           completionStatus: 'pending',
         });
       });
 
-      const insertedSteps =
-        await this.taskStepsRepository.save(stepsToInsert);
+      const insertedSteps = await this.taskStepsRepository.save(stepsToInsert);
 
       this.logger.log(
         `✅ Successfully created ${insertedSteps.length} steps for task ${taskId}`,
@@ -933,7 +1010,8 @@ Responde SOLO con un array JSON:
         message: `He creado ${insertedSteps.length} pasos específicos para tu tarea.`,
       };
     } catch (error) {
-      this.logger.error(`Error in createTaskSteps: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error in createTaskSteps: ${message}`);
       throw new InternalServerErrorException('Error al crear pasos de tarea');
     }
   }
@@ -944,9 +1022,14 @@ Responde SOLO con un array JSON:
   private async completeStep(
     taskId: string,
     stepId: string,
-    stepData: any,
-    userId: string,
-  ): Promise<any> {
+    stepData: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _userId?: string,
+  ): Promise<{
+    success: boolean;
+    allCompleted: boolean;
+    message: string;
+  }> {
     // Actualizar el paso como completado
     await this.taskStepsRepository.update(stepId, {
       completionStatus: 'completed',
@@ -984,18 +1067,20 @@ Responde SOLO con un array JSON:
    */
   private async generateDeliverable(
     taskId: string,
-    userId: string,
+    userId?: string,
     collectedAnswers?: Array<{ question: string; answer: string }>,
-  ): Promise<any> {
+  ): Promise<{
+    success: boolean;
+    deliverable: AgentDeliverable;
+    message: string;
+  }> {
     // Obtener información de la tarea y sus pasos
     const task = await this.agentTasksRepository.findOne({
       where: { id: taskId },
     });
 
     if (!task) {
-      throw new NotFoundException(
-        `Tarea con ID ${taskId} no encontrada`,
-      );
+      throw new NotFoundException(`Tarea con ID ${taskId} no encontrada`);
     }
 
     const steps = await this.taskStepsRepository.find({
@@ -1068,7 +1153,8 @@ Responde con un documento en formato markdown profesional.
         message: 'Entregable generado exitosamente.',
       };
     } catch (error) {
-      this.logger.error(`Error generating deliverable: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error generating deliverable: ${message}`);
       throw new InternalServerErrorException('Error al generar entregable');
     }
   }
@@ -1076,11 +1162,15 @@ Responde con un documento en formato markdown profesional.
   /**
    * ACCIÓN 10: Generar recomendaciones inteligentes
    */
-  private async generateIntelligentRecommendations(
+  private generateIntelligentRecommendations(
     userId: string,
-    maturityScores: any,
-    language: 'es' | 'en',
-  ): Promise<any> {
+    maturityScores?: MaturityScores,
+    language: 'es' | 'en' = 'es',
+  ): {
+    success: boolean;
+    recommendations: unknown[];
+    message: string;
+  } {
     // Esta función ya existe en generateIntelligentRecommendations.ts
     // Por ahora retornamos un placeholder
     this.logger.log(
@@ -1100,8 +1190,12 @@ Responde con un documento en formato markdown profesional.
    */
   private async evaluateBrandIdentity(
     userId: string,
-    wizardData: Record<string, any>,
-  ): Promise<any> {
+    wizardData: Record<string, unknown>,
+  ): Promise<{
+    success: boolean;
+    analysis: BrandAnalysis;
+    message: string;
+  }> {
     this.logger.log(
       `🎨 Master Agent: Evaluating brand identity for user ${userId}`,
     );
@@ -1109,13 +1203,36 @@ Responde con un documento en formato markdown profesional.
     // Calcular score
     const score = this.calculateBrandScore(wizardData);
 
+    // Helper para convertir valores de wizardData a string seguro
+    const toString = (value: unknown): string => {
+      if (typeof value === 'string') return value;
+      if (value === null || value === undefined) return 'No especificado';
+      if (typeof value === 'object') return 'No especificado';
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      return String(value);
+    };
+
+    const logoStatus = toString(
+      wizardData['¿Ya tienes un logo para tu negocio?'],
+    );
+    const colorStatus = toString(
+      wizardData['¿Tienes colores corporativos definidos?'],
+    );
+    const claimStatus = toString(
+      wizardData['¿Tienes un slogan o claim definido?'],
+    );
+    const channelsData = wizardData['¿Dónde usas tu identidad actualmente?'];
+    const channelsText = Array.isArray(channelsData)
+      ? channelsData.join(', ')
+      : 'No especificado';
+
     const analysisPrompt = `
 Eres un experto en branding para negocios artesanales. Analiza esta evaluación de identidad visual:
 
-Logo: ${wizardData['¿Ya tienes un logo para tu negocio?'] || 'No especificado'}
-Colores: ${wizardData['¿Tienes colores corporativos definidos?'] || 'No especificado'}
-Claim: ${wizardData['¿Tienes un slogan o claim definido?'] || 'No especificado'}
-Canales: ${Array.isArray(wizardData['¿Dónde usas tu identidad actualmente?']) ? wizardData['¿Dónde usas tu identidad actualmente?'].join(', ') : 'No especificado'}
+Logo: ${logoStatus}
+Colores: ${colorStatus}
+Claim: ${claimStatus}
+Canales: ${channelsText}
 
 Genera un análisis profesional en formato JSON con:
 {
@@ -1146,7 +1263,7 @@ Sé específico, constructivo y enfocado en artesanos.
         max_tokens: 1500,
       });
 
-      const analysis = JSON.parse(aiResponse);
+      const analysis = JSON.parse(aiResponse) as BrandAnalysis;
 
       // Guardar en user_master_context
       const existingContext = await this.userMasterContextRepository.findOne({
@@ -1194,7 +1311,8 @@ Sé específico, constructivo y enfocado en artesanos.
         message: 'Evaluación completada exitosamente',
       };
     } catch (error) {
-      this.logger.error(`Error evaluating brand identity: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error evaluating brand identity: ${message}`);
       throw new InternalServerErrorException(
         'Error al evaluar identidad de marca',
       );
@@ -1204,7 +1322,7 @@ Sé específico, constructivo y enfocado en artesanos.
   /**
    * Helper para calcular score de marca
    */
-  private calculateBrandScore(wizardData: Record<string, any>): number {
+  private calculateBrandScore(wizardData: Record<string, unknown>): number {
     let score = 0;
 
     // Logo (+30 pts)
@@ -1224,8 +1342,8 @@ Sé específico, constructivo y enfocado en artesanos.
     else if (claimStatus === 'Tengo ideas pero no definido') score += 10;
 
     // Canales (+25 pts)
-    const channels =
-      wizardData['¿Dónde usas tu identidad actualmente?'] || [];
+    const channelsData = wizardData['¿Dónde usas tu identidad actualmente?'];
+    const channels = Array.isArray(channelsData) ? channelsData : [];
     score += Math.min(25, channels.length * 4);
 
     return Math.min(100, score);

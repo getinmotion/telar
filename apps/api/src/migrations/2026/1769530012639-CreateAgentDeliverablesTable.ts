@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAgentDeliverablesTable1769530012639
-  implements MigrationInterface
-{
+export class CreateAgentDeliverablesTable1769530012639 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Habilitar extensión para UUID si no está habilitada
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);

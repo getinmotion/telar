@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { RefreshCw, Package, Store, LayoutDashboard, CheckSquare } from 'lucide-react';
+import { RefreshCw, Package, Store, LayoutDashboard, CheckSquare, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,7 +26,7 @@ import { useIsModerator } from '@/hooks/useIsModerator';
 const ProductModerationPage: React.FC = () => {
   const { isModerationSubdomain } = useSubdomain();
   const { isAdmin } = useIsModerator();
-  
+
   // Products
   const {
     products,
@@ -66,7 +66,7 @@ const ProductModerationPage: React.FC = () => {
 
   // UI State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'shops'>('dashboard');
-  
+
   // Products state
   const [activeFilter, setActiveFilter] = useState('pending_moderation');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
@@ -90,6 +90,10 @@ const ProductModerationPage: React.FC = () => {
   });
   const [shopPage, setShopPage] = useState(1);
   const [selectedShop, setSelectedShop] = useState<ModerationShop | null>(null);
+
+  // Mobile panel view: 'list' | 'detail'
+  const [mobileProductView, setMobileProductView] = useState<'list' | 'detail'>('list');
+  const [mobileShopView, setMobileShopView] = useState<'list' | 'detail'>('list');
 
   // Bulk selection state
   const [selectedShops, setSelectedShops] = useState<string[]>([]);
@@ -136,21 +140,25 @@ const ProductModerationPage: React.FC = () => {
     setActiveFilter(filter);
     setProductPage(1);
     setSelectedProduct(null);
+    setMobileProductView('list');
   };
 
   const handleAdvancedFiltersChange = (filters: AdvancedFilters) => {
     setAdvancedFilters(filters);
     setProductPage(1);
     setSelectedProduct(null);
+    setMobileProductView('list');
   };
 
   const handleProductPageChange = (page: number) => {
     setProductPage(page);
     setSelectedProduct(null);
+    setMobileProductView('list');
   };
 
   const handleSelectProduct = (product: ModerationProduct) => {
     setSelectedProduct(product);
+    setMobileProductView('detail');
   };
 
   const handleModerate = async (
@@ -159,16 +167,19 @@ const ProductModerationPage: React.FC = () => {
     edits?: Record<string, any>
   ) => {
     if (!selectedProduct) return;
-    
+
     await moderateProduct(selectedProduct.id, action, comment, edits);
     setSelectedProduct(null);
+    setMobileProductView('list');
     fetchQueue();
+    fetchStats();
   };
 
-  const handleShopApprovalChange = async (shopId: string, approved: boolean, comment?: string) => {
-    const success = await toggleMarketplaceApproval(shopId, approved, comment);
+  const handleShopApprovalChange = async (shopId: string, approved: boolean, _comment?: string) => {
+    const success = await toggleMarketplaceApproval(shopId, approved);
     if (success) {
       fetchShopsQueue();
+      fetchStats();
     }
   };
 
@@ -186,27 +197,31 @@ const ProductModerationPage: React.FC = () => {
 
   const handleSelectShop = (shop: ModerationShop) => {
     setSelectedShop(shop);
+    setMobileShopView('detail');
   };
 
   const handleShopFilterChange = (filter: string) => {
     setActiveShopFilter(filter);
     setShopPage(1);
     setSelectedShop(null);
+    setMobileShopView('list');
   };
 
   const handleShopAdvancedFiltersChange = (filters: ShopAdvancedFilters) => {
     setShopAdvancedFilters(filters);
     setShopPage(1);
     setSelectedShop(null);
+    setMobileShopView('list');
   };
 
   const handleShopPageChange = (page: number) => {
     setShopPage(page);
     setSelectedShop(null);
+    setMobileShopView('list');
   };
 
-  const handleDeleteShop = async (shopId: string, reason: string) => {
-    const success = await deleteShop(shopId, reason);
+  const handleDeleteShop = async (shopId: string, _reason?: string) => {
+    const success = await deleteShop(shopId);
     if (success) {
       setSelectedShop(null);
       fetchShopsQueue();
@@ -215,8 +230,8 @@ const ProductModerationPage: React.FC = () => {
 
   // Bulk actions
   const handleToggleSelection = (shopId: string) => {
-    setSelectedShops(prev => 
-      prev.includes(shopId) 
+    setSelectedShops(prev =>
+      prev.includes(shopId)
         ? prev.filter(id => id !== shopId)
         : [...prev, shopId]
     );
@@ -229,7 +244,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkApprove = async () => {
     if (selectedShops.length === 0) return;
-    
+
     // Validate IDs exist in current list
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
@@ -239,14 +254,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkToggleMarketplaceApproval(
-        validIds, 
+        validIds,
         true,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas aprobadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -258,7 +273,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkReject = async () => {
     if (selectedShops.length === 0) return;
-    
+
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
       handleClearSelection();
@@ -267,14 +282,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkToggleMarketplaceApproval(
-        validIds, 
+        validIds,
         false,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas rechazadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -286,7 +301,7 @@ const ProductModerationPage: React.FC = () => {
 
   const handleBulkDelete = async (reason: string) => {
     if (selectedShops.length === 0) return;
-    
+
     const validIds = selectedShops.filter(id => shops.some(s => s.id === id));
     if (validIds.length === 0) {
       handleClearSelection();
@@ -295,14 +310,14 @@ const ProductModerationPage: React.FC = () => {
 
     setBulkProcessing(true);
     setBulkProgress(0);
-    
+
     try {
       const result = await bulkDeleteShops(
         validIds,
         reason,
         (current, total) => setBulkProgress((current / total) * 100)
       );
-      
+
       toast.success(`${result.success} tiendas eliminadas${result.failed > 0 ? `, ${result.failed} fallaron` : ''}`);
     } finally {
       setBulkProcessing(false);
@@ -316,7 +331,7 @@ const ProductModerationPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       {isModerationSubdomain && <ModerationHeader />}
-      
+
       <div className={isModerationSubdomain ? "pt-16" : ""}>
         {/* Title bar */}
         <div className="border-b bg-card">
@@ -328,8 +343,8 @@ const ProductModerationPage: React.FC = () => {
                   Revisa productos y aprueba tiendas para el marketplace
                 </p>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={activeTab === 'dashboard' ? statsLoading : activeTab === 'products' ? loading : shopsLoading}
@@ -353,12 +368,12 @@ const ProductModerationPage: React.FC = () => {
                 <TabsTrigger value="products" className="gap-2">
                   <Package className="w-4 h-4" />
                   Productos
-                  <Badge variant="secondary">{counts.pending_moderation}</Badge>
+                  <Badge variant="secondary">{moderationStats.products.pending_moderation}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="shops" className="gap-2">
                   <Store className="w-4 h-4" />
                   Tiendas
-                  <Badge variant="secondary">{shopCounts.not_approved}</Badge>
+                  <Badge variant="secondary">{moderationStats.shops.not_approved}</Badge>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -368,24 +383,22 @@ const ProductModerationPage: React.FC = () => {
         {/* Tab Content */}
         <Tabs value={activeTab} className="container mx-auto px-4">
           <TabsContent value="dashboard" className="mt-0 py-6">
-            <ModerationDashboard 
-              stats={moderationStats} 
-              loading={statsLoading} 
+            <ModerationDashboard
+              stats={moderationStats}
+              loading={statsLoading}
             />
           </TabsContent>
 
           <TabsContent value="products" className="mt-0">
-            {/* Product Filters */}
-            <div className="py-3 border-b bg-card/50">
+            {/* Product Filters — ocultos en mobile cuando se ve el detalle */}
+            <div className={`py-3 border-b bg-card/50 ${mobileProductView === 'detail' ? 'hidden lg:block' : 'block'}`}>
               <ModerationFilters
                 activeFilter={activeFilter}
                 onFilterChange={handleFilterChange}
-                counts={counts}
+                counts={moderationStats.products}
               />
             </div>
-
-            {/* Advanced Filters */}
-            <div className="py-3 border-b">
+            <div className={`py-3 border-b ${mobileProductView === 'detail' ? 'hidden lg:block' : 'block'}`}>
               <ModerationAdvancedFilters
                 filters={advancedFilters}
                 onFiltersChange={handleAdvancedFiltersChange}
@@ -393,11 +406,12 @@ const ProductModerationPage: React.FC = () => {
             </div>
 
             {/* Products Grid */}
-            <div className="py-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Queue List */}
-                <div className="lg:col-span-1">
-                  <Card className="h-[calc(100vh-340px)]">
+            <div className="py-3 lg:py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+
+                {/* Queue List — oculta en mobile cuando se ve detalle */}
+                <div className={`lg:col-span-1 ${mobileProductView === 'detail' ? 'hidden lg:block' : 'block'}`}>
+                  <Card className="h-[calc(100vh-320px)] sm:h-[calc(100vh-340px)] min-h-[340px]">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base flex items-center gap-2">
                         <Package className="w-4 h-4" />
@@ -422,20 +436,35 @@ const ProductModerationPage: React.FC = () => {
                   </Card>
                 </div>
 
-                {/* Detail View / Editor */}
-                <div className="lg:col-span-2">
+                {/* Detail View / Editor — ocupa todo el ancho en mobile */}
+                <div className={`lg:col-span-2 ${mobileProductView === 'list' ? 'hidden lg:block' : 'block'}`}>
                   {selectedProduct ? (
-                    <ScrollArea className="h-[calc(100vh-340px)]">
-                      <ModerationProductEditor
-                        product={selectedProduct}
-                        history={productHistory}
-                        onModerate={handleModerate}
-                        onShopApprovalChange={handleShopApprovalChange}
-                        moderating={moderating}
-                      />
-                    </ScrollArea>
+                    <div className="flex flex-col gap-2">
+                      {/* Botón volver — solo visible en mobile/tablet */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="lg:hidden self-start -ml-1"
+                        onClick={() => {
+                          setSelectedProduct(null);
+                          setMobileProductView('list');
+                        }}
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        Volver a la lista
+                      </Button>
+                      <ScrollArea className="h-[calc(100vh-200px)] sm:h-[calc(100vh-260px)] lg:h-[calc(100vh-340px)] min-h-[400px]">
+                        <ModerationProductEditor
+                          product={selectedProduct}
+                          history={productHistory}
+                          onModerate={handleModerate}
+                          onShopApprovalChange={handleShopApprovalChange}
+                          moderating={moderating}
+                        />
+                      </ScrollArea>
+                    </div>
                   ) : (
-                    <Card className="h-[calc(100vh-340px)] flex items-center justify-center">
+                    <Card className="hidden lg:flex h-[calc(100vh-340px)] min-h-[340px] items-center justify-center">
                       <CardContent className="text-center text-muted-foreground">
                         <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
                         <p className="font-medium">Selecciona un producto</p>
@@ -444,22 +473,21 @@ const ProductModerationPage: React.FC = () => {
                     </Card>
                   )}
                 </div>
+
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="shops" className="mt-0">
-            {/* Shop Filters */}
-            <div className="py-3 border-b bg-card/50">
+            {/* Shop Filters — ocultos en mobile cuando se ve el detalle */}
+            <div className={`py-3 border-b bg-card/50 ${mobileShopView === 'detail' ? 'hidden lg:block' : 'block'}`}>
               <ModerationShopFilters
                 activeFilter={activeShopFilter}
                 onFilterChange={handleShopFilterChange}
-                counts={shopCounts}
+                counts={moderationStats.shops}
               />
             </div>
-
-            {/* Advanced Filters */}
-            <div className="border-b">
+            <div className={`border-b ${mobileShopView === 'detail' ? 'hidden lg:block' : 'block'}`}>
               <ModerationShopAdvancedFilters
                 filters={shopAdvancedFilters}
                 onFiltersChange={handleShopAdvancedFiltersChange}
@@ -469,11 +497,12 @@ const ProductModerationPage: React.FC = () => {
             </div>
 
             {/* Shops Grid */}
-            <div className="py-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Queue List */}
-                <div className="lg:col-span-1">
-                  <Card className="h-[calc(100vh-380px)]">
+            <div className="py-3 lg:py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+
+                {/* Queue List — oculta en mobile cuando se ve detalle */}
+                <div className={`lg:col-span-1 ${mobileShopView === 'detail' ? 'hidden lg:block' : 'block'}`}>
+                  <Card className="h-[calc(100vh-360px)] sm:h-[calc(100vh-380px)] min-h-[340px]">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base flex items-center gap-2">
@@ -526,22 +555,37 @@ const ProductModerationPage: React.FC = () => {
                   isAdmin={isAdmin}
                 />
 
-                {/* Detail View */}
-                <div className="lg:col-span-2">
+                {/* Detail View — ocupa todo el ancho en mobile */}
+                <div className={`lg:col-span-2 ${mobileShopView === 'list' ? 'hidden lg:block' : 'block'}`}>
                   {selectedShop ? (
-                    <ScrollArea className="h-[calc(100vh-380px)]">
-                      <ModerationShopDetailView
-                        shop={selectedShop}
-                        onApprovalChange={handleShopApprovalChange}
-                        onPublishChange={publishShopAdmin}
-                        updating={shopUpdating}
-                        isAdmin={isAdmin}
-                        onDeleteShop={handleDeleteShop}
-                        onRefresh={fetchShopsQueue}
-                      />
-                    </ScrollArea>
+                    <div className="flex flex-col gap-2">
+                      {/* Botón volver — solo visible en mobile/tablet */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="lg:hidden self-start -ml-1"
+                        onClick={() => {
+                          setSelectedShop(null);
+                          setMobileShopView('list');
+                        }}
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        Volver a la lista
+                      </Button>
+                      <ScrollArea className="h-[calc(100vh-200px)] sm:h-[calc(100vh-260px)] lg:h-[calc(100vh-380px)] min-h-[400px]">
+                        <ModerationShopDetailView
+                          shop={selectedShop}
+                          onApprovalChange={handleShopApprovalChange}
+                          onPublishChange={publishShopAdmin}
+                          updating={shopUpdating}
+                          isAdmin={isAdmin}
+                          onDeleteShop={handleDeleteShop}
+                          onRefresh={fetchShopsQueue}
+                        />
+                      </ScrollArea>
+                    </div>
                   ) : (
-                    <Card className="h-[calc(100vh-380px)] flex items-center justify-center">
+                    <Card className="hidden lg:flex h-[calc(100vh-380px)] min-h-[340px] items-center justify-center">
                       <CardContent className="text-center text-muted-foreground">
                         <Store className="w-12 h-12 mx-auto mb-3 opacity-50" />
                         <p className="font-medium">Selecciona una tienda</p>
@@ -550,6 +594,7 @@ const ProductModerationPage: React.FC = () => {
                     </Card>
                   )}
                 </div>
+
               </div>
             </div>
           </TabsContent>

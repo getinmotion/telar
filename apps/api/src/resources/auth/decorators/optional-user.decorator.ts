@@ -17,7 +17,7 @@ export const OptionalUser = createParamDecorator(
 
     try {
       const [type, token] = authHeader.split(' ');
-      
+
       if (type !== 'Bearer' || !token) {
         return null;
       }

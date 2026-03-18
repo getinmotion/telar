@@ -9,9 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { StockManager } from '@/components/inventory/StockManager';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
+import { UploadFolder } from '@/services/fileUpload.actions';
+import { getProductById, updateProduct } from '@/services/products.actions';
+import { getVariantsByProductId, createVariant, ProductVariantMapped } from '@/services/productVariants.actions';
+import { WeightInput } from '@/components/ui/WeightInput';
+import { PriceInput } from '@/components/ui/PriceInput';
 import { Loader2, Save, ArrowLeft, Send, AlertCircle, CheckCircle, MapPin } from 'lucide-react';
 import { Product } from '@/types/artisan';
 
@@ -30,7 +34,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
-  const [variant, setVariant] = useState<any>(null);
+  const [variant, setVariant] = useState<ProductVariantMapped | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -54,14 +58,12 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
   const fetchProduct = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .eq('shop_id', shopId)
-        .single();
+      const data = await getProductById(productId!);
 
-      if (error) throw error;
+      if (!data) {
+        setLoading(false);
+        return;
+      }
 
       setProduct(data);
       setFormData({
@@ -78,36 +80,22 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
         allowsLocalPickup: data.allows_local_pickup ?? false
       });
 
-      // Fetch or create default variant for stock management
-      const { data: variants } = await supabase
-        .from('product_variants')
-        .select('*')
-        .eq('product_id', productId)
-        .limit(1);
+      const variants = await getVariantsByProductId(productId!);
 
-      if (variants && variants.length > 0) {
+      if (variants.length > 0) {
         setVariant(variants[0]);
       } else {
-        // Create default variant if none exists
-        const { data: newVariant, error: variantError } = await supabase
-          .from('product_variants')
-          .insert({
-            product_id: productId,
-            sku: `${data.sku || productId}-DEFAULT`,
-            price: data.price,
-            stock: data.inventory || 0,
-            min_stock: 5,
-            status: 'active',
-          })
-          .select()
-          .single();
-
-        if (!variantError && newVariant) {
-          setVariant(newVariant);
-        }
+        const newVariant = await createVariant({
+          product_id: productId,
+          sku: `${data.sku || productId}-DEFAULT`,
+          price: data.price,
+          stock: data.inventory || 0,
+          min_stock: 5,
+          status: 'active',
+        });
+        setVariant(newVariant);
       }
     } catch (error) {
-      console.error('Error fetching product:', error);
       toast({
         title: 'Error',
         description: 'No se pudo cargar el producto',
@@ -123,25 +111,18 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
     setSaving(true);
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name: formData.name,
-          description: formData.description,
-          price: formData.price,
-          inventory: formData.inventory,
-          category: formData.category,
-          active: formData.active,
-          featured: formData.featured,
-          images: formData.images,
-          weight: formData.weight,
-          dimensions: formData.dimensions,
-          allows_local_pickup: formData.allowsLocalPickup
-        })
-        .eq('id', productId)
-        .eq('shop_id', shopId);
-
-      if (error) throw error;
+      await updateProduct(productId!, {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        inventory: formData.inventory,
+        active: formData.active,
+        featured: formData.featured,
+        images: formData.images,
+        weight: formData.weight,
+        dimensions: formData.dimensions,
+        allows_local_pickup: formData.allowsLocalPickup
+      });
 
       toast({
         title: '✅ Producto Actualizado',
@@ -154,7 +135,6 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
         navigate('/dashboard/inventory');
       }
     } catch (error) {
-      console.error('Error updating product:', error);
       toast({
         title: 'Error',
         description: 'No se pudieron guardar los cambios',
@@ -167,11 +147,11 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
   // Check if shipping data is complete for moderation submission
   const hasCompleteShippingData = !!(
-    formData.weight && 
-    formData.weight > 0 && 
+    formData.weight &&
+    formData.weight > 0 &&
     formData.dimensions &&
-    formData.dimensions.length > 0 && 
-    formData.dimensions.width > 0 && 
+    formData.dimensions.length > 0 &&
+    formData.dimensions.width > 0 &&
     formData.dimensions.height > 0
   );
 
@@ -195,26 +175,19 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name: formData.name,
-          description: formData.description,
-          price: formData.price,
-          inventory: formData.inventory,
-          category: formData.category,
-          active: false, // Keep inactive until approved
-          featured: formData.featured,
-          images: formData.images,
-          weight: formData.weight,
-          dimensions: formData.dimensions,
-          moderation_status: 'pending_moderation',
-          shipping_data_complete: true
-        })
-        .eq('id', productId)
-        .eq('shop_id', shopId);
-
-      if (error) throw error;
+      await updateProduct(productId!, {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        inventory: formData.inventory,
+        active: false,
+        featured: formData.featured,
+        images: formData.images,
+        weight: formData.weight,
+        dimensions: formData.dimensions,
+        moderation_status: 'pending_moderation',
+        shipping_data_complete: true
+      });
 
       toast({
         title: '✅ Producto enviado a revisión',
@@ -223,7 +196,6 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
       navigate('/dashboard/inventory');
     } catch (error) {
-      console.error('Error submitting for review:', error);
       toast({
         title: 'Error',
         description: 'No se pudo enviar a revisión',
@@ -236,12 +208,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
   const handleStockChange = async (newStock: number) => {
     setFormData(prev => ({ ...prev, inventory: newStock }));
-    
-    // Also update product table
-    await supabase
-      .from('products')
-      .update({ inventory: newStock })
-      .eq('id', productId);
+    await updateProduct(productId!, { inventory: newStock });
   };
 
   if (loading) {
@@ -301,12 +268,10 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price">Precio (COP) *</Label>
-              <Input
+              <PriceInput
                 id="price"
-                type="number"
-                min="0"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                onChange={(price) => setFormData({ ...formData, price })}
                 required
               />
             </div>
@@ -343,14 +308,11 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           </div>
           <div className="grid md:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="weight">Peso (gramos)</Label>
-              <Input
+              <Label htmlFor="weight">Peso</Label>
+              <WeightInput
                 id="weight"
-                type="number"
-                min="0"
-                value={formData.weight ?? ''}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value ? Number(e.target.value) : null })}
-                placeholder="Ej: 500"
+                value={formData.weight}
+                onChange={(valueKg) => setFormData({ ...formData, weight: valueKg })}
               />
             </div>
 
@@ -362,14 +324,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.length ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: e.target.value ? Number(e.target.value) : 0,
                     width: formData.dimensions?.width ?? 0,
                     height: formData.dimensions?.height ?? 0
-                  } 
+                  }
                 })}
                 placeholder="Largo"
               />
@@ -383,14 +345,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.width ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: formData.dimensions?.length ?? 0,
                     width: e.target.value ? Number(e.target.value) : 0,
                     height: formData.dimensions?.height ?? 0
-                  } 
+                  }
                 })}
                 placeholder="Ancho"
               />
@@ -404,14 +366,14 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
                 min="0"
                 step="0.1"
                 value={formData.dimensions?.height ?? ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  dimensions: { 
-                    ...formData.dimensions, 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  dimensions: {
+                    ...formData.dimensions,
                     length: formData.dimensions?.length ?? 0,
                     width: formData.dimensions?.width ?? 0,
                     height: e.target.value ? Number(e.target.value) : 0
-                  } 
+                  }
                 })}
                 placeholder="Alto"
               />
@@ -470,7 +432,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
         <StockManager
           variantId={variant.id}
           currentStock={formData.inventory}
-          minStock={variant.min_stock}
+          minStock={variant.min_stock ?? 5}
           onStockChange={handleStockChange}
           showHistory={true}
         />
@@ -486,8 +448,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
             value={formData.images}
             onChange={(urls) => setFormData({ ...formData, images: urls })}
             maxFiles={10}
-            bucket="product-images"
-            folder="products"
+            uploadFolder={UploadFolder.PRODUCTS}
             aspectRatio="square"
             placeholder="Arrastra imágenes del producto o haz clic para subir"
           />
@@ -504,7 +465,7 @@ export const ProductEditForm: React.FC<ProductEditFormProps> = ({
           <ArrowLeft className="w-4 h-4 mr-2" />
           Cancelar
         </Button>
-        
+
         <Button
           type="submit"
           variant="outline"

@@ -83,7 +83,9 @@ export class PendingGiftCardOrdersController {
     type: [PendingGiftCardOrder],
   })
   @ApiResponse({ status: 400, description: 'userId inválido' })
-  findByUserId(@Param('userId') userId: string): Promise<PendingGiftCardOrder[]> {
+  findByUserId(
+    @Param('userId') userId: string,
+  ): Promise<PendingGiftCardOrder[]> {
     return this.pendingGiftCardOrdersService.findByUserId(userId);
   }
 
@@ -96,7 +98,9 @@ export class PendingGiftCardOrdersController {
     type: [PendingGiftCardOrder],
   })
   @ApiResponse({ status: 400, description: 'cartId inválido' })
-  findByCartId(@Param('cartId') cartId: string): Promise<PendingGiftCardOrder[]> {
+  findByCartId(
+    @Param('cartId') cartId: string,
+  ): Promise<PendingGiftCardOrder[]> {
     return this.pendingGiftCardOrdersService.findByCartId(cartId);
   }
 

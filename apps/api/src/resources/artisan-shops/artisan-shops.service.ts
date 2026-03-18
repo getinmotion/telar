@@ -10,6 +10,7 @@ import { ArtisanShop } from './entities/artisan-shop.entity';
 import { CreateArtisanShopDto } from './dto/create-artisan-shop.dto';
 import { UpdateArtisanShopDto } from './dto/update-artisan-shop.dto';
 import { ArtisanShopsQueryDto } from './dto/artisan-shops-query.dto';
+import { ImageUrlBuilder } from '../../common/utils/image-url-builder.util';
 
 @Injectable()
 export class ArtisanShopsService {
@@ -70,98 +71,225 @@ export class ArtisanShopsService {
       order = 'DESC',
     } = query;
 
-    const queryBuilder = this.artisanShopsRepository
-      .createQueryBuilder('shop')
-      .leftJoinAndSelect('shop.user', 'user')
-      .leftJoinAndSelect('shop.activeTheme', 'activeTheme');
+    // Construir WHERE conditions dinámicamente
+    const whereConditions: string[] = [];
+    const parameters: any[] = [];
+    let paramIndex = 1;
 
-    // Filtro: active
     if (active !== undefined) {
-      queryBuilder.andWhere('shop.active = :active', { active });
+      whereConditions.push(`s.active = $${paramIndex}`);
+      parameters.push(active);
+      paramIndex++;
     }
 
-    // Filtro: publishStatus
     if (publishStatus) {
-      queryBuilder.andWhere('shop.publish_status = :publishStatus', {
-        publishStatus,
-      });
+      whereConditions.push(`s.publish_status = $${paramIndex}`);
+      parameters.push(publishStatus);
+      paramIndex++;
     }
 
-    // Filtro: marketplaceApproved
     if (marketplaceApproved !== undefined) {
-      queryBuilder.andWhere(
-        'shop.marketplace_approved = :marketplaceApproved',
-        { marketplaceApproved },
+      whereConditions.push(`s.marketplace_approved = $${paramIndex}`);
+      parameters.push(marketplaceApproved);
+      paramIndex++;
+    }
+
+    if (featured !== undefined) {
+      whereConditions.push(`s.featured = $${paramIndex}`);
+      parameters.push(featured);
+      paramIndex++;
+    }
+
+    if (shopSlug) {
+      whereConditions.push(`s.shop_slug = $${paramIndex}`);
+      parameters.push(shopSlug);
+      paramIndex++;
+    }
+
+    if (region) {
+      whereConditions.push(`s.region = $${paramIndex}`);
+      parameters.push(region);
+      paramIndex++;
+    }
+
+    if (craftType) {
+      whereConditions.push(`s.craft_type = $${paramIndex}`);
+      parameters.push(craftType);
+      paramIndex++;
+    }
+
+    // Manejo especial para hasApprovedProducts
+    let fromClause = 'shop.artisan_shops s';
+    if (hasApprovedProducts === true) {
+      fromClause = `shop.artisan_shops s
+        INNER JOIN shop.products p ON p.shop_id = s.id`;
+      whereConditions.push(
+        `p.moderation_status IN ('approved', 'approved_with_edits')`,
       );
     }
 
-    // Filtro: featured
-    if (featured !== undefined) {
-      queryBuilder.andWhere('shop.featured = :featured', { featured });
-    }
+    const whereClause =
+      whereConditions.length > 0
+        ? 'WHERE ' + whereConditions.join(' AND ')
+        : '';
 
-    // Filtro: hasApprovedProducts (solo tiendas con productos aprobados)
-    if (hasApprovedProducts === true) {
-      queryBuilder
-        .innerJoin('shop.products', 'product')
-        .andWhere('product.moderation_status IN (:...statuses)', {
-          statuses: ['approved', 'approved_with_edits'],
-        });
-    }
+    // Ordenamiento
+    const orderByColumn =
+      sortBy === 'shop_name' ? 's.shop_name' : 's.created_at';
 
-    // Filtro: shopSlug
-    if (shopSlug) {
-      queryBuilder.andWhere('shop.shop_slug = :shopSlug', { shopSlug });
-    }
-
-    // Filtro: region
-    if (region) {
-      queryBuilder.andWhere('shop.region = :region', { region });
-    }
-
-    // Filtro: craftType
-    if (craftType) {
-      queryBuilder.andWhere('shop.craft_type = :craftType', { craftType });
-    }
-
-    // Ordenamiento - solo si NO hay hasApprovedProducts
-    if (hasApprovedProducts !== true) {
-      const orderByColumn = sortBy === 'shop_name' ? 'shop.shop_name' : 'shop.created_at';
-      queryBuilder.orderBy(orderByColumn, order);
-    }
+    // DISTINCT ON requiere que el primer campo de ORDER BY sea s.id
+    // Luego ordenamos por la columna que el usuario solicitó
+    const orderByClause = `ORDER BY s.id, ${orderByColumn} ${order}`;
 
     // Paginación
-    const skip = (page - 1) * limit;
-    queryBuilder.skip(skip).take(limit);
+    const offset = (page - 1) * limit;
 
-    // Ejecutar query
-    const [data, total] = await queryBuilder.getManyAndCount();
+    // Query 1: COUNT total
+    const countQuery = `
+      SELECT COUNT(DISTINCT s.id) as total
+      FROM ${fromClause}
+      ${whereClause}
+    `;
 
-    // Si hasApprovedProducts está activo, eliminar duplicados y ordenar manualmente
-    let uniqueData = data;
-    if (hasApprovedProducts === true) {
-      // Eliminar duplicados
-      uniqueData = data.filter(
-        (shop, index, self) =>
-          index === self.findIndex((s) => s.id === shop.id),
+    // Query 2: DATA con relaciones
+    const dataQuery = `
+      SELECT DISTINCT ON (s.id)
+        s.id,
+        s.user_id,
+        s.shop_name,
+        s.shop_slug,
+        s.description,
+        s.story,
+        s.logo_url,
+        s.banner_url,
+        s.craft_type,
+        s.region,
+        s.certifications,
+        s.contact_info,
+        s.social_links,
+        s.active,
+        s.featured,
+        s.servientrega_coverage,
+        s.seo_data,
+        s.created_at,
+        s.updated_at,
+        s.privacy_level,
+        s.data_classification,
+        s.public_profile,
+        s.creation_status,
+        s.creation_step,
+        s.primary_colors,
+        s.secondary_colors,
+        s.brand_claim,
+        s.hero_config,
+        s.about_content,
+        s.contact_config,
+        s.active_theme_id,
+        s.publish_status,
+        s.marketplace_approved,
+        s.marketplace_approved_at,
+        s.marketplace_approved_by,
+        s.id_contraparty,
+        s.artisan_profile,
+        s.artisan_profile_completed,
+        s.bank_data_status,
+        s.marketplace_approval_status,
+        s.department,
+        s.municipality,
+        u.id as user_id_rel,
+        u.email as user_email,
+        u.email_confirmed_at as user_email_confirmed_at
+      FROM ${fromClause}
+      LEFT JOIN auth.users u ON u.id = s.user_id
+      ${whereClause}
+      ${orderByClause}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    // Ejecutar queries
+    const countResult = await this.artisanShopsRepository.query(
+      countQuery,
+      parameters,
+    );
+    const total = parseInt(countResult[0]?.total || '0');
+
+    const dataResult = await this.artisanShopsRepository.query(dataQuery, [
+      ...parameters,
+      limit,
+      offset,
+    ]);
+
+    // Mapear resultados a entidades ArtisanShop
+    const data = dataResult.map((row: any) => {
+      const shop = new ArtisanShop();
+      shop.id = row.id;
+      shop.userId = row.user_id;
+      shop.shopName = row.shop_name;
+      shop.shopSlug = row.shop_slug;
+      shop.description = row.description;
+      shop.story = row.story;
+
+      // Transformar URLs de imágenes con ImageUrlBuilder (igual que @AfterLoad)
+      shop.logoUrl = ImageUrlBuilder.buildUrl(row.logo_url);
+      shop.bannerUrl = ImageUrlBuilder.buildUrl(row.banner_url);
+
+      shop.craftType = row.craft_type;
+      shop.region = row.region;
+      shop.certifications = row.certifications;
+      shop.contactInfo = row.contact_info;
+      shop.socialLinks = row.social_links;
+      shop.active = row.active;
+      shop.featured = row.featured;
+      shop.servientregaCoverage = row.servientrega_coverage;
+      shop.seoData = row.seo_data;
+      shop.createdAt = row.created_at;
+      shop.updatedAt = row.updated_at;
+      shop.privacyLevel = row.privacy_level;
+      shop.dataClassification = row.data_classification;
+      shop.publicProfile = row.public_profile;
+      shop.creationStatus = row.creation_status;
+      shop.creationStep = row.creation_step;
+      shop.primaryColors = row.primary_colors;
+      shop.secondaryColors = row.secondary_colors;
+      shop.brandClaim = row.brand_claim;
+
+      // Transformar objetos JSONB con imágenes anidadas
+      shop.heroConfig = ImageUrlBuilder.transformObject(row.hero_config);
+
+      shop.aboutContent = row.about_content;
+      shop.contactConfig = row.contact_config;
+      shop.activeThemeId = row.active_theme_id;
+      shop.publishStatus = row.publish_status;
+      shop.marketplaceApproved = row.marketplace_approved;
+      shop.marketplaceApprovedAt = row.marketplace_approved_at;
+      shop.marketplaceApprovedBy = row.marketplace_approved_by;
+      shop.idContraparty = row.id_contraparty;
+
+      // Transformar artisan_profile con imágenes
+      shop.artisanProfile = ImageUrlBuilder.transformObject(
+        row.artisan_profile,
       );
 
-      // Ordenar manualmente a nivel de aplicación
-      const sortField = sortBy === 'shop_name' ? 'shopName' : 'createdAt';
-      uniqueData.sort((a, b) => {
-        const aValue = a[sortField];
-        const bValue = b[sortField];
+      shop.artisanProfileCompleted = row.artisan_profile_completed;
+      shop.bankDataStatus = row.bank_data_status;
+      shop.marketplaceApprovalStatus = row.marketplace_approval_status;
+      shop.department = row.department;
+      shop.municipality = row.municipality;
 
-        if (order === 'ASC') {
-          return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
-    }
+      // Construir relación user si existe
+      if (row.user_id_rel) {
+        shop.user = {
+          id: row.user_id_rel,
+          email: row.user_email,
+          emailConfirmedAt: row.user_email_confirmed_at,
+        } as any;
+      }
+
+      return shop;
+    });
 
     return {
-      data: uniqueData,
+      data,
       total,
       page,
       limit,

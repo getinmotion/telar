@@ -4,6 +4,7 @@
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
+import { toastError } from '@/utils/toast.utils';
 import type {
   SyncGuestCartRequest,
   SyncGuestCartResponse,
@@ -13,6 +14,8 @@ import type {
   UpdateCartItemRequest,
   DeleteCartItemResponse,
   UpdateCartStatusRequest,
+  CreateCartShippingInfoRequest,
+  CartShippingInfo,
 } from '@/types/cart.types';
 
 /**
@@ -61,7 +64,7 @@ export const syncGuestCart = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error syncing guest cart:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -88,7 +91,7 @@ export const getOpenCart = async (buyerUserId: string): Promise<Cart> => {
     );
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error getting open cart:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -120,7 +123,7 @@ export const getCartItems = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error getting cart items:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -156,7 +159,7 @@ export const addCartItem = async (
     const response = await telarApi.post<CartItemDetailed>('/cart-items', data);
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error adding cart item:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -195,7 +198,7 @@ export const updateCartItem = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error updating cart item:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -224,7 +227,7 @@ export const deleteCartItem = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error deleting cart item:', error);
+    toastError(error);
     throw error;
   }
 };
@@ -264,7 +267,50 @@ export const updateCartStatus = async (
     const response = await telarApi.patch<Cart>(`/cart/${cartId}/status`, data);
     return response.data;
   } catch (error: any) {
-    console.error('[CartActions] Error updating cart status:', error);
+    toastError(error);
+    throw error;
+  }
+};
+
+/**
+ * Guardar información de envío del carrito
+ *
+ * Guarda los datos de envío incluyendo dirección del destinatario,
+ * ciudad DANE, y costos de flete calculados por Servientrega.
+ *
+ * @param {CreateCartShippingInfoRequest} data - Datos de envío
+ * @returns {Promise<CartShippingInfo>} Información de envío guardada
+ *
+ * @endpoint POST /cart-shipping-info
+ *
+ * @example
+ * const shippingInfo = await createCartShippingInfo({
+ *   cartId: activeCartId,
+ *   fullName: "Juan Pérez García",
+ *   email: "juan.perez@example.com",
+ *   phone: "+573001234567",
+ *   address: "Calle 123 #45-67 Apto 301",
+ *   daneCiudad: 11001,
+ *   descCiudad: "Bogotá D.C.",
+ *   descDepart: "Cundinamarca",
+ *   postalCode: "110111",
+ *   descEnvio: "Envío estándar - Servientrega",
+ *   valorFleteMinor: 1500000,
+ *   valorSobreFleteMinor: 200000,
+ *   valorTotalFleteMinor: 1700000
+ * });
+ */
+export const createCartShippingInfo = async (
+  data: CreateCartShippingInfoRequest
+): Promise<CartShippingInfo> => {
+  try {
+    const response = await telarApi.post<CartShippingInfo>(
+      '/cart-shipping-info',
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    toastError(error);
     throw error;
   }
 };

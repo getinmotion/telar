@@ -7,25 +7,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, ShoppingCart, ChevronLeft, Star, Store, MapPin, Share2, Sparkles } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
-import { ProductReviews } from "@/components/ProductReviews";
+import { Heart, ShoppingCart, Share2, Compass, Settings, Leaf } from "lucide-react";
 import { ProductVariants } from "@/components/ProductVariants";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
-import { ProductSpecs } from "@/components/ProductSpecs";
-import { ProductTags } from "@/components/ProductTags";
-import { CraftBadge } from "@/components/CraftBadge";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { ProductPurchaseButton } from "@/components/ProductPurchaseButton";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { mapArtisanCategory } from "@/lib/productMapper";
 import { Product } from "@/types/products.types";
+import { ArtisanShop } from "@/types/artisan-shops.types";
 
 
 
@@ -38,13 +33,15 @@ const ProductDetail = () => {
     || sessionStorage.getItem('productsReturnUrl') 
     || '';
   const [product, setProduct] = useState<Product | null>(null);
+  const [shop, setShop] = useState<ArtisanShop | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingShop, setLoadingShop] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
-  
+
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { fetchShopById } = useArtisanShops();
   const isFavorite = product ? isInWishlist(product.id) : false;
 
   useEffect(() => {
@@ -66,16 +63,38 @@ const ProductDetail = () => {
         const storeReadyToPurchase = productData.canPurchase ?? false;
         const realCanPurchase = storeReadyToPurchase && realStock > 0;
 
-        setProduct({
+        const finalProduct = {
          ...productData,
          stock: realStock,
          canPurchase: realCanPurchase,
-        });
+        };
+
+        setProduct(finalProduct);
+
+        // Fetch shop information if shopId exists
+        if (productData.shopId) {
+          fetchShopInfo(productData.shopId);
+        }
       }
     } catch (error) {
       // Error already handled by context with toast
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchShopInfo = async (shopId: string) => {
+    setLoadingShop(true);
+    try {
+      const shopData = await fetchShopById(shopId);
+      if (shopData) {
+        setShop(shopData);
+      }
+    } catch (error) {
+      // Error already handled by context with toast
+      console.error('Error fetching shop:', error);
+    } finally {
+      setLoadingShop(false);
     }
   };
   const handleAddToCart = () => {
@@ -92,7 +111,6 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-96 w-full" />
         </div>
@@ -103,7 +121,6 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Producto no encontrado</h1>
           <Link to="/"><Button>Volver al inicio</Button></Link>
@@ -121,10 +138,8 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-      
       {/* Breadcrumb */}
-      <div className="border-b bg-muted/20">
+      {/* <div className="border-b bg-muted/20">
         <div className="container mx-auto px-4 py-4">
           <Button 
             variant="ghost" 
@@ -136,14 +151,14 @@ const ProductDetail = () => {
             Volver
           </Button>
         </div>
-      </div>
+      </div> */}
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8">
         {/* Main Product Section - 2 Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid lg:grid-cols-2 gap-12 mb-16 mx-[10%]">
           {/* Left Column - Image Gallery */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <ProductImageGallery 
+          <div className="lg:sticky lg:top-24 lg:self-start lg:max-h-[600px]">
+            <ProductImageGallery
               images={productImages}
               productName={product.name}
             />
@@ -151,81 +166,72 @@ const ProductDetail = () => {
 
           {/* Right Column - Product Info */}
           <div className="space-y-6">
-            {/* Store Info */}
-              {product.storeName && (
-                <Link 
-                  to={product.storeSlug ? `/tienda/${product.storeSlug}` : '#'}
-                  className={cn(
-                    "flex items-center gap-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors group",
-                    !product.storeSlug && "cursor-not-allowed opacity-60"
-                  )}
-                  onClick={(e) => {
-                    if (!product.storeSlug) e.preventDefault();
-                  }}
-                >
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <Store className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Artesano</p>
-                  <p className="font-semibold group-hover:text-primary transition-colors">
-                    {product.storeName}
-                  </p>
-                </div>
+            {/* Taller Link */}
+            {product.storeName && product.storeSlug && (
+              <Link
+                to={`/tienda/${product.storeSlug}`}
+                className="inline-block text-xs md:text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors uppercase tracking-wide"
+              >
+                TALLER: {product.storeName}
               </Link>
             )}
 
-            {/* Product Title & Rating */}
+            {/* Product Title & Subtitle */}
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold text-foreground leading-tight">
+              <h1 className="text-3xl md:text-4xl font-serif italic text-foreground leading-tight">
                 {product.name}
               </h1>
-              
-              {/* Rating */}
-              {/* {product.rating && product.rating > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < Math.floor(product.rating || 0)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-muted text-muted"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {product.rating?.toFixed(1)} ({product.reviews_count || 0} reseñas)
-                  </span>
-                </div>
-              )} */}
+
+              {/* Subtitle - Hecho a mano */}
+              {(shop?.region || product.storeName) && (
+                <p className="text-base md:text-base text-muted-foreground italic">
+                  Hecho a mano en {shop?.region || 'Colombia'} por el taller {product.storeName}
+                </p>
+              )}
             </div>
 
-            {/* Badges */}
-            <div className="flex gap-2 flex-wrap">
-              {product.isNew && (
-                <Badge className="bg-primary text-primary-foreground px-3 py-1">
-                  Nuevo
-                </Badge>
-              )}
-              {product.freeShipping && (
-                <Badge variant="secondary" className="px-3 py-1">
-                  Envío gratis
-                </Badge>
-              )}
-              {product.allowsLocalPickup && (
-                <Badge variant="secondary" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
-                  <MapPin className="h-3 w-3 mr-1" />
-                  Retiro en local disponible
-                </Badge>
-              )}
-              {product.category && (
-                <Badge variant="outline" className="px-3 py-1">
-                  {product.category}
-                </Badge>
-              )}
+            {/* Authenticity Labels */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="p-3 bg-foreground text-background uppercase text-[10px] font-semibold tracking-wide rounded-md">
+                Huella Digital Registrada
+              </div>
+              <div className="p-3 border-2 border-orange-600 text-orange-600 bg-transparent uppercase text-[10px] font-semibold tracking-wide rounded-md">
+                Certificado de Autenticidad Telar
+              </div>
+            </div>
+
+            {/* Certificate Link */}
+            <Link
+              to="#"
+              className="text-foreground hover:text-foreground/80 underline transition-colors text-sm font-medium w-fit"
+            >
+              Ver certificado de autenticidad
+            </Link>
+
+            {/* Location & Category Info */}
+            {(shop?.region || product.category) && (
+              <div className="text-xs md:text-sm text-muted-foreground uppercase tracking-wider">
+                {shop?.region && (
+                  <>
+                    {shop.region} — COLOMBIA
+                    {product.category && <span className="mx-2">•</span>}
+                  </>
+                )}
+                {product.category}
+              </div>
+            )}
+
+            {/* Feature Badges */}
+            <div className="flex flex-wrap gap-3">
+              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                Hecho a mano en Colombia
+              </Badge>
+              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                Taller Artesanal
+              </Badge>
+              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                Pieza con Historia
+              </Badge>
             </div>
 
             {/* Price */}
@@ -337,127 +343,156 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Product Highlights */}
-            <Card className="border-0 bg-muted/30">
-              <CardContent className="p-6 space-y-3">
-                <h3 className="font-semibold text-lg mb-4">Detalles del producto</h3>
-                <div className="space-y-2 text-sm">
-                  <p className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">✓</span>
-                    <span>Hecho a mano por artesanos colombianos</span>
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">✓</span>
-                    <span>Materiales de alta calidad</span>
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">✓</span>
-                    <span>Diseño único y original</span>
-                  </p>
-                  {product.freeShipping && (
-                    <p className="flex items-start gap-2">
-                      <span className="text-primary mt-0.5">✓</span>
-                      <span>Envío gratis a todo el país</span>
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Handmade Notice */}
+            <p className="text-sm text-muted-foreground italic">
+              Las piezas hechas a mano pueden tener tiempos de preparación diferentes dependiendo del proceso artesanal.
+            </p>
           </div>
         </div>
 
-        {/* Tabs Section - Full Width */}
-        <div className="mb-16">
-          <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-8">
-              <TabsTrigger value="description" className="text-base">
-                Descripción
-              </TabsTrigger>
-              <TabsTrigger value="specs" className="text-base">
-                Especificaciones
-              </TabsTrigger>
-              <TabsTrigger value="reviews" className="text-base">
-                Reseñas ({product.reviewsCount || 0})
-              </TabsTrigger>
-            </TabsList>
+        {/* Product Description Section */}
+        <section className="w-full bg-[#f5f3f0] py-12">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="text-center space-y-6">
+              {/* Decorative Quotes */}
+              <div className="text-orange-400 text-4xl">"</div>
 
-            <TabsContent value="description" className="space-y-6">
-              <Card>
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold mb-4">Descripción del producto</h3>
-                  <div className="prose prose-gray max-w-none">
-                    <p className="text-base leading-relaxed text-muted-foreground whitespace-pre-line">
-                      {product.description || 'Este producto artesanal ha sido elaborado con dedicación y maestría por artesanos colombianos. Cada pieza es única y refleja la riqueza cultural de nuestra tradición artesanal.'}
+              {/* Description Text */}
+              <p className="text-xl md:text-2xl font-serif italic text-foreground leading-relaxed px-8">
+                {product.shortDescription || product.description || 'Este producto artesanal ha sido elaborado con dedicación y maestría por artesanos colombianos. Cada pieza es única y refleja la riqueza cultural de nuestra tradición artesanal.'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Product Details - 3 Columns */}
+        <section className="w-full bg-background py-16">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 px-8">
+
+              {/* Column 1: Proceso artesanal */}
+              <div className="flex flex-col items-start space-y-6">
+                <Compass className="w-6 h-6 text-orange-600" />
+                <h3 className="text-xl font-serif italic text-foreground">
+                  Proceso artesanal
+                </h3>
+
+                <div className="w-full space-y-4 text-left">
+                  {/* Materiales */}
+                  {(product.materials?.length > 0 || product.material) && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        MATERIALES
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        {product.materials?.join(', ') || product.material}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Técnica */}
+                  {(product.craft || product.techniques?.length > 0) && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        TÉCNICA
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        {product.craft || product.techniques?.join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Tiempo de elaboración */}
+                  {(product.leadTimeDays || product.productionTime) && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        TIEMPO DE ELABORACIÓN
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        {product.leadTimeDays
+                          ? `De ${product.leadTimeDays} a ${product.leadTimeDays + 3} días`
+                          : product.productionTime
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Column 2: Detalles técnicos */}
+              <div className="flex flex-col items-start space-y-6">
+                <Settings className="w-6 h-6 text-orange-600" />
+                <h3 className="text-xl font-serif italic text-foreground">
+                  Detalles técnicos
+                </h3>
+
+                <div className="w-full space-y-4 text-left">
+                  {/* Dimensiones */}
+                  {product.dimensions && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        DIMENSIONES
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        {typeof product.dimensions === 'object' && 'width' in product.dimensions
+                          ? `${product.dimensions.width} × ${product.dimensions.height} cm`
+                          : product.dimensions
+                        }
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Peso */}
+                  {product.weight && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        PESO
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        {product.weight} g
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Cuidados */}
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                      CUIDADOS
+                    </p>
+                    <p className="text-base italic text-foreground">
+                      Lavado suave a mano
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-              
-              {/* Características Artesanales */}
-              {(product.craft || product.materials?.length || product.techniques?.length) && (
-                <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-                  <CardContent className="p-8 space-y-5">
-                    <h3 className="text-2xl font-bold flex items-center gap-2">
-                      <Sparkles className="w-6 h-6 text-primary" />
-                      Características Artesanales
-                    </h3>
-                    
-                    {/* Oficio */}
-                    {product.craft && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Oficio Artesanal</p>
-                        <CraftBadge craft={product.craft} size="lg" />
-                      </div>
-                    )}
 
-                    {/* Materiales */}
-                    {product.materials && product.materials.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Materiales</p>
-                        <div className="flex flex-wrap gap-2">
-                          {product.materials.map((material) => (
-                            <Badge key={material} variant="outline" className="text-sm px-3 py-1">
-                              🌿 {material}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  {/* Embalaje */}
+                  {product.craftType && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                        EMBALAJE
+                      </p>
+                      <p className="text-base italic text-foreground">
+                        Empaque textil protector para transporte seguro
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                    {/* Técnicas */}
-                    {product.techniques && product.techniques.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Técnicas Utilizadas</p>
-                        <div className="flex flex-wrap gap-2">
-                          {product.techniques.map((technique) => (
-                            <Badge key={technique} variant="secondary" className="text-sm px-3 py-1">
-                              ✨ {technique}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              
-              <ProductTags tags={product.tags} />
-            </TabsContent>
+              {/* Column 3: Envío consciente */}
+              <div className="flex flex-col items-start space-y-6">
+                <Leaf className="w-6 h-6 text-orange-600" />
+                <h3 className="text-xl font-serif italic text-foreground">
+                  Envío consciente
+                </h3>
 
-            <TabsContent value="specs">
-              <ProductSpecs 
-                stock={product.stock}
-                freeShipping={product.freeShipping}
-                category={product.category}
-                sku={product.id.slice(0, 8).toUpperCase()}
-              />
-            </TabsContent>
+                <p className="text-base italic text-foreground leading-relaxed text-left">
+                  Las piezas se preparan cuidadosamente para su envío respetando tanto la integridad de la creación como el impacto ambiental del proceso.
+                </p>
+              </div>
 
-            <TabsContent value="reviews" className="space-y-6">
-              {id && <ProductReviews productId={id} />}
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       {/* Related Products */}

@@ -8,10 +8,12 @@ import {
   BaseEntity,
   ManyToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { AgentTask } from '../../agent-tasks/entities/agent-task.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 @Entity({ name: 'agent_deliverables', schema: 'public' })
 export class AgentDeliverable extends BaseEntity {
@@ -117,4 +119,12 @@ export class AgentDeliverable extends BaseEntity {
   @ManyToOne(() => AgentTask, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'task_id' })
   task: AgentTask | null;
+
+  /**
+   * Transform relative file paths to full CDN URLs after loading from database
+   */
+  @AfterLoad()
+  transformImageUrls() {
+    this.fileUrl = ImageUrlBuilder.buildUrl(this.fileUrl);
+  }
 }

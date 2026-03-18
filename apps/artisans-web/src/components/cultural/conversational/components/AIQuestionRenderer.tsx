@@ -6,8 +6,6 @@ import { Loader2, Sparkles, Mic, CheckCircle2, Edit3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { DictationButton } from './DictationButton';
-import { useArtisanClassifier } from '@/hooks/useArtisanClassifier';
-import type { ClasificacionOficial } from '@/types/artisan';
 import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 
 interface AIQuestionRendererProps {
@@ -41,11 +39,9 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<Record<string, string> | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [clasificacionOficial, setClasificacionOficial] = useState<ClasificacionOficial | null>(null);
-  const { classifyArtisan, isClassifying } = useArtisanClassifier();
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const initializedRef = React.useRef(false);
-  
+
   // Solo inicializar una vez al montar
   React.useEffect(() => {
     if (!initializedRef.current && value) {
@@ -79,35 +75,6 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
 
   const t = translations[language];
 
-  // Mapear materia prima del catálogo a craftType
-  const mapMateriaPrimaToCraftType = (materiaPrima: string): string => {
-    const materiaPrimaLower = materiaPrima.toLowerCase();
-    
-    if (materiaPrimaLower.includes('cerámica') || materiaPrimaLower.includes('ceramica') || materiaPrimaLower.includes('arcilla') || materiaPrimaLower.includes('barro')) {
-      return 'ceramic';
-    }
-    if (materiaPrimaLower.includes('textil') || materiaPrimaLower.includes('tejido') || materiaPrimaLower.includes('lana') || materiaPrimaLower.includes('algodón') || materiaPrimaLower.includes('algodon') || materiaPrimaLower.includes('seda')) {
-      return 'textile';
-    }
-    if (materiaPrimaLower.includes('madera')) {
-      return 'woodwork';
-    }
-    if (materiaPrimaLower.includes('cuero') || materiaPrimaLower.includes('marroquinería') || materiaPrimaLower.includes('marroquineria')) {
-      return 'leather';
-    }
-    if (materiaPrimaLower.includes('metal') || materiaPrimaLower.includes('oro') || materiaPrimaLower.includes('plata') || materiaPrimaLower.includes('cobre') || materiaPrimaLower.includes('joyería') || materiaPrimaLower.includes('joyeria')) {
-      return 'jewelry';
-    }
-    if (materiaPrimaLower.includes('fibra') || materiaPrimaLower.includes('cestería') || materiaPrimaLower.includes('cesteria') || materiaPrimaLower.includes('mimbre') || materiaPrimaLower.includes('fique')) {
-      return 'fiber';
-    }
-    if (materiaPrimaLower.includes('piedra') || materiaPrimaLower.includes('mármol') || materiaPrimaLower.includes('marmol') || materiaPrimaLower.includes('granito')) {
-      return 'stone';
-    }
-    
-    return 'mixed'; // Solo como último recurso
-  };
-
   const handleExtract = async () => {
     if (!userInput.trim()) {
       toast.error(language === 'es' ? 'Por favor escribe algo primero' : 'Please write something first');
@@ -115,7 +82,7 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
     }
 
     setIsExtracting(true);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('extract-business-info', {
         body: {
@@ -127,43 +94,21 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
 
       if (error) throw error;
 
-      console.log('🎯 [EXTRACT] Response from edge function:', data);
-
       if (data?.success && data?.data) {
         const extracted = data.data;
-        
-        // Map the response fields to the expected format
+
         const mappedData: Record<string, string> = {};
         if (extracted.brand_name) mappedData.businessName = extracted.brand_name;
         if (extracted.craft_type) mappedData.craftType = extracted.craft_type;
         if (extracted.business_location) mappedData.location = extracted.business_location;
         if (extracted.unique_value) mappedData.differentiator = extracted.unique_value;
-        
-        // Clasificar con catálogo oficial PRIMERO (para tener craftType correcto)
-        let clasificacion: any = null;
-        try {
-          clasificacion = await classifyArtisan(userInput);
-          if (clasificacion) {
-            setClasificacionOficial(clasificacion);
-            // Auto-completar craftType usando la clasificación oficial
-            const inferredCraftType = mapMateriaPrimaToCraftType(clasificacion.materiaPrima);
-            mappedData.craftType = inferredCraftType;
-            console.log('✨ [EXTRACT] CraftType inferido del catálogo:', inferredCraftType, 'de', clasificacion.materiaPrima);
-          }
-        } catch (classifyError) {
-          console.error('Error al clasificar (no crítico):', classifyError);
-        }
-        
-        // Validar campos requeridos
+
         const missing = fieldsToExtract.filter(field => !mappedData[field] || mappedData[field].trim() === '');
-        
+
         if (missing.length > 0) {
-          console.log('⚠️ [EXTRACT] Campos faltantes:', missing);
           setMissingFields(missing);
           setExtractedData(mappedData);
           setShowConfirmation(true);
-          console.log('✅ [EXTRACT] showConfirmation=true, extractedData keys:', Object.keys(mappedData));
-          
           toast.warning(
             language === 'es'
               ? 'Faltan algunos campos. Por favor complétalos.'
@@ -171,20 +116,15 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
           );
           return;
         }
-        
+
         setExtractedData(mappedData);
         setMissingFields([]);
         setShowConfirmation(true);
-        console.log('✅ [EXTRACT] showConfirmation=true, extractedData keys:', Object.keys(mappedData));
-        
         toast.success(
-          language === 'es'
-            ? (clasificacion ? '¡Información extraída y clasificada!' : 'Información extraída correctamente')
-            : (clasificacion ? 'Information extracted and classified!' : 'Information extracted successfully')
+          language === 'es' ? 'Información extraída correctamente' : 'Information extracted successfully'
         );
       }
-    } catch (error) {
-      console.error('Error extracting data:', error);
+    } catch {
       toast.error(
         language === 'es'
           ? 'Error al analizar tu respuesta. Por favor intenta de nuevo.'
@@ -197,12 +137,12 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
 
   const handleConfirm = () => {
     if (!extractedData) return;
-    
+
     // Filtrar solo campos críticos para validación bloqueante
-    const criticalMissing = CRITICAL_FIELDS.filter(field => 
+    const criticalMissing = CRITICAL_FIELDS.filter(field =>
       fieldsToExtract.includes(field) && (!extractedData[field] || extractedData[field].trim() === '')
     );
-    
+
     // Si faltan campos críticos, bloquear con alerta clara
     if (criticalMissing.length > 0) {
       setMissingFields(criticalMissing);
@@ -214,21 +154,19 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
       );
       return;
     }
-    
+
     // Si craftType está vacío y no se pudo inferir, usar 'mixed'
     if (!extractedData.craftType || extractedData.craftType.trim() === '') {
       extractedData.craftType = 'mixed';
     }
-    
-    // Preparar data limpia: enviar extractedData + guardar descripción original como string
+
     const cleanData = {
       ...extractedData,
       businessDescription: typeof userInput === 'string' ? userInput.trim() : String(userInput || '')
     };
-    
-    console.log('✅ [AI-EXTRACT] Sending clean data:', cleanData);
+
     onExtractedData(cleanData);
-    
+
     // Toast de éxito
     toast.success(
       language === 'es' ? '¡Información guardada correctamente!' : 'Information saved successfully!'
@@ -236,10 +174,7 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
 
     // Auto-avanzar al siguiente paso
     if (onComplete) {
-      setTimeout(() => {
-        console.log('✅ [AI-EXTRACT] Calling onComplete to advance to next step');
-        onComplete();
-      }, 500);
+      setTimeout(() => onComplete(), 500);
     }
   };
 
@@ -270,14 +205,14 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
 
   return (
     <div className="space-y-4">
-        <Textarea
-          value={userInput}
-          onChange={(e) => handleInputChange(e.target.value)}
-          placeholder={placeholder}
+      <Textarea
+        value={userInput}
+        onChange={(e) => handleInputChange(e.target.value)}
+        placeholder={placeholder}
         className="min-h-[200px] text-base"
         disabled={isExtracting || showConfirmation}
       />
-      
+
       {enableDictation && !showConfirmation && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Mic className="w-4 h-4" />
@@ -290,7 +225,7 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
       )}
 
       {!showConfirmation && (
-        <Button 
+        <Button
           onClick={handleExtract}
           disabled={!userInput.trim() || isExtracting}
           className="w-full"
@@ -316,13 +251,13 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
             <CheckCircle2 className="w-5 h-5 text-primary" />
             <h4 className="font-semibold text-lg">{t.confirmTitle}</h4>
           </div>
-          
+
           <div className="space-y-3 mb-4">
             {fieldsToExtract.map((fieldKey) => {
               const label = fieldLabels[fieldKey]?.[language] || fieldKey;
               const value = extractedData[fieldKey] || '';
               const isMissing = missingFields.includes(fieldKey);
-              
+
               // Usar LocationAutocomplete para el campo de ubicación
               if (fieldKey === 'location') {
                 return (
@@ -349,7 +284,7 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
                   </div>
                 );
               }
-              
+
               return (
                 <div key={fieldKey} className={`border-l-2 ${isMissing ? 'border-yellow-500' : 'border-primary/30'} pl-3`}>
                   <span className={`text-sm font-medium ${isMissing ? 'text-yellow-700 dark:text-yellow-400' : 'text-muted-foreground'}`}>
@@ -371,9 +306,8 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
                       });
                     }}
                     placeholder={language === 'es' ? 'Completa este campo' : 'Complete this field'}
-                    className={`w-full mt-1 px-3 py-2 rounded-md bg-background focus:outline-none focus:ring-2 ${
-                      isMissing ? 'border border-yellow-500/50 focus:ring-yellow-500' : 'border border-border focus:ring-primary/40'
-                    }`}
+                    className={`w-full mt-1 px-3 py-2 rounded-md bg-background focus:outline-none focus:ring-2 ${isMissing ? 'border border-yellow-500/50 focus:ring-yellow-500' : 'border border-border focus:ring-primary/40'
+                      }`}
                   />
                 </div>
               );
@@ -390,10 +324,10 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
               </p>
             </div>
           )}
-          
+
           <div className="flex gap-3">
-            <Button 
-              onClick={handleConfirm} 
+            <Button
+              onClick={handleConfirm}
               className="flex-1"
               size="lg"
               disabled={missingFields.length > 0}
@@ -401,8 +335,8 @@ export const AIQuestionRenderer: React.FC<AIQuestionRendererProps> = ({
               <CheckCircle2 className="w-4 h-4 mr-2" />
               {t.yesCorrect}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleEdit}
               size="lg"
             >

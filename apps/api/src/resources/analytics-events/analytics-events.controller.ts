@@ -310,7 +310,10 @@ export class AnalyticsEventsController {
     @Param('id') id: string,
     @Body() updateAnalyticsEventDto: UpdateAnalyticsEventDto,
   ) {
-    return await this.analyticsEventsService.update(id, updateAnalyticsEventDto);
+    return await this.analyticsEventsService.update(
+      id,
+      updateAnalyticsEventDto,
+    );
   }
 
   /**

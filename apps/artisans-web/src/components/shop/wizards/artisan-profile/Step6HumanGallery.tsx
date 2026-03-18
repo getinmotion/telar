@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Camera, Users, Heart, Sparkles } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
+import { UploadFolder } from '@/services/fileUpload.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 
 interface Step6HumanGalleryProps {
@@ -19,7 +20,7 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
     >
       {/* Storytelling Header */}
       <div className="text-center space-y-4">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
@@ -39,7 +40,7 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
 
       <div className="space-y-8 max-w-xl mx-auto">
         {/* Working Photos */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -57,8 +58,7 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
             value={data.workingPhotos}
             onChange={(urls) => onChange({ workingPhotos: urls })}
             maxFiles={6}
-            bucket="artisan-profiles"
-            folder="working"
+            uploadFolder={UploadFolder.PROFILES}
             placeholder="Creando, diseñando, terminando piezas..."
           />
           <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
@@ -68,7 +68,7 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
         </motion.div>
 
         {/* Community Photos */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -86,14 +86,13 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
             value={data.communityPhotos}
             onChange={(urls) => onChange({ communityPhotos: urls })}
             maxFiles={4}
-            bucket="artisan-profiles"
-            folder="community"
+            uploadFolder={UploadFolder.PROFILES}
             placeholder="Tu comunidad, paisajes, eventos locales..."
           />
         </motion.div>
 
         {/* Family/Mentor Photos */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -111,15 +110,14 @@ export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onCh
             value={data.familyPhotos}
             onChange={(urls) => onChange({ familyPhotos: urls })}
             maxFiles={4}
-            bucket="artisan-profiles"
-            folder="family"
+            uploadFolder={UploadFolder.PROFILES}
             placeholder="Con tu maestro, familia, comunidad artesanal..."
           />
         </motion.div>
       </div>
 
       {/* Tip */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}

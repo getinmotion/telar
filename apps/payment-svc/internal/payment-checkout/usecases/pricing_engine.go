@@ -50,6 +50,7 @@ func (pe *PricingEngine) CalculateTotalsOrchestrator(ctx context.Context, cartID
 		CartID:            cart.ID,
 		BuyerUserID:       cart.BuyerUserID,
 		Context:           "marketplace",
+		ContextShopID:     &cart.Items[0].SellerShopID,
 		Currency:          cart.Currency,
 		SubtotalMinor:     subtotal,
 		ChargesTotalMinor: chargesTotal,

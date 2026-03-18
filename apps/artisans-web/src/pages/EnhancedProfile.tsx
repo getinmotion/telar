@@ -95,7 +95,7 @@ const EnhancedProfile: React.FC = () => {
       
       try {
         // 1. Verificar si hay scores guardados (fuente de verdad)
-        // ✅ Migrado a endpoint NestJS (GET /telar/server/user-maturity-scores/user/{user_id})
+        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
         const scoresData = await getLatestMaturityScore(user.id);
         
         if (scoresData) {

@@ -16,4 +16,5 @@ module.exports = new DataSource({
   migrationsTableName: 'migrations',
   synchronize: false,
   logging: false,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });

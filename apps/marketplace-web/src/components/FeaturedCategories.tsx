@@ -27,7 +27,7 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
   }, []);
 
   useEffect(() => {
-    if (products.length > 0 && categories.length > 0) {
+    if (products?.length > 0 && categories?.length > 0) {
       processCounts();
     }
   }, [products, categories]);
@@ -116,13 +116,10 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
   return (
     <section className="py-20 px-4 bg-background">
       <div className="container mx-auto max-w-7xl">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
+        <div className="text-left mb-12">
+          <h2 className="text-2xl lg:text-3xl font-bold text-foreground">
             Explora por Categoría
           </h2>
-          <p className="text-xl text-muted-foreground">
-            Encuentra artesanías únicas organizadas por categoría
-          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">

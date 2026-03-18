@@ -28,9 +28,9 @@ const ShopConfigDashboard: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [brandValidation, setBrandValidation] = useState<any>(null);
-  
+
   const { generateHeroSlides, isGenerating: isGeneratingHero } = useAutoHeroGeneration();
-  
+
   // Hero config state
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [showManualHero, setShowManualHero] = useState(false);
@@ -79,7 +79,7 @@ const ShopConfigDashboard: React.FC = () => {
       setShop(data);
       const heroConfig = data.heroConfig as any;
       setHeroSlides(heroConfig?.slides || []);
-      
+
       const aboutData = data.aboutContent as any;
       setAboutContent(aboutData || {
         title: '',
@@ -88,7 +88,7 @@ const ShopConfigDashboard: React.FC = () => {
         vision: '',
         values: []
       });
-      
+
       const contactData = data.contactConfig as any;
       const contactInfo = data.contact_info as any;
       setContactConfig(contactData || {
@@ -132,8 +132,8 @@ const ShopConfigDashboard: React.FC = () => {
   const saveAboutContent = async () => {
     setSaving(true);
     try {
-      await updateArtisanShop(shop.id, { 
-        aboutContent: aboutContent 
+      await updateArtisanShop(shop.id, {
+        aboutContent: aboutContent
       });
 
       toast.success('Contenido de "Nosotros" guardado');
@@ -148,8 +148,8 @@ const ShopConfigDashboard: React.FC = () => {
   const saveContactConfig = async () => {
     setSaving(true);
     try {
-      await updateArtisanShop(shop.id, { 
-        contactConfig: contactConfig 
+      await updateArtisanShop(shop.id, {
+        contactConfig: contactConfig
       });
 
       toast.success('Configuración de contacto guardada');
@@ -163,9 +163,9 @@ const ShopConfigDashboard: React.FC = () => {
 
   const generateCompleteHeroWithAI = async () => {
     if (!shop?.id) return;
-    
+
     const result = await generateHeroSlides(shop.id, { autoSave: false });
-    
+
     if (result.needsBrandInfo) {
       setBrandValidation({
         missingFields: result.missingFields || [],
@@ -174,7 +174,7 @@ const ShopConfigDashboard: React.FC = () => {
       setShowBrandModal(true);
       return;
     }
-    
+
     if (result.success && result.slides) {
       const formattedSlides = result.slides.map(slide => ({
         id: slide.id,
@@ -193,7 +193,7 @@ const ShopConfigDashboard: React.FC = () => {
     setSaving(true);
     try {
       toast.info('Generando contenido "Nosotros" con IA...');
-      
+
       const { data, error } = await supabase.functions.invoke('generate-shop-about', {
         body: {
           shopName: shop.shop_name,
@@ -221,7 +221,7 @@ const ShopConfigDashboard: React.FC = () => {
     setSaving(true);
     try {
       toast.info('Generando textos de contacto con IA...');
-      
+
       const { data, error } = await supabase.functions.invoke('generate-shop-contact', {
         body: {
           shopName: shop.shop_name,
@@ -239,7 +239,7 @@ const ShopConfigDashboard: React.FC = () => {
         formIntroText: data.formIntroText,
         hours: data.suggestedHours
       });
-      
+
       toast.success('✨ Textos de contacto generados con IA');
     } catch (error: any) {
       console.error('Error generating contact:', error);
@@ -256,7 +256,7 @@ const ShopConfigDashboard: React.FC = () => {
       if (!user) return;
 
       const result = await syncBrandToShop(user.id);
-      
+
       if (result.success) {
         toast.success(result.message);
         await fetchShop(); // Recargar tienda
@@ -306,7 +306,7 @@ const ShopConfigDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <Helmet>
-        <title>Configurar Tienda - {shop.shop_name}</title>
+        <title>{`Configurar Tienda - ${shop.shopName}`}</title>
       </Helmet>
 
       <div className="max-w-6xl mx-auto">
@@ -349,9 +349,9 @@ const ShopConfigDashboard: React.FC = () => {
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Genera automáticamente un hero slider completo con 3 slides profesionales basados en tu tienda y marca
                 </p>
-                <Button 
+                <Button
                   size="lg"
-                  onClick={generateCompleteHeroWithAI} 
+                  onClick={generateCompleteHeroWithAI}
                   disabled={saving}
                   className="w-full max-w-md mx-auto"
                 >
@@ -421,7 +421,7 @@ const ShopConfigDashboard: React.FC = () => {
                       )}
                     </Droppable>
                   </DragDropContext>
-                  
+
                   <Button onClick={saveHeroConfig} disabled={saving} className="w-full">
                     Guardar Configuración
                   </Button>
@@ -484,9 +484,9 @@ const ShopConfigDashboard: React.FC = () => {
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Genera automáticamente contenido profesional para tu sección Nosotros: historia, misión, visión y valores
                 </p>
-                <Button 
+                <Button
                   size="lg"
-                  onClick={generateAboutWithAI} 
+                  onClick={generateAboutWithAI}
                   disabled={saving}
                   className="w-full max-w-md mx-auto"
                 >
@@ -518,7 +518,7 @@ const ShopConfigDashboard: React.FC = () => {
                       )}
                     </div>
                   </Card>
-                  
+
                   <Button onClick={saveAboutContent} disabled={saving} className="w-full">
                     Guardar Contenido
                   </Button>
@@ -582,9 +582,9 @@ const ShopConfigDashboard: React.FC = () => {
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Genera textos de bienvenida y formulario personalizados para tu página de contacto
                 </p>
-                <Button 
+                <Button
                   size="lg"
-                  onClick={generateContactWithAI} 
+                  onClick={generateContactWithAI}
                   disabled={saving}
                   className="w-full max-w-md mx-auto"
                 >
@@ -704,9 +704,9 @@ const ShopConfigDashboard: React.FC = () => {
                   <h3 className="font-medium mb-3">Logo</h3>
                   {shop.logo_url ? (
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={shop.logo_url} 
-                        alt="Logo" 
+                      <img
+                        src={shop.logo_url}
+                        alt="Logo"
                         className="h-20 w-20 object-contain border rounded-lg p-2"
                       />
                       <div className="text-sm text-muted-foreground">

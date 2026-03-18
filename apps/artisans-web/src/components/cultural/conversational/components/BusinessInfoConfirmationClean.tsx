@@ -28,11 +28,11 @@ interface Props {
   totalAnswered?: number;
 }
 
-export const BusinessInfoConfirmationClean = ({ 
-  extractedInfo, 
-  originalText, 
-  language, 
-  onConfirm, 
+export const BusinessInfoConfirmationClean = ({
+  extractedInfo,
+  originalText,
+  language,
+  onConfirm,
   onEdit,
   craftType,
   officialClassification,
@@ -42,7 +42,7 @@ export const BusinessInfoConfirmationClean = ({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editedData, setEditedData] = useState<ExtractedInfo>(extractedInfo);
   const [showLocationSuggestion, setShowLocationSuggestion] = useState(false);
-  
+
   const { user } = useAuth();
   const { businessProfile } = useUserBusinessProfile();
 
@@ -80,64 +80,59 @@ export const BusinessInfoConfirmationClean = ({
   const t = labels[language];
 
   // Validación de nombre de marca - AHORA ES REQUERIDO
-  const isBrandNameValid = 
-    editedData.brand_name != null && 
+  const isBrandNameValid =
+    editedData.brand_name != null &&
     typeof editedData.brand_name === 'string' &&
-    editedData.brand_name.trim() !== '' && 
-    editedData.brand_name.toLowerCase() !== 'null' && 
+    editedData.brand_name.trim() !== '' &&
+    editedData.brand_name.toLowerCase() !== 'null' &&
     editedData.brand_name !== 'No especificado' &&
     editedData.brand_name !== 'Sin nombre definido' &&
     editedData.brand_name.toLowerCase() !== 'sin nombre definido' &&
     editedData.brand_name !== 'No name defined' &&
     editedData.brand_name.length >= 2;
-  
-  const isBrandNameEmpty = !editedData.brand_name || 
-    editedData.brand_name === 'null' || 
+
+  const isBrandNameEmpty = !editedData.brand_name ||
+    editedData.brand_name === 'null' ||
     editedData.brand_name === 'No especificado';
-    
+
   // Validación de ubicación
-  const isLocationValid = 
-    editedData.business_location != null && 
+  const isLocationValid =
+    editedData.business_location != null &&
     typeof editedData.business_location === 'string' &&
-    editedData.business_location.trim() !== '' && 
-    editedData.business_location.toLowerCase() !== 'null' && 
+    editedData.business_location.trim() !== '' &&
+    editedData.business_location.toLowerCase() !== 'null' &&
     editedData.business_location.toLowerCase() !== 'undefined' &&
     editedData.business_location !== 'No especificado' &&
     editedData.business_location.length >= 3;
-  
-  const isUniqueValueValid = editedData.unique_value && 
-    editedData.unique_value.trim() !== '' && 
+
+  const isUniqueValueValid = editedData.unique_value &&
+    editedData.unique_value.trim() !== '' &&
     editedData.unique_value !== 'null';
-  
+
   const canConfirm = isBrandNameValid && isLocationValid;
 
   // Comparar y sugerir ubicación del perfil
   useEffect(() => {
     if (
-      businessProfile?.businessLocation && 
-      editedData.business_location && 
+      businessProfile?.businessLocation &&
+      editedData.business_location &&
       editedData.business_location !== businessProfile.businessLocation &&
       editedData.business_location !== 'No especificado' &&
       editedData.business_location.length > 3
     ) {
-      console.log('🏠 Ubicación diferente detectada:', {
-        extracted: editedData.business_location,
-        profile: businessProfile.businessLocation
-      });
-      
       setShowLocationSuggestion(true);
     }
   }, [editedData.business_location, businessProfile?.businessLocation]);
 
   const handleUseProfileLocation = () => {
     const profileLocation = businessProfile?.businessLocation;
-    
+
     if (profileLocation) {
       setEditedData({ ...editedData, business_location: profileLocation });
       setShowLocationSuggestion(false);
       toast.success(
-        language === 'es' 
-          ? '✓ Ubicación actualizada con la de tu perfil' 
+        language === 'es'
+          ? '✓ Ubicación actualizada con la de tu perfil'
           : '✓ Location updated with your profile'
       );
     }
@@ -167,19 +162,19 @@ export const BusinessInfoConfirmationClean = ({
 
   const FieldCard = ({ icon, label, value, isValid, isRequired, isRecommended, fieldKey }: FieldCardProps) => {
     const isThisFieldEditing = editingField === fieldKey;
-    
-    // ✅ FIX 4: Bordes sutiles - ámbar para requeridos (no rojo alarmista)
-    const borderColor = isValid 
-      ? 'border-l-4 border-l-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/20' 
-      : isRequired 
-      ? 'border-l-4 border-l-amber-400 bg-amber-50/30 dark:bg-amber-950/20'  // Ámbar en lugar de rojo
-      : 'border-l-4 border-l-blue-300 bg-blue-50/20 dark:bg-blue-950/10';
 
-    const iconBg = isValid 
-      ? 'bg-emerald-100 dark:bg-emerald-500/10' 
-      : isRequired 
-      ? 'bg-amber-100 dark:bg-amber-500/10'  // Ámbar en lugar de rojo
-      : 'bg-blue-100 dark:bg-blue-500/10';
+    // ✅ FIX 4: Bordes sutiles - ámbar para requeridos (no rojo alarmista)
+    const borderColor = isValid
+      ? 'border-l-4 border-l-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/20'
+      : isRequired
+        ? 'border-l-4 border-l-amber-400 bg-amber-50/30 dark:bg-amber-950/20'  // Ámbar en lugar de rojo
+        : 'border-l-4 border-l-blue-300 bg-blue-50/20 dark:bg-blue-950/10';
+
+    const iconBg = isValid
+      ? 'bg-emerald-100 dark:bg-emerald-500/10'
+      : isRequired
+        ? 'bg-amber-100 dark:bg-amber-500/10'  // Ámbar en lugar de rojo
+        : 'bg-blue-100 dark:bg-blue-500/10';
 
     return (
       <Card className={`p-4 relative transition-all ${borderColor} hover:shadow-md`}>
@@ -198,11 +193,11 @@ export const BusinessInfoConfirmationClean = ({
           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${iconBg}`}>
             {icon}
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="font-semibold text-foreground">{label}</span>
-              
+
               {/* ✅ FIX 4: Badges sutiles - solo mostrar cuando hay problema */}
               {isRequired && !isValid && (
                 <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50 dark:bg-amber-950/30 text-xs px-2 py-0.5 flex items-center gap-1">
@@ -210,21 +205,21 @@ export const BusinessInfoConfirmationClean = ({
                   {t.required}
                 </Badge>
               )}
-              
+
               {isValid && (
                 <Badge variant="outline" className="border-emerald-500 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 text-xs px-2 py-0.5 flex items-center gap-1">
                   <CheckCircle className="w-3 h-3" />
                   {t.complete}
                 </Badge>
               )}
-              
+
               {isRecommended && !isValid && (
                 <Badge variant="outline" className="border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20 text-xs px-2 py-0.5">
                   ⭐ {t.recommended}
                 </Badge>
               )}
             </div>
-            
+
             {isThisFieldEditing ? (
               <div className="space-y-2">
                 {fieldKey === 'unique_value' ? (
@@ -244,33 +239,33 @@ export const BusinessInfoConfirmationClean = ({
                       if (fieldKey === 'business_location') {
                         const current = editedData[fieldKey] || '';
                         if (current && !current.includes('Colombia')) {
-                          setEditedData({ 
-                            ...editedData, 
-                            [fieldKey]: `${current}, Colombia` 
+                          setEditedData({
+                            ...editedData,
+                            [fieldKey]: `${current}, Colombia`
                           });
                         }
                       }
                     }}
                     placeholder={
-                      fieldKey === 'brand_name' 
+                      fieldKey === 'brand_name'
                         ? (language === 'es' ? 'Ej: Artesanías Maria' : 'Ex: Maria Crafts')
                         : fieldKey === 'business_location'
-                        ? (language === 'es' ? 'Ej: Bogotá, Cundinamarca' : 'Ex: Bogotá, Cundinamarca')
-                        : (language === 'es' ? 'Escribe aquí...' : 'Write here...')
+                          ? (language === 'es' ? 'Ej: Bogotá, Cundinamarca' : 'Ex: Bogotá, Cundinamarca')
+                          : (language === 'es' ? 'Escribe aquí...' : 'Write here...')
                     }
                     autoFocus
                   />
                 )}
-                
+
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     onClick={() => {
                       const newValue = editedData[fieldKey];
                       if (isRequired && (!newValue || newValue.trim() === '')) {
                         toast.error(
-                          language === 'es' 
-                            ? 'Este campo es requerido' 
+                          language === 'es'
+                            ? 'Este campo es requerido'
                             : 'This field is required'
                         );
                         return;
@@ -283,8 +278,8 @@ export const BusinessInfoConfirmationClean = ({
                   >
                     ✓ {language === 'es' ? 'Guardar' : 'Save'}
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => {
                       setEditedData({ ...editedData, [fieldKey]: extractedInfo[fieldKey] });
@@ -298,23 +293,22 @@ export const BusinessInfoConfirmationClean = ({
             ) : (
               <div className="flex items-center justify-between">
                 {/* ✅ FIX 4: Respuestas destacadas en grande cuando son válidas */}
-                <div className={`flex-1 ${
-                  isValid 
-                    ? 'text-lg font-bold text-foreground bg-primary/5 px-3 py-2 rounded-lg border border-primary/20' 
+                <div className={`flex-1 ${isValid
+                    ? 'text-lg font-bold text-foreground bg-primary/5 px-3 py-2 rounded-lg border border-primary/20'
                     : 'text-sm text-muted-foreground italic'
-                }`}>
+                  }`}>
                   {value || t.notSpecified}
                 </div>
-                
+
                 {/* Botón de editar más sutil */}
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="ghost"
                   onClick={() => {
                     // Si el campo tiene valor placeholder, limpiarlo
-                    if (fieldKey === 'brand_name' && 
-                        (editedData.brand_name === 'Sin nombre definido' || 
-                         editedData.brand_name === 'No name defined')) {
+                    if (fieldKey === 'brand_name' &&
+                      (editedData.brand_name === 'Sin nombre definido' ||
+                        editedData.brand_name === 'No name defined')) {
                       setEditedData({ ...editedData, brand_name: '' });
                     }
                     setEditingField(fieldKey);
@@ -326,14 +320,14 @@ export const BusinessInfoConfirmationClean = ({
                 </Button>
               </div>
             )}
-            
+
             {isRecommended && !isValid && !isThisFieldEditing && (
               <p className="text-xs text-muted-foreground mt-1 italic">
                 {t.recommendedMessage}
               </p>
             )}
           </div>
-          
+
           <div className="flex items-center">
             {isValid ? (
               <CheckCircle className="w-5 h-5 text-green-600" />
@@ -406,15 +400,15 @@ export const BusinessInfoConfirmationClean = ({
                 </strong>
               </p>
               <div className="flex gap-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={handleUseProfileLocation}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {language === 'es' ? '✓ Usar ubicación registrada' : '✓ Use registered location'}
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => setShowLocationSuggestion(false)}
                 >
@@ -432,7 +426,7 @@ export const BusinessInfoConfirmationClean = ({
           <Brain className="w-4 h-4" />
           {language === 'es' ? 'Información Principal' : 'Main Information'}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre de marca */}
           <FieldCard
@@ -472,13 +466,13 @@ export const BusinessInfoConfirmationClean = ({
       {/* Botón de confirmación final */}
       {editingField === null && (
         <div className="sticky bottom-0 pt-4 pb-2 bg-background/95 backdrop-blur">
-          <Button 
+          <Button
             onClick={handleConfirm}
             disabled={!canConfirm}
             className="w-full"
             size="lg"
           >
-            {canConfirm 
+            {canConfirm
               ? (language === 'es' ? '✓ Todo correcto, continuar' : '✓ All correct, continue')
               : (language === 'es' ? '⚠️ Completa los campos requeridos para continuar' : '⚠️ Complete required fields to continue')
             }

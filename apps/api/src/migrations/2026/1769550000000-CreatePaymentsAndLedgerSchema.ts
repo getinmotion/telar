@@ -104,7 +104,9 @@ END$$;
         )
       )
     `);
-    await queryRunner.query(`CREATE UNIQUE INDEX IF NOT EXISTS uq_product_prices_open ON payments.product_prices(product_id, context, context_shop_id, currency) WHERE is_active = true AND effective_to IS NULL`);
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS uq_product_prices_open ON payments.product_prices(product_id, context, context_shop_id, currency) WHERE is_active = true AND effective_to IS NULL`,
+    );
 
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS payments.charge_types (
@@ -384,29 +386,65 @@ END$$;
 
     // Payments schema
     await queryRunner.query(`DROP TABLE IF EXISTS payments.payouts CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_attempts CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_intents CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.checkout_charges CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.order_items CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.payment_attempts CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.payment_intents CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.checkout_charges CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.order_items CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS payments.orders CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS payments.checkouts CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_items CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.cart_shipping_info CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.cart_shipping_info CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS payments.carts CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_rules CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.charge_types CASCADE`);
-    await queryRunner.query(`DROP INDEX IF EXISTS payments.uq_product_prices_open`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.product_prices CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS payments.payment_providers CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.payout_status CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.payment_attempt_status CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.payment_intent_status CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.charge_scope CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.charge_direction CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.order_status CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.checkout_status CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.charge_rules CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.charge_types CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS payments.uq_product_prices_open`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.product_prices CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS payments.payment_providers CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.payout_status CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.payment_attempt_status CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.payment_intent_status CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.charge_scope CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.charge_direction CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.order_status CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.checkout_status CASCADE`,
+    );
     await queryRunner.query(`DROP TYPE IF EXISTS payments.cart_status CASCADE`);
-    await queryRunner.query(`DROP TYPE IF EXISTS payments.sale_context CASCADE`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS payments.sale_context CASCADE`,
+    );
     await queryRunner.query(`DROP SCHEMA IF EXISTS payments CASCADE`);
 
     // Shop schema (only remove tables created by this migration, not the schema itself)

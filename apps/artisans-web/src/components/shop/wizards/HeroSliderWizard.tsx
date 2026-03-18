@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getArtisanShopById, updateArtisanShop } from '@/services/artisanShops.actions';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -48,9 +50,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
   const [autoplay, setAutoplay] = useState(true);
   const [duration, setDuration] = useState(5);
   const [showBrandValidation, setShowBrandValidation] = useState(false);
-  const [brandValidation, setBrandValidation] = useState({ 
-    completionPercentage: 0, 
-    missingFields: [] as string[] 
+  const [brandValidation, setBrandValidation] = useState({
+    completionPercentage: 0,
+    missingFields: [] as string[]
   });
   const [shop, setShop] = useState<any>(null);
   const [showAIConfirmModal, setShowAIConfirmModal] = useState(false);
@@ -59,7 +61,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
     referenceText?: string;
     referenceImageFile?: File;
   } | null>(null);
-  
+
   const { user } = useAuth();
   const { toast } = useToast();
   const { generateHeroSlides, isGenerating } = useAutoHeroGeneration();
@@ -91,7 +93,6 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
           setDuration(data.duration);
         }
       } catch (e) {
-        console.error('Error restaurando progreso:', e);
       }
     }
   }, [shopId]);
@@ -101,18 +102,14 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
   }, [shopId]);
 
   const loadShopData = async () => {
-    const { data, error } = await supabase
-      .from('artisan_shops')
-      .select('*')
-      .eq('id', shopId)
-      .single();
+    const data = await getArtisanShopById(shopId);
 
-    if (!error && data) {
+    if (data) {
       setShop(data);
-      
+
       // Si tiene slides existentes, ir directo a preview
-      if (data.hero_config && typeof data.hero_config === 'object' && 'slides' in data.hero_config) {
-        const heroConfig = data.hero_config as any;
+      if (data.heroConfig && typeof data.heroConfig === 'object' && 'slides' in data.heroConfig) {
+        const heroConfig = data.heroConfig as any;
         if (Array.isArray(heroConfig.slides) && heroConfig.slides.length > 0) {
           setSlides(heroConfig.slides);
           setAutoplay(heroConfig.autoplay ?? true);
@@ -138,42 +135,28 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
       });
       return;
     }
-    
+
     setPendingGeneration({ isAddingNew: true });
     setShowAIConfirmModal(true);
   };
 
   const handleAIConfirm = async (
-    mode: 'ai' | 'upload', 
+    mode: 'ai' | 'upload',
     references?: { text?: string; imageFile?: File },
     manualContent?: ManualSlideContent
   ) => {
     setShowAIConfirmModal(false);
-    
+
     const isAddingNew = pendingGeneration?.isAddingNew || false;
 
     // Handle manual upload mode (no AI)
     if (mode === 'upload' && manualContent) {
       try {
-        // Optimize image before upload
         const file = manualContent.imageFile;
-        console.log('[HeroSliderWizard] Optimizing manual upload image...');
         const optimizedFile = await optimizeImage(file, ImageOptimizePresets.hero);
-        
-        const fileName = `${shopId}/hero-manual-${Date.now()}.${optimizedFile.name.split('.').pop()}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('hero-images')
-          .upload(fileName, optimizedFile, {
-            contentType: optimizedFile.type,
-            upsert: true
-          });
 
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('hero-images')
-          .getPublicUrl(fileName);
+        const uploadResult = await uploadImage(optimizedFile, UploadFolder.HERO);
+        const publicUrl = uploadResult.url;
 
         const newSlide: HeroSlide = {
           id: `slide-${Date.now()}`,
@@ -198,11 +181,10 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             description: 'Tu imagen ha sido subida exitosamente',
           });
         }
-        
+
         setPendingGeneration(null);
         return;
       } catch (error) {
-        console.error('Error uploading image:', error);
         toast({
           title: 'Error',
           description: 'No se pudo subir la imagen',
@@ -212,31 +194,17 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         return;
       }
     }
-    
+
     // AI generation mode
     const count = 1;
-    
-    console.log('[HeroWizard] Iniciando generación IA:', { 
-      shopId, 
-      count,
-      mode,
-      hasReferences: !!references
-    });
-    
-    const result = await generateHeroSlides(shopId, { 
+
+    const result = await generateHeroSlides(shopId, {
       autoSave: false,
       count,
       referenceText: references?.text,
       referenceImageFile: references?.imageFile
     });
-    
-    console.log('[HeroWizard] Resultado de generación:', {
-      success: result.success,
-      slideCount: result.slides?.length,
-      needsBrandInfo: result.needsBrandInfo,
-      missingFields: result.missingFields
-    });
-    
+
     if (result.needsBrandInfo) {
       setShowBrandValidation(true);
       setBrandValidation({
@@ -263,7 +231,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         });
       }
     }
-    
+
     setPendingGeneration(null);
   };
 
@@ -287,14 +255,14 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
   const handleDeleteSlide = (index: number) => {
     const newSlides = slides.filter((_, i) => i !== index);
     setSlides(newSlides);
-    
+
     toast({
       title: 'Slide eliminado',
-      description: newSlides.length === 0 
-        ? 'Todos los slides han sido eliminados' 
+      description: newSlides.length === 0
+        ? 'Todos los slides han sido eliminados'
         : 'El slide ha sido eliminado exitosamente'
     });
-    
+
     // Si se eliminaron todos, volver al paso de generación
     if (newSlides.length === 0) {
       setStep('generate');
@@ -325,10 +293,10 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
           body: {
             title: slide.title,
             subtitle: slide.subtitle,
-            shopName: shop.shop_name,
-            craftType: shop.craft_type,
-            brandColors: shop.primary_colors || [],
-            brandClaim: shop.brand_claim || '',
+            shopName: shop.shopName,
+            craftType: shop.craftType,
+            brandColors: shop.primaryColors || [],
+            brandClaim: shop.brandClaim || '',
             slideIndex: index
           }
         }
@@ -338,33 +306,20 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
 
       if (imageData?.imageBase64) {
         const base64Data = imageData.imageBase64.split(',')[1] || imageData.imageBase64;
-        const fileName = `${shopId}/hero-regenerated-${Date.now()}-${index}.png`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('hero-images')
-          .upload(fileName, 
-            Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)), 
-            {
-              contentType: 'image/png',
-              upsert: true
-            }
-          );
+        const blob = new Blob(
+          [Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))],
+          { type: 'image/png' }
+        );
+        const uploadResult = await uploadImage(blob, UploadFolder.HERO, `hero-regenerated-${Date.now()}-${index}.png`);
 
-        if (uploadError) throw uploadError;
+        handleSlideUpdate(index, 'imageUrl', uploadResult.url);
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('hero-images')
-          .getPublicUrl(fileName);
-
-        handleSlideUpdate(index, 'imageUrl', publicUrl);
-        
         toast({
           title: '✅ Imagen Regenerada',
           description: 'Se generó una nueva imagen exitosamente'
         });
       }
     } catch (error) {
-      console.error('Error regenerating image:', error);
       toast({
         title: 'Error',
         description: 'No se pudo regenerar la imagen',
@@ -375,32 +330,27 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
 
   const handlePublish = async () => {
     try {
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({
-          banner_url: slides[0]?.imageUrl || null,
-          hero_config: {
-            slides: slides.map(s => ({
-              id: s.id,
-              imageUrl: s.imageUrl,
-              title: s.title,
-              subtitle: s.subtitle,
-              ctaText: s.ctaText || 'Ver productos',
-              ctaLink: s.ctaLink || '#productos'
-            })),
-            autoplay,
-            duration: duration * 1000
-          }
-        })
-        .eq('id', shopId);
-
-      if (error) throw error;
+      await updateArtisanShop(shopId, {
+        bannerUrl: slides[0]?.imageUrl || null,
+        heroConfig: {
+          slides: slides.map(s => ({
+            id: s.id,
+            imageUrl: s.imageUrl,
+            title: s.title,
+            subtitle: s.subtitle,
+            ctaText: s.ctaText || 'Ver productos',
+            ctaLink: s.ctaLink || '#productos'
+          })),
+          autoplay,
+          duration: duration * 1000
+        }
+      });
 
       // Limpiar localStorage después de publicar exitosamente
       localStorage.removeItem(`hero_wizard_${shopId}`);
-      
+
       EventBus.publish('shop.customized', { shopId });
-      
+
       toast({
         title: '🚀 Hero Slider Publicado',
         description: 'Tu hero slider está activo en tu tienda pública'
@@ -410,7 +360,6 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         onComplete();
       }
     } catch (error) {
-      console.error('Error publishing hero:', error);
       toast({
         title: 'Error',
         description: 'No se pudo publicar el hero slider',
@@ -451,9 +400,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             {Object.keys(stepTitles).indexOf(step) + 1} / 4
           </Badge>
         </div>
-        
+
         <Progress value={stepProgress[step]} className="h-2" />
-        
+
         <div className="flex gap-2 text-sm">
           {Object.entries(stepTitles).map(([key, title], index) => (
             <div key={key} className="flex items-center gap-2">
@@ -481,9 +430,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
               <AIDisclaimer variant="banner" context="generate" className="mt-4" />
             </div>
 
-            <Button 
-              size="lg" 
-              onClick={handleGenerateClick} 
+            <Button
+              size="lg"
+              onClick={handleGenerateClick}
               disabled={isGenerating}
               className="w-full"
             >
@@ -545,7 +494,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 )}
               </Button>
             )}
-            
+
             <div className="flex gap-4">
               <Button variant="outline" className="flex-1" onClick={handleGenerateClick}>
                 <Wand2 className="w-4 h-4 mr-2" />
@@ -560,9 +509,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 Me gusta, publicar
               </Button>
             </div>
-            
-            <Button 
-              variant="destructive" 
+
+            <Button
+              variant="destructive"
               onClick={handleDeleteAllSlides}
               className="w-full"
             >
@@ -584,8 +533,8 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="slides">
                 {(provided) => (
-                  <div 
-                    {...provided.droppableProps} 
+                  <div
+                    {...provided.droppableProps}
                     ref={provided.innerRef}
                     className="space-y-4"
                   >
@@ -687,10 +636,10 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                     }]);
                   }}
                   shopContext={{
-                    shopName: shop.shop_name,
-                    craftType: shop.craft_type,
-                    brandClaim: shop.brand_claim || '',
-                    brandColors: shop.primary_colors || []
+                    shopName: shop.shopName,
+                    craftType: shop.craftType,
+                    brandClaim: shop.brandClaim || '',
+                    brandColors: shop.primaryColors || []
                   }}
                 />
               </div>
@@ -718,7 +667,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 )}
               </Button>
             )}
-            
+
             <div className="flex gap-4">
               <Button variant="outline" onClick={() => setStep('preview')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -729,9 +678,9 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            
-            <Button 
-              variant="destructive" 
+
+            <Button
+              variant="destructive"
               onClick={handleDeleteAllSlides}
               className="w-full"
             >
@@ -820,7 +769,7 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
         }}
         onConfirm={handleAIConfirm}
         slideTitle={pendingGeneration?.isAddingNew ? `Slide ${slides.length + 1}` : 'Primer Slide'}
-        slideSubtitle={shop?.shop_name || ''}
+        slideSubtitle={shop?.shopName || ''}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '@/utils/currency';
 import { useNavigate } from 'react-router-dom';
 import { useInventory, Product } from '@/hooks/useInventory';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
@@ -31,22 +32,15 @@ import { getMarketplaceIcon, getMarketplaceColor } from '@/utils/marketplaceUtil
 import { ModerationFeedbackBadge } from '@/components/inventory/ModerationFeedbackBadge';
 import { QuickStockModal } from '@/components/inventory/QuickStockModal';
 import { StockDashboardPanel } from '@/components/inventory/StockDashboardPanel';
-import { supabase } from '@/integrations/supabase/client';
+import { getModerationCommentsForProducts } from '@/services/productModerationHistory.actions';
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
 
 export const InventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { shop } = useArtisanShop();
   const { refreshModule } = useMasterAgent();
   const { loading, fetchProducts, updateProduct, deleteProduct, duplicateProduct, adjustProductStock } = useInventory();
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -69,35 +63,26 @@ export const InventoryPage: React.FC = () => {
     loadProducts();
   }, [shop?.id]);
 
-  // Fetch moderation comments for rejected/changes_requested products
+  // ✅ MIGRATED: Fetch moderation comments from NestJS backend
+  // Endpoint: GET /product-moderation-history/product/:productId
   useEffect(() => {
     const fetchModerationComments = async () => {
       const productsNeedingComments = products.filter(
         (p) => p.moderation_status === 'rejected' || p.moderation_status === 'changes_requested'
       );
-      
-      if (productsNeedingComments.length === 0) return;
-      
-      const productIds = productsNeedingComments.map((p) => p.id);
-      
-      const { data } = await supabase
-        .from('product_moderation_history')
-        .select('product_id, comment, created_at')
-        .in('product_id', productIds)
-        .in('new_status', ['rejected', 'changes_requested'])
-        .order('created_at', { ascending: false });
-      
-      if (data) {
-        const commentsMap: Record<string, string> = {};
-        data.forEach((record) => {
-          if (!commentsMap[record.product_id] && record.comment) {
-            commentsMap[record.product_id] = record.comment;
-          }
-        });
-        setModerationComments(commentsMap);
+
+      if (productsNeedingComments.length === 0) {
+        setModerationComments({});
+        return;
       }
+
+      const productIds = productsNeedingComments.map((p) => p.id);
+
+      // Llamada a NestJS usando el servicio migrado
+      const commentsMap = await getModerationCommentsForProducts(productIds);
+      setModerationComments(commentsMap);
     };
-    
+
     if (products.length > 0) {
       fetchModerationComments();
     }
@@ -107,19 +92,19 @@ export const InventoryPage: React.FC = () => {
     // Search filter
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Status filter
-    const matchesStatus = statusFilter === 'all' || 
+    const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'active' && product.active) ||
       (statusFilter === 'inactive' && !product.active) ||
       (statusFilter === 'draft' && product.moderation_status === 'draft');
-    
+
     // Stock filter
     const matchesStock = stockFilter === 'all' ||
       (stockFilter === 'low' && product.inventory !== null && product.inventory <= 5) ||
       (stockFilter === 'out' && product.inventory === 0) ||
       (stockFilter === 'in-stock' && product.inventory !== null && product.inventory > 0);
-    
+
     return matchesSearch && matchesStatus && matchesStock;
   });
 
@@ -130,7 +115,7 @@ export const InventoryPage: React.FC = () => {
         // Refresh products list
         const data = await fetchProducts(shop.id);
         setProducts(data);
-        
+
         // Publish event to sync with Master Coordinator
         EventBus.publish('inventory.updated', { productId, active: !currentActive });
       }
@@ -150,24 +135,24 @@ export const InventoryPage: React.FC = () => {
 
   const handleSaveMarketplaceLinks = async (links: any) => {
     if (!selectedProduct) return;
-    
-    const updated = await updateProduct(selectedProduct.id, { 
-      marketplace_links: links 
+
+    const updated = await updateProduct(selectedProduct.id, {
+      marketplace_links: links
     });
-    
+
     if (updated && shop) {
       const data = await fetchProducts(shop.id);
       setProducts(data);
-      EventBus.publish('inventory.updated', { 
-        productId: selectedProduct.id, 
-        marketplaceLinks: links 
+      EventBus.publish('inventory.updated', {
+        productId: selectedProduct.id,
+        marketplaceLinks: links
       });
     }
   };
 
   const handleDeleteProduct = async () => {
     if (!productToDelete || !shop) return;
-    
+
     setDeleteLoading(true);
     try {
       const success = await deleteProduct(productToDelete.id);
@@ -175,13 +160,13 @@ export const InventoryPage: React.FC = () => {
         // Refresh products list
         const data = await fetchProducts(shop.id);
         setProducts(data);
-        
+
         // Publish event to sync with Master Coordinator
-        EventBus.publish('inventory.updated', { 
-          productId: productToDelete.id, 
-          deleted: true 
+        EventBus.publish('inventory.updated', {
+          productId: productToDelete.id,
+          deleted: true
         });
-        
+
         setProductToDelete(null);
       }
     } finally {
@@ -268,7 +253,7 @@ export const InventoryPage: React.FC = () => {
                 className="pl-9"
               />
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Estado" />
@@ -389,8 +374,8 @@ export const InventoryPage: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center gap-1 flex-wrap">
                           {product.marketplace_links?.amazon && (
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
                               style={{
                                 backgroundColor: getMarketplaceColor('amazon').bg,
@@ -403,8 +388,8 @@ export const InventoryPage: React.FC = () => {
                             </Badge>
                           )}
                           {product.marketplace_links?.mercadolibre && (
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
                               style={{
                                 backgroundColor: getMarketplaceColor('mercadolibre').bg,
@@ -417,34 +402,34 @@ export const InventoryPage: React.FC = () => {
                             </Badge>
                           )}
                           {product.marketplace_links?.other && product.marketplace_links.other.length > 0 && (
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
                               onClick={() => handleOpenMarketplaces(product)}
                             >
                               +{product.marketplace_links.other.length}
                             </Badge>
                           )}
-                          {(!product.marketplace_links?.amazon && 
-                            !product.marketplace_links?.mercadolibre && 
+                          {(!product.marketplace_links?.amazon &&
+                            !product.marketplace_links?.mercadolibre &&
                             !product.marketplace_links?.other?.length) && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 text-xs"
-                              onClick={() => handleOpenMarketplaces(product)}
-                            >
-                              <Store className="w-3 h-3 mr-1" />
-                              Vincular
-                            </Button>
-                          )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={() => handleOpenMarketplaces(product)}
+                              >
+                                <Store className="w-3 h-3 mr-1" />
+                                Vincular
+                              </Button>
+                            )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {product.moderation_status ? (
-                            <ModerationFeedbackBadge 
-                              status={product.moderation_status} 
+                            <ModerationFeedbackBadge
+                              status={product.moderation_status}
                               comment={moderationComments[product.id]}
                               productId={product.id}
                               productName={product.name}

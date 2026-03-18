@@ -101,7 +101,8 @@ export class UserAchievementsController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Obtener usuarios por logro',
-    description: 'Obtiene todos los usuarios que han desbloqueado un logro específico',
+    description:
+      'Obtiene todos los usuarios que han desbloqueado un logro específico',
   })
   @ApiParam({
     name: 'achievementId',
@@ -127,7 +128,8 @@ export class UserAchievementsController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Verificar si un usuario tiene un logro',
-    description: 'Verifica si un usuario específico ha desbloqueado un logro específico',
+    description:
+      'Verifica si un usuario específico ha desbloqueado un logro específico',
   })
   @ApiParam({
     name: 'userId',

@@ -1,7 +1,7 @@
 # ==========================================
 # ETAPA 1: BUILDER (Compilación)
 # ==========================================
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Instalar certificados CA (Necesario para llamar a HTTPS Wompi) y git
 RUN apk update && apk add --no-cache git ca-certificates tzdata

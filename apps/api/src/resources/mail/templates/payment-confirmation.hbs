@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Compra - GetInMotion</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #2B2B2B 0%, #1a1a1a 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+        .logo {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .success-badge {
+            background: #D4FF00;
+            color: #2B2B2B;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .content {
+            background: #ffffff;
+            padding: 40px 30px;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #2B2B2B;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        .order-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #D4FF00;
+        }
+        .order-summary h3 {
+            color: #2B2B2B;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-info:last-child {
+            border-bottom: none;
+        }
+        .order-info-label {
+            color: #888;
+            font-size: 14px;
+        }
+        .order-info-value {
+            color: #2B2B2B;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #2B2B2B;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .items-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #555;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .item-name {
+            font-weight: 500;
+            color: #2B2B2B;
+        }
+        .item-quantity {
+            text-align: center;
+            color: #888;
+        }
+        .item-price {
+            text-align: right;
+            font-weight: 600;
+            color: #2B2B2B;
+        }
+        .total-row {
+            background: #f9f9f9;
+            font-weight: 600;
+        }
+        .total-row td {
+            padding: 15px 12px;
+            font-size: 16px;
+            color: #2B2B2B;
+        }
+        .next-steps {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .next-steps h3 {
+            color: #1976d2;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .next-steps ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #555;
+        }
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #D4FF00;
+            color: #2B2B2B;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(212, 255, 0, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background: #f5f5f5;
+            text-align: center;
+            padding: 25px 20px;
+            color: #888;
+            font-size: 13px;
+            border-radius: 0 0 12px 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer-emoji {
+            font-size: 18px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if logoUrl}}
+            <img src="{{logoUrl}}" alt="GetInMotion" class="logo">
+            {{/if}}
+            <h1>¡Compra Confirmada!</h1>
+            <span class="success-badge">✓ Pago Exitoso</span>
+        </div>
+        <div class="content">
+            <div class="greeting">¡Gracias por tu compra, {{buyerName}}! 🎉</div>
+            <p class="message">
+                Tu pago ha sido procesado exitosamente. Hemos recibido tu pedido y pronto comenzaremos a prepararlo.
+            </p>
+
+            <div class="order-summary">
+                <h3>📋 Resumen del Pedido</h3>
+                <div class="order-info">
+                    <span class="order-info-label">ID del Carrito:</span>
+                    <span class="order-info-value">{{cartId}}</span>
+                </div>
+                <div class="order-info">
+                    <span class="order-info-label">ID de Transacción:</span>
+                    <span class="order-info-value">{{transactionId}}</span>
+                </div>
+                <div class="order-info">
+                    <span class="order-info-label">Gateway de Pago:</span>
+                    <span class="order-info-value">{{gatewayCode}}</span>
+                </div>
+                <div class="order-info">
+                    <span class="order-info-label">Moneda:</span>
+                    <span class="order-info-value">{{currency}}</span>
+                </div>
+            </div>
+
+            <h3 style="color: #2B2B2B; margin-top: 30px; margin-bottom: 15px;">🛍️ Productos Comprados</h3>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Unitario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each items}}
+                    <tr>
+                        <td class="item-name">{{this.productName}}</td>
+                        <td class="item-quantity">{{this.quantity}}</td>
+                        <td class="item-price">{{this.formattedPrice}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2">Total</td>
+                        <td class="item-price">{{totalFormatted}}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="next-steps">
+                <h3>📦 Próximos Pasos</h3>
+                <ul>
+                    <li>Recibirás un correo con el número de seguimiento cuando tu pedido sea enviado</li>
+                    <li>Los artesanos comenzarán a preparar tus productos</li>
+                    <li>Puedes ver el estado de tu pedido en tu cuenta</li>
+                    <li>Si tienes alguna pregunta, contáctanos y te ayudaremos</li>
+                </ul>
+            </div>
+
+            <div class="button-container">
+                <a href="{{ordersUrl}}" class="button">Ver mis pedidos</a>
+            </div>
+
+            <p class="message">
+                Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos.
+            </p>
+            <p class="message">
+                ¡Gracias por apoyar a nuestros artesanos!
+            </p>
+        </div>
+        <div class="footer">
+            <p>Con cariño desde Bogotá, Colombia <span class="footer-emoji">🇨🇴</span></p>
+            <p style="margin-top: 10px;">GetInMotion © {{year}}</p>
+        </div>
+    </div>
+</body>
+</html>

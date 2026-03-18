@@ -25,37 +25,86 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   email: string | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'encrypted_password' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'encrypted_password',
+  })
   encryptedPassword: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'email_confirmed_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'email_confirmed_at',
+  })
   emailConfirmedAt: Date | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'invited_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'invited_at',
+  })
   invitedAt: Date | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'confirmation_token' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'confirmation_token',
+  })
   confirmationToken: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'confirmation_sent_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'confirmation_sent_at',
+  })
   confirmationSentAt: Date | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'recovery_token' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'recovery_token',
+  })
   recoveryToken: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'recovery_sent_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'recovery_sent_at',
+  })
   recoverySentAt: Date | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'email_change_token_new' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'email_change_token_new',
+  })
   emailChangeTokenNew: string | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'email_change' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'email_change',
+  })
   emailChange: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'email_change_sent_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'email_change_sent_at',
+  })
   emailChangeSentAt: Date | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'last_sign_in_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'last_sign_in_at',
+  })
   lastSignInAt: Date | null;
 
   @Column({ type: 'jsonb', nullable: true, name: 'raw_app_meta_data' })
@@ -67,53 +116,120 @@ export class User extends BaseEntity {
   @Column({ type: 'boolean', nullable: true, name: 'is_super_admin' })
   isSuperAdmin: boolean | null;
 
-  @CreateDateColumn({ type: 'timestamp with time zone', nullable: true, name: 'created_at' })
+  @CreateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'created_at',
+  })
   createdAt: Date | null;
 
-  @UpdateDateColumn({ type: 'timestamp with time zone', nullable: true, name: 'updated_at' })
+  @UpdateDateColumn({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'updated_at',
+  })
   updatedAt: Date | null;
 
   @Column({ type: 'text', nullable: true, default: null })
   phone: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'phone_confirmed_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'phone_confirmed_at',
+  })
   phoneConfirmedAt: Date | null;
 
   @Column({ type: 'text', nullable: true, default: '', name: 'phone_change' })
   phoneChange: string | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: '', name: 'phone_change_token' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: '',
+    name: 'phone_change_token',
+  })
   phoneChangeToken: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'phone_change_sent_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'phone_change_sent_at',
+  })
   phoneChangeSentAt: Date | null;
 
   // Columna generada - TypeORM no soporta GENERATED ALWAYS directamente,
   // por lo que esta columna será manejada por la base de datos
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'confirmed_at', insert: false, update: false })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'confirmed_at',
+    insert: false,
+    update: false,
+  })
   confirmedAt: Date | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: '', name: 'email_change_token_current' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: '',
+    name: 'email_change_token_current',
+  })
   emailChangeTokenCurrent: string | null;
 
-  @Column({ type: 'smallint', nullable: true, default: 0, name: 'email_change_confirm_status' })
+  @Column({
+    type: 'smallint',
+    nullable: true,
+    default: 0,
+    name: 'email_change_confirm_status',
+  })
   emailChangeConfirmStatus: number | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'banned_until' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'banned_until',
+  })
   bannedUntil: Date | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: '', name: 'reauthentication_token' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: '',
+    name: 'reauthentication_token',
+  })
   reauthenticationToken: string | null;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'reauthentication_sent_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'reauthentication_sent_at',
+  })
   reauthenticationSentAt: Date | null;
 
-  @Column({ type: 'boolean', nullable: false, default: false, name: 'is_sso_user' })
+  @Column({
+    type: 'boolean',
+    nullable: false,
+    default: false,
+    name: 'is_sso_user',
+  })
   isSsoUser: boolean;
 
-  @Column({ type: 'timestamp with time zone', nullable: true, name: 'deleted_at' })
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+    name: 'deleted_at',
+  })
   deletedAt: Date | null;
 
-  @Column({ type: 'boolean', nullable: false, default: false, name: 'is_anonymous' })
+  @Column({
+    type: 'boolean',
+    nullable: false,
+    default: false,
+    name: 'is_anonymous',
+  })
   isAnonymous: boolean;
 }
