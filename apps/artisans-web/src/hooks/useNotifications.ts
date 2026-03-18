@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import {
   getNotificationsByUserId,
@@ -123,25 +124,40 @@ export const useNotifications = () => {
     }
   }, [user?.id, fetchNotifications]);
 
-  // ✅ MIGRATED: Polling-based notifications (replaces Supabase Realtime WebSocket)
-  // Uses NestJS endpoint: GET /notifications/user/:userId
-  // Polls every 30 seconds to check for new notifications
+  // ✅ OPTIMIZED: Real-time subscription con guard para prevenir loops
+  // Este SÍ se mantiene porque las notificaciones son eventos EXTERNOS del sistema
   useEffect(() => {
     const userId = userIdRef.current;
-    if (!userId) return;
+    if (!userId || hasSubscribedRef.current) return;
 
-    console.log('🔔 [Notifications] Starting polling for new notifications');
+    console.log('🔔 [Notifications] Subscribing to realtime notifications');
+    hasSubscribedRef.current = true;
 
-    // Poll every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchNotifications();
-    }, 30000); // 30 seconds
+    const channel = supabase
+      .channel(`notifications-changes-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('🔔 [Notifications] New notification received:', payload.new);
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+        }
+      )
+      .subscribe();
 
     return () => {
-      console.log('🔔 [Notifications] Stopping polling');
-      clearInterval(intervalId);
+      console.log('🔔 [Notifications] Unsubscribing from realtime');
+      supabase.removeChannel(channel);
+      hasSubscribedRef.current = false;
     };
-  }, [user?.id, fetchNotifications]); // ✅ Solo cuando cambia el userId
+  }, [user?.id]); // ✅ Solo cuando cambia el userId
 
   return {
     notifications,

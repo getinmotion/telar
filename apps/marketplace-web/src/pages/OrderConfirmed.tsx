@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,7 @@ export default function OrderConfirmed() {
   if (error) {
     return (
       <div className="min-h-screen bg-background">
+        <Navbar />
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
             <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -130,6 +132,8 @@ export default function OrderConfirmed() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
+      
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-2xl mx-auto">
           {/* Success Header */}
