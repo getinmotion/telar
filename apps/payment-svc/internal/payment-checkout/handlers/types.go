@@ -37,6 +37,7 @@ type WompiTransaction struct {
 	Reference     string `json:"reference"` // Este es nuestro Intent.ID
 	Status        string `json:"status"`
 	Currency      string `json:"currency"`
+	PaymentLinkID string `json:"payment_link_id"`
 }
 
 // --- Estructuras para Cobre Webhook ---
