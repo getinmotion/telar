@@ -1,24 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
-import { Skeleton } from "@/components/ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
-import heroTextiles from "@/assets/hero-textiles.png";
+import heroArtesanos from "@/assets/hero-artesanos.jpg";
 import heroJewelry from "@/assets/hero-jewelry.png";
 import heroCrafts from "@/assets/hero-crafts.png";
 import { useParallax } from "@/hooks/useParallax";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHeroSlides } from "@/hooks/useHeroSlides";
-import { getStoryblokImageUrl, resolveStoryblokLink, HeroSlide } from "@/types/storyblok";
 
-// Fallback slides when CMS content is not available
+// Hero slides configuration
 const FALLBACK_SLIDES = [
   {
-    image: heroTextiles,
-    title: "Regala Arte Esta Navidad",
-    subtitle: "Descubre artesanías únicas hechas a mano",
-    cta: "Explorar Colección",
-    link: "/productos",
+    image: heroArtesanos,
+    title: "El arte de ser raíz",
+    subtitle: "19 de marzo | Día del Artesano. Honramos el talento que une nuestro pasado con el mañana.",
+    cta: "Conocer Artesanos",
+    link: "/tiendas",
     overlayOpacity: 30
   },
   {
@@ -44,20 +41,9 @@ export const HeroSection = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
-  
-  const { data: cmsSlides, isLoading } = useHeroSlides();
 
-  // Transform CMS slides to component format or use fallback
-  const slides = cmsSlides && cmsSlides.length > 0
-    ? cmsSlides.map((slide: HeroSlide) => ({
-        image: getStoryblokImageUrl(slide.image, { width: 1920, height: 1080, quality: 85 }) || heroTextiles,
-        title: slide.title,
-        subtitle: slide.subtitle,
-        cta: slide.cta_text,
-        link: resolveStoryblokLink(slide.cta_link),
-        overlayOpacity: slide.overlay_opacity || 30
-      }))
-    : FALLBACK_SLIDES;
+  // Use static slides configuration
+  const slides = FALLBACK_SLIDES;
 
   useEffect(() => {
     if (!api) return;
@@ -68,14 +54,6 @@ export const HeroSection = () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
-
-  if (isLoading) {
-    return (
-      <section className="relative overflow-hidden">
-        <Skeleton className="w-full min-h-[400px] lg:min-h-[500px]" />
-      </section>
-    );
-  }
 
   return (
     <section className="relative overflow-hidden">
