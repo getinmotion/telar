@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type WompiSignatureValidator struct {
@@ -62,8 +63,8 @@ func (v *WompiSignatureValidator) ValidateSignature(payloadBytes []byte, signatu
 	hash := sha256.Sum256([]byte(concatenated))
 	calculatedChecksum := hex.EncodeToString(hash[:])
 
-	// 5. Comparar
-	if calculatedChecksum != payload.Signature.Checksum {
+	// 5. Comparar IGNORANDO mayúsculas/minúsculas
+	if !strings.EqualFold(calculatedChecksum, payload.Signature.Checksum) { // <--- 2. CAMBIA ESTA LÍNEA
 		return fmt.Errorf("invalid checksum. expected %s, got %s", payload.Signature.Checksum, calculatedChecksum)
 	}
 

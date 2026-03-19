@@ -33,9 +33,19 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return nil
 	}
 
+	// 1. Intentamos buscar por el ID Interno primero (Caso Cobre)
 	intent, err := s.uow.CheckoutRepo().GetIntentByIDForUpdate(ctx, tx, event.PaymentLinkID)
 	if err != nil {
-		return fmt.Errorf("intent not found: %w", err)
+		// 2. Si falla, buscamos por el External ID (Caso Wompi: payment_link_id)
+		intentByExt, errExt := s.uow.CheckoutRepo().GetIntentByExternalID(ctx, event.PaymentLinkID)
+		if errExt == nil && intentByExt != nil {
+			// Si lo encontramos, volvemos a hacer el query FOR UPDATE con el ID interno real
+			intent, err = s.uow.CheckoutRepo().GetIntentByIDForUpdate(ctx, tx, intentByExt.ID)
+		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("intent not found by internal or external id: %w", err)
 	}
 
 	if intent.Status == "succeeded" || intent.Status == "failed" { // <--- minúsculas
