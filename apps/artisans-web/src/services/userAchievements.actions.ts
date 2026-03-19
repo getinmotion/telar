@@ -61,7 +61,7 @@ export const createUserAchievement = async (
  * @param payload - Datos a actualizar
  * @returns El logro actualizado
  * @throws Error si la petición falla
- * 
+ *
  * Endpoint: PATCH /user-achievements/{id}
  */
 export const updateUserAchievement = async (
@@ -76,6 +76,32 @@ export const updateUserAchievement = async (
 
     return response.data.data;
   } catch (error: any) {
+    throw error;
+  }
+};
+
+/**
+ * Obtener logros por ID de usuario específico
+ * @param userId - ID del usuario
+ * @returns Array de logros del usuario
+ * @throws Error si la petición falla
+ *
+ * Endpoint: GET /user-achievements/user/:userId
+ */
+export const getUserAchievementsByUserId = async (
+  userId: string
+): Promise<UserAchievement[]> => {
+  try {
+    const response = await telarApi.get<UserAchievement[]>(
+      `/user-achievements/user/${userId}`
+    );
+
+    return response.data;
+  } catch (error: any) {
+    // Si no se encuentran logros, retornar array vacío
+    if (error.response?.status === 404) {
+      return [];
+    }
     throw error;
   }
 };

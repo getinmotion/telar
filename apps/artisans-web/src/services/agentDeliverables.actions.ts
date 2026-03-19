@@ -56,12 +56,31 @@ export const createAgentDeliverable = async (
 };
 
 /**
+ * Obtener entregables por ID de usuario
+ * @param userId - ID del usuario
+ * @returns Array de entregables del usuario
+ * @throws Error si la petición falla
+ *
+ * Endpoint: GET /agent-deliverables/user/:userId
+ */
+export const getAgentDeliverablesByUserId = async (userId: string): Promise<AgentDeliverable[]> => {
+  try {
+    const response = await telarApi.get<AgentDeliverable[]>(
+      `/agent-deliverables/user/${userId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+/**
  * Actualizar un entregable existente
  * @param deliverableId - ID del entregable
  * @param payload - Datos a actualizar
  * @returns El entregable actualizado
  * @throws Error si la petición falla
- * 
+ *
  * Endpoint: PATCH /agent-deliverables/{id}
  */
 export const updateAgentDeliverable = async (

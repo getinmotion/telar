@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useAutoHeroGeneration } from '@/hooks/useAutoHeroGeneration';
@@ -10,6 +9,7 @@ import {
   updateArtisanShop,
   isSlugAvailable
 } from '@/services/artisanShops.actions';
+import { generateShopContact } from '@/services/ai.actions';
 import { ArtisanShop } from '@/types/artisanShop.types';
 
 export const useArtisanShop = () => {
@@ -147,20 +147,19 @@ export const useArtisanShop = () => {
       // Generar hero slides automáticamente
       const heroResult = await generateHeroSlides(data.id);
 
+      // ✅ MIGRATED: POST /ai/generate-shop-contact
       // Generar solo Contact automáticamente (Nosotros se reemplaza por Perfil Artesanal wizard)
       try {
-        const contactResult = await supabase.functions.invoke('generate-shop-contact', {
-          body: {
-            shopName: data.shopName,
-            craftType: data.craftType,
-            region: data.region,
-            brandClaim: data.brandClaim || ''
-          }
+        const contactResult = await generateShopContact({
+          shopName: data.shopName,
+          craftType: data.craftType,
+          region: data.region,
+          brandClaim: data.brandClaim || ''
         });
 
-        if (contactResult.data) {
+        if (contactResult) {
           await updateArtisanShop(data.id, {
-            contactConfig: contactResult.data
+            contactConfig: contactResult
           });
         }
       } catch (error) {

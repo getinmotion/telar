@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Heart, ShoppingCart, Share2, Compass, Settings, Leaf } from "lucide-react";
+import { Heart, ShoppingCart, Share2, Compass, Settings, Leaf, MapPin, Users, Calendar } from "lucide-react";
 import { ProductVariants } from "@/components/ProductVariants";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { RelatedProducts } from "@/components/RelatedProducts";
@@ -493,6 +493,166 @@ const ProductDetail = () => {
             </div>
           </div>
         </section>
+
+        {/* Digital Registry Section */}
+        <section className="w-full px-4 md:px-8 py-8">
+          <div className="bg-[#2a2a2a] rounded-xl py-16 px-4">
+            <div className="container mx-auto max-w-6xl">
+              {/* Header Text */}
+              <div className="text-center mb-12 space-y-6">
+                <p className="text-xs md:text-sm text-gray-300 italic max-w-3xl mx-auto">
+                  Cada pieza en TELAR cuenta con una huella digital que preserva su origen, su proceso artesanal y el taller que la creó.
+                </p>
+                <h2 className="text-2xl md:text-3xl font-serif italic text-white">
+                  Registro digital de la pieza
+                </h2>
+              </div>
+
+              {/* Three Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-12">
+
+                {/* Column 1: Origen */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-orange-600 flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-serif italic text-white">
+                    Origen
+                  </h3>
+                  <p className="text-xs md:text-sm text-gray-300 italic leading-relaxed">
+                    {product.material
+                      ? `${product.material} ${product.region ? `recolectado y procesado en ${product.region}` : 'procesado localmente'}`
+                      : 'Fibras naturales recolectadas y procesadas localmente'
+                    }
+                  </p>
+                </div>
+
+                {/* Column 2: Taller */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-orange-600 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-serif italic text-white">
+                    Taller
+                  </h3>
+                  <p className="text-xs md:text-sm text-gray-300 italic leading-relaxed">
+                    {product.storeName
+                      ? `Elaborado en el taller ${product.storeName} bajo principios de comercio justo`
+                      : 'Elaborado en el taller bajo principios de comercio justo'
+                    }
+                  </p>
+                </div>
+
+                {/* Column 3: Proceso */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-orange-600 flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-serif italic text-white">
+                    Proceso
+                  </h3>
+                  <p className="text-xs md:text-sm text-gray-300 italic leading-relaxed">
+                    {product.craft
+                      ? `Cada etapa del ${product.craft.toLowerCase()} se realiza manualmente y forma parte del registro histórico de la pieza`
+                      : 'Cada etapa del tejido se realiza manualmente y forma parte del registro histórico de la pieza'
+                    }
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Cultural Registry Section */}
+        {(shop?.region || shop?.municipality) && (
+          <section className="w-full bg-background py-16">
+            <div className="container mx-auto px-4 max-w-6xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+
+                {/* Left Column - Cultural Information */}
+                <div className="space-y-8">
+                  {/* Label */}
+                  <p className="text-xs uppercase tracking-wider text-orange-600 font-semibold">
+                    REGISTRO CULTURAL
+                  </p>
+
+                  {/* Title - Municipality/Region */}
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground">
+                    {shop?.municipality || shop?.region || 'Región Artesanal'}
+                    {shop?.department && `, ${shop.department}`}
+                  </h2>
+
+                  {/* Description */}
+                  <p className="text-base md:text-lg text-muted-foreground italic leading-relaxed">
+                    {shop?.description ||
+                      `Ubicado en el corazón de Colombia, esta región es reconocida por su tradición artesanal. Durante generaciones, artesanos de la zona han trabajado ${product.craft || 'la artesanía'} como una forma de preservar su identidad cultural.`
+                    }
+                  </p>
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-6 pt-4">
+                    {/* Tradición */}
+                    <div className="space-y-2">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        TRADICIÓN
+                      </p>
+                      <p className="text-base md:text-lg italic text-foreground">
+                        {product.craft || product.craftType || 'Artesanía tradicional'}
+                      </p>
+                    </div>
+
+                    {/* Ubicación */}
+                    <div className="space-y-2">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        UBICACIÓN
+                      </p>
+                      <p className="text-base md:text-lg italic text-foreground">
+                        {shop?.department || shop?.region || 'Colombia'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Map Image */}
+                <div className="relative h-[400px] md:h-[500px] bg-gray-100 rounded-lg overflow-hidden shadow-lg">
+                  {/* Map Placeholder with Pin Icon */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                    <div className="relative">
+                      {/* Diagonal Lines Background */}
+                      <div className="absolute inset-0 opacity-10">
+                        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                          <defs>
+                            <pattern id="diagonal-lines" patternUnits="userSpaceOnUse" width="20" height="20">
+                              <path d="M 0,20 l 20,-20 M -5,5 l 10,-10 M 15,25 l 10,-10"
+                                    stroke="#9ca3af"
+                                    strokeWidth="1"/>
+                            </pattern>
+                          </defs>
+                          <rect width="100%" height="100%" fill="url(#diagonal-lines)" />
+                        </svg>
+                      </div>
+
+                      {/* Map Pin Icon */}
+                      <MapPin className="w-16 h-16 text-orange-600 relative z-10" />
+                    </div>
+                  </div>
+
+                  {/* Location Label */}
+                  <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
+                    <p className="text-sm font-semibold text-foreground">
+                      {shop?.municipality || shop?.region || 'Colombia'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Origen artesanal
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* Related Products */}

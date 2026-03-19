@@ -17,6 +17,9 @@ import { MasterCoordinatorService } from './services/master-coordinator.service'
 import { BrandAiAssistantService } from './services/brand-ai-assistant.service';
 import { ArtisanProfileHistoryService } from './services/artisan-profile-history.service';
 import { TranscribeAudioService } from './services/transcribe-audio.service';
+import { GenerateShopContactService } from './services/generate-shop-contact.service';
+import { GenerateShopHeroSlideService } from './services/generate-shop-hero-slide.service';
+import { GenerateHeroImageService } from './services/generate-hero-image.service';
 import { GenerateShopSuggestionsDto } from './dto/generate-shop-suggestions.dto';
 import { GenerateProductSuggestionsDto } from './dto/generate-product-suggestions.dto';
 import { ExtractBusinessInfoDto } from './dto/extract-business-info.dto';
@@ -24,6 +27,9 @@ import { MasterCoordinatorDto } from './dto/master-coordinator.dto';
 import { BrandAiAssistantDto } from './dto/brand-ai-assistant.dto';
 import { GenerateArtisanProfileHistoryDto } from './dto/artisan-profile-history.dto';
 import { TranscribeAudioDto } from './dto/transcribe-audio.dto';
+import { GenerateShopContactDto } from './dto/generate-shop-contact.dto';
+import { GenerateShopHeroSlideDto } from './dto/generate-shop-hero-slide.dto';
+import { GenerateHeroImageDto } from './dto/generate-hero-image.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('ai')
@@ -35,6 +41,9 @@ export class AiController {
     private readonly brandAiAssistantService: BrandAiAssistantService,
     private readonly artisanProfileHistoryService: ArtisanProfileHistoryService,
     private readonly transcribeAudioService: TranscribeAudioService,
+    private readonly generateShopContactService: GenerateShopContactService,
+    private readonly generateShopHeroSlideService: GenerateShopHeroSlideService,
+    private readonly generateHeroImageService: GenerateHeroImageService,
   ) {}
 
   /**
@@ -332,5 +341,125 @@ export class AiController {
   })
   async transcribeAudio(@Body() dto: TranscribeAudioDto) {
     return await this.transcribeAudioService.transcribeAudio(dto);
+  }
+
+  /**
+   * POST /ai/generate-shop-contact
+   * Genera textos para la página de contacto de una tienda
+   */
+  @Post('generate-shop-contact')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generar contenido de página de contacto',
+    description:
+      'Genera textos profesionales y acogedores para la página de contacto de una tienda artesanal usando IA',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contenido generado exitosamente',
+    schema: {
+      example: {
+        welcomeMessage:
+          '¡Bienvenido a Artesanías Wayuu! Nos encantaría saber de ti...',
+        formIntroText:
+          'Completa el formulario y nos pondremos en contacto contigo...',
+        suggestedHours: 'Lun-Vie 9:00-18:00, Sáb 10:00-14:00',
+        contactPageTitle: 'Conecta con Nosotros',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al generar el contenido',
+  })
+  async generateShopContact(@Body() dto: GenerateShopContactDto) {
+    return await this.generateShopContactService.generateContactContent(dto);
+  }
+
+  /**
+   * POST /ai/generate-shop-hero-slide
+   * Genera slides de hero culturalmente precisos para una tienda
+   */
+  @Post('generate-shop-hero-slide')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generar slides de hero para tienda',
+    description:
+      'Genera slides de hero culturalmente precisos y auténticos para una tienda artesanal, respetando el origen cultural específico',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Slides generados exitosamente',
+    schema: {
+      example: {
+        slides: [
+          {
+            title: 'Mochilas Arhuacas de la Sierra Nevada',
+            subtitle:
+              'Tejidas a mano por artesanas de la comunidad Arhuaca con técnicas ancestrales',
+            ctaText: 'Descubre Nuestras Mochilas',
+            ctaLink: '#productos',
+            suggestedImage:
+              'Mochila arhuaca con patrones geométricos tradicionales en colores tierra, café y beige, fotografiada con fondo de la Sierra Nevada',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al generar los slides',
+  })
+  async generateShopHeroSlide(@Body() dto: GenerateShopHeroSlideDto) {
+    return await this.generateShopHeroSlideService.generateHeroSlides(dto);
+  }
+
+  /**
+   * POST /ai/generate-hero-image
+   * Genera una imagen hero culturalmente precisa usando DALL-E
+   */
+  @Post('generate-hero-image')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Generar imagen hero con IA',
+    description:
+      'Genera una imagen hero profesional y culturalmente precisa para un slide de tienda artesanal usando DALL-E 3',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Imagen generada exitosamente',
+    schema: {
+      example: {
+        imageBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA...',
+        slideIndex: 0,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o violación de políticas de contenido',
+  })
+  @ApiResponse({
+    status: 402,
+    description: 'Sin créditos disponibles',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Límite de generación alcanzado',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al generar la imagen',
+  })
+  async generateHeroImage(@Body() dto: GenerateHeroImageDto) {
+    return await this.generateHeroImageService.generateHeroImage(dto);
   }
 }
