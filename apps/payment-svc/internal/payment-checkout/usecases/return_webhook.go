@@ -35,24 +35,48 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 
 	var intentToLockID string
 
+	s.logger.Info("Buscando Intent para procesar webhook",
+		"provider_code", providerCode,
+		"incoming_payment_link_id", event.PaymentLinkID)
+
 	if providerCode == "wompi" {
 		// Wompi manda el ID externo. Buscamos cuál es nuestro ID interno ANTES de usar la tx.
-		// GetIntentByExternalID usa su propia conexión, así que no envenenará nuestra transacción.
 		intentByExt, errExt := s.uow.CheckoutRepo().GetIntentByExternalID(ctx, event.PaymentLinkID)
-		if errExt != nil || intentByExt == nil {
+		if errExt != nil {
+			s.logger.Error("Fallo en BD al buscar Intent por External ID (Wompi)",
+				"error", errExt.Error(),
+				"external_id", event.PaymentLinkID)
+			return fmt.Errorf("intent db error by external id %s: %w", event.PaymentLinkID, errExt)
+		}
+		if intentByExt == nil {
+			s.logger.Error("El Intent no existe en BD para este External ID",
+				"external_id", event.PaymentLinkID)
 			return fmt.Errorf("intent not found by external id: %s", event.PaymentLinkID)
 		}
+
 		intentToLockID = intentByExt.ID
+		s.logger.Info("Traducción de ID Wompi exitosa",
+			"external_id", event.PaymentLinkID,
+			"internal_uuid", intentToLockID)
 	} else {
 		// Cobre (y otros) ya mandan nuestro ID interno (UUID) directamente
 		intentToLockID = event.PaymentLinkID
 	}
 
-	// AHORA SÍ: Usamos el ID interno correcto garantizado para bloquear la fila
+	s.logger.Info("Intentando bloquear fila FOR UPDATE en Postgres", "intent_id", intentToLockID)
+
 	intent, err := s.uow.CheckoutRepo().GetIntentByIDForUpdate(ctx, tx, intentToLockID)
 	if err != nil {
+		s.logger.Error("Fallo al bloquear el Intent FOR UPDATE (¿UUID inválido o fila inexistente?)",
+			"error", err.Error(),
+			"intent_id", intentToLockID)
 		return fmt.Errorf("intent not found or locked: %w", err)
 	}
+
+	s.logger.Info("Fila bloqueada exitosamente, evaluando estado",
+		"intent_id", intent.ID,
+		"current_status", intent.Status,
+		"incoming_status", event.Status)
 	// --- FIN DEL NUEVO BLOQUE ---
 
 	if intent.Status == "succeeded" || intent.Status == "failed" { // <--- minúsculas
