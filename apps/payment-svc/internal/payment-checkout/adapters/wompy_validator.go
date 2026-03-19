@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type WompiSignatureValidator struct {
@@ -17,12 +18,7 @@ func NewWompiSignatureValidator(secret string) *WompiSignatureValidator {
 }
 
 // Valida la firma dinámicamente siguiendo la guía de Wompi
-// Añadimos signatureHeader para cumplir estrictamente con el puerto, aunque Wompi lo mande en el JSON
 func (v *WompiSignatureValidator) ValidateSignature(payloadBytes []byte, signatureHeader string, timestampHeader string) error {
-
-	if signatureHeader == "" {
-		return fmt.Errorf("missing signature header")
-	}
 
 	var payload struct {
 		Data struct {
@@ -67,8 +63,8 @@ func (v *WompiSignatureValidator) ValidateSignature(payloadBytes []byte, signatu
 	hash := sha256.Sum256([]byte(concatenated))
 	calculatedChecksum := hex.EncodeToString(hash[:])
 
-	// 5. Comparar
-	if calculatedChecksum != payload.Signature.Checksum {
+	// 5. Comparar IGNORANDO mayúsculas/minúsculas
+	if !strings.EqualFold(calculatedChecksum, payload.Signature.Checksum) { // <--- 2. CAMBIA ESTA LÍNEA
 		return fmt.Errorf("invalid checksum. expected %s, got %s", payload.Signature.Checksum, calculatedChecksum)
 	}
 
