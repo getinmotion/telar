@@ -83,7 +83,7 @@ func (h *HTTPHandler) HandleWompiWebhook(c echo.Context) error {
 	domainEvent := domain.PaymentGatewayEvent{
 		EventID:        fmt.Sprintf("%s_%d", wompiPayload.Event, wompiPayload.Timestamp), // Wompi no manda EventID único siempre, concatenamos nombre+ts
 		ExternalTxID:   wompiTx.ID,
-		PaymentLinkID:  wompiTx.Reference, // TU INTENT ID original venía aquí
+		PaymentLinkID:  wompiTx.PaymentLinkID, // TU INTENT ID original venía aquí
 		Status:         wompiTx.Status,
 		AmountMinor:    wompiTx.AmountInCents,
 		Currency:       wompiTx.Currency,
