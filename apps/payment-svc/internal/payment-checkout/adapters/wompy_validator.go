@@ -17,12 +17,7 @@ func NewWompiSignatureValidator(secret string) *WompiSignatureValidator {
 }
 
 // Valida la firma dinámicamente siguiendo la guía de Wompi
-// Añadimos signatureHeader para cumplir estrictamente con el puerto, aunque Wompi lo mande en el JSON
 func (v *WompiSignatureValidator) ValidateSignature(payloadBytes []byte, signatureHeader string, timestampHeader string) error {
-
-	if signatureHeader == "" {
-		return fmt.Errorf("missing signature header")
-	}
 
 	var payload struct {
 		Data struct {
