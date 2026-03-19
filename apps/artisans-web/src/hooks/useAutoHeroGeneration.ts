@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { useToast } from '@/hooks/use-toast';
 import { validateBrandCompleteness } from '@/utils/brandValidation';
@@ -7,6 +6,7 @@ import { buildCulturalContext } from '@/utils/culturalContextBuilder';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
 import { getArtisanShopByUserId, updateArtisanShop } from '@/services/artisanShops.actions';
 import { getProductsByUserId } from '@/services/products.actions';
+import { generateShopHeroSlide, generateHeroImage } from '@/services/ai.actions';
 
 interface HeroSlide {
   id: string;
@@ -71,32 +71,29 @@ export const useAutoHeroGeneration = () => {
       // 3.1. Construir contexto cultural enriquecido
       const culturalContext = buildCulturalContext(shop, products);
 
-      const { data: generatedData, error: genError } = await supabase.functions.invoke(
-        'generate-shop-hero-slide',
-        {
-          body: {
-            shopName: shop.shopName,
-            craftType: shop.craftType,
-            description: shop.description || '',
-            brandColors: [],
-            brandClaim: shop.brandClaim || '',
-            count: options.count || 1,
-            culturalContext, // NUEVO: contexto cultural enriquecido
-            products: products?.slice(0, 3).map(p => ({
-              name: p.name,
-              description: p.description
-            })) || []
-          }
-        }
-      );
-
-      if (genError || !generatedData?.slides) {
-        console.error('[AutoHeroGeneration] Edge function error:', genError);
+      // ✅ MIGRATED: POST /ai/generate-shop-hero-slide
+      let generatedData;
+      try {
+        generatedData = await generateShopHeroSlide({
+          shopName: shop.shopName,
+          craftType: shop.craftType,
+          description: shop.description || '',
+          brandColors: [],
+          brandClaim: shop.brandClaim || '',
+          count: options.count || 1,
+          culturalContext, // NUEVO: contexto cultural enriquecido
+          products: products?.slice(0, 3).map(p => ({
+            name: p.name,
+            description: p.description
+          })) || []
+        });
+      } catch (genError: any) {
+        console.error('[AutoHeroGeneration] API error:', genError);
 
         // Detectar error de créditos insuficientes
-        const isNoCredits = generatedData?.error === 'NO_CREDITS' ||
-          genError?.message?.includes('402') ||
-          genError?.message?.includes('Payment Required');
+        const isNoCredits = genError?.message?.includes('402') ||
+          genError?.message?.includes('Payment Required') ||
+          genError?.message?.includes('NO_CREDITS');
 
         if (isNoCredits) {
           toast({
@@ -114,7 +111,12 @@ export const useAutoHeroGeneration = () => {
           });
         }
 
-        throw new Error(genError?.message || 'Error generando slides');
+        throw genError;
+      }
+
+      if (!generatedData?.slides) {
+        console.error('[AutoHeroGeneration] No slides in response');
+        throw new Error('No se generaron slides');
       }
 
 
@@ -161,26 +163,23 @@ export const useAutoHeroGeneration = () => {
             .map(p => p.images[0])
             .filter(Boolean) || [];
 
-          const { data: imageData, error: imageError } = await supabase.functions.invoke(
-            'generate-hero-slide-image',
-            {
-              body: {
-                title: slide.title,
-                subtitle: slide.subtitle,
-                shopName: shop.shopName,
-                craftType: shop.craftType,
-                brandColors: shop.primaryColors || [],
-                brandClaim: shop.brandClaim || '',
-                slideIndex: index,
-                referenceText: options.referenceText,
-                referenceImageUrl,
-                culturalContext, // NUEVO: contexto cultural
-                productImageUrls // NUEVO: imágenes de productos como referencia
-              }
-            }
-          );
-
-          if (imageError || !imageData?.imageBase64) {
+          // ✅ MIGRATED: POST /ai/generate-hero-image
+          let imageData: { imageBase64: string; slideIndex: number } | undefined;
+          try {
+            imageData = await generateHeroImage({
+              title: slide.title,
+              subtitle: slide.subtitle,
+              shopName: shop.shopName,
+              craftType: shop.craftType,
+              brandColors: shop.primaryColors || [],
+              brandClaim: shop.brandClaim || '',
+              slideIndex: index,
+              referenceText: options.referenceText,
+              referenceImageUrl,
+              culturalContext,
+              productImageUrls
+            });
+          } catch (imageError: any) {
             console.warn(`[AutoHeroGen] Error generando imagen ${index + 1}:`, imageError);
 
             if (imageError?.message?.includes('RATE_LIMIT') || imageError?.message?.includes('429')) {
@@ -197,6 +196,12 @@ export const useAutoHeroGeneration = () => {
               });
             }
 
+            imageUrls.push(shop.logoUrl || placeholderUrls[index]);
+            continue;
+          }
+
+          if (!imageData?.imageBase64) {
+            console.warn(`[AutoHeroGen] No image data in response for slide ${index + 1}`);
             imageUrls.push(shop.logoUrl || placeholderUrls[index]);
             continue;
           }

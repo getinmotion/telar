@@ -91,6 +91,30 @@ export const updateTaskStep = async (
 };
 
 /**
+ * Obtiene los task steps de una tarea específica
+ * @param taskId - ID de la tarea
+ * @returns Array de task steps de la tarea
+ */
+export const getTaskStepsByTaskId = async (taskId: string): Promise<TaskStep[]> => {
+  try {
+    const response = await telarApi.get<TaskStep[]>(
+      `/task-steps/task/${taskId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    // Si es 404, retornar array vacío (la tarea no tiene steps)
+    if (error.response?.status === 404) {
+      return [];
+    }
+
+    if (error.response?.data) {
+      throw error.response.data as TaskStepErrorResponse;
+    }
+    throw error;
+  }
+};
+
+/**
  * Elimina un task step
  * @param stepId - ID del task step a eliminar
  * @returns True si se eliminó correctamente

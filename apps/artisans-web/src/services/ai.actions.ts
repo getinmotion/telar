@@ -47,6 +47,67 @@ export interface TranscribeAudioResponse {
   text: string;
 }
 
+export interface GenerateShopContactRequest {
+  shopName: string;
+  craftType: string;
+  region?: string;
+  brandClaim?: string;
+}
+
+export interface GenerateShopContactResponse {
+  welcomeMessage: string;
+  formIntroText: string;
+  suggestedHours: string;
+  contactPageTitle: string;
+}
+
+export interface ProductInfo {
+  name: string;
+  description: string;
+}
+
+export interface GenerateShopHeroSlideRequest {
+  shopName: string;
+  craftType: string;
+  description: string;
+  brandColors?: string[];
+  brandClaim?: string;
+  count?: number;
+  culturalContext?: string;
+  products?: ProductInfo[];
+}
+
+export interface HeroSlide {
+  title: string;
+  subtitle: string;
+  ctaText: string;
+  ctaLink: string;
+  suggestedImage: string;
+}
+
+export interface GenerateShopHeroSlideResponse {
+  slides: HeroSlide[];
+}
+
+export interface GenerateHeroImageRequest {
+  title: string;
+  subtitle: string;
+  shopName: string;
+  craftType: string;
+  brandColors?: string[];
+  brandClaim?: string;
+  slideIndex?: number;
+  referenceText?: string;
+  referenceImageUrl?: string;
+  culturalContext?: string;
+  productImageUrls?: string[];
+}
+
+export interface GenerateHeroImageResponse {
+  imageBase64: string;
+  slideIndex: number;
+}
+
 // ============= AI Actions =============
 
 /**
@@ -100,6 +161,87 @@ export const transcribeAudio = async (
     if (error.response?.data) {
       throw new Error(
         error.response.data.message || 'Error al transcribir el audio'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Genera contenido para la página de contacto de una tienda
+ * Endpoint: POST /ai/generate-shop-contact
+ *
+ * @param request - Datos de la tienda (nombre, tipo de artesanía, región, claim)
+ * @returns Contenido generado para la página de contacto
+ */
+export const generateShopContact = async (
+  request: GenerateShopContactRequest
+): Promise<GenerateShopContactResponse> => {
+  try {
+    const response = await telarApi.post<GenerateShopContactResponse>(
+      '/ai/generate-shop-contact',
+      request
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error generating shop contact:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al generar el contenido de contacto'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Genera slides de hero culturalmente precisos para una tienda
+ * Endpoint: POST /ai/generate-shop-hero-slide
+ *
+ * @param request - Datos de la tienda, productos y contexto cultural
+ * @returns Slides generados con título, subtítulo, CTA y descripción de imagen sugerida
+ */
+export const generateShopHeroSlide = async (
+  request: GenerateShopHeroSlideRequest
+): Promise<GenerateShopHeroSlideResponse> => {
+  try {
+    const response = await telarApi.post<GenerateShopHeroSlideResponse>(
+      '/ai/generate-shop-hero-slide',
+      request
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error generating shop hero slides:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al generar los hero slides'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Genera una imagen hero culturalmente precisa usando DALL-E 3
+ * Endpoint: POST /ai/generate-hero-image
+ *
+ * @param request - Datos del slide y contexto cultural para generar la imagen
+ * @returns Imagen generada en base64 y el índice del slide
+ */
+export const generateHeroImage = async (
+  request: GenerateHeroImageRequest
+): Promise<GenerateHeroImageResponse> => {
+  try {
+    const response = await telarApi.post<GenerateHeroImageResponse>(
+      '/ai/generate-hero-image',
+      request
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error generating hero image:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al generar la imagen hero'
       );
     }
     throw error;
