@@ -117,11 +117,15 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
 	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
-		// Obtenemos el checkout para notificación
+		// Obtenemos el checkout para notificación y auto-payout
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 		cartID := ""
+		shopID := ""
 		if checkout != nil {
 			cartID = checkout.CartID
+			if checkout.ContextShopID != nil {
+				shopID = *checkout.ContextShopID
+			}
 		}
 
 		// 2a. Notificación a la API central (background)
@@ -147,9 +151,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		// =====================================================
 		// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
 		// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
-		// COMMENTED OUT: PayoutRules functionality is incomplete
 		// =====================================================
-		/*
 		if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
 			go func(bgCtx context.Context, chkID string, sID string) {
 				s.logger.Info("Checking payout rules for auto-payout",
@@ -189,7 +191,6 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 
 			}(context.Background(), intent.CheckoutID, shopID)
 		}
-		*/
 	}
 
 	return nil
