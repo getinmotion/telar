@@ -36,17 +36,6 @@ type Payout struct {
 	UpdatedAt          time.Time    `json:"updated_at"`
 }
 
-// PayoutRule representa una regla de dispersión automática o manual
-type PayoutRule struct {
-	ID           string    `json:"id"`
-	ShopID       *string   `json:"shop_id,omitempty"` // NULL = regla global
-	TriggerEvent string    `json:"trigger_event"`     // checkout_paid, order_delivered, manual
-	Percentage   float64   `json:"percentage"`
-	DelayHours   int       `json:"delay_hours"`
-	IsActive     bool      `json:"is_active"`
-	CreatedAt    time.Time `json:"created_at"`
-}
-
 // Counterparty representa los datos bancarios del destinatario (vendedor)
 type Counterparty struct {
 	FullName       string                  `json:"full_name"`

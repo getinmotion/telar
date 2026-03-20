@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { ShopThemeProvider } from '@/contexts/ShopThemeContext';
 import { ShopNavbar } from '@/components/shop/ShopNavbar';
 import { ShopFooter } from '@/components/shop/ShopFooter';
@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { User } from '@supabase/supabase-js';
+import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
 
 interface ContactConfig {
   email: string;
@@ -199,88 +199,58 @@ const ContactPageContent: React.FC<{ contactConfig: ContactConfig; shopName: str
 const PublicShopContact: React.FC = () => {
   const { shopSlug } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Preview mode detection
   const urlParams = new URLSearchParams(window.location.search);
   const isPreviewMode = urlParams.get('preview') === 'true';
 
-  // Auth state for ownership verification
-  const [authLoaded, setAuthLoaded] = useState(!isPreviewMode);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-  const authLoadedRef = useRef(false);
-
-  // Auth listener for preview mode
-  useEffect(() => {
-    if (!isPreviewMode) return;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'INITIAL_SESSION' && !authLoadedRef.current) {
-        authLoadedRef.current = true;
-        setCurrentUser(session?.user ?? null);
-        setAuthLoaded(true);
-      }
-    });
-
-    // Timeout fallback
-    const timeout = setTimeout(() => {
-      if (!authLoadedRef.current) {
-        authLoadedRef.current = true;
-        setAuthLoaded(true);
-      }
-    }, 1500);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
-  }, [isPreviewMode]);
-
-  // Fetch shop data
+  // ✅ MIGRATED: GET /artisan-shops/slug/:slug
   useEffect(() => {
     const fetchShop = async () => {
-      if (!shopSlug || !authLoaded) return;
+      if (!shopSlug) return;
 
-      let query = supabase
-        .from('artisan_shops')
-        .select('*')
-        .eq('shop_slug', shopSlug);
+      try {
+        const data = await getArtisanShopBySlug(shopSlug);
 
-      // Only filter by active if NOT in preview mode
-      if (!isPreviewMode) {
-        query = query.eq('active', true);
-      }
-
-      const { data, error } = await query.single();
-
-      if (error) {
-        console.error('Error fetching shop:', error);
-        setLoading(false);
-        return;
-      }
-
-      // Check ownership in preview mode
-      if (isPreviewMode && currentUser) {
-        const ownerCheck = data?.user_id === currentUser.id;
-        setIsOwner(ownerCheck);
-
-        // If preview mode but not owner, redirect
-        if (!ownerCheck && data?.publish_status !== 'published') {
-          navigate('/tiendas');
+        if (!data) {
+          setLoading(false);
           return;
         }
-      }
 
-      setShop(data);
-      setLoading(false);
+        // Check ownership in preview mode
+        if (isPreviewMode && user) {
+          const ownerCheck = data.userId === user.id;
+          setIsOwner(ownerCheck);
+
+          // If preview mode but not owner, redirect
+          if (!ownerCheck && data.publishStatus !== 'published') {
+            navigate('/tiendas');
+            return;
+          }
+        }
+
+        // Only show active shops if NOT in preview mode
+        if (!isPreviewMode && !data.active) {
+          setLoading(false);
+          return;
+        }
+
+        setShop(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching shop:', error);
+        setLoading(false);
+      }
     };
 
     fetchShop();
-  }, [shopSlug, authLoaded, currentUser, isPreviewMode, navigate]);
+  }, [shopSlug, user, isPreviewMode, navigate]);
 
-  if (loading || !authLoaded) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 

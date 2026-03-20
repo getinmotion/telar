@@ -14,6 +14,7 @@ import {
   createUserProgress,
   updateUserProgressWithRewards,
 } from '@/services/userProgress.actions';
+import { getUserAchievementsByUserId } from '@/services/userAchievements.actions';
 import { UserProgress } from '@/types/userProgress.types';
 
 interface Achievement {
@@ -99,28 +100,25 @@ export const useUserProgress = () => {
     if (!userId) return;
 
     try {
-      // Fetch unlocked achievements
-      const { data: unlockedData, error: unlockedError } = await supabase
-        .from('user_achievements')
-        .select('*')
-        .eq('user_id', userId)
-        .order('unlocked_at', { ascending: false });
-
-      if (unlockedError) throw unlockedError;
+      // ✅ MIGRATED: Fetch unlocked achievements from NestJS
+      // Endpoint: GET /user-achievements/user/:userId
+      const unlockedData = await getUserAchievementsByUserId(userId);
 
       setAchievements(
-        (unlockedData || []).map((a: any) => ({
+        unlockedData.map((a: any) => ({
           id: a.id,
-          userId: a.user_id,
-          achievementId: a.achievement_id,
+          userId: a.userId,
+          achievementId: a.achievementId,
           title: a.title,
           description: a.description,
           icon: a.icon,
-          unlockedAt: new Date(a.unlocked_at)
+          unlockedAt: new Date(a.unlockedAt)
         }))
       );
 
-      // Fetch catalog
+      // ⚠️ TODO: Migrate achievements catalog to NestJS
+      // Currently using Supabase direct query
+      // Endpoint needed: GET /achievements-catalog
       const { data: catalogData, error: catalogError } = await supabase
         .from('achievements_catalog')
         .select('*')

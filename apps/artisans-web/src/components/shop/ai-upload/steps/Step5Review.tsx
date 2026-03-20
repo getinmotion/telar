@@ -194,6 +194,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
         requires_customization: wizardState.requiresCustomization || false,
         active: true,
         featured: false,
+        moderation_status: 'pending_moderation',
       };
 
       const createdProduct = await createProduct(productData);

@@ -4,7 +4,7 @@
  */
 
 import { ArtisanShop } from "@/types/artisanShop.types";
-import { Product } from "@/types/product.types";
+import { Product } from "@/types/artisan";
 
 
 
