@@ -136,7 +136,6 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		}
 
 		payload := ports.PaymentNotification{
-			GatewayCode:   intent.ProviderCode,
 			TransactionID: intent.ID,
 			CartID:        cartID,
 			Status:        notificationStatus,
