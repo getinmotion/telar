@@ -11,6 +11,8 @@ import { TranscribeAudioService } from './services/transcribe-audio.service';
 import { GenerateShopContactService } from './services/generate-shop-contact.service';
 import { GenerateShopHeroSlideService } from './services/generate-shop-hero-slide.service';
 import { GenerateHeroImageService } from './services/generate-hero-image.service';
+import { AnalyzeImageService } from './services/analyze-image.service';
+import { RefineContentService } from './services/refine-content.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 import { UserMasterContextModule } from '../user-master-context/user-master-context.module';
@@ -44,6 +46,8 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     GenerateShopContactService,
     GenerateShopHeroSlideService,
     GenerateHeroImageService,
+    AnalyzeImageService,
+    RefineContentService,
   ],
   exports: [
     AiService,
@@ -54,6 +58,8 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     GenerateShopContactService,
     GenerateShopHeroSlideService,
     GenerateHeroImageService,
+    AnalyzeImageService,
+    RefineContentService,
   ],
 })
 export class AiModule {}

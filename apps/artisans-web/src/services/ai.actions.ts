@@ -108,6 +108,37 @@ export interface GenerateHeroImageResponse {
   slideIndex: number;
 }
 
+export type ContentContext =
+  | 'product_name'
+  | 'product_description'
+  | 'shop_story'
+  | 'shop_mission'
+  | 'shop_vision'
+  | 'shop_description'
+  | 'shop_name';
+
+export interface RefineContentRequest {
+  context: ContentContext;
+  currentValue: string;
+  userPrompt: string;
+  additionalContext?: Record<string, any>;
+}
+
+export interface RefineContentResponse {
+  refinedContent: string;
+}
+
+export interface AnalyzeImageRequest {
+  images: string[]; // URLs de imágenes (máximo 3)
+}
+
+export interface AnalyzeImageResponse {
+  suggestedName: string;
+  suggestedDescription: string;
+  detectedCategory: string;
+  suggestedTags: string[];
+}
+
 // ============= AI Actions =============
 
 /**
@@ -242,6 +273,60 @@ export const generateHeroImage = async (
     if (error.response?.data) {
       throw new Error(
         error.response.data.message || 'Error al generar la imagen hero'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Refina contenido de productos y tiendas usando OpenAI
+ * Endpoint: POST /ai/refine-content
+ *
+ * @param request - Contexto, valor actual, prompt del usuario y contexto adicional
+ * @returns Contenido refinado
+ */
+export const refineContent = async (
+  request: RefineContentRequest
+): Promise<RefineContentResponse> => {
+  try {
+    const response = await telarApi.post<RefineContentResponse>(
+      '/ai/refine-content',
+      request
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error refining content:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al refinar el contenido'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Analiza imágenes de productos artesanales usando OpenAI Vision
+ * Endpoint: POST /ai/analyze-image
+ *
+ * @param request - URLs de imágenes a analizar (máximo 3)
+ * @returns Sugerencias de nombre, descripción, categoría y tags
+ */
+export const analyzeImage = async (
+  request: AnalyzeImageRequest
+): Promise<AnalyzeImageResponse> => {
+  try {
+    const response = await telarApi.post<AnalyzeImageResponse>(
+      '/ai/analyze-image',
+      request
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error analyzing images:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al analizar las imágenes'
       );
     }
     throw error;

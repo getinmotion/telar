@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +12,8 @@ import { Sparkles, Loader2, Rocket, ArrowLeft, ArrowRight, Wand2, Mail, Phone, M
 import { VoiceInput } from '@/components/ui/voice-input';
 import { EventBus } from '@/utils/eventBus';
 import { AIDisclaimer } from '@/components/ui/AIDisclaimer';
+import { getArtisanShopById, updateArtisanShop } from '@/services/artisanShops.actions';
+import { generateShopContact } from '@/services/ai.actions';
 
 type WizardStep = 'generate' | 'configure' | 'publish';
 
@@ -61,49 +62,47 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
     loadShopData();
   }, [shopId]);
 
+  // ✅ MIGRATED: GET /artisan-shops/:id
   const loadShopData = async () => {
-    const { data, error } = await supabase
-      .from('artisan_shops')
-      .select('*')
-      .eq('id', shopId)
-      .single();
+    try {
+      const data = await getArtisanShopById(shopId);
 
-    if (!error && data) {
-      setShop(data);
-      
-      // Si tiene config existente, cargar
-      if (data.contact_config && typeof data.contact_config === 'object' && 'welcomeMessage' in data.contact_config) {
-        setConfig(data.contact_config as unknown as ContactConfig);
-        setStep('configure');
-      } else if (data.contact_info && typeof data.contact_info === 'object') {
-        // Pre-fill con datos básicos si existen
-        const contactInfo = data.contact_info as any;
-        setConfig(prev => ({
-          ...prev,
-          email: contactInfo.email || '',
-          phone: contactInfo.phone || '',
-          whatsapp: contactInfo.whatsapp || ''
-        }));
+      if (data) {
+        setShop(data);
+
+        // Si tiene config existente, cargar
+        if (data.contactConfig && typeof data.contactConfig === 'object' && 'welcomeMessage' in data.contactConfig) {
+          setConfig(data.contactConfig as unknown as ContactConfig);
+          setStep('configure');
+        } else if (data.contactInfo && typeof data.contactInfo === 'object') {
+          // Pre-fill con datos básicos si existen
+          const contactInfo = data.contactInfo as any;
+          setConfig(prev => ({
+            ...prev,
+            email: contactInfo.email || '',
+            phone: contactInfo.phone || '',
+            whatsapp: contactInfo.whatsapp || ''
+          }));
+        }
       }
+    } catch (error) {
+      console.error('Error loading shop data:', error);
     }
   };
 
+  // ✅ MIGRATED: POST /ai/generate-shop-contact
   const handleGenerate = async () => {
     if (!shop) return;
-    
+
     setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-shop-contact', {
-        body: {
-          shopName: shop.shop_name,
-          craftType: shop.craft_type,
-          description: shop.description || '',
-          brandClaim: shop.brand_claim || ''
-        }
+      const data = await generateShopContact({
+        shopName: shop.shopName,
+        craftType: shop.craftType,
+        region: shop.region,
+        brandClaim: shop.brandClaim || ''
       });
-
-      if (error) throw error;
 
       if (data) {
         setConfig(prev => ({
@@ -130,24 +129,20 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
     }
   };
 
+  // ✅ MIGRATED: PATCH /artisan-shops/:id
   const handlePublish = async () => {
     try {
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({
-          contact_config: config as any,
-          contact_info: {
-            email: config.email,
-            phone: config.phone,
-            whatsapp: config.whatsapp
-          } as any
-        })
-        .eq('id', shopId);
-
-      if (error) throw error;
+      await updateArtisanShop(shopId, {
+        contactConfig: config as any,
+        contactInfo: {
+          email: config.email,
+          phone: config.phone,
+          whatsapp: config.whatsapp
+        } as any
+      });
 
       EventBus.publish('shop.contact.added', { shopId });
-      
+
       toast({
         title: '🚀 Página de Contacto Publicada',
         description: 'Tu página de contacto está activa'

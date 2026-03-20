@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { refineContent as refineContentAPI, analyzeImage as analyzeImageAPI } from '@/services/ai.actions';
+import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
+import type { ContentContext } from '@/services/ai.actions';
 
 interface AIRefinementOptions {
-  context: string;
+  context: ContentContext;
   currentValue: string;
   userPrompt: string;
   additionalContext?: Record<string, any>;
@@ -12,6 +14,7 @@ export const useAIRefinement = () => {
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ MIGRATED: POST /ai/refine-content
   const refineContent = useCallback(async ({
     context,
     currentValue,
@@ -22,18 +25,12 @@ export const useAIRefinement = () => {
     setError(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('ai-content-refiner', {
-        body: {
-          context,
-          currentValue,
-          userPrompt,
-          additionalContext
-        }
+      const data = await refineContentAPI({
+        context,
+        currentValue,
+        userPrompt,
+        additionalContext
       });
-
-      if (error) {
-        throw new Error(error.message);
-      }
 
       return data.refinedContent;
     } catch (err) {
@@ -93,6 +90,7 @@ export const useAIRefinement = () => {
     });
   }, []);
 
+  // ✅ MIGRATED: POST /ai/analyze-image
   const analyzeImages = useCallback(async (images: File[]): Promise<{
     suggestedName: string;
     suggestedDescription: string;
@@ -104,12 +102,12 @@ export const useAIRefinement = () => {
 
     try {
       console.log('🔄 Starting image analysis for', images.length, 'images');
-      
+
       // Validate files
       for (let i = 0; i < images.length; i++) {
         const file = images[i];
         console.log(`🔍 Validating image ${i + 1}:`, file.name, file.type, `${(file.size / 1024).toFixed(2)} KB`);
-        
+
         if (file.size > 10 * 1024 * 1024) { // 10MB limit
           throw new Error(`La imagen "${file.name}" es muy grande (máx. 10MB)`);
         }
@@ -117,59 +115,58 @@ export const useAIRefinement = () => {
           throw new Error(`El archivo "${file.name}" no es una imagen válida`);
         }
       }
-      
+
       const imagesToAnalyze = images.slice(0, 3);
       if (images.length > 3) {
         console.log(`⚠️ Only analyzing first 3 of ${images.length} images`);
       }
 
-      // Compress images first (max 800x800, 70% quality)
-      console.log('🗜️ Compressing images...');
-      const compressedImages = await Promise.all(
+      // Compress and upload images to S3 first (NestJS endpoint requires URLs)
+      console.log('🗜️ Compressing and uploading images...');
+      const imageUrls = await Promise.all(
         imagesToAnalyze.map(async (image, index) => {
-          console.log(`📷 Compressing image ${index + 1}:`, image.name, 'Original size:', image.size);
-          const compressed = await compressImage(image);
-          console.log(`✅ Image ${index + 1} compressed from ${image.size} to ~${Math.round(compressed.length * 0.75)} bytes`);
-          return compressed;
+          console.log(`📷 Processing image ${index + 1}:`, image.name, 'Original size:', image.size);
+
+          // Compress image
+          const compressedBase64 = await compressImage(image);
+
+          // Convert base64 to Blob
+          const base64Data = compressedBase64.split(',')[1] || compressedBase64;
+          const blob = new Blob(
+            [Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))],
+            { type: 'image/jpeg' }
+          );
+
+          // Upload to S3
+          const uploadResult = await uploadImage(blob, UploadFolder.PRODUCTS, `temp-analysis-${Date.now()}-${index}.jpg`);
+          console.log(`✅ Image ${index + 1} uploaded:`, uploadResult.url);
+
+          return uploadResult.url;
         })
       );
-      
-      console.log(`✅ Successfully compressed ${compressedImages.length} images`);
 
-      console.log('📤 Sending compressed images to AI analyzer...');
+      console.log(`✅ Successfully uploaded ${imageUrls.length} images`);
+
+      console.log('📤 Sending image URLs to AI analyzer...');
 
       // Add 45s timeout for the entire operation
-      const analysisPromise = supabase.functions.invoke('ai-image-analyzer', {
-        body: {
-          images: compressedImages
-        }
-      });
+      const analysisPromise = analyzeImageAPI({ images: imageUrls });
 
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Timeout: El análisis está tomando más de 45 segundos')), 45000)
       );
 
-      const { data, error } = await Promise.race([analysisPromise, timeoutPromise]) as any;
+      const data = await Promise.race([analysisPromise, timeoutPromise]);
 
-      console.log('📥 AI analyzer response:', { data, error });
+      console.log('📥 AI analyzer response:', data);
 
-      if (error) {
-        console.error('🚨 Service error:', error);
-        throw new Error(error.message);
-      }
-
-      if (data?.error) {
-        console.error('🚨 Data error:', data.error);
-        throw new Error(data.error);
-      }
-
-      if (!data?.analysis) {
-        console.error('🚨 No analysis data received:', data);
+      if (!data) {
+        console.error('🚨 No analysis data received');
         throw new Error('No analysis data received from AI service');
       }
 
-      console.log('✅ Analysis completed successfully:', data.analysis);
-      return data.analysis;
+      console.log('✅ Analysis completed successfully:', data);
+      return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error analizando imágenes';
       setError(errorMessage);

@@ -157,6 +157,46 @@ export class OpenAIService implements OnModuleInit {
   }
 
   /**
+   * Realiza una llamada simple a OpenAI Vision API (sin tools)
+   * Permite mensajes con contenido multimodal (texto + imágenes)
+   */
+  async visionCompletion(params: {
+    model?: string;
+    messages: ChatCompletionMessageParam[];
+    max_tokens?: number;
+    temperature?: number;
+  }): Promise<any> {
+    if (!this.openai) {
+      throw new InternalServerErrorException(
+        'OpenAI no está inicializado. Verifica tu API key.',
+      );
+    }
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: params.model || 'gpt-4o-mini',
+        messages: params.messages,
+        max_tokens: params.max_tokens || 1500,
+        temperature: params.temperature ?? 0.7,
+      });
+
+      if (!response.choices || response.choices.length === 0) {
+        throw new InternalServerErrorException(
+          'OpenAI no retornó ninguna respuesta',
+        );
+      }
+
+      return response;
+    } catch (error) {
+      this.logger.error(
+        'Error al llamar a OpenAI Vision API',
+        error.stack || error,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Genera una imagen usando DALL-E de OpenAI
    */
   async generateImage(params: {
