@@ -3,128 +3,94 @@ import { useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import telarLogo from "@/assets/telar-vertical.svg";
-import { usePaymentStatus } from "@/hooks/usePaymentStatus";
 import { useCart } from "@/contexts/CartContext";
-import { supabase } from "@/integrations/supabase/client";
+import { getCheckoutById, type CheckoutStatus } from "@/services/checkouts.actions";
 
 const PaymentPending = () => {
   const navigate = useNavigate();
-  const [cartId, setCartId] = useState<string | null>(null);
+  const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<CheckoutStatus | null>(null);
   const { resetCart } = useCart();
   const postPaymentTriggeredRef = useRef(false);
+  const pollingIntervalRef = useRef<number | null>(null);
 
-  // Obtener cartId de sessionStorage
+  // Obtener checkoutId de sessionStorage
   useEffect(() => {
-    const storedCartId = sessionStorage.getItem('pendingPaymentCartId');
-    if (storedCartId) {
-      setCartId(storedCartId);
+    const storedCheckoutId = sessionStorage.getItem('pendingCheckoutId');
+    if (storedCheckoutId) {
+      setCheckoutId(storedCheckoutId);
     }
   }, []);
 
-  const { paymentStatus, startListening } = usePaymentStatus({
-    cartId,
-  });
-
-  // Iniciar escucha cuando tenemos cartId
+  // Polling del estado del checkout
   useEffect(() => {
-    if (cartId) {
-      startListening();
-    }
-  }, [cartId, startListening]);
+    if (!checkoutId) return;
+
+    const pollCheckoutStatus = async () => {
+      try {
+        const checkout = await getCheckoutById(checkoutId);
+        console.log('[PaymentPending] Checkout status:', checkout.status);
+        setPaymentStatus(checkout.status);
+      } catch (error) {
+        console.error('[PaymentPending] Error polling checkout status:', error);
+      }
+    };
+
+    // Poll immediately
+    pollCheckoutStatus();
+
+    // Then poll every 3 seconds
+    pollingIntervalRef.current = setInterval(pollCheckoutStatus, 3000);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [checkoutId]);
 
   // Trigger post-payment processing when payment completes
   useEffect(() => {
     const triggerPostPayment = async () => {
-      console.log("[PaymentPending] useEffect triggered - paymentStatus:", paymentStatus, "cartId:", cartId, "triggered:", postPaymentTriggeredRef.current);
-      
-      if (paymentStatus !== 'completed' || !cartId || postPaymentTriggeredRef.current) {
+      console.log("[PaymentPending] useEffect triggered - paymentStatus:", paymentStatus, "triggered:", postPaymentTriggeredRef.current);
+
+      if (paymentStatus !== 'paid' || postPaymentTriggeredRef.current) {
         console.log("[PaymentPending] Skipping - conditions not met");
         return;
       }
 
       postPaymentTriggeredRef.current = true;
-      console.log("[PaymentPending] Payment completed! Triggering sync-payment-status...");
+      console.log("[PaymentPending] Payment completed! Cleaning up...");
 
       try {
-        // Get cart items snapshot from sessionStorage
-        let cartItemsSnapshot = null;
-        const snapshotStr = sessionStorage.getItem('cartItemsSnapshot');
-        if (snapshotStr) {
-          try {
-            cartItemsSnapshot = JSON.parse(snapshotStr);
-            console.log("[PaymentPending] Cart items snapshot found:", cartItemsSnapshot?.length, "items");
-          } catch (e) {
-            console.error("[PaymentPending] Error parsing cart snapshot:", e);
-          }
-        } else {
-          console.warn("[PaymentPending] No cart items snapshot found in sessionStorage");
-        }
-
-        // Get payment breakdown from sessionStorage
-        let breakdown = null;
-        const breakdownStr = sessionStorage.getItem('pendingPaymentBreakdown');
-        if (breakdownStr) {
-          try {
-            breakdown = JSON.parse(breakdownStr);
-            console.log("[PaymentPending] Payment breakdown found:", breakdown);
-          } catch (e) {
-            console.error("[PaymentPending] Error parsing breakdown:", e);
-          }
-        }
-
-        const requestBody: any = {
-          cart_id: cartId,
-          payment_status: 'completed',
-        };
-
-        // Include cart items snapshot if available
-        if (cartItemsSnapshot && cartItemsSnapshot.length > 0) {
-          requestBody.cart_items = cartItemsSnapshot;
-          console.log("[PaymentPending] Including cart_items in request:", cartItemsSnapshot);
-        }
-
-        // Include breakdown if available
-        if (breakdown) {
-          requestBody.breakdown = breakdown;
-          console.log("[PaymentPending] Including breakdown in request:", breakdown);
-        }
-
-        const { data, error } = await supabase.functions.invoke('sync-payment-status', {
-          body: requestBody,
-        });
-
-        // Handle 401 gracefully - the webhook from telar.ia already processed the payment
-        // This frontend call is redundant backup, so don't fail the user experience
-        if (error) {
-          console.warn("[PaymentPending] sync-payment-status returned error (this is OK if webhook already processed):", error);
-          // Don't throw - the order was likely already created by the webhook
-        } else {
-          console.log("[PaymentPending] sync-payment-status SUCCESS:", data);
-        }
-
-        // Clear the snapshot after use
+        // Clear stored data
         sessionStorage.removeItem('cartItemsSnapshot');
-      } catch (err) {
-        // Non-blocking error - webhook already processed, this is just cleanup
-        console.warn("[PaymentPending] Exception in sync-payment-status (non-blocking):", err);
-      }
+        sessionStorage.removeItem('pendingPaymentCartId');
+        sessionStorage.removeItem('pendingPaymentBreakdown');
+        sessionStorage.removeItem('pendingCheckoutId');
 
-      // Reset cart after processing regardless of sync result
-      resetCart();
+        // Reset cart
+        resetCart();
+
+        console.log("[PaymentPending] Cleanup complete");
+      } catch (err) {
+        console.warn("[PaymentPending] Error during cleanup:", err);
+      }
     };
 
     triggerPostPayment();
-  }, [paymentStatus, cartId, resetCart]);
+  }, [paymentStatus, resetCart]);
 
-  const isProcessing = !paymentStatus || paymentStatus === 'initiated' || paymentStatus === 'processing';
-  const isCompleted = paymentStatus === 'completed';
-  const isFailed = paymentStatus === 'failed' || paymentStatus === 'canceled' || paymentStatus === 'returned';
+  const isProcessing = !paymentStatus || paymentStatus === 'created' || paymentStatus === 'awaiting_payment';
+  const isCompleted = paymentStatus === 'paid';
+  const isFailed = paymentStatus === 'failed' || paymentStatus === 'canceled';
 
   const handleGoHome = () => {
     sessionStorage.removeItem('pendingPaymentCartId');
     sessionStorage.removeItem('pendingPaymentBreakdown');
     sessionStorage.removeItem('pendingGiftCards');
     sessionStorage.removeItem('cartItemsSnapshot');
+    sessionStorage.removeItem('pendingCheckoutId');
     navigate('/');
   };
 
