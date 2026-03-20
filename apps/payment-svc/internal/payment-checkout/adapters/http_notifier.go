@@ -20,7 +20,7 @@ func NewHTTPNotifier(baseURL string) *HTTPNotifier {
 	return &HTTPNotifier{
 		client: &http.Client{Timeout: 10 * time.Second},
 		// Asegúrate de que baseURL sea la ruta base de tu servidor principal
-		webhookURL: baseURL + "/telar/server/weebhook/payments",
+		webhookURL: baseURL + "/telar/server/payments/webhook/payments",
 	}
 }
 
