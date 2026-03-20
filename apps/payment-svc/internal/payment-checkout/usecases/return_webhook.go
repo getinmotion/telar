@@ -129,11 +129,17 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		}
 
 		// 2a. Notificación a la API central (background)
+		// Convertir status a mayúsculas para que coincida con el DTO de NestJS
+		notificationStatus := "FAILED"
+		if newCheckoutStatus == "paid" {
+			notificationStatus = "PAID"
+		}
+
 		payload := ports.PaymentNotification{
 			GatewayCode:   intent.ProviderCode,
 			TransactionID: intent.ID,
 			CartID:        cartID,
-			Status:        newCheckoutStatus,
+			Status:        notificationStatus,
 		}
 
 		go func(bgCtx context.Context, p ports.PaymentNotification) {
