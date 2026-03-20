@@ -478,13 +478,6 @@ export class ServientregaService {
     });
 
     const responseText = await response.text();
-    this.logger.log(`[Servientrega] Response status: ${response.status}`);
-    this.logger.log(`[Servientrega] SOAP INVOLVE: ${soapEnvelope}`);
-
-    this.logger.log(`=======================================================================`);
-
-    this.logger.log(`[Servientrega] response: ${responseText}`);
-
 
     if (!response.ok) {
       return {
