@@ -5,7 +5,9 @@ import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart-items/entities/cart-item.entity';
 import { User } from '../users/entities/user.entity';
 import { Product } from '../products/entities/product.entity';
+import { CartShippingInfo } from '../cart-shipping-info/entities/cart-shipping-info.entity';
 import { MailService } from '../mail/mail.service';
+import { ServientregaService } from '../servientrega/servientrega.service';
 
 @Injectable()
 export class PaymentsService {
@@ -20,7 +22,10 @@ export class PaymentsService {
     private readonly userRepository: Repository<User>,
     @Inject('PRODUCTS_REPOSITORY')
     private readonly productRepository: Repository<Product>,
+    @Inject('CART_SHIPPING_INFO_REPOSITORY')
+    private readonly cartShippingInfoRepository: Repository<CartShippingInfo>,
     private readonly mailService: MailService,
+    private readonly servientregaService: ServientregaService,
   ) {}
 
   /**
@@ -160,10 +165,12 @@ export class PaymentsService {
         `[PAID] Email de confirmación enviado a ${buyer.email} para cart: ${webhookData.cart_id}`,
       );
 
+      // 8. Generar guías de envío con Servientrega
+      await this.generateShippingGuides(webhookData.cart_id);
+
       // TODO: Implementar lógica adicional
       // - await this.checkoutsService.updateStatus(cartId, 'PAID');
       // - await this.ordersService.createFromCart(cartId);
-      // - await this.shippingService.generateShippingLabels(cartId);
       // - await this.inventoryService.updateStock(cartId);
     } catch (error) {
       this.logger.error(
@@ -211,5 +218,95 @@ export class PaymentsService {
     // - await this.checkoutsService.updateStatus(cartId, 'FAILED');
     // - await this.notificationsService.notifyPaymentFailure(cartId);
     // - await this.inventoryService.releaseReservation(cartId);
+  }
+
+  /**
+   * Genera guías de envío con Servientrega después de un pago exitoso
+   */
+  private async generateShippingGuides(cartId: string): Promise<void> {
+    try {
+      this.logger.log(
+        `[Servientrega] Iniciando generación de guías para cart: ${cartId}`,
+      );
+
+      // 1. Obtener información de envío
+      const shippingInfo = await this.cartShippingInfoRepository.findOne({
+        where: { cartId },
+      });
+
+      if (!shippingInfo) {
+        this.logger.warn(
+          `[Servientrega] No se encontró información de envío para cart: ${cartId}`,
+        );
+        return;
+      }
+
+      // 2. Convertir los valores de flete de string a number (están en menores/centavos)
+      const valorFlete = shippingInfo.valorFleteMinor
+        ? parseInt(shippingInfo.valorFleteMinor, 10) / 100
+        : null;
+      const valorSobreFlete = shippingInfo.valorSobreFleteMinor
+        ? parseInt(shippingInfo.valorSobreFleteMinor, 10) / 100
+        : null;
+      const valorTotalFlete = shippingInfo.valorTotalFleteMinor
+        ? parseInt(shippingInfo.valorTotalFleteMinor, 10) / 100
+        : null;
+
+      // 3. Preparar datos para Servientrega
+      const generateGuideDto = {
+        cart_id: cartId,
+        shipping_data: {
+          id: shippingInfo.id,
+          cart_id: cartId,
+          full_name: shippingInfo.fullName,
+          email: shippingInfo.email,
+          phone: shippingInfo.phone,
+          address: shippingInfo.address,
+          dane_ciudad: shippingInfo.daneCiudad,
+          desc_ciudad: shippingInfo.descCiudad,
+          desc_depart: shippingInfo.descDepart,
+          postal_code: shippingInfo.postalCode,
+          desc_envio: shippingInfo.descEnvio,
+          valor_flete: valorFlete ?? undefined,
+          valor_sobre_flete: valorSobreFlete ?? undefined,
+          valor_total_flete: valorTotalFlete ?? undefined,
+        },
+      };
+
+      // 4. Llamar al servicio de Servientrega
+      const result = await this.servientregaService.generateGuides(
+        generateGuideDto,
+      );
+
+      if (result.success && result.guides.length > 0) {
+        // 5. Actualizar números de guía en shipping_info
+        const guideNumbers = result.guides
+          .filter((g) => g.success && g.num_guia)
+          .map((g) => g.num_guia)
+          .join(', ');
+
+        if (guideNumbers) {
+          await this.cartShippingInfoRepository.update(
+            { cartId },
+            { numGuia: guideNumbers },
+          );
+
+          this.logger.log(
+            `[Servientrega] Guías generadas y guardadas: ${guideNumbers} para cart: ${cartId}`,
+          );
+        }
+      } else {
+        this.logger.warn(
+          `[Servientrega] No se generaron guías exitosas para cart: ${cartId}`,
+        );
+      }
+    } catch (error) {
+      // No lanzar el error para no interrumpir el flujo del pago
+      // Las guías pueden generarse manualmente si falla
+      this.logger.error(
+        `[Servientrega] Error generando guías para cart: ${cartId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 }

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu guía de envío - TELAR</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 32px; text-align: center;">
+                            {{#if logoUrl}}
+                            <img src="{{logoUrl}}" alt="TELAR" style="height: 50px; margin-bottom: 15px;">
+                            {{/if}}
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">🚚 ¡Tu guía ha sido generada!</h1>
+                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Pronto recibirás tu artesanía</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 32px;">
+                            <h2 style="margin: 0 0 8px; color: #142239; font-size: 20px;">Hola {{recipientName}},</h2>
+                            <p style="margin: 0 0 24px; color: #666; font-size: 16px; line-height: 1.5;">
+                                ¡Buenas noticias! <strong>{{shopName}}</strong> ha generado la guía de envío para tu pedido. Pronto será despachado con la transportadora <strong>Servientrega</strong>.
+                            </p>
+
+                            <!-- Tracking Info -->
+                            <div style="background-color: #eff6ff; border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
+                                <p style="margin: 0 0 8px; color: #3b82f6; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Número de guía</p>
+                                <p style="margin: 0 0 16px; color: #142239; font-size: 28px; font-weight: 700; font-family: monospace;">{{numGuia}}</p>
+                                <p style="margin: 0; color: #666; font-size: 14px;">Transportadora: <strong>Servientrega</strong></p>
+                            </div>
+
+                            <!-- Track Button -->
+                            <div style="text-align: center; margin-bottom: 32px;">
+                                <a href="{{trackingUrl}}" style="display: inline-block; padding: 16px 32px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                                    Rastrear mi pedido
+                                </a>
+                            </div>
+
+                            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                                Una vez el artesano entregue el paquete en Servientrega, podrás rastrear tu envío en tiempo real usando el enlace anterior.
+                            </p>
+
+                            <!-- Tips -->
+                            <div style="margin-top: 32px; padding: 20px; background-color: #f0fdf4; border-radius: 8px;">
+                                <h3 style="margin: 0 0 8px; color: #16a34a; font-size: 14px;">💡 Consejos para recibir tu pedido</h3>
+                                <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                    <li>Mantén tu teléfono disponible para el transportador</li>
+                                    <li>Si no estarás disponible, coordina con un vecino o portería</li>
+                                    <li>Revisa el paquete antes de firmar la entrega</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #142239; text-align: center;">
+                            <p style="margin: 0 0 8px; color: #ffffff; font-size: 14px;">¿Problemas con tu envío?</p>
+                            <a href="mailto:hola@telar.co" style="color: #f48c5f; text-decoration: none; font-size: 14px;">hola@telar.co</a>
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">TELAR © {{year}}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
