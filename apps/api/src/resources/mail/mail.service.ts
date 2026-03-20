@@ -235,4 +235,41 @@ export class MailService {
 
     await this.mailerService.sendMail(mailOptions);
   }
+
+  /**
+   * Enviar notificación de venta al artesano
+   */
+  async sendSaleNotificationToArtisan(
+    email: string,
+    artisanName: string,
+    shopName: string,
+    cartId: string,
+    buyerName: string,
+    items: Array<{
+      productName: string;
+      quantity: number;
+      formattedPrice: string;
+      formattedSubtotal: string;
+    }>,
+    totalFormatted: string,
+  ): Promise<void> {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: `🎉 ¡Nueva Venta en ${shopName}!`,
+      template: './sale-notification-artisan',
+      context: {
+        artisanName,
+        shopName,
+        cartId,
+        buyerName,
+        items,
+        totalFormatted,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
 }
