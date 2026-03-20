@@ -9,15 +9,6 @@ import { IsString, IsNotEmpty, IsIn } from 'class-validator';
  */
 export class PaymentWebhookDto {
   @ApiProperty({
-    description: 'Código del gateway de pago',
-    example: 'wompi',
-    enum: ['wompi', 'cobre'],
-  })
-  @IsString()
-  @IsNotEmpty()
-  gateway_code: string;
-
-  @ApiProperty({
     description: 'ID de la transacción del PaymentIntent',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })

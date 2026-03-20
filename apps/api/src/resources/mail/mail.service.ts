@@ -105,7 +105,6 @@ export class MailService {
     orderData: {
       cartId: string;
       transactionId: string;
-      gatewayCode: string;
       currency: string;
       items: Array<{
         productName: string;
