@@ -1,11 +1,13 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PaymentWebhookDto } from './dto/payment-webhook.dto';
-import { Cart } from '../cart/entities/cart.entity';
+import { Cart, CartStatus } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart-items/entities/cart-item.entity';
 import { User } from '../users/entities/user.entity';
 import { Product } from '../products/entities/product.entity';
 import { CartShippingInfo } from '../cart-shipping-info/entities/cart-shipping-info.entity';
+import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
+import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 import { MailService } from '../mail/mail.service';
 import { ServientregaService } from '../servientrega/servientrega.service';
 
@@ -24,6 +26,10 @@ export class PaymentsService {
     private readonly productRepository: Repository<Product>,
     @Inject('CART_SHIPPING_INFO_REPOSITORY')
     private readonly cartShippingInfoRepository: Repository<CartShippingInfo>,
+    @Inject('ARTISAN_SHOP_REPOSITORY')
+    private readonly artisanShopRepository: Repository<ArtisanShop>,
+    @Inject('USER_PROFILE_REPOSITORY')
+    private readonly userProfileRepository: Repository<UserProfile>,
     private readonly mailService: MailService,
     private readonly servientregaService: ServientregaService,
   ) {}
@@ -142,7 +148,21 @@ export class PaymentsService {
 
       const totalFormatted = this.formatCurrency(total, cart.currency);
 
-      // 6. Preparar datos para el email
+      // 6. Actualizar estado del carrito de OPEN a CONVERTED
+      if (cart.status === CartStatus.OPEN) {
+        await this.cartRepository.update(
+          { id: webhookData.cart_id },
+          {
+            status: CartStatus.CONVERTED,
+            convertedAt: new Date(),
+          },
+        );
+        this.logger.log(
+          `[PAID] Estado del carrito actualizado a CONVERTED para cart: ${webhookData.cart_id}`,
+        );
+      }
+
+      // 7. Preparar datos para el email
       const buyerName =
         cart.buyer?.email?.split('@')[0] || buyer.email.split('@')[0];
 
@@ -154,18 +174,43 @@ export class PaymentsService {
         totalFormatted,
       };
 
-      // 7. Enviar email de confirmación
-      await this.mailService.sendPaymentConfirmation(
-        buyer.email,
-        buyerName,
-        orderData,
+      // 8. Enviar emails en paralelo: comprador + artesanos
+      const emailPromises: Promise<void>[] = [];
+
+      // Email al comprador
+      emailPromises.push(
+        this.mailService
+          .sendPaymentConfirmation(buyer.email, buyerName, orderData)
+          .then(() => {
+            this.logger.log(
+              `[PAID] Email de confirmación enviado a ${buyer.email}`,
+            );
+          })
+          .catch((error) => {
+            this.logger.error(
+              `[PAID] Error enviando email al comprador: ${buyer.email}`,
+              error,
+            );
+          }),
       );
+
+      // Emails a artesanos (uno por cada tienda)
+      const artisanEmailsPromise = this.sendArtisanSaleNotifications(
+        webhookData.cart_id,
+        cartItems,
+        buyerName,
+        cart.currency,
+      );
+      emailPromises.push(artisanEmailsPromise);
+
+      // Esperar a que todos los emails se envíen
+      await Promise.all(emailPromises);
 
       this.logger.log(
-        `[PAID] Email de confirmación enviado a ${buyer.email} para cart: ${webhookData.cart_id}`,
+        `[PAID] Todos los emails enviados para cart: ${webhookData.cart_id}`,
       );
 
-      // 8. Generar guías de envío con Servientrega
+      // 9. Generar guías de envío con Servientrega
       await this.generateShippingGuides(webhookData.cart_id);
 
       // TODO: Implementar lógica adicional
@@ -218,6 +263,168 @@ export class PaymentsService {
     // - await this.checkoutsService.updateStatus(cartId, 'FAILED');
     // - await this.notificationsService.notifyPaymentFailure(cartId);
     // - await this.inventoryService.releaseReservation(cartId);
+  }
+
+  /**
+   * Envía notificaciones de venta a los artesanos
+   */
+  private async sendArtisanSaleNotifications(
+    cartId: string,
+    cartItems: CartItem[],
+    buyerName: string,
+    currency: string,
+  ): Promise<void> {
+    try {
+      // 1. Agrupar items por tienda
+      const itemsByShop = new Map<
+        string,
+        { items: CartItem[]; total: number }
+      >();
+
+      for (const item of cartItems) {
+        const shopId = item.sellerShopId;
+        if (!shopId) {
+          this.logger.warn(
+            `[PAID] Cart item ${item.id} no tiene seller_shop_id`,
+          );
+          continue;
+        }
+
+        if (!itemsByShop.has(shopId)) {
+          itemsByShop.set(shopId, { items: [], total: 0 });
+        }
+
+        const group = itemsByShop.get(shopId)!;
+        group.items.push(item);
+        group.total += parseInt(item.unitPriceMinor, 10) * item.quantity;
+      }
+
+      this.logger.log(
+        `[PAID] Enviando notificaciones a ${itemsByShop.size} artesanos`,
+      );
+
+      // 2. Enviar email a cada artesano en paralelo
+      const emailPromises: Promise<void>[] = [];
+
+      for (const [shopId, group] of itemsByShop) {
+        const emailPromise = this.sendSingleArtisanNotification(
+          shopId,
+          group.items,
+          group.total,
+          cartId,
+          buyerName,
+          currency,
+        );
+        emailPromises.push(emailPromise);
+      }
+
+      await Promise.all(emailPromises);
+    } catch (error) {
+      this.logger.error(
+        `[PAID] Error enviando notificaciones a artesanos`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      // No lanzar el error para no interrumpir el flujo
+    }
+  }
+
+  /**
+   * Envía notificación de venta a un solo artesano
+   */
+  private async sendSingleArtisanNotification(
+    shopId: string,
+    items: CartItem[],
+    total: number,
+    cartId: string,
+    buyerName: string,
+    currency: string,
+  ): Promise<void> {
+    try {
+      // 1. Obtener información de la tienda
+      const shop = await this.artisanShopRepository.findOne({
+        where: { id: shopId },
+      });
+
+      if (!shop) {
+        this.logger.warn(
+          `[PAID] No se encontró la tienda ${shopId} para notificación`,
+        );
+        return;
+      }
+
+      // 2. Obtener email del artesano
+      let artisanEmail: string | null = null;
+      let artisanName = shop.shopName;
+
+      // Intentar obtener email de contactInfo
+      if (shop.contactInfo) {
+        const contactInfo = shop.contactInfo as Record<string, any>;
+        artisanEmail = contactInfo.email || contactInfo.correo;
+      }
+
+      // Si no hay email en contactInfo, obtener del user_profile
+      if (!artisanEmail && shop.userId) {
+        const userProfile = await this.userProfileRepository.findOne({
+          where: { id: shop.userId },
+        });
+
+        if (userProfile) {
+          if (userProfile.fullName) {
+            artisanName = userProfile.fullName;
+          }
+          // Intentar obtener email del usuario
+          const user = await this.userRepository.findOne({
+            where: { id: shop.userId },
+          });
+          if (user?.email) {
+            artisanEmail = user.email;
+          }
+        }
+      }
+
+      if (!artisanEmail) {
+        this.logger.warn(
+          `[PAID] No se encontró email para artesano de tienda ${shopId}`,
+        );
+        return;
+      }
+
+      // 3. Formatear items para el email
+      const formattedItems = items.map((item) => {
+        const unitPrice = parseInt(item.unitPriceMinor, 10);
+        const subtotal = unitPrice * item.quantity;
+
+        return {
+          productName: item.product?.name || 'Producto sin nombre',
+          quantity: item.quantity,
+          formattedPrice: this.formatCurrency(unitPrice, currency),
+          formattedSubtotal: this.formatCurrency(subtotal, currency),
+        };
+      });
+
+      const totalFormatted = this.formatCurrency(total, currency);
+
+      // 4. Enviar email
+      await this.mailService.sendSaleNotificationToArtisan(
+        artisanEmail,
+        artisanName,
+        shop.shopName,
+        cartId,
+        buyerName,
+        formattedItems,
+        totalFormatted,
+      );
+
+      this.logger.log(
+        `[PAID] Email de venta enviado a artesano: ${artisanEmail} (${shop.shopName})`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `[PAID] Error enviando email a artesano de tienda ${shopId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      // No lanzar error para no interrumpir otras notificaciones
+    }
   }
 
   /**
