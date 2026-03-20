@@ -1,12 +1,41 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { CartItem, CartSummary } from '@/types/cart';
 import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  getOpenCartByBuyerId,
+  createCart,
+  syncGuestCart,
+  SaleContext
+} from '@/services/cart.actions';
+import {
+  getCartItemsByCartId,
+  createCartItem,
+  updateCartItem,
+  deleteCartItem,
+  deleteAllCartItems,
+  PriceSource,
+  priceToMinor,
+  priceFromMinor
+} from '@/services/cartItems.actions';
+
+// Guest cart item structure (stored in localStorage)
+interface GuestCartItem {
+  productId: string;
+  quantity: number;
+  price: number;
+  shopId: string;
+  productName?: string;
+  productImages?: any;
+}
+
+const GUEST_CART_KEY = 'telar_guest_cart';
 
 export const useShoppingCart = () => {
+  const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentCartId, setCurrentCartId] = useState<string | null>(null);
   const [summary, setSummary] = useState<CartSummary>({
     subtotal: 0,
     tax: 0,
@@ -16,47 +45,103 @@ export const useShoppingCart = () => {
   });
   const { toast } = useToast();
 
-  // Get or create session ID for anonymous users
-  const getSessionId = useCallback(() => {
-    let sessionId = localStorage.getItem('cart_session_id');
-    if (!sessionId) {
-      sessionId = uuidv4();
-      localStorage.setItem('cart_session_id', sessionId);
+  // ============= Guest Cart Helpers =============
+
+  const getGuestCart = useCallback((): GuestCartItem[] => {
+    try {
+      const stored = localStorage.getItem(GUEST_CART_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error reading guest cart:', error);
+      return [];
     }
-    return sessionId;
   }, []);
 
-  // Fetch cart items
+  const setGuestCart = useCallback((items: GuestCartItem[]) => {
+    try {
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+    } catch (error) {
+      console.error('Error saving guest cart:', error);
+    }
+  }, []);
+
+  const clearGuestCart = useCallback(() => {
+    try {
+      localStorage.removeItem(GUEST_CART_KEY);
+    } catch (error) {
+      console.error('Error clearing guest cart:', error);
+    }
+  }, []);
+
+  // ============= Fetch Cart Items =============
+
+  // ✅ MIGRATED: GET /cart/buyer/:buyerUserId/open + GET /cart-items/cart/:cartId
   const fetchCartItems = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      let query = supabase
-        .from('cart_items')
-        .select(`
-          *,
-          product:products(
-            id,
-            name,
-            images,
-            shop_id,
-            inventory,
-            active
-          )
-        `);
 
-      if (user) {
-        query = query.eq('user_id', user.id);
-      } else {
-        query = query.eq('session_id', getSessionId());
+      if (!user) {
+        // Guest user: read from localStorage
+        const guestItems = getGuestCart();
+
+        // Convert to CartItem format for compatibility
+        const items: CartItem[] = guestItems.map(item => ({
+          id: `guest-${item.productId}`,
+          product_id: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          product: item.productName ? {
+            id: item.productId,
+            name: item.productName,
+            images: item.productImages,
+            shop_id: item.shopId,
+            inventory: 999,
+            active: true,
+          } : undefined,
+        }));
+
+        setCartItems(items);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await query;
+      // Authenticated user: fetch from backend
+      const cart = await getOpenCartByBuyerId(user.id);
 
-      if (error) throw error;
+      if (!cart) {
+        // No cart exists yet
+        setCartItems([]);
+        setCurrentCartId(null);
+        setLoading(false);
+        return;
+      }
 
-      setCartItems(data || []);
+      setCurrentCartId(cart.id);
+
+      // Fetch cart items
+      const items = await getCartItemsByCartId(cart.id);
+
+      // Transform to legacy CartItem format for compatibility
+      const transformedItems: CartItem[] = items.map(item => ({
+        id: item.id,
+        product_id: item.productId,
+        quantity: item.quantity,
+        price: priceFromMinor(item.unitPriceMinor),
+        created_at: item.createdAt,
+        updated_at: item.updatedAt,
+        product: item.product ? {
+          id: item.product.id,
+          name: item.product.name,
+          images: item.product.images,
+          shop_id: item.sellerShopId,
+          inventory: item.product.stock || 0,
+          active: item.product.active,
+        } : undefined,
+      }));
+
+      setCartItems(transformedItems);
     } catch (error: any) {
       console.error('Error fetching cart items:', error);
       toast({
@@ -67,41 +152,87 @@ export const useShoppingCart = () => {
     } finally {
       setLoading(false);
     }
-  }, [getSessionId, toast]);
+  }, [user, getGuestCart, toast]);
 
-  // Add item to cart
-  const addToCart = useCallback(async (productId: string, quantity: number = 1, price: number) => {
+  // ============= Add to Cart =============
+
+  // ✅ MIGRATED: POST /cart + POST /cart-items
+  const addToCart = useCallback(async (
+    productId: string,
+    quantity: number = 1,
+    price: number,
+    shopId?: string,
+    productName?: string,
+    productImages?: any
+  ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Check if item already exists in cart
+      if (!user) {
+        // Guest user: add to localStorage
+        const guestItems = getGuestCart();
+        const existingIndex = guestItems.findIndex(item => item.productId === productId);
+
+        if (existingIndex >= 0) {
+          // Update quantity
+          guestItems[existingIndex].quantity += quantity;
+        } else {
+          // Add new item
+          guestItems.push({
+            productId,
+            quantity,
+            price,
+            shopId: shopId || '',
+            productName,
+            productImages,
+          });
+        }
+
+        setGuestCart(guestItems);
+        await fetchCartItems();
+
+        toast({
+          title: "¡Producto agregado!",
+          description: "El producto se agregó al carrito exitosamente.",
+        });
+        return;
+      }
+
+      // Authenticated user: check if item already exists
       const existingItem = cartItems.find(item => item.product_id === productId);
-      
+
       if (existingItem) {
         await updateQuantity(existingItem.id, existingItem.quantity + quantity);
         return;
       }
 
-      const cartData: any = {
-        product_id: productId,
-        quantity,
-        price,
-      };
-
-      if (user) {
-        cartData.user_id = user.id;
-      } else {
-        cartData.session_id = getSessionId();
+      // Get or create cart
+      let cartId = currentCartId;
+      if (!cartId) {
+        const cart = await createCart({
+          buyerUserId: user.id,
+          context: SaleContext.MARKETPLACE,
+          currency: 'COP',
+        });
+        cartId = cart.id;
+        setCurrentCartId(cartId);
       }
 
-      const { error } = await supabase
-        .from('cart_items')
-        .insert(cartData);
+      if (!shopId) {
+        throw new Error('shopId is required for authenticated users');
+      }
 
-      if (error) throw error;
+      // Create cart item
+      await createCartItem({
+        cartId,
+        productId,
+        sellerShopId: shopId,
+        quantity,
+        currency: 'COP',
+        unitPriceMinor: priceToMinor(price),
+        priceSource: PriceSource.PRODUCT_BASE,
+      });
 
       await fetchCartItems();
-      
+
       toast({
         title: "¡Producto agregado!",
         description: "El producto se agregó al carrito exitosamente.",
@@ -114,9 +245,11 @@ export const useShoppingCart = () => {
         variant: "destructive",
       });
     }
-  }, [cartItems, fetchCartItems, getSessionId, toast]);
+  }, [user, cartItems, currentCartId, getGuestCart, setGuestCart, fetchCartItems, toast]);
 
-  // Update quantity
+  // ============= Update Quantity =============
+
+  // ✅ MIGRATED: PATCH /cart-items/:id
   const updateQuantity = useCallback(async (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       await removeFromCart(itemId);
@@ -124,15 +257,32 @@ export const useShoppingCart = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .update({ quantity: newQuantity })
-        .eq('id', itemId);
+      if (!user) {
+        // Guest user: update localStorage
+        const guestItems = getGuestCart();
+        const productId = itemId.replace('guest-', '');
+        const itemIndex = guestItems.findIndex(item => item.productId === productId);
 
-      if (error) throw error;
+        if (itemIndex >= 0) {
+          guestItems[itemIndex].quantity = newQuantity;
+          setGuestCart(guestItems);
 
-      setCartItems(items => 
-        items.map(item => 
+          // Update local state optimistically
+          setCartItems(items =>
+            items.map(item =>
+              item.id === itemId ? { ...item, quantity: newQuantity } : item
+            )
+          );
+        }
+        return;
+      }
+
+      // Authenticated user: update in backend
+      await updateCartItem(itemId, { quantity: newQuantity });
+
+      // Update local state optimistically
+      setCartItems(items =>
+        items.map(item =>
           item.id === itemId ? { ...item, quantity: newQuantity } : item
         )
       );
@@ -144,20 +294,34 @@ export const useShoppingCart = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [user, getGuestCart, setGuestCart, toast]);
 
-  // Remove item from cart
+  // ============= Remove from Cart =============
+
+  // ✅ MIGRATED: DELETE /cart-items/:id
   const removeFromCart = useCallback(async (itemId: string) => {
     try {
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('id', itemId);
+      if (!user) {
+        // Guest user: remove from localStorage
+        const guestItems = getGuestCart();
+        const productId = itemId.replace('guest-', '');
+        const filtered = guestItems.filter(item => item.productId !== productId);
+        setGuestCart(filtered);
 
-      if (error) throw error;
+        setCartItems(items => items.filter(item => item.id !== itemId));
+
+        toast({
+          title: "Producto eliminado",
+          description: "El producto se eliminó del carrito.",
+        });
+        return;
+      }
+
+      // Authenticated user: delete from backend
+      await deleteCartItem(itemId);
 
       setCartItems(items => items.filter(item => item.id !== itemId));
-      
+
       toast({
         title: "Producto eliminado",
         description: "El producto se eliminó del carrito.",
@@ -170,27 +334,32 @@ export const useShoppingCart = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [user, getGuestCart, setGuestCart, toast]);
 
-  // Clear cart
+  // ============= Clear Cart =============
+
+  // ✅ MIGRATED: DELETE /cart-items/cart/:cartId/all
   const clearCart = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      let query = supabase.from('cart_items').delete();
-      
-      if (user) {
-        query = query.eq('user_id', user.id);
-      } else {
-        query = query.eq('session_id', getSessionId());
+      if (!user) {
+        // Guest user: clear localStorage
+        clearGuestCart();
+        setCartItems([]);
+
+        toast({
+          title: "Carrito vacío",
+          description: "Se eliminaron todos los productos del carrito.",
+        });
+        return;
       }
 
-      const { error } = await query;
-
-      if (error) throw error;
+      // Authenticated user: clear from backend
+      if (currentCartId) {
+        await deleteAllCartItems(currentCartId);
+      }
 
       setCartItems([]);
-      
+
       toast({
         title: "Carrito vacío",
         description: "Se eliminaron todos los productos del carrito.",
@@ -203,9 +372,39 @@ export const useShoppingCart = () => {
         variant: "destructive",
       });
     }
-  }, [getSessionId, toast]);
+  }, [user, currentCartId, clearGuestCart, toast]);
 
-  // Calculate summary
+  // ============= Merge Guest Cart =============
+
+  // ✅ MIGRATED: POST /cart/sync-guest
+  const mergeGuestCart = useCallback(async () => {
+    try {
+      if (!user) return;
+
+      const guestItems = getGuestCart();
+      if (!guestItems.length) return;
+
+      // Call sync endpoint
+      await syncGuestCart({
+        buyerUserId: user.id,
+        items: guestItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      });
+
+      // Clear guest cart
+      clearGuestCart();
+
+      // Refresh cart items
+      await fetchCartItems();
+    } catch (error: any) {
+      console.error('Error merging guest cart:', error);
+    }
+  }, [user, getGuestCart, clearGuestCart, fetchCartItems]);
+
+  // ============= Calculate Summary =============
+
   useEffect(() => {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const tax = subtotal * 0.19; // 19% IVA in Colombia
@@ -222,41 +421,8 @@ export const useShoppingCart = () => {
     });
   }, [cartItems]);
 
-  // Merge guest cart with user cart on login
-  const mergeGuestCart = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  // ============= Initial Load =============
 
-      const sessionId = localStorage.getItem('cart_session_id');
-      if (!sessionId) return;
-
-      // Get guest cart items
-      const { data: guestItems, error: guestError } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('session_id', sessionId);
-
-      if (guestError || !guestItems?.length) return;
-
-      // Update guest items to user items
-      const { error: updateError } = await supabase
-        .from('cart_items')
-        .update({ user_id: user.id, session_id: null })
-        .eq('session_id', sessionId);
-
-      if (updateError) throw updateError;
-
-      // Remove session ID from localStorage
-      localStorage.removeItem('cart_session_id');
-      
-      await fetchCartItems();
-    } catch (error: any) {
-      console.error('Error merging guest cart:', error);
-    }
-  }, [fetchCartItems]);
-
-  // Initial load
   useEffect(() => {
     fetchCartItems();
   }, [fetchCartItems]);

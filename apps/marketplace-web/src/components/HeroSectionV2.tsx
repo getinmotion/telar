@@ -5,7 +5,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import heroTextiles from "@/assets/hero-textiles.png";
+
+// Imagen del hero desde S3
+const HERO_IMAGE = "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg";
 
 export const HeroSectionV2 = () => {
   return (
@@ -57,12 +59,12 @@ export const HeroSectionV2 = () => {
 
           {/* Columna 2: Imagen y etiquetas */}
           <div className="flex flex-col gap-4">
-            {/* Imagen tipo cover */}
-            <div className="relative rounded-lg overflow-hidden shadow-2xl">
+            {/* Imagen con zoom */}
+            <div className="relative rounded-lg overflow-hidden shadow-2xl h-[250px] md:h-[300px]">
               <img
-                src={heroTextiles}
+                src={HERO_IMAGE}
                 alt="Artesanía colombiana"
-                className="w-full h-full min-h-[250px] md:min-h-[300px] object-cover"
+                className="w-full h-full object-cover object-center"
               />
             </div>
 
@@ -70,7 +72,7 @@ export const HeroSectionV2 = () => {
             <div className="flex flex-col gap-2 px-2">
               {/* Origen */}
               <p className="text-sm font-semibold text-orange-600 dark:text-orange-500 uppercase tracking-wide">
-                Origen: San Jacinto
+                Origen: Bogotá, Colombia
               </p>
 
               {/* Frase en cursiva */}

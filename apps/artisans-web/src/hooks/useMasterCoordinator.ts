@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAgentTasks } from './useAgentTasks';
 import { useTaskLimits } from './useTaskLimits';
 import { useTaskGenerationControl } from './useTaskGenerationControl';
-import { supabase } from '@/integrations/supabase/client';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { getUserProgressByUserId, upsertUserProgress } from '@/services/userProgress.actions';
 import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
@@ -13,7 +12,9 @@ import { analyzeAndGenerateTasks, invokeMasterCoordinator } from '@/services/aiM
 import { getMasterCoordinatorContextByUserId, updateMasterCoordinatorContextByUserId } from '@/services/masterCoordinatorContext.actions';
 import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 import { getProductsByUserId } from '@/services/products.actions';
-import { updateAgentTask } from '@/services/agentTasks.actions';
+import { updateAgentTask, createAgentTask } from '@/services/agentTasks.actions';
+import { getAgentDeliverablesByUserId } from '@/services/agentDeliverables.actions';
+import { getTaskStepsByTaskId } from '@/services/taskSteps.actions';
 
 export interface CoordinatorTask {
   id: string;
@@ -312,29 +313,24 @@ export const useMasterCoordinator = () => {
     }
   }, [user]);
 
+  // ✅ MIGRATED: GET /agent-deliverables/user/:userId
   const loadDeliverables = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('agent_deliverables')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const data = await getAgentDeliverablesByUserId(user.id);
 
-      if (error) throw error;
-
-      // Transform database fields to match TaskDeliverable interface
-      const transformedDeliverables: TaskDeliverable[] = (data || []).map(item => ({
+      // Transform NestJS camelCase response to frontend format
+      const transformedDeliverables: TaskDeliverable[] = data.map((item: any) => ({
         id: item.id,
-        taskId: item.task_id,
+        taskId: item.taskId,
         title: item.title,
         description: item.description || '',
-        fileType: item.file_type as 'pdf' | 'doc' | 'txt' | 'table',
+        fileType: item.fileType as 'pdf' | 'doc' | 'txt' | 'table',
         content: item.content,
-        downloadUrl: item.file_url,
-        createdAt: item.created_at,
-        agentId: item.agent_id
+        downloadUrl: item.fileUrl,
+        createdAt: item.createdAt,
+        agentId: item.agentId
       }));
 
       setDeliverables(transformedDeliverables);
@@ -424,6 +420,7 @@ export const useMasterCoordinator = () => {
     const coordinatorTask = coordinatorTasks.find(t => t.id === taskId);
     const regularTask = tasks.find(t => t.id === taskId);
 
+    // ✅ MIGRATED: POST /agent-tasks
     // For default tasks, create them first
     if (taskId.startsWith('default-') && !regularTask) {
       try {
@@ -432,21 +429,15 @@ export const useMasterCoordinator = () => {
           throw new Error('Default task not found');
         }
 
-        const { data: newTask, error: createError } = await supabase
-          .from('agent_tasks')
-          .insert({
-            user_id: user?.id,
-            agent_id: defaultTask.agentId,
-            title: defaultTask.title,
-            description: defaultTask.description,
-            relevance: defaultTask.relevance,
-            priority: defaultTask.priority,
-            status: 'in_progress'
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
+        const newTask = await createAgentTask({
+          userId: user?.id!,
+          agentId: defaultTask.agentId,
+          title: defaultTask.title,
+          description: defaultTask.description,
+          relevance: defaultTask.relevance,
+          priority: defaultTask.priority,
+          status: 'in_progress'
+        });
 
         // Update the taskId to the newly created task
         taskId = newTask.id;
@@ -469,13 +460,9 @@ export const useMasterCoordinator = () => {
     }
 
     try {
+      // ✅ MIGRATED: GET /task-steps/task/:taskId
       // Check if steps already exist for this task
-      const { data: existingSteps, error: stepsError } = await supabase
-        .from('task_steps')
-        .select('id')
-        .eq('task_id', taskId);
-
-      if (stepsError) throw stepsError;
+      const existingSteps = await getTaskStepsByTaskId(taskId);
 
       // Create steps if they don't exist
       if (!existingSteps || existingSteps.length === 0) {
