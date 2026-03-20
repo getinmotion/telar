@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,8 +95,6 @@ const FavoriteShops = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar searchQuery="" onSearchChange={() => {}} />
-
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-12 px-6 bg-muted/30">

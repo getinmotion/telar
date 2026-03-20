@@ -1,13 +1,44 @@
 
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { AgentTask, PaginatedTasks } from './types/agentTaskTypes';
-import { convertToAgentTask } from './utils/agentTaskUtils';
+import {
+  getActiveTasksByUserId,
+  getArchivedTasksByUserId,
+  getTasksByUserIdAndStatus,
+  AgentTask as NestJSAgentTask,
+} from '@/services/agentTasks.actions';
+
+// Helper: Convert NestJS camelCase response to frontend snake_case format
+const mapNestJSTaskToAgentTask = (task: NestJSAgentTask): AgentTask => ({
+  id: task.id,
+  user_id: task.userId,
+  agent_id: task.agentId,
+  conversation_id: null,
+  title: task.title,
+  description: task.description,
+  relevance: task.relevance as 'low' | 'medium' | 'high',
+  progress_percentage: task.progressPercentage,
+  status: task.status as 'pending' | 'in_progress' | 'completed' | 'cancelled',
+  priority: task.priority,
+  due_date: task.dueDate,
+  completed_at: task.completedAt,
+  created_at: task.createdAt,
+  updated_at: task.updatedAt,
+  subtasks: [],
+  notes: '',
+  steps_completed: {},
+  resources: [],
+  time_spent: 0,
+  is_archived: false,
+  milestone_category: task.milestoneCategory || undefined,
+});
 
 export function useAgentTasksQueries(user: any, agentId?: string) {
   const { toast } = useToast();
 
+  // ✅ MIGRATED: Fetch tasks from NestJS
+  // Endpoints: GET /agent-tasks/user/:userId/active or /archived
   const fetchTasks = useCallback(async (
     setTasks: React.Dispatch<React.SetStateAction<AgentTask[]>>,
     setTotalCount: React.Dispatch<React.SetStateAction<number>>,
@@ -22,27 +53,26 @@ export function useAgentTasksQueries(user: any, agentId?: string) {
     }
 
     try {
-      let query = supabase
-        .from('agent_tasks')
-        .select('*', { count: 'exact' })
-        .eq('user_id', user.id);
+      // Fetch from NestJS based on archived status
+      let data = includeArchived
+        ? await getArchivedTasksByUserId(user.id)
+        : await getActiveTasksByUserId(user.id);
 
+      // Filter by agentId if provided (client-side filter)
       if (agentId) {
-        query = query.eq('agent_id', agentId);
+        data = data.filter(task => task.agentId === agentId);
       }
 
-      if (!includeArchived) {
-        query = query.eq('is_archived', false);
-      }
+      // Convert from NestJS camelCase to frontend snake_case format
+      const mappedTasks = data.map(mapNestJSTaskToAgentTask);
 
-      const { data, error, count } = await query.order('created_at', { ascending: false });
+      // Sort by creation date (newest first)
+      const sortedTasks = [...mappedTasks].sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-      if (error) throw error;
-      
-      const typedTasks: AgentTask[] = (data || []).map(convertToAgentTask);
-      
-      setTasks(typedTasks);
-      setTotalCount(count || 0);
+      setTasks(sortedTasks);
+      setTotalCount(sortedTasks.length);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -55,9 +85,11 @@ export function useAgentTasksQueries(user: any, agentId?: string) {
     }
   }, [user, agentId, toast]);
 
+  // ✅ MIGRATED: Fetch paginated tasks from NestJS
+  // Endpoints: GET /agent-tasks/user/:userId/active, /archived, or /status/:status
   const fetchPaginatedTasks = useCallback(async (
-    page: number = 1, 
-    pageSize: number = 10, 
+    page: number = 1,
+    pageSize: number = 10,
     filter: 'all' | 'pending' | 'in_progress' | 'completed' | 'archived' = 'all'
   ): Promise<PaginatedTasks> => {
     if (!user) {
@@ -65,39 +97,41 @@ export function useAgentTasksQueries(user: any, agentId?: string) {
     }
 
     try {
-      let query = supabase
-        .from('agent_tasks')
-        .select('*', { count: 'exact' })
-        .eq('user_id', user.id);
+      let data: NestJSAgentTask[];
 
-      if (agentId) {
-        query = query.eq('agent_id', agentId);
-      }
-
+      // Fetch from appropriate endpoint based on filter
       if (filter === 'archived') {
-        query = query.eq('is_archived', true);
-      } else if (filter !== 'all') {
-        query = query.eq('status', filter).eq('is_archived', false);
+        data = await getArchivedTasksByUserId(user.id);
+      } else if (filter === 'pending' || filter === 'in_progress' || filter === 'completed') {
+        data = await getTasksByUserIdAndStatus(user.id, filter);
       } else {
-        query = query.eq('is_archived', false);
+        // filter === 'all' - get active tasks
+        data = await getActiveTasksByUserId(user.id);
       }
 
+      // Filter by agentId if provided (client-side filter)
+      if (agentId) {
+        data = data.filter(task => task.agentId === agentId);
+      }
+
+      // Convert from NestJS camelCase to frontend snake_case
+      const mappedTasks = data.map(mapNestJSTaskToAgentTask);
+
+      // Sort by creation date (newest first)
+      const sortedTasks = [...mappedTasks].sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      // Apply client-side pagination
+      const totalCount = sortedTasks.length;
+      const totalPages = Math.ceil(totalCount / pageSize);
       const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) throw error;
-      
-      const typedTasks: AgentTask[] = (data || []).map(convertToAgentTask);
-      
-      const totalPages = Math.ceil((count || 0) / pageSize);
+      const to = from + pageSize;
+      const paginatedTasks = sortedTasks.slice(from, to);
 
       return {
-        tasks: typedTasks,
-        totalCount: count || 0,
+        tasks: paginatedTasks,
+        totalCount,
         totalPages,
         currentPage: page
       };

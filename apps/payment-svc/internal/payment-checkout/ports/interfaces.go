@@ -59,6 +59,7 @@ type UnitOfWork interface {
 	LedgerRepo() LedgerRepository
 	EventRepo() EventRepository
 	PayoutRepo() PayoutRepository
+	PayoutRulesRepo() PayoutRulesRepository
 }
 
 type LedgerRepository interface {
@@ -80,7 +81,6 @@ type WebhookValidator interface {
 
 // PaymentNotification contiene los datos que requiere tu API central
 type PaymentNotification struct {
-	GatewayCode   string `json:"gateway_code"`   // ej: "wompi" o "cobre"
 	TransactionID string `json:"transaction_id"` // ID de tu PaymentIntent o externo
 	CartID        string `json:"cart_id"`        // Identificador del carrito
 	Status        string `json:"status"`         // ej: "PAID", "FAILED"
@@ -89,6 +89,17 @@ type PaymentNotification struct {
 // NotificationGateway define el contrato para avisar a otros servicios
 type NotificationGateway interface {
 	NotifyPaymentConfirmation(ctx context.Context, payload PaymentNotification) error
+}
+
+// ==========================================
+// PUERTOS PARA PAYOUT RULES (REGLAS DE DISPERSIÓN)
+// ==========================================
+
+// PayoutRulesRepository busca la regla de dispersión aplicable
+type PayoutRulesRepository interface {
+	// FindApplicableRule busca la regla activa para una tienda y evento.
+	// Primero busca una regla específica por shop_id, luego cae a la regla global (shop_id IS NULL).
+	FindApplicableRule(ctx context.Context, shopID string, triggerEvent string) (*domain.PayoutRule, error)
 }
 
 // ==========================================

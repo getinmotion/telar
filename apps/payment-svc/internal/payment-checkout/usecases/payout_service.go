@@ -257,11 +257,11 @@ func (s *PayoutService) ProcessPayoutWebhook(ctx context.Context, externalMoveme
 	}
 	defer tx.Rollback(ctx)
 
-	// Necesitamos buscar el Payout por el ID de Cobre
 	payout, err := s.uow.PayoutRepo().GetPayoutByExternalID(ctx, externalMovementID)
 	if err != nil {
-		s.logger.Warn("Payout not found for external movement", "movement_id", externalMovementID)
-		return nil // Retornamos nil para que Cobre no reintente
+		s.logger.Warn("Payout not found for external movement, forcing retry", "movement_id", externalMovementID)
+		// Devolver error fuerza un HTTP 500, haciendo que Cobre REINTENTE más tarde.
+		return fmt.Errorf("payout not found, try again later")
 	}
 
 	// Si ya está en estado terminal, lo ignoramos (Idempotencia básica)

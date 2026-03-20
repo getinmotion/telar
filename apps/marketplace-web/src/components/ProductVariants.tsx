@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { telarClient } from '@/lib/telarClient';
+import { getProductVariants } from '@/services/product-variants.actions';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/currencyUtils';
@@ -29,21 +29,20 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
 
   const fetchVariants = async () => {
     try {
-      const { data, error } = await telarClient
-        .from('product_variants')
-        .select('*')
-        .eq('product_id', productId)
-        .order('created_at', { ascending: true });
+      const data = await getProductVariants(productId);
 
-      if (error) {
-        // Silenciar error - variantes son opcionales
-        setVariants([]);
-        return;
-      }
+      // Mapear los datos del backend al formato esperado por el componente
+      const mappedVariants: Variant[] = data
+        .filter((v) => v.status === 'active') // Solo variantes activas
+        .map((v) => ({
+          id: v.id,
+          name: v.name || v.sku,
+          price_adjustment: v.price || 0,
+          stock: v.stock,
+          attributes: v.optionValues || {},
+        }));
 
-      // Filtrar variantes activas en el cliente si el campo existe
-      const activeVariants = (data || []).filter((v: any) => v.active !== false);
-      setVariants(activeVariants);
+      setVariants(mappedVariants);
     } catch (error) {
       setVariants([]);
     } finally {
