@@ -3,7 +3,7 @@
  * Servicio para gestión de checkouts con el backend NestJS
  */
 
-import { telarApiPublic } from '@/integrations/api/telarApi';
+import { telarApi } from '@/integrations/api/telarApi';
 import { toastError } from '@/utils/toast.utils';
 
 /**
@@ -53,7 +53,7 @@ export interface Checkout {
  */
 export const getCheckoutById = async (checkoutId: string): Promise<Checkout> => {
   try {
-    const response = await telarApiPublic.get<Checkout>(`/checkouts/${checkoutId}`);
+    const response = await telarApi.get<Checkout>(`/checkouts/${checkoutId}`);
     return response.data;
   } catch (error: any) {
     // Don't show toast error for 404s when polling
@@ -79,7 +79,7 @@ export const getCheckoutById = async (checkoutId: string): Promise<Checkout> => 
  */
 export const getCheckoutByCartId = async (cartId: string): Promise<Checkout | null> => {
   try {
-    const response = await telarApiPublic.get<Checkout>(`/checkouts/cart/${cartId}`);
+    const response = await telarApi.get<Checkout>(`/checkouts/cart/${cartId}`);
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 404) {
