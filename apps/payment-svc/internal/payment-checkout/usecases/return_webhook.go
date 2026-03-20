@@ -151,7 +151,9 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		// =====================================================
 		// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
 		// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
+		// COMMENTED OUT: PayoutRules functionality is incomplete
 		// =====================================================
+		/*
 		if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
 			go func(bgCtx context.Context, chkID string, sID string) {
 				s.logger.Info("Checking payout rules for auto-payout",
@@ -191,6 +193,7 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 
 			}(context.Background(), intent.CheckoutID, shopID)
 		}
+		*/
 	}
 
 	return nil
