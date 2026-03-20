@@ -537,10 +537,13 @@ export class ServientregaService {
     dimensions: { width: number; height: number; length: number },
   ): string {
     const destCityCode = `${shippingData.dane_ciudad}000`;
-    const destDeptCode = String(shippingData.dane_ciudad).substring(0, 2);
+    const destDeptCode = `${String(shippingData.dane_ciudad).substring(0, 2)}001000`;
     const originRegion = shop.region || '11001';
     const originCityCode = `${originRegion}000`;
-    const originDeptCode = originRegion.substring(0, 2);
+    const originDeptCode = `${originRegion.substring(0, 2)}001000`;
+
+    // Truncar descripción a 20 caracteres
+    const truncatedDesc = productDescription.substring(0, 20);
 
     return `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:tem="http://tempuri.org/">
@@ -559,31 +562,111 @@ export class ServientregaService {
                <tem:objEnvios>
                   <tem:EnviosExterno id_zonificacion="?" des_codigopostal="?">
                      <tem:Num_Guia>0</tem:Num_Guia>
+                     <tem:Num_Sobreporte>0</tem:Num_Sobreporte>
+                     <tem:Num_SobreCajaPorte>0</tem:Num_SobreCajaPorte>
+                     <tem:Fec_TiempoEntrega>1</tem:Fec_TiempoEntrega>
+                     <tem:Des_TipoTrayecto>1</tem:Des_TipoTrayecto>
                      <tem:Ide_CodFacturacion>${this.codFacturacion}</tem:Ide_CodFacturacion>
-                     <tem:Des_FormaPago>2</tem:Des_FormaPago>
                      <tem:Num_Piezas>1</tem:Num_Piezas>
+                     <tem:Des_FormaPago>2</tem:Des_FormaPago>
+                     <tem:Des_MedioTransporte>1</tem:Des_MedioTransporte>
+                     <tem:Des_TipoDuracionTrayecto>1</tem:Des_TipoDuracionTrayecto>
+                     <tem:Nom_TipoTrayecto>1</tem:Nom_TipoTrayecto>
                      <tem:Num_Alto>${dimensions.height}</tem:Num_Alto>
                      <tem:Num_Ancho>${dimensions.width}</tem:Num_Ancho>
                      <tem:Num_Largo>${dimensions.length}</tem:Num_Largo>
                      <tem:Num_PesoTotal>${weight}</tem:Num_PesoTotal>
+                     <tem:Des_UnidadLongitud>cm</tem:Des_UnidadLongitud>
+                     <tem:Des_UnidadPeso>kg</tem:Des_UnidadPeso>
+                     <tem:Nom_UnidadEmpaque>GENERICO</tem:Nom_UnidadEmpaque>
+                     <tem:Gen_Cajaporte>false</tem:Gen_Cajaporte>
+                     <tem:Gen_Sobreporte>false</tem:Gen_Sobreporte>
+                     <tem:Des_DiceContenerSobre>?</tem:Des_DiceContenerSobre>
+
+                     <tem:Doc_Relacionado>TELAR-${shippingData.cart_id.substring(0, 8)}</tem:Doc_Relacionado>
+                     <tem:Des_VlrCampoPersonalizado1>Novedades: ${shippingData.phone}</tem:Des_VlrCampoPersonalizado1>
+                     <tem:Ide_Num_Referencia_Dest>${shippingData.cart_id.substring(0, 12)}</tem:Ide_Num_Referencia_Dest>
+                     <tem:Num_Factura>${shippingData.cart_id.substring(0, 12)}</tem:Num_Factura>
+
+                     <tem:Ide_Producto>2</tem:Ide_Producto>
+                     <tem:Num_Recaudo>0</tem:Num_Recaudo>
+                     <tem:Des_codigopostal></tem:Des_codigopostal>
+
+                     <tem:Ide_Destinatarios>00000000-0000-0000-0000-000000000000</tem:Ide_Destinatarios>
+                     <tem:Ide_Manifiesto>00000000-0000-0000-0000-000000000000</tem:Ide_Manifiesto>
+                     <tem:Num_BolsaSeguridad>0</tem:Num_BolsaSeguridad>
+                     <tem:Num_Precinto>0</tem:Num_Precinto>
+                     <tem:Num_VolumenTotal>0</tem:Num_VolumenTotal>
+                     <tem:Des_DireccionRecogida></tem:Des_DireccionRecogida>
+                     <tem:Des_TelefonoRecogida></tem:Des_TelefonoRecogida>
+                     <tem:Des_CiudadRecogida/>
+                     <tem:Num_PesoFacturado>0</tem:Num_PesoFacturado>
+                     <tem:Des_TipoGuia>2</tem:Des_TipoGuia>
+                     <tem:Id_ArchivoCargar></tem:Id_ArchivoCargar>
+                     <tem:Des_CiudadOrigen>0</tem:Des_CiudadOrigen>
+
                      <tem:Num_ValorDeclaradoTotal>${productValue}</tem:Num_ValorDeclaradoTotal>
+                     <tem:Num_ValorLiquidado>0</tem:Num_ValorLiquidado>
+                     <tem:Num_VlrSobreflete>${shippingData.valor_sobre_flete || 0}</tem:Num_VlrSobreflete>
                      <tem:Num_VlrFlete>${shippingData.valor_flete || 0}</tem:Num_VlrFlete>
+                     <tem:Num_Descuento>0</tem:Num_Descuento>
+                     <tem:Num_ValorDeclaradoSobreTotal>${shippingData.valor_total_flete || 0}</tem:Num_ValorDeclaradoSobreTotal>
+
                      <tem:Des_Telefono>${shippingData.phone}</tem:Des_Telefono>
                      <tem:Des_Ciudad>${destCityCode}</tem:Des_Ciudad>
                      <tem:Des_DepartamentoDestino>${destDeptCode}</tem:Des_DepartamentoDestino>
                      <tem:Des_Direccion>${shippingData.address}</tem:Des_Direccion>
                      <tem:Nom_Contacto>${shippingData.full_name}</tem:Nom_Contacto>
-                     <tem:Des_DiceContener>${productDescription}</tem:Des_DiceContener>
+                     <tem:Des_DiceContener>${truncatedDesc}</tem:Des_DiceContener>
+                     <tem:Ide_Num_Identific_Dest>${shippingData.phone.replace(/\D/g, '')}</tem:Ide_Num_Identific_Dest>
+                     <tem:Num_Celular>${shippingData.phone}</tem:Num_Celular>
                      <tem:Des_CorreoElectronico>${shippingData.email}</tem:Des_CorreoElectronico>
+
                      <tem:Des_CiudadRemitente>${originCityCode}</tem:Des_CiudadRemitente>
                      <tem:Des_DireccionRemitente>${shop.address || 'TELAR MARKETPLACE'}</tem:Des_DireccionRemitente>
+                     <tem:Des_DepartamentoOrigen>${originDeptCode}</tem:Des_DepartamentoOrigen>
                      <tem:Num_TelefonoRemitente>${shop.phone || '3000000000'}</tem:Num_TelefonoRemitente>
+                     <tem:Num_IdentiRemitente></tem:Num_IdentiRemitente>
+                     <tem:Nom_Remitente></tem:Nom_Remitente>
                      <tem:nombrecontacto_remitente>${shop.shopName}</tem:nombrecontacto_remitente>
+                     <tem:celular_remitente>${shop.phone || '3000000000'}</tem:celular_remitente>
                      <tem:correo_remitente>${shop.email || 'ventas@telar.co'}</tem:correo_remitente>
+
+                     <tem:Est_CanalMayorista>false</tem:Est_CanalMayorista>
+                     <tem:Nom_RemitenteCanal/>
+                     <tem:Des_IdArchivoOrigen>123</tem:Des_IdArchivoOrigen>
+
+                     <tem:objEnviosUnidadEmpaqueCargue>
+                        <tem:EnviosUnidadEmpaqueCargue>
+                           <tem:Num_Alto>${dimensions.height}</tem:Num_Alto>
+                           <tem:Num_Distribuidor>0</tem:Num_Distribuidor>
+                           <tem:Num_Ancho>${dimensions.width}</tem:Num_Ancho>
+                           <tem:Num_Cantidad>1</tem:Num_Cantidad>
+                           <tem:Des_DiceContener>${truncatedDesc}</tem:Des_DiceContener>
+                           <tem:Des_IdArchivoOrigen>123</tem:Des_IdArchivoOrigen>
+                           <tem:Num_Largo>${dimensions.length}</tem:Num_Largo>
+                           <tem:Nom_UnidadEmpaque>GENERICO</tem:Nom_UnidadEmpaque>
+                           <tem:Num_Peso>${weight}</tem:Num_Peso>
+                           <tem:Des_UnidadLongitud>cm</tem:Des_UnidadLongitud>
+                           <tem:Des_UnidadPeso>kg</tem:Des_UnidadPeso>
+                           <tem:Ide_UnidadEmpaque>00000000-0000-0000-0000-000000000000</tem:Ide_UnidadEmpaque>
+                           <tem:Ide_Envio>00000000-0000-0000-0000-000000000000</tem:Ide_Envio>
+                           <tem:Num_Volumen>0</tem:Num_Volumen>
+                           <tem:Num_Consecutivo>0</tem:Num_Consecutivo>
+                           <tem:Cod_Facturacion>${this.codFacturacion}</tem:Cod_Facturacion>
+                           <tem:Num_ValorDeclarado>${productValue}</tem:Num_ValorDeclarado>
+                           <tem:Indicador>1</tem:Indicador>
+                           <tem:NumeroDeCaja>1</tem:NumeroDeCaja>
+                           <tem:Id_archivo>123</tem:Id_archivo>
+                        </tem:EnviosUnidadEmpaqueCargue>
+                     </tem:objEnviosUnidadEmpaqueCargue>
                   </tem:EnviosExterno>
                </tem:objEnvios>
             </tem:CargueMasivoExternoDTO>
          </tem:envios>
+         <tem:arrayGuias>
+            <tem:string>?</tem:string>
+         </tem:arrayGuias>
       </tem:CargueMasivoExterno>
    </soap:Body>
 </soap:Envelope>`;
