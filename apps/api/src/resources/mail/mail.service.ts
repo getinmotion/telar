@@ -105,7 +105,6 @@ export class MailService {
     orderData: {
       cartId: string;
       transactionId: string;
-      gatewayCode: string;
       currency: string;
       items: Array<{
         productName: string;
@@ -152,6 +151,123 @@ export class MailService {
       template: `./${template}`,
       context: {
         ...context,
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
+   * Enviar notificación de guía de envío al destinatario (comprador)
+   */
+  async sendShippingNotificationToRecipient(
+    email: string,
+    recipientName: string,
+    numGuia: string,
+    shopName: string,
+  ): Promise<void> {
+    const trackingUrl = `https://www.servientrega.com/wps/portal/rastreo-envio?guia=${numGuia}`;
+    const baseUrl = (
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:1010'
+    ).replace(/\/$/, '');
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: `🚚 Tu guía de envío ha sido generada - ${numGuia}`,
+      template: './shipping-notification-recipient',
+      context: {
+        recipientName,
+        numGuia,
+        shopName,
+        trackingUrl,
+        ordersUrl: `${baseUrl}/orders`,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
+   * Enviar notificación de guía de envío al artesano (vendedor) con PDF adjunto
+   */
+  async sendShippingNotificationToArtisan(
+    email: string,
+    artisanName: string,
+    shopName: string,
+    numGuia: string,
+    recipientName: string,
+    recipientCity: string,
+    pdfBytes: Buffer | null,
+  ): Promise<void> {
+    const mailOptions: any = {
+      to: email,
+      subject: `📦 Nueva guía de envío - ${numGuia} | Acción requerida`,
+      template: './shipping-notification-artisan',
+      context: {
+        artisanName,
+        shopName,
+        numGuia,
+        recipientName,
+        recipientCity,
+        manualEmpaqueUrl:
+          'https://marketplacetelar.lovable.app/manual-empaque-servientrega.pdf',
+        oficinasUrl: 'https://www.servientrega.com/wps/portal/oficinas',
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    };
+
+    // Agregar PDF adjunto si está disponible
+    if (pdfBytes && pdfBytes.length > 0) {
+      mailOptions.attachments = [
+        {
+          filename: `guia-servientrega-${numGuia}.pdf`,
+          content: pdfBytes,
+          contentType: 'application/pdf',
+        },
+      ];
+    }
+
+    await this.mailerService.sendMail(mailOptions);
+  }
+
+  /**
+   * Enviar notificación de venta al artesano
+   */
+  async sendSaleNotificationToArtisan(
+    email: string,
+    artisanName: string,
+    shopName: string,
+    cartId: string,
+    buyerName: string,
+    items: Array<{
+      productName: string;
+      quantity: number;
+      formattedPrice: string;
+      formattedSubtotal: string;
+    }>,
+    totalFormatted: string,
+  ): Promise<void> {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: `🎉 ¡Nueva Venta en ${shopName}!`,
+      template: './sale-notification-artisan',
+      context: {
+        artisanName,
+        shopName,
+        cartId,
+        buyerName,
+        items,
+        totalFormatted,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
         year: new Date().getFullYear(),
       },
     });

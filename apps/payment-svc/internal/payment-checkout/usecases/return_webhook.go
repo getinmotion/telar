@@ -33,10 +33,51 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		return nil
 	}
 
-	intent, err := s.uow.CheckoutRepo().GetIntentByIDForUpdate(ctx, tx, event.PaymentLinkID)
-	if err != nil {
-		return fmt.Errorf("intent not found: %w", err)
+	var intentToLockID string
+
+	s.logger.Info("Buscando Intent para procesar webhook",
+		"provider_code", providerCode,
+		"incoming_payment_link_id", event.PaymentLinkID)
+
+	if providerCode == "wompi" {
+		// Wompi manda el ID externo. Buscamos cuál es nuestro ID interno ANTES de usar la tx.
+		intentByExt, errExt := s.uow.CheckoutRepo().GetIntentByExternalID(ctx, event.PaymentLinkID)
+		if errExt != nil {
+			s.logger.Error("Fallo en BD al buscar Intent por External ID (Wompi)",
+				"error", errExt.Error(),
+				"external_id", event.PaymentLinkID)
+			return fmt.Errorf("intent db error by external id %s: %w", event.PaymentLinkID, errExt)
+		}
+		if intentByExt == nil {
+			s.logger.Error("El Intent no existe en BD para este External ID",
+				"external_id", event.PaymentLinkID)
+			return fmt.Errorf("intent not found by external id: %s", event.PaymentLinkID)
+		}
+
+		intentToLockID = intentByExt.ID
+		s.logger.Info("Traducción de ID Wompi exitosa",
+			"external_id", event.PaymentLinkID,
+			"internal_uuid", intentToLockID)
+	} else {
+		// Cobre (y otros) ya mandan nuestro ID interno (UUID) directamente
+		intentToLockID = event.PaymentLinkID
 	}
+
+	s.logger.Info("Intentando bloquear fila FOR UPDATE en Postgres", "intent_id", intentToLockID)
+
+	intent, err := s.uow.CheckoutRepo().GetIntentByIDForUpdate(ctx, tx, intentToLockID)
+	if err != nil {
+		s.logger.Error("Fallo al bloquear el Intent FOR UPDATE (¿UUID inválido o fila inexistente?)",
+			"error", err.Error(),
+			"intent_id", intentToLockID)
+		return fmt.Errorf("intent not found or locked: %w", err)
+	}
+
+	s.logger.Info("Fila bloqueada exitosamente, evaluando estado",
+		"intent_id", intent.ID,
+		"current_status", intent.Status,
+		"incoming_status", event.Status)
+	// --- FIN DEL NUEVO BLOQUE ---
 
 	if intent.Status == "succeeded" || intent.Status == "failed" { // <--- minúsculas
 		return tx.Commit(ctx)
@@ -76,34 +117,83 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
 	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
-		// Obtenemos el checkout si no lo hemos buscado antes (caso FAILED)
+		// Obtenemos el checkout para notificación y auto-payout
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 		cartID := ""
+		shopID := ""
 		if checkout != nil {
 			cartID = checkout.CartID
+			if checkout.ContextShopID != nil {
+				shopID = *checkout.ContextShopID
+			}
+		}
+
+		// 2a. Notificación a la API central (background)
+		// Convertir status a mayúsculas para que coincida con el DTO de NestJS
+		notificationStatus := "FAILED"
+		if newCheckoutStatus == "paid" {
+			notificationStatus = "PAID"
 		}
 
 		payload := ports.PaymentNotification{
-			GatewayCode:   intent.ProviderCode, // "wompi" o "cobre"
-			TransactionID: intent.ID,           // Identificador interno del movimiento
-			CartID:        cartID,              // Para generar guías en tu API central
-			Status:        newCheckoutStatus,
+			TransactionID: intent.ID,
+			CartID:        cartID,
+			Status:        notificationStatus,
 		}
 
-		// Ejecutamos en background (Goroutine) con un contexto independiente
-		// para no fallar la petición HTTP principal.
 		go func(bgCtx context.Context, p ports.PaymentNotification) {
 			s.logger.Info("Sending payment notification to central API", "cart_id", p.CartID)
 			if err := s.notifier.NotifyPaymentConfirmation(bgCtx, p); err != nil {
-				// Aquí solo logueamos. En un sistema ultra-resiliente podrías implementar
-				// un Outbox Pattern o enviar a RabbitMQ/SQS.
 				s.logger.Error("Failed to notify central API", "error", err, "cart_id", p.CartID)
 			}
 		}(context.Background(), payload)
+
+		// =====================================================
+		// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
+		// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
+		// =====================================================
+		if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
+			go func(bgCtx context.Context, chkID string, sID string) {
+				s.logger.Info("Checking payout rules for auto-payout",
+					"checkout_id", chkID, "shop_id", sID)
+
+				// Buscar regla aplicable: primero específica por tienda, luego global
+				rule, err := s.uow.PayoutRulesRepo().FindApplicableRule(bgCtx, sID, "checkout_paid")
+				if err != nil {
+					s.logger.Error("Error finding payout rule", "error", err, "shop_id", sID)
+					return
+				}
+				if rule == nil {
+					s.logger.Info("No active payout rule found for checkout_paid", "shop_id", sID)
+					return
+				}
+
+				// Si delay_hours > 0, aquí iría la lógica de cola diferida (futuro)
+				if rule.DelayHours > 0 {
+					s.logger.Info("Payout rule has delay, skipping auto-trigger",
+						"delay_hours", rule.DelayHours, "rule_id", rule.ID)
+					return
+				}
+
+				// Ejecutar el payout con el porcentaje de la regla
+				s.logger.Info("Auto-triggering split payout",
+					"checkout_id", chkID, "percentage", rule.Percentage, "rule_id", rule.ID)
+
+				payout, err := s.payoutTrigger.ProcessSplitPayout(bgCtx, chkID, rule.Percentage)
+				if err != nil {
+					s.logger.Error("Auto-payout failed",
+						"error", err, "checkout_id", chkID, "percentage", rule.Percentage)
+					return
+				}
+				s.logger.Info("Auto-payout initiated successfully",
+					"payout_id", payout.ID, "amount_minor", payout.AmountMinor,
+					"percentage", payout.Percentage)
+
+			}(context.Background(), intent.CheckoutID, shopID)
+		}
 	}
 
 	return nil
-	// --- FIN DE LA LÓGICA DE NOTIFICACIÓN ---
 }
 
 func (s *CheckoutService) recordLedgerMovement(ctx context.Context, tx ports.DBTransaction, intent *domain.PaymentIntent, checkout *domain.Checkout, eventID string) error {

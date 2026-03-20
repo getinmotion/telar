@@ -180,6 +180,11 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (checkout?.checkout_url) {
+        // Guardar checkout_id en sessionStorage para PaymentPending
+        if (checkout.checkout_id) {
+          sessionStorage.setItem('pendingCheckoutId', checkout.checkout_id);
+        }
+
         const opened = window.open(checkout.checkout_url, "_blank");
         if (!opened) {
           toast.error("Tu navegador bloqueó la ventana de pago. Permite pop-ups e intenta de nuevo.");
