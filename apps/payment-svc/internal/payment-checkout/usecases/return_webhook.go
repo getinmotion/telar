@@ -117,15 +117,11 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 	// 2. Si el commit fue exitoso y el estado es definitivo, NOTIFICAMOS.
 	if newCheckoutStatus == "paid" || newCheckoutStatus == "failed" {
 
-		// Obtenemos el checkout para notificación y auto-payout
+		// Obtenemos el checkout para notificación
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 		cartID := ""
-		shopID := ""
 		if checkout != nil {
 			cartID = checkout.CartID
-			if checkout.ContextShopID != nil {
-				shopID = *checkout.ContextShopID
-			}
 		}
 
 		// 2a. Notificación a la API central (background)
