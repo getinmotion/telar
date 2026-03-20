@@ -33,7 +33,7 @@ export class PaymentsService {
    */
   async processPaymentWebhook(webhookData: PaymentWebhookDto): Promise<void> {
     this.logger.log(
-      `[Webhook] Recibido evento de pago - Status: ${webhookData.status}, Cart ID: ${webhookData.cart_id}, Gateway: ${webhookData.gateway_code}`,
+      `[Webhook] Recibido evento de pago - Status: ${webhookData.status}, Cart ID: ${webhookData.cart_id}`,
     );
 
     try {
@@ -144,7 +144,6 @@ export class PaymentsService {
       const orderData = {
         cartId: cart.id,
         transactionId: webhookData.transaction_id,
-        gatewayCode: webhookData.gateway_code.toUpperCase(),
         currency: cart.currency,
         items: formattedItems,
         totalFormatted,
