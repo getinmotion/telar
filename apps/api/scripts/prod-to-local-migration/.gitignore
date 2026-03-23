@@ -1,0 +1,7 @@
+.env
+logs/
+*.log
+node_modules/
+backups/
+*.dump
+*.sql
