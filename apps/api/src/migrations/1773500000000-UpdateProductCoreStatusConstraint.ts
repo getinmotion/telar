@@ -13,18 +13,19 @@ export class UpdateProductCoreStatusConstraint1773500000000 implements Migration
         // - Cambia DEFAULT a 'draft'
         // ============================================================
 
-        // Paso 1: Remapear los datos existentes al esquema legacy
-        // Cambia 'published' a 'approved' en registros existentes
+        // Paso 1: Eliminar el CHECK constraint viejo PRIMERO
+        // Esto permite actualizar los datos sin restricciones
+        await queryRunner.query(`
+            ALTER TABLE shop.products_core
+            DROP CONSTRAINT IF EXISTS products_core_status_check
+        `);
+
+        // Paso 2: Remapear los datos existentes al esquema legacy
+        // Ahora SÍ podemos cambiar 'published' a 'approved'
         await queryRunner.query(`
             UPDATE shop.products_core
             SET status = 'approved'
             WHERE status = 'published'
-        `);
-
-        // Paso 2: Eliminar el CHECK constraint viejo
-        await queryRunner.query(`
-            ALTER TABLE shop.products_core
-            DROP CONSTRAINT IF EXISTS products_core_status_check
         `);
 
         // Paso 3: Crear el CHECK constraint con los estados legacy
@@ -64,18 +65,18 @@ export class UpdateProductCoreStatusConstraint1773500000000 implements Migration
         // Revertir cambios del CHECK constraint de products_core.status
         // ============================================================
 
-        // Paso 1: Remapear los datos de vuelta al esquema anterior
-        // Cambia 'approved' a 'published' (asumiendo que era el estado anterior común)
+        // Paso 1: Eliminar el CHECK constraint legacy PRIMERO
+        await queryRunner.query(`
+            ALTER TABLE shop.products_core
+            DROP CONSTRAINT IF EXISTS products_core_status_check
+        `);
+
+        // Paso 2: Remapear los datos de vuelta al esquema anterior
+        // Ahora SÍ podemos cambiar 'approved' a 'published'
         await queryRunner.query(`
             UPDATE shop.products_core
             SET status = 'published'
             WHERE status = 'approved'
-        `);
-
-        // Paso 2: Eliminar el CHECK constraint legacy
-        await queryRunner.query(`
-            ALTER TABLE shop.products_core
-            DROP CONSTRAINT IF EXISTS products_core_status_check
         `);
 
         // Paso 3: Recrear el CHECK constraint anterior
