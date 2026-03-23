@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tail -50 backups/restore_log*)",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -l)",
+      "Bash(PGPASSWORD=\"admin\" pg_restore -h localhost -p 5432 -U postgres -d bdcesar -v --clean --if-exists --no-owner --no-acl ./backups/prod_backup_20260323_013355.dump)",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as usuarios FROM auth.users;\")",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as tiendas FROM shop.artisan_shops;\")",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as productos FROM shop.products;\")",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT:*)"
+    ]
+  }
+}
