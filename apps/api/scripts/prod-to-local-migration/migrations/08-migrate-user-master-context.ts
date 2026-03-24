@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateUserMasterContext() {
   const logger = new MigrationLogger('user-master-context');
@@ -34,7 +34,7 @@ export async function migrateUserMasterContext() {
     for (const [index, context] of contexts.entries()) {
       try {
         const columns = Object.keys(context);
-        const values = Object.values(context);
+        const values = serializeRow(context);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

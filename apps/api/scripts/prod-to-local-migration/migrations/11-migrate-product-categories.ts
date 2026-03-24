@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductCategories() {
   const logger = new MigrationLogger('product-categories');
@@ -34,7 +34,7 @@ export async function migrateProductCategories() {
     for (const [index, category] of categories.entries()) {
       try {
         const columns = Object.keys(category);
-        const values = Object.values(category);
+        const values = serializeRow(category);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

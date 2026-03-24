@@ -20,8 +20,10 @@ if backend_path not in sys.path:
 
 # Import after path setup
 from agents.api import router as agents_router
-from agents.langsmith import init_langsmith
+from agents.search_api import router as search_router
+from agents.tracing import init_langsmith
 from src.api.config import settings
+from src.database.pg_client import get_pool, close_pool
 
 # Configure logging
 logging.basicConfig(
@@ -35,7 +37,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     # Startup
-    logger.info("🚀 Starting GetInMotion Agents Service")
+    logger.info("Starting GetInMotion Agents Service")
     logger.info(f"📊 Version: 1.0.0")
     logger.info(f"🤖 OpenAI Model: {settings.openai_model}")
     logger.info(f"📦 Embedding Model: {settings.embedding_model}")
@@ -55,12 +57,23 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("⚠️  Tavily Web Search: Disabled (Pricing Agent will have limited capabilities)")
     
-    logger.info("✅ Agents Service Ready")
-    
+    # Warm up catalog DB connection pool
+    if settings.catalog_db_url:
+        try:
+            await get_pool()
+            logger.info("Catalog DB pool ready")
+        except Exception as exc:
+            logger.warning(f"Catalog DB pool could not be created at startup: {exc}")
+    else:
+        logger.warning("CATALOG_DB_URL not set - semantic search will be unavailable")
+
+    logger.info("Agents Service Ready")
+
     yield
-    
+
     # Shutdown
-    logger.info("🛑 Shutting down GetInMotion Agents Service")
+    await close_pool()
+    logger.info("Shutting down GetInMotion Agents Service")
 
 
 # Create FastAPI app
@@ -98,8 +111,12 @@ app = FastAPI(
     openapi_tags=[
         {
             "name": "Agents System",
-            "description": "Multi-agent system endpoints for processing user requests"
-        }
+            "description": "Multi-agent system endpoints for processing user requests",
+        },
+        {
+            "name": "Semantic Search",
+            "description": "Embedding generation, semantic search and batch indexing for the marketplace catalog",
+        },
     ]
 )
 
@@ -112,8 +129,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include agents router
+# Include routers
 app.include_router(agents_router, prefix="/api")
+app.include_router(search_router, prefix="/api")
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
@@ -141,7 +159,12 @@ async def root():
             "memory_search": "/api/agents/memory/search",
             "profile": "/api/agents/memory/profile/{user_id}",
             "info": "/api/agents/info",
-            "health": "/api/agents/health"
+            "health": "/api/agents/health",
+            "search_products": "/api/search/products",
+            "generate_embedding": "/api/search/embeddings/generate",
+            "save_embedding": "/api/search/embeddings/save",
+            "index_products": "/api/search/index/products",
+            "index_status": "/api/search/index/products/status",
         },
         "documentation": {
             "swagger": "/docs",

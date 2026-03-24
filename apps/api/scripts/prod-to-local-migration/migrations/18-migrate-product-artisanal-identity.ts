@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductArtisanalIdentity() {
   const logger = new MigrationLogger('product-artisanal-identity');
@@ -21,7 +21,7 @@ export async function migrateProductArtisanalIdentity() {
 
     logger.log('📖 Leyendo identidades de producción...');
     const identities = await productionConnection.query(`
-      SELECT * FROM shop.product_artisanal_identity ORDER BY created_at ASC
+      SELECT * FROM shop.product_artisanal_identity ORDER BY product_id ASC
     `);
 
     logger.log(`✅ Identidades leídas: ${identities.length}\n`);
@@ -34,20 +34,20 @@ export async function migrateProductArtisanalIdentity() {
     for (const [index, identity] of identities.entries()) {
       try {
         const columns = Object.keys(identity);
-        const values = Object.values(identity);
+        const values = serializeRow(identity);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(
           `INSERT INTO shop.product_artisanal_identity (${columns.join(', ')})
            VALUES (${placeholders})
-           ON CONFLICT (id) DO NOTHING`,
+           ON CONFLICT (product_id) DO NOTHING`,
           values
         );
 
         success++;
       } catch (error) {
         failed++;
-        logger.error(`Error migrando identidad ${identity.id}`, error);
+        logger.error(`Error migrando identidad ${identity.product_id}`, error);
       }
 
       progress.update(index + 1);

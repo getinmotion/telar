@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     supabase_url: str = os.getenv("SUPABASE_URL", "")
     supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     supabase_db_url: str = os.getenv("SUPABASE_DB_URL", "")
+
+    # Catalog Database (Lightsail PostgreSQL - shop.* and taxonomy.* tables)
+    catalog_db_url: str = os.getenv("CATALOG_DB_URL", "")
     
     # API Security
     api_secret_key: str = os.getenv("API_SECRET_KEY", "")
