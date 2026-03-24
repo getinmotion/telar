@@ -46,14 +46,31 @@ async def get_pool() -> Pool:
 async def _init_connection(conn: asyncpg.Connection) -> None:
     """Register pgvector codec on each new connection."""
     await conn.execute("SET search_path TO public, shop, taxonomy")
-    # Register vector type: pgvector stores vectors as text in wire protocol
-    await conn.set_type_codec(
-        "vector",
-        encoder=_encode_vector,
-        decoder=_decode_vector,
-        schema="public",
-        format="text",
+
+    # Find which schema the vector type lives in (may be 'public', 'extensions', etc.)
+    vector_schema: str | None = await conn.fetchval(
+        """
+        SELECT n.nspname
+        FROM pg_catalog.pg_type t
+        JOIN pg_catalog.pg_namespace n ON t.typnamespace = n.oid
+        WHERE t.typname = 'vector'
+        LIMIT 1
+        """
     )
+
+    if vector_schema:
+        await conn.set_type_codec(
+            "vector",
+            encoder=_encode_vector,
+            decoder=_decode_vector,
+            schema=vector_schema,
+            format="text",
+        )
+    else:
+        logger.warning(
+            "pgvector extension not found in database — "
+            "vector operations will fail. Run: CREATE EXTENSION vector;"
+        )
 
 
 def _encode_vector(value: list[float]) -> str:
