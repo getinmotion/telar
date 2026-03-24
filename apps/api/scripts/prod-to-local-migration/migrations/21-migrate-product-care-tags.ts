@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductCareTags() {
   const logger = new MigrationLogger('product-care-tags');
@@ -34,7 +34,7 @@ export async function migrateProductCareTags() {
     for (const [index, tag] of tags.entries()) {
       try {
         const columns = Object.keys(tag);
-        const values = Object.values(tag);
+        const values = serializeRow(tag);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

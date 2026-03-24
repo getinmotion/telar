@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateInventoryMovements() {
   const logger = new MigrationLogger('inventory-movements');
@@ -34,7 +34,7 @@ export async function migrateInventoryMovements() {
     for (const [index, movement] of movements.entries()) {
       try {
         const columns = Object.keys(movement);
-        const values = Object.values(movement);
+        const values = serializeRow(movement);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

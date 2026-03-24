@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateEmailVerifications() {
   const logger = new MigrationLogger('email-verifications');
@@ -34,7 +34,7 @@ export async function migrateEmailVerifications() {
     for (const [index, verification] of verifications.entries()) {
       try {
         const columns = Object.keys(verification);
-        const values = Object.values(verification);
+        const values = serializeRow(verification);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

@@ -29,6 +29,7 @@ openai==1.10.0
 supabase==2.9.0
 # postgrest will be installed automatically by supabase
 psycopg2-binary==2.9.9
+asyncpg==0.29.0
 
 # ============================================================
 # Utilities
