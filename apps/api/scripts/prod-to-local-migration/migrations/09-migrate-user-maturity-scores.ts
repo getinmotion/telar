@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateUserMaturityScores() {
   const logger = new MigrationLogger('user-maturity-scores');
@@ -34,7 +34,7 @@ export async function migrateUserMaturityScores() {
     for (const [index, score] of scores.entries()) {
       try {
         const columns = Object.keys(score);
-        const values = Object.values(score);
+        const values = serializeRow(score);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

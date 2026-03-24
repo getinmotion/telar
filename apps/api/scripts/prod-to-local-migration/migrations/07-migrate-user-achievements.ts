@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateUserAchievements() {
   const logger = new MigrationLogger('user-achievements');
@@ -34,7 +34,7 @@ export async function migrateUserAchievements() {
     for (const [index, achievement] of achievements.entries()) {
       try {
         const columns = Object.keys(achievement);
-        const values = Object.values(achievement);
+        const values = serializeRow(achievement);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

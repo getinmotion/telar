@@ -11,7 +11,7 @@ services:
   # PostgreSQL Database
   # ========================================
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: gim-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -131,6 +131,7 @@ services:
       MEMORY_IMPORTANCE_THRESHOLD: ${MEMORY_IMPORTANCE_THRESHOLD}
       PROFILE_UPDATE_INTERVAL: ${PROFILE_UPDATE_INTERVAL}
       CONVERSATION_SUMMARY_INTERVAL: ${CONVERSATION_SUMMARY_INTERVAL}
+      CATALOG_DB_URL: ${CATALOG_DB_URL}
     ports:
       - "${AGENTS_PORT}:${AGENTS_PORT}"
     depends_on:
