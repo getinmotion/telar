@@ -6,9 +6,19 @@ import {
   Logger,
   ConflictException,
 } from '@nestjs/common';
-import { Repository, SelectQueryBuilder, Not, In } from 'typeorm';
+import { Repository, SelectQueryBuilder, Not, In, DataSource } from 'typeorm';
 import { Product } from './entities/product.entity';
+import {
+  ProductCore,
+  ProductArtisanalIdentity,
+  ProductMaterialLink,
+  ProductPhysicalSpecs,
+  ProductProduction,
+  ProductMedia,
+  ProductVariantV2,
+} from './entities/v2/product-core.entity';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductV2Dto } from './dto/create-product-v2.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsQueryDto } from './dto/products-query.dto';
 
@@ -19,6 +29,20 @@ export class ProductsService {
   constructor(
     @Inject('PRODUCTS_REPOSITORY')
     private readonly productsRepository: Repository<Product>,
+    @Inject('PRODUCT_CORE_REPOSITORY')
+    private readonly productCoreRepo: Repository<ProductCore>,
+    @Inject('PRODUCT_ARTISANAL_IDENTITY_REPOSITORY')
+    private readonly artisanalIdentityRepo: Repository<ProductArtisanalIdentity>,
+    @Inject('PRODUCT_PHYSICAL_SPECS_REPOSITORY')
+    private readonly physicalSpecsRepo: Repository<ProductPhysicalSpecs>,
+    @Inject('PRODUCT_PRODUCTION_REPOSITORY')
+    private readonly productionRepo: Repository<ProductProduction>,
+    @Inject('PRODUCT_MEDIA_REPOSITORY')
+    private readonly mediaRepo: Repository<ProductMedia>,
+    @Inject('PRODUCT_VARIANT_V2_REPOSITORY')
+    private readonly variantV2Repo: Repository<ProductVariantV2>,
+    @Inject('DATA_SOURCE')
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -40,6 +64,155 @@ export class ProductsService {
 
     const newProduct = this.productsRepository.create(createProductDto);
     return await this.productsRepository.save(newProduct);
+  }
+
+  /**
+   * Crear producto v2 — escribe directamente en shop.products_core
+   * y sus tablas relacionadas (identidad artesanal, materiales,
+   * especificaciones, producción, media, variantes).
+   *
+   * Usa una transacción para garantizar consistencia.
+   * Los campos que requieren UUIDs de catálogos (craft_id, technique_id,
+   * material_id) se dejan null por ahora — el frontend envía strings
+   * descriptivos que se almacenan de forma provisional.
+   */
+  async createV2(dto: CreateProductV2Dto): Promise<ProductCore> {
+    return await this.dataSource.transaction(async (manager) => {
+      // 1. Crear el producto core (con metadata provisional para care tags, proposals, curatorial)
+      const metadata: Record<string, any> = {};
+      if (dto.careTags?.length) {
+        metadata.careTags = dto.careTags;
+      }
+      if (dto.taxonomyProposals?.length) {
+        metadata.taxonomyProposals = dto.taxonomyProposals;
+      }
+      if (dto.curatorialRequest) {
+        metadata.curatorialRequest = dto.curatorialRequest;
+      }
+
+      const core = manager.create(ProductCore, {
+        storeId: dto.shopId,
+        name: dto.name,
+        shortDescription: dto.shortDescription,
+        history: dto.history ?? null,
+        careNotes: dto.careNotes ?? null,
+        categoryId: dto.categoryId ?? null,
+        status: 'draft',
+        metadata: Object.keys(metadata).length > 0 ? metadata : null,
+      });
+      const savedCore = await manager.save(ProductCore, core);
+      const productId = savedCore.id;
+
+      // 2. Identidad artesanal (provisional: craft/technique como texto en estimatedElaborationTime, ids null)
+      if (dto.artisanalIdentity) {
+        const ai = dto.artisanalIdentity;
+        const identity = manager.create(ProductArtisanalIdentity, {
+          productId,
+          pieceType: ai.pieceType ?? null,
+          style: ai.style ?? null,
+          processType: ai.processType ?? null,
+          estimatedElaborationTime: ai.estimatedElaborationTime ?? null,
+          isCollaboration: ai.isCollaboration ?? false,
+          // IDs de catálogo quedan null por ahora — provisional
+          primaryCraftId: null,
+          primaryTechniqueId: null,
+          secondaryTechniqueId: null,
+          curatorialCategoryId: null,
+        });
+        await manager.save(ProductArtisanalIdentity, identity);
+
+        // Guardar los nombres de craft/technique como metadata en el core.history
+        // para no perder la info hasta que se resuelvan los IDs
+        if (ai.craft || ai.primaryTechnique) {
+          const metaNote = [
+            ai.craft && `[craft:${ai.craft}]`,
+            ai.primaryTechnique && `[technique:${ai.primaryTechnique}]`,
+            ai.secondaryTechnique && `[technique2:${ai.secondaryTechnique}]`,
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          savedCore.careNotes = savedCore.careNotes
+            ? `${savedCore.careNotes}\n---\n${metaNote}`
+            : metaNote;
+          await manager.save(ProductCore, savedCore);
+        }
+      }
+
+      // 3. Especificaciones físicas
+      if (dto.physicalSpecs) {
+        const ps = dto.physicalSpecs;
+        if (ps.heightCm || ps.widthCm || ps.lengthOrDiameterCm || ps.realWeightKg) {
+          const specs = manager.create(ProductPhysicalSpecs, {
+            productId,
+            heightCm: ps.heightCm ?? null,
+            widthCm: ps.widthCm ?? null,
+            lengthOrDiameterCm: ps.lengthOrDiameterCm ?? null,
+            realWeightKg: ps.realWeightKg ?? null,
+          });
+          await manager.save(ProductPhysicalSpecs, specs);
+        }
+      }
+
+      // 4. Producción
+      if (dto.production) {
+        const prod = manager.create(ProductProduction, {
+          productId,
+          availabilityType: dto.production.availabilityType,
+          productionTimeDays: dto.production.productionTimeDays ?? null,
+          monthlyCapacity: dto.production.monthlyCapacity ?? null,
+          requirementsToStart: dto.production.requirementsToStart ?? null,
+        });
+        await manager.save(ProductProduction, prod);
+      }
+
+      // 5. Materiales (provisional: sin IDs, guardados en metadata)
+      if (dto.materials?.length) {
+        const existingMeta = savedCore.metadata ?? {};
+        existingMeta.materials = dto.materials;
+        savedCore.metadata = existingMeta;
+        await manager.save(ProductCore, savedCore);
+      }
+
+      // 6. Imágenes (media)
+      if (dto.images?.length) {
+        const mediaEntities = dto.images.map((url, idx) =>
+          manager.create(ProductMedia, {
+            productId,
+            mediaUrl: url,
+            mediaType: 'image',
+            isPrimary: idx === 0,
+            displayOrder: idx,
+          }),
+        );
+        await manager.save(ProductMedia, mediaEntities);
+      }
+
+      // 7. Variantes (o crear una variante default con el precio)
+      const variantsToCreate =
+        dto.variants?.length
+          ? dto.variants
+          : dto.price
+          ? [{ basePriceMinor: Math.round(dto.price * 100), stockQuantity: 0 }]
+          : [];
+
+      if (variantsToCreate.length) {
+        const variantEntities = variantsToCreate.map((v) =>
+          manager.create(ProductVariantV2, {
+            productId,
+            sku: v.sku ?? null,
+            basePriceMinor: v.basePriceMinor,
+            stockQuantity: v.stockQuantity ?? 0,
+            currency: 'COP',
+            isActive: true,
+          }),
+        );
+        await manager.save(ProductVariantV2, variantEntities);
+      }
+
+      this.logger.log(`Product v2 created: ${productId} (${dto.name})`);
+      return savedCore;
+    });
   }
 
   /**

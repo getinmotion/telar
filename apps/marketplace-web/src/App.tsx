@@ -22,6 +22,8 @@ import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import Categories from "./pages/Categories";
+import CategoryDetail from "./pages/CategoryDetail";
+import ArtisanProfile from "./pages/ArtisanProfile";
 import RecategorizeProducts from "./pages/RecategorizeProducts";
 import CreateMarketplaceView from "./pages/CreateMarketplaceView";
 import NotFound from "./pages/NotFound";
@@ -36,6 +38,7 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import GoogleAuthCallback from "./pages/GoogleAuthCallback";
+import CreateProduct from "./pages/CreateProduct";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +68,8 @@ const App = () => (
                           <Route path="/profile" element={<Profile />} />
                           <Route path="/wishlist" element={<Wishlist />} />
                           <Route path="/categorias" element={<Categories />} />
+                          <Route path="/categoria/:slug" element={<CategoryDetail />} />
+                          <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                           <Route path="/giftcards" element={<GiftCards />} />
                           <Route path="/confirm-purchase" element={<ConfirmPurchase />} />
                           <Route path="/payment-pending" element={<PaymentPending />} />
@@ -82,6 +87,7 @@ const App = () => (
                         <Route path="/reset-password" element={<ResetPassword />} />
                         <Route path="/recategorize" element={<RecategorizeProducts />} />
                         <Route path="/create-view" element={<CreateMarketplaceView />} />
+                        <Route path="/crear-pieza" element={<CreateProduct />} />
 
                         {/* Catch-all */}
                         <Route path="*" element={<NotFound />} />

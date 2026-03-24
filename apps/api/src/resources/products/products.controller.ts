@@ -20,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductV2Dto } from './dto/create-product-v2.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsQueryDto } from './dto/products-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -46,6 +47,26 @@ export class ProductsController {
   @ApiResponse({ status: 409, description: 'El SKU ya existe' })
   async create(@Body() createProductDto: CreateProductDto) {
     return await this.productsService.create(createProductDto);
+  }
+
+  /**
+   * POST /products/v2
+   * Crear producto con estructura del nuevo schema (provisional)
+   */
+  @Post('v2')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Crear producto v2 (nuevo schema)',
+    description:
+      'Endpoint provisional que acepta datos del nuevo schema EAV y los mapea a la tabla actual. ' +
+      'Permite empezar a usar el flujo de creación editorial sin esperar la migración completa.',
+  })
+  @ApiResponse({ status: 201, description: 'Producto creado exitosamente' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  async createV2(@Body() createProductV2Dto: CreateProductV2Dto) {
+    return await this.productsService.createV2(createProductV2Dto);
   }
 
   /**

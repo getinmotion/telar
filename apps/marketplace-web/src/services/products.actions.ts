@@ -12,6 +12,7 @@ import type {
   CreateProductRequest,
   UpdateProductRequest,
 } from '@/types/products.types';
+import type { CreateProductV2Data } from '@/components/create-product/types';
 
 /**
  * Obtener productos de marketplace con filtros y paginación
@@ -240,6 +241,26 @@ export const deleteProduct = async (
     const response = await telarApi.delete<{ message: string }>(
       `/products/${id}`
     );
+    return response.data;
+  } catch (error: any) {
+    toastError(error);
+    throw error;
+  }
+};
+
+/**
+ * Crear producto v2 — escribe en shop.products_core y tablas relacionadas.
+ *
+ * @param {CreateProductV2Data} data - Datos del nuevo schema
+ * @returns {Promise<{ id: string }>} Producto core creado
+ *
+ * @endpoint POST /products/v2
+ */
+export const createProductV2 = async (
+  data: CreateProductV2Data
+): Promise<{ id: string }> => {
+  try {
+    const response = await telarApi.post<{ id: string }>('/products/v2', data);
     return response.data;
   } catch (error: any) {
     toastError(error);
