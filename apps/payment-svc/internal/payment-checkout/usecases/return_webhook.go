@@ -120,12 +120,12 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 		// Obtenemos el checkout para notificación y auto-payout
 		checkout, _ := s.uow.CheckoutRepo().GetCheckoutByID(ctx, intent.CheckoutID)
 		cartID := ""
-		shopID := ""
+		// shopID := ""
 		if checkout != nil {
 			cartID = checkout.CartID
-			if checkout.ContextShopID != nil {
-				shopID = *checkout.ContextShopID
-			}
+			// if checkout.ContextShopID != nil {
+			// 	shopID = *checkout.ContextShopID
+			// }
 		}
 
 		// 2a. Notificación a la API central (background)
@@ -143,49 +143,49 @@ func (s *CheckoutService) ProcessPaymentEvent(ctx context.Context, providerCode 
 			}
 		}(context.Background(), payload)
 
-		// =====================================================
-		// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
-		// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
-		// =====================================================
-		if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
-			go func(bgCtx context.Context, chkID string, sID string) {
-				s.logger.Info("Checking payout rules for auto-payout",
-					"checkout_id", chkID, "shop_id", sID)
+		// 	// =====================================================
+		// 	// 2b. AUTO-PAYOUT: Disparar el primer 50% automáticamente
+		// 	// Solo si el pago fue exitoso y tenemos PayoutTrigger inyectado
+		// 	// =====================================================
+		// 	if newCheckoutStatus == "paid" && s.payoutTrigger != nil && shopID != "" {
+		// 		go func(bgCtx context.Context, chkID string, sID string) {
+		// 			s.logger.Info("Checking payout rules for auto-payout",
+		// 				"checkout_id", chkID, "shop_id", sID)
 
-				// Buscar regla aplicable: primero específica por tienda, luego global
-				rule, err := s.uow.PayoutRulesRepo().FindApplicableRule(bgCtx, sID, "checkout_paid")
-				if err != nil {
-					s.logger.Error("Error finding payout rule", "error", err, "shop_id", sID)
-					return
-				}
-				if rule == nil {
-					s.logger.Info("No active payout rule found for checkout_paid", "shop_id", sID)
-					return
-				}
+		// 			// Buscar regla aplicable: primero específica por tienda, luego global
+		// 			rule, err := s.uow.PayoutRulesRepo().FindApplicableRule(bgCtx, sID, "checkout_paid")
+		// 			if err != nil {
+		// 				s.logger.Error("Error finding payout rule", "error", err, "shop_id", sID)
+		// 				return
+		// 			}
+		// 			if rule == nil {
+		// 				s.logger.Info("No active payout rule found for checkout_paid", "shop_id", sID)
+		// 				return
+		// 			}
 
-				// Si delay_hours > 0, aquí iría la lógica de cola diferida (futuro)
-				if rule.DelayHours > 0 {
-					s.logger.Info("Payout rule has delay, skipping auto-trigger",
-						"delay_hours", rule.DelayHours, "rule_id", rule.ID)
-					return
-				}
+		// 			// Si delay_hours > 0, aquí iría la lógica de cola diferida (futuro)
+		// 			if rule.DelayHours > 0 {
+		// 				s.logger.Info("Payout rule has delay, skipping auto-trigger",
+		// 					"delay_hours", rule.DelayHours, "rule_id", rule.ID)
+		// 				return
+		// 			}
 
-				// Ejecutar el payout con el porcentaje de la regla
-				s.logger.Info("Auto-triggering split payout",
-					"checkout_id", chkID, "percentage", rule.Percentage, "rule_id", rule.ID)
+		// 			// Ejecutar el payout con el porcentaje de la regla
+		// 			s.logger.Info("Auto-triggering split payout",
+		// 				"checkout_id", chkID, "percentage", rule.Percentage, "rule_id", rule.ID)
 
-				payout, err := s.payoutTrigger.ProcessSplitPayout(bgCtx, chkID, rule.Percentage)
-				if err != nil {
-					s.logger.Error("Auto-payout failed",
-						"error", err, "checkout_id", chkID, "percentage", rule.Percentage)
-					return
-				}
-				s.logger.Info("Auto-payout initiated successfully",
-					"payout_id", payout.ID, "amount_minor", payout.AmountMinor,
-					"percentage", payout.Percentage)
+		// 			payout, err := s.payoutTrigger.ProcessSplitPayout(bgCtx, chkID, rule.Percentage)
+		// 			if err != nil {
+		// 				s.logger.Error("Auto-payout failed",
+		// 					"error", err, "checkout_id", chkID, "percentage", rule.Percentage)
+		// 				return
+		// 			}
+		// 			s.logger.Info("Auto-payout initiated successfully",
+		// 				"payout_id", payout.ID, "amount_minor", payout.AmountMinor,
+		// 				"percentage", payout.Percentage)
 
-			}(context.Background(), intent.CheckoutID, shopID)
-		}
+		// 		}(context.Background(), intent.CheckoutID, shopID)
+		// 	}
 	}
 
 	return nil
