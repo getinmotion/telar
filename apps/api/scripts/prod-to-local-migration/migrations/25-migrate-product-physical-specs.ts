@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductPhysicalSpecs() {
   const logger = new MigrationLogger('product-physical-specs');
@@ -34,7 +34,7 @@ export async function migrateProductPhysicalSpecs() {
     for (const [index, spec] of specs.entries()) {
       try {
         const columns = Object.keys(spec);
-        const values = Object.values(spec);
+        const values = serializeRow(spec);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

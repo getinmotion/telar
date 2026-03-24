@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateAgentTasks() {
   const logger = new MigrationLogger('agent-tasks');
@@ -34,7 +34,7 @@ export async function migrateAgentTasks() {
     for (const [index, task] of tasks.entries()) {
       try {
         const columns = Object.keys(task);
-        const values = Object.values(task);
+        const values = serializeRow(task);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

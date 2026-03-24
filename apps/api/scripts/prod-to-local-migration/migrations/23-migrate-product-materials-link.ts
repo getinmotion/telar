@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductMaterialsLink() {
   const logger = new MigrationLogger('product-materials-link');
@@ -21,7 +21,7 @@ export async function migrateProductMaterialsLink() {
 
     logger.log('📖 Leyendo vínculos de producción...');
     const links = await productionConnection.query(`
-      SELECT * FROM shop.product_materials_link ORDER BY created_at ASC
+      SELECT * FROM shop.product_materials_link ORDER BY product_id ASC
     `);
 
     logger.log(`✅ Vínculos leídos: ${links.length}\n`);
@@ -34,20 +34,20 @@ export async function migrateProductMaterialsLink() {
     for (const [index, link] of links.entries()) {
       try {
         const columns = Object.keys(link);
-        const values = Object.values(link);
+        const values = serializeRow(link);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(
           `INSERT INTO shop.product_materials_link (${columns.join(', ')})
            VALUES (${placeholders})
-           ON CONFLICT (id) DO NOTHING`,
+           ON CONFLICT (product_id, material_id) DO NOTHING`,
           values
         );
 
         success++;
       } catch (error) {
         failed++;
-        logger.error(`Error migrando vínculo ${link.id}`, error);
+        logger.error(`Error migrando vínculo ${link.product_id}`, error);
       }
 
       progress.update(index + 1);
