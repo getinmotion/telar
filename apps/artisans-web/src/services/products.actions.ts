@@ -1,10 +1,29 @@
 /**
- * Products Service
- * Servicio para gestión de productos en el backend NestJS
+ * Products Service - Servicio Legacy
+ *
+ * MIGRACIÓN EN PROGRESO:
+ * - Operaciones GET migradas a /products-new endpoints (nueva arquitectura multicapa)
+ * - Operaciones POST/PATCH/DELETE siguen usando /products (legacy)
+ *
+ * Para tipos de la nueva arquitectura, ver: @telar/shared-types/products
  */
 
 import { telarApi } from '@/integrations/api/telarApi';
-import { Product } from '@/types/artisan';
+import type { LegacyProduct } from '@telar/shared-types';
+
+// Importar funciones de products-new para operaciones GET
+import {
+  findProductByLegacyId,
+  getProductsByStoreId,
+  mapProductToLegacy,
+  mapProductsToLegacy,
+} from './products-new.actions';
+
+// Importar función de stores para obtener storeId por userId
+import { getStoreByUserId } from './stores.actions';
+
+// Tipo alias para compatibilidad con código existente
+type Product = LegacyProduct;
 
 // DTO que retorna el backend (camelCase)
 interface BackendProductDTO {
@@ -114,13 +133,15 @@ function toBackendPayload(data: Record<string, any>): Record<string, any> {
 }
 
 /**
- * Obtener un producto por ID
- * Endpoint: GET /products/:id
+ * Obtener un producto por ID (legacy productId)
+ * ✅ MIGRADO: Usa products-new internamente
+ * Endpoint: GET /products-new/legacy/:legacyId
  */
 export async function getProductById(productId: string): Promise<Product | null> {
   try {
-    const response = await telarApi.get<BackendProductDTO>(`/products/${productId}`);
-    return mapProductFromDTO(response.data);
+    const product = await findProductByLegacyId(productId);
+    if (!product) return null;
+    return mapProductToLegacy(product);
   } catch (error: any) {
     if (error.response?.status === 404) return null;
     throw error;
@@ -129,13 +150,19 @@ export async function getProductById(productId: string): Promise<Product | null>
 
 /**
  * Obtener todos los productos de una tienda
- * Endpoint: GET /products/shop/:shopId
+ * ✅ MIGRADO: Usa products-new internamente
+ * Endpoint: GET /products-new/store/:storeId
+ * @param shopId - Store ID (puede ser legacyId o storeId nuevo)
  */
 export async function getProductsByShopId(shopId: string): Promise<Product[]> {
-  const response = await telarApi.get<BackendProductDTO[]>(
-    `/products/shop/${shopId}`
-  );
-  return response.data.map(mapProductFromDTO);
+  try {
+    const products = await getProductsByStoreId(shopId);
+    return mapProductsToLegacy(products);
+  } catch (error: any) {
+    // Si falla, retornar array vacío para compatibilidad
+    console.error(`Error fetching products for shop ${shopId}:`, error);
+    return [];
+  }
 }
 
 /**
@@ -179,33 +206,60 @@ export async function deleteProduct(productId: string): Promise<void> {
 
 /**
  * Obtener todos los productos activos de un usuario (a través de su tienda)
- * Endpoint: GET /products/user/:userId
+ * ✅ MIGRADO: Obtiene store por userId, luego productos
+ * Endpoints: GET /stores/user/:userId → GET /products-new/store/:storeId
  */
 export async function getProductsByUserId(userId: string): Promise<Product[]> {
-  const response = await telarApi.get<BackendProductDTO[]>(
-    `/products/user/${userId}`
-  );
-  return response.data.map(mapProductFromDTO);
+  try {
+    // Primero obtener la tienda del usuario
+    const store = await getStoreByUserId(userId);
+    if (!store) {
+      return [];
+    }
+
+    // Luego obtener los productos de esa tienda
+    const products = await getProductsByStoreId(store.id);
+    return mapProductsToLegacy(products);
+  } catch (error: any) {
+    console.error(`Error fetching products for user ${userId}:`, error);
+    return [];
+  }
 }
 
 /**
  * Obtener productos de una tienda para el marketplace (solo aprobados)
- * Endpoint: GET /products/marketplace/shop/:shopId
+ * ✅ MIGRADO: Usa products-new y filtra por status 'approved'
+ * Endpoint: GET /products-new/store/:storeId
  */
 export async function getMarketplaceProductsByShopId(shopId: string): Promise<Product[]> {
-  const response = await telarApi.get<BackendProductDTO[]>(
-    `/products/marketplace/shop/${shopId}`
-  );
-  return response.data.map(mapProductFromDTO);
+  try {
+    const products = await getProductsByStoreId(shopId);
+
+    // Filtrar solo productos aprobados
+    const approvedProducts = products.filter(p => p.status === 'approved');
+
+    return mapProductsToLegacy(approvedProducts);
+  } catch (error: any) {
+    console.error(`Error fetching marketplace products for shop ${shopId}:`, error);
+    return [];
+  }
 }
 
 /**
  * Obtener el conteo de productos aprobados de una tienda
- * Endpoint: GET /products/shop/:shopId/approved-count
+ * ✅ MIGRADO: Obtiene productos y cuenta los aprobados
+ * Endpoint: GET /products-new/store/:storeId
  */
 export async function getApprovedProductsCount(shopId: string): Promise<number> {
-  const response = await telarApi.get<{ count: number }>(
-    `/products/shop/${shopId}/approved-count`
-  );
-  return response.data.count;
+  try {
+    const products = await getProductsByStoreId(shopId);
+
+    // Contar solo productos con status 'approved'
+    const approvedCount = products.filter(p => p.status === 'approved').length;
+
+    return approvedCount;
+  } catch (error: any) {
+    console.error(`Error counting approved products for shop ${shopId}:`, error);
+    return 0;
+  }
 }

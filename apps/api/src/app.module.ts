@@ -41,6 +41,8 @@ import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
 import { PaymentsModule } from './resources/payments/payments.module';
+import { StoresModule } from './resources/stores/stores.module';
+import { ProductsNewModule } from './resources/products-new/products-new.module';
 
 @Module({
   imports: [
@@ -89,6 +91,8 @@ import { PaymentsModule } from './resources/payments/payments.module';
     FileUploadModule,
     CmsModule,
     PaymentsModule,
+    StoresModule,
+    ProductsNewModule,
   ],
   controllers: [],
   providers: [],

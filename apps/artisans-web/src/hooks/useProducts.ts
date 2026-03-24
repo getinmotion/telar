@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Product } from '@/types/artisan';
+import type { LegacyProduct } from '@/types'; // ✅ Tipos compartidos via re-export
 import { useToast } from '@/hooks/use-toast';
 import { EventBus } from '@/utils/eventBus';
+
+// Alias para compatibilidad durante migración
+type Product = LegacyProduct;
 import {
   getProductsByShopId,
   createProduct as apiCreateProduct,

@@ -10,7 +10,7 @@ import {
   isSlugAvailable
 } from '@/services/artisanShops.actions';
 import { generateShopContact } from '@/services/ai.actions';
-import { ArtisanShop } from '@/types/artisanShop.types';
+import type { ArtisanShop } from '@/types'; // ✅ Tipo compartido
 
 export const useArtisanShop = () => {
   const [shop, setShop] = useState<ArtisanShop | null>(null);

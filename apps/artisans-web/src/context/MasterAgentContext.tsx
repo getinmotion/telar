@@ -260,7 +260,7 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({
               //   .select('*', { count: 'exact', head: true })
               //   .eq('shop_id', shop.id);
 
-              const shopProductsCount = await getProductsByUserId(shop.id);
+              const shopProductsCount = await getProductsByUserId(authUser.id);
 
               setMasterState((prev) => ({
                 ...prev,
@@ -333,7 +333,7 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({
             //   .select('*')
             //   .eq('shop_id', shopId);
 
-            const products = await getProductsByUserId(shopId);
+            const products = await getProductsByUserId(authUser.id);
 
             const productsArray = products || [];
 

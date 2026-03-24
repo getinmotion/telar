@@ -7,7 +7,9 @@
       "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as usuarios FROM auth.users;\")",
       "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as tiendas FROM shop.artisan_shops;\")",
       "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT COUNT\\(*\\) as productos FROM shop.products;\")",
-      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT:*)"
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"SELECT:*)",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"\\\\d shop.stores\")",
+      "Bash(PGPASSWORD=\"admin\" psql -h localhost -U postgres -d bdcesar -c \"\\\\d shop.artisan_shops\")"
     ]
   }
 }

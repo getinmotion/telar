@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"interface\\\\|type\\\\|enum\")",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run type-check)",
+      "Bash(npm run)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\User\\Documents\\proyectos\\telar\\apps\\api\\src\\resources\\products-new\\entities",
+      "c:\\Users\\User\\Documents\\proyectos\\telar\\apps\\api\\src\\resources\\products-new\\dto",
+      "c:\\Users\\User\\Documents\\proyectos\\telar\\apps\\api\\src\\resources\\products-new",
+      "c:\\Users\\User\\Documents\\proyectos\\telar\\apps\\shared-types"
+    ]
+  }
+}
