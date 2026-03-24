@@ -241,7 +241,7 @@ class SemanticSearchService:
                     generated_at  = now()
                 """,
                 product_id,
-                _encode_vector(vector),
+                vector,
                 model,
                 text,
                 self._EMBEDDING_VERSION,
@@ -269,13 +269,12 @@ class SemanticSearchService:
             List of ProductSearchResult ordered by descending similarity.
         """
         query_vector = await embedding_service.generate_embedding(query)
-        vector_str = _encode_vector(query_vector)
 
         pool = await get_pool()
         async with pool.acquire() as conn:
             rows = await conn.fetch(
                 _PRODUCT_SEARCH_SQL,
-                vector_str,
+                query_vector,
                 min_similarity,
                 top_k,
             )
@@ -393,7 +392,7 @@ class SemanticSearchService:
             records = [
                 (
                     str(row["product_id"]),
-                    _encode_vector(vec),
+                    vec,
                     "text-embedding-3-small",
                     text,
                     self._EMBEDDING_VERSION,
@@ -428,15 +427,6 @@ class SemanticSearchService:
 
     def get_indexing_status(self) -> dict:
         return self._indexing_status.to_dict()
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _encode_vector(value: list[float]) -> str:
-    """Encode a Python list of floats to pgvector text '[x,y,...]'."""
-    return "[" + ",".join(str(v) for v in value) + "]"
 
 
 # ---------------------------------------------------------------------------
