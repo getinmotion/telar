@@ -120,7 +120,6 @@ LEFT JOIN (
     GROUP BY pml.product_id
 ) mat ON pc.id = mat.product_id
 WHERE pc.deleted_at IS NULL
-  AND pc.status IN ('approved', 'approved_with_edits')
   AND 1 - (pe.embedding <=> $1::vector) >= $2
 ORDER BY pe.embedding <=> $1::vector
 LIMIT $3
