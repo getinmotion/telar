@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateUserProfiles() {
   const logger = new MigrationLogger('user-profiles');
@@ -34,7 +34,7 @@ export async function migrateUserProfiles() {
     for (const [index, profile] of profiles.entries()) {
       try {
         const columns = Object.keys(profile);
-        const values = Object.values(profile);
+        const values = serializeRow(profile);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

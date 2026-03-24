@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductBadges() {
   const logger = new MigrationLogger('product-badges');
@@ -34,7 +34,7 @@ export async function migrateProductBadges() {
     for (const [index, badge] of badges.entries()) {
       try {
         const columns = Object.keys(badge);
-        const values = Object.values(badge);
+        const values = serializeRow(badge);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

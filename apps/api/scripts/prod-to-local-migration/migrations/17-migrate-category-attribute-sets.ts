@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateCategoryAttributeSets() {
   const logger = new MigrationLogger('category-attribute-sets');
@@ -34,7 +34,7 @@ export async function migrateCategoryAttributeSets() {
     for (const [index, set] of sets.entries()) {
       try {
         const columns = Object.keys(set);
-        const values = Object.values(set);
+        const values = serializeRow(set);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

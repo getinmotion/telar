@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProductMedia() {
   const logger = new MigrationLogger('product-media');
@@ -34,7 +34,7 @@ export async function migrateProductMedia() {
     for (const [index, item] of media.entries()) {
       try {
         const columns = Object.keys(item);
-        const values = Object.values(item);
+        const values = serializeRow(item);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateProducts() {
   const logger = new MigrationLogger('products');
@@ -34,7 +34,7 @@ export async function migrateProducts() {
     for (const [index, product] of products.entries()) {
       try {
         const columns = Object.keys(product);
-        const values = Object.values(product);
+        const values = serializeRow(product);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

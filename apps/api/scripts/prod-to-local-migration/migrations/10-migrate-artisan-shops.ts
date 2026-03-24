@@ -1,5 +1,5 @@
 import { productionConnection, localConnection, initConnections, closeConnections } from '../config';
-import { MigrationLogger, ProgressBar } from '../utils';
+import { MigrationLogger, ProgressBar, serializeRow } from '../utils';
 
 export async function migrateArtisanShops() {
   const logger = new MigrationLogger('artisan-shops');
@@ -35,7 +35,7 @@ export async function migrateArtisanShops() {
       try {
         // Copiar datos tal cual sin transformaciones
         const columns = Object.keys(shop);
-        const values = Object.values(shop);
+        const values = serializeRow(shop);
         const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
         await localConnection.query(

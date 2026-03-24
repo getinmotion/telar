@@ -121,16 +121,33 @@ export async function processBatch<T, R>(
 }
 
 /**
- * Sanitizar datos para evitar errores de SQL
+ * Sanitizar datos para evitar errores de SQL.
+ * Serializa objetos/arrays a JSON string para columnas jsonb.
  */
 export function sanitizeValue(value: any): any {
   if (value === undefined || value === null) {
     return null;
   }
 
+  if (value instanceof Date) {
+    return value;
+  }
+
   if (typeof value === 'string') {
     return value.trim();
   }
 
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
   return value;
+}
+
+/**
+ * Serializar todos los valores de un registro para INSERT parametrizado.
+ * Convierte objetos/arrays JS (leídos de columnas jsonb) a strings JSON.
+ */
+export function serializeRow(row: Record<string, any>): any[] {
+  return Object.values(row).map(sanitizeValue);
 }
