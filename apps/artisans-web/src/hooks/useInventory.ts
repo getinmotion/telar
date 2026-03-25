@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import type { LegacyProduct } from '@/types'; // ✅ Tipos compartidos
 import {
   getProductsByShopId,
   getProductById,
@@ -36,25 +37,13 @@ export interface MarketplaceLinks {
   }>;
 }
 
-export interface Product {
-  id: string;
-  shop_id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  price: number;
-  images?: any[];
-  active: boolean;
-  inventory?: number;
-  sku?: string;
+// Extender LegacyProduct con campos específicos de inventario
+export interface Product extends LegacyProduct {
   made_to_order?: boolean;
   lead_time_days?: number;
   production_time_hours?: number;
   requires_customization?: boolean;
   marketplace_links?: MarketplaceLinks;
-  moderation_status?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface ProductVariant {
