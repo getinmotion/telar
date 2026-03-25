@@ -67,6 +67,19 @@ export interface ArtisanBankData {
   updated_at: string;
 }
 
+/**
+ * ⚠️ DEPRECATED: Product type
+ * Este tipo representa la tabla legacy shop.products (monolítica)
+ *
+ * Para nuevos desarrollos, usar:
+ * import { ProductResponse, LegacyProduct } from '@telar/shared-types/products'
+ *
+ * Las operaciones GET ahora usan internamente products-new (arquitectura multicapa)
+ * pero mapean a este formato legacy para compatibilidad.
+ *
+ * Migración: Este tipo será removido cuando todas las operaciones POST/PATCH/DELETE
+ * sean migradas a la nueva arquitectura.
+ */
 export interface Product {
   id: string;
   shop_id: string;

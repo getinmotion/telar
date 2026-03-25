@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
-import { ArtisanShop } from '@/types/artisanShop.types';
+import type { ArtisanShop } from '@/types'; // ✅ Tipo compartido
 
 interface ShopInfoSectionProps {
   shop: ArtisanShop | null;

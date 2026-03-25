@@ -1,0 +1,9 @@
+export { ProductCore } from './product-core.entity';
+export { ProductArtisanalIdentity } from './product-artisanal-identity.entity';
+export { ProductPhysicalSpecs } from './product-physical-specs.entity';
+export { ProductLogistics } from './product-logistics.entity';
+export { ProductProduction } from './product-production.entity';
+export { ProductMedia } from './product-media.entity';
+export { ProductBadge } from './product-badge.entity';
+export { ProductMaterialLink } from './product-material-link.entity';
+export { ProductVariant } from './product-variant.entity';
