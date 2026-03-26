@@ -3,9 +3,13 @@ import {
   PrimaryColumn,
   Column,
   OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
+import { Craft } from '../../crafts/entities/craft.entity';
+import { Technique } from '../../techniques/entities/technique.entity';
+import { CuratorialCategory } from '../../curatorial-categories/entities/curatorial-category.entity';
 
 /**
  * PRODUCT_ARTISANAL_IDENTITY - Identidad artesanal del producto
@@ -47,4 +51,20 @@ export class ProductArtisanalIdentity {
   @OneToOne(() => ProductCore, (product) => product.artisanalIdentity)
   @JoinColumn({ name: 'product_id' })
   product: ProductCore;
+
+  @ManyToOne(() => Craft, { nullable: true })
+  @JoinColumn({ name: 'primary_craft_id' })
+  primaryCraft?: Craft;
+
+  @ManyToOne(() => Technique, { nullable: true })
+  @JoinColumn({ name: 'primary_technique_id' })
+  primaryTechnique?: Technique;
+
+  @ManyToOne(() => Technique, { nullable: true })
+  @JoinColumn({ name: 'secondary_technique_id' })
+  secondaryTechnique?: Technique;
+
+  @ManyToOne(() => CuratorialCategory, { nullable: true })
+  @JoinColumn({ name: 'curatorial_category_id' })
+  curatorialCategory?: CuratorialCategory;
 }

@@ -17,10 +17,7 @@ import { getVariantsByProductId, createVariant, ProductVariantMapped } from '@/s
 import { WeightInput } from '@/components/ui/WeightInput';
 import { PriceInput } from '@/components/ui/PriceInput';
 import { Loader2, Save, ArrowLeft, Send, AlertCircle, CheckCircle, MapPin } from 'lucide-react';
-import type { LegacyProduct } from '@/types';
-
-// Alias para compatibilidad
-type Product = LegacyProduct;
+import { Product } from '@/types/artisan';
 
 interface ProductEditFormProps {
   productId: string;

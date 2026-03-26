@@ -3,12 +3,9 @@ import { formatCurrency } from '@/utils/currency';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
-import { ArtisanShop } from '@/types/artisan';
-import type { LegacyProduct } from '@/types';
+import { ArtisanShop } from '@/types/artisanShop.types';
+import { Product } from '@/types/artisan';
 import { Button } from '@/components/ui/button';
-
-// Alias para compatibilidad
-type Product = LegacyProduct;
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Star, Package, Timer, ShoppingBag, AlertTriangle, Truck, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';

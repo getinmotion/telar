@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { ArtisanShop } from '@/types'; // ✅ Tipo compartido
+import type { ArtisanShop } from '@/types/artisanShop.types';
 
 interface ShopPublishStatusBannerProps {
   shop: ArtisanShop;

@@ -4,8 +4,10 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
+import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 /**
  * PRODUCT_MEDIA - Imágenes y videos del producto
@@ -35,4 +37,12 @@ export class ProductMedia {
   @ManyToOne(() => ProductCore, (product) => product.media)
   @JoinColumn({ name: 'product_id' })
   product: ProductCore;
+
+  /**
+   * Transform relative media path to full CDN URL after loading from database
+   */
+  @AfterLoad()
+  transformMediaUrl() {
+    this.mediaUrl = ImageUrlBuilder.buildUrl(this.mediaUrl) ?? this.mediaUrl;
+  }
 }

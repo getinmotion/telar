@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { LegacyProduct } from '@/types'; // ✅ Tipos compartidos
+import { Product as LegacyProduct } from '@/types/artisan';
 import {
   getProductsByShopId,
   getProductById,
@@ -88,7 +88,7 @@ export function useInventory() {
       setLoading(true);
       if (!shopId) return [];
       const data = await getProductsByShopId(shopId);
-      return data as unknown as Product[];
+      return data
     } catch {
       toast.error('Error al cargar productos');
       return [];

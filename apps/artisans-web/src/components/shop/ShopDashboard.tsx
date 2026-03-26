@@ -1071,25 +1071,36 @@ export const ShopDashboard: React.FC = () => {
                       const needsAttention =
                         product.moderation_status === "changes_requested" ||
                         product.moderation_status === "rejected";
+
                       return (
                         <div
                           key={product.id}
-                          className={`flex items-center gap-3 lg:gap-4 p-3 rounded-lg border transition-all bg-background/50 ${
+                          className={`flex items-start gap-4 p-4 rounded-xl border transition-all bg-background/50 hover:shadow-md ${
                             needsAttention
                               ? "border-destructive/50 hover:border-destructive"
                               : "border-border hover:border-primary/30"
                           }`}
                         >
-                          <img
-                            src={product.images?.[0] || "/placeholder.svg"}
-                            alt={product.name}
-                            className="w-14 h-14 lg:w-16 lg:h-16 rounded-lg object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-sm lg:text-base text-foreground truncate">
+                          {/* Imagen del producto */}
+                          <div className="relative flex-shrink-0 self-stretch flex items-center">
+                            <img
+                              src={
+                                product.images?.[0]?.url || "/placeholder.svg"
+                              }
+                              alt={product.name}
+                              className="w-16 h-full lg:w-20 rounded-xl object-cover ring-2 ring-border/50"
+                            />
+                          </div>
+
+                          {/* Contenido principal */}
+                          <div className="flex-1 min-w-0 space-y-2">
+                            {/* Título */}
+                            <h4 className="font-bold text-base lg:text-lg text-foreground text-left line-clamp-2">
                               {product.name}
                             </h4>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+
+                            {/* Badges y métricas */}
+                            <div className="flex items-center gap-2 flex-wrap">
                               <ModerationStatusBadge
                                 status={product.moderation_status || "draft"}
                                 size="sm"
@@ -1097,21 +1108,70 @@ export const ShopDashboard: React.FC = () => {
                               {product.inventory <= 10 && (
                                 <StockBadge inventory={product.inventory} />
                               )}
+                              {product.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Package className="w-3 h-3 mr-1" />
+                                  {product.category}
+                                </Badge>
+                              )}
                             </div>
-                            <p className="text-base lg:text-lg font-bold text-primary mt-1">
-                              {formatCurrency(product.price)}
-                            </p>
+
+                            {/* Precio destacado */}
+                            <div className="flex items-baseline gap-2">
+                              <p className="text-lg lg:text-lg font-bold text-primary">
+                                {formatCurrency(product.price)}
+                              </p>
+                              {product.compare_price &&
+                                product.compare_price > product.price && (
+                                  <span className="text-sm text-muted-foreground line-through">
+                                    {formatCurrency(product.compare_price)}
+                                  </span>
+                                )}
+                              <div className="flex items-center gap-2 ">
+                                <div
+                                  className={`w-2.5 h-2.5 rounded-full ${
+                                    product.inventory === 0 ||
+                                    product.inventory === 1
+                                      ? "bg-red-500"
+                                      : product.inventory > 1 &&
+                                          product.inventory < 4
+                                        ? "bg-yellow-500"
+                                        : "bg-green-500"
+                                  }`}
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                  {product.inventory} unidades
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              navigate(`/productos/editar/${product.id}`)
-                            }
-                            className="flex-shrink-0"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </Button>
+
+                          {/* Acciones - centradas verticalmente y alineadas a la derecha */}
+                          <div className="flex items-center gap-1 flex-shrink-0 ml-auto self-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9"
+                              onClick={() =>
+                                navigate(`/productos/editar/${product.id}`)
+                              }
+                              title="Editar"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9"
+                              onClick={() => {
+                                // Lógica de vista previa
+                                navigate(`/productos/${product.id}`);
+                              }}
+                              title="Ver producto"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       );
                     })}
@@ -1122,7 +1182,8 @@ export const ShopDashboard: React.FC = () => {
                         className="w-full"
                         onClick={() => navigate("/inventario")}
                       >
-                        Ir al inventario
+                        Ver todos los productos
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     )}
                   </div>

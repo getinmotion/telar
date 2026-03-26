@@ -1,4 +1,4 @@
-import type { ArtisanShop } from "@/types";
+import { ArtisanShop } from "@/types/artisanShop.types";
 
 interface BrandCompleteness {
   isComplete: boolean;

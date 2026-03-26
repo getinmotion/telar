@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
+import { Material } from '../../materials/entities/material.entity';
 
 /**
  * PRODUCT_MATERIALS_LINK - Relación N:M con taxonomy.materials
@@ -29,4 +30,8 @@ export class ProductMaterialLink {
   @ManyToOne(() => ProductCore, (product) => product.materials)
   @JoinColumn({ name: 'product_id' })
   product: ProductCore;
+
+  @ManyToOne(() => Material)
+  @JoinColumn({ name: 'material_id' })
+  material?: Material;
 }
