@@ -177,7 +177,8 @@ export const InventoryPage: React.FC = () => {
   };
 
   const handleEdit = (productId: string) => {
-    navigate(`/productos/editar/${productId}`);
+    // Redirigir al wizard en modo edición
+    navigate(`/productos/subir?edit=true&productId=${productId}`);
   };
 
   const handleOpenMarketplaces = (product: LegacyProduct) => {

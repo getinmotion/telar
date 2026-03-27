@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useImageUpload } from './useImageUpload';
 import { WizardState } from './useWizardState';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
+import { createProductNew, mapWizardStateToCreateDto } from '@/services/products-new.actions';
+import { deleteUploadedFile } from '@/services/fileUpload.actions';
 
 interface SaveDraftOptions {
   redirectToInventory?: boolean;
@@ -13,6 +16,7 @@ export const useSaveDraft = () => {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const { uploadImages } = useImageUpload();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const saveDraft = async (
     wizardState: WizardState, 
@@ -29,72 +33,45 @@ export const useSaveDraft = () => {
 
     try {
       // Verify authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
+      if (!user) {
         throw new Error('Usuario no autenticado');
       }
 
-      // Get shop
-      const { data: shopData, error: shopError } = await supabase
-        .from('artisan_shops')
-        .select('id, shop_name')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (shopError || !shopData) {
+      // Get shop using NestJS API
+      const shopData = await getArtisanShopByUserId(user.id);
+      if (!shopData) {
         throw new Error('No tienes una tienda activa');
       }
 
-      // Upload images
-      toast.info('Subiendo imágenes...', { description: `Procesando ${wizardState.images.length} imagen(es)` });
-      uploadedImageUrls = await uploadImages(wizardState.images);
-      
+      // Upload images (solo las nuevas - tipo File)
+      const imagesToUpload = wizardState.images.filter((img): img is File => typeof img !== 'string');
+      const existingImageUrls = wizardState.images.filter((img): img is string => typeof img === 'string');
+
+      if (imagesToUpload.length > 0) {
+        toast.info('Subiendo imágenes...', { description: `Procesando ${imagesToUpload.length} imagen(es)` });
+        const newUploadedUrls = await uploadImages(imagesToUpload);
+        uploadedImageUrls = [...existingImageUrls, ...newUploadedUrls];
+      } else {
+        // Solo usar las imágenes existentes
+        uploadedImageUrls = existingImageUrls;
+      }
+
       if (uploadedImageUrls.length === 0) {
         throw new Error('No se pudieron subir las imágenes');
       }
 
-      // Generate a placeholder name if not provided
-      const productName = wizardState.name?.trim() || `Producto sin nombre - ${new Date().toLocaleDateString()}`;
+      // Create DTO using products-new architecture (multicapa)
+      const createDto = mapWizardStateToCreateDto(
+        wizardState,
+        shopData.id,
+        uploadedImageUrls
+      );
 
-      // Insert product as draft
-      const { data: draftProduct, error: insertError } = await supabase
-        .from('products')
-        .insert({
-          shop_id: shopData.id,
-          name: productName,
-          description: wizardState.description?.trim() || '',
-          short_description: wizardState.shortDescription?.trim() || wizardState.description?.trim().substring(0, 150) || '',
-          price: Number(wizardState.price) || 0,
-          category: wizardState.category?.trim() || '',
-          tags: wizardState.tags || [],
-          images: uploadedImageUrls,
-          inventory: wizardState.inventory || 1,
-          weight: wizardState.weight || null,
-          dimensions: wizardState.dimensions || null,
-          materials: wizardState.materials || [],
-          production_time: wizardState.productionTime || null,
-          compare_price: wizardState.comparePrice || null,
-          sku: wizardState.sku || `DRAFT-${Date.now()}`,
-          customizable: wizardState.customizable || false,
-          made_to_order: wizardState.madeToOrder || false,
-          lead_time_days: wizardState.leadTimeDays || 7,
-          production_time_hours: wizardState.productionTimeHours || null,
-          requires_customization: wizardState.requiresCustomization || false,
-          active: false,
-          featured: false,
-          moderation_status: 'draft'
-        })
-        .select()
-        .single();
+      // Status is already 'draft' by default in mapWizardStateToCreateDto
+      console.log('📋 DTO generado para borrador:', createDto);
 
-      if (insertError) {
-        console.error('Insert error details:', insertError);
-        if (insertError.code === '42501' || insertError.message?.includes('policy')) {
-          throw new Error('No tienes permisos para crear productos. Verifica que tu tienda esté configurada correctamente.');
-        }
-        throw new Error(`Error guardando borrador: ${insertError.message}`);
-      }
-
+      // Create product using products-new endpoint
+      const draftProduct = await createProductNew(createDto);
       console.log('✅ BORRADOR GUARDADO:', draftProduct.id);
       
       toast.success('Borrador guardado', {
@@ -116,18 +93,13 @@ export const useSaveDraft = () => {
       
       // Rollback images if needed
       if (uploadedImageUrls.length > 0) {
-        try {
-          const imageNames = uploadedImageUrls.map(url => {
-            const parts = url.split('/');
-            return parts[parts.length - 1];
-          });
-          
-          await supabase.storage
-            .from('images')
-            .remove(imageNames.map(name => `products/${name}`));
-        } catch (cleanupError) {
-          console.error('Error en rollback:', cleanupError);
-        }
+        await Promise.allSettled(
+          uploadedImageUrls.map((url) =>
+            deleteUploadedFile(url).catch((err) =>
+              console.error('Error en rollback de imagen:', url, err)
+            )
+          )
+        );
       }
       
       toast.error('Error al guardar borrador', {
