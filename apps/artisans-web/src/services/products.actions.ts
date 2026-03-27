@@ -70,7 +70,7 @@ export function mapProductResponseToLegacy(product: ProductResponse): Product {
   // Construir objeto legacy Product
   return {
     // Identificación
-    id: product.legacyProductId || product.id, // Usar legacyProductId si existe, sino el id nuevo
+    id: product.id, // Usar legacyProductId si existe, sino el id nuevo
     shop_id: product.storeId,
 
     // Información básica

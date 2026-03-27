@@ -1153,7 +1153,9 @@ export const ShopDashboard: React.FC = () => {
                               size="icon"
                               className="h-9 w-9"
                               onClick={() =>
-                                navigate(`/productos/editar/${product.id}`)
+                                navigate(
+                                  `/productos/subir?edit=true&productId=${product.id}`,
+                                )
                               }
                               title="Editar"
                             >
