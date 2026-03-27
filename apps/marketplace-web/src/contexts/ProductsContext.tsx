@@ -9,6 +9,16 @@ import type {
   UpdateProductRequest,
 } from '@/types/products.types';
 
+/** Safely extract a string error message from any thrown value */
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object') {
+    const e = error as Record<string, any>;
+    const msg = e.response?.data?.message ?? e.message;
+    if (typeof msg === 'string') return msg;
+  }
+  return fallback;
+}
+
 interface ProductsContextType {
   products: Product[];
   currentProduct: Product | null;
@@ -46,10 +56,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       setTotal(response.total);
       setPage(response.page);
       setLimit(response.limit);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar los productos';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar los productos'));
       throw error;
     } finally {
       setLoading(false);
@@ -62,10 +70,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const product = await ProductsActions.getProductById(id);
       setCurrentProduct(product);
       return product;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar el producto';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar el producto'));
       return null;
     } finally {
       setLoading(false);
@@ -78,10 +84,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const activeProducts = await ProductsActions.getActiveProducts();
       setProducts(activeProducts.data);
       setTotal(activeProducts.total);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar productos activos';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar productos activos'));
       throw error;
     } finally {
       setLoading(false);
@@ -94,10 +98,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const featuredProducts = await ProductsActions.getFeaturedProducts();
       setProducts(featuredProducts);
       setTotal(featuredProducts.length);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar productos destacados';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar productos destacados'));
       throw error;
     } finally {
       setLoading(false);
@@ -110,10 +112,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const shopProducts = await ProductsActions.getProductsByShop(shopId);
       setProducts(shopProducts);
       setTotal(shopProducts.length);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar productos de la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar productos de la tienda'));
       throw error;
     } finally {
       setLoading(false);
@@ -126,10 +126,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const userProducts = await ProductsActions.getProductsByUser(userId);
       setProducts(userProducts);
       setTotal(userProducts.length);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar tus productos';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar tus productos'));
       throw error;
     } finally {
       setLoading(false);
@@ -146,10 +144,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       setTotal(total + 1);
       toast.success('Producto creado exitosamente');
       return newProduct;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al crear el producto';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al crear el producto'));
       return null;
     } finally {
       setLoading(false);
@@ -171,10 +167,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       }
       toast.success('Producto actualizado exitosamente');
       return updatedProduct;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al actualizar el producto';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al actualizar el producto'));
       return null;
     } finally {
       setLoading(false);
@@ -192,10 +186,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       }
       toast.success(result.message || 'Producto eliminado exitosamente');
       return true;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al eliminar el producto';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al eliminar el producto'));
       return false;
     } finally {
       setLoading(false);
