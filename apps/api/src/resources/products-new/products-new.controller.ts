@@ -60,6 +60,16 @@ export class ProductsNewController {
   }
 
   /**
+   * GET /products-new/user/:userId
+   * Obtener productos de un usuario específico (artesano)
+   * Busca productos cuyo artisan_shop pertenezca al userId especificado
+   */
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.productsNewService.findByUserId(userId);
+  }
+
+  /**
    * GET /products-new/category/:categoryId
    * Obtener productos de una categoría específica
    */

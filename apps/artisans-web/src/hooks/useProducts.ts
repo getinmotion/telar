@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { LegacyProduct } from '@/types'; // ✅ Tipos compartidos via re-export
+import { Product } from '@/types/artisan';
 import { useToast } from '@/hooks/use-toast';
 import { EventBus } from '@/utils/eventBus';
-
-// Alias para compatibilidad durante migración
-type Product = LegacyProduct;
 import {
   getProductsByShopId,
   createProduct as apiCreateProduct,
@@ -26,6 +23,7 @@ export const useProducts = (shopId?: string) => {
 
     try {
       const data = await getProductsByShopId(shopId);
+      console.log('data', data)
       setProducts(data);
     } catch (err: any) {
       setError(err.message);

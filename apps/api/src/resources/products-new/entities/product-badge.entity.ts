@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
+import { Badge } from '../../badges/entities/badge.entity';
 
 /**
  * PRODUCT_BADGES - Badges asignados al producto
@@ -38,4 +39,8 @@ export class ProductBadge {
   @ManyToOne(() => ProductCore, (product) => product.badges)
   @JoinColumn({ name: 'product_id' })
   product: ProductCore;
+
+  @ManyToOne(() => Badge)
+  @JoinColumn({ name: 'badge_id' })
+  badge?: Badge;
 }

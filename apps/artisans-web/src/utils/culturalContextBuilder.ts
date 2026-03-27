@@ -3,9 +3,8 @@
  * Extrae información de la historia, región, productos y técnicas del artesano
  */
 
-import type { ArtisanShop, LegacyProduct } from "@/types";
-
-type Product = LegacyProduct;
+import { ArtisanShop } from "@/types/artisanShop.types";
+import { Product } from "@/types/artisan";
 
 
 

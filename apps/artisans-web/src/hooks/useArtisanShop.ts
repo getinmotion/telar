@@ -10,7 +10,7 @@ import {
   isSlugAvailable
 } from '@/services/artisanShops.actions';
 import { generateShopContact } from '@/services/ai.actions';
-import type { ArtisanShop } from '@/types'; // ✅ Tipo compartido
+import type { ArtisanShop } from '@/types/artisanShop.types';
 
 export const useArtisanShop = () => {
   const [shop, setShop] = useState<ArtisanShop | null>(null);
@@ -48,7 +48,6 @@ export const useArtisanShop = () => {
       }
 
       const data = await getArtisanShopByUserId(user.id);
-
 
       setShop(data as any);
 
