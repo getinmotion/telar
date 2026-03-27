@@ -36,6 +36,9 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import GoogleAuthCallback from "./pages/GoogleAuthCallback";
+import CategoryDetail from "./pages/CategoryDetail";
+import ArtisanProfile from "./pages/ArtisanProfile";
+import ExploreProducts from "./pages/ExploreProducts";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +77,9 @@ const App = () => (
                           <Route path="/blog" element={<Blog />} />
                           <Route path="/blog/:slug" element={<BlogArticle />} />
                           <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
+                          <Route path="/explorar" element={<ExploreProducts />} />
+                          <Route path="/categoria/:slug" element={<CategoryDetail />} />
+                          <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}

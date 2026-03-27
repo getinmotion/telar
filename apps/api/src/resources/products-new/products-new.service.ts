@@ -354,12 +354,12 @@ export class ProductsNewService {
       });
     }
 
+    // Ordenar por fecha de creación (usar nombre de propiedad de entidad, no de columna SQL)
+    queryBuilder.orderBy('product.createdAt', 'DESC');
+
     // Paginación
     const skip = (page - 1) * limit;
     queryBuilder.skip(skip).take(limit);
-
-    // Ordenar por fecha de creación
-    queryBuilder.orderBy('product.created_at', 'DESC');
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
