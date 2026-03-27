@@ -11,14 +11,33 @@ import {
 import { ProductsNewService } from './products-new.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
+import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
 
 @Controller('products-new')
 export class ProductsNewController {
   constructor(private readonly productsNewService: ProductsNewService) {}
 
+  /**
+   * POST /products-new
+   * Crear o actualizar producto (Upsert)
+   * - Si existe un producto en 'draft' para el storeId -> UPDATE
+   * - Si no existe -> CREATE
+   * Soporta creación incremental por steps
+   */
   @Post()
   create(@Body() createProductsNewDto: CreateProductsNewDto) {
     return this.productsNewService.create(createProductsNewDto);
+  }
+
+  /**
+   * POST /products-new/step1
+   * Endpoint específico para el Step 1 del formulario
+   * Crea o actualiza ProductCore + ProductMedia
+   */
+  @Post('step1')
+  createStep1(@Body() createProductStep1Dto: CreateProductStep1Dto) {
+    // Convertir a CreateProductsNewDto para usar el mismo servicio
+    return this.productsNewService.create(createProductStep1Dto as any);
   }
 
   /**
