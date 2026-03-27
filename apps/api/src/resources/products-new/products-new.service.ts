@@ -24,16 +24,354 @@ export class ProductsNewService {
   constructor(
     @Inject('PRODUCTS_CORE_REPOSITORY')
     private readonly productCoreRepository: Repository<ProductCore>,
+    @Inject('PRODUCT_MEDIA_REPOSITORY')
+    private readonly productMediaRepository: Repository<ProductMedia>,
+    @Inject('PRODUCT_ARTISANAL_IDENTITY_REPOSITORY')
+    private readonly artisanalIdentityRepository: Repository<ProductArtisanalIdentity>,
+    @Inject('PRODUCT_PHYSICAL_SPECS_REPOSITORY')
+    private readonly physicalSpecsRepository: Repository<ProductPhysicalSpecs>,
+    @Inject('PRODUCT_LOGISTICS_REPOSITORY')
+    private readonly logisticsRepository: Repository<ProductLogistics>,
+    @Inject('PRODUCT_PRODUCTION_REPOSITORY')
+    private readonly productionRepository: Repository<ProductProduction>,
+    @Inject('PRODUCT_BADGES_REPOSITORY')
+    private readonly badgesRepository: Repository<ProductBadge>,
+    @Inject('PRODUCT_MATERIALS_LINK_REPOSITORY')
+    private readonly materialsRepository: Repository<ProductMaterialLink>,
+    @Inject('PRODUCT_VARIANTS_REPOSITORY')
+    private readonly variantsRepository: Repository<ProductVariant>,
   ) {}
 
   /**
-   * Crear nuevo producto
+   * Crear o actualizar producto (Upsert inteligente)
+   *
+   * Lógica:
+   * 1. Si viene productId -> busca el producto y actualiza solo las entidades enviadas
+   * 2. Si no viene productId -> crea nuevo ProductCore con las entidades enviadas
+   *
+   * Para cada entidad relacionada enviada en el DTO:
+   * - OneToOne (artisanalIdentity, physicalSpecs, logistics, production):
+   *   - Si existe -> actualiza
+   *   - Si no existe -> crea
+   * - OneToMany (media, badges, materials, variants):
+   *   - Elimina existentes y crea nuevos
+   *
+   * Permite creación incremental: el frontend envía solo lo que tiene en cada step
    */
   async create(createProductsNewDto: CreateProductsNewDto): Promise<ProductCore> {
-    const product = this.productCoreRepository.create(
-      createProductsNewDto as any,
-    ) as unknown as ProductCore;
-    return await this.productCoreRepository.save(product);
+    const {
+      productId,
+      storeId,
+      categoryId,
+      legacyProductId,
+      name,
+      shortDescription,
+      history,
+      careNotes,
+      status,
+      artisanalIdentity,
+      physicalSpecs,
+      logistics,
+      production,
+      media,
+      badges,
+      materials,
+      variants,
+    } = createProductsNewDto;
+
+    let product: ProductCore;
+
+    if (productId) {
+      // ============= UPDATE MODE =============
+      // Buscar producto existente
+      const existingProduct = await this.productCoreRepository.findOne({
+        where: { id: productId, deletedAt: IsNull() },
+        relations: [
+          'artisanalIdentity',
+          'physicalSpecs',
+          'logistics',
+          'production',
+          'media',
+          'badges',
+          'materials',
+          'variants',
+        ],
+      });
+
+      if (!existingProduct) {
+        throw new NotFoundException(`Product with ID ${productId} not found`);
+      }
+
+      product = existingProduct;
+
+      // Actualizar campos de ProductCore solo si vienen en el DTO
+      if (name !== undefined) product.name = name;
+      if (shortDescription !== undefined)
+        product.shortDescription = shortDescription;
+      if (history !== undefined) product.history = history;
+      if (careNotes !== undefined) product.careNotes = careNotes;
+      if (status !== undefined) product.status = status;
+      if (categoryId !== undefined) product.categoryId = categoryId;
+      if (legacyProductId !== undefined)
+        product.legacyProductId = legacyProductId;
+
+      await this.productCoreRepository.save(product);
+    } else {
+      // ============= CREATE MODE =============
+      // Crear nuevo ProductCore
+      product = this.productCoreRepository.create({
+        storeId,
+        categoryId,
+        legacyProductId,
+        name,
+        shortDescription,
+        history,
+        careNotes,
+        status: status || 'draft',
+      });
+
+      product = await this.productCoreRepository.save(product);
+    }
+
+    // ============= MANEJAR ENTIDADES RELACIONADAS =============
+
+    // 1. ArtisanalIdentity (OneToOne) - Upsert
+    if (artisanalIdentity) {
+      await this.upsertArtisanalIdentity(product.id, artisanalIdentity);
+    }
+
+    // 2. PhysicalSpecs (OneToOne) - Upsert
+    if (physicalSpecs) {
+      await this.upsertPhysicalSpecs(product.id, physicalSpecs);
+    }
+
+    // 3. Logistics (OneToOne) - Upsert
+    if (logistics) {
+      await this.upsertLogistics(product.id, logistics);
+    }
+
+    // 4. Production (OneToOne) - Upsert
+    if (production) {
+      await this.upsertProduction(product.id, production);
+    }
+
+    // 5. Media (OneToMany) - Replace
+    if (media && media.length > 0) {
+      await this.replaceMedia(product.id, media);
+    }
+
+    // 6. Badges (OneToMany) - Replace
+    if (badges && badges.length > 0) {
+      await this.replaceBadges(product.id, badges);
+    }
+
+    // 7. Materials (OneToMany) - Replace
+    if (materials && materials.length > 0) {
+      await this.replaceMaterials(product.id, materials);
+    }
+
+    // 8. Variants (OneToMany) - Replace
+    if (variants && variants.length > 0) {
+      await this.replaceVariants(product.id, variants);
+    }
+
+    // Retornar producto completo con todas las relaciones
+    return await this.findOne(product.id);
+  }
+
+  // ============= MÉTODOS HELPER PARA UPSERT =============
+
+  /**
+   * Upsert ArtisanalIdentity (OneToOne)
+   */
+  private async upsertArtisanalIdentity(
+    productId: string,
+    data: any,
+  ): Promise<void> {
+    const existingEntity = await this.artisanalIdentityRepository.findOne({
+      where: { productId },
+    });
+
+    if (existingEntity) {
+      // Actualizar existente
+      Object.assign(existingEntity, data);
+      await this.artisanalIdentityRepository.save(existingEntity);
+    } else {
+      // Crear nuevo
+      const newEntity = this.artisanalIdentityRepository.create({
+        ...data,
+        productId,
+      });
+      await this.artisanalIdentityRepository.save(newEntity);
+    }
+  }
+
+  /**
+   * Upsert PhysicalSpecs (OneToOne)
+   */
+  private async upsertPhysicalSpecs(
+    productId: string,
+    data: any,
+  ): Promise<void> {
+    const existingEntity = await this.physicalSpecsRepository.findOne({
+      where: { productId },
+    });
+
+    if (existingEntity) {
+      Object.assign(existingEntity, data);
+      await this.physicalSpecsRepository.save(existingEntity);
+    } else {
+      const newEntity = this.physicalSpecsRepository.create({
+        ...data,
+        productId,
+      });
+      await this.physicalSpecsRepository.save(newEntity);
+    }
+  }
+
+  /**
+   * Upsert Logistics (OneToOne)
+   */
+  private async upsertLogistics(productId: string, data: any): Promise<void> {
+    const existingEntity = await this.logisticsRepository.findOne({
+      where: { productId },
+    });
+
+    if (existingEntity) {
+      Object.assign(existingEntity, data);
+      await this.logisticsRepository.save(existingEntity);
+    } else {
+      const newEntity = this.logisticsRepository.create({
+        ...data,
+        productId,
+      });
+      await this.logisticsRepository.save(newEntity);
+    }
+  }
+
+  /**
+   * Upsert Production (OneToOne)
+   */
+  private async upsertProduction(productId: string, data: any): Promise<void> {
+    const existingEntity = await this.productionRepository.findOne({
+      where: { productId },
+    });
+
+    if (existingEntity) {
+      Object.assign(existingEntity, data);
+      await this.productionRepository.save(existingEntity);
+    } else {
+      const newEntity = this.productionRepository.create({
+        ...data,
+        productId,
+      });
+      await this.productionRepository.save(newEntity);
+    }
+  }
+
+  /**
+   * Replace Media (OneToMany)
+   * Elimina existentes y crea nuevos
+   */
+  private async replaceMedia(productId: string, mediaList: any[]): Promise<void> {
+    // Eliminar medias existentes
+    const existingMedia = await this.productMediaRepository.find({
+      where: { productId },
+    });
+
+    if (existingMedia.length > 0) {
+      await this.productMediaRepository.remove(existingMedia);
+    }
+
+    // Crear nuevos medias
+    const newMediaEntities = mediaList.map((mediaDto) => {
+      return this.productMediaRepository.create({
+        ...mediaDto,
+        productId,
+      } as any);
+    });
+
+    if (newMediaEntities.length > 0) {
+      await this.productMediaRepository.save(newMediaEntities as any);
+    }
+  }
+
+  /**
+   * Replace Badges (OneToMany)
+   */
+  private async replaceBadges(productId: string, badgesList: any[]): Promise<void> {
+    const existingBadges = await this.badgesRepository.find({
+      where: { productId },
+    });
+
+    if (existingBadges.length > 0) {
+      await this.badgesRepository.remove(existingBadges);
+    }
+
+    const newBadges = badgesList.map((badgeDto) => {
+      return this.badgesRepository.create({
+        ...badgeDto,
+        productId,
+      } as any);
+    });
+
+    if (newBadges.length > 0) {
+      await this.badgesRepository.save(newBadges as any);
+    }
+  }
+
+  /**
+   * Replace Materials (OneToMany)
+   */
+  private async replaceMaterials(
+    productId: string,
+    materialsList: any[],
+  ): Promise<void> {
+    const existingMaterials = await this.materialsRepository.find({
+      where: { productId },
+    });
+
+    if (existingMaterials.length > 0) {
+      await this.materialsRepository.remove(existingMaterials);
+    }
+
+    const newMaterials = materialsList.map((materialDto) => {
+      return this.materialsRepository.create({
+        ...materialDto,
+        productId,
+      } as any);
+    });
+
+    if (newMaterials.length > 0) {
+      await this.materialsRepository.save(newMaterials as any);
+    }
+  }
+
+  /**
+   * Replace Variants (OneToMany)
+   */
+  private async replaceVariants(
+    productId: string,
+    variantsList: any[],
+  ): Promise<void> {
+    const existingVariants = await this.variantsRepository.find({
+      where: { productId },
+    });
+
+    if (existingVariants.length > 0) {
+      await this.variantsRepository.remove(existingVariants);
+    }
+
+    const newVariants = variantsList.map((variantDto) => {
+      return this.variantsRepository.create({
+        ...variantDto,
+        productId,
+      } as any);
+    });
+
+    if (newVariants.length > 0) {
+      await this.variantsRepository.save(newVariants as any);
+    }
   }
 
   /**
@@ -266,7 +604,8 @@ export class ProductsNewService {
   }
 
   /**
-   * Actualizar producto
+   * Actualizar producto por ID
+   * También maneja la actualización de medias si se envían
    */
   async update(
     id: string,
@@ -274,7 +613,28 @@ export class ProductsNewService {
   ): Promise<ProductCore> {
     const product = await this.findOne(id);
 
-    Object.assign(product, updateProductsNewDto);
+    const { media, ...productData } = updateProductsNewDto as any;
+
+    // Actualizar campos del ProductCore
+    Object.assign(product, productData);
+
+    // Si se envían medias, reemplazar los existentes
+    if (media && media.length > 0) {
+      // Eliminar medias anteriores
+      if (product.media && product.media.length > 0) {
+        await this.productMediaRepository.remove(product.media);
+      }
+
+      // Crear nuevos medias
+      const newMedia = media.map((mediaDto: any) =>
+        this.productMediaRepository.create({
+          ...mediaDto,
+          productId: product.id,
+        }),
+      );
+
+      product.media = newMedia;
+    }
 
     return await this.productCoreRepository.save(product);
   }
@@ -359,7 +719,7 @@ export class ProductsNewService {
     queryBuilder.skip(skip).take(limit);
 
     // Ordenar por fecha de creación
-    queryBuilder.orderBy('product.created_at', 'DESC');
+    queryBuilder.orderBy('product.createdAt', 'DESC');
 
     const [data, total] = await queryBuilder.getManyAndCount();
 

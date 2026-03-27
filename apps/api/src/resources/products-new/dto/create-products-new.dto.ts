@@ -296,6 +296,11 @@ export class CreateProductVariantDto {
 // ============= Main DTO =============
 
 export class CreateProductsNewDto {
+  // ID del producto (opcional para crear, requerido para actualizar)
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
   // Core fields
   @IsNotEmpty()
   @IsUUID()
