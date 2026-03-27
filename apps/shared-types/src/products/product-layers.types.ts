@@ -3,6 +3,8 @@
  * Tipos para las 8 capas de la arquitectura multicapa
  */
 
+import type { Craft, Technique, Category, Material } from '../taxonomy/taxonomy.types';
+
 // ============= Product Artisanal Identity (1:1) =============
 
 export interface ProductArtisanalIdentity {
@@ -16,6 +18,12 @@ export interface ProductArtisanalIdentity {
   isCollaboration: boolean;
   processType?: 'manual' | 'mixto' | 'asistido';
   estimatedElaborationTime?: string;
+
+  // FK Relations (populated by backend with eager loading)
+  primaryCraft?: Craft;
+  primaryTechnique?: Technique;
+  secondaryTechnique?: Technique;
+  curatorialCategory?: Category;
 }
 
 // ============= Product Physical Specs (1:1) =============
@@ -82,6 +90,9 @@ export interface ProductMaterialLink {
   materialId: string;
   isPrimary: boolean;
   materialOrigin?: string;
+
+  // FK Relations (populated by backend with eager loading)
+  material?: Material;
 }
 
 // ============= Product Variants (1:N) =============

@@ -10,7 +10,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Store } from '../../stores/entities/store.entity';
+import { ArtisanShop } from '../../stores/entities/artisan-shop.entity';
+import { Category } from '../../categories/entities/category.entity';
 import { ProductArtisanalIdentity } from './product-artisanal-identity.entity';
 import { ProductPhysicalSpecs } from './product-physical-specs.entity';
 import { ProductLogistics } from './product-logistics.entity';
@@ -66,9 +67,13 @@ export class ProductCore {
   deletedAt: Date;
 
   // Relaciones
-  @ManyToOne(() => Store)
+  @ManyToOne(() => ArtisanShop)
   @JoinColumn({ name: 'store_id' })
-  store: Store;
+  artisanShop?: ArtisanShop;
+
+  @ManyToOne(() => Category)
+  @JoinColumn({ name: 'category_id' })
+  category?: Category;
 
   @OneToOne(
     () => ProductArtisanalIdentity,

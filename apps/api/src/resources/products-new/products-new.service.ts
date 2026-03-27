@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { Repository, IsNull } from 'typeorm';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
@@ -34,17 +39,26 @@ export class ProductsNewService {
   /**
    * Obtener todos los productos con todas sus capas y relaciones
    * Combina products_core + todas las capas (1:1) + relaciones (1:N y N:M)
+   * Incluye artisanShop (tabla legacy shop.artisan_shops)
    */
   async findAll(): Promise<ProductCore[]> {
     const products = await this.productCoreRepository.find({
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
       where: { deletedAt: IsNull() },
@@ -56,18 +70,27 @@ export class ProductsNewService {
 
   /**
    * Obtener un producto por ID con todas sus capas y relaciones
+   * Incluye artisanShop (tabla legacy shop.artisan_shops)
    */
   async findOne(id: string): Promise<ProductCore> {
     const product = await this.productCoreRepository.findOne({
       where: { id, deletedAt: IsNull() },
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
     });
@@ -80,23 +103,68 @@ export class ProductsNewService {
   }
 
   /**
-   * Obtener productos por tienda
+   * Obtener productos por tienda (artisan_shop)
+   * @param storeId - ID del artisan_shop (no confundir con la nueva tabla stores)
    */
   async findByStoreId(storeId: string): Promise<ProductCore[]> {
     const products = await this.productCoreRepository.find({
       where: { storeId, deletedAt: IsNull() },
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
       order: { createdAt: 'DESC' },
     });
+
+    return products;
+  }
+
+  /**
+   * Obtener productos por userId (del artisan_shop)
+   * Hace JOIN con artisan_shops y filtra por el user_id del artesano
+   * @param userId - ID del usuario propietario del artisan_shop
+   */
+  async findByUserId(userId: string): Promise<ProductCore[]> {
+    if (!userId) {
+      throw new BadRequestException('El ID del usuario es requerido');
+    }
+
+    const products = await this.productCoreRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.artisanShop', 'shop')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
+      .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
+      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('product.logistics', 'logistics')
+      .leftJoinAndSelect('product.production', 'production')
+      .leftJoinAndSelect('product.media', 'media')
+      .leftJoinAndSelect('product.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
+      .leftJoinAndSelect('product.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('product.variants', 'variants')
+      .where('shop.user_id = :userId', { userId })
+      .andWhere('product.deleted_at IS NULL')
+      .orderBy('product.created_at', 'DESC')
+      .getMany();
 
     return products;
   }
@@ -108,13 +176,21 @@ export class ProductsNewService {
     const products = await this.productCoreRepository.find({
       where: { categoryId, deletedAt: IsNull() },
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
       order: { createdAt: 'DESC' },
@@ -130,13 +206,21 @@ export class ProductsNewService {
     const products = await this.productCoreRepository.find({
       where: { status, deletedAt: IsNull() },
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
       order: { createdAt: 'DESC' },
@@ -153,13 +237,21 @@ export class ProductsNewService {
     const product = await this.productCoreRepository.findOne({
       where: { legacyProductId: legacyId, deletedAt: IsNull() },
       relations: [
+        'artisanShop',
+        'category',
         'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
         'physicalSpecs',
         'logistics',
         'production',
         'media',
         'badges',
+        'badges.badge',
         'materials',
+        'materials.material',
         'variants',
       ],
     });
@@ -225,13 +317,21 @@ export class ProductsNewService {
   }> {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('product')
+      .leftJoinAndSelect('product.artisanShop', 'artisanShop')
+      .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
+      .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
+      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
       .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
       .leftJoinAndSelect('product.logistics', 'logistics')
       .leftJoinAndSelect('product.production', 'production')
       .leftJoinAndSelect('product.media', 'media')
       .leftJoinAndSelect('product.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
       .leftJoinAndSelect('product.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
       .leftJoinAndSelect('product.variants', 'variants')
       .where('product.deleted_at IS NULL');
 

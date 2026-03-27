@@ -40,6 +40,40 @@ El nuevo sistema de productos reemplaza la tabla monolítica `shop.products` (~3
 
 ---
 
+## ⚠️ Relación con Stores vs Artisan Shops
+
+**IMPORTANTE**: Los productos en `products_core` están vinculados con `shop.artisan_shops` (tabla legacy), **NO** con la nueva tabla `shop.stores`.
+
+### ¿Por qué?
+
+- `shop.artisan_shops` es la tabla **legacy** que contiene todos los datos históricos de las tiendas artesanales
+- `shop.stores` es la **nueva tabla** que eventualmente reemplazará a artisan_shops
+- Durante la migración, los productos siguen apuntando a `artisan_shops` para mantener compatibilidad
+- El campo `store_id` en `products_core` es un FK a `artisan_shops.id`
+
+### Diagrama de Relaciones
+
+```
+┌──────────────────┐
+│ artisan_shops    │  ← Tabla LEGACY (datos históricos)
+│ (legacy)         │
+└────────┬─────────┘
+         │
+         │ FK: store_id
+         │
+┌────────▼─────────┐
+│ products_core    │
+│                  │
+└──────────────────┘
+
+┌──────────────────┐
+│ stores           │  ← Tabla NUEVA (sistema multicapa)
+│ (nueva)          │     Los productos aún NO apuntan aquí
+└──────────────────┘
+```
+
+---
+
 ## Tablas Involucradas
 
 ### 1. Tabla Núcleo
@@ -49,14 +83,17 @@ Contiene solo información **esencial e inmutable** del producto.
 
 **Campos:**
 - `id` - UUID del producto
-- `store_id` - Tienda propietaria (FK a `shop.stores`)
+- `store_id` - **ID del artisan_shop** (FK a `shop.artisan_shops`, tabla legacy - no confundir con `shop.stores`)
 - `category_id` - Categoría (FK a `taxonomy.categories`)
+- `legacy_product_id` - ID del producto en tabla legacy `shop.products`
 - `name` - Nombre del producto
 - `short_description` - Descripción corta
 - `history` - Historia del producto
 - `care_notes` - Notas de cuidado
 - `status` - Estado: `'draft'`, `'published'`, `'archived'`
 - `created_at`, `updated_at`, `deleted_at`
+
+> ⚠️ **IMPORTANTE**: `store_id` apunta a `shop.artisan_shops` (tabla legacy), no a la nueva tabla `shop.stores`. Los productos están vinculados directamente con artisan_shops.
 
 ### 2. Capas Especializadas (1:1)
 
@@ -141,11 +178,17 @@ Obtiene todos los productos con sus capas y relaciones.
   "data": [
     {
       "id": "uuid-producto",
-      "storeId": "uuid-tienda",
+      "storeId": "uuid-artisan-shop",
       "categoryId": "uuid-categoria",
+      "legacyProductId": "uuid-producto-legacy",
       "name": "Mochila Wayuu",
       "shortDescription": "Mochila tejida a mano...",
       "status": "published",
+      "artisanShop": {
+        "id": "uuid-artisan-shop",
+        "name": "Taller Wayuu",
+        "artisan_fullname": "María López"
+      },
       "artisanalIdentity": {
         "primaryCraftId": "uuid-craft",
         "primaryTechniqueId": "uuid-technique",
@@ -208,7 +251,9 @@ GET /products-new/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ### GET /products-new/store/:storeId
-Obtiene todos los productos de una tienda específica.
+Obtiene todos los productos de un artisan_shop específico.
+
+> **Nota**: A pesar del nombre del endpoint `/store`, este parámetro espera el ID de un `artisan_shop` (tabla legacy), no de la nueva tabla `stores`.
 
 **Ejemplo:**
 ```bash
@@ -281,6 +326,12 @@ const product = await this.productsNewService.findOne(productId);
 // Acceder a datos del núcleo
 console.log(product.name);
 console.log(product.status);
+
+// Acceder a artisan shop (tabla legacy)
+if (product.artisanShop) {
+  console.log(`Tienda: ${product.artisanShop.name}`);
+  console.log(`Artesano: ${product.artisanShop.artisan_fullname}`);
+}
 
 // Acceder a identidad artesanal
 if (product.artisanalIdentity) {
@@ -368,6 +419,7 @@ Por defecto, el servicio carga **todas las relaciones** en cada consulta:
 
 ```typescript
 relations: [
+  'artisanShop',        // Tabla legacy shop.artisan_shops
   'artisanalIdentity',
   'physicalSpecs',
   'logistics',
@@ -421,7 +473,8 @@ const legacyProducts = await legacyRepository.find();
 for (const legacy of legacyProducts) {
   // 1. Crear core
   const core = await productCoreRepository.save({
-    storeId: legacy.shopId,
+    storeId: legacy.shopId,           // ID de artisan_shops
+    legacyProductId: legacy.id,        // Mantener referencia al producto legacy
     name: legacy.name,
     shortDescription: legacy.description,
     status: mapLegacyStatus(legacy.status),

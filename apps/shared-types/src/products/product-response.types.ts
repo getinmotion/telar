@@ -13,6 +13,8 @@ import type {
   ProductMaterialLink,
   ProductVariant,
 } from './product-layers.types';
+import type { Category } from '../taxonomy/taxonomy.types';
+import type { ArtisanShop } from '../stores/artisan-shop.types';
 
 /**
  * Respuesta completa del backend /products-new
@@ -32,6 +34,10 @@ export interface ProductResponse {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
+
+  // FK Relations (populated by backend with eager loading)
+  artisanShop?: ArtisanShop;
+  category?: Category;
 
   // Capas 1:1 (opcional según disponibilidad)
   artisanalIdentity?: ProductArtisanalIdentity;
