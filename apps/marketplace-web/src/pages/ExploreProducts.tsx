@@ -662,7 +662,7 @@ function ExploreProductCard({
   return (
     <div className={className}>
       <Link
-        to={`/product/${product.legacyProductId ?? product.id}`}
+        to={`/product/${product.id}`}
         className="group block"
       >
         <div className="relative aspect-[3/4] bg-[#e5e1d8] mb-6 rounded-sm overflow-hidden">

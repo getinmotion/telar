@@ -702,7 +702,7 @@ function ProductNewCard({
   return (
     <div className={className}>
       <Link
-        to={`/product/${product.legacyProductId ?? product.id}`}
+        to={`/product/${product.id}`}
         className="group block"
       >
         {/* Image */}
