@@ -12,7 +12,7 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import { Heart, SlidersHorizontal, X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -28,8 +28,6 @@ interface ExploreFilters {
   sortBy: "newest" | "price_asc" | "price_desc" | "name";
 }
 
-const ITEMS_PER_PAGE = 24;
-
 const INITIAL_FILTERS: ExploreFilters = {
   categorySlug: null,
   subcategorySlug: null,
@@ -37,7 +35,7 @@ const INITIAL_FILTERS: ExploreFilters = {
   materialId: null,
   craftId: null,
   curatorialId: null,
-  priceRange: [0, 0], // 0 means "no max" — will be set dynamically
+  priceRange: [0, 5000000],
   sortBy: "newest",
 };
 
@@ -93,20 +91,18 @@ const ExploreProducts = () => {
     try {
       const params: Record<string, any> = {
         page,
-        limit: ITEMS_PER_PAGE,
+        limit: 24,
       };
       if (targetCategoryId && UUID_RE.test(targetCategoryId)) params.categoryId = targetCategoryId;
 
       const res = await getProductsNew(params);
-      let fetchedProducts: ProductNewCore[] = [];
       if (Array.isArray(res)) {
-        fetchedProducts = res as ProductNewCore[];
-        setTotal(fetchedProducts.length);
+        setProducts(res as ProductNewCore[]);
+        setTotal((res as ProductNewCore[]).length);
       } else {
-        fetchedProducts = res.data ?? [];
+        setProducts(res.data ?? []);
         setTotal(res.total ?? 0);
       }
-      setProducts(fetchedProducts);
     } catch {
       setProducts([]);
       setTotal(0);
@@ -114,19 +110,6 @@ const ExploreProducts = () => {
       setLoading(false);
     }
   }, [targetCategoryId, page]);
-
-  // Compute max price from loaded products for the price slider
-  const maxProductPrice = useMemo(() => {
-    const prices = products.map((p) => getProductPrice(p) ?? 0).filter((p) => p > 0);
-    if (prices.length === 0) return 5000000;
-    // Round up to a nice step
-    const max = Math.max(...prices);
-    const step = max > 1000000 ? 500000 : max > 100000 ? 50000 : 10000;
-    return Math.ceil(max / step) * step;
-  }, [products]);
-
-  // Total pages
-  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
 
   useEffect(() => {
     fetchProducts();
@@ -139,44 +122,6 @@ const ExploreProducts = () => {
     if (filters.sortBy !== "newest") params.orden = filters.sortBy;
     setSearchParams(params, { replace: true });
   }, [filters.categorySlug, filters.sortBy, setSearchParams]);
-
-  // Derive available filter options from loaded products (intersection with category)
-  const availableTechniques = useMemo(() => {
-    const ids = new Set<string>();
-    products.forEach((p) => {
-      const tid = p.artisanalIdentity?.primaryTechnique?.id;
-      if (tid) ids.add(tid);
-    });
-    return techniques.filter((t) => ids.has(t.id));
-  }, [products, techniques]);
-
-  const availableCrafts = useMemo(() => {
-    const ids = new Set<string>();
-    products.forEach((p) => {
-      const cid = p.artisanalIdentity?.primaryCraft?.id;
-      if (cid) ids.add(cid);
-    });
-    return crafts.filter((c) => ids.has(c.id));
-  }, [products, crafts]);
-
-  const availableMaterials = useMemo(() => {
-    const ids = new Set<string>();
-    products.forEach((p) => {
-      (p.materials ?? []).forEach((m) => {
-        if (m.material?.id) ids.add(m.material.id);
-      });
-    });
-    return materials.filter((m) => ids.has(m.id));
-  }, [products, materials]);
-
-  const availableCuratorial = useMemo(() => {
-    const ids = new Set<string>();
-    products.forEach((p) => {
-      const cid = p.artisanalIdentity?.curatorialCategory?.id;
-      if (cid) ids.add(cid);
-    });
-    return curatorialCategories.filter((c) => ids.has(c.id));
-  }, [products, curatorialCategories]);
 
   // Client-side filtering (material, technique, craft, price, curatorial)
   const filteredProducts = useMemo(() => {
@@ -203,13 +148,11 @@ const ExploreProducts = () => {
           p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
       );
     }
-    // Price filter (priceRange[1] === 0 means no max limit)
-    if (filters.priceRange[1] > 0) {
-      result = result.filter((p) => {
-        const price = getProductPrice(p) ?? 0;
-        return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-      });
-    }
+    // Price filter
+    result = result.filter((p) => {
+      const price = getProductPrice(p) ?? 0;
+      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
+    });
     // Sort
     switch (filters.sortBy) {
       case "price_asc":
@@ -240,7 +183,7 @@ const ExploreProducts = () => {
     filters.materialId,
     filters.craftId,
     filters.curatorialId,
-    filters.priceRange[1] > 0 && filters.priceRange[1] < maxProductPrice ? "price" : null,
+    filters.priceRange[1] < 5000000 ? "price" : null,
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
@@ -255,10 +198,8 @@ const ExploreProducts = () => {
     setFilters((prev) => ({
       ...prev,
       [key]: prev[key] === value ? null : value,
-      // Reset dependent filters when category changes
-      ...(key === "categorySlug"
-        ? { subcategorySlug: null, techniqueId: null, materialId: null, craftId: null, curatorialId: null, priceRange: [0, 0] as [number, number] }
-        : {}),
+      // Reset subcategory when category changes
+      ...(key === "categorySlug" ? { subcategorySlug: null } : {}),
     }));
     setPage(1);
   };
@@ -371,84 +312,78 @@ const ExploreProducts = () => {
         <div className="flex flex-col lg:flex-row gap-16">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2 space-y-8 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-charcoal/10 [&::-webkit-scrollbar-thumb]:rounded-full">
-              {/* Técnica artesanal — only those present in loaded products */}
-              {availableTechniques.length > 0 && (
-                <FilterSection title="Técnica artesanal" defaultOpen>
-                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                    {availableTechniques.map((t) => (
-                      <li
-                        key={t.id}
-                        onClick={() => updateFilter("techniqueId", t.id)}
-                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                          filters.techniqueId === t.id
-                            ? "font-bold text-charcoal"
-                            : ""
-                        }`}
-                      >
-                        {filters.techniqueId === t.id && (
-                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                        )}
-                        {t.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
+            <div className="sticky top-32 space-y-8">
+              {/* Técnica artesanal */}
+              <FilterSection title="Técnica artesanal" defaultOpen>
+                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                  {techniques.slice(0, 20).map((t) => (
+                    <li
+                      key={t.id}
+                      onClick={() => updateFilter("techniqueId", t.id)}
+                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                        filters.techniqueId === t.id
+                          ? "font-bold text-charcoal"
+                          : ""
+                      }`}
+                    >
+                      {filters.techniqueId === t.id && (
+                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                      )}
+                      {t.name}
+                    </li>
+                  ))}
+                </ul>
+              </FilterSection>
 
-              {/* Oficio — only those present in loaded products */}
-              {availableCrafts.length > 0 && (
-                <FilterSection title="Oficio">
-                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                    {availableCrafts.map((c) => (
-                      <li
-                        key={c.id}
-                        onClick={() => updateFilter("craftId", c.id)}
-                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                          filters.craftId === c.id
-                            ? "font-bold text-charcoal"
-                            : ""
-                        }`}
-                      >
-                        {filters.craftId === c.id && (
-                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                        )}
-                        {c.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
+              {/* Oficio */}
+              <FilterSection title="Oficio">
+                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                  {crafts.map((c) => (
+                    <li
+                      key={c.id}
+                      onClick={() => updateFilter("craftId", c.id)}
+                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                        filters.craftId === c.id
+                          ? "font-bold text-charcoal"
+                          : ""
+                      }`}
+                    >
+                      {filters.craftId === c.id && (
+                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                      )}
+                      {c.name}
+                    </li>
+                  ))}
+                </ul>
+              </FilterSection>
 
-              {/* Material — only those present in loaded products */}
-              {availableMaterials.length > 0 && (
-                <FilterSection title="Material">
-                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                    {availableMaterials.map((m) => (
-                      <li
-                        key={m.id}
-                        onClick={() => updateFilter("materialId", m.id)}
-                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                          filters.materialId === m.id
-                            ? "font-bold text-charcoal"
-                            : ""
-                        }`}
-                      >
-                        {filters.materialId === m.id && (
-                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                        )}
-                        {m.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
+              {/* Material */}
+              <FilterSection title="Material">
+                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                  {materials.slice(0, 20).map((m) => (
+                    <li
+                      key={m.id}
+                      onClick={() => updateFilter("materialId", m.id)}
+                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                        filters.materialId === m.id
+                          ? "font-bold text-charcoal"
+                          : ""
+                      }`}
+                    >
+                      {filters.materialId === m.id && (
+                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                      )}
+                      {m.name}
+                    </li>
+                  ))}
+                </ul>
+              </FilterSection>
 
-              {/* Colección curatorial — only those present in loaded products */}
-              {availableCuratorial.length > 0 && (
+              {/* Colección curatorial */}
+              {curatorialCategories.length > 0 && (
                 <FilterSection title="Colección">
                   <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
-                    {availableCuratorial.map((cc) => (
+                    {curatorialCategories.map((cc) => (
                       <li
                         key={cc.id}
                         onClick={() => updateFilter("curatorialId", cc.id)}
@@ -475,24 +410,19 @@ const ExploreProducts = () => {
                     type="range"
                     className="w-full h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
                     min={0}
-                    max={maxProductPrice}
-                    step={maxProductPrice > 1000000 ? 50000 : 10000}
-                    value={filters.priceRange[1] || maxProductPrice}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
+                    max={5000000}
+                    step={50000}
+                    value={filters.priceRange[1]}
+                    onChange={(e) =>
                       setFilters((prev) => ({
                         ...prev,
-                        priceRange: [0, val >= maxProductPrice ? 0 : val],
-                      }));
-                    }}
+                        priceRange: [0, Number(e.target.value)],
+                      }))
+                    }
                   />
                   <div className="flex justify-between mt-4 text-[10px] font-bold font-sans uppercase">
                     <span>{formatCurrency(0)}</span>
-                    <span>
-                      {filters.priceRange[1] > 0
-                        ? formatCurrency(filters.priceRange[1])
-                        : formatCurrency(maxProductPrice)}
-                    </span>
+                    <span>{formatCurrency(filters.priceRange[1])}</span>
                   </div>
                 </div>
               </FilterSection>
@@ -642,58 +572,14 @@ const ExploreProducts = () => {
               </div>
             )}
 
-            {/* Pagination */}
-            {!loading && totalPages > 1 && (
-              <div className="mt-16 flex justify-center items-center gap-2">
+            {/* Load more */}
+            {!loading && filteredProducts.length > 0 && total > products.length && (
+              <div className="mt-24 flex justify-center">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="border border-charcoal/10 p-2.5 rounded-full hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  onClick={() => setPage((p) => p + 1)}
+                  className="border border-primary text-primary px-16 py-5 text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-primary hover:text-white transition-all font-sans rounded-sm"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => {
-                    // Show first, last, current, and neighbors
-                    if (p === 1 || p === totalPages) return true;
-                    if (Math.abs(p - page) <= 1) return true;
-                    return false;
-                  })
-                  .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
-                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((item, idx) =>
-                    item === "ellipsis" ? (
-                      <span
-                        key={`e-${idx}`}
-                        className="w-10 text-center text-charcoal/30 text-sm font-sans"
-                      >
-                        ...
-                      </span>
-                    ) : (
-                      <button
-                        key={item}
-                        onClick={() => setPage(item)}
-                        className={`w-10 h-10 rounded-full text-[11px] font-bold font-sans transition-colors ${
-                          page === item
-                            ? "bg-primary text-white"
-                            : "border border-charcoal/10 hover:border-primary text-charcoal/70"
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    ),
-                  )}
-
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="border border-charcoal/10 p-2.5 rounded-full hover:border-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
+                  Cargar más piezas
                 </button>
               </div>
             )}
@@ -715,53 +601,34 @@ const ExploreProducts = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Same filter sections as sidebar — intersected with products */}
+            {/* Same filter sections as sidebar */}
             <div className="space-y-6">
-              {availableTechniques.length > 0 && (
-                <FilterSection title="Técnica" defaultOpen>
-                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                    {availableTechniques.map((t) => (
-                      <li
-                        key={t.id}
-                        onClick={() => updateFilter("techniqueId", t.id)}
-                        className={`cursor-pointer ${filters.techniqueId === t.id ? "font-bold text-charcoal" : ""}`}
-                      >
-                        {t.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
-              {availableMaterials.length > 0 && (
-                <FilterSection title="Material">
-                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                    {availableMaterials.map((m) => (
-                      <li
-                        key={m.id}
-                        onClick={() => updateFilter("materialId", m.id)}
-                        className={`cursor-pointer ${filters.materialId === m.id ? "font-bold text-charcoal" : ""}`}
-                      >
-                        {m.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
-              {availableCrafts.length > 0 && (
-                <FilterSection title="Oficio">
-                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                    {availableCrafts.map((c) => (
-                      <li
-                        key={c.id}
-                        onClick={() => updateFilter("craftId", c.id)}
-                        className={`cursor-pointer ${filters.craftId === c.id ? "font-bold text-charcoal" : ""}`}
-                      >
-                        {c.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
+              <FilterSection title="Técnica" defaultOpen>
+                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
+                  {techniques.slice(0, 15).map((t) => (
+                    <li
+                      key={t.id}
+                      onClick={() => updateFilter("techniqueId", t.id)}
+                      className={`cursor-pointer ${filters.techniqueId === t.id ? "font-bold text-charcoal" : ""}`}
+                    >
+                      {t.name}
+                    </li>
+                  ))}
+                </ul>
+              </FilterSection>
+              <FilterSection title="Material">
+                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
+                  {materials.slice(0, 15).map((m) => (
+                    <li
+                      key={m.id}
+                      onClick={() => updateFilter("materialId", m.id)}
+                      className={`cursor-pointer ${filters.materialId === m.id ? "font-bold text-charcoal" : ""}`}
+                    >
+                      {m.name}
+                    </li>
+                  ))}
+                </ul>
+              </FilterSection>
             </div>
             <button
               onClick={() => setMobileFiltersOpen(false)}

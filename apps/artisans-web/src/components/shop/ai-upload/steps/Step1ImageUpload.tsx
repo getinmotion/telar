@@ -29,6 +29,7 @@ interface Step1ImageUploadProps {
   onNext: () => void;
   wizardState: WizardState;
   isEditMode?: boolean;
+  productIdToEdit?: string;
 }
 
 export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
@@ -45,6 +46,7 @@ export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
   onNext,
   wizardState,
   isEditMode,
+  productIdToEdit,
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -355,7 +357,7 @@ export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
       {/* Navigation */}
       <div className="flex justify-between">
         {(!isEditMode || wizardState.status === 'draft') && (
-          <SaveDraftButton wizardState={wizardState} variant="outline" />
+          <SaveDraftButton wizardState={wizardState} productId={productIdToEdit} variant="outline" />
         )}
 
         <Button

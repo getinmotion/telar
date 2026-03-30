@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 import { Material } from '../../materials/entities/material.entity';
@@ -25,6 +26,9 @@ export class ProductMaterialLink {
 
   @Column({ name: 'material_origin', type: 'text', nullable: true })
   materialOrigin: string;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @ManyToOne(() => ProductCore, (product) => product.materials)
