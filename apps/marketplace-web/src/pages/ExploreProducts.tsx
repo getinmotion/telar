@@ -140,6 +140,44 @@ const ExploreProducts = () => {
     setSearchParams(params, { replace: true });
   }, [filters.categorySlug, filters.sortBy, setSearchParams]);
 
+  // Derive available filter options from loaded products (intersection with category)
+  const availableTechniques = useMemo(() => {
+    const ids = new Set<string>();
+    products.forEach((p) => {
+      const tid = p.artisanalIdentity?.primaryTechnique?.id;
+      if (tid) ids.add(tid);
+    });
+    return techniques.filter((t) => ids.has(t.id));
+  }, [products, techniques]);
+
+  const availableCrafts = useMemo(() => {
+    const ids = new Set<string>();
+    products.forEach((p) => {
+      const cid = p.artisanalIdentity?.primaryCraft?.id;
+      if (cid) ids.add(cid);
+    });
+    return crafts.filter((c) => ids.has(c.id));
+  }, [products, crafts]);
+
+  const availableMaterials = useMemo(() => {
+    const ids = new Set<string>();
+    products.forEach((p) => {
+      (p.materials ?? []).forEach((m) => {
+        if (m.material?.id) ids.add(m.material.id);
+      });
+    });
+    return materials.filter((m) => ids.has(m.id));
+  }, [products, materials]);
+
+  const availableCuratorial = useMemo(() => {
+    const ids = new Set<string>();
+    products.forEach((p) => {
+      const cid = p.artisanalIdentity?.curatorialCategory?.id;
+      if (cid) ids.add(cid);
+    });
+    return curatorialCategories.filter((c) => ids.has(c.id));
+  }, [products, curatorialCategories]);
+
   // Client-side filtering (material, technique, craft, price, curatorial)
   const filteredProducts = useMemo(() => {
     let result = [...products];
@@ -217,8 +255,10 @@ const ExploreProducts = () => {
     setFilters((prev) => ({
       ...prev,
       [key]: prev[key] === value ? null : value,
-      // Reset subcategory when category changes
-      ...(key === "categorySlug" ? { subcategorySlug: null } : {}),
+      // Reset dependent filters when category changes
+      ...(key === "categorySlug"
+        ? { subcategorySlug: null, techniqueId: null, materialId: null, craftId: null, curatorialId: null, priceRange: [0, 0] as [number, number] }
+        : {}),
     }));
     setPage(1);
   };
@@ -332,77 +372,83 @@ const ExploreProducts = () => {
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
             <div className="sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2 space-y-8 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-charcoal/10 [&::-webkit-scrollbar-thumb]:rounded-full">
-              {/* Técnica artesanal */}
-              <FilterSection title="Técnica artesanal" defaultOpen>
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {techniques.slice(0, 20).map((t) => (
-                    <li
-                      key={t.id}
-                      onClick={() => updateFilter("techniqueId", t.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.techniqueId === t.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.techniqueId === t.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {t.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
+              {/* Técnica artesanal — only those present in loaded products */}
+              {availableTechniques.length > 0 && (
+                <FilterSection title="Técnica artesanal" defaultOpen>
+                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                    {availableTechniques.map((t) => (
+                      <li
+                        key={t.id}
+                        onClick={() => updateFilter("techniqueId", t.id)}
+                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                          filters.techniqueId === t.id
+                            ? "font-bold text-charcoal"
+                            : ""
+                        }`}
+                      >
+                        {filters.techniqueId === t.id && (
+                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                        )}
+                        {t.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
 
-              {/* Oficio */}
-              <FilterSection title="Oficio">
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {crafts.map((c) => (
-                    <li
-                      key={c.id}
-                      onClick={() => updateFilter("craftId", c.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.craftId === c.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.craftId === c.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {c.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
+              {/* Oficio — only those present in loaded products */}
+              {availableCrafts.length > 0 && (
+                <FilterSection title="Oficio">
+                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                    {availableCrafts.map((c) => (
+                      <li
+                        key={c.id}
+                        onClick={() => updateFilter("craftId", c.id)}
+                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                          filters.craftId === c.id
+                            ? "font-bold text-charcoal"
+                            : ""
+                        }`}
+                      >
+                        {filters.craftId === c.id && (
+                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                        )}
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
 
-              {/* Material */}
-              <FilterSection title="Material">
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {materials.slice(0, 20).map((m) => (
-                    <li
-                      key={m.id}
-                      onClick={() => updateFilter("materialId", m.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.materialId === m.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.materialId === m.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {m.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
+              {/* Material — only those present in loaded products */}
+              {availableMaterials.length > 0 && (
+                <FilterSection title="Material">
+                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
+                    {availableMaterials.map((m) => (
+                      <li
+                        key={m.id}
+                        onClick={() => updateFilter("materialId", m.id)}
+                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                          filters.materialId === m.id
+                            ? "font-bold text-charcoal"
+                            : ""
+                        }`}
+                      >
+                        {filters.materialId === m.id && (
+                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                        )}
+                        {m.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
 
-              {/* Colección curatorial */}
-              {curatorialCategories.length > 0 && (
+              {/* Colección curatorial — only those present in loaded products */}
+              {availableCuratorial.length > 0 && (
                 <FilterSection title="Colección">
                   <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
-                    {curatorialCategories.map((cc) => (
+                    {availableCuratorial.map((cc) => (
                       <li
                         key={cc.id}
                         onClick={() => updateFilter("curatorialId", cc.id)}
@@ -669,34 +715,53 @@ const ExploreProducts = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Same filter sections as sidebar */}
+            {/* Same filter sections as sidebar — intersected with products */}
             <div className="space-y-6">
-              <FilterSection title="Técnica" defaultOpen>
-                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                  {techniques.slice(0, 15).map((t) => (
-                    <li
-                      key={t.id}
-                      onClick={() => updateFilter("techniqueId", t.id)}
-                      className={`cursor-pointer ${filters.techniqueId === t.id ? "font-bold text-charcoal" : ""}`}
-                    >
-                      {t.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-              <FilterSection title="Material">
-                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                  {materials.slice(0, 15).map((m) => (
-                    <li
-                      key={m.id}
-                      onClick={() => updateFilter("materialId", m.id)}
-                      className={`cursor-pointer ${filters.materialId === m.id ? "font-bold text-charcoal" : ""}`}
-                    >
-                      {m.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
+              {availableTechniques.length > 0 && (
+                <FilterSection title="Técnica" defaultOpen>
+                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
+                    {availableTechniques.map((t) => (
+                      <li
+                        key={t.id}
+                        onClick={() => updateFilter("techniqueId", t.id)}
+                        className={`cursor-pointer ${filters.techniqueId === t.id ? "font-bold text-charcoal" : ""}`}
+                      >
+                        {t.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
+              {availableMaterials.length > 0 && (
+                <FilterSection title="Material">
+                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
+                    {availableMaterials.map((m) => (
+                      <li
+                        key={m.id}
+                        onClick={() => updateFilter("materialId", m.id)}
+                        className={`cursor-pointer ${filters.materialId === m.id ? "font-bold text-charcoal" : ""}`}
+                      >
+                        {m.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
+              {availableCrafts.length > 0 && (
+                <FilterSection title="Oficio">
+                  <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
+                    {availableCrafts.map((c) => (
+                      <li
+                        key={c.id}
+                        onClick={() => updateFilter("craftId", c.id)}
+                        className={`cursor-pointer ${filters.craftId === c.id ? "font-bold text-charcoal" : ""}`}
+                      >
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                </FilterSection>
+              )}
             </div>
             <button
               onClick={() => setMobileFiltersOpen(false)}
