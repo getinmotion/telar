@@ -23,6 +23,7 @@ export const useProducts = (shopId?: string) => {
 
     try {
       const data = await getProductsByShopId(shopId);
+      console.log('data', data)
       setProducts(data);
     } catch (err: any) {
       setError(err.message);

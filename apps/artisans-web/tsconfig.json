@@ -7,7 +7,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@telar/shared-types": ["../shared-types/src"],
+      "@telar/shared-types/*": ["../shared-types/src/*"]
     },
     "noImplicitAny": false,
     "noUnusedParameters": false,
