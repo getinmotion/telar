@@ -42,8 +42,12 @@ export interface ProductBadgeLink {
 
 export interface ProductVariant {
   id: string;
-  name?: string;
   sku?: string;
+  basePriceMinor?: number;
+  stockQuantity?: number;
+  currency?: string;
+  isActive?: boolean;
+  // Legacy aliases (in case backend ever sends these)
   price?: number;
   stock?: number;
 }
@@ -177,11 +181,17 @@ export function getAllImageUrls(product: ProductNewCore): string[] {
     .map(m => m.mediaUrl);
 }
 
-/** Get the price from variants (first variant or min price) */
+/** Get the price from variants (min price). basePriceMinor is in COP cents. */
 export function getProductPrice(product: ProductNewCore): number | null {
   const prices = (product.variants ?? [])
-    .map(v => v.price)
-    .filter((p): p is number => p != null && p > 0);
+    .map(v => {
+      // Backend returns basePriceMinor (bigint in cents)
+      if (v.basePriceMinor != null && v.basePriceMinor > 0) return v.basePriceMinor;
+      // Fallback to legacy price field
+      if (v.price != null && v.price > 0) return v.price;
+      return null;
+    })
+    .filter((p): p is number => p != null);
   if (prices.length === 0) return null;
   return Math.min(...prices);
 }
@@ -189,7 +199,7 @@ export function getProductPrice(product: ProductNewCore): number | null {
 /** Get total stock from variants */
 export function getProductStock(product: ProductNewCore): number {
   return (product.variants ?? [])
-    .reduce((sum, v) => sum + (v.stock ?? 0), 0);
+    .reduce((sum, v) => sum + (v.stockQuantity ?? v.stock ?? 0), 0);
 }
 
 /** Get material names from product */
