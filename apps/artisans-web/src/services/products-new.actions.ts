@@ -258,12 +258,62 @@ export const getProductsNewByStoreId = async (
 };
 
 /**
+ * Elimina un producto (soft delete)
+ * Endpoint: DELETE /products-new/:id
+ * Marca como eliminado el producto y todas sus entidades relacionadas
+ * @param productId ID del producto a eliminar
+ */
+export const deleteProductNew = async (productId: string): Promise<void> => {
+  try {
+    await telarApi.delete(`/products-new/${productId}`);
+  } catch (error: any) {
+    console.error('❌ Error eliminando producto:', error);
+    throw error;
+  }
+};
+
+/**
  * Convierte un precio de minor units (centavos) a pesos
  * @param priceMinor Precio en centavos como string (ej: "5000000")
  * @returns Precio en COP (ej: 50000)
  */
 const minorToPrice = (priceMinor: string): number => {
   return Math.round(parseInt(priceMinor) / 100);
+};
+
+/**
+ * Mapea ProductResponse (products-new) a Product legacy
+ * Para compatibilidad con componentes que usan la estructura antigua
+ * @param product ProductResponse de products-new
+ * @returns Product en formato legacy
+ */
+export const mapProductResponseToLegacy = (product: ProductResponse): any => {
+  const firstVariant = product.variants?.[0];
+  const firstImage = product.media
+    ?.filter((m) => m.mediaType === 'image')
+    .sort((a, b) => a.displayOrder - b.displayOrder)[0];
+
+  return {
+    id: product.id,
+    shop_id: product.storeId,
+    name: product.name,
+    description: product.history || product.shortDescription,
+    short_description: product.shortDescription,
+    price: firstVariant?.basePriceMinor ? minorToPrice(firstVariant.basePriceMinor) : 0,
+    category: product.categoryId || '',
+    images: product.media
+      ?.filter((m) => m.mediaType === 'image')
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((m) => m.mediaUrl) || [],
+    inventory: firstVariant?.stockQuantity || 0,
+    sku: firstVariant?.sku || '',
+    active: product.status === 'approved',
+    moderation_status: product.status,
+    created_at: product.createdAt,
+    updated_at: product.updatedAt,
+    // Agregar variantId para facilitar actualizaciones
+    _variantId: firstVariant?.id,
+  };
 };
 
 /**

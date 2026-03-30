@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 import { Badge } from '../../badges/entities/badge.entity';
@@ -34,6 +35,9 @@ export class ProductBadge {
 
   @Column({ name: 'valid_until', type: 'timestamptz', nullable: true })
   validUntil: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @ManyToOne(() => ProductCore, (product) => product.badges)

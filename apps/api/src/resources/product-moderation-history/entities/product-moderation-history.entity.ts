@@ -8,9 +8,9 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Product } from '../../products/entities/product.entity';
+import { ProductCore } from '../../products-new/entities/product-core.entity';
 
-@Entity({ name: 'product_moderation_history', schema: 'public' })
+@Entity({ name: 'product_moderation_history', schema: 'shop' })
 export class ProductModerationHistory extends BaseEntity {
   @ApiProperty({ description: 'ID único del historial de moderación' })
   @PrimaryGeneratedColumn('uuid')
@@ -79,7 +79,7 @@ export class ProductModerationHistory extends BaseEntity {
 
   // Relaciones
   @ApiProperty({ description: 'Producto relacionado' })
-  @ManyToOne(() => Product, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ProductCore, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id' })
-  product!: Product;
+  product!: ProductCore;
 }

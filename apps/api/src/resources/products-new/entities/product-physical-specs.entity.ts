@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 
@@ -27,6 +28,9 @@ export class ProductPhysicalSpecs {
 
   @Column({ name: 'real_weight_kg', type: 'decimal', precision: 8, scale: 2, nullable: true })
   realWeightKg: number;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @OneToOne(() => ProductCore, (product) => product.physicalSpecs)
