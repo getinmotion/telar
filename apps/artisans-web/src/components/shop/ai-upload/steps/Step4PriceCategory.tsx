@@ -62,6 +62,7 @@ interface Step4PriceCategoryProps {
   onNext: () => void;
   onPrevious: () => void;
   wizardState: WizardState;
+  productIdToEdit?: string;
 }
 
 export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
@@ -84,6 +85,7 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
   onPrevious,
   wizardState,
   isEditMode,
+  productIdToEdit,
 }) => {
   const handleNext = () => {
     if (!price || price <= 0) {
@@ -397,7 +399,7 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
 
         <div className="flex gap-2">
           {(!isEditMode || wizardState.status === 'draft') && (
-            <SaveDraftButton wizardState={wizardState} variant="outline" />
+            <SaveDraftButton wizardState={wizardState} productId={productIdToEdit} variant="outline" />
           )}
 
           <Button

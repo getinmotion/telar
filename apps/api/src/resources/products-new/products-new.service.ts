@@ -640,12 +640,66 @@ export class ProductsNewService {
   }
 
   /**
-   * Soft delete de producto
+   * Soft delete completo de producto y todas sus entidades relacionadas
+   * Marca como eliminado (deleted_at) el ProductCore y todas las entidades asociadas
    */
   async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
-    product.deletedAt = new Date();
+    const deleteDate = new Date();
+
+    // 1. Soft delete de ProductCore
+    product.deletedAt = deleteDate;
     await this.productCoreRepository.save(product);
+
+    // 2. Soft delete de entidades OneToOne
+    if (product.artisanalIdentity) {
+      product.artisanalIdentity.deletedAt = deleteDate;
+      await this.artisanalIdentityRepository.save(product.artisanalIdentity);
+    }
+
+    if (product.physicalSpecs) {
+      product.physicalSpecs.deletedAt = deleteDate;
+      await this.physicalSpecsRepository.save(product.physicalSpecs);
+    }
+
+    if (product.logistics) {
+      product.logistics.deletedAt = deleteDate;
+      await this.logisticsRepository.save(product.logistics);
+    }
+
+    if (product.production) {
+      product.production.deletedAt = deleteDate;
+      await this.productionRepository.save(product.production);
+    }
+
+    // 3. Soft delete de entidades OneToMany
+    if (product.media && product.media.length > 0) {
+      for (const media of product.media) {
+        media.deletedAt = deleteDate;
+      }
+      await this.productMediaRepository.save(product.media as any);
+    }
+
+    if (product.badges && product.badges.length > 0) {
+      for (const badge of product.badges) {
+        badge.deletedAt = deleteDate;
+      }
+      await this.badgesRepository.save(product.badges as any);
+    }
+
+    if (product.materials && product.materials.length > 0) {
+      for (const material of product.materials) {
+        material.deletedAt = deleteDate;
+      }
+      await this.materialsRepository.save(product.materials as any);
+    }
+
+    if (product.variants && product.variants.length > 0) {
+      for (const variant of product.variants) {
+        variant.deletedAt = deleteDate;
+      }
+      await this.variantsRepository.save(product.variants as any);
+    }
   }
 
   /**

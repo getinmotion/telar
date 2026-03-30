@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   AfterLoad,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
@@ -32,6 +33,9 @@ export class ProductMedia {
 
   @Column({ name: 'display_order', type: 'int', default: 0 })
   displayOrder: number;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @ManyToOne(() => ProductCore, (product) => product.media)

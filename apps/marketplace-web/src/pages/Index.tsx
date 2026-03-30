@@ -51,6 +51,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Product } from "@/types/products.types";
+import { HeroSection } from "@/components/HeroSection";
 
 const PRODUCTS_PER_PAGE = 24;
 
@@ -496,19 +497,18 @@ const Index = () => {
       {isHomePage ? (
         <>
           {/* HeroSection original (comentado temporalmente) */}
-          {/* <HeroSection /> */}
+          <HeroSection />
           {/* Nuevo HeroSectionV2 */}
-          <HeroSectionV2 />
+          {/* <HeroSectionV2 /> */}
 
           {/* StatsSection original (comentado temporalmente) */}
           {/* <StatsSection /> */}
 
           {/* Nueva sección de valores */}
-          <section className="w-full bg-muted/30 py-12 md:py-16">
+          {/* <section className="w-full bg-muted/30 py-12 md:py-16">
             <div className="container mx-auto px-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-6xl mx-auto">
 
-                {/* Hecho a mano */}
                 <div className="flex flex-col gap-3 text-center">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Hecho a mano
@@ -518,7 +518,6 @@ const Index = () => {
                   </p>
                 </div>
 
-                {/* Origen cultural */}
                 <div className="flex flex-col gap-3 text-center">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Origen cultural
@@ -528,7 +527,6 @@ const Index = () => {
                   </p>
                 </div>
 
-                {/* Autenticidad registrada */}
                 <div className="flex flex-col gap-3 text-center">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Autenticidad registrada
@@ -540,7 +538,7 @@ const Index = () => {
 
               </div>
             </div>
-          </section>
+          </section> */}
 
           <FeaturedCategories onCategoryClick={handleCategorySearch} />
 
@@ -563,20 +561,17 @@ const Index = () => {
           /> */}
 
           {/* Nueva sección: Un Marketplace Diferente */}
-          <section className="w-full bg-[#2a2a2a] py-20 md:py-32">
+          {/* <section className="w-full bg-[#2a2a2a] py-20 md:py-32">
             <div className="container mx-auto px-4 max-w-5xl">
               <div className="flex flex-col items-center justify-center gap-8 text-center">
-                {/* Subtítulo superior */}
                 <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-[0.3em]">
                   Un marketplace diferente
                 </p>
 
-                {/* Texto principal en cursiva */}
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif italic text-white leading-relaxed max-w-3xl">
                   Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.
                 </h2>
 
-                {/* Botón */}
                 <Link to="/about">
                   <Button
                     variant="outline"
@@ -588,7 +583,7 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-          </section>
+          </section> */}
 
           <FeaturedArticles />
           <FeaturedShops />
