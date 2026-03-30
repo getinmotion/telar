@@ -5,6 +5,7 @@ import {
   OneToOne,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 import { Craft } from '../../crafts/entities/craft.entity';
@@ -46,6 +47,9 @@ export class ProductArtisanalIdentity {
 
   @Column({ name: 'estimated_elaboration_time', type: 'text', nullable: true })
   estimatedElaborationTime: string;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @OneToOne(() => ProductCore, (product) => product.artisanalIdentity)

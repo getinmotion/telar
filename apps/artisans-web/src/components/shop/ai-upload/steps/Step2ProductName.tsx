@@ -46,6 +46,7 @@ interface Step2ProductNameProps {
   onPrevious: () => void;
   wizardState: WizardState;
   isEditMode?: boolean;
+  productIdToEdit?: string;
 }
 
 export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
@@ -73,6 +74,7 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
   onPrevious,
   wizardState,
   isEditMode,
+  productIdToEdit,
 }) => {
   const [crafts, setCrafts] = useState<Craft[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
@@ -644,7 +646,7 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
 
         <div className="flex gap-2">
           {(!isEditMode || wizardState.status === 'draft') && (
-            <SaveDraftButton wizardState={wizardState} variant="outline" />
+            <SaveDraftButton wizardState={wizardState} productId={productIdToEdit} variant="outline" />
           )}
 
           <Button

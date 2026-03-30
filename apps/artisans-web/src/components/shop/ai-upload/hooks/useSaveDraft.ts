@@ -19,7 +19,8 @@ export const useSaveDraft = () => {
   const { user } = useAuth();
 
   const saveDraft = async (
-    wizardState: WizardState, 
+    wizardState: WizardState,
+    productId?: string,
     options: SaveDraftOptions = { redirectToInventory: true }
   ): Promise<boolean> => {
     // Minimum validation: at least 1 image
@@ -67,10 +68,16 @@ export const useSaveDraft = () => {
         uploadedImageUrls
       );
 
+      // Si estamos editando, agregar productId al DTO para hacer update
+      if (productId) {
+        createDto.productId = productId;
+        console.log('📝 Actualizando borrador del producto:', productId);
+      }
+
       // Status is already 'draft' by default in mapWizardStateToCreateDto
       console.log('📋 DTO generado para borrador:', createDto);
 
-      // Create product using products-new endpoint
+      // Create/Update product using products-new endpoint (upsert)
       const draftProduct = await createProductNew(createDto);
       console.log('✅ BORRADOR GUARDADO:', draftProduct.id);
       

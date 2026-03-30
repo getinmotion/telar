@@ -13,7 +13,10 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
-import { getProductNewById, mapProductResponseToWizardState } from "@/services/products-new.actions";
+import {
+  getProductNewById,
+  mapProductResponseToWizardState,
+} from "@/services/products-new.actions";
 
 const STEPS = [
   { title: "La pieza", description: "Sube las fotos de tu producto" },
@@ -66,38 +69,32 @@ export const AIProductUploadWizard: React.FC = () => {
     const loadProductData = async () => {
       setIsLoadingProduct(true);
       try {
-        console.log('🔍 Cargando producto para edición:', productIdToEdit);
         const product = await getProductNewById(productIdToEdit);
-        console.log('📦 Producto obtenido del backend:', product);
 
         if (product) {
-          console.log('🔄 Mapeando producto a WizardState...');
           const mappedState = mapProductResponseToWizardState(product);
-          console.log('✅ Estado mapeado:', mappedState);
 
           updateWizardState(mappedState);
-          toast.success('Producto cargado', {
-            description: 'Puedes editar los campos y actualizar',
-          });
         } else {
-          console.warn('⚠️ Producto no encontrado (null)');
-          toast.error('Producto no encontrado');
+          toast.error("Producto no encontrado");
           // Redirigir a crear nuevo producto
           setTimeout(() => {
-            window.location.href = '/productos/subir';
+            window.location.href = "/productos/subir";
           }, 2000);
         }
       } catch (error) {
-        console.error('❌ Error completo al cargar producto:', error);
-        console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack');
-        console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
-
-        toast.error('Error al cargar el producto', {
-          description: error instanceof Error ? error.message : 'Error desconocido',
-        });
+        console.error("❌ Error completo al cargar producto:", error);
+        console.error(
+          "❌ Error stack:",
+          error instanceof Error ? error.stack : "No stack",
+        );
+        console.error(
+          "❌ Error message:",
+          error instanceof Error ? error.message : String(error),
+        );
 
         setTimeout(() => {
-          window.location.href = '/productos/subir';
+          window.location.href = "/productos/subir";
         }, 2000);
       } finally {
         setIsLoadingProduct(false);
@@ -147,6 +144,7 @@ export const AIProductUploadWizard: React.FC = () => {
             onNext={handleNext}
             wizardState={wizardState}
             isEditMode={isEditMode}
+            productIdToEdit={productIdToEdit || undefined}
           />
         );
       case 1:
@@ -188,6 +186,7 @@ export const AIProductUploadWizard: React.FC = () => {
             onPrevious={handlePrevious}
             wizardState={wizardState}
             isEditMode={isEditMode}
+            productIdToEdit={productIdToEdit || undefined}
           />
         );
       case 2:
@@ -214,6 +213,7 @@ export const AIProductUploadWizard: React.FC = () => {
             onPrevious={handlePrevious}
             wizardState={wizardState}
             isEditMode={isEditMode}
+            productIdToEdit={productIdToEdit || undefined}
           />
         );
       case 3:

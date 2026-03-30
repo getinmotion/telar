@@ -1161,7 +1161,7 @@ export const ShopDashboard: React.FC = () => {
                             >
                               <Edit3 className="w-4 h-4" />
                             </Button>
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="icon"
                               className="h-9 w-9"
@@ -1172,7 +1172,7 @@ export const ShopDashboard: React.FC = () => {
                               title="Ver producto"
                             >
                               <Eye className="w-4 h-4" />
-                            </Button>
+                            </Button> */}
                           </div>
                         </div>
                       );
