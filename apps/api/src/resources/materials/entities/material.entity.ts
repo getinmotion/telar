@@ -1,0 +1,52 @@
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+export enum ApprovalStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+@Entity({ name: 'materials', schema: 'taxonomy' })
+export class Material {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'text', unique: true })
+  name: string;
+
+  @Column({ type: 'boolean', default: false, name: 'is_organic' })
+  isOrganic: boolean;
+
+  @Column({ type: 'boolean', default: false, name: 'is_sustainable' })
+  isSustainable: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: ApprovalStatus,
+    default: ApprovalStatus.APPROVED,
+  })
+  status: ApprovalStatus;
+
+  @Column({ type: 'uuid', nullable: true, name: 'suggested_by' })
+  suggestedBy: string | null;
+
+  @CreateDateColumn({
+    type: 'timestamptz',
+    name: 'created_at',
+    default: () => 'NOW()',
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    type: 'timestamptz',
+    name: 'updated_at',
+    default: () => 'NOW()',
+  })
+  updatedAt: Date;
+}

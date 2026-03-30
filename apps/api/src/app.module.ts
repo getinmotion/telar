@@ -41,6 +41,15 @@ import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
 import { PaymentsModule } from './resources/payments/payments.module';
+import { StoresModule } from './resources/stores/stores.module';
+import { ProductsNewModule } from './resources/products-new/products-new.module';
+import { CraftsModule } from './resources/crafts/crafts.module';
+import { MaterialsModule } from './resources/materials/materials.module';
+import { TechniquesModule } from './resources/techniques/techniques.module';
+import { BadgesModule } from './resources/badges/badges.module';
+import { CuratorialCategoriesModule } from './resources/curatorial-categories/curatorial-categories.module';
+import { CategoriesModule } from './resources/categories/categories.module';
+import { CareTagsModule } from './resources/care-tags/care-tags.module';
 
 @Module({
   imports: [
@@ -89,6 +98,15 @@ import { PaymentsModule } from './resources/payments/payments.module';
     FileUploadModule,
     CmsModule,
     PaymentsModule,
+    StoresModule,
+    ProductsNewModule,
+    CraftsModule,
+    MaterialsModule,
+    TechniquesModule,
+    BadgesModule,
+    CuratorialCategoriesModule,
+    CategoriesModule,
+    CareTagsModule,
   ],
   controllers: [],
   providers: [],

@@ -13,7 +13,14 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        serif: ["'Playfair Display'", "serif"],
+        sans: ["Manrope", "sans-serif"],
+      },
       colors: {
+        charcoal: "#2c2c2c",
+        cream: "#fdfaf6",
+        "editorial-bg": "#f9f7f2",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

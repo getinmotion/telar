@@ -9,6 +9,16 @@ import type {
   UpdateArtisanShopRequest,
 } from '@/types/artisan-shops.types';
 
+/** Safely extract a string error message from any thrown value */
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object') {
+    const e = error as Record<string, any>;
+    const msg = e.response?.data?.message ?? e.message;
+    if (typeof msg === 'string') return msg;
+  }
+  return fallback;
+}
+
 interface ArtisanShopsContextType {
   shops: ArtisanShop[];
   currentShop: ArtisanShop | null;
@@ -45,10 +55,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       setTotal(response.total);
       setPage(response.page);
       setLimit(response.limit);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar las tiendas';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar las tiendas'));
       throw error;
     } finally {
       setLoading(false);
@@ -61,10 +69,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       const shop = await ArtisanShopsActions.getArtisanShopById(id);
       setCurrentShop(shop);
       return shop;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar la tienda'));
       return null;
     } finally {
       setLoading(false);
@@ -77,10 +83,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       const shop = await ArtisanShopsActions.getArtisanShopBySlug(slug);
       setCurrentShop(shop);
       return shop;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar la tienda'));
       return null;
     } finally {
       setLoading(false);
@@ -93,10 +97,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       const featuredShops = await ArtisanShopsActions.getFeaturedShops(limitParam);
       setShops(featuredShops);
       setTotal(featuredShops.length);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar tiendas destacadas';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar tiendas destacadas'));
       throw error;
     } finally {
       setLoading(false);
@@ -109,10 +111,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       const userShops = await ArtisanShopsActions.getShopsByUser(userId);
       setShops(userShops);
       setTotal(userShops.length);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al cargar tus tiendas';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al cargar tus tiendas'));
       throw error;
     } finally {
       setLoading(false);
@@ -129,10 +129,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       setTotal(total + 1);
       toast.success('Tienda creada exitosamente');
       return newShop;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al crear la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al crear la tienda'));
       return null;
     } finally {
       setLoading(false);
@@ -154,10 +152,8 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       }
       toast.success('Tienda actualizada exitosamente');
       return updatedShop;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al actualizar la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al actualizar la tienda'));
       return null;
     } finally {
       setLoading(false);
@@ -173,12 +169,10 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
       if (currentShop?.id === id) {
         setCurrentShop(null);
       }
-      toast.success(result.message || 'Tienda eliminada exitosamente');
+      toast.success(typeof result.message === 'string' ? result.message : 'Tienda eliminada exitosamente');
       return true;
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || 'Error al eliminar la tienda';
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Error al eliminar la tienda'));
       return false;
     } finally {
       setLoading(false);

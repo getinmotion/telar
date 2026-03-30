@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { formatCurrency } from '@/utils/currency';
-import { useNavigate } from 'react-router-dom';
-import { useInventory, Product } from '@/hooks/useInventory';
-import { useArtisanShop } from '@/hooks/useArtisanShop';
-import { useMasterAgent } from '@/context/MasterAgentContext';
-import { EventBus } from '@/utils/eventBus';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from "react";
+import { formatCurrency } from "@/utils/currency";
+import { useNavigate } from "react-router-dom";
+import { useInventory } from "@/hooks/useInventory";
+import { useArtisanShop } from "@/hooks/useArtisanShop";
+import { useMasterAgent } from "@/context/MasterAgentContext";
+import { EventBus } from "@/utils/eventBus";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,43 +14,78 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Plus, Search, Edit, Eye, EyeOff, Package, AlertTriangle, Store, Trash2, ShoppingBag, LayoutGrid, FileEdit, Copy } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MarketplaceLinksManager } from '@/components/inventory/MarketplaceLinksManager';
-import { DeleteProductDialog } from '@/components/inventory/DeleteProductDialog';
-import { getMarketplaceIcon, getMarketplaceColor } from '@/utils/marketplaceUtils';
-import { ModerationFeedbackBadge } from '@/components/inventory/ModerationFeedbackBadge';
-import { QuickStockModal } from '@/components/inventory/QuickStockModal';
-import { StockDashboardPanel } from '@/components/inventory/StockDashboardPanel';
-import { getModerationCommentsForProducts } from '@/services/productModerationHistory.actions';
-
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  Edit,
+  Eye,
+  EyeOff,
+  Package,
+  Store,
+  Trash2,
+  ShoppingBag,
+  LayoutGrid,
+  FileEdit,
+  Copy,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { MarketplaceLinksManager } from "@/components/inventory/MarketplaceLinksManager";
+import { DeleteProductDialog } from "@/components/inventory/DeleteProductDialog";
+import {
+  getMarketplaceIcon,
+  getMarketplaceColor,
+} from "@/utils/marketplaceUtils";
+import { ModerationFeedbackBadge } from "@/components/inventory/ModerationFeedbackBadge";
+import { QuickStockModal } from "@/components/inventory/QuickStockModal";
+import { StockDashboardPanel } from "@/components/inventory/StockDashboardPanel";
+import { getModerationCommentsForProducts } from "@/services/productModerationHistory.actions";
+import { LegacyProduct } from "@telar/shared-types";
 
 export const InventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { shop } = useArtisanShop();
   const { refreshModule } = useMasterAgent();
-  const { loading, fetchProducts, updateProduct, deleteProduct, duplicateProduct, adjustProductStock } = useInventory();
+  const {
+    loading,
+    fetchProducts,
+    updateProduct,
+    deleteProduct,
+    duplicateProduct,
+    adjustProductStock,
+  } = useInventory();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [stockFilter, setStockFilter] = useState<string>('all');
+  const [products, setProducts] = useState<LegacyProduct[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [stockFilter, setStockFilter] = useState<string>("all");
   const [marketplaceModalOpen, setMarketplaceModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<LegacyProduct | null>(
+    null,
+  );
+  const [productToDelete, setProductToDelete] = useState<LegacyProduct | null>(
+    null,
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [quickStockModalOpen, setQuickStockModalOpen] = useState(false);
-  const [moderationComments, setModerationComments] = useState<Record<string, string>>({});
+  const [moderationComments, setModerationComments] = useState<
+    Record<string, string>
+  >({});
 
   // Load products when shop is available
   useEffect(() => {
@@ -68,7 +103,9 @@ export const InventoryPage: React.FC = () => {
   useEffect(() => {
     const fetchModerationComments = async () => {
       const productsNeedingComments = products.filter(
-        (p) => p.moderation_status === 'rejected' || p.moderation_status === 'changes_requested'
+        (p) =>
+          p.moderation_status === "rejected" ||
+          p.moderation_status === "changes_requested",
       );
 
       if (productsNeedingComments.length === 0) {
@@ -88,47 +125,63 @@ export const InventoryPage: React.FC = () => {
     }
   }, [products]);
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products.filter((product) => {
     // Search filter
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Status filter
-    const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'active' && product.active) ||
-      (statusFilter === 'inactive' && !product.active) ||
-      (statusFilter === 'draft' && product.moderation_status === 'draft');
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && product.active) ||
+      (statusFilter === "inactive" && !product.active) ||
+      (statusFilter === "draft" && product.moderation_status === "draft");
 
     // Stock filter
-    const matchesStock = stockFilter === 'all' ||
-      (stockFilter === 'low' && product.inventory !== null && product.inventory <= 5) ||
-      (stockFilter === 'out' && product.inventory === 0) ||
-      (stockFilter === 'in-stock' && product.inventory !== null && product.inventory > 0);
+    const matchesStock =
+      stockFilter === "all" ||
+      (stockFilter === "low" &&
+        product.inventory !== null &&
+        product.inventory <= 5) ||
+      (stockFilter === "out" && product.inventory === 0) ||
+      (stockFilter === "in-stock" &&
+        product.inventory !== null &&
+        product.inventory > 0);
 
     return matchesSearch && matchesStatus && matchesStock;
   });
 
-  const handleToggleActive = async (productId: string, currentActive: boolean) => {
+  const handleToggleActive = async (
+    productId: string,
+    currentActive: boolean,
+  ) => {
     try {
-      const updated = await updateProduct(productId, { active: !currentActive });
+      const updated = await updateProduct(productId, {
+        active: !currentActive,
+      });
       if (updated && shop?.id) {
         // Refresh products list
         const data = await fetchProducts(shop.id);
         setProducts(data);
 
         // Publish event to sync with Master Coordinator
-        EventBus.publish('inventory.updated', { productId, active: !currentActive });
+        EventBus.publish("inventory.updated", {
+          productId,
+          active: !currentActive,
+        });
       }
     } catch (error) {
-      console.error('Error updating product status:', error);
+      console.error("Error updating product status:", error);
     }
   };
 
   const handleEdit = (productId: string) => {
-    navigate(`/productos/editar/${productId}`);
+    // Redirigir al wizard en modo edición
+    navigate(`/productos/subir?edit=true&productId=${productId}`);
   };
 
-  const handleOpenMarketplaces = (product: Product) => {
+  const handleOpenMarketplaces = (product: LegacyProduct) => {
     setSelectedProduct(product);
     setMarketplaceModalOpen(true);
   };
@@ -137,15 +190,15 @@ export const InventoryPage: React.FC = () => {
     if (!selectedProduct) return;
 
     const updated = await updateProduct(selectedProduct.id, {
-      marketplace_links: links
+      marketplace_links: links,
     });
 
     if (updated && shop) {
       const data = await fetchProducts(shop.id);
       setProducts(data);
-      EventBus.publish('inventory.updated', {
+      EventBus.publish("inventory.updated", {
         productId: selectedProduct.id,
-        marketplaceLinks: links
+        marketplaceLinks: links,
       });
     }
   };
@@ -162,9 +215,9 @@ export const InventoryPage: React.FC = () => {
         setProducts(data);
 
         // Publish event to sync with Master Coordinator
-        EventBus.publish('inventory.updated', {
+        EventBus.publish("inventory.updated", {
           productId: productToDelete.id,
-          deleted: true
+          deleted: true,
         });
 
         setProductToDelete(null);
@@ -178,38 +231,53 @@ export const InventoryPage: React.FC = () => {
     productId: string,
     change: number,
     channel: string,
-    notes: string
+    notes: string,
   ) => {
     const success = await adjustProductStock(productId, change, channel, notes);
     if (success && shop) {
       const data = await fetchProducts(shop.id);
       setProducts(data);
-      EventBus.publish('inventory.updated', { productId });
+      EventBus.publish("inventory.updated", { productId });
     }
   };
 
-  const handleDuplicateProduct = async (product: Product) => {
+  const handleDuplicateProduct = async (product: LegacyProduct) => {
     const newProduct = await duplicateProduct(product.id);
     if (newProduct && shop) {
       const data = await fetchProducts(shop.id);
       setProducts(data);
-      EventBus.publish('inventory.updated', { productId: newProduct.id, duplicated: true });
+      EventBus.publish("inventory.updated", {
+        productId: newProduct.id,
+        duplicated: true,
+      });
       // Navigate to edit the new duplicate
       navigate(`/productos/editar/${newProduct.id}`);
     }
   };
 
   const getStockBadge = (inventory: number | null) => {
-    if (inventory === null || inventory === 0) {
-      return <Badge variant="destructive">Sin stock</Badge>;
-    }
-    if (inventory <= 5) {
-      return <Badge variant="outline" className="border-amber-500 text-amber-600">
-        <AlertTriangle className="w-3 h-3 mr-1" />
-        Bajo stock
-      </Badge>;
-    }
-    return <Badge variant="outline" className="border-green-500 text-green-600">En stock</Badge>;
+    const stockLevel = inventory ?? 0;
+
+    return (
+      <div
+        className={`w-3 h-3 rounded-full ${
+          stockLevel === 0 || stockLevel === 1
+            ? "bg-red-500"
+            : stockLevel > 1 && stockLevel < 4
+              ? "bg-yellow-500"
+              : "bg-green-500"
+        }`}
+        title={
+          stockLevel === 0
+            ? "Sin stock"
+            : stockLevel === 1
+              ? "Stock crítico: 1 unidad"
+              : stockLevel < 4
+                ? `Bajo stock: ${stockLevel} unidades`
+                : `En stock: ${stockLevel} unidades`
+        }
+      />
+    );
   };
 
   if (!shop) {
@@ -218,8 +286,12 @@ export const InventoryPage: React.FC = () => {
         <div className="text-center">
           <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-2xl font-semibold mb-2">No tienes una tienda</h2>
-          <p className="text-muted-foreground mb-4">Crea una tienda para gestionar tu inventario</p>
-          <Button onClick={() => navigate('/dashboard')}>Ir al Taller Digital</Button>
+          <p className="text-muted-foreground mb-4">
+            Crea una tienda para gestionar tu inventario
+          </p>
+          <Button onClick={() => navigate("/dashboard")}>
+            Ir al Taller Digital
+          </Button>
         </div>
       </div>
     );
@@ -231,7 +303,11 @@ export const InventoryPage: React.FC = () => {
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/mi-tienda')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/mi-tienda")}
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -278,15 +354,12 @@ export const InventoryPage: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              onClick={() => navigate('/stock-wizard')}
-            >
+            <Button variant="outline" onClick={() => navigate("/stock-wizard")}>
               <LayoutGrid className="w-4 h-4 mr-2" />
               Gestión de Stock
             </Button>
 
-            <Button onClick={() => navigate('/productos/subir')}>
+            <Button onClick={() => navigate("/productos/subir")}>
               <Plus className="w-4 h-4 mr-2" />
               Añadir Producto
             </Button>
@@ -313,36 +386,40 @@ export const InventoryPage: React.FC = () => {
             <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No hay productos</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery || statusFilter !== 'all' || stockFilter !== 'all'
-                ? 'No se encontraron productos con los filtros aplicados'
-                : 'Comienza añadiendo tu primer producto'}
+              {searchQuery || statusFilter !== "all" || stockFilter !== "all"
+                ? "No se encontraron productos con los filtros aplicados"
+                : "Comienza añadiendo tu primer producto"}
             </p>
-            {!searchQuery && statusFilter === 'all' && stockFilter === 'all' && (
-              <Button onClick={() => navigate('/productos/subir')}>
-                <Plus className="w-4 h-4 mr-2" />
-                Añadir Primer Producto
-              </Button>
-            )}
+            {!searchQuery &&
+              statusFilter === "all" &&
+              stockFilter === "all" && (
+                <Button onClick={() => navigate("/productos/subir")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Añadir Primer Producto
+                </Button>
+              )}
           </div>
         ) : (
           <div className="bg-card rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Imagen</TableHead>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Marketplaces</TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-center">Imagen</TableHead>
+                  <TableHead className="text-center">Producto</TableHead>
+                  <TableHead className="text-center">Categoría</TableHead>
+                  <TableHead className="text-center">Precio</TableHead>
+                  <TableHead className="text-center">Stock</TableHead>
+                  {/* <TableHead>Marketplaces</TableHead> */}
+                  <TableHead className="text-center">Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.map((product) => {
-                  const images = Array.isArray(product.images) ? product.images : [];
-                  const firstImage = images[0] || '/placeholder.svg';
+                  const images = Array.isArray(product.images)
+                    ? product.images
+                    : [];
+                  const firstImage = images[0].url || "/placeholder.svg";
 
                   return (
                     <TableRow key={product.id}>
@@ -357,34 +434,42 @@ export const InventoryPage: React.FC = () => {
                         <div>
                           <div className="font-medium">{product.name}</div>
                           {product.sku && (
-                            <div className="text-xs text-muted-foreground">SKU: {product.sku}</div>
+                            <div className="text-xs text-muted-foreground">
+                              SKU: {product.sku}
+                            </div>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{product.category || '-'}</TableCell>
+                      <TableCell>{product.category || "-"}</TableCell>
                       <TableCell>
-                        {product.price ? formatCurrency(product.price) : 'Sin precio'}
+                        {product.price
+                          ? formatCurrency(product.price)
+                          : "Sin precio"}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{product.inventory ?? 0}</span>
+                          <span className="text-sm">
+                            {product.inventory ?? 0}
+                          </span>
                           {getStockBadge(product.inventory)}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         <div className="flex items-center gap-1 flex-wrap">
                           {product.marketplace_links?.amazon && (
                             <Badge
                               variant="outline"
                               className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
                               style={{
-                                backgroundColor: getMarketplaceColor('amazon').bg,
-                                color: getMarketplaceColor('amazon').text,
-                                borderColor: getMarketplaceColor('amazon').border,
+                                backgroundColor:
+                                  getMarketplaceColor("amazon").bg,
+                                color: getMarketplaceColor("amazon").text,
+                                borderColor:
+                                  getMarketplaceColor("amazon").border,
                               }}
                               onClick={() => handleOpenMarketplaces(product)}
                             >
-                              {getMarketplaceIcon('amazon')} Amazon
+                              {getMarketplaceIcon("amazon")} Amazon
                             </Badge>
                           )}
                           {product.marketplace_links?.mercadolibre && (
@@ -392,27 +477,30 @@ export const InventoryPage: React.FC = () => {
                               variant="outline"
                               className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
                               style={{
-                                backgroundColor: getMarketplaceColor('mercadolibre').bg,
-                                color: getMarketplaceColor('mercadolibre').text,
-                                borderColor: getMarketplaceColor('mercadolibre').border,
+                                backgroundColor:
+                                  getMarketplaceColor("mercadolibre").bg,
+                                color: getMarketplaceColor("mercadolibre").text,
+                                borderColor:
+                                  getMarketplaceColor("mercadolibre").border,
                               }}
                               onClick={() => handleOpenMarketplaces(product)}
                             >
-                              {getMarketplaceIcon('mercadolibre')} ML
+                              {getMarketplaceIcon("mercadolibre")} ML
                             </Badge>
                           )}
-                          {product.marketplace_links?.other && product.marketplace_links.other.length > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
-                              onClick={() => handleOpenMarketplaces(product)}
-                            >
-                              +{product.marketplace_links.other.length}
-                            </Badge>
-                          )}
-                          {(!product.marketplace_links?.amazon &&
+                          {product.marketplace_links?.other &&
+                            product.marketplace_links.other.length > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
+                                onClick={() => handleOpenMarketplaces(product)}
+                              >
+                                +{product.marketplace_links.other.length}
+                              </Badge>
+                            )}
+                          {!product.marketplace_links?.amazon &&
                             !product.marketplace_links?.mercadolibre &&
-                            !product.marketplace_links?.other?.length) && (
+                            !product.marketplace_links?.other?.length && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -424,7 +512,7 @@ export const InventoryPage: React.FC = () => {
                               </Button>
                             )}
                         </div>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {product.moderation_status ? (
@@ -434,32 +522,16 @@ export const InventoryPage: React.FC = () => {
                               productId={product.id}
                               productName={product.name}
                             />
+                          ) : product.active ? (
+                            <Badge variant="default">Activo</Badge>
                           ) : (
-                            product.active ? (
-                              <Badge variant="default">Activo</Badge>
-                            ) : (
-                              <Badge variant="secondary">Inactivo</Badge>
-                            )
+                            <Badge variant="secondary">Inactivo</Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDuplicateProduct(product)}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Duplicar producto</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          {product.moderation_status === 'draft' ? (
+                          {product.moderation_status === "draft" ? (
                             <Button
                               variant="default"
                               size="sm"
@@ -478,17 +550,19 @@ export const InventoryPage: React.FC = () => {
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button
+                              {/* <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleToggleActive(product.id, product.active)}
+                                onClick={() =>
+                                  handleToggleActive(product.id, product.active)
+                                }
                               >
                                 {product.active ? (
                                   <EyeOff className="w-4 h-4" />
                                 ) : (
                                   <Eye className="w-4 h-4" />
                                 )}
-                              </Button>
+                              </Button> */}
                             </>
                           )}
                           <Button
@@ -523,7 +597,7 @@ export const InventoryPage: React.FC = () => {
           open={marketplaceModalOpen}
           onOpenChange={setMarketplaceModalOpen}
           productName={selectedProduct.name}
-          initialLinks={selectedProduct.marketplace_links}
+          initialLinks={{}}
           onSave={handleSaveMarketplaceLinks}
         />
       )}
@@ -532,7 +606,7 @@ export const InventoryPage: React.FC = () => {
       <DeleteProductDialog
         open={!!productToDelete}
         onOpenChange={(open) => !open && setProductToDelete(null)}
-        productName={productToDelete?.name || ''}
+        productName={productToDelete?.name || ""}
         onConfirm={handleDeleteProduct}
         loading={deleteLoading}
       />

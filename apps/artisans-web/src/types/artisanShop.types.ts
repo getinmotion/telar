@@ -1,5 +1,17 @@
 /**
  * TypeScript interfaces for Artisan Shops (NestJS Backend)
+ *
+ * ⚠️ NOTA DE MIGRACIÓN:
+ * Estos tipos representan la tabla legacy public.artisan_shops.
+ *
+ * Para operaciones GET (lectura), el servicio artisanShops.actions ahora usa
+ * internamente la nueva arquitectura shop.stores (ver @/types/store.types),
+ * pero mapea las respuestas a estos tipos legacy para mantener compatibilidad.
+ *
+ * Operaciones POST/PATCH/DELETE siguen usando artisan_shops directamente
+ * hasta completar la migración completa.
+ *
+ * Para nuevos desarrollos, considerar usar @/types/store.types
  */
 
 // ============= Enums =============
