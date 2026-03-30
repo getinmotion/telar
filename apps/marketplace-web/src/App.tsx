@@ -59,7 +59,7 @@ const App = () => (
                         {/* Rutas con Layout (con Navbar) */}
                         <Route element={<Layout />}>
                           <Route path="/" element={<Index />} />
-                          <Route path="/productos" element={<Products />} />
+                          <Route path="/productos" element={<ExploreProducts />} />
                           <Route path="/product/:id" element={<ProductDetail />} />
                           <Route path="/tienda/:shopSlug" element={<ShopDetail />} />
                           <Route path="/tiendas" element={<Shops />} />
