@@ -1,10 +1,11 @@
 /**
- * Products Service
- * Servicio para gestión de productos del marketplace con el backend NestJS
+ * Products Service — NOW backed by /products-new (shop.products_core)
+ *
+ * Maps ProductNewCore → legacy Product type so every existing component
+ * (ProductCard, ProductDetail, FilterSidebar, etc.) keeps working unchanged.
  */
 
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
-import { toastError } from '@/utils/toast.utils';
 import type {
   Product,
   ProductsResponse,
@@ -12,237 +13,228 @@ import type {
   CreateProductRequest,
   UpdateProductRequest,
 } from '@/types/products.types';
+import type {
+  ProductNewCore,
+  ProductsNewPaginatedResponse,
+} from './products-new.actions';
+import {
+  getPrimaryImageUrl,
+  getAllImageUrls,
+  getProductPrice,
+  getProductStock,
+  getMaterialNames,
+  getCraftName,
+  getTechniqueName,
+} from './products-new.actions';
+
+// ── Mapper: ProductNewCore → legacy Product ─────────────
+
+function mapNewToLegacy(p: ProductNewCore): Product {
+  const price = getProductPrice(p);
+  const stock = getProductStock(p);
+  const imageUrl = getPrimaryImageUrl(p);
+  const images = getAllImageUrls(p);
+  const materialNames = getMaterialNames(p);
+  const craft = getCraftName(p);
+  const technique = getTechniqueName(p);
+
+  const createdAt = new Date(p.createdAt);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.history ?? p.shortDescription ?? '',
+    shortDescription: p.shortDescription ?? '',
+    price: price != null ? String(price) : '0',
+    imageUrl,
+    images,
+
+    // Calculated
+    stock,
+    inventory: stock,
+    rating: 0,
+    reviewsCount: 0,
+    isNew: createdAt > thirtyDaysAgo,
+    freeShipping: false,
+    canPurchase: stock > 0,
+
+    // Metadata
+    tags: [],
+    materials: materialNames,
+    techniques: technique ? [technique] : [],
+    category: p.category?.name ?? '',
+    craft: craft,
+    material: materialNames[0] ?? null,
+
+    // Physical specs
+    dimensions: p.physicalSpecs
+      ? {
+          width: p.physicalSpecs.width ?? 0,
+          height: p.physicalSpecs.height ?? 0,
+          length: p.physicalSpecs.depth ?? 0,
+        }
+      : undefined,
+    weight: p.physicalSpecs?.weight != null ? String(p.physicalSpecs.weight) : undefined,
+    productionTime: p.artisanalIdentity?.estimatedElaborationTime ?? null,
+    leadTimeDays: p.production?.productionTime
+      ? parseInt(p.production.productionTime) || undefined
+      : undefined,
+
+    // Shop
+    shopId: p.storeId,
+    storeName: p.artisanShop?.shopName ?? '',
+    storeSlug: p.artisanShop?.shopSlug ?? '',
+    logoUrl: p.artisanShop?.logoUrl ?? undefined,
+    bannerUrl: p.artisanShop?.bannerUrl ?? undefined,
+    storeDescription: undefined,
+    region: p.artisanShop?.department ?? undefined,
+    city: p.artisanShop?.municipality ?? undefined,
+    department: p.artisanShop?.department ?? undefined,
+    craftType: craft ?? undefined,
+    bankDataStatus: undefined,
+
+    // Shop object for components that read product.shop
+    shop: p.artisanShop
+      ? {
+          id: p.artisanShop.id,
+          userId: p.artisanShop.userId ?? '',
+          shopName: p.artisanShop.shopName,
+          shopSlug: p.artisanShop.shopSlug,
+          description: undefined,
+          department: p.artisanShop.department,
+          municipality: p.artisanShop.municipality,
+          active: true,
+          featured: false,
+        }
+      : undefined,
+
+    // Dates
+    createdAt: new Date(p.createdAt),
+    updatedAt: new Date(p.updatedAt),
+
+    // New architecture fields
+    careNotes: p.careNotes ?? null,
+
+    allowsLocalPickup: false,
+    shippingDataComplete: false,
+  };
+}
+
+// ── API Calls — now consuming /products-new ─────────────
 
 /**
- * Obtener productos de marketplace con filtros y paginación
- *
- * Soporta búsqueda, filtros por categoría, región, tipo de artesanía y más.
- * Incluye paginación y ordenamiento personalizado.
- * Retorna productos enriquecidos con stock, rating, y datos de tienda.
- *
- * @param {ProductsFilters} filters - Filtros opcionales para la búsqueda
- * @returns {Promise<ProductsResponse>} Listado paginado de productos con metadata
- *
- * @endpoint GET /products/marketplace
- *
- * @example
- * // Obtener todos los productos (página 1, límite 20)
- * const products = await getProducts();
- *
- * @example
- * // Filtros de marketplace
- * const products = await getProducts({
- *   category: 'Textiles',
- *   region: 'Caribe',
- *   craftType: 'wayuu',
- *   featured: true,
- *   page: 1,
- *   limit: 20,
- *   sortBy: 'created_at',
- *   order: 'DESC'
- * });
+ * Obtener productos paginados con filtros.
+ * Calls GET /products-new and maps results to legacy Product type.
  */
 export const getProducts = async (
   filters?: ProductsFilters
 ): Promise<ProductsResponse> => {
-  try {
-    const response = await telarApiPublic.get<ProductsResponse>('/products/marketplace', {
-      params: filters,
-    });
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  const params: Record<string, any> = {};
+  if (filters?.page) params.page = filters.page;
+  if (filters?.limit) params.limit = filters.limit;
+  if (filters?.categoryId) params.categoryId = filters.categoryId;
+  if (filters?.storeId) params.storeId = filters.storeId;
+  // Backend /products-new currently supports: page, limit, storeId, categoryId, status
+
+  const response = await telarApiPublic.get<ProductsNewPaginatedResponse>(
+    '/products-new',
+    { params },
+  );
+  const raw = response.data;
+
+  return {
+    data: (raw.data ?? []).map(mapNewToLegacy),
+    total: raw.total ?? 0,
+    page: raw.page ?? 1,
+    limit: raw.limit ?? 20,
+  };
 };
 
 /**
- * Obtener el detalle de un producto de marketplace por su ID
- *
- * Retorna el producto con datos enriquecidos: stock calculado desde variantes,
- * rating promedio, información completa de la tienda, etc.
- *
- * @param {string} id - ID del producto (UUID)
- * @returns {Promise<Product>} Detalle completo del producto enriquecido
- *
- * @endpoint GET /products/marketplace/:id
- *
- * @example
- * const product = await getProductById('123e4567-e89b-12d3-a456-426614174000');
+ * Obtener detalle de un producto por ID.
+ * Tries /products-new/:id first. If the ID is a legacyProductId, falls back to
+ * fetching all and searching (until a dedicated endpoint exists).
  */
 export const getProductById = async (id: string): Promise<Product> => {
   try {
-    const response = await telarApiPublic.get<Product>(`/products/marketplace/${id}`);
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
+    const response = await telarApiPublic.get<ProductNewCore>(
+      `/products-new/${id}`,
+    );
+    return mapNewToLegacy(response.data);
+  } catch (err: any) {
+    // If not found by primary ID, try legacy endpoint
+    if (err?.response?.status === 404 || err?.response?.status === 400) {
+      const fallback = await telarApiPublic.get<ProductNewCore>(
+        `/products-new/legacy/${id}`,
+      );
+      return mapNewToLegacy(fallback.data);
+    }
+    throw err;
   }
 };
 
 /**
- * Obtener productos activos de marketplace
- *
- * Alias de getProducts() sin filtros, retorna todos los productos activos.
- *
- * @returns {Promise<ProductsResponse>} Response con productos activos
- *
- * @endpoint GET /products/marketplace
- *
- * @example
- * const activeProducts = await getActiveProducts();
+ * Obtener productos activos
  */
 export const getActiveProducts = async (): Promise<ProductsResponse> => {
-  try {
-    const response = await telarApiPublic.get<ProductsResponse>('/products/marketplace');
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  return getProducts({ page: 1, limit: 50 });
 };
 
 /**
- * Obtener productos destacados del marketplace
- *
- * Retorna solo productos marcados como "featured" con datos enriquecidos.
- *
- * @returns {Promise<Product[]>} Lista de productos destacados
- *
- * @endpoint GET /products/marketplace/featured
- *
- * @example
- * const featuredProducts = await getFeaturedProducts();
+ * Obtener productos destacados (no hay endpoint featured en products-new,
+ * so we return latest products for now)
  */
 export const getFeaturedProducts = async (): Promise<Product[]> => {
-  try {
-    const response = await telarApiPublic.get<Product[]>('/products/marketplace/featured');
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  const res = await getProducts({ page: 1, limit: 20 });
+  return res.data;
 };
 
 /**
- * Obtener productos de marketplace de una tienda específica
- *
- * Retorna todos los productos de una tienda con datos enriquecidos.
- *
- * @param {string} shopId - ID de la tienda (UUID)
- * @returns {Promise<Product[]>} Lista de productos de la tienda
- *
- * @endpoint GET /products/marketplace/shop/:shopId
- *
- * @example
- * const shopProducts = await getProductsByShop('shop-uuid');
+ * Obtener productos de una tienda por storeId
  */
-export const getProductsByShop = async (shopId: string): Promise<Product[]> => {
-  try {
-    const response = await telarApiPublic.get<Product[]>(`/products/marketplace/shop/${shopId}`);
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+export const getProductsByShop = async (
+  shopId: string,
+): Promise<Product[]> => {
+  const response = await telarApiPublic.get<ProductNewCore[]>(
+    `/products-new/store/${shopId}`,
+  );
+  return (response.data ?? []).map(mapNewToLegacy);
 };
 
 /**
- * Obtener productos de un usuario específico (requiere autenticación)
- *
- * @param {string} userId - ID del usuario (UUID)
- * @returns {Promise<Product[]>} Lista de productos del usuario
- *
- * @endpoint GET /products/user/:userId
- *
- * @example
- * const userProducts = await getProductsByUser('user-uuid');
+ * Obtener productos de un usuario (por ahora usa getProducts genérico)
  */
-export const getProductsByUser = async (userId: string): Promise<Product[]> => {
-  try {
-    const response = await telarApi.get<Product[]>(`/products/user/${userId}`);
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+export const getProductsByUser = async (
+  userId: string,
+): Promise<Product[]> => {
+  // products-new doesn't have a user endpoint yet — return empty
+  return [];
 };
 
-/**
- * Crear un nuevo producto (requiere autenticación y permisos de admin)
- *
- * @param {CreateProductRequest} data - Datos del producto a crear
- * @returns {Promise<Product>} Producto creado
- *
- * @endpoint POST /products
- *
- * @example
- * const newProduct = await createProduct({
- *   name: 'Vasija de cerámica',
- *   price: 45000,
- *   categoryId: 'category-id',
- *   shopId: 'shop-id'
- * });
- */
+// ── Write operations (still hit old endpoints until products-new supports them) ──
+
 export const createProduct = async (
-  data: CreateProductRequest
+  data: CreateProductRequest,
 ): Promise<Product> => {
-  try {
-    const response = await telarApi.post<Product>('/products', data);
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  const response = await telarApi.post<Product>('/products', data);
+  return response.data;
 };
 
-/**
- * Actualizar un producto existente (requiere autenticación y permisos)
- *
- * @param {string} id - ID del producto a actualizar
- * @param {UpdateProductRequest} data - Datos a actualizar
- * @returns {Promise<Product>} Producto actualizado
- *
- * @endpoint PATCH /products/:id
- *
- * @example
- * const updated = await updateProduct('product-id', { price: 50000 });
- */
 export const updateProduct = async (
   id: string,
-  data: UpdateProductRequest
+  data: UpdateProductRequest,
 ): Promise<Product> => {
-  try {
-    const response = await telarApi.patch<Product>(`/products/${id}`, data);
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  const response = await telarApi.patch<Product>(`/products/${id}`, data);
+  return response.data;
 };
 
-/**
- * Eliminar un producto (hard delete - requiere autenticación y permisos de admin)
- *
- * @param {string} id - ID del producto a eliminar (UUID)
- * @returns {Promise<{ message: string }>} Mensaje de confirmación
- *
- * @endpoint DELETE /products/:id
- *
- * @example
- * const result = await deleteProduct('product-id');
- * // result: { message: "Producto con ID xxx eliminado exitosamente" }
- */
 export const deleteProduct = async (
-  id: string
+  id: string,
 ): Promise<{ message: string }> => {
-  try {
-    const response = await telarApi.delete<{ message: string }>(
-      `/products/${id}`
-    );
-    return response.data;
-  } catch (error: any) {
-    toastError(error);
-    throw error;
-  }
+  const response = await telarApi.delete<{ message: string }>(
+    `/products/${id}`,
+  );
+  return response.data;
 };

@@ -157,7 +157,7 @@ const ProductDetail = () => {
         {/* Main Product Section - 2 Column Layout */}
         <div className="grid lg:grid-cols-2 gap-12 mb-16 mx-[10%]">
           {/* Left Column - Image Gallery */}
-          <div className="lg:sticky lg:top-24 lg:self-start lg:max-h-[600px]">
+          <div className="lg:sticky lg:top-24 lg:self-start">
             <ProductImageGallery
               images={productImages}
               productName={product.name}
@@ -221,17 +221,38 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Feature Badges */}
+            {/* Feature Badges — built from real product data */}
             <div className="flex flex-wrap gap-3">
-              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
-                Hecho a mano en Colombia
-              </Badge>
-              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
-                Taller Artesanal
-              </Badge>
-              <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
-                Pieza con Historia
-              </Badge>
+              {product.category && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                  {product.category}
+                </Badge>
+              )}
+              {product.craft && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                  {product.craft}
+                </Badge>
+              )}
+              {product.techniques && product.techniques.length > 0 && product.techniques[0] !== product.craft && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                  {product.techniques[0]}
+                </Badge>
+              )}
+              {product.materials && product.materials.length > 0 && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                  {product.materials.slice(0, 2).join(' · ')}
+                </Badge>
+              )}
+              {(product.department || product.region) && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full">
+                  {product.department || product.region}, Colombia
+                </Badge>
+              )}
+              {product.isNew && (
+                <Badge variant="outline" className="px-4 py-2 text-xs uppercase tracking-wide rounded-full border-primary text-primary">
+                  Nuevo
+                </Badge>
+              )}
             </div>
 
             {/* Price */}
@@ -454,24 +475,14 @@ const ProductDetail = () => {
                     </div>
                   )}
 
-                  {/* Cuidados */}
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                      CUIDADOS
-                    </p>
-                    <p className="text-base italic text-foreground">
-                      Lavado suave a mano
-                    </p>
-                  </div>
-
-                  {/* Embalaje */}
-                  {product.craftType && (
+                  {/* Cuidados — from careNotes */}
+                  {product.careNotes && (
                     <div>
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                        EMBALAJE
+                        CUIDADOS
                       </p>
                       <p className="text-base italic text-foreground">
-                        Empaque textil protector para transporte seguro
+                        {product.careNotes}
                       </p>
                     </div>
                   )}

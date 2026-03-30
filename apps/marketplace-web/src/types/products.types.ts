@@ -87,9 +87,12 @@ export interface Product {
   createdAt: Date;
   updatedAt: Date;
 
+  // New architecture fields
+  careNotes?: string | null;
+
   // Otros campos
   compactMode?: boolean; // Para mostrar versión compacta en ProductCard
-  
+
 }
 
 /**
@@ -109,6 +112,11 @@ export interface ProductsFilters {
   region?: string;
   craftType?: string;
   featured?: boolean;
+
+  // New architecture filters (products-new)
+  categoryId?: string;
+  storeId?: string;
+  status?: string;
 
   // Filtros adicionales (compatibilidad)
   categories?: string;
