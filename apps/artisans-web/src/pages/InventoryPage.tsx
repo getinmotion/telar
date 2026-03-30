@@ -550,7 +550,7 @@ export const InventoryPage: React.FC = () => {
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              <Button
+                              {/* <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() =>
@@ -562,7 +562,7 @@ export const InventoryPage: React.FC = () => {
                                 ) : (
                                   <Eye className="w-4 h-4" />
                                 )}
-                              </Button>
+                              </Button> */}
                             </>
                           )}
                           <Button

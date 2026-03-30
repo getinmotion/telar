@@ -1,14 +1,14 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { ModerationStatusBadge } from './ModerationStatusBadge';
-import { ModerationPagination } from './ModerationPagination';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Store, Package, CreditCard } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { ModerationProduct } from '@/hooks/useProductModeration';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { ModerationStatusBadge } from "./ModerationStatusBadge";
+import { ModerationPagination } from "./ModerationPagination";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { Store, Package, CreditCard } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ModerationProduct } from "@/hooks/useProductModeration";
 
 interface ModerationQueueProps {
   products: ModerationProduct[];
@@ -36,7 +36,7 @@ export const ModerationQueue: React.FC<ModerationQueueProps> = ({
   if (loading) {
     return (
       <div className="space-y-2">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-3">
               <div className="flex gap-3">
@@ -66,17 +66,18 @@ export const ModerationQueue: React.FC<ModerationQueueProps> = ({
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
         <div className="space-y-2 pr-3">
-          {products.map(product => {
-            const imageUrl = Array.isArray(product.images) && product.images.length > 0 
-              ? product.images[0] 
-              : '/placeholder.svg';
+          {products.map((product) => {
+            const imageUrl =
+              Array.isArray(product.images) && product.images.length > 0
+                ? product.images[0]
+                : "/placeholder.svg";
 
             return (
               <Card
                 key={product.id}
                 className={cn(
-                  'cursor-pointer transition-all hover:shadow-md',
-                  selectedProductId === product.id && 'ring-2 ring-primary'
+                  "cursor-pointer transition-all hover:shadow-md",
+                  selectedProductId === product.id && "ring-2 ring-primary",
                 )}
                 onClick={() => onSelectProduct(product)}
               >
@@ -87,21 +88,28 @@ export const ModerationQueue: React.FC<ModerationQueueProps> = ({
                       alt={product.name}
                       className="w-14 h-14 rounded object-cover bg-muted"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        (e.target as HTMLImageElement).src = "/placeholder.svg";
                       }}
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{product.name}</h4>
+                      <h4 className="font-medium text-sm truncate">
+                        {product.name}
+                      </h4>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                         <Store className="w-3 h-3" />
-                        <span className="truncate">{product.artisan_shops?.shop_name}</span>
+                        <span className="truncate">
+                          {product.artisan_shops?.shop_name}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between mt-2">
-                        <ModerationStatusBadge status={product.moderation_status} size="sm" />
+                        <ModerationStatusBadge
+                          status={product.moderation_status}
+                          size="sm"
+                        />
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(product.created_at), { 
+                          {formatDistanceToNow(new Date(product.created_at), {
                             addSuffix: true,
-                            locale: es 
+                            locale: es,
                           })}
                         </span>
                       </div>

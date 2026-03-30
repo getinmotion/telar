@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { ProductCore } from './product-core.entity';
 
@@ -39,6 +40,9 @@ export class ProductLogistics {
 
   @Column({ name: 'special_protection_notes', type: 'text', nullable: true })
   specialProtectionNotes: string;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date;
 
   // Relación
   @OneToOne(() => ProductCore, (product) => product.logistics)
