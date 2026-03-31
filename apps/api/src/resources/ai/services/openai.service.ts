@@ -245,4 +245,46 @@ export class OpenAIService implements OnModuleInit {
       throw error;
     }
   }
+
+  /**
+   * Genera un embedding usando OpenAI Embeddings API
+   */
+  async createEmbedding(params: {
+    input: string;
+    model?: string;
+  }): Promise<number[]> {
+    if (!this.openai) {
+      throw new InternalServerErrorException(
+        'OpenAI no está inicializado. Verifica tu API key.',
+      );
+    }
+
+    try {
+      const response = await this.openai.embeddings.create({
+        model: params.model || 'text-embedding-3-small',
+        input: params.input,
+      });
+
+      if (!response.data || response.data.length === 0) {
+        throw new InternalServerErrorException(
+          'OpenAI no retornó datos de embedding en la respuesta',
+        );
+      }
+
+      const embedding = response.data[0]?.embedding;
+
+      if (!embedding) {
+        throw new InternalServerErrorException(
+          'OpenAI no retornó embedding en la respuesta',
+        );
+      }
+
+      return embedding;
+    } catch (error) {
+      this.logger.error('Error al generar embedding con OpenAI', error.stack);
+      throw new InternalServerErrorException(
+        'Error al generar embedding',
+      );
+    }
+  }
 }

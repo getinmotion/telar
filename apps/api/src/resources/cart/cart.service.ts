@@ -16,7 +16,8 @@ import {
 import { User } from '../users/entities/user.entity';
 import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { CartItem, PriceSource } from '../cart-items/entities/cart-item.entity';
-import { ProductsService } from '../products/products.service';
+import { ProductsNewService } from '../products-new/products-new.service';
+import { ProductVariant } from '../products-new/entities/product-variant.entity';
 
 @Injectable()
 export class CartService {
@@ -29,7 +30,7 @@ export class CartService {
     private readonly artisanShopsRepository: Repository<ArtisanShop>,
     @Inject('CART_ITEMS_REPOSITORY')
     private readonly cartItemsRepository: Repository<CartItem>,
-    private readonly productsService: ProductsService,
+    private readonly productsNewService: ProductsNewService,
   ) {}
 
   /**
@@ -230,7 +231,7 @@ export class CartService {
 
     // 2. Buscar productos en bulk
     const productIds = dto.items.map((item) => item.productId);
-    const products = await this.productsService.findByIds(productIds);
+    const products = await this.productsNewService.findByIds(productIds);
 
     // Crear Map para búsqueda rápida
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -255,13 +256,28 @@ export class CartService {
     for (const item of dto.items) {
       const product = productMap.get(item.productId);
 
-      // Omitir si el producto no existe o está inactivo
-      if (!product || !product.active) {
+      // Omitir si el producto no existe o no está publicado
+      if (!product || product.status !== 'published') {
         continue;
       }
 
-      // Convertir precio a unidades menores (centavos)
-      const unitPriceMinor = Math.round(Number(product.price) * 100).toString();
+      // Obtener variante específica o primera variante activa
+      let variant: ProductVariant | undefined = undefined;
+      if (item.variantId && product.variants) {
+        variant = product.variants.find(
+          (v) => v.id === item.variantId && v.isActive,
+        );
+      } else if (product.variants && product.variants.length > 0) {
+        variant = product.variants.find((v) => v.isActive);
+      }
+
+      // Si no hay variante activa, omitir este producto
+      if (!variant) {
+        continue;
+      }
+
+      // Usar precio de la variante (ya está en centavos)
+      const unitPriceMinor = variant.basePriceMinor.toString();
 
       // Construir metadata para variante
       const metadata = item.variantId ? { variantId: item.variantId } : {};
@@ -279,11 +295,12 @@ export class CartService {
         cartItemsToCreate.push({
           cartId: cart.id,
           productId: product.id,
-          sellerShopId: product.shopId,
+          sellerShopId: product.storeId,
           quantity: item.quantity,
-          currency: 'COP',
+          currency: variant.currency || 'COP',
           unitPriceMinor,
           priceSource: PriceSource.PRODUCT_BASE,
+          priceRefId: variant.id,
           metadata,
         });
       }
