@@ -5,7 +5,7 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { Repository, IsNull, DataSource } from 'typeorm';
+import { Repository, IsNull, In, DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
