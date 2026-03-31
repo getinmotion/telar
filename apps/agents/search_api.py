@@ -91,6 +91,10 @@ class ProductSearchResult(BaseModel):
     store_name: Optional[str]
     store_id: Optional[str]
     category_name: Optional[str]
+    price: Optional[int] = Field(None, description="Minimum variant price in minor units (e.g. centavos for COP)")
+    currency: Optional[str] = Field(None, description="Currency code, e.g. COP")
+    stock: int = Field(0, description="Total stock across all active variants")
+    images: list[dict] = Field(default_factory=list, description="List of product images ordered by is_primary DESC, display_order ASC")
 
 
 class ProductSearchResponse(BaseModel):
@@ -235,6 +239,10 @@ async def search_products(request: ProductSearchRequest) -> ProductSearchRespons
                 store_name=r.store_name,
                 store_id=r.store_id,
                 category_name=r.category_name,
+                price=r.price,
+                currency=r.currency,
+                stock=r.stock,
+                images=r.images,
             )
             for r in results
         ],
