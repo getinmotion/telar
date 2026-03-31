@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Product as LegacyProduct } from '@/types/artisan';
 import {
-  getProductsByShopId,
   getProductById,
   createProduct as createProductAction,
   updateProduct as updateProductAction,
-  deleteProduct as deleteProductAction,
 } from '@/services/products.actions';
+import {
+  deleteProductNew,
+  getProductsNewByStoreId,
+  mapProductResponseToLegacy,
+  getProductNewById,
+} from '@/services/products-new.actions';
 import {
   getVariantsByProductId,
   getLowStockVariants,
@@ -36,25 +41,13 @@ export interface MarketplaceLinks {
   }>;
 }
 
-export interface Product {
-  id: string;
-  shop_id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  price: number;
-  images?: any[];
-  active: boolean;
-  inventory?: number;
-  sku?: string;
+// Extender LegacyProduct con campos específicos de inventario
+export interface Product extends LegacyProduct {
   made_to_order?: boolean;
   lead_time_days?: number;
   production_time_hours?: number;
   requires_customization?: boolean;
   marketplace_links?: MarketplaceLinks;
-  moderation_status?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface ProductVariant {
@@ -98,8 +91,11 @@ export function useInventory() {
     try {
       setLoading(true);
       if (!shopId) return [];
-      const data = await getProductsByShopId(shopId);
-      return data as unknown as Product[];
+      // Usar products-new endpoint
+      const productsNew = await getProductsNewByStoreId(shopId);
+      // Mapear a formato legacy para compatibilidad
+      const legacyProducts = productsNew.map(mapProductResponseToLegacy);
+      return legacyProducts as Product[];
     } catch {
       toast.error('Error al cargar productos');
       return [];
@@ -126,9 +122,34 @@ export function useInventory() {
   ): Promise<Product | null> => {
     try {
       setLoading(true);
+
+      // Si se está actualizando solo el inventory, usar products-new con variants
+      if (updates.inventory !== undefined && Object.keys(updates).length === 1) {
+        // Obtener el producto con sus variantes
+        const product = await getProductNewById(productId);
+        if (!product || !product.variants || product.variants.length === 0) {
+          throw new Error('Producto no encontrado o sin variantes');
+        }
+
+        const firstVariant = product.variants[0];
+        const newInventory = updates.inventory;
+
+        // Usar operation 'set' para establecer el inventario exacto
+        await adjustVariantStock(firstVariant.id, newInventory, 'set');
+
+        // Retornar producto actualizado en formato legacy
+        const updatedProduct = await getProductNewById(productId);
+        if (updatedProduct) {
+          return mapProductResponseToLegacy(updatedProduct) as Product;
+        }
+        return null;
+      }
+
+      // Para otros updates, usar endpoint legacy
       const data = await updateProductAction(productId, updates as any);
       return data as unknown as Product;
-    } catch {
+    } catch (error) {
+      console.error('Error actualizando producto:', error);
       return null;
     } finally {
       setLoading(false);
@@ -138,9 +159,12 @@ export function useInventory() {
   const deleteProduct = async (productId: string): Promise<boolean> => {
     try {
       setLoading(true);
-      await deleteProductAction(productId);
+      await deleteProductNew(productId);
+      toast.success('Producto eliminado correctamente');
       return true;
-    } catch {
+    } catch (error) {
+      toast.error('Error al eliminar el producto');
+      console.error('Error eliminando producto:', error);
       return false;
     } finally {
       setLoading(false);
@@ -293,7 +317,7 @@ export function useInventory() {
       if (!shopId) return variants;
 
       // Filtrar por tienda: obtenemos los productos del shop y cruzamos
-      const shopProducts = await getProductsByShopId(shopId);
+      const shopProducts = await getProductsNewByStoreId(shopId);
       const shopProductIds = new Set(shopProducts.map((p) => p.id));
       return variants.filter((v) => shopProductIds.has(v.product_id));
     } catch {

@@ -140,10 +140,12 @@ func (r *PostgresRepository) CountAttemptsByIntent(ctx context.Context, intentID
 func (r *PostgresRepository) GetCartContext(ctx context.Context, cartID string) (*domain.CartContext, error) {
 	sqlCart := `
 		SELECT c.id, c.buyer_user_id, c.currency, c.status,
-		       s.full_name, s.address, s.desc_ciudad, s.desc_depart, s.postal_code, s.desc_envio, s.valor_total_flete_minor
+			s.full_name, s.address, s.desc_ciudad, s.desc_depart, s.postal_code, s.desc_envio, s.valor_total_flete_minor
 		FROM payments.carts c
 		LEFT JOIN payments.cart_shipping_info s ON c.id = s.cart_id
 		WHERE c.id = $1
+		ORDER BY s.created_at DESC NULLS LAST
+		LIMIT 1
 	`
 	cart := &domain.CartContext{}
 	var shipName, shipAddr, shipCity, shipState, shipZip, shipMethod *string

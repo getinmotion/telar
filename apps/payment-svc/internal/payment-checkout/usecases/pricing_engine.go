@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/domain"
 	"github.com/getinmotion/telar/apps/payment-svc/internal/payment-checkout/ports"
@@ -34,8 +35,10 @@ func (pe *PricingEngine) CalculateTotalsOrchestrator(ctx context.Context, cartID
 		subtotal += item.UnitPriceMinor * int64(item.Quantity)
 	}
 
-	// 3. Obtener Costo de Envío (Ya viene en DB payments.cart_shipping_info)
-	shippingCost := cart.ShippingInfo.ShippingCostMinor
+	// 3. Obtener Costo de Envío
+	// Multiplicamos por 100 porque la BD está guardando pesos literales en vez de centavos
+	shippingCost := cart.ShippingInfo.ShippingCostMinor * 100
+	fmt.Printf("\n[DEBUG PRICING] Cart: %s | Costo de Envío Leído: %d\n\n", cartID, shippingCost)
 
 	// 4. Calcular Impuestos (Ej: Plataforma 5% o IVA 19%)
 	// Logica MOCK: Asumimos un IVA genérico del 19% sobre subtotal

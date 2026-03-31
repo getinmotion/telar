@@ -1,6 +1,6 @@
 /**
  * Artisan Shops Service - Centralized API calls to NestJS backend
- * 
+ *
  * Este servicio maneja todas las operaciones CRUD para artisan_shops
  * usando el backend NestJS en lugar de consultas directas a Supabase.
  */
@@ -102,7 +102,7 @@ export const getArtisanShopByUserId = async (
  * Obtiene una tienda por su slug
  * @param shopSlug - Slug de la tienda
  * @returns La tienda o null si no existe
- * 
+ *
  * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const getArtisanShopBySlug = async (
@@ -132,7 +132,7 @@ export const getArtisanShopBySlug = async (
  * Verifica si un slug está disponible para usar
  * @param slug - Slug a verificar
  * @returns true si está disponible (no existe), false si ya existe
- * 
+ *
  * Endpoint: GET /artisan-shops/slug/{slug}
  */
 export const isSlugAvailable = async (slug: string): Promise<boolean> => {
