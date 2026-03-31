@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Cart } from '../../cart/entities/cart.entity';
-import { Product } from '../../products/entities/product.entity';
+import { ProductCore } from '../../products-new/entities/product-core.entity';
 import { ArtisanShop } from '../../artisan-shops/entities/artisan-shop.entity';
 
 export enum PriceSource {
@@ -108,9 +108,9 @@ export class CartItem extends BaseEntity {
   cart!: Cart;
 
   @ApiProperty({ description: 'Producto en el carrito' })
-  @ManyToOne(() => Product, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => ProductCore, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'product_id' })
-  product!: Product;
+  product!: ProductCore;
 
   @ApiProperty({ description: 'Tienda vendedora' })
   @ManyToOne(() => ArtisanShop, { onDelete: 'RESTRICT' })
