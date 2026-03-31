@@ -183,20 +183,30 @@ export function getAllImageUrls(product: ProductNewCore): string[] {
 }
 
 /** Get the price from variants (first variant or min price).
- *  basePriceMinor is in COP cents (bigint) — we convert to whole COP. */
+ *  basePriceMinor is bigint in DB — comes as string from Postgres.
+ *  The column stores COP cents, so we divide by 100 to get COP pesos.
+ *  If the result seems too small (< 100), we assume the value was already in pesos. */
 export function getProductPrice(product: ProductNewCore): number | null {
-  const prices = (product.variants ?? [])
+  const variants = product.variants ?? [];
+  if (variants.length === 0) return null;
+
+  const prices = variants
     .map(v => {
-      // Prefer basePriceMinor (real DB field), fallback to legacy price
       if (v.basePriceMinor != null) {
-        const cents = typeof v.basePriceMinor === 'string'
+        const raw = typeof v.basePriceMinor === 'string'
           ? parseInt(v.basePriceMinor, 10)
-          : v.basePriceMinor;
-        return isNaN(cents) ? null : cents / 100;
+          : Number(v.basePriceMinor);
+        if (!isNaN(raw) && raw > 0) {
+          const asPesos = raw / 100;
+          // Sanity: COP artisan products are typically ≥ $1,000. If dividing
+          // gives < 100, the value was likely stored in pesos, not cents.
+          return asPesos >= 100 ? asPesos : raw;
+        }
       }
       return v.price ?? null;
     })
     .filter((p): p is number => p != null && p > 0);
+
   if (prices.length === 0) return null;
   return Math.min(...prices);
 }
