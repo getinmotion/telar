@@ -6,15 +6,24 @@ import {
   getPrimaryImageUrl,
   getProductPrice,
   getProductStock,
-  getMaterialNames,
   getCraftName,
   getTechniqueName,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import { Heart, SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import {
+  Heart,
+  SlidersHorizontal,
+  X,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const PAGE_SIZE = 24;
 
 // ── Filter state ─────────────────────────────────────
 interface ExploreFilters {
@@ -35,7 +44,7 @@ const INITIAL_FILTERS: ExploreFilters = {
   materialId: null,
   craftId: null,
   curatorialId: null,
-  priceRange: [0, 5000000],
+  priceRange: [0, 0],
   sortBy: "newest",
 };
 
@@ -44,17 +53,13 @@ const ExploreProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     categoryHierarchy,
-    materials,
-    crafts,
-    techniques,
-    curatorialCategories,
     findCategoryWithChildren,
     loading: taxonomyLoading,
   } = useTaxonomy();
 
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductNewCore[]>([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
+  const [totalFromApi, setTotalFromApi] = useState(0);
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -62,7 +67,8 @@ const ExploreProducts = () => {
   const [filters, setFilters] = useState<ExploreFilters>(() => ({
     ...INITIAL_FILTERS,
     categorySlug: searchParams.get("categoria") || null,
-    sortBy: (searchParams.get("orden") as ExploreFilters["sortBy"]) || "newest",
+    sortBy:
+      (searchParams.get("orden") as ExploreFilters["sortBy"]) || "newest",
   }));
 
   // Resolve active category from taxonomy
@@ -74,7 +80,7 @@ const ExploreProducts = () => {
     [filters.categorySlug, findCategoryWithChildren],
   );
 
-  // Determine which categoryId to fetch
+  // Determine which categoryId to send to API
   const targetCategoryId = useMemo(() => {
     if (filters.subcategorySlug && activeCategory) {
       const sub = activeCategory.subcategories.find(
@@ -85,37 +91,105 @@ const ExploreProducts = () => {
     return activeCategory?.id ?? undefined;
   }, [filters.subcategorySlug, activeCategory]);
 
-  // Fetch products
+  // ── Fetch ALL products for the selected category (big page) ──
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, any> = {
-        page,
-        limit: 24,
-      };
-      if (targetCategoryId && UUID_RE.test(targetCategoryId)) params.categoryId = targetCategoryId;
+      const params: Record<string, any> = { page: 1, limit: 500 };
+      if (targetCategoryId && UUID_RE.test(targetCategoryId))
+        params.categoryId = targetCategoryId;
 
       const res = await getProductsNew(params);
       if (Array.isArray(res)) {
-        setProducts(res as ProductNewCore[]);
-        setTotal((res as ProductNewCore[]).length);
+        setAllProducts(res as ProductNewCore[]);
+        setTotalFromApi((res as ProductNewCore[]).length);
       } else {
-        setProducts(res.data ?? []);
-        setTotal(res.total ?? 0);
+        setAllProducts(res.data ?? []);
+        setTotalFromApi(res.total ?? 0);
       }
     } catch {
-      setProducts([]);
-      setTotal(0);
+      setAllProducts([]);
+      setTotalFromApi(0);
     } finally {
       setLoading(false);
     }
-  }, [targetCategoryId, page]);
+  }, [targetCategoryId]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Sync filters to URL
+  // ── INTERSECTION: derive available filter options from loaded products ──
+  const availableTechniques = useMemo(() => {
+    const map = new Map<string, string>();
+    allProducts.forEach((p) => {
+      const t = p.artisanalIdentity?.primaryTechnique;
+      if (t?.id && t.name) map.set(t.id, t.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [allProducts]);
+
+  const availableCrafts = useMemo(() => {
+    const map = new Map<string, string>();
+    allProducts.forEach((p) => {
+      const c = p.artisanalIdentity?.primaryCraft;
+      if (c?.id && c.name) map.set(c.id, c.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [allProducts]);
+
+  const availableMaterials = useMemo(() => {
+    const map = new Map<string, string>();
+    allProducts.forEach((p) => {
+      (p.materials ?? []).forEach((ml) => {
+        if (ml.material?.id && ml.material.name)
+          map.set(ml.material.id, ml.material.name);
+      });
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [allProducts]);
+
+  const availableCuratorial = useMemo(() => {
+    const map = new Map<string, string>();
+    allProducts.forEach((p) => {
+      const cc = p.artisanalIdentity?.curatorialCategory;
+      if (cc?.id && cc.name) map.set(cc.id, cc.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [allProducts]);
+
+  // ── Dynamic price range from loaded products ──
+  const priceExtent = useMemo(() => {
+    const prices = allProducts
+      .map((p) => getProductPrice(p))
+      .filter((p): p is number => p != null && p > 0);
+    if (prices.length === 0) return { min: 0, max: 5000000 };
+    return {
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices)),
+    };
+  }, [allProducts]);
+
+  // Initialize price range when products load
+  useEffect(() => {
+    setFilters((prev) => {
+      // Only update if user hasn't manually set a price filter
+      if (prev.priceRange[1] === 0 || prev.priceRange[1] === 5000000) {
+        return { ...prev, priceRange: [0, priceExtent.max] };
+      }
+      return prev;
+    });
+  }, [priceExtent.max]);
+
+  // ── Sync filters to URL ──
   useEffect(() => {
     const params: Record<string, string> = {};
     if (filters.categorySlug) params.categoria = filters.categorySlug;
@@ -123,18 +197,21 @@ const ExploreProducts = () => {
     setSearchParams(params, { replace: true });
   }, [filters.categorySlug, filters.sortBy, setSearchParams]);
 
-  // Client-side filtering (material, technique, craft, price, curatorial)
+  // ── Client-side filtering ──
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...allProducts];
 
     if (filters.techniqueId) {
       result = result.filter(
-        (p) => p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+        (p) =>
+          p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
       );
     }
     if (filters.materialId) {
       result = result.filter((p) =>
-        (p.materials ?? []).some((m) => m.material?.id === filters.materialId),
+        (p.materials ?? []).some(
+          (m) => m.material?.id === filters.materialId,
+        ),
       );
     }
     if (filters.craftId) {
@@ -149,10 +226,15 @@ const ExploreProducts = () => {
       );
     }
     // Price filter
-    result = result.filter((p) => {
-      const price = getProductPrice(p) ?? 0;
-      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-    });
+    if (filters.priceRange[1] > 0) {
+      result = result.filter((p) => {
+        const price = getProductPrice(p) ?? 0;
+        return (
+          price >= filters.priceRange[0] && price <= filters.priceRange[1]
+        );
+      });
+    }
+
     // Sort
     switch (filters.sortBy) {
       case "price_asc":
@@ -169,13 +251,33 @@ const ExploreProducts = () => {
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
       default:
-        // newest — already sorted by API
         break;
     }
     return result;
-  }, [products, filters]);
+  }, [allProducts, filters]);
 
-  // Count active filters
+  // ── Pagination ──
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredProducts, page],
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [
+    filters.categorySlug,
+    filters.subcategorySlug,
+    filters.techniqueId,
+    filters.materialId,
+    filters.craftId,
+    filters.curatorialId,
+    filters.priceRange[1],
+    filters.sortBy,
+  ]);
+
+  // ── Active filter count ──
   const activeFilterCount = [
     filters.categorySlug,
     filters.subcategorySlug,
@@ -183,11 +285,13 @@ const ExploreProducts = () => {
     filters.materialId,
     filters.craftId,
     filters.curatorialId,
-    filters.priceRange[1] < 5000000 ? "price" : null,
+    filters.priceRange[1] > 0 && filters.priceRange[1] < priceExtent.max
+      ? "price"
+      : null,
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
-    setFilters(INITIAL_FILTERS);
+    setFilters({ ...INITIAL_FILTERS, priceRange: [0, priceExtent.max] });
     setPage(1);
   };
 
@@ -198,10 +302,182 @@ const ExploreProducts = () => {
     setFilters((prev) => ({
       ...prev,
       [key]: prev[key] === value ? null : value,
-      // Reset subcategory when category changes
-      ...(key === "categorySlug" ? { subcategorySlug: null } : {}),
+      // Reset dependent filters when category changes
+      ...(key === "categorySlug"
+        ? {
+            subcategorySlug: null,
+            techniqueId: null,
+            materialId: null,
+            craftId: null,
+            curatorialId: null,
+            priceRange: [0, 0] as [number, number],
+          }
+        : {}),
     }));
-    setPage(1);
+  };
+
+  // ── Pagination helpers ──
+  const goToPage = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (page > 3) pages.push("...");
+      for (
+        let i = Math.max(2, page - 1);
+        i <= Math.min(totalPages - 1, page + 1);
+        i++
+      ) {
+        pages.push(i);
+      }
+      if (page < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [page, totalPages]);
+
+  // ── Sidebar content (shared between desktop & mobile) ──
+  const renderFilters = (isMobile = false) => {
+    const maxH = isMobile ? "max-h-40" : "max-h-48";
+    return (
+      <div className="space-y-8">
+        {/* Técnica artesanal */}
+        {availableTechniques.length > 0 && (
+          <FilterSection title="Técnica artesanal" defaultOpen>
+            <ul
+              className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
+            >
+              {availableTechniques.map((t) => (
+                <li
+                  key={t.id}
+                  onClick={() => updateFilter("techniqueId", t.id)}
+                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                    filters.techniqueId === t.id
+                      ? "font-bold text-charcoal"
+                      : ""
+                  }`}
+                >
+                  {filters.techniqueId === t.id && (
+                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                  )}
+                  {t.name}
+                </li>
+              ))}
+            </ul>
+          </FilterSection>
+        )}
+
+        {/* Oficio */}
+        {availableCrafts.length > 0 && (
+          <FilterSection title="Oficio">
+            <ul
+              className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
+            >
+              {availableCrafts.map((c) => (
+                <li
+                  key={c.id}
+                  onClick={() => updateFilter("craftId", c.id)}
+                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                    filters.craftId === c.id
+                      ? "font-bold text-charcoal"
+                      : ""
+                  }`}
+                >
+                  {filters.craftId === c.id && (
+                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                  )}
+                  {c.name}
+                </li>
+              ))}
+            </ul>
+          </FilterSection>
+        )}
+
+        {/* Material */}
+        {availableMaterials.length > 0 && (
+          <FilterSection title="Material">
+            <ul
+              className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
+            >
+              {availableMaterials.map((m) => (
+                <li
+                  key={m.id}
+                  onClick={() => updateFilter("materialId", m.id)}
+                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                    filters.materialId === m.id
+                      ? "font-bold text-charcoal"
+                      : ""
+                  }`}
+                >
+                  {filters.materialId === m.id && (
+                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                  )}
+                  {m.name}
+                </li>
+              ))}
+            </ul>
+          </FilterSection>
+        )}
+
+        {/* Colección curatorial */}
+        {availableCuratorial.length > 0 && (
+          <FilterSection title="Colección">
+            <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
+              {availableCuratorial.map((cc) => (
+                <li
+                  key={cc.id}
+                  onClick={() => updateFilter("curatorialId", cc.id)}
+                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                    filters.curatorialId === cc.id
+                      ? "font-bold text-charcoal"
+                      : ""
+                  }`}
+                >
+                  {filters.curatorialId === cc.id && (
+                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                  )}
+                  {cc.name}
+                </li>
+              ))}
+            </ul>
+          </FilterSection>
+        )}
+
+        {/* Precio */}
+        {priceExtent.max > 0 && (
+          <FilterSection title="Precio">
+            <div className="pt-6 px-1">
+              <input
+                type="range"
+                className="w-full h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                min={0}
+                max={priceExtent.max}
+                step={Math.max(1000, Math.round(priceExtent.max / 100))}
+                value={filters.priceRange[1] || priceExtent.max}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    priceRange: [0, Number(e.target.value)],
+                  }))
+                }
+              />
+              <div className="flex justify-between mt-4 text-[10px] font-bold font-sans uppercase">
+                <span>{formatCurrency(0)}</span>
+                <span>
+                  {formatCurrency(filters.priceRange[1] || priceExtent.max)}
+                </span>
+              </div>
+            </div>
+          </FilterSection>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -312,120 +588,8 @@ const ExploreProducts = () => {
         <div className="flex flex-col lg:flex-row gap-16">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-32 space-y-8">
-              {/* Técnica artesanal */}
-              <FilterSection title="Técnica artesanal" defaultOpen>
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {techniques.slice(0, 20).map((t) => (
-                    <li
-                      key={t.id}
-                      onClick={() => updateFilter("techniqueId", t.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.techniqueId === t.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.techniqueId === t.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {t.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-
-              {/* Oficio */}
-              <FilterSection title="Oficio">
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {crafts.map((c) => (
-                    <li
-                      key={c.id}
-                      onClick={() => updateFilter("craftId", c.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.craftId === c.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.craftId === c.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {c.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-
-              {/* Material */}
-              <FilterSection title="Material">
-                <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-48 overflow-y-auto">
-                  {materials.slice(0, 20).map((m) => (
-                    <li
-                      key={m.id}
-                      onClick={() => updateFilter("materialId", m.id)}
-                      className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                        filters.materialId === m.id
-                          ? "font-bold text-charcoal"
-                          : ""
-                      }`}
-                    >
-                      {filters.materialId === m.id && (
-                        <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                      )}
-                      {m.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-
-              {/* Colección curatorial */}
-              {curatorialCategories.length > 0 && (
-                <FilterSection title="Colección">
-                  <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
-                    {curatorialCategories.map((cc) => (
-                      <li
-                        key={cc.id}
-                        onClick={() => updateFilter("curatorialId", cc.id)}
-                        className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                          filters.curatorialId === cc.id
-                            ? "font-bold text-charcoal"
-                            : ""
-                        }`}
-                      >
-                        {filters.curatorialId === cc.id && (
-                          <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                        )}
-                        {cc.name}
-                      </li>
-                    ))}
-                  </ul>
-                </FilterSection>
-              )}
-
-              {/* Precio */}
-              <FilterSection title="Precio">
-                <div className="pt-6 px-1">
-                  <input
-                    type="range"
-                    className="w-full h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
-                    min={0}
-                    max={5000000}
-                    step={50000}
-                    value={filters.priceRange[1]}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        priceRange: [0, Number(e.target.value)],
-                      }))
-                    }
-                  />
-                  <div className="flex justify-between mt-4 text-[10px] font-bold font-sans uppercase">
-                    <span>{formatCurrency(0)}</span>
-                    <span>{formatCurrency(filters.priceRange[1])}</span>
-                  </div>
-                </div>
-              </FilterSection>
+            <div className="sticky top-32 max-h-[calc(100vh-160px)] overflow-y-auto pr-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-charcoal/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {renderFilters()}
             </div>
           </aside>
 
@@ -449,7 +613,8 @@ const ExploreProducts = () => {
                 </button>
 
                 <span className="text-[11px] uppercase tracking-[0.2em] text-charcoal/50 font-sans">
-                  {filteredProducts.length} de {total} piezas
+                  {filteredProducts.length}{" "}
+                  {filteredProducts.length === 1 ? "pieza" : "piezas"}
                 </span>
               </div>
 
@@ -483,31 +648,40 @@ const ExploreProducts = () => {
                 {filters.categorySlug && activeCategory && (
                   <FilterChip
                     label={activeCategory.name}
-                    onRemove={() => updateFilter("categorySlug", null as any)}
+                    onRemove={() =>
+                      updateFilter("categorySlug", null as any)
+                    }
                   />
                 )}
                 {filters.techniqueId && (
                   <FilterChip
                     label={
-                      techniques.find((t) => t.id === filters.techniqueId)
-                        ?.name ?? ""
+                      availableTechniques.find(
+                        (t) => t.id === filters.techniqueId,
+                      )?.name ?? ""
                     }
-                    onRemove={() => updateFilter("techniqueId", null as any)}
+                    onRemove={() =>
+                      updateFilter("techniqueId", null as any)
+                    }
                   />
                 )}
                 {filters.materialId && (
                   <FilterChip
                     label={
-                      materials.find((m) => m.id === filters.materialId)
-                        ?.name ?? ""
+                      availableMaterials.find(
+                        (m) => m.id === filters.materialId,
+                      )?.name ?? ""
                     }
-                    onRemove={() => updateFilter("materialId", null as any)}
+                    onRemove={() =>
+                      updateFilter("materialId", null as any)
+                    }
                   />
                 )}
                 {filters.craftId && (
                   <FilterChip
                     label={
-                      crafts.find((c) => c.id === filters.craftId)?.name ?? ""
+                      availableCrafts.find((c) => c.id === filters.craftId)
+                        ?.name ?? ""
                     }
                     onRemove={() => updateFilter("craftId", null as any)}
                   />
@@ -515,11 +689,13 @@ const ExploreProducts = () => {
                 {filters.curatorialId && (
                   <FilterChip
                     label={
-                      curatorialCategories.find(
+                      availableCuratorial.find(
                         (c) => c.id === filters.curatorialId,
                       )?.name ?? ""
                     }
-                    onRemove={() => updateFilter("curatorialId", null as any)}
+                    onRemove={() =>
+                      updateFilter("curatorialId", null as any)
+                    }
                   />
                 )}
                 <button
@@ -542,9 +718,9 @@ const ExploreProducts = () => {
                   </div>
                 ))}
               </div>
-            ) : filteredProducts.length > 0 ? (
+            ) : paginatedProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-16">
-                {filteredProducts.map((product, idx) => (
+                {paginatedProducts.map((product, idx) => (
                   <ExploreProductCard
                     key={product.id}
                     product={product}
@@ -572,14 +748,49 @@ const ExploreProducts = () => {
               </div>
             )}
 
-            {/* Load more */}
-            {!loading && filteredProducts.length > 0 && total > products.length && (
-              <div className="mt-24 flex justify-center">
+            {/* ── Numbered Pagination ── */}
+            {!loading && totalPages > 1 && (
+              <div className="mt-20 flex justify-center items-center gap-2">
+                {/* Previous */}
                 <button
-                  onClick={() => setPage((p) => p + 1)}
-                  className="border border-primary text-primary px-16 py-5 text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-primary hover:text-white transition-all font-sans rounded-sm"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page === 1}
+                  className="w-10 h-10 flex items-center justify-center rounded-full border border-charcoal/10 text-charcoal/50 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Cargar más piezas
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {/* Page numbers */}
+                {pageNumbers.map((p, i) =>
+                  p === "..." ? (
+                    <span
+                      key={`dots-${i}`}
+                      className="w-10 h-10 flex items-center justify-center text-[11px] text-charcoal/30 font-sans"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => goToPage(p as number)}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full text-[11px] font-bold font-sans tracking-wider transition-colors ${
+                        page === p
+                          ? "bg-primary text-white"
+                          : "border border-charcoal/10 text-charcoal/60 hover:border-primary hover:text-primary"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+
+                {/* Next */}
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page === totalPages}
+                  className="w-10 h-10 flex items-center justify-center rounded-full border border-charcoal/10 text-charcoal/50 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -601,40 +812,13 @@ const ExploreProducts = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Same filter sections as sidebar */}
-            <div className="space-y-6">
-              <FilterSection title="Técnica" defaultOpen>
-                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                  {techniques.slice(0, 15).map((t) => (
-                    <li
-                      key={t.id}
-                      onClick={() => updateFilter("techniqueId", t.id)}
-                      className={`cursor-pointer ${filters.techniqueId === t.id ? "font-bold text-charcoal" : ""}`}
-                    >
-                      {t.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-              <FilterSection title="Material">
-                <ul className="pt-3 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans max-h-40 overflow-y-auto">
-                  {materials.slice(0, 15).map((m) => (
-                    <li
-                      key={m.id}
-                      onClick={() => updateFilter("materialId", m.id)}
-                      className={`cursor-pointer ${filters.materialId === m.id ? "font-bold text-charcoal" : ""}`}
-                    >
-                      {m.name}
-                    </li>
-                  ))}
-                </ul>
-              </FilterSection>
-            </div>
+            {renderFilters(true)}
             <button
               onClick={() => setMobileFiltersOpen(false)}
               className="mt-8 w-full bg-primary text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] rounded-sm"
             >
-              Ver {filteredProducts.length} piezas
+              Ver {filteredProducts.length}{" "}
+              {filteredProducts.length === 1 ? "pieza" : "piezas"}
             </button>
           </div>
         </div>
@@ -657,14 +841,10 @@ function ExploreProductCard({
   const technique = getTechniqueName(product);
   const stock = getProductStock(product);
   const shopName = product.artisanShop?.shopName;
-  const shopSlug = product.artisanShop?.shopSlug;
 
   return (
     <div className={className}>
-      <Link
-        to={`/product/${product.id}`}
-        className="group block"
-      >
+      <Link to={`/product/${product.id}`} className="group block">
         <div className="relative aspect-[3/4] bg-[#e5e1d8] mb-6 rounded-sm overflow-hidden">
           {imageUrl ? (
             <img
