@@ -15,13 +15,26 @@ export interface ProductVariant {
 }
 
 export interface WizardState {
-  images: File[];
+  images: (File | string)[]; // File para nuevas imágenes, string (URL) para imágenes existentes
   name: string;
   description: string;
   price: number | null;
   category: string;
   tags: string[];
   shortDescription?: string;
+  history?: string;
+  status?: 'draft' | 'pending_moderation' | 'changes_requested' | 'approved' | 'approved_with_edits' | 'rejected';
+  // Craft and Techniques
+  craftId?: string;
+  primaryTechniqueId?: string;
+  secondaryTechniqueId?: string;
+  // Artisanal Identity
+  pieceType?: 'funcional' | 'decorativa' | 'mixta';
+  style?: 'tradicional' | 'contemporaneo' | 'fusion';
+  processType?: 'manual' | 'mixto' | 'asistido';
+  estimatedElaborationTime?: string;
+  curatorialCategory?: string;
+  availabilityType?: 'en_stock' | 'bajo_pedido' | 'edicion_limitada';
   inventory?: number;
   weight?: number;
   dimensions?: {
@@ -49,9 +62,23 @@ const initialState: WizardState = {
   images: [],
   name: '',
   description: '',
+  shortDescription: '',
+  history: '',
   price: null,
   category: '',
   tags: [],
+};
+
+/**
+ * Helper para obtener la URL de una imagen (File o string)
+ * @param image File o string (URL)
+ * @returns URL para usar en el atributo src de img
+ */
+export const getImageUrl = (image: File | string): string => {
+  if (typeof image === 'string') {
+    return image; // Ya es una URL
+  }
+  return URL.createObjectURL(image); // Es un File, crear URL
 };
 
 export const useWizardState = (autoRestore: boolean = false) => {

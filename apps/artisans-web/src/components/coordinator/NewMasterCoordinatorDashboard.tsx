@@ -684,7 +684,6 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
           await updateAgentTask(taskId, {
             status: completionData.status,
             progressPercentage: completionData.progress_percentage,
-            completedAt: completionData.completed_at,
           });
 
           // ✅ Save deliverable to database if present

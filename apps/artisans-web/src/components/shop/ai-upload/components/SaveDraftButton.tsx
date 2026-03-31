@@ -6,6 +6,7 @@ import { useSaveDraft } from '../hooks/useSaveDraft';
 
 interface SaveDraftButtonProps {
   wizardState: WizardState;
+  productId?: string;
   variant?: 'default' | 'outline' | 'ghost' | 'secondary';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
@@ -14,6 +15,7 @@ interface SaveDraftButtonProps {
 
 export const SaveDraftButton: React.FC<SaveDraftButtonProps> = ({
   wizardState,
+  productId,
   variant = 'outline',
   size = 'default',
   className = '',
@@ -22,7 +24,7 @@ export const SaveDraftButton: React.FC<SaveDraftButtonProps> = ({
   const { saveDraft, isSavingDraft } = useSaveDraft();
 
   const handleSaveDraft = async () => {
-    await saveDraft(wizardState);
+    await saveDraft(wizardState, productId);
   };
 
   const isDisabled = isSavingDraft || wizardState.images.length === 0;

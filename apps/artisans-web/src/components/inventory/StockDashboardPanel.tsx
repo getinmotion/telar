@@ -1,58 +1,69 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Product } from '@/hooks/useInventory';
-import { Package, AlertTriangle, XCircle, DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Package,
+  AlertTriangle,
+  XCircle,
+  DollarSign,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { LegacyProduct } from "@telar/shared-types";
 
 interface StockDashboardPanelProps {
-  products: Product[];
+  products: LegacyProduct[];
 }
 
 const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
     minimumFractionDigits: 0,
   }).format(amount);
 };
 
-export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ products }) => {
+export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({
+  products,
+}) => {
   const totalProducts = products.length;
-  const lowStockProducts = products.filter(p => (p.inventory ?? 0) > 0 && (p.inventory ?? 0) <= 5);
-  const outOfStockProducts = products.filter(p => (p.inventory ?? 0) === 0);
+  const lowStockProducts = products.filter(
+    (p) => (p.inventory ?? 0) > 0 && (p.inventory ?? 0) <= 5,
+  );
+  const outOfStockProducts = products.filter((p) => (p.inventory ?? 0) === 0);
   const totalInventoryValue = products.reduce((sum, p) => {
-    return sum + ((p.inventory ?? 0) * p.price);
+    return sum + (p.inventory ?? 0) * p.price;
   }, 0);
 
   const stats = [
     {
-      label: 'Total Productos',
+      label: "Total Productos",
       value: totalProducts,
       icon: Package,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
-      label: 'Bajo Stock',
+      label: "Bajo Stock",
       value: lowStockProducts.length,
       icon: AlertTriangle,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
+      color: "text-warning",
+      bgColor: "bg-warning/10",
     },
     {
-      label: 'Sin Stock',
+      label: "Sin Stock",
       value: outOfStockProducts.length,
       icon: XCircle,
-      color: 'text-destructive',
-      bgColor: 'bg-destructive/10',
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
     {
-      label: 'Valor Inventario',
+      label: "Valor Inventario",
       value: formatCurrency(totalInventoryValue),
       icon: DollarSign,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
+      color: "text-success",
+      bgColor: "bg-success/10",
       isValue: true,
     },
   ];
@@ -71,7 +82,9 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
             <Card className="p-4 hover:shadow-lg transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {stat.label}
+                  </p>
                   <p className={`text-2xl font-bold ${stat.color}`}>
                     {stat.isValue ? stat.value : stat.value}
                   </p>
@@ -92,7 +105,7 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
             <AlertTriangle className="w-5 h-5 text-warning" />
             <h3 className="font-semibold">Alertas de Stock</h3>
           </div>
-          
+
           <div className="space-y-2">
             {outOfStockProducts.slice(0, 3).map((product) => (
               <div
@@ -101,8 +114,8 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {(() => {
-                    const images = Array.isArray(product.images) ? product.images : [];
-                    const firstImage = images[0] || '/placeholder.svg';
+                    const images = product.images;
+                    const firstImage = images[0]?.url || "/placeholder.svg";
                     return (
                       <img
                         src={firstImage}
@@ -112,7 +125,9 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
                     );
                   })()}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{product.name}</p>
+                    <p className="text-sm font-medium truncate">
+                      {product.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">Sin stock</p>
                   </div>
                 </div>
@@ -130,8 +145,10 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {(() => {
-                    const images = Array.isArray(product.images) ? product.images : [];
-                    const firstImage = images[0] || '/placeholder.svg';
+                    const images = Array.isArray(product.images)
+                      ? product.images
+                      : [];
+                    const firstImage = images[0]?.url || "/placeholder.svg";
                     return (
                       <img
                         src={firstImage}
@@ -141,22 +158,28 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({ produc
                     );
                   })()}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{product.name}</p>
+                    <p className="text-sm font-medium truncate">
+                      {product.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Solo quedan {product.inventory} unidades
                     </p>
                   </div>
                 </div>
-                <Badge variant="outline" className="ml-2 border-warning text-warning">
+                <Badge
+                  variant="outline"
+                  className="ml-2 border-warning text-warning"
+                >
                   <AlertTriangle className="w-3 h-3 mr-1" />
                   Bajo
                 </Badge>
               </div>
             ))}
 
-            {(lowStockProducts.length + outOfStockProducts.length) > 6 && (
+            {lowStockProducts.length + outOfStockProducts.length > 6 && (
               <p className="text-xs text-muted-foreground text-center pt-2">
-                +{(lowStockProducts.length + outOfStockProducts.length) - 6} alertas más
+                +{lowStockProducts.length + outOfStockProducts.length - 6}{" "}
+                alertas más
               </p>
             )}
           </div>
