@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ModerationTagEditor } from './ModerationTagEditor';
-import { ModerationImageEditor } from './ModerationImageEditor';
-import { ModerationShopApproval } from './ModerationShopApproval';
-import { ModerationHistory } from './ModerationHistory';
-import { ModerationStatusBadge } from './ModerationStatusBadge';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ModerationHistory } from "./ModerationHistory";
+import { ModerationStatusBadge } from "./ModerationStatusBadge";
+import { ModerationTaxonomyModal } from "./ModerationTaxonomyModal";
 import {
   Save,
   RotateCcw,
@@ -23,12 +19,16 @@ import {
   Store,
   History,
   Loader2,
-  Truck
-} from 'lucide-react';
-import { PriceInput } from '@/components/ui/PriceInput';
-import { WeightInput } from '@/components/ui/WeightInput';
-import { formatCurrency } from '@/utils/currency';
-import type { ModerationProduct, ModerationHistory as ModerationHistoryType } from '@/hooks/useProductModeration';
+  Truck,
+  Tags,
+} from "lucide-react";
+import { PriceInput } from "@/components/ui/PriceInput";
+import { WeightInput } from "@/components/ui/WeightInput";
+import { formatCurrency } from "@/utils/currency";
+import type {
+  ModerationProduct,
+  ModerationHistory as ModerationHistoryType,
+} from "@/hooks/useProductModeration";
 
 interface ProductDimensions {
   length: number | null;
@@ -38,146 +38,217 @@ interface ProductDimensions {
 
 interface ProductEdits {
   name: string;
-  description: string;
   shortDescription: string;
+  history: string;
   price: number;
-  comparePrice: number | null;
-  subcategory: string | null;
-  images: string[];
-  tags: string[];
-  materials: string[];
-  techniques: string[];
   inventory: number;
-  sku: string | null;
-  active: boolean;
-  featured: boolean;
   weight: number | null;
   dimensions: ProductDimensions | null;
+  // Taxonomías
+  craftId?: string;
+  primaryTechniqueId?: string;
+  secondaryTechniqueId?: string;
+  pieceType?: "funcional" | "decorativa" | "mixta";
+  style?: "tradicional" | "contemporaneo" | "fusion";
+  processType?: "manual" | "mixto" | "asistido";
+  estimatedElaborationTime?: string;
+  materialIds?: string[];
+  curatorialCategory?: string;
 }
 
 interface ModerationProductEditorProps {
   product: ModerationProduct;
   history: ModerationHistoryType[];
   onModerate: (
-    action: 'approve' | 'approve_with_edits' | 'request_changes' | 'reject',
+    action: "approve" | "approve_with_edits" | "request_changes" | "reject",
     comment?: string,
-    edits?: Record<string, any>
+    edits?: Record<string, any>,
   ) => Promise<void>;
-  onShopApprovalChange: (shopId: string, approved: boolean, comment?: string) => Promise<void>;
+  onShopApprovalChange: (
+    shopId: string,
+    approved: boolean,
+    comment?: string,
+  ) => Promise<void>;
   moderating: boolean;
 }
 
-const categories = [
-  'Joyería y Accesorios',
-  'Textiles y Moda',
-  'Bolsos y Carteras',
-  'Decoración del Hogar',
-  'Vajillas y Cocina',
-  'Muebles',
-  'Arte y Esculturas',
-  'Iluminación',
-];
-
-export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = ({
-  product,
-  history,
-  onModerate,
-  onShopApprovalChange,
-  moderating,
-}) => {
-  const [activeTab, setActiveTab] = useState('product');
-  const [comment, setComment] = useState('');
+export const ModerationProductEditor: React.FC<
+  ModerationProductEditorProps
+> = ({ product, history, onModerate, onShopApprovalChange, moderating }) => {
+  const [activeTab, setActiveTab] = useState("product");
+  const [comment, setComment] = useState("");
+  const [taxonomyModalOpen, setTaxonomyModalOpen] = useState(false);
   const [edits, setEdits] = useState<ProductEdits>({
-    name: '',
-    description: '',
-    shortDescription: '',
+    name: "",
+    shortDescription: "",
+    history: "",
     price: 0,
-    comparePrice: null,
-    subcategory: null,
-    images: [],
-    tags: [],
-    materials: [],
-    techniques: [],
     inventory: 0,
-    sku: null,
-    active: true,
-    featured: false,
     weight: null,
     dimensions: null,
+    // Taxonomías iniciales vacías
+    craftId: undefined,
+    primaryTechniqueId: undefined,
+    secondaryTechniqueId: undefined,
+    pieceType: undefined,
+    style: undefined,
+    processType: undefined,
+    estimatedElaborationTime: undefined,
+    materialIds: undefined,
+    curatorialCategory: undefined,
   });
 
   // Reset edits when product changes
   useEffect(() => {
+    // Detectar si es producto LEGACY o MULTICAPA
+    const isLegacyProduct = !(product as any).artisanalIdentity;
+
     setEdits({
       name: product.name,
-      description: product.description || '',
-      shortDescription: product.short_description || '',
+      shortDescription: product.short_description || "",
+      history: product.description || "",
       price: product.price,
-      comparePrice: product.compare_price,
-      subcategory: product.subcategory,
-      images: Array.isArray(product.images) ? product.images : [],
-      tags: Array.isArray(product.tags) ? product.tags : [],
-      materials: Array.isArray(product.materials) ? product.materials : [],
-      techniques: Array.isArray(product.techniques) ? product.techniques : [],
       inventory: product.inventory || 0,
-      sku: product.sku,
-      active: product.active,
-      featured: false,
       weight: product.weight ?? null,
       dimensions: product.dimensions ?? null,
+      // Taxonomías (solo si es producto multicapa con artisanalIdentity)
+      craftId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.primaryCraft?.id ||
+          (product as any).artisanalIdentity?.primaryCraftId,
+      primaryTechniqueId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.primaryTechnique?.id ||
+          (product as any).artisanalIdentity?.primaryTechniqueId,
+      secondaryTechniqueId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.secondaryTechnique?.id ||
+          (product as any).artisanalIdentity?.secondaryTechniqueId,
+      pieceType: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.pieceType,
+      style: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.style,
+      processType: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.processType,
+      estimatedElaborationTime: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.estimatedElaborationTime,
+      // Materiales: Legacy (array de strings UUID) vs Multicapa (array de objetos)
+      materialIds: isLegacyProduct
+        ? // Legacy: materials es array de strings UUID directamente
+          Array.isArray((product as any).materials)
+          ? (product as any).materials.filter((m: any) => typeof m === "string")
+          : []
+        : // Multicapa: materials es array de objetos con materialId
+          (product as any).materials
+            ?.map(
+              (m: any) =>
+                m.material?.id ||
+                m.materialId ||
+                (typeof m === "string" ? m : null),
+            )
+            .filter(Boolean) || [],
+      curatorialCategory: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.curatorialCategory?.id ||
+          (product as any).artisanalIdentity?.curatorialCategoryId,
     });
-    setComment('');
-    setActiveTab('product');
+    setComment("");
+    setActiveTab("product");
   }, [product.id]);
 
   const hasEdits = () => {
     return (
       edits.name !== product.name ||
-      edits.description !== (product.description || '') ||
-      edits.shortDescription !== (product.short_description || '') ||
+      edits.shortDescription !== (product.short_description || "") ||
+      edits.history !== (product.description || "") ||
       edits.price !== product.price ||
-      edits.comparePrice !== product.compare_price ||
-      edits.subcategory !== product.subcategory ||
-      JSON.stringify(edits.images) !== JSON.stringify(product.images || []) ||
-      JSON.stringify(edits.tags) !== JSON.stringify(product.tags || []) ||
-      JSON.stringify(edits.materials) !== JSON.stringify(product.materials || []) ||
-      JSON.stringify(edits.techniques) !== JSON.stringify(product.techniques || []) ||
       edits.inventory !== (product.inventory || 0) ||
-      edits.sku !== product.sku ||
       edits.weight !== (product.weight ?? null) ||
-      JSON.stringify(edits.dimensions) !== JSON.stringify(product.dimensions ?? null)
+      JSON.stringify(edits.dimensions) !==
+        JSON.stringify(product.dimensions ?? null)
     );
   };
 
   const resetEdits = () => {
+    // Detectar si es producto LEGACY o MULTICAPA
+    const isLegacyProduct = !(product as any).artisanalIdentity;
+
     setEdits({
       name: product.name,
-      description: product.description || '',
-      shortDescription: product.short_description || '',
+      shortDescription: product.short_description || "",
+      history: product.description || "",
       price: product.price,
-      comparePrice: product.compare_price,
-      subcategory: product.subcategory,
-      images: Array.isArray(product.images) ? product.images : [],
-      tags: Array.isArray(product.tags) ? product.tags : [],
-      materials: Array.isArray(product.materials) ? product.materials : [],
-      techniques: Array.isArray(product.techniques) ? product.techniques : [],
       inventory: product.inventory || 0,
-      sku: product.sku,
-      active: product.active,
-      featured: false,
       weight: product.weight ?? null,
       dimensions: product.dimensions ?? null,
+      // Reset taxonomías (solo si es producto multicapa)
+      craftId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.primaryCraft?.id ||
+          (product as any).artisanalIdentity?.primaryCraftId,
+      primaryTechniqueId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.primaryTechnique?.id ||
+          (product as any).artisanalIdentity?.primaryTechniqueId,
+      secondaryTechniqueId: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.secondaryTechnique?.id ||
+          (product as any).artisanalIdentity?.secondaryTechniqueId,
+      pieceType: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.pieceType,
+      style: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.style,
+      processType: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.processType,
+      estimatedElaborationTime: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.estimatedElaborationTime,
+      // Reset materiales (Legacy vs Multicapa)
+      materialIds: isLegacyProduct
+        ? // Legacy: materials es array de strings UUID directamente
+          Array.isArray((product as any).materials)
+          ? (product as any).materials.filter((m: any) => typeof m === "string")
+          : []
+        : // Multicapa: materials es array de objetos
+          (product as any).materials
+            ?.map(
+              (m: any) =>
+                m.material?.id ||
+                m.materialId ||
+                (typeof m === "string" ? m : null),
+            )
+            .filter(Boolean) || [],
+      curatorialCategory: isLegacyProduct
+        ? undefined
+        : (product as any).artisanalIdentity?.curatorialCategory?.id ||
+          (product as any).artisanalIdentity?.curatorialCategoryId,
     });
   };
 
-  const handleAction = async (action: 'approve' | 'approve_with_edits' | 'request_changes' | 'reject') => {
-    const requiresComment = action === 'request_changes' || action === 'reject';
+  const handleAction = async (
+    action: "approve" | "approve_with_edits" | "request_changes" | "reject",
+  ) => {
+    const requiresComment = action === "request_changes" || action === "reject";
     if (requiresComment && !comment.trim()) return;
 
     const editedFields = hasEdits() ? edits : undefined;
-    const finalAction = editedFields ? 'approve_with_edits' : action;
+    const finalAction = editedFields ? "approve_with_edits" : action;
 
     await onModerate(finalAction, comment || undefined, editedFields);
+  };
+
+  const handleTaxonomySave = (taxonomyData: any) => {
+    setEdits((prev) => ({
+      ...prev,
+      ...taxonomyData,
+    }));
   };
 
   return (
@@ -191,7 +262,12 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
           <ModerationStatusBadge status={product.moderation_status} />
         </div>
         {hasEdits() && (
-          <Button variant="ghost" size="sm" onClick={resetEdits} className="shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetEdits}
+            className="shrink-0"
+          >
             <RotateCcw className="w-4 h-4 mr-1" />
             <span className="hidden sm:inline">Deshacer cambios</span>
             <span className="sm:hidden">Deshacer</span>
@@ -219,7 +295,8 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
               Tienda: <strong>{product.artisan_shops.shop_name}</strong>
             </p>
             <p className="text-xs text-muted-foreground">
-              Para aprobar esta tienda en el marketplace, usa el panel de Tiendas.
+              Para aprobar esta tienda en el marketplace, usa el panel de
+              Tiendas.
             </p>
           </div>
         )}
@@ -227,14 +304,14 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
         {/* Product Tab */}
         <TabsContent value="product" className="space-y-4 mt-4">
           {/* Images */}
-          <Card>
+          {/* <Card>
             <CardContent className="pt-4">
               <ModerationImageEditor
                 images={edits.images}
                 onChange={(imgs) => setEdits(prev => ({ ...prev, images: imgs }))}
               />
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Basic Info */}
           <Card>
@@ -246,22 +323,35 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                 <Label>Nombre del producto</Label>
                 <Input
                   value={edits.name}
-                  onChange={(e) => setEdits(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setEdits((prev) => ({ ...prev, name: e.target.value }))
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Descripción corta</Label>
                 <Input
                   value={edits.shortDescription}
-                  onChange={(e) => setEdits(prev => ({ ...prev, shortDescription: e.target.value }))}
+                  onChange={(e) =>
+                    setEdits((prev) => ({
+                      ...prev,
+                      shortDescription: e.target.value,
+                    }))
+                  }
                   placeholder="Breve descripción para listados..."
                 />
               </div>
               <div className="space-y-2">
-                <Label>Descripción completa</Label>
+                <Label>Historia del producto</Label>
                 <Textarea
-                  value={edits.description}
-                  onChange={(e) => setEdits(prev => ({ ...prev, description: e.target.value }))}
+                  value={edits.history}
+                  onChange={(e) =>
+                    setEdits((prev) => ({
+                      ...prev,
+                      history: e.target.value,
+                    }))
+                  }
+                  placeholder="Cuéntanos la historia detrás de este producto..."
                   rows={4}
                 />
               </div>
@@ -281,41 +371,79 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">Precio (COP)</Label>
+                  <Label>Precio (COP)</Label>
                   <PriceInput
                     id="mod-price"
                     value={edits.price}
-                    onChange={(price) => setEdits(prev => ({ ...prev, price: price ?? 0 }))}
+                    onChange={(price) =>
+                      setEdits((prev) => ({ ...prev, price: price ?? 0 }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">Precio anterior (COP)</Label>
-                  <PriceInput
-                    id="mod-compare-price"
-                    value={edits.comparePrice ?? 0}
-                    onChange={(price) => setEdits(prev => ({ ...prev, comparePrice: price ?? null }))}
-                    placeholder="Opcional"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">Stock</Label>
+                  <Label>Stock disponible</Label>
                   <Input
                     type="number"
+                    min="0"
                     value={edits.inventory}
-                    onChange={(e) => setEdits(prev => ({ ...prev, inventory: Number(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">SKU</Label>
-                  <Input
-                    value={edits.sku || ''}
-                    onChange={(e) => setEdits(prev => ({ ...prev, sku: e.target.value || null }))}
-                    placeholder="Opcional"
+                    onChange={(e) =>
+                      setEdits((prev) => ({
+                        ...prev,
+                        inventory: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Taxonomías */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">
+                Taxonomías e Identidad Artesanal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="text-sm space-y-2">
+                {edits.craftId && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Oficio:</span>
+                    <span className="font-medium">Configurado ✓</span>
+                  </div>
+                )}
+                {edits.primaryTechniqueId && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Técnica:</span>
+                    <span className="font-medium">Configurado ✓</span>
+                  </div>
+                )}
+                {edits.materialIds && edits.materialIds.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Materiales:</span>
+                    <span className="font-medium">
+                      {edits.materialIds.length} seleccionados
+                    </span>
+                  </div>
+                )}
+                {!edits.craftId && !edits.primaryTechniqueId && (
+                  <p className="text-sm text-muted-foreground">
+                    No se han configurado taxonomías
+                  </p>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setTaxonomyModalOpen(true)}
+                className="w-full flex items-center gap-2"
+              >
+                <Tags className="w-4 h-4" />
+                Editar Taxonomías
+              </Button>
             </CardContent>
           </Card>
 
@@ -327,7 +455,10 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                   <Truck className="w-4 h-4" />
                   Datos de Envío
                 </CardTitle>
-                {(edits.weight && edits.dimensions?.length && edits.dimensions?.width && edits.dimensions?.height) ? (
+                {edits.weight &&
+                edits.dimensions?.length &&
+                edits.dimensions?.width &&
+                edits.dimensions?.height ? (
                   <span className="text-xs text-success flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />
                     Completo
@@ -347,7 +478,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                   <WeightInput
                     id="mod-weight"
                     value={edits.weight}
-                    onChange={(valueKg) => setEdits(prev => ({ ...prev, weight: valueKg }))}
+                    onChange={(valueKg) =>
+                      setEdits((prev) => ({ ...prev, weight: valueKg }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -356,16 +489,20 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     type="number"
                     step="0.1"
                     min="0"
-                    value={edits.dimensions?.length ?? ''}
-                    onChange={(e) => setEdits(prev => ({
-                      ...prev,
-                      dimensions: {
-                        ...prev.dimensions,
-                        length: e.target.value ? Number(e.target.value) : null,
-                        width: prev.dimensions?.width ?? null,
-                        height: prev.dimensions?.height ?? null,
-                      }
-                    }))}
+                    value={edits.dimensions?.length ?? ""}
+                    onChange={(e) =>
+                      setEdits((prev) => ({
+                        ...prev,
+                        dimensions: {
+                          ...prev.dimensions,
+                          length: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                          width: prev.dimensions?.width ?? null,
+                          height: prev.dimensions?.height ?? null,
+                        },
+                      }))
+                    }
                     placeholder="ej: 30"
                   />
                 </div>
@@ -375,16 +512,18 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     type="number"
                     step="0.1"
                     min="0"
-                    value={edits.dimensions?.width ?? ''}
-                    onChange={(e) => setEdits(prev => ({
-                      ...prev,
-                      dimensions: {
-                        ...prev.dimensions,
-                        length: prev.dimensions?.length ?? null,
-                        width: e.target.value ? Number(e.target.value) : null,
-                        height: prev.dimensions?.height ?? null,
-                      }
-                    }))}
+                    value={edits.dimensions?.width ?? ""}
+                    onChange={(e) =>
+                      setEdits((prev) => ({
+                        ...prev,
+                        dimensions: {
+                          ...prev.dimensions,
+                          length: prev.dimensions?.length ?? null,
+                          width: e.target.value ? Number(e.target.value) : null,
+                          height: prev.dimensions?.height ?? null,
+                        },
+                      }))
+                    }
                     placeholder="ej: 20"
                   />
                 </div>
@@ -394,101 +533,28 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
                     type="number"
                     step="0.1"
                     min="0"
-                    value={edits.dimensions?.height ?? ''}
-                    onChange={(e) => setEdits(prev => ({
-                      ...prev,
-                      dimensions: {
-                        ...prev.dimensions,
-                        length: prev.dimensions?.length ?? null,
-                        width: prev.dimensions?.width ?? null,
-                        height: e.target.value ? Number(e.target.value) : null,
-                      }
-                    }))}
+                    value={edits.dimensions?.height ?? ""}
+                    onChange={(e) =>
+                      setEdits((prev) => ({
+                        ...prev,
+                        dimensions: {
+                          ...prev.dimensions,
+                          length: prev.dimensions?.length ?? null,
+                          width: prev.dimensions?.width ?? null,
+                          height: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        },
+                      }))
+                    }
                     placeholder="ej: 10"
                   />
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Los datos de envío son necesarios para calcular costos de envío con Servientrega.
+                Los datos de envío son necesarios para calcular costos de envío
+                con Servientrega.
               </p>
-            </CardContent>
-          </Card>
-
-          {/* Categories */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Categorización</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Categoría</Label>
-                  <Select
-                    value={edits.subcategory || ''}
-                    onValueChange={(v) => setEdits(prev => ({ ...prev, subcategory: v || null }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Subcategoría (texto libre)</Label>
-                  <Input
-                    value={edits.subcategory || ''}
-                    onChange={(e) => setEdits(prev => ({ ...prev, subcategory: e.target.value || null }))}
-                    placeholder="O escribe manualmente..."
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tags, Materials, Techniques */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Etiquetas y Atributos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ModerationTagEditor
-                tags={edits.tags}
-                onChange={(tags) => setEdits(prev => ({ ...prev, tags }))}
-                label="Tags"
-                placeholder="Agregar tag..."
-              />
-              <ModerationTagEditor
-                tags={edits.materials}
-                onChange={(materials) => setEdits(prev => ({ ...prev, materials }))}
-                label="Materiales"
-                placeholder="Agregar material..."
-              />
-              <ModerationTagEditor
-                tags={edits.techniques}
-                onChange={(techniques) => setEdits(prev => ({ ...prev, techniques }))}
-                label="Técnicas"
-                placeholder="Agregar técnica..."
-              />
-            </CardContent>
-          </Card>
-
-          {/* Toggles */}
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Producto activo</Label>
-                  <p className="text-xs text-muted-foreground">Visible en la tienda</p>
-                </div>
-                <Switch
-                  checked={edits.active}
-                  onCheckedChange={(v) => setEdits(prev => ({ ...prev, active: v }))}
-                />
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -512,7 +578,9 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
       <Card className="sticky bottom-0 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-t shadow-lg">
         <CardContent className="pt-3 pb-3 space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs sm:text-sm">Comentario para el artesano</Label>
+            <Label className="text-xs sm:text-sm">
+              Comentario para el artesano
+            </Label>
             <Textarea
               placeholder="Escribe un comentario (obligatorio para pedir cambios o rechazar)..."
               value={comment}
@@ -525,42 +593,58 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Button
               size="sm"
-              onClick={() => handleAction('approve')}
+              onClick={() => handleAction("approve")}
               disabled={moderating}
               className="bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm"
             >
-              {moderating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+              {moderating ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <CheckCircle className="w-3 h-3 mr-1" />
+              )}
               Aprobar
             </Button>
             <Button
               size="sm"
-              onClick={() => handleAction('approve_with_edits')}
+              onClick={() => handleAction("approve_with_edits")}
               disabled={moderating || !hasEdits()}
               className="bg-teal-600 hover:bg-teal-700 text-xs sm:text-sm"
             >
-              {moderating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Edit className="w-3 h-3 mr-1" />}
+              {moderating ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <Edit className="w-3 h-3 mr-1" />
+              )}
               <span className="hidden sm:inline">Con ediciones</span>
               <span className="sm:hidden">Ediciones</span>
             </Button>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleAction('request_changes')}
+              onClick={() => handleAction("request_changes")}
               disabled={moderating || !comment.trim()}
               className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950 text-xs sm:text-sm"
             >
-              {moderating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <AlertCircle className="w-3 h-3 mr-1" />}
+              {moderating ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <AlertCircle className="w-3 h-3 mr-1" />
+              )}
               <span className="hidden sm:inline">Pedir cambios</span>
               <span className="sm:hidden">Cambios</span>
             </Button>
             <Button
               size="sm"
               variant="destructive"
-              onClick={() => handleAction('reject')}
+              onClick={() => handleAction("reject")}
               disabled={moderating || !comment.trim()}
               className="text-xs sm:text-sm"
             >
-              {moderating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <XCircle className="w-3 h-3 mr-1" />}
+              {moderating ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <XCircle className="w-3 h-3 mr-1" />
+              )}
               Rechazar
             </Button>
           </div>
@@ -572,6 +656,24 @@ export const ModerationProductEditor: React.FC<ModerationProductEditorProps> = (
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Taxonomías */}
+      <ModerationTaxonomyModal
+        open={taxonomyModalOpen}
+        onOpenChange={setTaxonomyModalOpen}
+        initialData={{
+          craftId: edits.craftId,
+          primaryTechniqueId: edits.primaryTechniqueId,
+          secondaryTechniqueId: edits.secondaryTechniqueId,
+          pieceType: edits.pieceType,
+          style: edits.style,
+          processType: edits.processType,
+          estimatedElaborationTime: edits.estimatedElaborationTime,
+          materialIds: edits.materialIds,
+          curatorialCategory: edits.curatorialCategory,
+        }}
+        onSave={handleTaxonomySave}
+      />
     </div>
   );
 };

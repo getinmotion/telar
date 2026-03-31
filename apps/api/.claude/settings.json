@@ -14,7 +14,11 @@
       "Bash(npx typeorm-ts-node-commonjs -d ./src/config/db/database.config.ts migration:create ./src/database/migrations/MigrateProductModerationHistoryToShop)",
       "Bash(npx typeorm-ts-node-commonjs migration:create ./src/database/migrations/MigrateProductModerationHistoryToShop)",
       "Bash(npx typeorm-ts-node-commonjs migration:create ./src/migrations/AddDeletedAtToShopTables)",
-      "Bash(npm run migration:show)"
+      "Bash(npm run migration:show)",
+      "Bash(grep -l \"CreateDateColumn\\\\|created_at\" src/resources/products-new/entities/product-*.entity.ts)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }
