@@ -7,12 +7,24 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { ProductsNewService } from './products-new.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@ApiTags('products-new')
 @Controller('products-new')
 export class ProductsNewController {
   constructor(private readonly productsNewService: ProductsNewService) {}
@@ -113,6 +125,122 @@ export class ProductsNewController {
   @Get('legacy/:legacyId')
   findByLegacyId(@Param('legacyId') legacyId: string) {
     return this.productsNewService.findByLegacyId(legacyId);
+  }
+
+  /**
+   * GET /products-new/marketplace
+   * Obtener productos para marketplace (solo aprobados y publicados)
+   */
+  @Get('marketplace')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos para marketplace',
+    description:
+      'Endpoint para marketplace. ' +
+      'Incluye solo productos aprobados de tiendas publicadas y aprobadas para marketplace',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos de marketplace obtenida exitosamente',
+  })
+  async getMarketplaceProducts(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('featured') featured?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    const pageNum = page ? parseInt(page) : 1;
+    const limitNum = limit ? parseInt(limit) : 20;
+    const featuredBool = featured === 'true' ? true : undefined;
+
+    return await this.productsNewService.getMarketplaceProducts({
+      page: pageNum,
+      limit: limitNum,
+      categoryId,
+      featured: featuredBool,
+      sortBy,
+      order,
+    });
+  }
+
+  /**
+   * GET /products-new/marketplace/featured
+   * Obtener productos destacados para marketplace
+   */
+  @Get('marketplace/featured')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos destacados para marketplace',
+    description: 'Productos destacados aprobados para marketplace',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos destacados obtenida exitosamente',
+  })
+  async getMarketplaceFeaturedProducts() {
+    return await this.productsNewService.getMarketplaceFeaturedProducts();
+  }
+
+  /**
+   * GET /products-new/marketplace/shop/:shopId
+   * Obtener productos de una tienda para marketplace
+   */
+  @Get('marketplace/shop/:shopId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener productos de una tienda para marketplace',
+    description: 'Productos aprobados de una tienda específica',
+  })
+  @ApiParam({ name: 'shopId', description: 'ID de la tienda' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos de la tienda obtenida exitosamente',
+  })
+  async getMarketplaceProductsByShop(@Param('shopId') shopId: string) {
+    return await this.productsNewService.getMarketplaceProductsByShop(shopId);
+  }
+
+  /**
+   * GET /products-new/marketplace/user/:userId
+   * Obtener productos de un usuario para marketplace
+   */
+  @Get('marketplace/user/:userId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Obtener productos de un usuario para marketplace',
+    description: 'Productos aprobados del usuario (a través de su tienda)',
+  })
+  @ApiParam({ name: 'userId', description: 'ID del usuario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de productos del usuario obtenida exitosamente',
+  })
+  async getMarketplaceProductsByUser(@Param('userId') userId: string) {
+    return await this.productsNewService.getMarketplaceProductsByUser(userId);
+  }
+
+  /**
+   * GET /products-new/marketplace/:id
+   * Obtener un producto individual para marketplace
+   */
+  @Get('marketplace/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obtener un producto para marketplace',
+    description: 'Producto individual aprobado para marketplace',
+  })
+  @ApiParam({ name: 'id', description: 'ID del producto' })
+  @ApiResponse({
+    status: 200,
+    description: 'Producto obtenido exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Producto no encontrado' })
+  async getMarketplaceProductById(@Param('id') id: string) {
+    return await this.productsNewService.getMarketplaceProductById(id);
   }
 
   /**
