@@ -13,6 +13,7 @@ Database backend: asyncpg pool pointing at CATALOG_DB_URL (Lightsail PostgreSQL)
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -332,7 +333,7 @@ class SemanticSearchService:
                 price=int(r["price"]) if r["price"] is not None else None,
                 currency=r["currency"],
                 stock=int(r["stock"]),
-                images=list(r["images"]) if r["images"] else [],
+                images=json.loads(r["images"]) if isinstance(r["images"], str) else (list(r["images"]) if r["images"] else []),
             )
             for r in rows
         ]
