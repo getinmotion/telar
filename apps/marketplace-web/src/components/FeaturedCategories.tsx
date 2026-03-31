@@ -1,99 +1,120 @@
-import { useEffect, useState } from 'react';
-import { useProducts } from '@/contexts/ProductsContext';
-import * as Icons from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { cn } from '@/lib/utils';
-import { useMarketplaceCategories } from '@/hooks/useMarketplaceCategories';
 import { Skeleton } from './ui/skeleton';
-import { mapArtisanCategory } from '@/lib/productMapper';
+import { getProductsNew, type ProductsNewPaginatedResponse } from '@/services/products-new.actions';
+import type { CategoryWithChildren } from '@/services/taxonomy.actions';
 
-interface FeaturedCategoriesProps {
-  onCategoryClick?: (category: string) => void;
+// ── Fallback images (local assets) ───────────────────
+import joyeriaImg from '@/assets/categories/joyeria.png';
+import decoracionImg from '@/assets/categories/decoracion.png';
+import textilesImg from '@/assets/categories/textiles.png';
+import bolsosImg from '@/assets/categories/bolsos.png';
+import vajillasImg from '@/assets/categories/vajillas.png';
+import mueblesImg from '@/assets/categories/muebles.png';
+import arteImg from '@/assets/categories/arte.png';
+
+const FALLBACK_IMAGES: Record<string, string> = {
+  'joyeria-y-accesorios': joyeriaImg,
+  'decoracion-del-hogar': decoracionImg,
+  'textiles-y-moda': textilesImg,
+  'bolsos-y-carteras': bolsosImg,
+  'vajillas-y-cocina': vajillasImg,
+  'muebles': mueblesImg,
+  'arte-y-esculturas': arteImg,
+  // Name-based fallbacks
+  'joyería y accesorios': joyeriaImg,
+  'decoración del hogar': decoracionImg,
+  'textiles y moda': textilesImg,
+  'bolsos y carteras': bolsosImg,
+  'vajillas y cocina': vajillasImg,
+  'arte y esculturas': arteImg,
+};
+
+function getCategoryImage(cat: { slug: string; name: string; imageUrl: string | null }): string {
+  if (cat.imageUrl) return cat.imageUrl;
+  return FALLBACK_IMAGES[cat.slug] ?? FALLBACK_IMAGES[cat.name.toLowerCase()] ?? decoracionImg;
 }
 
-interface CategoryData {
-  category: string;
-  product_count: number;
-}
+// ── Bento grid layout per category slug ──────────────
+const BENTO_LAYOUT: Record<string, string> = {
+  'joyeria-y-accesorios': 'md:col-span-2 md:row-span-2',
+  'decoracion-del-hogar': 'md:col-span-1 md:row-span-2',
+  'textiles-y-moda': 'md:col-span-1 md:row-span-2',
+  'bolsos-y-carteras': 'md:col-span-2 md:row-span-1',
+  'vajillas-y-cocina': 'md:col-span-2 md:row-span-1',
+  'muebles': 'md:col-span-1 md:row-span-1',
+  'arte-y-esculturas': 'md:col-span-1 md:row-span-1',
+};
 
-export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps) => {
-  const { products, fetchActiveProducts } = useProducts();
+// Slugs to exclude from home featured
+const EXCLUDED_SLUGS = ['cuidado-personal'];
+
+export const FeaturedCategories = () => {
+  const navigate = useNavigate();
+  const { categoryHierarchy, loading: loadingTaxonomy } = useTaxonomy();
   const [productCounts, setProductCounts] = useState<Map<string, number>>(new Map());
   const [loadingCounts, setLoadingCounts] = useState(true);
-  const { categories, loading: loadingCategories } = useMarketplaceCategories();
 
+  // Only show top-level (parent) categories, excluding some
+  const featuredCategories = useMemo(() => {
+    return categoryHierarchy.filter(
+      (cat) => cat.isActive && !EXCLUDED_SLUGS.includes(cat.slug)
+    );
+  }, [categoryHierarchy]);
+
+  // Fetch product counts per parent category
   useEffect(() => {
-    fetchProductCounts();
-  }, []);
+    if (featuredCategories.length === 0) return;
+    let cancelled = false;
 
-  useEffect(() => {
-    if (products?.length > 0 && categories?.length > 0) {
-      processCounts();
-    }
-  }, [products, categories]);
+    const fetchCounts = async () => {
+      setLoadingCounts(true);
+      try {
+        // Fetch a big page to count per category
+        const res: ProductsNewPaginatedResponse = await getProductsNew({ page: 1, limit: 500 });
 
-  const fetchProductCounts = async () => {
-    try {
-      await fetchActiveProducts();
-    } catch (error) {
-      setLoadingCounts(false);
-    }
-  };
+        if (cancelled) return;
 
-  const processCounts = () => {
-    try {
-      const counts = new Map<string, number>();
-      const categoryNames = categories.map(c => c.name).filter(Boolean);
+        // Build a set of all category IDs per parent (parent + its subcategories)
+        const parentIdMap = new Map<string, Set<string>>();
+        featuredCategories.forEach((parent) => {
+          const ids = new Set<string>([parent.id]);
+          parent.subcategories.forEach((sub) => ids.add(sub.id));
+          parentIdMap.set(parent.id, ids);
+        });
 
-      products.forEach((p) => {
-        const categoryName =  mapArtisanCategory(p.category);
-        if (categoryName) {
-          const normalizedCat = categoryName.toLowerCase().trim();
-          const matchedCatName = categoryNames.find(
-            catName => catName && catName.toLowerCase().trim() === normalizedCat
-          );
-          if (matchedCatName) {
-            counts.set(matchedCatName, (counts.get(matchedCatName) || 0) + 1);
+        // Count products per parent category
+        const counts = new Map<string, number>();
+        res.data.forEach((product) => {
+          for (const [parentId, catIds] of parentIdMap) {
+            if (catIds.has(product.categoryId)) {
+              counts.set(parentId, (counts.get(parentId) || 0) + 1);
+            }
           }
-        }
-      });
+        });
 
-      setProductCounts(counts);
-    } catch (error) {
-      // Silent fail for category counts
-    } finally {
-      setLoadingCounts(false);
-    }
-  };
+        setProductCounts(counts);
+      } catch {
+        // Silent fail — counts show 0
+      } finally {
+        if (!cancelled) setLoadingCounts(false);
+      }
+    };
 
-  const getCategoryIcon = (iconName: string) => {
-    const IconComponent = Icons[iconName as keyof typeof Icons] as LucideIcon;
-    return IconComponent ? <IconComponent className="h-8 w-8" /> : null;
-  };
+    fetchCounts();
+    return () => { cancelled = true; };
+  }, [featuredCategories]);
 
-  // Bento layout - solo aplica desde md
-  const bentoLayout: Record<string, string> = {
-    "Joyería y Accesorios": "md:col-span-2 md:row-span-2",
-    "Decoración del Hogar": "md:col-span-1 md:row-span-2", 
-    "Textiles y Moda": "md:col-span-1 md:row-span-2",
-    "Bolsos y Carteras": "md:col-span-2 md:row-span-1",
-    "Vajillas y Cocina": "md:col-span-2 md:row-span-1",
-    "Muebles": "md:col-span-1 md:row-span-1",
-    "Arte y Esculturas": "md:col-span-1 md:row-span-1"
-  };
-
-  const loading = loadingCategories || loadingCounts;
+  const loading = loadingTaxonomy || loadingCounts;
 
   if (loading) {
     return (
       <div className="container mx-auto px-6 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Explora por Categoría</h2>
-          <p className="text-xl text-muted-foreground">
-            Encuentra artesanías únicas organizadas por categoría
-          </p>
+        <div className="text-left mb-12">
+          <h2 className="text-2xl lg:text-3xl font-bold">Explora por Categoría</h2>
         </div>
-        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">
           {[...Array(7)].map((_, i) => (
             <div key={i} className="aspect-square md:aspect-auto rounded-lg overflow-hidden">
@@ -105,13 +126,11 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
     );
   }
 
-  // Excluir "Cuidado Personal" de los destacados en home
-  const excludedFromFeatured = ["Cuidado Personal"];
-  const featuredCategories = categories.filter(cat => !excludedFromFeatured.includes(cat.name));
+  if (featuredCategories.length === 0) return null;
 
-  if (featuredCategories.length === 0) {
-    return null;
-  }
+  const handleCategoryClick = (cat: CategoryWithChildren) => {
+    navigate(`/productos?categoria=${cat.slug}`);
+  };
 
   return (
     <section className="py-20 px-4 bg-background">
@@ -124,25 +143,25 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">
           {featuredCategories.map((cat) => {
-            const imageUrl = cat.imageUrl || '';
-            const gridClass = bentoLayout[cat.name] || "col-span-1 row-span-1";
-            const count = productCounts.get(cat.name) || 0;
-            
+            const imageUrl = getCategoryImage(cat);
+            const gridClass = BENTO_LAYOUT[cat.slug] || 'col-span-1 row-span-1';
+            const count = productCounts.get(cat.id) || 0;
+
             return (
               <div
-                key={cat.name}
-                onClick={() => onCategoryClick && onCategoryClick(cat.name)}
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat)}
                 className={cn(
-                  "group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300",
-                  "hover:shadow-xl hover:scale-[1.02]",
-                  "aspect-square md:aspect-auto",
-                  gridClass
+                  'group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300',
+                  'hover:shadow-xl hover:scale-[1.02]',
+                  'aspect-square md:aspect-auto',
+                  gridClass,
                 )}
               >
                 <div className="absolute inset-0">
                   {imageUrl ? (
-                    <img 
-                      src={imageUrl} 
+                    <img
+                      src={imageUrl}
                       alt={cat.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -151,11 +170,8 @@ export const FeaturedCategories = ({ onCategoryClick }: FeaturedCategoriesProps)
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 </div>
-                
+
                 <div className="relative h-full flex flex-col justify-end p-3 md:p-6 text-white">
-                  <div className="mb-2 md:mb-3 p-2 md:p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 w-fit">
-                    {getCategoryIcon(cat.icon)}
-                  </div>
                   <h3 className="text-sm md:text-2xl font-bold mb-1 md:mb-2 line-clamp-2">
                     {cat.name}
                   </h3>
