@@ -148,7 +148,7 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({
                     const images = Array.isArray(product.images)
                       ? product.images
                       : [];
-                    const firstImage = images[0]?.url || "/placeholder.svg";
+                    const firstImage = images[0] || "/placeholder.svg";
                     return (
                       <img
                         src={firstImage}

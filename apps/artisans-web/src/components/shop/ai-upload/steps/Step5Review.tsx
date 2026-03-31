@@ -170,7 +170,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       errors.push("El nombre del producto es obligatorio");
     }
 
-    if (!wizardState.description?.trim()) {
+    if (!wizardState.shortDescription?.trim()) {
       errors.push("La descripción del producto es obligatoria");
     }
 
@@ -257,8 +257,12 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       });
 
       // PASO 2: Subir imágenes (solo las nuevas - tipo File)
-      const imagesToUpload = wizardState.images.filter((img): img is File => typeof img !== 'string');
-      const existingImageUrls = wizardState.images.filter((img): img is string => typeof img === 'string');
+      const imagesToUpload = wizardState.images.filter(
+        (img): img is File => typeof img !== "string",
+      );
+      const existingImageUrls = wizardState.images.filter(
+        (img): img is string => typeof img === "string",
+      );
 
       if (imagesToUpload.length > 0) {
         console.log(`📤 SUBIENDO ${imagesToUpload.length} NUEVAS IMÁGENES...`);
@@ -289,14 +293,17 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       // PASO 3: Crear o actualizar producto usando products-new (arquitectura multicapa)
       const actionText = isEditMode ? "ACTUALIZANDO" : "CREANDO";
       console.log(`💾 ${actionText} PRODUCTO...`);
-      toast.info(isEditMode ? "Actualizando producto..." : "Creando producto...", {
-        description: "Guardando en la base de datos",
-      });
+      toast.info(
+        isEditMode ? "Actualizando producto..." : "Creando producto...",
+        {
+          description: "Guardando en la base de datos",
+        },
+      );
 
       const createDto = mapWizardStateToCreateDto(
         wizardState,
         shopData.id,
-        uploadedImageUrls
+        uploadedImageUrls,
       );
 
       // Si estamos en modo edición, agregar productId al DTO
@@ -305,9 +312,12 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       }
 
       // Cambiar status a pending_moderation para publicación
-      createDto.status = 'pending_moderation';
+      createDto.status = "pending_moderation";
 
-      console.log(`📋 DTO generado para ${isEditMode ? 'actualización' : 'publicación'}:`, createDto);
+      console.log(
+        `📋 DTO generado para ${isEditMode ? "actualización" : "publicación"}:`,
+        createDto,
+      );
 
       const createdProduct = await createProductNew(createDto);
       console.log("✅ PRODUCTO CREADO:", {
@@ -376,16 +386,24 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       }
 
       // PASO 9: Éxito
-      console.log(`🎉 PRODUCTO ${isEditMode ? 'ACTUALIZADO' : 'PUBLICADO'} EXITOSAMENTE:`, createdProduct.id);
+      console.log(
+        `🎉 PRODUCTO ${isEditMode ? "ACTUALIZADO" : "PUBLICADO"} EXITOSAMENTE:`,
+        createdProduct.id,
+      );
       setPublishedProductId(createdProduct.id);
       setPublishedProductName(wizardState.name);
       setShowSuccessModal(true);
       onPublish();
 
-      toast.success(isEditMode ? "¡Producto actualizado exitosamente!" : "¡Producto publicado exitosamente!", {
-        description: `"${wizardState.name}" ${isEditMode ? 'ha sido actualizado' : 'ya está disponible en tu tienda'}`,
-        duration: 4000,
-      });
+      toast.success(
+        isEditMode
+          ? "¡Producto actualizado exitosamente!"
+          : "¡Producto publicado exitosamente!",
+        {
+          description: `"${wizardState.name}" ${isEditMode ? "ha sido actualizado" : "ya está disponible en tu tienda"}`,
+          duration: 4000,
+        },
+      );
     } catch (error) {
       console.error(
         "❌ ERROR CRÍTICO EN PUBLICACIÓN:",
@@ -446,8 +464,12 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       if (!shopData) throw new Error("No tienes una tienda activa");
 
       // Subir imágenes (solo las nuevas - tipo File)
-      const imagesToUpload = wizardState.images.filter((img): img is File => typeof img !== 'string');
-      const existingImageUrls = wizardState.images.filter((img): img is string => typeof img === 'string');
+      const imagesToUpload = wizardState.images.filter(
+        (img): img is File => typeof img !== "string",
+      );
+      const existingImageUrls = wizardState.images.filter(
+        (img): img is string => typeof img === "string",
+      );
 
       if (imagesToUpload.length > 0) {
         toast.info("Subiendo imágenes...", {
@@ -465,7 +487,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       const createDto = mapWizardStateToCreateDto(
         wizardState,
         shopData.id,
-        uploadedImageUrls
+        uploadedImageUrls,
       );
 
       // Si estamos en modo edición, agregar productId al DTO
@@ -969,7 +991,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
         <div className="flex gap-3">
           {/* Mostrar botón "Guardar borrador" solo si no está en modo edición O si está en draft */}
-          {(!isEditMode || wizardState.status === 'draft') && (
+          {(!isEditMode || wizardState.status === "draft") && (
             <Button
               variant="outline"
               onClick={handleSaveDraft}
@@ -996,8 +1018,12 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
               <Upload className="w-4 h-4" />
             )}
             {isPublishing
-              ? (isEditMode ? "Actualizando..." : "Enviando...")
-              : (isEditMode ? "Actualizar" : "Enviar a revisión")}
+              ? isEditMode
+                ? "Actualizando..."
+                : "Enviando..."
+              : isEditMode
+                ? "Actualizar"
+                : "Enviar a revisión"}
           </Button>
         </div>
       </div>

@@ -20,8 +20,11 @@ import {
 
 const STEPS = [
   { title: "La pieza", description: "Sube las fotos de tu producto" },
-  { title: "Artesanía", description: "Define el nombre perfecto" },
-  { title: "Precio", description: "Configura precio y categoría" },
+  {
+    title: "Artesanía",
+    description: "Esta informacion enriquece el certificado digital",
+  },
+  { title: "Precio", description: "Configura precio e inventario" },
   { title: "Revisar", description: "Revisa y publica tu producto" },
 ];
 
@@ -160,7 +163,6 @@ export const AIProductUploadWizard: React.FC = () => {
             processType={wizardState.processType}
             estimatedElaborationTime={wizardState.estimatedElaborationTime}
             materialIds={wizardState.materials}
-            curatorialCategory={wizardState.curatorialCategory}
             onCraftChange={(craftId) => updateWizardState({ craftId })}
             onPrimaryTechniqueChange={(primaryTechniqueId) =>
               updateWizardState({ primaryTechniqueId })
@@ -178,9 +180,6 @@ export const AIProductUploadWizard: React.FC = () => {
             }
             onMaterialIdsChange={(materials) =>
               updateWizardState({ materials })
-            }
-            onCuratorialCategoryChange={(curatorialCategory) =>
-              updateWizardState({ curatorialCategory })
             }
             onNext={handleNext}
             onPrevious={handlePrevious}

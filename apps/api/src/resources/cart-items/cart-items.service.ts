@@ -9,7 +9,7 @@ import { CartItem } from './entities/cart-item.entity';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { Cart } from '../cart/entities/cart.entity';
-import { Product } from '../products/entities/product.entity';
+import { ProductCore } from '../products-new/entities/product-core.entity';
 import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 
 @Injectable()
@@ -19,8 +19,8 @@ export class CartItemsService {
     private readonly cartItemsRepository: Repository<CartItem>,
     @Inject('CART_REPOSITORY')
     private readonly cartRepository: Repository<Cart>,
-    @Inject('PRODUCTS_REPOSITORY')
-    private readonly productsRepository: Repository<Product>,
+    @Inject('PRODUCTS_CORE_REPOSITORY')
+    private readonly productsCoreRepository: Repository<ProductCore>,
     @Inject('ARTISAN_SHOPS_REPOSITORY')
     private readonly artisanShopsRepository: Repository<ArtisanShop>,
   ) {}
@@ -41,7 +41,7 @@ export class CartItemsService {
     }
 
     // Verificar que el producto existe
-    const productExists = await this.productsRepository.findOne({
+    const productExists = await this.productsCoreRepository.findOne({
       where: { id: createDto.productId },
     });
 
@@ -122,7 +122,7 @@ export class CartItemsService {
 
     // Si se actualiza el producto, verificar que existe
     if (updateDto.productId) {
-      const productExists = await this.productsRepository.findOne({
+      const productExists = await this.productsCoreRepository.findOne({
         where: { id: updateDto.productId },
       });
 
