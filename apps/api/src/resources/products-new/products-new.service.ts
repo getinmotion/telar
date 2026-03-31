@@ -3,8 +3,12 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
-import { Repository, IsNull, In } from 'typeorm';
+import { Repository, IsNull, DataSource } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import {
@@ -24,6 +28,8 @@ const PUBLIC_STATUSES = ['approved', 'approved_with_edits'];
 
 @Injectable()
 export class ProductsNewService {
+  private readonly logger = new Logger(ProductsNewService.name);
+
   constructor(
     @Inject('PRODUCTS_CORE_REPOSITORY')
     private readonly productCoreRepository: Repository<ProductCore>,
@@ -43,6 +49,10 @@ export class ProductsNewService {
     private readonly materialsRepository: Repository<ProductMaterialLink>,
     @Inject('PRODUCT_VARIANTS_REPOSITORY')
     private readonly variantsRepository: Repository<ProductVariant>,
+    @Inject('DATA_SOURCE')
+    private readonly dataSource: DataSource,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   /**
@@ -177,6 +187,10 @@ export class ProductsNewService {
     if (variants && variants.length > 0) {
       await this.replaceVariants(product.id, variants);
     }
+
+    // 9. Generar y guardar embedding (solo si status !== 'draft' y hay datos suficientes)
+    // Los errores se manejan internamente sin afectar la creación del producto
+    await this.generateAndSaveEmbedding(product.id);
 
     // Retornar producto completo con todas las relaciones
     return await this.findOne(product.id);
@@ -607,6 +621,27 @@ export class ProductsNewService {
   }
 
   /**
+   * Obtener productos por IDs (bulk)
+   * Útil para cart sync y otras operaciones que necesiten múltiples productos
+   */
+  async findByIds(ids: string[]): Promise<ProductCore[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const products = await this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .where('pc.id IN (:...ids)', { ids })
+      .andWhere('pc.deletedAt IS NULL')
+      .getMany();
+
+    return products;
+  }
+
+  /**
    * Actualizar producto por ID
    * También maneja la actualización de medias si se envían
    */
@@ -712,6 +747,559 @@ export class ProductsNewService {
     const product = await this.findOne(id);
     product.status = status;
     return await this.productCoreRepository.save(product);
+  }
+
+  /**
+   * Genera y guarda el embedding del producto
+   * Solo se ejecuta si el status !== 'draft' y hay datos suficientes
+   */
+  private async generateAndSaveEmbedding(productId: string): Promise<void> {
+    try {
+      // 1. Verificar el status del producto
+      const product = await this.productCoreRepository.findOne({
+        where: { id: productId },
+        select: ['id', 'status'],
+      });
+
+      if (!product || product.status === 'draft') {
+        this.logger.log(`Embedding no generado: producto en draft o no encontrado (${productId})`);
+        return;
+      }
+
+      // 2. Generar el texto semántico usando la SQL
+      const result = await this.dataSource.query(
+        `
+        SELECT
+            pc.id                          AS product_id,
+            pc.name                        AS product_name,
+            pc.short_description,
+            pc.history,
+            tc.name                        AS craft_name,
+            tt_primary.name                AS primary_technique,
+            tt_secondary.name              AS secondary_technique,
+            tcc.name                       AS curatorial_category,
+            pai.piece_type,
+            pai.style,
+            pai.process_type,
+            pai.estimated_elaboration_time,
+            pai.is_collaboration,
+            COALESCE(mat.materials_list, '') AS materials,
+            CONCAT_WS(' | ',
+                pc.name,
+                pc.short_description,
+                pc.history,
+                'Oficio: '            || tc.name,
+                'Tecnica Principal: ' || tt_primary.name,
+                'Tecnica Secundaria: '|| tt_secondary.name,
+                'Cat. Curatorial: '   || tcc.name,
+                'Tipo de pieza: '     || pai.piece_type::TEXT,
+                'Estilo: '            || pai.style::TEXT,
+                'Proceso: '           || pai.process_type::TEXT,
+                'Materiales: '        || mat.materials_list
+            ) AS full_semantic_text
+        FROM shop.products_core pc
+        LEFT JOIN shop.product_artisanal_identity pai
+            ON pc.id = pai.product_id
+        LEFT JOIN taxonomy.crafts tc
+            ON pai.primary_craft_id = tc.id
+        LEFT JOIN taxonomy.techniques tt_primary
+            ON pai.primary_technique_id = tt_primary.id
+        LEFT JOIN taxonomy.techniques tt_secondary
+            ON pai.secondary_technique_id = tt_secondary.id
+        LEFT JOIN taxonomy.curatorial_categories tcc
+            ON pai.curatorial_category_id = tcc.id
+        LEFT JOIN (
+            SELECT pml.product_id,
+                   STRING_AGG(tm.name, ', ' ORDER BY tm.name) AS materials_list
+            FROM shop.product_materials_link pml
+            JOIN taxonomy.materials tm ON pml.material_id = tm.id
+            GROUP BY pml.product_id
+        ) mat ON pc.id = mat.product_id
+        WHERE pc.id = $1
+        `,
+        [productId],
+      );
+
+      if (!result || result.length === 0) {
+        this.logger.warn(`No se pudo generar texto semántico para producto ${productId}`);
+        return;
+      }
+
+      const data = result[0];
+      const semanticText = data.full_semantic_text;
+
+      // 3. Verificar si hay datos suficientes (al menos nombre + algún otro campo)
+      if (!semanticText || semanticText.trim() === '' || semanticText === data.product_name) {
+        this.logger.log(`Embedding no generado: datos insuficientes (${productId})`);
+        return;
+      }
+
+      // 4. Llamar al servicio externo para generar y guardar el embedding
+      const agentUrl = this.configService.get<string>('AGENT_URL');
+      if (!agentUrl) {
+        this.logger.warn('AGENT_URL no configurada, no se generará embedding');
+        return;
+      }
+
+      const embeddingServiceUrl = `${agentUrl}/search/embeddings/save`;
+      this.logger.log(`Enviando texto semántico al servicio de embeddings: ${embeddingServiceUrl}`);
+
+      const response = await firstValueFrom(
+        this.httpService.post(embeddingServiceUrl, {
+          product_id: productId,
+          text: semanticText,
+        }),
+      );
+
+      if (response.data) {
+        this.logger.log(`✅ Embedding generado y guardado para producto ${productId}`);
+      }
+    } catch (error: any) {
+      this.logger.error(
+        `Error al generar embedding para producto ${productId}:`,
+        error.stack || error,
+      );
+      // No lanzamos el error para que no afecte la creación del producto
+    }
+  }
+
+  // ============= MÉTODOS PARA MARKETPLACE =============
+
+  /**
+   * Obtener productos para marketplace
+   * Filtra solo productos aprobados de tiendas publicadas y aprobadas para marketplace
+   */
+  async getMarketplaceProducts(query: {
+    page?: number;
+    limit?: number;
+    categoryId?: string;
+    featured?: boolean;
+    sortBy?: string;
+    order?: 'ASC' | 'DESC';
+  }): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { page = 1, limit = 20, categoryId, featured, sortBy = 'createdAt', order = 'DESC' } = query;
+
+    const queryBuilder = this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('identity.primaryTechnique', 'primaryTech')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      // Filtros automáticos (solo productos aprobados de tiendas publicadas)
+      .where('pc.status IN (:...statuses)', {
+        statuses: ['published', 'approved'],
+      })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('shop.publishStatus = :publishStatus', {
+        publishStatus: 'published',
+      })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    // Filtros opcionales
+    if (categoryId) {
+      queryBuilder.andWhere('pc.categoryId = :categoryId', { categoryId });
+    }
+
+    // Note: featured filter removed as ProductCore doesn't have this property
+
+    // Ordenamiento
+    const orderByColumn = sortBy === 'name' ? 'pc.name' : `pc.${sortBy}`;
+    queryBuilder.orderBy(orderByColumn, order);
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Ejecutar query
+    const [rawResults, total] = await queryBuilder.getManyAndCount();
+
+    // Mapear resultados
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const data = rawResults.map((product: any) => {
+      // Calcular precio y stock desde las variantes
+      const variants = product.variants || [];
+      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const firstVariant = variants[0];
+      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+
+      return {
+        id: product.id,
+        name: product.name,
+        shortDescription: product.shortDescription,
+        history: product.history,
+        careNotes: product.careNotes,
+        status: product.status,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        isNew: new Date(product.createdAt) > thirtyDaysAgo,
+
+        // Datos de categoría
+        categoryId: product.category?.id,
+        categoryName: product.category?.name,
+
+        // Datos artesanales
+        craftName: product.artisanalIdentity?.primaryCraft?.name,
+        primaryTechnique: product.artisanalIdentity?.primaryTechnique?.name,
+        pieceType: product.artisanalIdentity?.pieceType,
+        style: product.artisanalIdentity?.style,
+
+        // Datos físicos
+        height: product.physicalSpecs?.heightCm,
+        width: product.physicalSpecs?.widthCm,
+        length: product.physicalSpecs?.lengthOrDiameterCm,
+        weight: product.physicalSpecs?.realWeightKg,
+
+        // Datos de producción
+        availabilityType: product.production?.availabilityType,
+        productionTimeDays: product.production?.productionTimeDays,
+
+        // Precio y stock desde variantes
+        price: basePrice,
+        currency: firstVariant?.currency || 'COP',
+        stock: totalStock,
+
+        // Media
+        images: product.media?.map((m: any) => m.url) || [],
+        imageUrl: product.media?.[0]?.url || null,
+
+        // Materiales
+        materials: product.materials?.map((m: any) => m.material?.name) || [],
+
+        // Datos de la tienda
+        shopId: product.artisanShop?.id,
+        storeName: product.artisanShop?.shopName,
+        storeSlug: product.artisanShop?.shopSlug,
+        logoUrl: product.artisanShop?.logoUrl,
+        bannerUrl: product.artisanShop?.bannerUrl,
+        storeDescription: product.artisanShop?.description,
+        region: product.artisanShop?.region,
+        department: product.artisanShop?.department,
+        municipality: product.artisanShop?.municipality,
+        craftType: product.artisanShop?.craftType,
+        bankDataStatus: product.artisanShop?.bankDataStatus,
+
+        // Cálculo de si se puede comprar
+        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+      };
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Obtener un producto individual para marketplace
+   */
+  async getMarketplaceProductById(id: string): Promise<any> {
+    if (!id) {
+      throw new BadRequestException('El ID es requerido');
+    }
+
+    const product = await this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('identity.primaryTechnique', 'primaryTech')
+      .leftJoinAndSelect('identity.secondaryTechnique', 'secondaryTech')
+      .leftJoinAndSelect('identity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
+      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .where('pc.id = :id', { id })
+      .andWhere('pc.status IN (:...statuses)', {
+        statuses: ['published', 'approved'],
+      })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('shop.publishStatus = :publishStatus', {
+        publishStatus: 'published',
+      })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .getOne();
+
+    if (!product) {
+      throw new NotFoundException(
+        `Producto con ID ${id} no encontrado o no está disponible en marketplace`,
+      );
+    }
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Calcular precio y stock desde las variantes
+    const variants = (product as any).variants || [];
+    const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+    const firstVariant = variants[0];
+    const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+
+    return {
+      id: product.id,
+      name: product.name,
+      shortDescription: product.shortDescription,
+      history: product.history,
+      careNotes: product.careNotes,
+      status: product.status,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      isNew: new Date(product.createdAt) > thirtyDaysAgo,
+
+      // Categoría
+      categoryId: product.category?.id,
+      categoryName: product.category?.name,
+
+      // Identidad artesanal completa
+      artisanalIdentity: {
+        primaryCraft: product.artisanalIdentity?.primaryCraft?.name,
+        primaryTechnique: product.artisanalIdentity?.primaryTechnique?.name,
+        secondaryTechnique: product.artisanalIdentity?.secondaryTechnique?.name,
+        curatorialCategory: product.artisanalIdentity?.curatorialCategory?.name,
+        pieceType: product.artisanalIdentity?.pieceType,
+        style: product.artisanalIdentity?.style,
+        processType: product.artisanalIdentity?.processType,
+        estimatedElaborationTime: product.artisanalIdentity?.estimatedElaborationTime,
+        isCollaboration: product.artisanalIdentity?.isCollaboration,
+      },
+
+      // Specs físicas
+      physicalSpecs: {
+        heightCm: product.physicalSpecs?.heightCm,
+        widthCm: product.physicalSpecs?.widthCm,
+        lengthOrDiameterCm: product.physicalSpecs?.lengthOrDiameterCm,
+        realWeightKg: product.physicalSpecs?.realWeightKg,
+      },
+
+      // Producción
+      production: {
+        availabilityType: product.production?.availabilityType,
+        productionTimeDays: product.production?.productionTimeDays,
+        monthlyCapacity: product.production?.monthlyCapacity,
+        requirementsToStart: product.production?.requirementsToStart,
+      },
+
+      // Precio y stock desde variantes
+      price: basePrice,
+      currency: firstVariant?.currency || 'COP',
+      stock: totalStock,
+      variants: variants.map((v: any) => ({
+        id: v.id,
+        sku: v.sku,
+        price: Number(v.basePriceMinor) / 100,
+        currency: v.currency,
+        stock: v.stockQuantity,
+      })),
+
+      // Media
+      images: product.media?.map((m: any) => m.url) || [],
+
+      // Materiales
+      materials: product.materials?.map((m: any) => ({
+        id: m.material?.id,
+        name: m.material?.name,
+        percentage: m.percentage,
+      })) || [],
+
+      // Badges
+      badges: product.badges?.map((b: any) => ({
+        id: b.badge?.id,
+        name: b.badge?.name,
+        icon: b.badge?.icon,
+      })) || [],
+
+      // Tienda
+      shop: {
+        id: product.artisanShop?.id,
+        name: product.artisanShop?.shopName,
+        slug: product.artisanShop?.shopSlug,
+        logoUrl: product.artisanShop?.logoUrl,
+        bannerUrl: product.artisanShop?.bannerUrl,
+        description: product.artisanShop?.description,
+        region: product.artisanShop?.region,
+        department: product.artisanShop?.department,
+        municipality: product.artisanShop?.municipality,
+        craftType: product.artisanShop?.craftType,
+        bankDataStatus: product.artisanShop?.bankDataStatus,
+      },
+
+      canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+    };
+  }
+
+  /**
+   * Obtener productos destacados para marketplace
+   */
+  async getMarketplaceFeaturedProducts(): Promise<any[]> {
+    const result = await this.getMarketplaceProducts({
+      featured: true,
+      limit: 20,
+    });
+
+    return result.data;
+  }
+
+  /**
+   * Obtener productos de una tienda para marketplace
+   */
+  async getMarketplaceProductsByShop(shopId: string): Promise<any[]> {
+    if (!shopId) {
+      throw new BadRequestException('El shopId es requerido');
+    }
+
+    const products = await this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .where('pc.storeId = :shopId', { shopId })
+      .andWhere('pc.status IN (:...statuses)', {
+        statuses: ['published', 'approved'],
+      })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('shop.publishStatus = :publishStatus', {
+        publishStatus: 'published',
+      })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .orderBy('pc.createdAt', 'DESC')
+      .getMany();
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return products.map((product: any) => {
+      const variants = product.variants || [];
+      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const firstVariant = variants[0];
+      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+
+      return {
+        id: product.id,
+        name: product.name,
+        shortDescription: product.shortDescription,
+        history: product.history,
+        status: product.status,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        isNew: new Date(product.createdAt) > thirtyDaysAgo,
+
+        categoryId: product.category?.id,
+        categoryName: product.category?.name,
+        craftName: product.artisanalIdentity?.primaryCraft?.name,
+
+        price: basePrice,
+        currency: firstVariant?.currency || 'COP',
+        stock: totalStock,
+
+        images: product.media?.map((m: any) => m.url) || [],
+        imageUrl: product.media?.[0]?.url || null,
+
+        materials: product.materials?.map((m: any) => m.material?.name) || [],
+
+        shopId: product.artisanShop?.id,
+        storeName: product.artisanShop?.shopName,
+        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+      };
+    });
+  }
+
+  /**
+   * Obtener productos de un usuario para marketplace
+   */
+  async getMarketplaceProductsByUser(userId: string): Promise<any[]> {
+    if (!userId) {
+      throw new BadRequestException('El userId es requerido');
+    }
+
+    const products = await this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .where('shop.userId = :userId', { userId })
+      .andWhere('pc.status IN (:...statuses)', {
+        statuses: ['published', 'approved'],
+      })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('shop.publishStatus = :publishStatus', {
+        publishStatus: 'published',
+      })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .orderBy('pc.createdAt', 'DESC')
+      .getMany();
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return products.map((product: any) => {
+      const variants = product.variants || [];
+      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const firstVariant = variants[0];
+      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+
+      return {
+        id: product.id,
+        name: product.name,
+        shortDescription: product.shortDescription,
+        history: product.history,
+        status: product.status,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        isNew: new Date(product.createdAt) > thirtyDaysAgo,
+
+        categoryId: product.category?.id,
+        categoryName: product.category?.name,
+        craftName: product.artisanalIdentity?.primaryCraft?.name,
+
+        price: basePrice,
+        currency: firstVariant?.currency || 'COP',
+        stock: totalStock,
+
+        images: product.media?.map((m: any) => m.url) || [],
+        imageUrl: product.media?.[0]?.url || null,
+
+        materials: product.materials?.map((m: any) => m.material?.name) || [],
+
+        shopId: product.artisanShop?.id,
+        storeName: product.artisanShop?.shopName,
+        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+      };
+    });
   }
 
   /**

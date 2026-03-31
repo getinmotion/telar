@@ -78,6 +78,7 @@ export const mapWizardStateToCreateDto = (
   const dto: CreateProductsNewDto = {
     // ProductCore (campos básicos)
     storeId,
+    categoryId: wizardState.category || undefined,
     name: wizardState.name.trim(),
     shortDescription:
       wizardState.shortDescription?.trim() ||
