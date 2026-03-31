@@ -80,40 +80,53 @@ const ExploreProducts = () => {
     [filters.categorySlug, findCategoryWithChildren],
   );
 
-  // Determine which categoryId to send to API
-  const targetCategoryId = useMemo(() => {
+  // Determine which categoryIds to match (parent + its subcategories)
+  const targetCategoryIds = useMemo(() => {
     if (filters.subcategorySlug && activeCategory) {
       const sub = activeCategory.subcategories.find(
         (s) => s.slug === filters.subcategorySlug,
       );
-      return sub?.id ?? activeCategory.id;
+      return sub ? [sub.id] : [activeCategory.id];
     }
-    return activeCategory?.id ?? undefined;
+    if (activeCategory) {
+      // Include parent + all subcategory IDs
+      return [
+        activeCategory.id,
+        ...activeCategory.subcategories.map((s) => s.id),
+      ];
+    }
+    return undefined;
   }, [filters.subcategorySlug, activeCategory]);
 
-  // ── Fetch ALL products for the selected category (big page) ──
+  // ── Fetch ALL products then filter client-side by category ──
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, any> = { page: 1, limit: 500 };
-      if (targetCategoryId && UUID_RE.test(targetCategoryId))
-        params.categoryId = targetCategoryId;
-
-      const res = await getProductsNew(params);
+      // Always fetch all products — category filtering is done client-side
+      // because the API only supports single categoryId, not parent+children
+      const res = await getProductsNew({ page: 1, limit: 500 });
+      let products: ProductNewCore[] = [];
       if (Array.isArray(res)) {
-        setAllProducts(res as ProductNewCore[]);
-        setTotalFromApi((res as ProductNewCore[]).length);
+        products = res as ProductNewCore[];
       } else {
-        setAllProducts(res.data ?? []);
-        setTotalFromApi(res.total ?? 0);
+        products = res.data ?? [];
       }
+
+      // Filter by category client-side (parent includes subcategories)
+      if (targetCategoryIds && targetCategoryIds.length > 0) {
+        const catSet = new Set(targetCategoryIds);
+        products = products.filter((p) => catSet.has(p.categoryId));
+      }
+
+      setAllProducts(products);
+      setTotalFromApi(products.length);
     } catch {
       setAllProducts([]);
       setTotalFromApi(0);
     } finally {
       setLoading(false);
     }
-  }, [targetCategoryId]);
+  }, [targetCategoryIds]);
 
   useEffect(() => {
     fetchProducts();
