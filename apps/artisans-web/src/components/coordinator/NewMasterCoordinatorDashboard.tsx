@@ -198,7 +198,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const testTotalAnswered = maturityTotalAnswered;
 
   // 🔄 OPTIMIZATION: Reducir frecuencia de validación de 5 a 15 minutos
-  useBrandSyncValidator({ enabled: true, intervalMinutes: 15 });
+  // useBrandSyncValidator({ enabled: true, intervalMinutes: 15 });
 
   // 🎯 Auto-detección de wizards completados para marcar tareas
   useWizardTaskDetector();
