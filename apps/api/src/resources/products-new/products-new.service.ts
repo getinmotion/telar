@@ -23,6 +23,9 @@ import {
   ProductVariant,
 } from './entities';
 
+/** Statuses visibles en el marketplace público */
+const PUBLIC_STATUSES = ['approved', 'approved_with_edits'];
+
 @Injectable()
 export class ProductsNewService {
   private readonly logger = new Logger(ProductsNewService.name);
@@ -413,7 +416,7 @@ export class ProductsNewService {
         'materials.material',
         'variants',
       ],
-      where: { deletedAt: IsNull() },
+      where: { deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
       order: { createdAt: 'DESC' },
     });
 
@@ -526,7 +529,7 @@ export class ProductsNewService {
    */
   async findByCategoryId(categoryId: string): Promise<ProductCore[]> {
     const products = await this.productCoreRepository.find({
-      where: { categoryId, deletedAt: IsNull() },
+      where: { categoryId, deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
       relations: [
         'artisanShop',
         'category',
@@ -1353,6 +1356,11 @@ export class ProductsNewService {
     if (filters?.status) {
       queryBuilder.andWhere('product.status = :status', {
         status: filters.status,
+      });
+    } else {
+      // Por defecto, solo mostrar productos aprobados en el marketplace público
+      queryBuilder.andWhere('product.status IN (:...publicStatuses)', {
+        publicStatuses: PUBLIC_STATUSES,
       });
     }
 
