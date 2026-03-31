@@ -51,6 +51,7 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
   ],
   exports: [
     AiService,
+    OpenAIService,
     MasterCoordinatorService,
     BrandAiAssistantService,
     ArtisanProfileHistoryService,

@@ -419,7 +419,7 @@ export const InventoryPage: React.FC = () => {
                   const images = Array.isArray(product.images)
                     ? product.images
                     : [];
-                  const firstImage = images[0].url || "/placeholder.svg";
+                  const firstImage = images[0] || "/placeholder.svg";
 
                   return (
                     <TableRow key={product.id}>

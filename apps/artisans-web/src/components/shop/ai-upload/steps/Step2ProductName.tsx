@@ -16,10 +16,6 @@ import {
   getApprovedMaterials,
   type Material,
 } from "@/services/materials.actions";
-import {
-  getCuratorialCategories,
-  type CuratorialCategory,
-} from "@/services/curatorial-categories.actions";
 
 interface Step2ProductNameProps {
   images: (File | string)[];
@@ -32,7 +28,6 @@ interface Step2ProductNameProps {
   processType?: "manual" | "mixto" | "asistido";
   estimatedElaborationTime?: string;
   materialIds?: string[];
-  curatorialCategory?: string;
   onCraftChange: (craftId: string) => void;
   onPrimaryTechniqueChange: (techniqueId: string) => void;
   onSecondaryTechniqueChange: (techniqueId: string) => void;
@@ -41,7 +36,6 @@ interface Step2ProductNameProps {
   onProcessTypeChange: (processType: "manual" | "mixto" | "asistido") => void;
   onEstimatedElaborationTimeChange: (time: string) => void;
   onMaterialIdsChange: (materialIds: string[]) => void;
-  onCuratorialCategoryChange: (category: string) => void;
   onNext: () => void;
   onPrevious: () => void;
   wizardState: WizardState;
@@ -60,7 +54,6 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
   processType,
   estimatedElaborationTime,
   materialIds,
-  curatorialCategory,
   onCraftChange,
   onPrimaryTechniqueChange,
   onSecondaryTechniqueChange,
@@ -69,7 +62,6 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
   onProcessTypeChange,
   onEstimatedElaborationTimeChange,
   onMaterialIdsChange,
-  onCuratorialCategoryChange,
   onNext,
   onPrevious,
   wizardState,
@@ -79,14 +71,9 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
   const [crafts, setCrafts] = useState<Craft[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [curatorialCategories, setCuratorialCategories] = useState<
-    CuratorialCategory[]
-  >([]);
   const [loadingCrafts, setLoadingCrafts] = useState(true);
   const [loadingTechniques, setLoadingTechniques] = useState(false);
   const [loadingMaterials, setLoadingMaterials] = useState(true);
-  const [loadingCuratorialCategories, setLoadingCuratorialCategories] =
-    useState(true);
 
   // Cargar crafts al montar el componente
   useEffect(() => {
@@ -120,23 +107,6 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
     };
 
     fetchMaterials();
-  }, []);
-
-  // Cargar categorías curatoriales al montar el componente
-  useEffect(() => {
-    const fetchCuratorialCategories = async () => {
-      try {
-        const data = await getCuratorialCategories();
-        setCuratorialCategories(data);
-      } catch (error) {
-        console.error("Error loading curatorial categories:", error);
-        toast.error("Error al cargar las categorías curatoriales");
-      } finally {
-        setLoadingCuratorialCategories(false);
-      }
-    };
-
-    fetchCuratorialCategories();
   }, []);
 
   // Cargar techniques cuando se selecciona un craft
@@ -591,44 +561,6 @@ export const Step2ProductName: React.FC<Step2ProductNameProps> = ({
             <p className="text-xs text-muted-foreground text-left">
               {materialIds.length} material(es) seleccionado(s)
             </p>
-          )}
-        </div>
-      </div>
-
-      {/* Selector de Categoría Curatorial */}
-      <div className="space-y-4 text-left">
-        <div className="space-y-2">
-          <Label className="block text-left">Categoría Curatorial</Label>
-
-          {loadingCuratorialCategories ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              <span className="ml-2 text-sm text-muted-foreground">
-                Cargando categorías curatoriales...
-              </span>
-            </div>
-          ) : curatorialCategories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {curatorialCategories.map((category) => (
-                <Button
-                  key={category.id}
-                  type="button"
-                  variant={
-                    curatorialCategory === category.id ? "default" : "outline"
-                  }
-                  onClick={() => onCuratorialCategoryChange(category.id)}
-                  className="h-auto py-4 px-4 flex flex-col items-start justify-start text-left"
-                >
-                  <span className="font-semibold text-base uppercase">
-                    {category.name}
-                  </span>
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No hay categorías curatoriales disponibles</p>
-            </div>
           )}
         </div>
       </div>
