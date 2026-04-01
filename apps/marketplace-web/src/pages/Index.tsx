@@ -624,7 +624,7 @@ const Index = () => {
             </div>
           </section>
 
-          <NewsletterSection />
+          <div className="pb-24" />
           <Footer />
         </>
       ) : (

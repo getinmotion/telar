@@ -130,11 +130,6 @@ export const NavbarV2 = ({
                   alt="TELAR"
                   className={`transition-all duration-300 ${isScrolled ? 'h-6 md:h-7' : 'h-8 md:h-10'}`}
                 />
-                {!isScrolled && (
-                  <span className="text-xs md:text-sm text-muted-foreground tracking-wider uppercase">
-                    Artesanía Colombiana
-                  </span>
-                )}
               </button>
             ) : (
               <Link to="/?reset=true" className="flex flex-col items-center gap-1">
@@ -143,11 +138,6 @@ export const NavbarV2 = ({
                   alt="TELAR"
                   className={`transition-all duration-300 ${isScrolled ? 'h-6 md:h-7' : 'h-8 md:h-10'}`}
                 />
-                {!isScrolled && (
-                  <span className="text-xs md:text-sm text-muted-foreground tracking-wider uppercase">
-                    Artesanía Colombiana
-                  </span>
-                )}
               </Link>
             )}
           </div>
@@ -229,6 +219,12 @@ export const NavbarV2 = ({
               Explorar
             </Link>
             <Link
+              to="/categorias"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Categorías
+            </Link>
+            <Link
               to="/tiendas"
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
@@ -239,6 +235,18 @@ export const NavbarV2 = ({
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
               Regalos
+            </Link>
+            <Link
+              to="/blog"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Historias
+            </Link>
+            <Link
+              to="/newsletter"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Suscríbete
             </Link>
           </div>
         </nav>
