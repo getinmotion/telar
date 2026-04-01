@@ -39,6 +39,7 @@ import GoogleAuthCallback from "./pages/GoogleAuthCallback";
 import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
+import Newsletter from "./pages/Newsletter";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
                           <Route path="/explorar" element={<ExploreProducts />} />
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
+                          <Route path="/newsletter" element={<Newsletter />} />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}
