@@ -133,32 +133,68 @@ const ExploreProducts = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // ── INTERSECTION: derive available filter options from loaded products ──
+  // ── CROSS-INTERSECTION: each filter's options are derived from products
+  //    that match ALL OTHER active filters (excluding itself).
+  //    This way selecting a technique narrows materials, and vice versa. ──
+
+  /** Apply all filters EXCEPT the one named `exclude` */
+  const productsExcluding = useCallback(
+    (exclude: keyof ExploreFilters) => {
+      let result = allProducts;
+      if (exclude !== "techniqueId" && filters.techniqueId) {
+        result = result.filter(
+          (p) =>
+            p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+        );
+      }
+      if (exclude !== "craftId" && filters.craftId) {
+        result = result.filter(
+          (p) => p.artisanalIdentity?.primaryCraft?.id === filters.craftId,
+        );
+      }
+      if (exclude !== "materialId" && filters.materialId) {
+        result = result.filter((p) =>
+          (p.materials ?? []).some(
+            (m) => m.material?.id === filters.materialId,
+          ),
+        );
+      }
+      if (exclude !== "curatorialId" && filters.curatorialId) {
+        result = result.filter(
+          (p) =>
+            p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
+        );
+      }
+      return result;
+    },
+    [allProducts, filters.techniqueId, filters.craftId, filters.materialId, filters.curatorialId],
+  );
+
   const availableTechniques = useMemo(() => {
     const map = new Map<string, string>();
-    allProducts.forEach((p) => {
+    productsExcluding("techniqueId").forEach((p) => {
       const t = p.artisanalIdentity?.primaryTechnique;
       if (t?.id && t.name) map.set(t.id, t.name);
     });
     return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allProducts]);
+  }, [productsExcluding]);
 
   const availableCrafts = useMemo(() => {
     const map = new Map<string, string>();
-    allProducts.forEach((p) => {
+    productsExcluding("craftId").forEach((p) => {
       const c = p.artisanalIdentity?.primaryCraft;
       if (c?.id && c.name) map.set(c.id, c.name);
     });
     return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allProducts]);
+  }, [productsExcluding]);
 
   const availableMaterials = useMemo(() => {
     const map = new Map<string, string>();
-    allProducts.forEach((p) => {
+    productsExcluding("materialId").forEach((p) => {
       (p.materials ?? []).forEach((ml) => {
         if (ml.material?.id && ml.material.name)
           map.set(ml.material.id, ml.material.name);
@@ -167,18 +203,18 @@ const ExploreProducts = () => {
     return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allProducts]);
+  }, [productsExcluding]);
 
   const availableCuratorial = useMemo(() => {
     const map = new Map<string, string>();
-    allProducts.forEach((p) => {
+    productsExcluding("curatorialId").forEach((p) => {
       const cc = p.artisanalIdentity?.curatorialCategory;
       if (cc?.id && cc.name) map.set(cc.id, cc.name);
     });
     return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allProducts]);
+  }, [productsExcluding]);
 
   // ── Dynamic price range from loaded products ──
   const priceExtent = useMemo(() => {
