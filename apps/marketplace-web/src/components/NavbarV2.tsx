@@ -228,7 +228,7 @@ export const NavbarV2 = ({
               to="/tiendas"
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
-              Artesanos
+              Talleres
             </Link>
             <Link
               to="/giftcards"

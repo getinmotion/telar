@@ -1,21 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { MapPin, Store, Heart, Package, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useShopWishlist } from "@/hooks/useShopWishlist";
-import { cn } from "@/lib/utils";
 import { normalizeCraft } from "@/lib/normalizationUtils";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { MobileColumnsToggle, MobileColumns } from "@/components/MobileColumnsToggle";
-import { useIsMobile } from "@/hooks/use-mobile";
+
+const PAGE_SIZE = 18;
 
 interface Shop {
   id: string;
@@ -30,537 +23,460 @@ interface Shop {
   productCount: number;
 }
 
-type SortOption = 'recent' | 'name_asc' | 'name_desc' | 'products_desc';
-type LimitOption = 20 | 50 | 100;
+type SortOption = "relevance" | "name_asc" | "recent";
 
 const Shops = () => {
-  const isMobile = useIsMobile();
   const { searchQuery } = useSearch();
-  const { shops: contextShops, fetchShops: fetchShopsContext } = useArtisanShops();
+  const { shops: contextShops, fetchShops: fetchShopsContext } =
+    useArtisanShops();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRegion, setSelectedRegion] = useState<string>("all");
-  const [selectedCraft, setSelectedCraft] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
-  const [limit, setLimit] = useState<LimitOption>(20);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [mobileColumns, setMobileColumns] = useState<MobileColumns>(() => {
-    const saved = localStorage.getItem('shopsMobileColumns');
-    return saved === '1' ? 1 : 2;
-  });
-
-  const { isShopInWishlist, toggleWishlist, loading: wishlistLoading } = useShopWishlist();
+  const [selectedRegion, setSelectedRegion] = useState("all");
+  const [selectedCraft, setSelectedCraft] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOption>("relevance");
+  const [page, setPage] = useState(1);
+  const {
+    isShopInWishlist,
+    toggleWishlist,
+    loading: wishlistLoading,
+  } = useShopWishlist();
 
   useEffect(() => {
-    localStorage.setItem('shopsMobileColumns', String(mobileColumns));
-  }, [mobileColumns]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    fetchShops();
+    window.scrollTo({ top: 0, behavior: "instant" });
+    fetchShopsContext({
+      active: true,
+      publishStatus: "published",
+      marketplaceApproved: true,
+      hasApprovedProducts: true,
+      sortBy: "created_at",
+      order: "DESC",
+      limit: 100,
+    }).catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     if (contextShops.length > 0) {
-      const mappedShops = contextShops.map(shop => ({
-        id: shop.id,
-        shopName: shop.shopName,
-        shopSlug: shop.shopSlug,
-        description: shop.description,
-        logoUrl: shop.logoUrl,
-        bannerUrl: shop.bannerUrl,
-        craftType: shop.craftType,
-        region: shop.region,
-        featured: shop.featured,
-        productCount: 0,
-      }));
-      setShops(mappedShops);
+      setShops(
+        contextShops.map((s) => ({
+          id: s.id,
+          shopName: s.shopName,
+          shopSlug: s.shopSlug,
+          description: s.description,
+          logoUrl: s.logoUrl,
+          bannerUrl: s.bannerUrl,
+          craftType: s.craftType,
+          region: s.region,
+          featured: s.featured,
+          productCount: 0,
+        })),
+      );
       setLoading(false);
     }
   }, [contextShops]);
 
-  const fetchShops = async () => {
-    try {
-      await fetchShopsContext({
-        active: true,
-        publishStatus: 'published',
-        marketplaceApproved: true,
-        hasApprovedProducts: true,
-        sortBy: 'created_at',
-        order: 'DESC',
-        limit: limit,
-      });
-    } catch (error) {
-      setLoading(false);
-    }
-  };
-
-  // Extract unique values for filters
-  const regions = useMemo(() => 
-    Array.from(new Set(shops.map(s => s.region).filter(Boolean))).sort(),
-    [shops]
+  // Unique filter values
+  const regions = useMemo(
+    () =>
+      Array.from(new Set(shops.map((s) => s.region).filter(Boolean))).sort(),
+    [shops],
   );
-  
-  const craftTypes = useMemo(() => 
-    Array.from(new Set(
-      shops
-        .map(s => normalizeCraft(s.craftType))
-        .filter(craft => craft && craft !== 'Sin especificar')
-    )).sort(),
-    [shops]
+  const craftTypes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          shops
+            .map((s) => normalizeCraft(s.craftType))
+            .filter((c) => c && c !== "Sin especificar"),
+        ),
+      ).sort(),
+    [shops],
   );
 
-  // Filter and sort shops
-  const filteredAndSortedShops = useMemo(() => {
-    let result = shops.filter(shop => {
-      const matchesSearch = 
-        shop.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        shop.craftType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        shop.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesRegion = selectedRegion === "all" || shop.region === selectedRegion;
-      const matchesCraft = selectedCraft === "all" || normalizeCraft(shop.craftType) === selectedCraft;
-
+  // Filter + sort
+  const filtered = useMemo(() => {
+    let result = shops.filter((s) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        !q ||
+        s.shopName.toLowerCase().includes(q) ||
+        s.craftType?.toLowerCase().includes(q) ||
+        s.description?.toLowerCase().includes(q);
+      const matchesRegion =
+        selectedRegion === "all" || s.region === selectedRegion;
+      const matchesCraft =
+        selectedCraft === "all" ||
+        normalizeCraft(s.craftType) === selectedCraft;
       return matchesSearch && matchesRegion && matchesCraft;
     });
 
-    // Sort
     switch (sortBy) {
-      case 'name_asc':
-        result = result.sort((a, b) => a.shopName.localeCompare(b.shopName));
+      case "name_asc":
+        result.sort((a, b) => a.shopName.localeCompare(b.shopName));
         break;
-      case 'name_desc':
-        result = result.sort((a, b) => b.shopName.localeCompare(a.shopName));
-        break;
-      case 'products_desc':
-        result = result.sort((a, b) => b.productCount - a.productCount);
-        break;
-      case 'recent':
+      case "recent":
+        break; // Already ordered by API
       default:
-        // Keep original order (featured first, then recent)
-        result = result.sort((a, b) => {
+        result.sort((a, b) => {
           if (a.featured && !b.featured) return -1;
           if (!a.featured && b.featured) return 1;
           return 0;
         });
-        break;
     }
-
     return result;
   }, [shops, searchQuery, selectedRegion, selectedCraft, sortBy]);
 
-  // Reset page when filters or limit change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedRegion, selectedCraft, sortBy, limit]);
-
-  // Refetch when limit changes
-  useEffect(() => {
-    if (limit) {
-      fetchShops();
-    }
-  }, [limit]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredAndSortedShops.length / limit);
-  const paginatedShops = filteredAndSortedShops.slice(
-    (currentPage - 1) * limit,
-    currentPage * limit
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
   );
-  const startItem = (currentPage - 1) * limit + 1;
-  const endItem = Math.min(currentPage * limit, filteredAndSortedShops.length);
 
-  const handleFavoriteClick = (e: React.MouseEvent, shopId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleWishlist(shopId);
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedRegion, selectedCraft, sortBy]);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const clearFilters = () => {
     setSelectedRegion("all");
     setSelectedCraft("all");
-    setSortBy("recent");
-    setCurrentPage(1);
+    setSortBy("relevance");
+    setPage(1);
   };
 
-  const hasActiveFilters = selectedRegion !== "all" || selectedCraft !== "all" || searchQuery !== "";
-  const activeFiltersCount = (selectedRegion !== "all" ? 1 : 0) + (selectedCraft !== "all" ? 1 : 0);
+  const hasActiveFilters =
+    selectedRegion !== "all" || selectedCraft !== "all" || searchQuery !== "";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-16 px-6 bg-muted/30">
-          <div className="container mx-auto max-w-7xl text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-              Nuestros Artesanos
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Descubre los talleres y maestros artesanos que crean cada pieza con dedicación
-            </p>
-          </div>
-        </section>
+    <div className="bg-editorial-bg text-charcoal min-h-screen">
+      {/* Breadcrumb */}
+      <div className="max-w-[1400px] mx-auto px-6 py-6">
+        <nav className="flex text-[10px] uppercase tracking-widest text-charcoal/50 gap-2 font-sans">
+          <Link to="/" className="hover:text-primary transition-colors">
+            Inicio
+          </Link>
+          <span>/</span>
+          <span className="text-primary font-bold">Talleres</span>
+        </nav>
+      </div>
 
-        {/* Filters */}
-        <section className="py-4 px-6 border-b border-border/40 bg-background sticky top-0 z-10">
-          <div className="container mx-auto max-w-7xl">
-            
-            {/* Desktop Filters */}
-            <div className="hidden md:flex gap-4 items-center justify-between">
-              <div className="flex flex-wrap gap-3 items-center">
-                <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-                
-                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las Regiones</SelectItem>
-                    {regions.map((region) => (
-                      <SelectItem key={region} value={region as string}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Hero */}
+      <section className="max-w-[1400px] mx-auto px-6 mb-8">
+        <div className="flex flex-col items-center text-center">
+          <span className="text-[10px] tracking-[0.4em] uppercase text-primary font-bold mb-1.5 font-sans">
+            Directorio Vivo
+          </span>
+          <h1 className="text-5xl md:text-7xl font-serif font-light tracking-tight mb-2 italic text-charcoal">
+            Talleres artesanales
+          </h1>
+          <p className="text-sm text-charcoal/60 max-w-lg mx-auto font-sans mb-6">
+            Descubre a quienes crean cada pieza y preservan nuestro legado.
+          </p>
+        </div>
+      </section>
 
-                <Select value={selectedCraft} onValueChange={setSelectedCraft}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Oficio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los Oficios</SelectItem>
-                    {craftTypes.map((craft) => (
-                      <SelectItem key={craft} value={craft as string}>
-                        {craft}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Ordenar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Destacados</SelectItem>
-                    <SelectItem value="name_asc">Nombre (A-Z)</SelectItem>
-                    <SelectItem value="name_desc">Nombre (Z-A)</SelectItem>
-                    <SelectItem value="products_desc">Más productos</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v) as LimitOption)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Mostrar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="20">20 por página</SelectItem>
-                    <SelectItem value="50">50 por página</SelectItem>
-                    <SelectItem value="100">100 por página</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
-                    Limpiar filtros
-                  </Button>
-                )}
-              </div>
-
-              <p className="text-sm text-muted-foreground">
-                {filteredAndSortedShops.length > 0
-                  ? `Mostrando ${startItem}-${endItem} de ${filteredAndSortedShops.length} artesanos`
-                  : '0 artesanos'}
-              </p>
+      {/* Exploration Blocks */}
+      <section className="max-w-[1400px] mx-auto px-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            to="/productos"
+            className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
+          >
+            <div>
+              <h3 className="font-serif text-lg text-charcoal mb-0.5">
+                Explorar por técnica
+              </h3>
+              <span className="text-primary text-[8px] uppercase tracking-[0.2em] font-bold font-sans opacity-80 group-hover:opacity-100 transition-opacity">
+                Ver todas las artes →
+              </span>
             </div>
-
-            {/* Mobile Filters - Collapsible */}
-            <div className="md:hidden">
-              <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-                <div className="flex items-center justify-between">
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <SlidersHorizontal className="h-4 w-4" />
-                      Filtros
-                      {activeFiltersCount > 0 && (
-                        <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                          {activeFiltersCount}
-                        </Badge>
-                      )}
-                      <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", filtersOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <div className="flex items-center gap-2">
-                    <MobileColumnsToggle columns={mobileColumns} onColumnsChange={setMobileColumns} />
-                    <p className="text-sm text-muted-foreground">
-                      {filteredAndSortedShops.length > 0 
-                        ? `${startItem}-${endItem} de ${filteredAndSortedShops.length}`
-                        : '0 artesanos'}
-                    </p>
-                  </div>
-                </div>
-                
-                <CollapsibleContent className="pt-4">
-                  <div className="space-y-3">
-                    <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Región" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las Regiones</SelectItem>
-                        {regions.map((region) => (
-                          <SelectItem key={region} value={region as string}>
-                            {region}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={selectedCraft} onValueChange={setSelectedCraft}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Oficio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos los Oficios</SelectItem>
-                        {craftTypes.map((craft) => (
-                          <SelectItem key={craft} value={craft as string}>
-                            {craft}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Ordenar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recent">Destacados</SelectItem>
-                        <SelectItem value="name_asc">Nombre (A-Z)</SelectItem>
-                        <SelectItem value="name_desc">Nombre (Z-A)</SelectItem>
-                        <SelectItem value="products_desc">Más productos</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v) as LimitOption)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Mostrar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="20">20 por página</SelectItem>
-                        <SelectItem value="50">50 por página</SelectItem>
-                        <SelectItem value="100">100 por página</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {hasActiveFilters && (
-                      <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-muted-foreground">
-                        Limpiar filtros
-                      </Button>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+          </Link>
+          <Link
+            to="/productos"
+            className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
+          >
+            <div>
+              <h3 className="font-serif text-lg text-charcoal mb-0.5">
+                Explorar por territorio
+              </h3>
+              <span className="text-primary text-[8px] uppercase tracking-[0.2em] font-bold font-sans opacity-80 group-hover:opacity-100 transition-opacity">
+                Ver el mapa →
+              </span>
             </div>
+          </Link>
+        </div>
+      </section>
 
-          </div>
-        </section>
-
-        {/* Shops Grid */}
-        <section className="py-12 px-6">
-          <div className="container mx-auto max-w-7xl">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <Card key={i} className="h-[340px]">
-                    <Skeleton className="h-40 w-full rounded-t-xl" />
-                    <CardContent className="pt-12 space-y-3">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-4 w-full" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : filteredAndSortedShops.length === 0 ? (
-              <div className="text-center py-16">
-                <Store className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-xl text-muted-foreground mb-2">
-                  {hasActiveFilters ? 'No se encontraron artesanos con estos filtros' : 'No hay artesanos publicados aún'}
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {hasActiveFilters ? 'Intenta ajustar los filtros de búsqueda' : 'Nuestros artesanos están preparando sus talleres. Vuelve pronto.'}
-                </p>
-                {hasActiveFilters && (
-                  <Button variant="outline" onClick={clearFilters}>
-                    Limpiar filtros
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-              <div className={cn(
-                "grid gap-6",
-                isMobile 
-                  ? mobileColumns === 1 ? "grid-cols-1" : "grid-cols-2"
-                  : "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              )}>
-                {paginatedShops.map((shop) => (
-                  <Link key={shop.id} to={`/tienda/${shop.shopSlug}`}>
-                    <Card className="group h-full flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-2 border-0 shadow-sm rounded-xl overflow-visible relative">
-                      {/* Banner/Logo */}
-                      <div className="relative h-40 bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden rounded-t-xl">
-                        {shop.bannerUrl ? (
-                          <img
-                            src={shop.bannerUrl}
-                            alt={shop.shopName}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            {shop.logoUrl ? (
-                              <img src={shop.logoUrl} alt={shop.shopName} className="w-24 h-24 object-contain rounded-lg shadow-lg" />
-                            ) : (
-                              <div className="flex flex-col items-center gap-2">
-                                <Store className="w-16 h-16 text-primary/40" />
-                                <p className="text-sm font-medium text-foreground/80">{shop.shopName}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Favorite Button */}
-                        <button
-                          onClick={(e) => handleFavoriteClick(e, shop.id)}
-                          disabled={wishlistLoading}
-                          className={cn(
-                            "absolute top-3 right-3 p-2 rounded-full bg-background/90 backdrop-blur-sm shadow-md transition-all hover:scale-110",
-                            isShopInWishlist(shop.id) ? "text-red-500" : "text-muted-foreground hover:text-red-500"
-                          )}
-                        >
-                          <Heart 
-                            className={cn("w-5 h-5", isShopInWishlist(shop.id) && "fill-current")} 
-                          />
-                        </button>
-
-                        {/* Product Count Badge */}
-                        <div className="absolute top-3 left-3">
-                          <Badge className="bg-primary text-primary-foreground shadow-sm">
-                            <Package className="w-3 h-3 mr-1" />
-                            {shop.productCount} {shop.productCount === 1 ? 'producto' : 'productos'}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      {/* Logo Overlay - OUTSIDE overflow-hidden */}
-                      {shop.logoUrl && (
-                        <div className="absolute top-[120px] left-4 z-10">
-                          <div className="w-20 h-20 rounded-full border-4 border-background bg-background overflow-hidden shadow-lg">
-                            <img
-                              src={shop.logoUrl}
-                              alt={shop.shopName}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <CardContent className="pt-12 pb-6 flex-1 flex flex-col">
-                        <div className="space-y-3 flex-1">
-                          <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {shop.shopName}
-                          </h3>
-                          
-                          {shop.craftType && normalizeCraft(shop.craftType) !== 'Sin especificar' && (
-                            <Badge variant="outline" className="text-xs">
-                              {normalizeCraft(shop.craftType)}
-                            </Badge>
-                          )}
-                          
-                          {shop.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {shop.description}
-                            </p>
-                          )}
-                          
-                          {shop.region && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="w-3 h-3" />
-                              <span>{shop.region}</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Button variant="outline" className="w-full mt-4" size="sm">
-                          Ver Tienda
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-              
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-12 flex justify-center">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(page => {
-                          if (totalPages <= 5) return true;
-                          if (page === 1 || page === totalPages) return true;
-                          if (Math.abs(page - currentPage) <= 1) return true;
-                          return false;
-                        })
-                        .map((page, idx, arr) => (
-                          <PaginationItem key={page}>
-                            {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <span className="px-2 text-muted-foreground">...</span>
-                            )}
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
-              </>
+      {/* Filters Toolbar */}
+      <section className="max-w-[1400px] mx-auto px-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-charcoal/10 gap-6">
+          <div className="flex flex-wrap items-center gap-8">
+            <FilterSelect
+              label="Región"
+              value={selectedRegion}
+              onChange={setSelectedRegion}
+              options={[
+                { value: "all", label: "Todas las regiones" },
+                ...regions.map((r) => ({ value: r!, label: r! })),
+              ]}
+            />
+            <FilterSelect
+              label="Técnica"
+              value={selectedCraft}
+              onChange={setSelectedCraft}
+              options={[
+                { value: "all", label: "Todas las técnicas" },
+                ...craftTypes.map((c) => ({ value: c!, label: c! })),
+              ]}
+            />
+            <FilterSelect
+              label="Ordenar por"
+              value={sortBy}
+              onChange={(v) => setSortBy(v as SortOption)}
+              options={[
+                { value: "relevance", label: "Relevancia" },
+                { value: "name_asc", label: "Alfabético (A-Z)" },
+                { value: "recent", label: "Recientes" },
+              ]}
+            />
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary hover:opacity-70 transition-opacity font-sans"
+              >
+                Limpiar
+              </button>
             )}
           </div>
-        </section>
-      </main>
+          <div className="text-charcoal/50 text-[10px] uppercase tracking-[0.2em] flex items-center gap-2.5 font-sans font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            {filtered.length} talleres encontrados
+          </div>
+        </div>
+      </section>
+
+      {/* Workshop Grid */}
+      <section className="max-w-[1400px] mx-auto px-6 mb-24">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="aspect-[4/5] mb-5" />
+                <Skeleton className="h-4 w-1/2 mb-3" />
+                <Skeleton className="h-8 w-3/4 mb-3" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : paginated.length === 0 ? (
+          <div className="text-center py-32">
+            <p className="text-charcoal/40 text-sm font-sans mb-6">
+              {hasActiveFilters
+                ? "No se encontraron talleres con estos filtros."
+                : "No hay talleres publicados aún."}
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="border border-primary text-primary px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-primary hover:text-white transition-all font-sans"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
+            {paginated.map((shop) => (
+              <WorkshopCard
+                key={shop.id}
+                shop={shop}
+                isFavorite={isShopInWishlist(shop.id)}
+                wishlistLoading={wishlistLoading}
+                onFavoriteToggle={() => toggleWishlist(shop.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-20 flex justify-center items-center gap-2">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 1}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-charcoal/10 text-charcoal/50 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => {
+                if (totalPages <= 7) return true;
+                if (p === 1 || p === totalPages) return true;
+                return Math.abs(p - page) <= 1;
+              })
+              .map((p, idx, arr) => (
+                <span key={p} className="contents">
+                  {idx > 0 && arr[idx - 1] !== p - 1 && (
+                    <span className="w-10 h-10 flex items-center justify-center text-[11px] text-charcoal/30 font-sans">
+                      …
+                    </span>
+                  )}
+                  <button
+                    onClick={() => goToPage(p)}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full text-[11px] font-bold font-sans tracking-wider transition-colors ${
+                      page === p
+                        ? "bg-primary text-white"
+                        : "border border-charcoal/10 text-charcoal/60 hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                </span>
+              ))}
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page === totalPages}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-charcoal/10 text-charcoal/50 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </section>
 
       <Footer />
     </div>
   );
 };
+
+// ── Workshop Card ────────────────────────────────────
+function WorkshopCard({
+  shop,
+  isFavorite,
+  wishlistLoading,
+  onFavoriteToggle,
+}: {
+  shop: Shop;
+  isFavorite: boolean;
+  wishlistLoading: boolean;
+  onFavoriteToggle: () => void;
+}) {
+  const craft = normalizeCraft(shop.craftType);
+  const showCraft = craft && craft !== "Sin especificar";
+  const imageUrl = shop.bannerUrl || shop.logoUrl;
+
+  return (
+    <div className="group">
+      {/* Image */}
+      <div className="relative aspect-[4/5] bg-[#e5e1d8] mb-5 overflow-hidden">
+        {imageUrl ? (
+          <Link
+            to={`/tienda/${shop.shopSlug}`}
+            className="block w-full h-full"
+          >
+            <img
+              src={imageUrl}
+              alt={shop.shopName}
+              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              loading="lazy"
+            />
+          </Link>
+        ) : (
+          <Link
+            to={`/tienda/${shop.shopSlug}`}
+            className="w-full h-full flex items-center justify-center text-charcoal/20 text-sm font-sans"
+          >
+            Sin imagen
+          </Link>
+        )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onFavoriteToggle();
+          }}
+          disabled={wishlistLoading}
+          className="absolute top-4 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-charcoal hover:text-primary transition-all shadow-sm"
+        >
+          <Heart
+            className={`w-5 h-5 ${isFavorite ? "fill-primary text-primary" : ""}`}
+          />
+        </button>
+      </div>
+
+      {/* Meta */}
+      <div className="mb-2">
+        <span className="text-[9px] uppercase tracking-[0.15em] text-charcoal/40 font-bold font-sans">
+          {[shop.region, showCraft ? craft : null].filter(Boolean).join(" · ")}
+        </span>
+      </div>
+
+      {/* Name */}
+      <Link to={`/tienda/${shop.shopSlug}`}>
+        <h4 className="font-serif text-3xl mb-3 text-charcoal group-hover:text-primary transition-colors cursor-pointer leading-tight">
+          {shop.shopName}
+        </h4>
+      </Link>
+
+      {/* Description */}
+      {shop.description && (
+        <p className="text-xs text-charcoal/60 mb-6 line-clamp-2 leading-relaxed font-sans">
+          {shop.description}
+        </p>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-6">
+        <Link
+          to={`/tienda/${shop.shopSlug}`}
+          className="bg-charcoal text-white px-6 py-3 uppercase text-[10px] font-bold tracking-[0.15em] hover:bg-primary transition-all duration-300 font-sans"
+        >
+          Ver taller
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── Filter Select ────────────────────────────────────
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[9px] uppercase tracking-widest text-charcoal/40 font-bold font-sans">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-transparent border-none p-0 text-[11px] font-bold text-charcoal focus:ring-0 cursor-pointer uppercase tracking-widest font-sans appearance-none pr-6"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232c2c2c'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 0 center",
+          backgroundSize: "1em",
+        }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 export default Shops;
