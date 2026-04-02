@@ -89,6 +89,7 @@ import DesignSystemEditorPage from './pages/admin/DesignSystemEditorPage';
 import { MilestoneProgressPage } from './pages/MilestoneProgressPage';
 import { AdminDesignSystemFAB } from './components/admin/design-system/AdminDesignSystemFAB';
 import ModerationPage from './pages/ModerationPage';
+import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -449,6 +450,14 @@ function App() {
                               element={
                                 <ModeratorProtectedRoute>
                                   <ModerationPage />
+                                </ModeratorProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/moderacion/analytics"
+                              element={
+                                <ModeratorProtectedRoute>
+                                  <ProductAnalyticsPage />
                                 </ModeratorProtectedRoute>
                               }
                             />
