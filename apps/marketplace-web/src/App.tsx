@@ -40,6 +40,7 @@ import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
 import Newsletter from "./pages/Newsletter";
+import Territory from "./pages/Territory";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                           <Route path="/newsletter" element={<Newsletter />} />
+                          <Route path="/territorio/:slug" element={<Territory />} />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}

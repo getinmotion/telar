@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Package, 
-  Store, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
+import { Button } from '@/components/ui/button';
+import {
+  Package,
+  Store,
+  CheckCircle,
+  Clock,
+  XCircle,
   AlertCircle,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSubdomain } from '@/hooks/useSubdomain';
 import { ModerationStats, ShopSummary, ProductSummary } from '@/hooks/useModerationStats';
 import { ModerationDrillDownModal } from './ModerationDrillDownModal';
 
@@ -95,12 +99,14 @@ interface DrillDownConfig {
   products?: ProductSummary[];
 }
 
-export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({ 
-  stats, 
+export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
+  stats,
   loading,
   onShopClick,
   onProductClick
 }) => {
+  const navigate = useNavigate();
+  const { isModerationSubdomain } = useSubdomain();
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownConfig, setDrillDownConfig] = useState<DrillDownConfig | null>(null);
 
@@ -321,8 +327,8 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
                 <p className="text-sm text-muted-foreground mb-2">Completitud</p>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-success h-2 rounded-full transition-all" 
+                    <div
+                      className="bg-success h-2 rounded-full transition-all"
                       style={{ width: `${bankDataPercentage}%` }}
                     />
                   </div>
@@ -331,6 +337,24 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Analytics Button */}
+        <div className="pt-2">
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() =>
+              navigate(
+                isModerationSubdomain
+                  ? '/analytics'
+                  : '/moderacion/analytics',
+              )
+            }
+          >
+            <BarChart3 className="w-4 h-4" />
+            Analytics Global — Productos Migrados
+          </Button>
         </div>
       </div>
 
