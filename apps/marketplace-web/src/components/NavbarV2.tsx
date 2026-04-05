@@ -39,6 +39,14 @@ export const NavbarV2 = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
 
+  // Estado local para el input (no actualiza el contexto en tiempo real)
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  // Sincronizar estado local cuando cambia searchQuery desde afuera
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
   // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
@@ -65,6 +73,21 @@ export const NavbarV2 = ({
     setSearchVisible(!searchVisible);
   };
 
+  const handleSearch = () => {
+    if (localSearchQuery.trim().length > 0) {
+      // Actualizar el contexto global antes de navegar
+      onSearchChange(localSearchQuery);
+      // Redirigir a productos con el query de búsqueda
+      navigate(`/productos?q=${encodeURIComponent(localSearchQuery)}`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <div className="container mx-auto px-4">
@@ -81,10 +104,19 @@ export const NavbarV2 = ({
                   <Input
                     type="search"
                     placeholder="Buscar productos, artesanos..."
-                    className="pl-10 h-10 bg-muted/30 border-border/40"
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
+                    className="pl-10 pr-24 h-10 bg-muted/30 border-border/40"
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
+                  <Button
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                    onClick={handleSearch}
+                    disabled={localSearchQuery.trim().length === 0}
+                  >
+                    Buscar
+                  </Button>
                 </div>
                 {searchQuery && onSemanticSearchToggle && (
                   <SemanticSearchToggle
@@ -107,14 +139,25 @@ export const NavbarV2 = ({
                 {/* Input expandible con transición */}
                 <div className={`overflow-hidden transition-all duration-300 ${searchVisible ? 'w-64 opacity-100' : 'w-0 opacity-0'}`}>
                   {searchVisible && (
-                    <Input
-                      type="search"
-                      placeholder="Buscar..."
-                      className="h-8 text-sm"
-                      value={searchQuery}
-                      onChange={(e) => onSearchChange(e.target.value)}
-                      autoFocus
-                    />
+                    <div className="relative">
+                      <Input
+                        type="search"
+                        placeholder="Buscar..."
+                        className="h-8 text-sm pr-16"
+                        value={localSearchQuery}
+                        onChange={(e) => setLocalSearchQuery(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 text-xs px-2"
+                        onClick={handleSearch}
+                        disabled={localSearchQuery.trim().length === 0}
+                      >
+                        Ir
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

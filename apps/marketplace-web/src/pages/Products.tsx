@@ -213,13 +213,16 @@ const Products = () => {
   // Random seed generated once per session for consistent randomization
   const [randomSeed] = useState(() => Math.floor(Math.random() * 1000000));
 
-  // Initialize searchQuery from URL on mount
+  // Initialize searchQuery from URL on mount and update when URL changes
   useEffect(() => {
     const queryFromUrl = searchParams.get('q');
     if (queryFromUrl && queryFromUrl !== searchQuery) {
       setSearchQuery(queryFromUrl);
+    } else if (!queryFromUrl && searchQuery) {
+      // Si no hay query en URL pero sí en el estado, limpiar el estado
+      setSearchQuery('');
     }
-  }, []); // Solo al montar
+  }, [searchParams]); // Reaccionar a cambios en searchParams
 
   // Sync state to URL (skip on initial mount)
   useEffect(() => {
