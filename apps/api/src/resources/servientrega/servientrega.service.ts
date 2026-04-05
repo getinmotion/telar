@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { QuoteShippingDto } from './dto/quote-shipping.dto';
 import { GenerateGuideDto, GenerateGuideResponse, GuideResult, ShippingDataDto } from './dto/generate-guide.dto';
 import { CartItem } from '../cart-items/entities/cart-item.entity';
-import { Product } from '../products/entities/product.entity';
+import { ProductCore } from '../products-new/entities/product-core.entity';
 import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 import { MailService } from '../mail/mail.service';
@@ -37,8 +37,8 @@ export class ServientregaService {
     private readonly dataSource: DataSource,
     @Inject('CART_ITEM_REPOSITORY')
     private readonly cartItemRepository: Repository<CartItem>,
-    @Inject('PRODUCT_REPOSITORY')
-    private readonly productRepository: Repository<Product>,
+    @Inject('PRODUCTS_CORE_REPOSITORY')
+    private readonly productCoreRepository: Repository<ProductCore>,
     @Inject('ARTISAN_SHOP_REPOSITORY')
     private readonly artisanShopRepository: Repository<ArtisanShop>,
     @Inject('USER_PROFILE_REPOSITORY')
@@ -185,15 +185,18 @@ export class ServientregaService {
           ci.seller_shop_id,
           ci.unit_price_minor,
           ci.currency,
-          p.name as product_name,
-          p.weight,
-          p.price,
-          p.dimensions,
+          pc.name as product_name,
+          COALESCE(pv.real_weight_kg, ps.real_weight_kg, 1) as weight,
+          ps.height_cm,
+          ps.width_cm,
+          ps.length_or_diameter_cm,
           s.shop_name,
           s.department,
           s.municipality
         FROM payments.cart_items ci
-        INNER JOIN shop.products p ON ci.product_id = p.id
+        INNER JOIN shop.products_core pc ON ci.product_id = pc.id
+        LEFT JOIN shop.product_variants pv ON pc.id = pv.product_id AND pv.is_active = true
+        LEFT JOIN shop.product_physical_specs ps ON pc.id = ps.product_id
         INNER JOIN shop.artisan_shops s ON ci.seller_shop_id = s.id
         WHERE ci.cart_id = $1
       `;
@@ -239,9 +242,7 @@ export class ServientregaService {
         // unit_price_minor está en centavos (menores), dividir por 100
         const priceInPesos = item.unit_price_minor
           ? parseInt(item.unit_price_minor) / 100
-          : item.price > 0
-            ? item.price
-            : 50000;
+          : 50000;
 
         group.totalValue += priceInPesos * item.quantity;
 
@@ -250,11 +251,10 @@ export class ServientregaService {
           group.totalValue = 30000;
         }
 
-        // Obtener dimensiones del producto (jsonb: { width, height, length })
-        const dimensions = item.dimensions || {};
-        const largo = dimensions.length > 0 ? dimensions.length : 20;
-        const ancho = dimensions.width > 0 ? dimensions.width : 20;
-        const alto = dimensions.height > 0 ? dimensions.height : 20;
+        // Obtener dimensiones del producto desde campos individuales
+        const largo = item.length_or_diameter_cm > 0 ? item.length_or_diameter_cm : 20;
+        const ancho = item.width_cm > 0 ? item.width_cm : 20;
+        const alto = item.height_cm > 0 ? item.height_cm : 20;
 
         // Agregar piezas (una por cada unidad)
         for (let i = 0; i < item.quantity; i++) {
@@ -316,7 +316,7 @@ export class ServientregaService {
       // 1. Obtener items del carrito con productos y tiendas
       const cartItems = await this.cartItemRepository.find({
         where: { cartId: dto.cart_id },
-        relations: ['product'],
+        relations: ['product', 'product.variants', 'product.physicalSpecs'],
       });
 
       if (cartItems.length === 0) {
@@ -377,18 +377,21 @@ export class ServientregaService {
     const itemsByShop = new Map<string, any>();
 
     for (const item of cartItems) {
-      const product = await this.productRepository.findOne({
+      const product = await this.productCoreRepository.findOne({
         where: { id: item.productId },
+        relations: ['variants', 'physicalSpecs'],
       });
 
-      if (!product || !product.shopId) {
+       this.logger.warn(`[Servientrega] ESTRUCTURA DEL Producto ${item}`);
+
+      if (!product || !product.storeId) {
         this.logger.warn(`[Servientrega] Producto ${item.productId} sin tienda`);
         continue;
       }
 
-      if (!itemsByShop.has(product.shopId)) {
-        const shop = await this.hydrateArtisanShop(product.shopId);
-        itemsByShop.set(product.shopId, {
+      if (!itemsByShop.has(product.storeId)) {
+        const shop = await this.hydrateArtisanShop(product.storeId);
+        itemsByShop.set(product.storeId, {
           shop,
           items: [],
           totalValue: 0,
@@ -397,20 +400,23 @@ export class ServientregaService {
         });
       }
 
-      const group = itemsByShop.get(product.shopId)!;
+      const group = itemsByShop.get(product.storeId)!;
       group.items.push({ ...item, product });
 
       // Calcular valores
       const unitPrice = parseInt(item.unitPriceMinor, 10) / 100;
       group.totalValue += unitPrice * item.quantity;
-      group.totalWeight += (product.weight || 1) * item.quantity;
 
-      // Actualizar dimensiones máximas
-      if (product.dimensions) {
-        const dims = product.dimensions as any;
-        group.maxDimensions.width = Math.max(group.maxDimensions.width, dims.width || 20);
-        group.maxDimensions.height = Math.max(group.maxDimensions.height, dims.height || 20);
-        group.maxDimensions.length = Math.max(group.maxDimensions.length, dims.length || 20);
+      // Obtener peso de variantes o physical specs
+      const weight = product.variants?.[0]?.realWeightKg || product.physicalSpecs?.realWeightKg || 1;
+      group.totalWeight += weight * item.quantity;
+
+      // Actualizar dimensiones máximas desde physicalSpecs
+      if (product.physicalSpecs) {
+        const specs = product.physicalSpecs;
+        group.maxDimensions.width = Math.max(group.maxDimensions.width, specs.widthCm || 20);
+        group.maxDimensions.height = Math.max(group.maxDimensions.height, specs.heightCm || 20);
+        group.maxDimensions.length = Math.max(group.maxDimensions.length, specs.lengthOrDiameterCm || 20);
       }
     }
 
