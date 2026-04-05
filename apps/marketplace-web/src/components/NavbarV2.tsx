@@ -10,7 +10,7 @@ import { Search, ShoppingCart, User, LogOut, Heart, LogIn } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
@@ -33,6 +33,7 @@ export const NavbarV2 = ({
   onSemanticSearchToggle = () => {},
   onHomeClick,
 }: NavbarV2Props) => {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { totalItems, openCart } = useCart();
   const [guestModalOpen, setGuestModalOpen] = useState(false);
