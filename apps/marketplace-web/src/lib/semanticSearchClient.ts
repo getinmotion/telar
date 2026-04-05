@@ -1,8 +1,9 @@
 // Cliente para la API de búsqueda semántica en AWS Lightsail
 // Documentación: https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com/docs
 
-const SEMANTIC_SEARCH_API_URL = import.meta.env.VITE_SEMANTIC_SEARCH_API_URL || 
-  'https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com';
+import axios from 'axios';
+
+const SEMANTIC_SEARCH_API_URL = import.meta.env.VITE_SEMANTIC_SEARCH_API_URL
 
 const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY;
 
@@ -50,34 +51,28 @@ export interface SearchResponse {
  */
 export async function semanticSearch(request: SearchRequest): Promise<SearchResponse> {
   try {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
     // Agregar API key si está configurada
-    if (SEMANTIC_SEARCH_API_KEY) {
-      headers['x-api-key'] = SEMANTIC_SEARCH_API_KEY;
-    }
+    // if (SEMANTIC_SEARCH_API_KEY) {
+    //   headers['x-api-key'] = SEMANTIC_SEARCH_API_KEY;
+    // }
 
-    const response = await fetch(`${SEMANTIC_SEARCH_API_URL}/api/v1/search`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
+    const response = await axios.post<SearchResponse>(
+      `${SEMANTIC_SEARCH_API_URL}/api/search/products`,
+      {
         query: request.query,
         limit: request.limit || 20,
         min_similarity: request.min_similarity || 0.3,
-        filters: request.filters,
-      }),
-    });
+      },
+      { headers }
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[SemanticSearch] API error:', response.status, errorText);
-      throw new Error(`Semantic search failed: ${response.status}`);
-    }
+    console.log('Response de la búsqueda', response);
 
-    const data: SearchResponse = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     console.error('[SemanticSearch] Error:', error);
     throw error;
@@ -89,10 +84,8 @@ export async function semanticSearch(request: SearchRequest): Promise<SearchResp
  */
 export async function isSemanticSearchAvailable(): Promise<boolean> {
   try {
-    const response = await fetch(`${SEMANTIC_SEARCH_API_URL}/health`);
-    if (!response.ok) return false;
-    
-    const data = await response.json();
+    const response = await axios.get(`${SEMANTIC_SEARCH_API_URL}/health`);
+    const data = response.data;
     return data.status === 'healthy' && data.services?.semantic_search === true;
   } catch (error) {
     console.error('[SemanticSearch] Health check failed:', error);

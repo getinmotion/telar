@@ -1,6 +1,8 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { useSearch } from "@/contexts/SearchContext";
+import { semanticSearch } from "@/lib/semanticSearchClient";
 import {
   getProductsNew,
   getPrimaryImageUrl,
@@ -19,6 +21,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 
 const UUID_RE =
@@ -52,6 +55,7 @@ const INITIAL_FILTERS: ExploreFilters = {
 // ── Component ────────────────────────────────────────
 const ExploreProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { searchQuery, setSearchQuery } = useSearch();
   const {
     categoryHierarchy,
     findCategoryWithChildren,
@@ -63,6 +67,9 @@ const ExploreProducts = () => {
   const [totalFromApi, setTotalFromApi] = useState(0);
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const isInitialMount = useRef(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [semanticResults, setSemanticResults] = useState<Array<{ id: string; similarity: number }>>([]);
 
   // Initialize filters from URL params
   const [filters, setFilters] = useState<ExploreFilters>(() => ({
@@ -71,6 +78,61 @@ const ExploreProducts = () => {
     sortBy:
       (searchParams.get("orden") as ExploreFilters["sortBy"]) || "newest",
   }));
+
+  // Sync searchQuery from URL on mount and when URL changes
+  useEffect(() => {
+    const queryFromUrl = searchParams.get("q");
+    if (queryFromUrl && queryFromUrl !== searchQuery) {
+      setSearchQuery(queryFromUrl);
+    } else if (!queryFromUrl && searchQuery) {
+      setSearchQuery("");
+    }
+  }, [searchParams]); // Solo depender de searchParams, no de setSearchQuery
+
+  // Perform semantic search when searchQuery changes
+  useEffect(() => {
+    const performSemanticSearch = async () => {
+      // Si no hay query o es muy corto, limpiar resultados semánticos
+      if (!searchQuery || searchQuery.trim().length < 3) {
+        setSemanticResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const response = await semanticSearch({
+          query: searchQuery,
+          limit: 50,
+          min_similarity: 0.3,
+        });
+
+        console.log('[ExploreProducts] Semantic search results:', response);
+
+        // Guardar IDs con scores, ya ordenados por relevancia
+        const results = response.results
+          .filter(result => result.product_id)
+          .map(result => ({
+            id: result.product_id,
+            similarity: result.similarity
+          }));
+
+        setSemanticResults(results);
+      } catch (error) {
+        console.error('[ExploreProducts] Semantic search error:', error);
+        setSemanticResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce: esperar 500ms después de que el usuario deje de escribir
+    const timeoutId = setTimeout(() => {
+      performSemanticSearch();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   // Resolve active category from taxonomy
   const activeCategory = useMemo(
@@ -239,17 +301,55 @@ const ExploreProducts = () => {
     });
   }, [priceExtent.max]);
 
-  // ── Sync filters to URL ──
+  // ── Sync filters and search to URL (skip on initial mount) ──
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     const params: Record<string, string> = {};
+    if (searchQuery) params.q = searchQuery;
     if (filters.categorySlug) params.categoria = filters.categorySlug;
     if (filters.sortBy !== "newest") params.orden = filters.sortBy;
     setSearchParams(params, { replace: true });
-  }, [filters.categorySlug, filters.sortBy, setSearchParams]);
+  }, [filters.categorySlug, filters.sortBy, searchQuery, setSearchParams]);
 
   // ── Client-side filtering ──
   const filteredProducts = useMemo(() => {
     let result = [...allProducts];
+
+    // Semantic search filter (takes priority over local text search)
+    if (searchQuery && searchQuery.trim().length >= 3 && semanticResults.length > 0) {
+      // Crear map de productos por ID para búsqueda rápida
+      const productMap = new Map(allProducts.map(p => [p.id, p]));
+
+      // Mapear resultados semánticos a productos, MANTENIENDO EL ORDEN de relevancia
+      result = semanticResults
+        .map(sr => productMap.get(sr.id))
+        .filter((p): p is ProductNewCore => p !== undefined);
+
+      console.log('[ExploreProducts] Usando orden de búsqueda semántica:', result.length, 'productos');
+    } else if (searchQuery && searchQuery.trim().length > 0) {
+      // Fallback: búsqueda local si no hay resultados semánticos
+      const query = searchQuery.toLowerCase();
+      result = result.filter((p) => {
+        const productName = p.name?.toLowerCase() || "";
+        const shopName = p.artisanShop?.shopName?.toLowerCase() || "";
+        const technique = p.artisanalIdentity?.primaryTechnique?.name?.toLowerCase() || "";
+        const craft = p.artisanalIdentity?.primaryCraft?.name?.toLowerCase() || "";
+        const description = p.description?.toLowerCase() || "";
+        const department = p.artisanShop?.department?.toLowerCase() || "";
+
+        return (
+          productName.includes(query) ||
+          shopName.includes(query) ||
+          technique.includes(query) ||
+          craft.includes(query) ||
+          description.includes(query) ||
+          department.includes(query)
+        );
+      });
+    }
 
     if (filters.techniqueId) {
       result = result.filter(
@@ -285,26 +385,39 @@ const ExploreProducts = () => {
       });
     }
 
-    // Sort
-    switch (filters.sortBy) {
-      case "price_asc":
-        result.sort(
-          (a, b) => (getProductPrice(a) ?? 0) - (getProductPrice(b) ?? 0),
-        );
-        break;
-      case "price_desc":
-        result.sort(
-          (a, b) => (getProductPrice(b) ?? 0) - (getProductPrice(a) ?? 0),
-        );
-        break;
-      case "name":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        break;
+    // Sort - NO reordenar si estamos usando búsqueda semántica con orden por defecto
+    const usingSemanticOrder = semanticResults.length > 0 && filters.sortBy === "newest";
+
+    if (!usingSemanticOrder) {
+      switch (filters.sortBy) {
+        case "price_asc":
+          result.sort(
+            (a, b) => (getProductPrice(a) ?? 0) - (getProductPrice(b) ?? 0),
+          );
+          break;
+        case "price_desc":
+          result.sort(
+            (a, b) => (getProductPrice(b) ?? 0) - (getProductPrice(a) ?? 0),
+          );
+          break;
+        case "name":
+          result.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case "newest":
+          // Solo ordenar por fecha si NO estamos usando orden semántico
+          if (semanticResults.length === 0) {
+            // Mantener orden original (por fecha de creación)
+          }
+          break;
+        default:
+          break;
+      }
+    } else {
+      console.log('[ExploreProducts] Manteniendo orden de relevancia semántica');
     }
+
     return result;
-  }, [allProducts, filters]);
+  }, [allProducts, filters, searchQuery, semanticResults]);
 
   // ── Pagination ──
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
@@ -313,7 +426,7 @@ const ExploreProducts = () => {
     [filteredProducts, page],
   );
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters or search change
   useEffect(() => {
     setPage(1);
   }, [
@@ -325,6 +438,7 @@ const ExploreProducts = () => {
     filters.curatorialId,
     filters.priceRange[1],
     filters.sortBy,
+    searchQuery,
   ]);
 
   // ── Active filter count ──
@@ -539,8 +653,16 @@ const ExploreProducts = () => {
             Inicio
           </Link>
           <span>/</span>
-          <span className="text-primary font-bold">Explorar</span>
-          {activeCategory && (
+          <span className="text-primary font-bold">
+            {searchQuery && searchQuery.trim().length > 0 ? "Búsqueda" : "Explorar"}
+          </span>
+          {searchQuery && searchQuery.trim().length > 0 && (
+            <>
+              <span>/</span>
+              <span className="text-charcoal">"{searchQuery}"</span>
+            </>
+          )}
+          {!searchQuery && activeCategory && (
             <>
               <span>/</span>
               <span className="text-charcoal">{activeCategory.name}</span>
@@ -553,7 +675,12 @@ const ExploreProducts = () => {
       <section className="max-w-[1400px] mx-auto px-6 mb-12">
         <div className="py-8 border-b border-charcoal/5">
           <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
-            {activeCategory ? (
+            {searchQuery && searchQuery.trim().length > 0 ? (
+              <>
+                RESULTADOS <br />
+                <span className="italic text-primary">DE BÚSQUEDA</span>
+              </>
+            ) : activeCategory ? (
               <>
                 {activeCategory.name.split(" ")[0].toUpperCase()}
                 <br />
@@ -569,8 +696,10 @@ const ExploreProducts = () => {
             )}
           </h1>
           <p className="text-sm text-charcoal/70 max-w-lg font-sans leading-relaxed">
-            {activeCategory?.description ??
-              "Descubre piezas artesanales únicas de Colombia. Cada objeto cuenta la historia de un artesano, una técnica y un territorio."}
+            {searchQuery && searchQuery.trim().length > 0
+              ? `Mostrando resultados para "${searchQuery}"`
+              : activeCategory?.description ??
+                "Descubre piezas artesanales únicas de Colombia. Cada objeto cuenta la historia de un artesano, una técnica y un territorio."}
           </p>
         </div>
       </section>
@@ -666,6 +795,20 @@ const ExploreProducts = () => {
                   {filteredProducts.length}{" "}
                   {filteredProducts.length === 1 ? "pieza" : "piezas"}
                 </span>
+
+                {/* Search indicator */}
+                {searchQuery && searchQuery.trim().length > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest">
+                    <Sparkles className={`h-3.5 w-3.5 ${isSearching ? 'animate-pulse' : ''}`} />
+                    <span>
+                      {isSearching
+                        ? 'Buscando con IA...'
+                        : semanticResults.length > 0
+                          ? `Búsqueda inteligente (${semanticResults.length})`
+                          : 'Búsqueda activa'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Sort */}
@@ -690,11 +833,17 @@ const ExploreProducts = () => {
             </div>
 
             {/* Active filter chips */}
-            {activeFilterCount > 0 && (
+            {(activeFilterCount > 0 || (searchQuery && searchQuery.trim().length > 0)) && (
               <div className="flex flex-wrap items-center gap-3 mb-8 pb-6 border-b border-charcoal/5">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal/40">
-                  Filtros:
+                  {searchQuery && searchQuery.trim().length > 0 ? "Búsqueda:" : "Filtros:"}
                 </span>
+                {searchQuery && searchQuery.trim().length > 0 && (
+                  <FilterChip
+                    label={`"${searchQuery}"`}
+                    onRemove={() => setSearchQuery("")}
+                  />
+                )}
                 {filters.categorySlug && activeCategory && (
                   <FilterChip
                     label={activeCategory.name}
@@ -749,7 +898,10 @@ const ExploreProducts = () => {
                   />
                 )}
                 <button
-                  onClick={clearAllFilters}
+                  onClick={() => {
+                    clearAllFilters();
+                    setSearchQuery("");
+                  }}
                   className="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary hover:opacity-70 transition-opacity ml-2"
                 >
                   Limpiar todo
@@ -787,13 +939,18 @@ const ExploreProducts = () => {
             ) : (
               <div className="text-center py-32">
                 <p className="text-charcoal/40 text-sm font-sans mb-6">
-                  No se encontraron piezas con estos filtros.
+                  {searchQuery && searchQuery.trim().length > 0
+                    ? `No se encontraron resultados para "${searchQuery}"`
+                    : "No se encontraron piezas con estos filtros."}
                 </p>
                 <button
-                  onClick={clearAllFilters}
+                  onClick={() => {
+                    clearAllFilters();
+                    setSearchQuery("");
+                  }}
                   className="border border-primary text-primary px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-primary hover:text-white transition-all font-sans"
                 >
-                  Limpiar filtros
+                  Limpiar {searchQuery && searchQuery.trim().length > 0 ? "búsqueda y filtros" : "filtros"}
                 </button>
               </div>
             )}
