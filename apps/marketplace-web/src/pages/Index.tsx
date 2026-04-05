@@ -540,7 +540,7 @@ const Index = () => {
             </div>
           </section> */}
 
-          <FeaturedCategories onCategoryClick={handleCategorySearch} />
+          <FeaturedCategories />
 
           {/* ExploreByTrade - Explora por Oficio Artesanal (comentado temporalmente) */}
           {/* <ExploreByTrade
@@ -624,7 +624,7 @@ const Index = () => {
             </div>
           </section>
 
-          <NewsletterSection />
+          <div className="pb-24" />
           <Footer />
         </>
       ) : (

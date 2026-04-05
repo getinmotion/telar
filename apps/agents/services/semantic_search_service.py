@@ -13,6 +13,7 @@ Database backend: asyncpg pool pointing at CATALOG_DB_URL (Lightsail PostgreSQL)
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -100,7 +101,11 @@ SELECT
     COALESCE(mat.materials_list, '')                         AS materials,
     sc.name                                                  AS store_name,
     sc.id                                                    AS store_id,
-    cat.name                                                 AS category_name
+    cat.name                                                 AS category_name,
+    pv.min_price                                             AS price,
+    pv.currency,
+    COALESCE(pv.total_stock, 0)                              AS stock,
+    COALESCE(media.images, '[]'::jsonb)                      AS images
 FROM shop.product_embeddings pe
 JOIN shop.products_core pc
     ON pe.product_id = pc.id
@@ -119,6 +124,31 @@ LEFT JOIN (
     JOIN taxonomy.materials tm ON pml.material_id = tm.id
     GROUP BY pml.product_id
 ) mat ON pc.id = mat.product_id
+LEFT JOIN (
+    SELECT
+        product_id,
+        MIN(base_price_minor) AS min_price,
+        SUM(stock_quantity)   AS total_stock,
+        MAX(currency)         AS currency
+    FROM shop.product_variants
+    WHERE deleted_at IS NULL AND is_active = true
+    GROUP BY product_id
+) pv ON pc.id = pv.product_id
+LEFT JOIN (
+    SELECT
+        product_id,
+        JSONB_AGG(
+            JSONB_BUILD_OBJECT(
+                'url', media_url,
+                'type', media_type,
+                'is_primary', is_primary,
+                'display_order', display_order
+            )
+            ORDER BY is_primary DESC, display_order ASC
+        ) AS images
+    FROM shop.product_media
+    GROUP BY product_id
+) media ON pc.id = media.product_id
 WHERE pc.deleted_at IS NULL
   AND 1 - (pe.embedding <=> $1::vector) >= $2
 ORDER BY pe.embedding <=> $1::vector
@@ -147,6 +177,10 @@ class ProductSearchResult:
     semantic_text: str
     model: str
     generated_at: Any
+    price: int | None        # base_price_minor (e.g. centavos for COP)
+    currency: str | None     # e.g. "COP"
+    stock: int               # sum of stock_quantity across active variants
+    images: list[dict]       # list of {url, type, is_primary, display_order}
 
 
 @dataclass
@@ -296,6 +330,10 @@ class SemanticSearchService:
                 semantic_text=r["semantic_text"],
                 model=r["model"],
                 generated_at=r["generated_at"],
+                price=int(r["price"]) if r["price"] is not None else None,
+                currency=r["currency"],
+                stock=int(r["stock"]),
+                images=json.loads(r["images"]) if isinstance(r["images"], str) else (list(r["images"]) if r["images"] else []),
             )
             for r in rows
         ]

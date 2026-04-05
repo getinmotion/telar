@@ -5,8 +5,9 @@
  * Fila 2: Menú (Explorar, Artesanos, Regalos)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, User, LogOut, Heart, LogIn } from "lucide-react";
+import { CategoriesMegaMenu } from "@/components/CategoriesMegaMenu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,8 @@ export const NavbarV2 = ({
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
+  const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const megaMenuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Scroll detection
   useEffect(() => {
@@ -67,7 +70,7 @@ export const NavbarV2 = ({
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 relative">
         {/* Primera Fila: Grid de 3 columnas */}
         <div className={`grid grid-cols-[1fr_auto_1fr] gap-4 md:gap-8 items-center transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
 
@@ -130,11 +133,6 @@ export const NavbarV2 = ({
                   alt="TELAR"
                   className={`transition-all duration-300 ${isScrolled ? 'h-6 md:h-7' : 'h-8 md:h-10'}`}
                 />
-                {!isScrolled && (
-                  <span className="text-xs md:text-sm text-muted-foreground tracking-wider uppercase">
-                    Artesanía Colombiana
-                  </span>
-                )}
               </button>
             ) : (
               <Link to="/?reset=true" className="flex flex-col items-center gap-1">
@@ -143,11 +141,6 @@ export const NavbarV2 = ({
                   alt="TELAR"
                   className={`transition-all duration-300 ${isScrolled ? 'h-6 md:h-7' : 'h-8 md:h-10'}`}
                 />
-                {!isScrolled && (
-                  <span className="text-xs md:text-sm text-muted-foreground tracking-wider uppercase">
-                    Artesanía Colombiana
-                  </span>
-                )}
               </Link>
             )}
           </div>
@@ -228,11 +221,29 @@ export const NavbarV2 = ({
             >
               Explorar
             </Link>
+            <div
+              className="relative"
+              onMouseEnter={() => {
+                if (megaMenuTimer.current) clearTimeout(megaMenuTimer.current);
+                setMegaMenuOpen(true);
+              }}
+              onMouseLeave={() => {
+                megaMenuTimer.current = setTimeout(() => setMegaMenuOpen(false), 150);
+              }}
+            >
+              <Link
+                to="/categorias"
+                className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'} ${megaMenuOpen ? 'text-[#ec6d13]' : ''}`}
+              >
+                Categorías
+                {megaMenuOpen && <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-[#ec6d13]" />}
+              </Link>
+            </div>
             <Link
               to="/tiendas"
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
-              Artesanos
+              Talleres
             </Link>
             <Link
               to="/giftcards"
@@ -240,8 +251,34 @@ export const NavbarV2 = ({
             >
               Regalos
             </Link>
+            <Link
+              to="/blog"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Historias
+            </Link>
+            <Link
+              to="/newsletter"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Suscríbete
+            </Link>
           </div>
         </nav>
+
+        {/* Categories Mega Menu */}
+        {megaMenuOpen && (
+          <div
+            onMouseEnter={() => {
+              if (megaMenuTimer.current) clearTimeout(megaMenuTimer.current);
+            }}
+            onMouseLeave={() => {
+              megaMenuTimer.current = setTimeout(() => setMegaMenuOpen(false), 150);
+            }}
+          >
+            <CategoriesMegaMenu onClose={() => setMegaMenuOpen(false)} />
+          </div>
+        )}
       </div>
     </header>
   );

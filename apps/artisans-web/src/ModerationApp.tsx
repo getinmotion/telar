@@ -5,6 +5,7 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { ModeratorProtectedRoute } from '@/components/auth/ModeratorProtectedRoute';
 import ModerationLogin from './pages/moderation/ModerationLogin';
 import ModerationPage from './pages/ModerationPage';
+import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 
 /**
  * ModerationApp - Aplicación simplificada para el subdominio de moderación
@@ -28,6 +29,18 @@ export const ModerationApp: React.FC = () => {
         <Route path="/moderacion" element={
           <ModeratorProtectedRoute>
             <ModerationPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Analytics */}
+        <Route path="/analytics" element={
+          <ModeratorProtectedRoute>
+            <ProductAnalyticsPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/analytics" element={
+          <ModeratorProtectedRoute>
+            <ProductAnalyticsPage />
           </ModeratorProtectedRoute>
         } />
 

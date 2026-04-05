@@ -39,6 +39,8 @@ import GoogleAuthCallback from "./pages/GoogleAuthCallback";
 import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
+import Newsletter from "./pages/Newsletter";
+import Territory from "./pages/Territory";
 
 const queryClient = new QueryClient();
 
@@ -59,7 +61,7 @@ const App = () => (
                         {/* Rutas con Layout (con Navbar) */}
                         <Route element={<Layout />}>
                           <Route path="/" element={<Index />} />
-                          <Route path="/productos" element={<Products />} />
+                          <Route path="/productos" element={<ExploreProducts />} />
                           <Route path="/product/:id" element={<ProductDetail />} />
                           <Route path="/tienda/:shopSlug" element={<ShopDetail />} />
                           <Route path="/tiendas" element={<Shops />} />
@@ -80,6 +82,8 @@ const App = () => (
                           <Route path="/explorar" element={<ExploreProducts />} />
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
+                          <Route path="/newsletter" element={<Newsletter />} />
+                          <Route path="/territorio/:slug" element={<Territory />} />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}

@@ -4,14 +4,14 @@ import { CartService } from './cart.service';
 import { cartProviders } from './cart.providers';
 import { DatabaseModule } from 'src/config/configOrm.module';
 import { AuthModule } from '../auth/auth.module';
-import { ProductsModule } from '../products/products.module';
+import { ProductsNewModule } from '../products-new/products-new.module';
 import { CartItemsModule } from '../cart-items/cart-items.module';
 
 @Module({
   imports: [
     DatabaseModule,
     forwardRef(() => AuthModule),
-    ProductsModule,
+    ProductsNewModule,
     forwardRef(() => CartItemsModule),
   ],
   controllers: [CartController],
