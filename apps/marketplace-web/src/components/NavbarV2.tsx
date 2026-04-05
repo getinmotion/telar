@@ -67,7 +67,7 @@ export const NavbarV2 = ({
 
   const handleCartClick = () => {
     if (!user) {
-      setGuestModalOpen(true);
+      navigate('/auth');
     } else {
       openCart();
     }
