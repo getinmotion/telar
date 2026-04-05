@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart-items/entities/cart-item.entity';
-import { Product } from '../products/entities/product.entity';
+import { ProductCore } from '../products-new/entities/product-core.entity';
 import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 
@@ -17,8 +17,8 @@ export const servientregaProviders = [
     inject: ['DATA_SOURCE'],
   },
   {
-    provide: 'PRODUCT_REPOSITORY',
-    useFactory: (dataSource: DataSource) => dataSource.getRepository(Product),
+    provide: 'PRODUCTS_CORE_REPOSITORY',
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(ProductCore),
     inject: ['DATA_SOURCE'],
   },
   {

@@ -111,6 +111,155 @@ export interface Cart {
 }
 
 /**
+ * Media del producto (imágenes, videos, etc.)
+ */
+export interface ProductMedia {
+  id: string;
+  productId: string;
+  mediaUrl: string;
+  mediaType: string;
+  isPrimary: boolean;
+  displayOrder: number;
+  deletedAt: string | null;
+}
+
+/**
+ * Producto completo (enriquecido en cart-items)
+ */
+export interface CartProduct {
+  id: string;
+  storeId: string;
+  categoryId: string;
+  legacyProductId: string;
+  name: string;
+  shortDescription: string;
+  history: string;
+  careNotes: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  media: ProductMedia[];
+}
+
+/**
+ * Perfil público de la tienda
+ */
+export interface SellerShopPublicProfile {
+  rating: number;
+  location: string | null;
+  shop_name: string;
+  banner_url: string;
+  craft_type: string;
+  description: string;
+  contact_method: string;
+}
+
+/**
+ * Perfil del artesano
+ */
+export interface ArtisanProfile {
+  startAge: number;
+  materials: string[];
+  motivation: string;
+  techniques: string[];
+  uniqueness: string;
+  artisanName: string;
+  averageTime: string;
+  completedAt: string;
+  learnedFrom: string;
+  artisanPhoto: string;
+  artisticName: string;
+  craftMessage: string;
+  familyPhotos: string[];
+  workingPhotos: string[];
+  ethnicRelation: string;
+  generatedStory: Record<string, any>;
+  workshopPhotos: string[];
+  communityPhotos: string[];
+  culturalHistory: string;
+  culturalMeaning: string;
+  workshopAddress: string;
+  learnedFromDetail: string;
+  ancestralKnowledge: string;
+  workshopDescription: string;
+  territorialImportance: string;
+}
+
+/**
+ * Información de contacto de la tienda
+ */
+export interface ShopContactInfo {
+  email: string;
+  phone: string;
+  whatsapp: string;
+}
+
+/**
+ * Configuración del hero de la tienda
+ */
+export interface ShopHeroConfig {
+  slides: Array<{
+    id: string;
+    title: string;
+    ctaLink: string;
+    ctaText: string;
+    imageUrl: string;
+    subtitle: string;
+  }>;
+  autoplay: boolean;
+  duration: number;
+}
+
+/**
+ * Tienda vendedora completa (enriquecida en cart-items)
+ */
+export interface CartSellerShop {
+  id: string;
+  userId: string;
+  shopName: string;
+  shopSlug: string;
+  description: string;
+  story: string | null;
+  logoUrl: string;
+  bannerUrl: string;
+  craftType: string;
+  region: string | null;
+  certifications: string[];
+  contactInfo: ShopContactInfo;
+  socialLinks: Record<string, any>;
+  active: boolean;
+  featured: boolean;
+  servientregaCoverage: boolean;
+  seoData: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  privacyLevel: string;
+  dataClassification: Record<string, any>;
+  publicProfile: SellerShopPublicProfile;
+  creationStatus: string;
+  creationStep: number;
+  primaryColors: string[];
+  secondaryColors: string[];
+  brandClaim: string;
+  heroConfig: ShopHeroConfig;
+  aboutContent: Record<string, any>;
+  contactConfig: Record<string, any>;
+  activeThemeId: string | null;
+  publishStatus: string;
+  marketplaceApproved: boolean;
+  marketplaceApprovedAt: string;
+  marketplaceApprovedBy: string;
+  idContraparty: string;
+  artisanProfile: ArtisanProfile;
+  artisanProfileCompleted: boolean;
+  bankDataStatus: string;
+  marketplaceApprovalStatus: string;
+  department: string | null;
+  municipality: string | null;
+}
+
+/**
  * Item del carrito detallado (response de GET /cart-items/cart/:cartId)
  * Incluye información enriquecida del producto y tienda vendedora
  */
@@ -122,13 +271,13 @@ export interface CartItemDetailed {
   quantity: number;
   currency: string;
   unitPriceMinor: string; // Precio en centavos (ej: "5000000" = $50,000)
-  priceSource: 'PRODUCT_BASE' | 'OVERRIDE';
+  priceSource: 'product_base' | 'PRODUCT_BASE' | 'override' | 'OVERRIDE';
   priceRefId: string | null;
   metadata: Record<string, any>;
   createdAt: string;
   updatedAt: string;
-  product: any; // TODO: Definir tipo Product completo
-  sellerShop: any; // TODO: Definir tipo Shop completo
+  product: CartProduct;
+  sellerShop: CartSellerShop;
 }
 
 /**
