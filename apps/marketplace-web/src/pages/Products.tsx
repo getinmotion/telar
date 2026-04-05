@@ -19,8 +19,7 @@ import { getUniqueCategoriesFromProducts } from "@/lib/categoryUtils";
 import { mapArtisanCategory } from "@/lib/productMapper";
 import { useToast } from "@/hooks/use-toast";
 import { normalizeCraft, normalizeMaterial, normalizeMaterials, normalizeTechniques, formatArtisanText } from "@/lib/normalizationUtils";
-import { useHybridSearch } from "@/hooks/useHybridSearch";
-import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
+import { useSemanticSearch } from "@/hooks/useSemanticSearch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Pagination,
@@ -176,7 +175,7 @@ const prioritizedDistributedShuffle = <T extends { storeName?: string; canPurcha
 type LimitOption = 50 | 100 | 200 | 500;
 
 const Products = () => {
-  const { searchQuery, setSearchQuery, semanticSearchEnabled, setSemanticSearchEnabled } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -243,10 +242,6 @@ const Products = () => {
     localStorage.setItem("mobileViewMode", mobileViewMode);
   }, [mobileViewMode]);
 
-  // Persist semantic search preference
-  useEffect(() => {
-    localStorage.setItem("semanticSearchEnabled", String(semanticSearchEnabled));
-  }, [semanticSearchEnabled]);
 
   useEffect(() => {
     fetchProducts();
@@ -307,12 +302,12 @@ const Products = () => {
 
   const availableCategories = getUniqueCategoriesFromProducts(products);
 
-  // Búsqueda híbrida (semántica + simple)
+  // Búsqueda semántica
   const {
     filteredProducts: searchResults,
-    isSemanticEnabled,
-    semanticResultsCount
-  } = useHybridSearch({
+    isSearching,
+    resultCount
+  } = useSemanticSearch({
     products,
     filters,
   });
@@ -660,19 +655,15 @@ const Products = () => {
                     </div>
                     {searchQuery && (
                       <>
-                        {isSemanticEnabled && semanticResultsCount > 0 ? (
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            <span>Búsqueda inteligente: {semanticResultsCount} resultado{semanticResultsCount !== 1 ? 's' : ''}</span>
-                          </div>
-                        ) : semanticSearchEnabled && !isSemanticEnabled ? (
+                        {isSearching ? (
                           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
-                            <Sparkles className="h-3.5 w-3.5" />
+                            <Sparkles className="h-3.5 w-3.5 animate-pulse" />
                             <span>Buscando con IA...</span>
                           </div>
-                        ) : !semanticSearchEnabled ? (
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">
-                            <span>Búsqueda simple</span>
+                        ) : resultCount > 0 ? (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            <span>Búsqueda inteligente: {resultCount} resultado{resultCount !== 1 ? 's' : ''}</span>
                           </div>
                         ) : null}
                       </>

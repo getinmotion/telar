@@ -2,7 +2,7 @@
 // Documentación: https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com/docs
 
 const SEMANTIC_SEARCH_API_URL = import.meta.env.VITE_SEMANTIC_SEARCH_API_URL || 
-  'https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com';
+  'https://prod-agents.telar.co/';
 
 const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY;
 
@@ -22,27 +22,30 @@ export interface SearchRequest {
 }
 
 export interface SearchResult {
-  shop_id: string;
-  product_id?: string;
-  shop_name: string;
-  similarity_score: number;
-  shop_description?: string;
-  shop_story?: string;
-  craft_type?: string;
-  region?: string;
-  product_name?: string;
-  product_description?: string;
-  price?: string;
-  category?: string;
-  combined_text: string;
+  product_id: string;
+  product_name: string;
+  short_description?: string;
+  history?: string;
+  similarity: number;
+  craft_name?: string;
+  piece_type?: string;
+  style?: string;
+  process_type?: string;
+  materials?: string;
+  store_name?: string;
+  store_id?: string;
+  category_name?: string;
+  price?: number;
+  currency?: string;
+  stock?: number;
+  images?: any[];
 }
 
 export interface SearchResponse {
-  success: boolean;
   query: string;
-  results: SearchResult[];
   count: number;
-  execution_time_ms: number;
+  min_similarity_used: number;
+  results: SearchResult[];
 }
 
 /**
@@ -59,14 +62,13 @@ export async function semanticSearch(request: SearchRequest): Promise<SearchResp
       headers['x-api-key'] = SEMANTIC_SEARCH_API_KEY;
     }
 
-    const response = await fetch(`${SEMANTIC_SEARCH_API_URL}/api/v1/search`, {
+    const response = await fetch(`${SEMANTIC_SEARCH_API_URL}/api/search/products`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         query: request.query,
-        limit: request.limit || 20,
+        top_k: request.limit || 20,
         min_similarity: request.min_similarity || 0.3,
-        filters: request.filters,
       }),
     });
 
@@ -109,18 +111,18 @@ export function mapSemanticResultsToProducts<T extends { id: string }>(
   allProducts: T[]
 ): Array<T & { similarity_score?: number }> {
   const productMap = new Map(allProducts.map(p => [p.id, p]));
-  
+
   return semanticResults
     .map(result => {
       const productId = result.product_id;
       if (!productId) return null;
-      
+
       const product = productMap.get(productId);
       if (!product) return null;
-      
+
       return {
         ...product,
-        similarity_score: result.similarity_score,
+        similarity_score: result.similarity, // Usar 'similarity' de la nueva API
       };
     })
     .filter((p): p is T & { similarity_score: number } => p !== null);

@@ -10,10 +10,9 @@ import { Search, ShoppingCart, User, LogOut, Heart, LogIn } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
 import { CartDrawer } from "@/components/CartDrawer";
 import GuestAuthModal from "@/components/GuestAuthModal";
 import telarHorizontal from '@/assets/telar-horizontal.svg';
@@ -21,20 +20,17 @@ import telarHorizontal from '@/assets/telar-horizontal.svg';
 interface NavbarV2Props {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
-  semanticSearchEnabled?: boolean;
-  onSemanticSearchToggle?: (enabled: boolean) => void;
   onHomeClick?: () => void;
 }
 
 export const NavbarV2 = ({
   searchQuery = "",
   onSearchChange = () => {},
-  semanticSearchEnabled = true,
-  onSemanticSearchToggle = () => {},
   onHomeClick,
 }: NavbarV2Props) => {
   const { user, signOut } = useAuth();
   const { totalItems, openCart } = useCart();
+  const navigate = useNavigate();
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
@@ -65,6 +61,19 @@ export const NavbarV2 = ({
     setSearchVisible(!searchVisible);
   };
 
+  const handleSearch = () => {
+    if (searchQuery.trim().length > 0) {
+      // Redirigir a productos con el query de búsqueda
+      navigate(`/productos?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <div className="container mx-auto px-4">
@@ -76,22 +85,25 @@ export const NavbarV2 = ({
             {!isScrolled ? (
               // Búsqueda normal (no scrolled)
               <>
-                <div className="relative w-3/4 min-w-[200px]">
+                <div className="relative w-full max-w-md">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Buscar productos, artesanos..."
-                    className="pl-10 h-10 bg-muted/30 border-border/40"
+                    className="pl-10 pr-24 h-10 bg-muted/30 border-border/40"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
+                  <Button
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                    onClick={handleSearch}
+                    disabled={searchQuery.trim().length === 0}
+                  >
+                    Buscar
+                  </Button>
                 </div>
-                {searchQuery && onSemanticSearchToggle && (
-                  <SemanticSearchToggle
-                    enabled={semanticSearchEnabled}
-                    onToggle={onSemanticSearchToggle}
-                  />
-                )}
               </>
             ) : (
               // Icono de búsqueda cuando scrolled
@@ -107,14 +119,25 @@ export const NavbarV2 = ({
                 {/* Input expandible con transición */}
                 <div className={`overflow-hidden transition-all duration-300 ${searchVisible ? 'w-64 opacity-100' : 'w-0 opacity-0'}`}>
                   {searchVisible && (
-                    <Input
-                      type="search"
-                      placeholder="Buscar..."
-                      className="h-8 text-sm"
-                      value={searchQuery}
-                      onChange={(e) => onSearchChange(e.target.value)}
-                      autoFocus
-                    />
+                    <div className="relative">
+                      <Input
+                        type="search"
+                        placeholder="Buscar..."
+                        className="h-8 text-sm pr-16"
+                        value={searchQuery}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 text-xs px-2"
+                        onClick={handleSearch}
+                        disabled={searchQuery.trim().length === 0}
+                      >
+                        Ir
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

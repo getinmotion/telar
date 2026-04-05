@@ -61,8 +61,6 @@ export const Layout = () => {
       <NavbarV2
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
-        semanticSearchEnabled={semanticSearchEnabled}
-        onSemanticSearchToggle={handleSemanticToggle}
         onHomeClick={handleHomeClick}
       />
       <Outlet />
