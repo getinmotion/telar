@@ -18,7 +18,7 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-[#1a1a1a] text-white pt-32 overflow-visible">
+    <footer className="relative bg-[#1a1a1a] text-white pt-32 overflow-visible mt-40">
       {/* ── Floating Newsletter Module ── */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
         <div className="bg-white text-[#1a1a1a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
