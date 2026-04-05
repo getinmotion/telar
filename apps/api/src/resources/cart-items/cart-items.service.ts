@@ -71,7 +71,7 @@ export class CartItemsService {
    */
   async findAll(): Promise<CartItem[]> {
     return await this.cartItemsRepository.find({
-      relations: ['cart', 'product', 'sellerShop'],
+      relations: ['cart', 'product', 'product.media', 'sellerShop'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -86,7 +86,7 @@ export class CartItemsService {
 
     const cartItem = await this.cartItemsRepository.findOne({
       where: { id },
-      relations: ['cart', 'product', 'sellerShop'],
+      relations: ['cart', 'product', 'product.media', 'sellerShop'],
     });
 
     if (!cartItem) {
@@ -108,7 +108,7 @@ export class CartItemsService {
 
     return await this.cartItemsRepository.find({
       where: { cartId },
-      relations: ['product', 'sellerShop'],
+      relations: ['product', 'product.media', 'sellerShop'],
       order: { createdAt: 'DESC' },
     });
   }
