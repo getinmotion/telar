@@ -287,8 +287,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // "5000000" → 50000.00
         const price = parseFloat(item.unitPriceMinor) / 100;
 
-        // Get image from enriched product
-        const imageUrl = item.product?.images?.[0] || '';
+        // Get primary image from product media
+        const primaryMedia = item.product?.media?.find(m => m.isPrimary);
+        const imageUrl = primaryMedia?.mediaUrl || item.product?.media?.[0]?.mediaUrl || '';
 
         return {
           id: item.id,
@@ -299,7 +300,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             name: item.product?.name || 'Producto no disponible',
             price: price,
             image_url: imageUrl,
-            allows_local_pickup: item.product?.allowsLocalPickup || false
+            allows_local_pickup: false // Este campo no viene en la nueva estructura
           }
         };
       });
