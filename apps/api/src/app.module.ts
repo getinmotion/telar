@@ -50,6 +50,8 @@ import { BadgesModule } from './resources/badges/badges.module';
 import { CuratorialCategoriesModule } from './resources/curatorial-categories/curatorial-categories.module';
 import { CategoriesModule } from './resources/categories/categories.module';
 import { CareTagsModule } from './resources/care-tags/care-tags.module';
+import { PaymentProvidersModule } from './resources/payment-providers/payment-providers.module';
+import { PaymentIntentsModule } from './resources/payment-intents/payment-intents.module';
 
 @Module({
   imports: [
@@ -107,6 +109,8 @@ import { CareTagsModule } from './resources/care-tags/care-tags.module';
     CuratorialCategoriesModule,
     CategoriesModule,
     CareTagsModule,
+    PaymentProvidersModule,
+    PaymentIntentsModule,
   ],
   controllers: [],
   providers: [],
