@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import * as ProductsActions from '@/services/products.actions';
+import Orders from '@/pages/Orders';
+import OrderDetail from '@/pages/OrderDetail';
 import * as AddressesActions from '@/services/addresses.actions';
 import * as UserProfilesActions from '@/services/user-profiles.actions';
 import * as GiftCardsActions from '@/services/gift-cards.actions';
-import * as OrdersActions from '@/services/orders.actions';
+import * as CartActions from '@/services/cart.actions';
 import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,6 +98,10 @@ interface CiudadesDane {
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get initial tab from query param or default to 'profile'
+  const activeTab = searchParams.get('tab') || 'profile';
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -203,76 +208,65 @@ const Profile = () => {
 
   const loadOrders = async () => {
     try {
-      // Fetch orders from backend with items
-      const backendOrders = await OrdersActions.getBuyerOrdersWithItems(user!.id);
+      // Fetch carts from backend with items (returns array)
+      const cartsWithItems = await CartActions.getBuyerCartWithItems(user!.id);
+      console.log('Carts with items:', cartsWithItems);
 
-      if (!backendOrders || backendOrders.length === 0) {
+      // Check if array is empty
+      if (!cartsWithItems || cartsWithItems.length === 0) {
+        console.log('No carts found');
         setOrders([]);
         return;
       }
 
-      // Get all unique product IDs from order items
-      const productIds = [...new Set(
-        backendOrders.flatMap(order =>
-          (order.orderItems || []).map(item => item.productId)
-        )
-      )].filter(Boolean);
+      // Map each cart to Order format
+      const ordersWithProducts: Order[] = cartsWithItems.map(cart => ({
+        id: cart.id,
+        status: cart.status,
+        // Calculate total from items
+        total: cart.items.reduce((sum, item) =>
+          sum + (parseFloat(item.unitPriceMinor) / 100 * item.quantity), 0
+        ),
+        created_at: cart.createdAt,
+        updated_at: cart.updatedAt,
+        payment_method: 'pending', // Default value, will be updated when converted to order
+        notes: null,
+        tracking_number: null,
+        carrier: null,
+        shipped_at: null,
+        estimated_delivery_date: null,
+        shipping_address_id: null,
+        // Calculate subtotal from items
+        subtotal: cart.items.reduce((sum, item) =>
+          sum + (parseFloat(item.unitPriceMinor) / 100 * item.quantity), 0
+        ),
+        shipping_cost: 0,
+        gift_card_discount: null,
+        gift_card_code: null,
+        delivery_method: null,
+        paid_amount: null,
+        order_items: cart.items.map(item => {
+          // Get primary media from product
+          const primaryMedia = item.product?.media?.find(m => m.isPrimary);
+          const imageUrl = primaryMedia?.mediaUrl || item.product?.media?.[0]?.mediaUrl || '';
 
-      // Fetch product details from products service if there are products
-      let productMap: Record<string, { name: string; image_url: string }> = {};
-      if (productIds.length > 0) {
-        const productPromises = productIds.map(id =>
-          ProductsActions.getProductById(id).catch(() => null)
-        );
-        const products = await Promise.all(productPromises);
-
-        productMap = Object.fromEntries(
-          products
-            .filter(p => p !== null)
-            .map(p => [
-              p!.id,
-              {
-                name: p!.name,
-                image_url: p!.imageUrl || p!.images?.[0] || ''
-              }
-            ])
-        );
-      }
-
-      // Map backend orders to frontend Order interface
-      const ordersWithProducts: Order[] = backendOrders.map(order => ({
-        id: order.id,
-        status: order.status,
-        total: OrdersActions.minorToMajor(order.grossSubtotalMinor),
-        created_at: order.createdAt,
-        updated_at: order.updatedAt,
-        payment_method: order.checkout.paymentMethod || 'mercadopago',
-        notes: order.checkout.notes || null,
-        tracking_number: order.trackingNumber || null,
-        carrier: order.carrier || null,
-        shipped_at: order.shippedAt || null,
-        estimated_delivery_date: order.estimatedDeliveryDate || null,
-        shipping_address_id: order.checkout.shippingAddressId || null,
-        subtotal: OrdersActions.minorToMajor(order.grossSubtotalMinor),
-        shipping_cost: OrdersActions.minorToMajor(order.checkout.shippingCost),
-        gift_card_discount: OrdersActions.minorToMajor(order.checkout.giftCardDiscount),
-        gift_card_code: order.checkout.giftCardCode || null,
-        delivery_method: order.checkout.deliveryMethod || null,
-        paid_amount: OrdersActions.minorToMajor(order.checkout.paidAmount),
-        order_items: (order.orderItems || []).map(item => ({
-          id: item.id,
-          product_id: item.productId,
-          quantity: item.quantity,
-          price: OrdersActions.minorToMajor(item.unitPriceMinor),
-          product_name: productMap[item.productId]?.name || 'Producto',
-          product_image: productMap[item.productId]?.image_url,
-        })),
+          return {
+            id: item.id,
+            product_id: item.productId,
+            quantity: item.quantity,
+            price: parseFloat(item.unitPriceMinor) / 100,
+            product_name: item.product?.name || 'Producto',
+            product_image: imageUrl,
+          };
+        }),
       }));
+
+      console.log('Orders with products:', ordersWithProducts);
 
       setOrders(ordersWithProducts);
     } catch (error) {
-      console.error('Error loading orders:', error);
-      toast.error('Error al cargar órdenes');
+      console.error('Error loading carts:', error);
+      toast.error('Error al cargar las órdenes');
     }
   };
 
@@ -462,72 +456,6 @@ const Profile = () => {
     }
   };
 
-  const statusConfig: Record<string, { 
-    label: string; 
-    variant: 'default' | 'secondary' | 'destructive' | 'outline';
-    icon: React.ReactNode;
-    explanation: string;
-  }> = {
-    pending: { 
-      label: 'Pendiente', 
-      variant: 'outline',
-      icon: <Clock className="h-4 w-4" />,
-      explanation: 'Esperando confirmación de pago. Si ya pagaste, puede tomar unos minutos en reflejarse.'
-    },
-    confirmed: { 
-      label: 'Confirmado', 
-      variant: 'default',
-      icon: <CheckCircle2 className="h-4 w-4" />,
-      explanation: 'Pago recibido exitosamente. Estamos preparando tu pedido para envío.'
-    },
-    processing: { 
-      label: 'Procesando', 
-      variant: 'secondary',
-      icon: <Package className="h-4 w-4" />,
-      explanation: 'Tu pedido está siendo empacado por el artesano con mucho cuidado.'
-    },
-    shipped: { 
-      label: 'Enviado', 
-      variant: 'default',
-      icon: <Truck className="h-4 w-4" />,
-      explanation: '¡Tu pedido va en camino! Revisa el número de seguimiento para rastrearlo.'
-    },
-    delivered: { 
-      label: 'Entregado', 
-      variant: 'default',
-      icon: <CheckCircle2 className="h-4 w-4" />,
-      explanation: 'Pedido entregado exitosamente. ¡Esperamos que lo disfrutes!'
-    },
-    cancelled: { 
-      label: 'Cancelado', 
-      variant: 'destructive',
-      icon: <XCircle className="h-4 w-4" />,
-      explanation: 'Este pedido fue cancelado y no será procesado.'
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const config = statusConfig[status] || statusConfig.pending;
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        {config.icon}
-        {config.label}
-      </Badge>
-    );
-  };
-
-  const getPaymentMethodInfo = (method: string) => {
-    const methodMap: Record<string, { label: string; icon: React.ReactNode }> = {
-      credit_card: { label: 'Tarjeta de crédito', icon: <CreditCard className="h-4 w-4" /> },
-      debit_card: { label: 'Tarjeta débito', icon: <CreditCard className="h-4 w-4" /> },
-      pse: { label: 'PSE', icon: <Banknote className="h-4 w-4" /> },
-      nequi: { label: 'Nequi', icon: <Wallet className="h-4 w-4" /> },
-      gift_card: { label: 'Gift Card', icon: <Gift className="h-4 w-4" /> },
-      cash_on_delivery: { label: 'Pago contraentrega', icon: <Banknote className="h-4 w-4" /> },
-    };
-    return methodMap[method] || { label: method, icon: <Wallet className="h-4 w-4" /> };
-  };
-
   const getGiftCardStatus = (card: GiftCard) => {
     if (!card.is_active) {
       return <Badge variant="destructive">Inactiva</Badge>;
@@ -557,7 +485,11 @@ const Profile = () => {
           <p className="text-sm md:text-base text-muted-foreground">Gestiona tu información y pedidos</p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setSearchParams({ tab: value })}
+          className="space-y-4 md:space-y-6"
+        >
           {/* Tabs responsivos: scroll horizontal en móvil, grid en desktop */}
           <TabsList className="flex w-full overflow-x-auto gap-1 p-1 md:grid md:grid-cols-4 md:max-w-lg md:overflow-visible">
             <TabsTrigger value="profile" className="flex-shrink-0 min-w-[80px] md:min-w-0 px-3 py-2 touch-manipulation">
@@ -627,261 +559,11 @@ const Profile = () => {
 
           {/* Orders Tab */}
           <TabsContent value="orders">
-            <div className="space-y-4">
-              {orders.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No tienes pedidos aún</p>
-                    <Button className="mt-4" onClick={() => navigate('/productos')}>
-                      Explorar Productos
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-              orders.map((order) => {
-                  const paymentInfo = getPaymentMethodInfo(order.payment_method);
-                  const statusInfo = statusConfig[order.status] || statusConfig.pending;
-                  
-                  return (
-                    <Card key={order.id}>
-                      <CardHeader className="pb-3 px-4 md:px-6">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start">
-                          <div>
-                            <CardTitle className="text-base md:text-lg">Pedido #{order.id.slice(0, 8)}</CardTitle>
-                            <CardDescription className="text-xs md:text-sm">
-                              {new Date(order.created_at).toLocaleDateString('es-CO', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </CardDescription>
-                          </div>
-                          {getStatusBadge(order.status)}
-                        </div>
-                        {/* Status explanation */}
-                        <div className="mt-2 flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                          <AlertCircle className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                          <p className="text-sm text-muted-foreground">{statusInfo.explanation}</p>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 px-4 md:px-6">
-                        {/* Products section */}
-                        <Collapsible defaultOpen>
-                          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium hover:text-primary transition-colors">
-                            <span className="flex items-center gap-2">
-                              <Package className="h-4 w-4" />
-                              Productos ({order.order_items.length})
-                            </span>
-                            <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="pt-2">
-                            <div className="space-y-3">
-                              {order.order_items.map((item) => (
-                                <div key={item.id} className="flex gap-4">
-                                  {item.product_image ? (
-                                    <img
-                                      src={item.product_image}
-                                      alt={item.product_name || 'Producto'}
-                                      className="h-16 w-16 object-cover rounded"
-                                    />
-                                  ) : (
-                                    <div className="h-16 w-16 bg-muted rounded flex items-center justify-center">
-                                      <Package className="h-6 w-6 text-muted-foreground" />
-                                    </div>
-                                  )}
-                                  <div className="flex-1">
-                                    <p className="font-medium">{item.product_name || 'Producto artesanal'}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      Cantidad: {item.quantity} × ${item.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-
-                        <Separator />
-
-                        {/* Order details section */}
-                        <Collapsible>
-                          <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium hover:text-primary transition-colors">
-                            <span className="flex items-center gap-2">
-                              <CreditCard className="h-4 w-4" />
-                              Detalles del pedido
-                            </span>
-                            <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="pt-2">
-                            <div className="space-y-3 text-sm bg-muted/30 rounded-lg p-4">
-                              {/* Payment breakdown header */}
-                              <h4 className="font-medium text-foreground flex items-center gap-2">
-                                <Banknote className="h-4 w-4" />
-                                Desglose del pago
-                              </h4>
-                              
-                              {/* Subtotal */}
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Subtotal productos</span>
-                                <span>${(order.subtotal || order.total || 0).toLocaleString()}</span>
-                              </div>
-                              
-                              {/* Shipping cost */}
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground flex items-center gap-1">
-                                  {order.delivery_method === 'pickup' ? (
-                                    <>
-                                      <MapPin className="h-3 w-3" />
-                                      Envío (Retiro en local)
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Truck className="h-3 w-3" />
-                                      Envío (Servientrega)
-                                    </>
-                                  )}
-                                </span>
-                                <span>
-                                  {order.delivery_method === 'pickup' ? (
-                                    <span className="text-green-600">Gratis</span>
-                                  ) : (
-                                    `+$${(order.shipping_cost || 0).toLocaleString()}`
-                                  )}
-                                </span>
-                              </div>
-                              
-                              <Separator className="my-2" />
-                              
-                              {/* Gift card payment if any */}
-                              {(order.gift_card_discount !== null && order.gift_card_discount > 0) && (
-                                <div className="flex justify-between items-center text-green-600">
-                                  <span className="flex items-center gap-1">
-                                    <Gift className="h-4 w-4" />
-                                    Pagado con Gift Card
-                                    {order.gift_card_code && (
-                                      <span className="text-xs font-mono bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
-                                        {order.gift_card_code}
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="font-medium">-{formatCurrency(order.gift_card_discount)}</span>
-                                </div>
-                              )}
-                              
-                              {/* Paid with Breve/other payment method */}
-                              {(order.paid_amount !== null && order.paid_amount > 0) && (
-                                <div className="flex justify-between items-center">
-                                  <span className="flex items-center gap-1 text-muted-foreground">
-                                    {paymentInfo.icon}
-                                    Pagado con {order.payment_method === 'gift_card' ? 'Breve' : paymentInfo.label}
-                                  </span>
-                                  <span className="font-medium">{formatCurrency(order.paid_amount)}</span>
-                                </div>
-                              )}
-                              
-                              {/* 100% gift card message */}
-                              {order.payment_method === 'gift_card' && (order.paid_amount === null || order.paid_amount === 0) && (
-                                <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-950/30 p-3 rounded-lg">
-                                  <Gift className="h-5 w-5" />
-                                  <span className="font-medium">Pagado al 100% con Gift Card</span>
-                                </div>
-                              )}
-                              
-                              <Separator className="my-2" />
-                              
-                              {/* Total */}
-                              <div className="flex justify-between items-center text-lg font-bold">
-                                <span>TOTAL</span>
-                                <span>{formatCurrency(order.total)}</span>
-                              </div>
-                              
-                              <div className="flex justify-between text-xs text-muted-foreground pt-2">
-                                <span>Fecha del pedido</span>
-                                <span>{new Date(order.created_at).toLocaleString('es-CO', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}</span>
-                              </div>
-                              
-                              {order.notes && (
-                                <div className="pt-2 border-t">
-                                  <span className="text-muted-foreground block mb-1">Notas:</span>
-                                  <p className="text-foreground">{order.notes}</p>
-                                </div>
-                              )}
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-
-                        {/* Shipping section - only show if has tracking or shipped */}
-                        {(order.tracking_number || order.shipped_at || order.status === 'shipped' || order.status === 'delivered') && (
-                          <>
-                            <Separator />
-                            <Collapsible defaultOpen={order.status === 'shipped'}>
-                              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium hover:text-primary transition-colors">
-                                <span className="flex items-center gap-2">
-                                  <Truck className="h-4 w-4" />
-                                  Información de envío
-                                </span>
-                                <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                              </CollapsibleTrigger>
-                              <CollapsibleContent className="pt-2">
-                                <div className="space-y-3 text-sm bg-muted/30 rounded-lg p-4">
-                                  {order.carrier && (
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Transportadora</span>
-                                      <span className="capitalize font-medium">{order.carrier}</span>
-                                    </div>
-                                  )}
-                                  {order.tracking_number && (
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-muted-foreground">Número de guía</span>
-                                      <span className="font-mono font-medium">{order.tracking_number}</span>
-                                    </div>
-                                  )}
-                                  {order.shipped_at && (
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Fecha de envío</span>
-                                      <span>{new Date(order.shipped_at).toLocaleDateString('es-CO', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                      })}</span>
-                                    </div>
-                                  )}
-                                  {order.estimated_delivery_date && (
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Entrega estimada</span>
-                                      <span className="font-medium text-primary">
-                                        {new Date(order.estimated_delivery_date).toLocaleDateString('es-CO', {
-                                          weekday: 'long',
-                                          month: 'short',
-                                          day: 'numeric'
-                                        })}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </>
-                        )}
-
-                        <Separator />
-                        <div className="flex justify-between items-center pt-2">
-                          <span className="font-medium">Total:</span>
-                          <span className="text-xl font-bold">${order.total.toLocaleString()}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
+            {searchParams.get('carrito') ? (
+              <OrderDetail cartId={searchParams.get('carrito')!} />
+            ) : (
+              <Orders orders={orders} />
+            )}
           </TabsContent>
 
           {/* Addresses Tab */}

@@ -6,6 +6,8 @@ import { DatabaseModule } from 'src/config/configOrm.module';
 import { AuthModule } from '../auth/auth.module';
 import { ProductsNewModule } from '../products-new/products-new.module';
 import { CartItemsModule } from '../cart-items/cart-items.module';
+import { CartShippingInfoModule } from '../cart-shipping-info/cart-shipping-info.module';
+import { PaymentIntentsModule } from '../payment-intents/payment-intents.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { CartItemsModule } from '../cart-items/cart-items.module';
     forwardRef(() => AuthModule),
     ProductsNewModule,
     forwardRef(() => CartItemsModule),
+    CartShippingInfoModule,
+    PaymentIntentsModule,
   ],
   controllers: [CartController],
   providers: [...cartProviders, CartService],

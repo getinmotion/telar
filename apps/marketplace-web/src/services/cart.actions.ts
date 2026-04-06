@@ -10,12 +10,14 @@ import type {
   SyncGuestCartResponse,
   Cart,
   CartItemDetailed,
+  CartWithItems,
   AddCartItemRequest,
   UpdateCartItemRequest,
   DeleteCartItemResponse,
   UpdateCartStatusRequest,
   CreateCartShippingInfoRequest,
   CartShippingInfo,
+  CartFull,
 } from '@/types/cart.types';
 
 /**
@@ -308,6 +310,69 @@ export const createCartShippingInfo = async (
       '/cart-shipping-info',
       data
     );
+    return response.data;
+  } catch (error: any) {
+    toastError(error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener carts del comprador con items completos
+ *
+ * Retorna todos los carts del usuario con todos los items enriquecidos
+ * incluyendo información completa del producto y tienda vendedora.
+ *
+ * @param {string} buyerUserId - ID del usuario comprador (UUID)
+ * @returns {Promise<CartWithItems[]>} Array de carts con items y metadata
+ *
+ * @endpoint GET /cart/buyer/:buyerUserId/with-items
+ *
+ * @example
+ * const carts = await getBuyerCartWithItems(user.id);
+ * carts.forEach(cart => {
+ *   console.log('Cart ID:', cart.id);
+ *   console.log('Total items:', cart.items.length);
+ *   console.log('Multiple shops:', cart.hasMultipleShops);
+ * });
+ */
+export const getBuyerCartWithItems = async (
+  buyerUserId: string
+): Promise<CartWithItems[]> => {
+  try {
+    const response = await telarApi.get<CartWithItems[]>(
+      `/cart/buyer/${buyerUserId}/with-items`
+    );
+    return response.data;
+  } catch (error: any) {
+    toastError(error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener cart completo con toda la información
+ *
+ * Retorna un cart con toda la información detallada incluyendo:
+ * - Buyer con firstName y lastName
+ * - Items con producto completo y tienda artesanal
+ * - Información de envío (shippingInfo)
+ * - Payment intents con información del proveedor
+ *
+ * @param {string} cartId - ID del carrito (UUID)
+ * @returns {Promise<CartFull>} Cart con información completa
+ *
+ * @endpoint GET /cart/:cartId/full
+ *
+ * @example
+ * const cartFull = await getCartFull('cart-uuid');
+ * console.log('Buyer:', cartFull.buyer.firstName, cartFull.buyer.lastName);
+ * console.log('Items:', cartFull.items.length);
+ * console.log('Shipping:', cartFull.shippingInfo?.address);
+ */
+export const getCartFull = async (cartId: string): Promise<CartFull> => {
+  try {
+    const response = await telarApi.get<CartFull>(`/cart/${cartId}/full`);
     return response.data;
   } catch (error: any) {
     toastError(error);
