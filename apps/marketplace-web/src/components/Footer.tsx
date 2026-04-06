@@ -66,10 +66,10 @@ export const Footer = () => {
         </FooterNav>
 
         <FooterNav title="Telar">
-          <FooterLink to="/">Sobre Telar</FooterLink>
-          <FooterLink to="/">Historias</FooterLink>
-          <FooterLink to="/">Talleres</FooterLink>
-          <FooterLink to="/">Trazabilidad</FooterLink>
+          <FooterLink to="/sobre-telar">Sobre Telar</FooterLink>
+          <FooterLink to="/historias">Historias</FooterLink>
+          <FooterLink to="/talleres">Talleres</FooterLink>
+          <FooterLink to="/trazabilidad">Trazabilidad</FooterLink>
         </FooterNav>
 
         <FooterNav title="Descubrir">
@@ -79,18 +79,18 @@ export const Footer = () => {
         </FooterNav>
 
         <FooterNav title="Ayuda">
-          <FooterLink to="/">Cómo comprar</FooterLink>
-          <FooterLink to="/">Centro de ayuda</FooterLink>
-          <FooterLink to="/">Contacto</FooterLink>
-          <FooterLink to="/">Envíos</FooterLink>
-          <FooterLink to="/">Devoluciones</FooterLink>
+          <FooterLink to="/ayuda/como-comprar">Cómo comprar</FooterLink>
+          <FooterLink to="/ayuda">Centro de ayuda</FooterLink>
+          <FooterLink to="/ayuda/contacto">Contacto</FooterLink>
+          <FooterLink to="/ayuda/envios">Envíos</FooterLink>
+          <FooterLink to="/ayuda/devoluciones">Devoluciones</FooterLink>
         </FooterNav>
 
         <FooterNav title="Legal">
-          <FooterLink to="/terminos">Términos y condiciones</FooterLink>
-          <FooterLink to="/privacidad">Privacidad</FooterLink>
-          <FooterLink to="/">Cookies</FooterLink>
-          <FooterLink to="/">Garantías</FooterLink>
+          <FooterLink to="/legal/terminos-y-condiciones">Términos y condiciones</FooterLink>
+          <FooterLink to="/legal/politica-de-privacidad">Privacidad</FooterLink>
+          <FooterLink to="/legal/politica-de-cookies">Cookies</FooterLink>
+          <FooterLink to="/legal/politica-de-garantias">Garantías</FooterLink>
         </FooterNav>
 
         <FooterNav title="Cuenta">
