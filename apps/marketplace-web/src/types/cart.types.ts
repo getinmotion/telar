@@ -334,6 +334,24 @@ export interface UpdateCartStatusRequest {
 }
 
 /**
+ * Cart con items completos (response de GET /cart/buyer/:buyerUserId/with-items)
+ * Incluye información enriquecida de productos y tiendas vendedoras
+ */
+export interface CartWithItems {
+  id: string;
+  buyerUserId: string;
+  status: CartStatus;
+  currency: string;
+  context: string;
+  createdAt: string;
+  updatedAt: string;
+  buyer: CartBuyer;
+  items: CartItemDetailed[];
+  hasMultipleShops: boolean;
+  totalShops: number;
+}
+
+/**
  * Request para guardar información de envío del carrito
  * POST /cart-shipping-info
  */
@@ -374,4 +392,152 @@ export interface CartShippingInfo {
   valorTotalFleteMinor: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Buyer completo con firstName y lastName
+ */
+export interface CartBuyerFull {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Información de la tienda artesanal dentro del producto
+ */
+export interface ProductArtisanShop {
+  id: string;
+  shopName: string;
+  description: string;
+  location: string | null;
+}
+
+/**
+ * Producto completo con artisanShop (para cart full)
+ */
+export interface CartProductFull {
+  id: string;
+  storeId: string;
+  name: string;
+  shortDescription: string;
+  status: string;
+  categoryId: string;
+  createdAt: string;
+  media: ProductMedia[];
+  artisanShop: ProductArtisanShop;
+}
+
+/**
+ * Seller shop simplificado
+ */
+export interface CartSellerShopSimple {
+  id: string;
+  shopName: string;
+  shopSlug?: string;
+  description: string;
+  location: string | null;
+  logoUrl?: string;
+}
+
+/**
+ * Item del carrito completo (para cart full endpoint)
+ */
+export interface CartItemFull {
+  id: string;
+  cartId: string;
+  productId: string;
+  sellerShopId: string;
+  quantity: number;
+  currency: string;
+  unitPriceMinor: string;
+  priceSource: 'product_base' | 'PRODUCT_BASE' | 'override' | 'OVERRIDE';
+  priceRefId: string | null;
+  metadata: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  product: CartProductFull;
+  sellerShop: CartSellerShopSimple;
+}
+
+/**
+ * Información de envío completa
+ */
+export interface CartShippingInfoFull {
+  id: string;
+  cartId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  daneCiudad: number;
+  descCiudad: string;
+  descDepart: string;
+  postalCode: string;
+  descEnvio: string;
+  numGuia: string | null;
+  valorFleteMinor: string;
+  valorSobreFleteMinor: string;
+  valorTotalFleteMinor: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Proveedor de pago
+ */
+export interface PaymentProvider {
+  id: string;
+  code: string;
+  displayName: string;
+  isActive: boolean;
+  capabilities: {
+    supportsCreditCard: boolean;
+    supportsNequi: boolean;
+    supportsPSE: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Payment intent con información del proveedor
+ */
+export interface PaymentIntent {
+  id: string;
+  checkoutId: string;
+  providerId: string;
+  currency: string;
+  amountMinor: string;
+  status: string;
+  externalIntentId: string;
+  providerData: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  provider: PaymentProvider;
+}
+
+/**
+ * Cart completo con toda la información
+ * Response del endpoint GET /cart/:id/full
+ */
+export interface CartFull {
+  id: string;
+  buyerUserId: string;
+  contextShopId: string | null;
+  status: CartStatus;
+  context: string;
+  currency: string;
+  lockedAt: string | null;
+  convertedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  buyer: CartBuyerFull;
+  contextShop: CartShop | null;
+  items: CartItemFull[];
+  hasMultipleShops: boolean;
+  totalShops: number;
+  shippingInfo: CartShippingInfoFull | null;
+  paymentIntents: PaymentIntent[];
 }

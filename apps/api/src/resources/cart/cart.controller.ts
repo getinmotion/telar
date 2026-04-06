@@ -104,6 +104,42 @@ export class CartController {
     return this.cartService.findOpenCartByBuyerId(buyerUserId);
   }
 
+  @Get('buyer/:buyerUserId/with-items')
+  @ApiOperation({
+    summary:
+      'Obtener todos los carritos del comprador con items, productos y validación de múltiples tiendas',
+  })
+  @ApiParam({ name: 'buyerUserId', description: 'ID del usuario comprador' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Array de carritos completos con items, productos (incluyendo media y shop), status del cart, y bandera hasMultipleShops',
+  })
+  @ApiResponse({ status: 400, description: 'buyerUserId inválido' })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontraron carritos para el usuario',
+  })
+  findCartWithItemsByBuyerId(@Param('buyerUserId') buyerUserId: string) {
+    return this.cartService.findCartWithItemsByBuyerId(buyerUserId);
+  }
+
+  @Get(':id/full')
+  @ApiOperation({
+    summary: 'Obtener carrito por ID con información completa',
+  })
+  @ApiParam({ name: 'id', description: 'ID del carrito' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Carrito completo con items, productos (incluyendo media y shop), shipping info, payment intents y bandera hasMultipleShops',
+  })
+  @ApiResponse({ status: 400, description: 'cartId inválido' })
+  @ApiResponse({ status: 404, description: 'Carrito no encontrado' })
+  findCartByIdWithFullDetails(@Param('id') id: string) {
+    return this.cartService.findCartByIdWithFullDetails(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un carrito por ID' })
   @ApiParam({ name: 'id', description: 'ID del carrito' })

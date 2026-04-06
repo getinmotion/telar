@@ -18,6 +18,8 @@ import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { CartItem, PriceSource } from '../cart-items/entities/cart-item.entity';
 import { ProductsNewService } from '../products-new/products-new.service';
 import { ProductVariant } from '../products-new/entities/product-variant.entity';
+import { CartShippingInfo } from '../cart-shipping-info/entities/cart-shipping-info.entity';
+import { PaymentIntent } from '../payment-intents/entities/payment-intent.entity';
 
 @Injectable()
 export class CartService {
@@ -30,6 +32,10 @@ export class CartService {
     private readonly artisanShopsRepository: Repository<ArtisanShop>,
     @Inject('CART_ITEMS_REPOSITORY')
     private readonly cartItemsRepository: Repository<CartItem>,
+    @Inject('CART_SHIPPING_INFO_REPOSITORY')
+    private readonly cartShippingInfoRepository: Repository<CartShippingInfo>,
+    @Inject('PAYMENT_INTENT_REPOSITORY')
+    private readonly paymentIntentRepository: Repository<PaymentIntent>,
     private readonly productsNewService: ProductsNewService,
   ) {}
 
@@ -131,6 +137,120 @@ export class CartService {
     });
 
     return cart || null;
+  }
+
+  /**
+   * Obtener todos los carritos del usuario con items, productos y validación de múltiples tiendas
+   */
+  async findCartWithItemsByBuyerId(buyerUserId: string) {
+    if (!buyerUserId) {
+      throw new BadRequestException('El buyerUserId es requerido');
+    }
+
+    // 1. Buscar todos los carritos del usuario
+    const carts = await this.cartRepository.find({
+      where: { buyerUserId },
+      relations: ['buyer', 'contextShop'],
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!carts || carts.length === 0) {
+      throw new NotFoundException(
+        `No se encontraron carritos para el usuario ${buyerUserId}`,
+      );
+    }
+
+    // 2. Para cada carrito, obtener sus items con productos y media
+    const cartsWithItems = await Promise.all(
+      carts.map(async (cart) => {
+        const cartItems = await this.cartItemsRepository.find({
+          where: { cartId: cart.id },
+          relations: [
+            'product',
+            'product.media',
+            'product.artisanShop',
+            'sellerShop',
+          ],
+          order: { createdAt: 'DESC' },
+        });
+
+        // 3. Verificar si hay productos de múltiples tiendas
+        const uniqueShopIds = new Set(
+          cartItems.map((item) => item.sellerShopId).filter((id) => id),
+        );
+        const hasMultipleShops = uniqueShopIds.size > 1;
+
+        // 4. Retornar carrito con toda la información
+        return {
+          ...cart,
+          items: cartItems,
+          hasMultipleShops,
+          totalShops: uniqueShopIds.size,
+        };
+      }),
+    );
+
+    return cartsWithItems;
+  }
+
+  /**
+   * Obtener carrito por ID con toda la información detallada
+   * Incluye: cart, items, productos, media, shipping info y payment intents
+   */
+  async findCartByIdWithFullDetails(cartId: string) {
+    if (!cartId) {
+      throw new BadRequestException('El cartId es requerido');
+    }
+
+    // 1. Buscar el carrito
+    const cart = await this.cartRepository.findOne({
+      where: { id: cartId },
+      relations: ['buyer', 'contextShop'],
+    });
+
+    if (!cart) {
+      throw new NotFoundException(`Carrito con ID ${cartId} no encontrado`);
+    }
+
+    // 2. Obtener items del carrito con productos y media
+    const cartItems = await this.cartItemsRepository.find({
+      where: { cartId: cart.id },
+      relations: [
+        'product',
+        'product.media',
+        'product.artisanShop',
+        'sellerShop',
+      ],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 3. Verificar si hay productos de múltiples tiendas
+    const uniqueShopIds = new Set(
+      cartItems.map((item) => item.sellerShopId).filter((id) => id),
+    );
+    const hasMultipleShops = uniqueShopIds.size > 1;
+
+    // 4. Obtener información de envío
+    const shippingInfo = await this.cartShippingInfoRepository.findOne({
+      where: { cartId: cart.id },
+    });
+
+    // 5. Obtener payment intents con provider
+    const paymentIntents = await this.paymentIntentRepository.find({
+      where: { checkoutId: cart.id },
+      relations: ['provider'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 6. Retornar toda la información
+    return {
+      ...cart,
+      items: cartItems,
+      hasMultipleShops,
+      totalShops: uniqueShopIds.size,
+      shippingInfo: shippingInfo || null,
+      paymentIntents: paymentIntents || [],
+    };
   }
 
   /**
