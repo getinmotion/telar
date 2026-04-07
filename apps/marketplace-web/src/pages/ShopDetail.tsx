@@ -283,6 +283,12 @@ export default function ShopDetail() {
             >
               Explorar piezas del taller
             </a>
+            <Link
+              to={`/artesano/${shop.shopSlug}`}
+              className="border border-[#2c2c2c]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#2c2c2c] transition-colors text-center"
+            >
+              Conocer al artesano
+            </Link>
             <button
               onClick={() => toggleWishlist(shop.id)}
               className={cn(
@@ -673,16 +679,12 @@ export default function ShopDetail() {
               Descubre la trayectoria de los maestros artesanos de{" "}
               {shop.shopName} y su impacto en la comunidad.
             </p>
-            {shop.contactInfo?.instagram && (
-              <a
-                href={`https://instagram.com/${shop.contactInfo.instagram}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#ec6d13] transition-colors"
-              >
-                Ver perfil del artesano
-              </a>
-            )}
+            <Link
+              to={`/artesano/${shop.shopSlug}`}
+              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#ec6d13] transition-colors"
+            >
+              Ver perfil del artesano
+            </Link>
           </div>
         </div>
       </section>
