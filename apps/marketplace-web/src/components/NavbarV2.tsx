@@ -51,6 +51,14 @@ export const NavbarV2 = ({
     setLocalSearchQuery(searchQuery);
   }, [searchQuery]);
 
+  // Estado local para el input (no actualiza el contexto en tiempo real)
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  // Sincronizar estado local cuando cambia searchQuery desde afuera
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
   // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
