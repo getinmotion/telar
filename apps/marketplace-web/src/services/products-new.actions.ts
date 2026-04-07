@@ -130,6 +130,67 @@ export interface ProductsNewPaginatedResponse {
   totalPages: number;
 }
 
+// Featured products endpoint returns a flattened structure
+export interface ProductFeatured {
+  id: string;
+  name: string;
+  shortDescription: string;
+  history?: string;
+  careNotes?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  isNew: boolean;
+
+  // Category info (flattened)
+  categoryId: string;
+  categoryName: string;
+
+  // Artisanal identity (flattened)
+  craftName?: string;
+  primaryTechnique?: string;
+  pieceType?: string;
+  style?: string;
+
+  // Physical specs (flattened)
+  height?: string;
+  width?: string;
+  length?: string;
+  weight?: string;
+
+  // Logistics (flattened)
+  availabilityType?: string;
+  productionTimeDays?: number;
+
+  // Pricing (flattened from variant)
+  price: number;
+  currency: string;
+  stock: number;
+
+  // Media (flattened)
+  images: string[];
+  imageUrl: string;
+
+  // Materials (flattened)
+  materials: string[];
+
+  // Shop info (flattened)
+  shopId: string;
+  storeName: string;
+  storeSlug: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  storeDescription?: string;
+  region?: string;
+  department?: string;
+  municipality?: string;
+  craftType?: string;
+
+  // Purchase capability
+  bankDataStatus?: string;
+  canPurchase: boolean;
+}
+
 // ── API Calls ─────────────────────────────────────────
 
 /** GET /products-new — all products (with optional filters) */
@@ -164,12 +225,20 @@ export const getProductsByStore = async (storeId: string): Promise<ProductNewCor
   return response.data;
 };
 
+/** GET /products-new/marketplace/featured — featured products (isFeatured = true) */
+export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
+  const response = await telarApiPublic.get<ProductFeatured[]>('/products-new/marketplace/featured');
+  return response.data;
+};
+
 // ── Helpers ───────────────────────────────────────────
 
 /** Get primary image URL from a product's media array */
 export function getPrimaryImageUrl(product: ProductNewCore): string | null {
   const primary = product.media?.find(m => m.isPrimary);
   if (primary) return primary.mediaUrl;
+  console.log(primary)
+  console.log(product.media)
   const first = product.media?.[0];
   return first?.mediaUrl ?? null;
 }

@@ -912,7 +912,9 @@ export class ProductsNewService {
       queryBuilder.andWhere('pc.categoryId = :categoryId', { categoryId });
     }
 
-    // Note: featured filter removed as ProductCore doesn't have this property
+    if (featured !== undefined) {
+      queryBuilder.andWhere('pc.isFeatured = :featured', { featured });
+    }
 
     // Ordenamiento
     const orderByColumn = sortBy === 'name' ? 'pc.name' : `pc.${sortBy}`;
@@ -935,6 +937,7 @@ export class ProductsNewService {
       const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
       const firstVariant = variants[0];
       const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+
 
       return {
         id: product.id,
@@ -973,8 +976,8 @@ export class ProductsNewService {
         stock: totalStock,
 
         // Media
-        images: product.media?.map((m: any) => m.url) || [],
-        imageUrl: product.media?.[0]?.url || null,
+        images: product.media?.map((m: any) => m.mediaUrl) || [],
+        imageUrl: product.media?.[0]?.mediaUrl || null,
 
         // Materiales
         materials: product.materials?.map((m: any) => m.material?.name) || [],
@@ -1113,7 +1116,7 @@ export class ProductsNewService {
       })),
 
       // Media
-      images: product.media?.map((m: any) => m.url) || [],
+      images: product.media?.map((m: any) => m.mediaUrl) || [],
 
       // Materiales
       materials: product.materials?.map((m: any) => ({
@@ -1219,8 +1222,8 @@ export class ProductsNewService {
         currency: firstVariant?.currency || 'COP',
         stock: totalStock,
 
-        images: product.media?.map((m: any) => m.url) || [],
-        imageUrl: product.media?.[0]?.url || null,
+        images: product.media?.map((m: any) => m.mediaUrl) || [],
+        imageUrl: product.media?.[0]?.mediaUrl || null,
 
         materials: product.materials?.map((m: any) => m.material?.name) || [],
 
@@ -1290,8 +1293,8 @@ export class ProductsNewService {
         currency: firstVariant?.currency || 'COP',
         stock: totalStock,
 
-        images: product.media?.map((m: any) => m.url) || [],
-        imageUrl: product.media?.[0]?.url || null,
+        images: product.media?.map((m: any) => m.mediaUrl) || [],
+        imageUrl: product.media?.[0]?.mediaUrl || null,
 
         materials: product.materials?.map((m: any) => m.material?.name) || [],
 
