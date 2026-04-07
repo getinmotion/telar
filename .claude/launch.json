@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "marketplace",
+      "runtimeExecutable": "/opt/homebrew/bin/npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/marketplace-web"],
+      "port": 8080,
+      "autoPort": true
+    }
+  ]
+}

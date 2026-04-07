@@ -19,6 +19,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { ProductsNewService } from './products-new.service';
+import { ProductsNewAnalyticsService } from './products-new-analytics.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
@@ -27,7 +28,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @ApiTags('products-new')
 @Controller('products-new')
 export class ProductsNewController {
-  constructor(private readonly productsNewService: ProductsNewService) {}
+  constructor(
+    private readonly productsNewService: ProductsNewService,
+    private readonly analyticsService: ProductsNewAnalyticsService,
+  ) {}
 
   /**
    * POST /products-new
@@ -50,6 +54,17 @@ export class ProductsNewController {
   createStep1(@Body() createProductStep1Dto: CreateProductStep1Dto) {
     // Convertir a CreateProductsNewDto para usar el mismo servicio
     return this.productsNewService.create(createProductStep1Dto as any);
+  }
+
+  /**
+   * GET /products-new/analytics
+   * Panel de analytics global de productos migrados
+   */
+  @Get('analytics')
+  @ApiOperation({ summary: 'Analytics global de productos migrados' })
+  @ApiResponse({ status: 200, description: 'Analytics obtenidos exitosamente' })
+  getAnalytics() {
+    return this.analyticsService.getAnalytics();
   }
 
   /**

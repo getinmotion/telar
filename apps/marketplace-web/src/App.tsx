@@ -28,8 +28,10 @@ import NotFound from "./pages/NotFound";
 import { ConfirmPurchase } from "./pages/ConfirmPurchase";
 import PaymentPending from "./pages/PaymentPending";
 import GiftCards from "./pages/GiftCards";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+import PoliticaDePrivacidad from "./pages/legal/PoliticaDePrivacidad";
+import TerminosYCondiciones from "./pages/legal/TerminosYCondiciones";
+import PoliticaDeCookies from "./pages/legal/PoliticaDeCookies";
+import PoliticaDeGarantias from "./pages/legal/PoliticaDeGarantias";
 import DataTreatment from "./pages/DataTreatment";
 import ResetPassword from "./pages/ResetPassword";
 import Blog from "./pages/Blog";
@@ -39,6 +41,15 @@ import GoogleAuthCallback from "./pages/GoogleAuthCallback";
 import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
+import Newsletter from "./pages/Newsletter";
+import Territory from "./pages/Territory";
+import SobreTelar from "./pages/SobreTelar";
+import Ayuda from "./pages/Ayuda";
+import FAQs from "./pages/ayuda/FAQs";
+import ComoComprar from "./pages/ayuda/ComoComprar";
+import Envios from "./pages/ayuda/Envios";
+import Devoluciones from "./pages/ayuda/Devoluciones";
+import Contacto from "./pages/ayuda/Contacto";
 
 const queryClient = new QueryClient();
 
@@ -71,23 +82,34 @@ const App = () => (
                           <Route path="/giftcards" element={<GiftCards />} />
                           <Route path="/confirm-purchase" element={<ConfirmPurchase />} />
                           <Route path="/payment-pending" element={<PaymentPending />} />
-                          <Route path="/privacidad" element={<Privacy />} />
-                          <Route path="/terminos" element={<Terms />} />
-                          <Route path="/datos-personales" element={<DataTreatment />} />
+                          <Route path="/legal/politica-de-privacidad" element={<PoliticaDePrivacidad />} />
+                          <Route path="/legal/terminos-y-condiciones" element={<TerminosYCondiciones />} />
+                          <Route path="/legal/tratamiento-de-datos" element={<DataTreatment />} />
+                          <Route path="/legal/politica-de-cookies" element={<PoliticaDeCookies />} />
+                          <Route path="/legal/politica-de-garantias" element={<PoliticaDeGarantias />} />
                           <Route path="/blog" element={<Blog />} />
                           <Route path="/blog/:slug" element={<BlogArticle />} />
                           <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
                           <Route path="/explorar" element={<ExploreProducts />} />
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
+                          <Route path="/newsletter" element={<Newsletter />} />
+                          <Route path="/territorio/:slug" element={<Territory />} />
+                          <Route path="/sobre-telar" element={<SobreTelar />} />
+                          <Route path="/ayuda" element={<Ayuda />} />
+                          <Route path="/ayuda/faqs" element={<FAQs />} />
+                          <Route path="/ayuda/como-comprar" element={<ComoComprar />} />
+                          <Route path="/ayuda/envios" element={<Envios />} />
+                          <Route path="/ayuda/devoluciones" element={<Devoluciones />} />
+                          <Route path="/ayuda/contacto" element={<Contacto />} />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
                         <Route path="/reset-password" element={<ResetPassword />} />
-                        <Route path="/recategorize" element={<RecategorizeProducts />} />
-                        <Route path="/create-view" element={<CreateMarketplaceView />} />
+                        {/* <Route path="/recategorize" element={<RecategorizeProducts />} />
+                        <Route path="/create-view" element={<CreateMarketplaceView />} /> */}
 
                         {/* Catch-all */}
                         <Route path="*" element={<NotFound />} />
