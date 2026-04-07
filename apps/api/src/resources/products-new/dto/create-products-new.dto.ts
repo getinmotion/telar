@@ -334,6 +334,10 @@ export class CreateProductsNewDto {
   @IsEnum(ProductStatus)
   status?: ProductStatus;
 
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
   // Nested entities (1:1 relationships)
   @IsOptional()
   @ValidateNested()
