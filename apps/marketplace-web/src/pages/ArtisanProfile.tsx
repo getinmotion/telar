@@ -18,6 +18,7 @@ import {
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { Footer } from "@/components/Footer";
+import { useWishlist } from "@/hooks/useWishlist";
 import { ArrowRight, Heart } from "lucide-react";
 
 // ── Fallback editorial data ──────────────────────────────
@@ -63,6 +64,7 @@ const ArtisanProfile = () => {
   } = useArtisanShops();
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
+  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
 
   // Fetch shop by slug
   useEffect(() => {
@@ -605,13 +607,17 @@ const ArtisanProfile = () => {
                         </div>
                       )}
                       <button
-                        className="absolute top-4 right-4 text-[#2c2c2c] hover:text-[#ec6d13] transition-colors opacity-0 group-hover:opacity-100"
+                        className={`absolute top-4 right-4 transition-all opacity-0 group-hover:opacity-100 ${
+                          isInWishlist(product.id) ? "!opacity-100 text-[#ec6d13]" : "text-[#2c2c2c] hover:text-[#ec6d13]"
+                        }`}
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          toggleWishlist(product.id);
                         }}
+                        disabled={wishlistLoading}
                       >
-                        <Heart className="w-5 h-5" />
+                        <Heart className={`w-5 h-5 transition-colors ${isInWishlist(product.id) ? "fill-[#ec6d13]" : ""}`} />
                       </button>
                     </div>
                     <div className="space-y-3">
