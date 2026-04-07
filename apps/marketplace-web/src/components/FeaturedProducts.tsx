@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useProducts } from "@/contexts/ProductsContext";
-import { ProductCard } from "@/components/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExploreProductCard } from "@/components/ExploreProductCard";
 import {
-  MobileColumnsToggle,
-  MobileColumns,
-} from "@/components/MobileColumnsToggle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import { mapArtisanCategory } from "@/lib/productMapper";
-import { Product } from "@/types/products.types";
+  getProductsNew,
+  type ProductNewCore,
+} from "@/services/products-new.actions";
 
 // Seeded random for consistent shuffle during the day
 const seededRandom = (seed: number) => {
@@ -77,58 +72,50 @@ const prioritizedDistributedShuffle = <
 
 export const FeaturedProducts = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const {
-    products: contextProducts,
-    loading,
-    fetchFeaturedProducts,
-  } = useProducts();
-  const [displayProducts, setDisplayProducts] = useState<Product[]>([]);
+  const [displayProducts, setDisplayProducts] = useState<ProductNewCore[]>([]);
+  const [loading, setLoading] = useState(true);
   const [randomSeed] = useState(() => Math.floor(Date.now() / 86400000));
-  const [mobileColumns, setMobileColumns] = useState<MobileColumns>(() => {
-    const saved = localStorage.getItem("featuredMobileColumns");
-    return saved === "1" ? 1 : 2;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("featuredMobileColumns", String(mobileColumns));
-  }, [mobileColumns]);
 
   useEffect(() => {
     loadFeaturedProducts();
-  }, [randomSeed]);
-
-  useEffect(() => {
-    if (contextProducts.length > 0) {
-      const prioritizedProducts = prioritizedDistributedShuffle(
-        contextProducts.map((p) => ({
-          ...p
-        })),
-        randomSeed,
-      );
-      setDisplayProducts(prioritizedProducts.slice(0, 8));
-    }
-  }, [contextProducts, randomSeed]);
+  }, []);
 
   const loadFeaturedProducts = async () => {
     try {
-      await fetchFeaturedProducts();
+      setLoading(true);
+      const response = await getProductsNew({ page: 1, limit: 50 });
+      const products = response.data;
+
+      const prioritizedProducts = prioritizedDistributedShuffle(
+        products.map((p) => ({
+          ...p,
+          storeName: p.artisanShop?.shopName,
+        })),
+        randomSeed,
+      );
+
+      setDisplayProducts(prioritizedProducts.slice(0, 3));
     } catch (error) {
-      // Error already handled by context with toast
+      console.error('Error loading featured products:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <section className="py-16 px-4 bg-background">
+      <section className="bg-editorial-bg py-20 px-6">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <Skeleton className="h-10 w-64 mx-auto mb-4" />
-            <Skeleton className="h-6 w-96 mx-auto" />
+          <div className="mb-12">
+            <Skeleton className="h-20 w-96 mb-4" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-96" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-24">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-[#e5e1d8] aspect-[3/4] mb-6 rounded-sm" />
+                <div className="h-4 bg-[#e5e1d8] rounded w-3/4 mb-2" />
+                <div className="h-3 bg-[#e5e1d8] rounded w-1/2" />
+              </div>
             ))}
           </div>
         </div>
@@ -140,68 +127,36 @@ export const FeaturedProducts = () => {
     return null;
   }
 
-  const isCompactMode = isMobile && mobileColumns === 2;
-
   return (
-    <section
-      className={cn("bg-muted/20", isMobile ? "py-12 px-2" : "py-20 px-4")}
-    >
+    <section className="bg-editorial-bg py-20 px-6">
       <div className="container mx-auto max-w-7xl">
-        <div className={cn("flex items-center justify-between", isMobile ? "mb-8" : "mb-12")}>
-          <h2
-            className={cn(
-              "font-bold text-foreground",
-              isMobile ? "text-xl" : "text-2xl lg:text-3xl",
-            )}
-          >
-            Productos Destacados
+        <div className="flex items-center justify-between mb-12">
+          <h2 className="text-4xl md:text-5xl leading-[0.85] font-serif text-charcoal tracking-tight">
+            CREACIONES <br />
+            <span className="italic text-primary">DESTACADAS</span>
           </h2>
           <button
             onClick={() => navigate("/productos")}
-            className={cn(
-              "text-foreground hover:text-foreground/80 underline transition-colors",
-              isMobile ? "text-sm" : "text-base"
-            )}
+            className="text-charcoal/70 hover:text-primary underline transition-colors text-sm font-sans"
           >
             ver colección completa
           </button>
         </div>
 
-        {isMobile && (
-          <div className="flex justify-end mb-4">
-            <MobileColumnsToggle
-              columns={mobileColumns}
-              onColumnsChange={setMobileColumns}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-24">
+          {displayProducts.map((product, idx) => (
+            <ExploreProductCard
+              key={product.id}
+              product={product}
+              className={
+                idx % 3 === 1
+                  ? "md:mt-12"
+                  : idx % 3 === 2
+                    ? "md:-mt-6"
+                    : ""
+              }
             />
-          </div>
-        )}
-
-        <div
-          className={cn(
-            "grid",
-            isMobile ? "gap-3" : "gap-6",
-            isMobile
-              ? mobileColumns === 1
-                ? "grid-cols-1"
-                : "grid-cols-2"
-              : "md:grid-cols-2 lg:grid-cols-4",
-          )}
-        >
-          {displayProducts.map((product) => {
-            const imageUrl =
-              product.imageUrl ||
-              (Array.isArray(product.images) ? product.images[0] : undefined);
-            return (
-              <ProductCard
-                key={product.id}
-                {...product}
-                imageUrl={imageUrl}
-                stock={product.stock | product.inventory}
-                canPurchase={product.canPurchase ?? false}
-                compactMode={isCompactMode}
-              />
-            );
-          })}
+          ))}
         </div>
 
         {/* Botón "Ver Todos los Productos" eliminado - ahora se usa el link en el header */}

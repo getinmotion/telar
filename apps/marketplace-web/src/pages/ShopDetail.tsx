@@ -1,212 +1,214 @@
+/**
+ * ShopDetail Page — Editorial Taller View
+ * Route: /tienda/:shopSlug
+ * Design reference: stitch_telar_marketplace (5)/code.html
+ */
+
 import { useParams, Link } from "react-router-dom";
-import { normalizeCraft } from "@/lib/normalizationUtils";
 import { useEffect, useState, useMemo } from "react";
-import { useProducts } from "@/contexts/ProductsContext";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  getProductsByStore,
+  getPrimaryImageUrl,
+  getProductPrice,
+  getProductStock,
+  getTechniqueName,
+  getCraftName,
+  type ProductNewCore,
+} from "@/services/products-new.actions";
+import { formatCurrency } from "@/lib/currencyUtils";
 import { Footer } from "@/components/Footer";
-import { ProductCard } from "@/components/ProductCard";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import Autoplay from "embla-carousel-autoplay";
-import { MapPin, Store, ArrowLeft, SlidersHorizontal, Heart } from "lucide-react";
-import { toast } from "sonner";
 import { useShopWishlist } from "@/hooks/useShopWishlist";
 import { cn } from "@/lib/utils";
-import { Product } from "@/types/products.types";
+import type { ArtisanShop } from "@/types/artisan-shops.types";
+import { Heart, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
-interface Shop {
-  id: string;
-  shop_name: string;
-  shop_slug: string;
-  description?: string;
-  story?: string;
-  logo_url?: string;
-  banner_url?: string;
-  craft_type?: string;
-  region?: string;
-  contact_info?: any;
+const PAGE_SIZE = 9;
+
+// ── Badge logic ─────────────────────────────────────
+function getProductBadge(product: ProductNewCore): {
+  label: string;
+  className: string;
+} | null {
+  const stock = getProductStock(product);
+  const isNew =
+    Date.now() - new Date(product.createdAt).getTime() < 30 * 86400000;
+
+  if (stock === 0)
+    return {
+      label: "Agotado",
+      className: "bg-[#2c2c2c] text-white",
+    };
+  if (stock > 0 && stock <= 3)
+    return {
+      label: "Últimas piezas",
+      className: "bg-[#ec6d13] text-white",
+    };
+  if (isNew)
+    return {
+      label: "Nuevo",
+      className: "bg-[#ec6d13] text-white",
+    };
+  return null;
 }
 
-const PRODUCTS_PER_PAGE = 12;
+// ── Logistics micro-state ───────────────────────────
+function getLogisticsLabel(product: ProductNewCore): string | null {
+  const stock = getProductStock(product);
+  if (stock === 0) return "Bajo pedido";
+  if (stock > 0 && stock <= 5) return `${stock} disponible${stock > 1 ? "s" : ""}`;
+  return null;
+}
 
 export default function ShopDetail() {
   const { shopSlug } = useParams<{ shopSlug: string }>();
-  const { products: contextProducts, fetchProductsByShop } = useProducts();
   const { fetchShopBySlug } = useArtisanShops();
-  const [shop, setShop] = useState<Shop | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { isShopInWishlist, toggleWishlist } = useShopWishlist();
+
+  const [shop, setShop] = useState<ArtisanShop | null>(null);
+  const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [loading, setLoading] = useState(true);
-  const [productsLoading, setProductsLoading] = useState(false);
-
-  // Filter and pagination state
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedMaterial, setSelectedMaterial] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
 
-  const { isShopInWishlist, toggleWishlist, loading: wishlistLoading } = useShopWishlist();
-
+  // Fetch shop + products
   useEffect(() => {
-    if (shopSlug) {
-      fetchShopData();
-    }
+    if (!shopSlug) return;
+    let cancelled = false;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const shopData = await fetchShopBySlug(shopSlug);
+        if (cancelled || !shopData) {
+          setLoading(false);
+          return;
+        }
+        setShop(shopData);
+
+        const prods = await getProductsByStore(shopData.id);
+        if (!cancelled) setProducts(prods);
+      } catch {
+        // silent
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [shopSlug]);
 
-  useEffect(() => {
-    if (contextProducts?.length > 0 && !productsLoading) {
-      // Convertir price de string a number para cálculos
-      const mappedProducts: Product[] = contextProducts.map(p => ({
-        ...p,
-        price: p.price,
-        stock: p.stock || p.inventory || 0,
-      }));
+  // Extract unique categories (subcategories) from products
+  const categoryFilters = useMemo(() => {
+    const cats = new Map<string, string>();
+    products.forEach((p) => {
+      if (p.category) cats.set(p.category.slug, p.category.name);
+    });
+    return Array.from(cats.entries()); // [slug, name][]
+  }, [products]);
 
-      setProducts(mappedProducts);
+  // Extract primary technique name
+  const primaryTechnique = useMemo(() => {
+    for (const p of products) {
+      const t = getTechniqueName(p);
+      if (t) return t;
     }
-  }, [contextProducts, productsLoading]);
+    return null;
+  }, [products]);
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, selectedMaterial, sortBy]);
-
-  const fetchShopData = async () => {
-    if (!shopSlug) return;
-
-    try {
-      const shopData = await fetchShopBySlug(shopSlug);
-
-      if (!shopData) {
-        toast.error('Tienda no encontrada');
-        setLoading(false);
-        return;
-      }
-
-      const mappedShop = {
-        id: shopData.id,
-        shop_name: shopData.shopName,
-        shop_slug: shopData.shopSlug,
-        description: shopData.description,
-        story: shopData.story,
-        logo_url: shopData.logoUrl,
-        banner_url: shopData.bannerUrl,
-        craft_type: shopData.craftType,
-        region: shopData.region,
-        contact_info: shopData.contactInfo,
-      };
-
-      setShop(mappedShop);
-      setLoading(false);
-
-      setProductsLoading(true);
-      try {
-        await fetchProductsByShop(shopData.id);
-      } catch (error) {
-        toast.error('Error al cargar productos de la tienda');
-      } finally {
-        setProductsLoading(false);
-      }
-    } catch (error) {
-      toast.error('Error al cargar la tienda');
-      setLoading(false);
+  // Extract primary craft name
+  const primaryCraft = useMemo(() => {
+    for (const p of products) {
+      const c = getCraftName(p);
+      if (c) return c;
     }
-  };
+    return null;
+  }, [products]);
 
-  // Build hero images array - only product gallery images, no banner
+  // Extract unique materials
+  const materialsText = useMemo(() => {
+    const mats = new Set<string>();
+    products.forEach((p) => {
+      p.materials?.forEach((ml) => {
+        if (ml.material?.name) mats.add(ml.material.name);
+      });
+    });
+    return Array.from(mats).join(", ") || null;
+  }, [products]);
+
+  // Hero images from product media
   const heroImages = useMemo(() => {
-    const images: string[] = [];
-    products.forEach(p => {
-      // Use gallery images (high resolution) only
-      const productImages = (p as any).images;
-      const galleryImage = Array.isArray(productImages) && productImages.length > 0 
-        ? productImages[0] 
-        : null;
-      
-      if (galleryImage && images.length < 6) {
-        images.push(galleryImage);
-      }
+    const imgs: string[] = [];
+    if (shop?.bannerUrl) imgs.push(shop.bannerUrl);
+    products.forEach((p) => {
+      const url = getPrimaryImageUrl(p);
+      if (url && imgs.length < 6) imgs.push(url);
     });
-    return images;
-  }, [products]);
+    return imgs;
+  }, [products, shop]);
 
-  // Extract unique categories from products
-  const uniqueCategories = useMemo(() => {
-    const categories = new Set<string>();
-    products.forEach(p => {
-      if (p.category) categories.add(p.category);
-    });
-    return Array.from(categories).sort();
-  }, [products]);
-
-  // Extract unique materials from products
-  const uniqueMaterials = useMemo(() => {
-    const materials = new Set<string>();
-    products.forEach(p => {
-      if (p.materials) {
-        p.materials.forEach((m: string) => materials.add(m));
-      }
-    });
-    return Array.from(materials).sort();
-  }, [products]);
-
-  // Filtered and sorted products
-  const filteredAndSortedProducts = useMemo(() => {
+  // Filter + sort products
+  const filteredProducts = useMemo(() => {
     let result = [...products];
-    
-    // Filter by category
-    if (selectedCategory && selectedCategory !== 'all') {
-      result = result.filter(p => p.category === selectedCategory);
+
+    if (activeFilter !== "all") {
+      result = result.filter((p) => p.category?.slug === activeFilter);
     }
-    
-    // Filter by material
-    if (selectedMaterial && selectedMaterial !== 'all') {
-      result = result.filter(p => p.materials?.includes(selectedMaterial));
-    }
-    
-    // Sort
+
     switch (sortBy) {
-      case 'price_asc':
-        result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      case "price_asc":
+        result.sort(
+          (a, b) => (getProductPrice(a) ?? 0) - (getProductPrice(b) ?? 0)
+        );
         break;
-      case 'price_desc':
-        result.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      case "price_desc":
+        result.sort(
+          (a, b) => (getProductPrice(b) ?? 0) - (getProductPrice(a) ?? 0)
+        );
         break;
-      case 'name':
+      case "name":
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'newest':
       default:
-        // Already sorted by newest from API
         break;
     }
-    
-    return result;
-  }, [products, selectedCategory, selectedMaterial, sortBy]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredAndSortedProducts.length / PRODUCTS_PER_PAGE);
-  const paginatedProducts = filteredAndSortedProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
+    return result;
+  }, [products, activeFilter, sortBy]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
   );
 
-  const startItem = (currentPage - 1) * PRODUCTS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * PRODUCTS_PER_PAGE, filteredAndSortedProducts.length);
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, sortBy]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-64 w-full mb-8" />
-          <Skeleton className="h-32 w-full mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-96" />
+      <div className="min-h-screen bg-[#f9f7f2]">
+        <div className="max-w-[1400px] mx-auto px-6 py-20 animate-pulse space-y-16">
+          <div className="grid lg:grid-cols-12 gap-16">
+            <div className="lg:col-span-5 space-y-6">
+              <div className="h-4 w-32 bg-[#e5e1d8] rounded" />
+              <div className="h-16 w-80 bg-[#e5e1d8] rounded" />
+              <div className="h-6 w-64 bg-[#e5e1d8] rounded" />
+            </div>
+            <div className="lg:col-span-7 aspect-[16/10] bg-[#e5e1d8] rounded" />
+          </div>
+          <div className="grid grid-cols-3 gap-12">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <div className="aspect-[3/4] bg-[#e5e1d8] rounded" />
+                <div className="h-4 w-3/4 bg-[#e5e1d8] rounded" />
+              </div>
             ))}
           </div>
         </div>
@@ -216,316 +218,512 @@ export default function ShopDetail() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16 text-center">
-          <Store className="w-24 h-24 mx-auto text-muted-foreground mb-4" />
-          <h1 className="text-3xl font-bold mb-4">Tienda no encontrada</h1>
-          <p className="text-muted-foreground mb-8">
-            La tienda que buscas no existe o ha sido desactivada.
-          </p>
-          <Button asChild>
-            <Link to="/">Volver al inicio</Link>
-          </Button>
+      <div className="min-h-screen bg-[#f9f7f2] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="font-serif text-4xl">Taller no encontrado</h1>
+          <Link
+            to="/tiendas"
+            className="text-[#ec6d13] text-sm font-bold uppercase tracking-widest"
+          >
+            Volver a talleres
+          </Link>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Back Navigation */}
-      <div className="container mx-auto px-6 py-4">
-        <Link 
-          to="/tiendas"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver a tiendas
-        </Link>
-      </div>
+    <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
+      {/* Breadcrumb */}
+      <nav className="max-w-[1400px] mx-auto px-6 py-8">
+        <ol className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
+          <li>
+            <Link to="/" className="hover:text-[#2c2c2c]">
+              Inicio
+            </Link>
+          </li>
+          <li>/</li>
+          <li>
+            <Link to="/tiendas" className="hover:text-[#2c2c2c]">
+              Talleres
+            </Link>
+          </li>
+          <li>/</li>
+          <li className="text-[#2c2c2c]">{shop.shopName}</li>
+        </ol>
+      </nav>
 
       {/* Hero Section */}
-      <div className="relative h-[400px] md:h-[500px] bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden">
-        {heroImages.length > 1 ? (
-          <Carousel
-            opts={{ loop: true }}
-            plugins={[Autoplay({ delay: 5000 })]}
-            className="w-full h-full"
-          >
-            <CarouselContent className="h-full">
-              {heroImages.map((imageUrl, index) => (
-                <CarouselItem key={index} className="h-full">
-                  <img
-                    src={imageUrl}
-                    alt={`${shop.shop_name} - ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '';
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
-          </Carousel>
-        ) : heroImages.length === 1 ? (
-          <img
-            src={heroImages[0]}
-            alt={shop.shop_name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-            {shop.logo_url ? (
-              <img 
-                src={shop.logo_url} 
-                alt={shop.shop_name}
-                className="w-32 h-32 object-contain rounded-lg shadow-xl"
-              />
-            ) : (
-              <Store className="w-32 h-32 text-primary/40" />
+      <section className="max-w-[1400px] mx-auto px-6 pb-24 grid lg:grid-cols-12 gap-16 items-center">
+        <div className="lg:col-span-5 space-y-10">
+          <div className="space-y-6">
+            {shop.region && (
+              <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[10px]">
+                {shop.region}
+              </span>
             )}
-            <h2 className="text-2xl font-bold text-foreground">{shop.shop_name}</h2>
+            <h1 className="text-6xl md:text-8xl leading-[0.95] font-serif italic tracking-tight">
+              {shop.shopName}
+            </h1>
+            {shop.craftType && (
+              <p className="text-2xl font-serif italic text-[#2c2c2c]/70">
+                {shop.craftType}
+              </p>
+            )}
+            {shop.description && (
+              <p className="text-lg text-[#2c2c2c]/60 leading-relaxed font-light max-w-md">
+                {shop.description}
+              </p>
+            )}
           </div>
-        )}
-      </div>
-
-      {/* Overlapping Card + Description Section */}
-      <div className="container mx-auto px-6">
-        <div className="relative grid grid-cols-1 md:grid-cols-12 gap-8 pt-8 md:pt-12">
-          {/* Floating Info Card */}
-          <div className="md:col-span-5 lg:col-span-4 -mt-24 md:-mt-28">
-            <div className="bg-card/95 backdrop-blur-md rounded-lg shadow-2xl border border-border/50 p-8">
-              <div className="flex gap-6">
-              {shop.logo_url && (
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden shadow-lg border border-border/60 shrink-0 bg-card p-3 ring-1 ring-border/40">
-                  <img
-                    src={shop.logo_url}
-                    alt={shop.shop_name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a
+              href="#productos"
+              className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#ec6d13] transition-colors text-center"
+            >
+              Explorar piezas del taller
+            </a>
+            <Link
+              to={`/artesano/${shop.shopSlug}`}
+              className="border border-[#2c2c2c]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#2c2c2c] transition-colors text-center"
+            >
+              Conocer al artesano
+            </Link>
+            <button
+              onClick={() => toggleWishlist(shop.id)}
+              className={cn(
+                "border px-10 py-4 uppercase text-[10px] tracking-widest font-bold transition-colors flex items-center justify-center gap-2",
+                isShopInWishlist(shop.id)
+                  ? "bg-red-500 text-white border-red-500"
+                  : "border-[#2c2c2c]/20 hover:border-[#2c2c2c]"
+              )}
+            >
+              <Heart
+                className={cn(
+                  "w-3 h-3",
+                  isShopInWishlist(shop.id) && "fill-current"
                 )}
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-xl md:text-2xl font-bold mb-2 truncate">{shop.shop_name}</h1>
-                  {shop.craft_type && normalizeCraft(shop.craft_type) !== 'Sin especificar' && (
-                    <Badge variant="default" className="mb-2">{normalizeCraft(shop.craft_type)}</Badge>
+              />
+              {isShopInWishlist(shop.id) ? "Guardado" : "Guardar taller"}
+            </button>
+          </div>
+          <div className="flex items-center gap-12 pt-8 border-t border-[#2c2c2c]/5">
+            {primaryTechnique && (
+              <div className="flex items-center gap-3">
+                <span className="text-[#ec6d13] text-lg">✦</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
+                  {primaryTechnique}
+                </span>
+              </div>
+            )}
+            {shop.department && (
+              <div className="flex items-center gap-3">
+                <span className="text-[#ec6d13] text-lg">◆</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
+                  {shop.department}, {shop.municipality || shop.region}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="lg:col-span-7">
+          {heroImages.length > 0 ? (
+            <div className="aspect-[16/10] overflow-hidden shadow-sm rounded-sm">
+              <img
+                src={heroImages[0]}
+                alt={shop.shopName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="aspect-[16/10] bg-[#e5e1d8] rounded-sm" />
+          )}
+        </div>
+      </section>
+
+      {/* Trust Signals Strip */}
+      <section className="py-12 bg-[#2c2c2c]/5 border-y border-[#2c2c2c]/5 mb-24">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="flex flex-wrap justify-between items-center gap-8">
+            <div className="flex items-center gap-3 opacity-60">
+              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+                Origen cultural trazable
+              </span>
+            </div>
+            <div className="flex items-center gap-3 opacity-60">
+              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+                Tecnica artesanal identificada
+              </span>
+            </div>
+            <div className="flex items-center gap-3 opacity-60">
+              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+                Piezas con huella digital
+              </span>
+            </div>
+            <div className="flex items-center gap-3 opacity-60">
+              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+                Produccion artesanal
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Exploration */}
+      <section
+        id="productos"
+        className="max-w-[1400px] mx-auto px-6 mb-32"
+      >
+        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 border-b border-[#2c2c2c]/5 pb-8">
+          <div className="max-w-xl">
+            <h2 className="text-4xl md:text-5xl font-serif mb-6">
+              Coleccion {shop.shopName}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveFilter("all")}
+                className={cn(
+                  "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
+                  activeFilter === "all"
+                    ? "bg-[#ec6d13] text-white"
+                    : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
+                )}
+              >
+                Todos
+              </button>
+              {categoryFilters.map(([slug, name]) => (
+                <button
+                  key={slug}
+                  onClick={() => setActiveFilter(slug)}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
+                    activeFilter === slug
+                      ? "bg-[#ec6d13] text-white"
+                      : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
                   )}
-                  {shop.region && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 shrink-0" />
-                      <span className="truncate">{shop.region}</span>
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-8 w-full lg:w-auto justify-between lg:justify-end">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#2c2c2c]/40 font-bold hidden sm:inline">
+              {paginatedProducts.length} de {filteredProducts.length} piezas
+              artesanales
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-transparent text-[10px] font-bold uppercase tracking-[0.2em] border-none focus:ring-0 cursor-pointer"
+            >
+              <option value="newest">Mas recientes</option>
+              <option value="price_asc">Precio: menor a mayor</option>
+              <option value="price_desc">Precio: mayor a menor</option>
+              <option value="name">Nombre A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+          {paginatedProducts.map((product, i) => {
+            const imageUrl = getPrimaryImageUrl(product);
+            const price = getProductPrice(product);
+            const badge = getProductBadge(product);
+            const logistics = getLogisticsLabel(product);
+            const primaryMaterial = product.materials?.[0]?.material?.name;
+
+            return (
+              <Link
+                key={product.id}
+                to={`/product/${product.id}`}
+                className={cn(
+                  "group relative",
+                  // Staggered effect on middle column
+                  i % 3 === 1 && i > 0 ? "md:mt-16" : "",
+                  i % 3 === 1 && i > 3 ? "md:-mt-16" : ""
+                )}
+              >
+                <div className="aspect-[3/4] mb-6 relative overflow-hidden bg-[#e5e1d8] rounded-sm">
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt={product.name}
+                      className={cn(
+                        "w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]",
+                        badge?.label === "Agotado" && "grayscale"
+                      )}
+                    />
+                  )}
+                  {badge && (
+                    <div
+                      className={cn(
+                        "absolute top-4 left-0 z-10 text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5",
+                        badge.className
+                      )}
+                    >
+                      {badge.label}
                     </div>
                   )}
+                  <button
+                    className="absolute top-4 right-4 z-10 text-[#2c2c2c] hover:text-[#ec6d13] transition-colors opacity-0 group-hover:opacity-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Heart className="w-5 h-5" />
+                  </button>
                 </div>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <h3 className="text-2xl font-serif leading-tight group-hover:text-[#ec6d13] transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#ec6d13]">
+                      {shop.shopName}
+                    </p>
+                    <p className="text-[9px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
+                      {shop.region || shop.department}
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-[#2c2c2c]/5 space-y-3">
+                    <p className="text-lg font-bold tracking-tight">
+                      {price ? formatCurrency(price) : "Consultar"}
+                    </p>
+                    {primaryMaterial && (
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-[8px] bg-[#ec6d13]/5 text-[#ec6d13] border border-[#ec6d13]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
+                          {primaryMaterial}
+                        </span>
+                      </div>
+                    )}
+                    {logistics && (
+                      <p className="text-[8px] uppercase tracking-widest text-[#2c2c2c]/40 italic font-bold">
+                        {logistics}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Pagination / Load more */}
+        {totalPages > 1 && (
+          <div className="mt-32 flex justify-center items-center gap-6">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="disabled:opacity-20"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
+                      page === currentPage
+                        ? "bg-[#2c2c2c] text-white"
+                        : "text-[#2c2c2c]/40 hover:text-[#2c2c2c]"
+                    )}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((p) => Math.min(totalPages, p + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="disabled:opacity-20"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* Editorial Block — Story */}
+      {shop.story && (
+        <section className="bg-white py-24 border-y border-[#2c2c2c]/5">
+          <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
+            <div className="aspect-square bg-[#e5e1d8] shadow-sm overflow-hidden rounded-sm">
+              {heroImages.length > 1 && (
+                <img
+                  src={heroImages[1]}
+                  alt={shop.shopName}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+            <div className="space-y-10">
+              <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight">
+                Un taller que preserva oficio y territorio
+              </h2>
+              <p className="text-xl text-[#2c2c2c]/60 leading-relaxed font-light italic">
+                "{shop.story}"
+              </p>
+              <Link
+                to={
+                  shop.contactInfo?.instagram
+                    ? `https://instagram.com/${shop.contactInfo.instagram}`
+                    : "#"
+                }
+                className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#ec6d13] pb-3 hover:text-[#ec6d13] transition-all inline-flex items-center gap-3 group"
+              >
+                Leer historia del artesano
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Technique + Origin Block */}
+      {(primaryTechnique || primaryCraft) && (
+        <section className="max-w-[1400px] mx-auto px-6 py-32">
+          <div className="grid lg:grid-cols-2 gap-24">
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#ec6d13]">
+                  Detalles del Oficio
+                </span>
+                <h3 className="text-3xl lg:text-4xl font-serif italic leading-tight">
+                  {primaryTechnique
+                    ? `Tecnica principal: ${primaryTechnique}`
+                    : primaryCraft
+                    ? `Oficio: ${primaryCraft}`
+                    : "Oficio artesanal"}
+                </h3>
               </div>
-              <div className="flex gap-6 mt-6">
-                <div>
-                  <p className="text-lg font-bold">{products.length}</p>
-                  <p className="text-xs text-muted-foreground">Productos</p>
+              <div className="grid grid-cols-2 gap-12 py-8 border-y border-[#2c2c2c]/5">
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                    Region
+                  </span>
+                  <p className="font-serif text-xl italic">
+                    {shop.region || shop.department || "Colombia"}
+                  </p>
                 </div>
-                {shop.craft_type && normalizeCraft(shop.craft_type) !== 'Sin especificar' && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-lg font-bold truncate">{normalizeCraft(shop.craft_type)}</p>
-                    <p className="text-xs text-muted-foreground">Especialidad</p>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                    Oficio
+                  </span>
+                  <p className="font-serif text-xl italic">
+                    {primaryCraft || shop.craftType || "Artesanía"}
+                  </p>
+                </div>
+                {materialsText && (
+                  <div className="space-y-2 col-span-2">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                      Materiales
+                    </span>
+                    <p className="font-serif text-xl italic">{materialsText}</p>
                   </div>
                 )}
               </div>
-              
-              {/* Favorite Button */}
-              <Button
-                variant={isShopInWishlist(shop.id) ? "default" : "outline"}
-                size="sm"
-                className={cn(
-                  "mt-6 w-full",
-                  isShopInWishlist(shop.id) && "bg-red-500 hover:bg-red-600 text-white"
-                )}
-                onClick={() => toggleWishlist(shop.id)}
-                disabled={wishlistLoading}
-              >
-                <Heart className={cn("w-4 h-4 mr-2", isShopInWishlist(shop.id) && "fill-current")} />
-                {isShopInWishlist(shop.id) ? "Guardado en favoritos" : "Guardar en favoritos"}
-              </Button>
-            </div>
-          </div>
-          
-          {shop.description && (
-            <div className="md:col-span-7 lg:col-span-8 flex items-start">
-              <p className="text-lg leading-relaxed text-muted-foreground">
-                {shop.description}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Products Section */}
-      <div className="container mx-auto px-6">
-        <div className="py-16">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-1">Productos de {shop.shop_name}</h2>
-              <p className="text-sm text-muted-foreground">
-                {filteredAndSortedProducts.length > 0 
-                  ? `Mostrando ${startItem}-${endItem} de ${filteredAndSortedProducts.length} productos`
-                  : 'Sin productos'}
-              </p>
-            </div>
-            
-            {/* Filter Controls */}
-            {products.length > 0 && (
-              <div className="flex flex-wrap items-center gap-3">
-                <SlidersHorizontal className="w-4 h-4 text-muted-foreground hidden md:block" />
-                
-                {/* Category Filter */}
-                {uniqueCategories.length > 1 && (
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[160px] bg-card">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card z-50">
-                      <SelectItem value="all">Todas las categorías</SelectItem>
-                      {uniqueCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                
-                {/* Material Filter */}
-                {uniqueMaterials.length > 1 && (
-                  <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
-                    <SelectTrigger className="w-[160px] bg-card">
-                      <SelectValue placeholder="Material" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card z-50">
-                      <SelectItem value="all">Todos los materiales</SelectItem>
-                      {uniqueMaterials.map((mat) => (
-                        <SelectItem key={mat} value={mat}>{mat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                
-                {/* Sort */}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[160px] bg-card">
-                    <SelectValue placeholder="Ordenar" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card z-50">
-                    <SelectItem value="newest">Más recientes</SelectItem>
-                    <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
-                    <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
-                    <SelectItem value="name">Nombre A-Z</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {paginatedProducts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedProducts.map((product) => {
-                  const imageUrl = product.imageUrl || (Array.isArray(product.images) ? product.images[0] : undefined);
-                  return (
-                  <ProductCard
-                      {...product}
-                      imageUrl={imageUrl}
-                    />
-                  );
-                })}
-              </div>
-              
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-12 flex justify-center">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(page => {
-                          // Show first, last, current, and adjacent pages
-                          return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
-                        })
-                        .map((page, idx, arr) => (
-                          <PaginationItem key={page}>
-                            {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <span className="px-2 text-muted-foreground">...</span>
-                            )}
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                          className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-16 bg-muted/30 rounded-lg">
-              <Store className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {products.length > 0 ? 'No hay productos con estos filtros' : 'No hay productos disponibles'}
-              </h3>
-              <p className="text-muted-foreground">
-                {products.length > 0 
-                  ? 'Intenta ajustar los filtros para ver más productos.'
-                  : 'Esta tienda aún no tiene productos publicados.'}
-              </p>
-              {products.length > 0 && (selectedCategory !== 'all' || selectedMaterial !== 'all') && (
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setSelectedMaterial('all');
-                  }}
+              <div>
+                <Link
+                  to={`/productos`}
+                  className="border border-[#2c2c2c] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2c2c2c] hover:text-white transition-all inline-block"
                 >
-                  Limpiar filtros
-                </Button>
+                  Ver piezas de esta tecnica
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              {heroImages.slice(1, 3).map((img, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "aspect-[3/4] bg-[#e5e1d8] overflow-hidden rounded-sm",
+                    i === 0 && "mt-12"
+                  )}
+                >
+                  <img
+                    src={img}
+                    alt={`${shop.shopName} detalle ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              {heroImages.length < 3 && (
+                <div className="aspect-[3/4] bg-[#e5e1d8] rounded-sm" />
               )}
             </div>
-          )}
-        </div>
-
-        {/* History Section */}
-        {shop.story && (
-          <div className="pb-16">
-            <Card className="bg-muted/30 border-border/50">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-bold mb-6">Nuestra Historia</h2>
-                <p className="text-muted-foreground leading-relaxed text-lg">{shop.story}</p>
-              </CardContent>
-            </Card>
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
+      {/* CTA Section */}
+      <section className="py-32 bg-[#f9f7f2]">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <div className="max-w-2xl mx-auto space-y-10">
+            <h2 className="text-4xl lg:text-5xl font-serif italic">
+              Conoce a la persona detras del taller
+            </h2>
+            <p className="text-xl text-[#2c2c2c]/50 leading-relaxed font-light">
+              Descubre la trayectoria de los maestros artesanos de{" "}
+              {shop.shopName} y su impacto en la comunidad.
+            </p>
+            <Link
+              to={`/artesano/${shop.shopSlug}`}
+              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#ec6d13] transition-colors"
+            >
+              Ver perfil del artesano
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Related Navigation */}
+      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#2c2c2c]/5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <Link
+            to="/tiendas"
+            className="group border border-[#2c2c2c]/10 p-12 flex items-center justify-between hover:border-[#2c2c2c] transition-colors bg-white/50"
+          >
+            <div className="space-y-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                Explorar mas
+              </span>
+              <h4 className="text-3xl font-serif italic">
+                Otros talleres similares
+              </h4>
+            </div>
+            <ArrowRight className="w-8 h-8 opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
+          </Link>
+          <Link
+            to="/giftcards"
+            className="group border border-[#2c2c2c]/10 p-12 flex items-center justify-between hover:border-[#2c2c2c] transition-colors bg-white/50"
+          >
+            <div className="space-y-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                Curaduria
+              </span>
+              <h4 className="text-3xl font-serif italic">
+                Regalos con historia
+              </h4>
+            </div>
+            <ArrowRight className="w-8 h-8 opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
+          </Link>
+        </div>
+      </section>
+
+      <div className="pb-24" />
       <Footer />
     </div>
   );
