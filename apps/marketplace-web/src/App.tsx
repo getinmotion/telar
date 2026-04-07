@@ -11,6 +11,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { Layout } from "@/components/Layout";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -66,6 +67,7 @@ const App = () => (
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
+                      <ScrollToTop />
                       <Routes>
                         {/* Rutas con Layout (con Navbar) */}
                         <Route element={<Layout />}>

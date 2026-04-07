@@ -44,6 +44,11 @@ const ProductDetail = () => {
   const { fetchProductById } = useProducts();
   const isFavorite = product ? isInWishlist(product.id) : false;
 
+  // Reset scroll to top when product ID changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     fetchProduct();
   }, [id]);
