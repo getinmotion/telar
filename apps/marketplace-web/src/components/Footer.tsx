@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
-import telarHorizontal from "@/assets/telar-horizontal.svg";
+import telarFooterLogo from "@/assets/telar-footer-logo.svg";
 
 export const Footer = () => {
   const [email, setEmail] = useState("");
@@ -106,9 +106,9 @@ export const Footer = () => {
           <div className="max-w-2xl">
             <div className="mb-10">
               <img
-                src={telarHorizontal}
+                src={telarFooterLogo}
                 alt="TELAR"
-                className="h-10 w-auto brightness-0 invert opacity-90"
+                className="h-16 w-auto"
               />
             </div>
             <p className="font-serif text-4xl md:text-5xl italic text-white leading-tight">
