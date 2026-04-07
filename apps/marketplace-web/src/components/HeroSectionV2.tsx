@@ -19,12 +19,13 @@ export const HeroSectionV2 = () => {
           {/* Columna 1: Contenido de texto */}
           <div className="flex flex-col gap-6">
             {/* Título principal */}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground italic">
-              Historias hechas a mano
+            <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
+              HISTORIAS HECHAS <br />
+              <span className="italic text-primary">A MANO</span>
             </h1>
 
             {/* Descripción principal */}
-            <p className="text-base md:text-lg text-foreground/90 leading-relaxed">
+            <p className="text-sm md:text-base text-charcoal/70 font-sans font-light leading-relaxed">
               Objetos auténticos creados por talleres artesanales de Colombia.
               Cada pieza conserva la historia, el origen y el conocimiento de
               quienes la crean.
