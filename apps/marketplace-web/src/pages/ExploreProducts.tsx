@@ -507,35 +507,9 @@ const ExploreProducts = () => {
     const maxH = isMobile ? "max-h-40" : "max-h-48";
     return (
       <div className="space-y-8">
-        {/* Técnica artesanal */}
-        {availableTechniques.length > 0 && (
-          <FilterSection title="Técnica artesanal" defaultOpen>
-            <ul
-              className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
-            >
-              {availableTechniques.map((t) => (
-                <li
-                  key={t.id}
-                  onClick={() => updateFilter("techniqueId", t.id)}
-                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.techniqueId === t.id
-                      ? "font-bold text-charcoal"
-                      : ""
-                  }`}
-                >
-                  {filters.techniqueId === t.id && (
-                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                  )}
-                  {t.name}
-                </li>
-              ))}
-            </ul>
-          </FilterSection>
-        )}
-
         {/* Oficio */}
         {availableCrafts.length > 0 && (
-          <FilterSection title="Oficio">
+          <FilterSection title="Oficio" defaultOpen>
             <ul
               className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
             >
@@ -553,6 +527,32 @@ const ExploreProducts = () => {
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {c.name}
+                </li>
+              ))}
+            </ul>
+          </FilterSection>
+        )}
+
+        {/* Técnica artesanal */}
+        {availableTechniques.length > 0 && (
+          <FilterSection title="Técnica artesanal">
+            <ul
+              className={`pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans ${maxH} overflow-y-auto`}
+            >
+              {availableTechniques.map((t) => (
+                <li
+                  key={t.id}
+                  onClick={() => updateFilter("techniqueId", t.id)}
+                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
+                    filters.techniqueId === t.id
+                      ? "font-bold text-charcoal"
+                      : ""
+                  }`}
+                >
+                  {filters.techniqueId === t.id && (
+                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
+                  )}
+                  {t.name}
                 </li>
               ))}
             </ul>

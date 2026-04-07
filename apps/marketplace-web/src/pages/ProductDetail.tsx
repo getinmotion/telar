@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Heart, ShoppingCart, Share2, Compass, Settings, Leaf, MapPin, Users, Calendar } from "lucide-react";
+import { Heart, ShoppingCart, Share2, Compass, Settings, Leaf, MapPin, Users, Calendar, X, Sparkles } from "lucide-react";
 import { ProductVariants } from "@/components/ProductVariants";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { RelatedProducts } from "@/components/RelatedProducts";
@@ -43,6 +43,7 @@ const ProductDetail = () => {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { fetchShopById } = useArtisanShops();
   const isFavorite = product ? isInWishlist(product.id) : false;
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -192,21 +193,51 @@ const ProductDetail = () => {
 
             {/* Authenticity Labels */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="p-3 bg-foreground text-background uppercase text-[10px] font-semibold tracking-wide rounded-md">
+              <button
+                onClick={() => setShowComingSoon(true)}
+                className="p-3 bg-foreground text-background uppercase text-[10px] font-semibold tracking-wide rounded-md hover:bg-foreground/90 transition-colors cursor-pointer text-left"
+              >
                 Huella Digital Registrada
-              </div>
-              <div className="p-3 border-2 border-orange-600 text-orange-600 bg-transparent uppercase text-[10px] font-semibold tracking-wide rounded-md">
+              </button>
+              <button
+                onClick={() => setShowComingSoon(true)}
+                className="p-3 border-2 border-orange-600 text-orange-600 bg-transparent uppercase text-[10px] font-semibold tracking-wide rounded-md hover:bg-orange-600/10 transition-colors cursor-pointer text-left"
+              >
                 Certificado de Autenticidad Telar
-              </div>
+              </button>
             </div>
 
             {/* Certificate Link */}
-            <Link
-              to="#"
+            <button
+              onClick={() => setShowComingSoon(true)}
               className="text-foreground hover:text-foreground/80 underline transition-colors text-sm font-medium w-fit"
             >
               Ver certificado de autenticidad
-            </Link>
+            </button>
+
+            {/* Coming Soon Card */}
+            {showComingSoon && (
+              <div className="relative border border-orange-600/30 bg-orange-50 rounded-lg p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <button
+                  onClick={() => setShowComingSoon(false)}
+                  className="absolute top-3 right-3 text-foreground/40 hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-orange-600" />
+                  <h4 className="font-serif italic text-lg">Próximamente</h4>
+                </div>
+                <p className="text-sm text-foreground/70 leading-relaxed">
+                  Estamos construyendo un sistema de certificados digitales que permitirá verificar
+                  la autenticidad, el origen y la trazabilidad de cada pieza artesanal.
+                  Cada objeto tendrá una huella digital única que documenta su historia.
+                </p>
+                <p className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold">
+                  Lanzamiento próximo · 2026
+                </p>
+              </div>
+            )}
 
             {/* Location & Category Info */}
             {(shop?.region || product.category) && (
