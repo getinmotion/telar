@@ -240,16 +240,22 @@ export const NavbarV2 = ({
               </Link>
             </div>
             <Link
-              to="/tiendas"
-              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
-            >
-              Talleres
-            </Link>
-            <Link
               to="/giftcards"
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
               Regalos
+            </Link>
+            <Link
+              to="/productos"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Colecciones
+            </Link>
+            <Link
+              to="/tiendas"
+              className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
+            >
+              Talleres
             </Link>
             <Link
               to="/blog"
@@ -261,7 +267,7 @@ export const NavbarV2 = ({
               to="/newsletter"
               className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? 'text-xs' : 'text-sm'}`}
             >
-              Suscríbete
+              Sobre Telar
             </Link>
           </div>
         </nav>
