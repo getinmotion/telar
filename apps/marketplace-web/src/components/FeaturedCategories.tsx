@@ -37,16 +37,7 @@ function getCategoryImage(cat: { slug: string; name: string; imageUrl: string | 
   return FALLBACK_IMAGES[cat.slug] ?? FALLBACK_IMAGES[cat.name.toLowerCase()] ?? decoracionImg;
 }
 
-// ── Bento grid layout per category slug ──────────────
-const BENTO_LAYOUT: Record<string, string> = {
-  'joyeria-y-accesorios': 'md:col-span-2 md:row-span-2',
-  'decoracion-del-hogar': 'md:col-span-1 md:row-span-2',
-  'textiles-y-moda': 'md:col-span-1 md:row-span-2',
-  'bolsos-y-carteras': 'md:col-span-2 md:row-span-1',
-  'vajillas-y-cocina': 'md:col-span-2 md:row-span-1',
-  'muebles': 'md:col-span-1 md:row-span-1',
-  'arte-y-esculturas': 'md:col-span-1 md:row-span-1',
-};
+// Grid uniforme - todas las categorías del mismo tamaño
 
 // Slugs to exclude from home featured
 const EXCLUDED_SLUGS = ['cuidado-personal'];
@@ -141,10 +132,9 @@ export const FeaturedCategories = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 md:auto-rows-[200px]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
           {featuredCategories.map((cat) => {
             const imageUrl = getCategoryImage(cat);
-            const gridClass = BENTO_LAYOUT[cat.slug] || 'col-span-1 row-span-1';
             const count = productCounts.get(cat.id) || 0;
 
             return (
@@ -154,8 +144,7 @@ export const FeaturedCategories = () => {
                 className={cn(
                   'group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300',
                   'hover:shadow-xl hover:scale-[1.02]',
-                  'aspect-square md:aspect-auto',
-                  gridClass,
+                  'aspect-square',
                 )}
               >
                 <div className="absolute inset-0">
