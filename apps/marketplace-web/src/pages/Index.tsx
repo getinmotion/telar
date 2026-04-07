@@ -28,6 +28,7 @@ import { FeaturedArticles } from "@/components/blog/FeaturedArticles";
 import { NewsletterSection } from "@/components/NewsletterSection";
 import { Footer } from "@/components/Footer";
 import heroTextiles from "@/assets/hero-textiles.png";
+import telarIsotipo from "@/assets/telar-isotipo.svg";
 import { toast } from "sonner";
 import { getUniqueCategoriesFromProducts } from "@/lib/categoryUtils";
 import { mapArtisanCategory } from "@/lib/productMapper";
@@ -497,19 +498,19 @@ const Index = () => {
       {isHomePage ? (
         <>
           {/* HeroSection original (comentado temporalmente) */}
-          <HeroSection />
+          {/* <HeroSection /> */}
           {/* Nuevo HeroSectionV2 */}
-          {/* <HeroSectionV2 /> */}
+          <HeroSectionV2 />
 
           {/* StatsSection original (comentado temporalmente) */}
           {/* <StatsSection /> */}
 
           {/* Nueva sección de valores */}
-          {/* <section className="w-full bg-muted/30 py-12 md:py-16">
+          <section className="w-full bg-muted/30 py-12 md:py-16">
             <div className="container mx-auto px-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-6xl mx-auto">
 
-                <div className="flex flex-col gap-3 text-center">
+                <div className="flex flex-col gap-3 text-left">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Hecho a mano
                   </h3>
@@ -518,7 +519,7 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 text-center">
+                <div className="flex flex-col gap-3 text-left">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Origen cultural
                   </h3>
@@ -527,7 +528,7 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 text-center">
+                <div className="flex flex-col gap-3 text-left">
                   <h3 className="text-lg md:text-xl font-serif italic text-foreground">
                     Autenticidad registrada
                   </h3>
@@ -538,7 +539,7 @@ const Index = () => {
 
               </div>
             </div>
-          </section> */}
+          </section>
 
           <FeaturedCategories />
 
@@ -561,7 +562,7 @@ const Index = () => {
           /> */}
 
           {/* Nueva sección: Un Marketplace Diferente */}
-          {/* <section className="w-full bg-[#2a2a2a] py-20 md:py-32">
+          <section className="w-full bg-[#2a2a2a] py-20 md:py-32">
             <div className="container mx-auto px-4 max-w-5xl">
               <div className="flex flex-col items-center justify-center gap-8 text-center">
                 <p className="text-xs md:text-sm text-muted-foreground uppercase tracking-[0.3em]">
@@ -583,10 +584,10 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-          </section> */}
+          </section>
 
-          <FeaturedArticles />
-          <FeaturedShops />
+          {/* <FeaturedArticles /> */}
+          {/* <FeaturedShops /> */}
 
           {/* Nueva sección: Comercio Justo */}
           <section className="w-full bg-muted/20 py-8 md:py-10">
@@ -620,6 +621,92 @@ const Index = () => {
                   />
                 </div>
 
+              </div>
+            </div>
+          </section>
+
+          {/* Nueva sección: Huella Digital */}
+          <section className="w-full bg-background py-8 md:py-10">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start mx-[10%]">
+
+                {/* Columna 1: Imagen */}
+                <div className="relative rounded-lg overflow-hidden shadow-2xl">
+                  <img
+                    src={heroTextiles}
+                    alt="Registro de autenticidad artesanal"
+                    className="w-full h-full min-h-[250px] md:min-h-[300px] object-cover"
+                  />
+                </div>
+
+                {/* Columna 2: Contenido de texto */}
+                <div className="flex flex-col gap-6">
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-foreground">
+                    Cada pieza tiene una huella digital
+                  </h2>
+
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                    Cada objeto en Telar conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
+                  </p>
+
+                  {/* Items numerados */}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-4">
+                      <span className="text-primary font-serif italic text-xl flex-shrink-0">01</span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">TALLER ARTESANAL</p>
+                        <p className="text-sm text-muted-foreground">Ubicación geográfica exacta donde se produjo la pieza.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <span className="text-primary font-serif italic text-xl flex-shrink-0">02</span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">TALLER ARTESANAL</p>
+                        <p className="text-sm text-muted-foreground">Nombre y rostro de los maestros artesanos detrás de la creación.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <span className="text-primary font-serif italic text-xl flex-shrink-0">03</span>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">PROCESO DOCUMENTADO</p>
+                        <p className="text-sm text-muted-foreground">Detalles de la técnica, materiales y tiempo de elaboración.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button className="border-2 border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors px-6 py-3 text-xs font-bold uppercase tracking-widest w-fit">
+                    Explorar el registro de autenticidad
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* Nueva sección: Aliados */}
+          <section className="w-full bg-[#f5f3ed] py-12 md:py-16">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col items-center gap-8 max-w-2xl mx-auto text-center">
+                {/* Texto superior */}
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-charcoal/40">
+                  ALIADOS
+                </p>
+
+                {/* Logo */}
+                <div className="w-32 h-32 flex items-center justify-center">
+                  <img
+                    src={telarIsotipo}
+                    alt="TELAR"
+                    className="w-full h-full object-contain opacity-60"
+                  />
+                </div>
+
+                {/* Texto inferior */}
+                <p className="text-lg md:text-xl font-serif text-charcoal">
+                  Con el apoyo de Artesanías de Colombia
+                </p>
               </div>
             </div>
           </section>
