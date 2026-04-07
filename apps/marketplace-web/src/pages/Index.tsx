@@ -10,12 +10,8 @@ import { Footer } from "@/components/Footer";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
-  getProductsNew,
-  getPrimaryImageUrl,
-  getProductPrice,
-  getCraftName,
-  getTechniqueName,
-  type ProductNewCore,
+  getFeaturedProductsNew,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
@@ -38,7 +34,7 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
   const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
   const dailySeed = useMemo(() => {
@@ -46,12 +42,11 @@ const Index = () => {
     return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
   }, []);
 
-  // Fetch products
+  // Fetch featured products
   useEffect(() => {
-    getProductsNew({ page: 1, limit: 50 })
-      .then((res) => {
-        const data = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(data as ProductNewCore[]);
+    getFeaturedProductsNew()
+      .then((data) => {
+        setProducts(data);
       })
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false));
@@ -64,9 +59,9 @@ const Index = () => {
 
   // 3 featured products (purchasable, shuffled, from different stores)
   const featuredProducts = useMemo(() => {
-    // Filter out archived/draft — keep published or unset status
+    // Filter out archived/draft — keep published or approved status
     const available = products.filter(
-      (p) => !p.status || p.status === "published",
+      (p) => !p.status || p.status === "published" || p.status === "approved",
     );
     if (available.length === 0 && products.length > 0) {
       // Fallback: if all products have a non-published status, use all
@@ -77,9 +72,9 @@ const Index = () => {
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
-    const picked: ProductNewCore[] = [];
+    const picked: ProductFeatured[] = [];
     for (const p of shuffled) {
-      const store = p.artisanShop?.shopName ?? "";
+      const store = p.storeName ?? "";
       if (!seen.has(store)) {
         picked.push(p);
         seen.add(store);
@@ -110,6 +105,9 @@ const Index = () => {
       .filter((c) => c.isActive && c.slug !== "cuidado-personal")
       .slice(0, 8);
   }, [categoryHierarchy]);
+
+  const HERO_IMAGE =
+    "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png";
 
   return (
     <>
@@ -160,15 +158,11 @@ const Index = () => {
             <div className="grid grid-cols-6 gap-4">
               {/* Main hero image */}
               <div className="col-span-6 aspect-[16/9] bg-[#e5e1d8] overflow-hidden relative">
-                {featuredProducts[0] && getPrimaryImageUrl(featuredProducts[0]) ? (
-                  <img
-                    src={getPrimaryImageUrl(featuredProducts[0])!}
-                    alt={featuredProducts[0].name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="placeholder-box w-full h-full" />
-                )}
+                <img
+                  src={HERO_IMAGE}
+                  alt="Artesanía colombiana"
+                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+                />
               </div>
               {/* Quote area */}
               <div className="col-span-3 border-t border-[#2c2c2c]/10 pt-4">
@@ -205,8 +199,8 @@ const Index = () => {
                 Autenticidad registrada
               </h4>
               <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
-                Cada pieza cuenta con una huella digital que documenta su origen,
-                su taller y su proceso artesanal.
+                Cada pieza cuenta con una huella digital que documenta su
+                origen, su taller y su proceso artesanal.
               </p>
             </div>
           </div>
@@ -283,11 +277,11 @@ const Index = () => {
                   </div>
                 ))
               : featuredProducts.map((product, idx) => {
-                  const imageUrl = getPrimaryImageUrl(product);
-                  const price = getProductPrice(product);
-                  const shopName = product.artisanShop?.shopName;
-                  const department = product.artisanShop?.department;
-                  const technique = getTechniqueName(product);
+                  const imageUrl = product.imageUrl;
+                  const price = product.price;
+                  const shopName = product.storeName;
+                  const department = product.department;
+                  const technique = product.primaryTechnique;
 
                   return (
                     <article
@@ -377,7 +371,13 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-            <div className="flex-1 w-full md:w-auto h-64 bg-[#e5e1d8] opacity-20" />
+                         {featuredProducts[1] && featuredProducts[1].imageUrl ? (
+                <img
+                  src={featuredProducts[2].imageUrl}
+                  alt="Huella digital"
+                  className="w-full h-full object-cover"
+                />
+              ) : null}
           </div>
         </section>
 
@@ -385,10 +385,9 @@ const Index = () => {
         <section className="py-24 bg-white">
           <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
             <div className="aspect-square bg-[#e5e1d8]">
-              {featuredProducts[1] &&
-              getPrimaryImageUrl(featuredProducts[1]) ? (
+              {featuredProducts[1] && featuredProducts[1].imageUrl ? (
                 <img
-                  src={getPrimaryImageUrl(featuredProducts[1])!}
+                  src={featuredProducts[1].imageUrl}
                   alt="Huella digital"
                   className="w-full h-full object-cover"
                 />
@@ -548,20 +547,18 @@ const Index = () => {
               </div>
               <div className="flex-1 grid grid-cols-2 gap-4 w-full">
                 <div className="aspect-square bg-[#e5e1d8] overflow-hidden">
-                  {featuredProducts[1] &&
-                  getPrimaryImageUrl(featuredProducts[1]) ? (
+                  {featuredProducts[1] && featuredProducts[1].imageUrl ? (
                     <img
-                      src={getPrimaryImageUrl(featuredProducts[1])!}
+                      src={featuredProducts[1].imageUrl}
                       alt="Regalo artesanal"
                       className="w-full h-full object-cover"
                     />
                   ) : null}
                 </div>
                 <div className="aspect-square bg-[#e5e1d8] mt-12 overflow-hidden">
-                  {featuredProducts[2] &&
-                  getPrimaryImageUrl(featuredProducts[2]) ? (
+                  {featuredProducts[2] && featuredProducts[2].imageUrl ? (
                     <img
-                      src={getPrimaryImageUrl(featuredProducts[2])!}
+                      src={featuredProducts[2].imageUrl}
                       alt="Regalo artesanal"
                       className="w-full h-full object-cover"
                     />
