@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { useWishlist } from "@/hooks/useWishlist";
 import {
   getPrimaryImageUrl,
   getProductPrice,
@@ -23,12 +24,15 @@ export function ExploreProductCard({
   product: ProductNewCore;
   className?: string;
 }) {
+  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
+  const isFavorite = isInWishlist(product.id);
   const imageUrl = getPrimaryImageUrl(product);
   const price = getProductPrice(product);
   const craft = getCraftName(product);
   const technique = getTechniqueName(product);
   const stock = getProductStock(product);
   const shopName = product.artisanShop?.shopName;
+  const shopSlug = product.artisanShop?.shopSlug;
   const department = product.artisanShop?.department;
   const materialNames = (product.materials ?? [])
     .map((m) => m.material?.name)
@@ -80,10 +84,17 @@ export function ExploreProductCard({
 
           {/* Wishlist */}
           <button
-            className="absolute top-4 right-4 z-10 text-charcoal opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={(e) => e.preventDefault()}
+            className={`absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-all ${
+              isFavorite ? "!opacity-100 text-[#ec6d13]" : "text-charcoal"
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product.id);
+            }}
+            disabled={wishlistLoading}
           >
-            <Heart className="w-5 h-5" />
+            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-[#ec6d13]" : ""}`} />
           </button>
         </div>
 
@@ -95,9 +106,19 @@ export function ExploreProductCard({
               {product.name}
             </h3>
             {shopName && (
-              <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-charcoal/40 italic font-sans">
-                {shopName}
-              </p>
+              shopSlug ? (
+                <Link
+                  to={`/artesano/${shopSlug}`}
+                  className="text-[9px] font-bold uppercase tracking-[0.3em] text-charcoal/40 italic font-sans hover:text-primary transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {shopName}
+                </Link>
+              ) : (
+                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-charcoal/40 italic font-sans">
+                  {shopName}
+                </p>
+              )
             )}
             {(technique || craft || department) && (
               <div className="flex gap-1.5 items-center">
