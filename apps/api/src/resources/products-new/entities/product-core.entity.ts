@@ -57,6 +57,9 @@ export class ProductCore {
   })
   status: string; // 'draft', 'published', 'archived'
 
+  @Column({ name: 'is_featured', type: 'boolean', default: false })
+  isFeatured: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
