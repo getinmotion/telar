@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Heart, Users, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, Heart, Sparkles, TrendingUp } from "lucide-react";
 
 export default function SobreTelar() {
   return (
@@ -189,100 +189,7 @@ export default function SobreTelar() {
         </div>
       </section>
 
-      {/* 18.5 Impacto — Comunidades, talleres */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-24">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="text-[10px] uppercase tracking-widest font-sans text-primary font-bold">
-              Nuestro impacto
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 text-charcoal tracking-tight">
-            Más que ventas,
-            <br />
-            <span className="italic text-primary">transformación social</span>
-          </h2>
-          <p className="text-sm md:text-base text-charcoal/70 max-w-2xl mx-auto font-sans leading-relaxed">
-            Cada compra en TELAR genera un efecto multiplicador en las comunidades
-            artesanales de Colombia.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg p-6 border border-charcoal/5">
-            <div className="text-4xl font-bold text-primary mb-2">42</div>
-            <div className="text-sm font-semibold text-charcoal mb-2">
-              Municipios conectados
-            </div>
-            <div className="text-xs text-charcoal/60 font-sans">
-              Desde La Guajira hasta el Amazonas
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-charcoal/5">
-            <div className="text-4xl font-bold text-primary mb-2">1.500+</div>
-            <div className="text-sm font-semibold text-charcoal mb-2">
-              Artesanos activos
-            </div>
-            <div className="text-xs text-charcoal/60 font-sans">
-              Vendiendo y creciendo cada mes
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-charcoal/5">
-            <div className="text-4xl font-bold text-primary mb-2">350</div>
-            <div className="text-sm font-semibold text-charcoal mb-2">
-              Talleres familiares
-            </div>
-            <div className="text-xs text-charcoal/60 font-sans">
-              Preservando técnicas ancestrales
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-charcoal/5">
-            <div className="text-4xl font-bold text-primary mb-2">$2.5M</div>
-            <div className="text-sm font-semibold text-charcoal mb-2">
-              Millones pagados
-            </div>
-            <div className="text-xs text-charcoal/60 font-sans">
-              Directamente a artesanos en 2024
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 grid md:grid-cols-2 gap-8">
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-8 border border-primary/20">
-            <h3 className="text-xl font-semibold text-charcoal mb-4">
-              Comunidades indígenas
-            </h3>
-            <p className="text-sm text-charcoal/70 font-sans leading-relaxed mb-4">
-              Trabajamos con comunidades Wayuu, Arhuaca, Emberá y Zenú,
-              respetando sus procesos tradicionales y garantizando que
-              mantengan el control de su conocimiento ancestral.
-            </p>
-            <p className="text-xs text-charcoal/60 font-sans">
-              Certificación de origen y autenticidad en cada producto
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/10 rounded-lg p-8 border border-amber-500/20">
-            <h3 className="text-xl font-semibold text-charcoal mb-4">
-              Talleres urbanos
-            </h3>
-            <p className="text-sm text-charcoal/70 font-sans leading-relaxed mb-4">
-              Apoyamos a artesanos en ciudades que mantienen vivas técnicas
-              como la cerámica, el tejido, la marroquinería y la joyería,
-              generando empleo local de calidad.
-            </p>
-            <p className="text-xs text-charcoal/60 font-sans">
-              Capacitación continua en diseño y gestión de negocio
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 18.6 CTA a explorar */}
+      {/* 18.5 CTA a explorar */}
       <section className="max-w-[1400px] mx-auto px-6 mb-32">
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-12 md:p-16 text-center text-white">
           <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 tracking-tight">
