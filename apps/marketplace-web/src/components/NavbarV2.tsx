@@ -44,7 +44,7 @@ const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[]
   { to: "/productos", label: "Colecciones" },
   { to: "/tiendas", label: "Talleres" },
   { to: "/blog", label: "Historias" },
-  { to: "/newsletter", label: "Sobre Telar" },
+  { to: "/sobre-telar", label: "Sobre Telar" },
 ];
 
 export const NavbarV2 = ({
