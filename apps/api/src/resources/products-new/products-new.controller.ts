@@ -96,7 +96,9 @@ export class ProductsNewController {
     return this.productsNewService.findAll();
   }
 
-  /**
+ 
+
+    /**
    * GET /products-new/store/:storeId
    * Obtener productos de una tienda específica
    */
@@ -215,6 +217,15 @@ export class ProductsNewController {
   })
   async getMarketplaceProductsByShop(@Param('shopId') shopId: string) {
     return await this.productsNewService.getMarketplaceProductsByShop(shopId);
+  }
+
+   /**
+   * GET /products-new/store/:storeId
+   * Obtener productos de una tienda específica
+   */
+  @Get('marketplace/store/:storeId')
+  findByStoreIdForMarketplace(@Param('storeId') storeId: string) {
+    return this.productsNewService.findByStoreIdForMarketplace(storeId);
   }
 
   /**

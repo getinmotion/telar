@@ -221,7 +221,7 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
 
 /** GET /products-new/store/:storeId — products by store */
 export const getProductsByStore = async (storeId: string): Promise<ProductNewCore[]> => {
-  const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/store/${storeId}`);
+  const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/marketplace/store/${storeId}`);
   return response.data;
 };
 
