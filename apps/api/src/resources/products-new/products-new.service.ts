@@ -488,6 +488,37 @@ export class ProductsNewService {
     return products;
   }
 
+    /**
+   * Obtener productos por tienda (artisan_shop)
+   * @param storeId - ID del artisan_shop (no confundir con la nueva tabla stores)
+   */
+  async findByStoreIdForMarketplace(storeId: string): Promise<ProductCore[]> {
+    const products = await this.productCoreRepository.find({
+      where: { storeId, deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
+      relations: [
+        'artisanShop',
+        'category',
+        'artisanalIdentity',
+        'artisanalIdentity.primaryCraft',
+        'artisanalIdentity.primaryTechnique',
+        'artisanalIdentity.secondaryTechnique',
+        'artisanalIdentity.curatorialCategory',
+        'physicalSpecs',
+        'logistics',
+        'production',
+        'media',
+        'badges',
+        'badges.badge',
+        'materials',
+        'materials.material',
+        'variants',
+      ],
+      order: { createdAt: 'DESC' },
+    });
+
+    return products;
+  }
+
   /**
    * Obtener productos por userId (del artisan_shop)
    * Hace JOIN con artisan_shops y filtra por el user_id del artesano
@@ -1185,7 +1216,7 @@ export class ProductsNewService {
       .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
       .where('pc.storeId = :shopId', { shopId })
       .andWhere('pc.status IN (:...statuses)', {
-        statuses: ['published', 'approved'],
+        statuses: ['approved_with_edits', 'approved'],
       })
       .andWhere('pc.deletedAt IS NULL')
       .andWhere('shop.publishStatus = :publishStatus', {
