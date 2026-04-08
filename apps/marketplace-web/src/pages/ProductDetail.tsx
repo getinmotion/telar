@@ -693,6 +693,7 @@ const ProductDetail = () => {
           currentProductId={product.id}
           category={product.category}
           storeName={product.storeName}
+          storeId={product.shopId}
         />
       </div>
 
