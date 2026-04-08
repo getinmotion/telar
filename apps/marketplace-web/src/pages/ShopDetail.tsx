@@ -430,8 +430,30 @@ export default function ShopDetail() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
-          {paginatedProducts.map((product, i) => {
+        {paginatedProducts.length === 0 ? (
+          <div className="py-32 text-center space-y-6">
+            <div className="space-y-3">
+              <p className="text-4xl md:text-5xl font-serif italic text-[#2c2c2c]/30">
+                Sin productos disponibles
+              </p>
+              <p className="text-base text-[#2c2c2c]/50 max-w-md mx-auto">
+                {activeFilter !== "all"
+                  ? "No hay productos en esta categoría. Prueba con otra categoría o revisa todos los productos."
+                  : "Este taller aún no tiene productos publicados. Vuelve pronto para ver sus creaciones."}
+              </p>
+            </div>
+            {activeFilter !== "all" && (
+              <button
+                onClick={() => setActiveFilter("all")}
+                className="inline-block mt-8 px-8 py-3 bg-[#2c2c2c] text-white text-xs uppercase tracking-widest hover:bg-[#ec6d13] transition-colors"
+              >
+                Ver todos los productos
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+            {paginatedProducts.map((product, i) => {
             const imageUrl = getPrimaryImageUrl(product);
             const price = getProductPrice(product);
             const badge = getProductBadge(product);
@@ -513,7 +535,8 @@ export default function ShopDetail() {
               </Link>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* Pagination / Load more */}
         {totalPages > 1 && (
