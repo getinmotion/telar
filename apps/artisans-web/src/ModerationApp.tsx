@@ -6,6 +6,7 @@ import { ModeratorProtectedRoute } from '@/components/auth/ModeratorProtectedRou
 import ModerationLogin from './pages/moderation/ModerationLogin';
 import ModerationPage from './pages/ModerationPage';
 import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
+import { ProductReviewPage } from './pages/ProductReviewPage'; // <-- Ajusta la ruta si es necesario
 
 /**
  * ModerationApp - Aplicación simplificada para el subdominio de moderación
@@ -41,6 +42,18 @@ export const ModerationApp: React.FC = () => {
         <Route path="/moderacion/analytics" element={
           <ModeratorProtectedRoute>
             <ProductAnalyticsPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* NUEVO: Revisor de Productos */}
+        <Route path="/revisor-productos" element={
+          <ModeratorProtectedRoute>
+            <ProductReviewPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/revisor-productos" element={
+          <ModeratorProtectedRoute>
+            <ProductReviewPage />
           </ModeratorProtectedRoute>
         } />
 

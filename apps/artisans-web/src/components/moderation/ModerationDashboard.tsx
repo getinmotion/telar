@@ -12,6 +12,7 @@ import {
   CreditCard,
   TrendingUp,
   BarChart3,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
@@ -340,8 +341,7 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
         </div>
 
         {/* Analytics Button */}
-        <div className="pt-2">
-          <Button
+      <div className="pt-2 flex flex-col sm:flex-row gap-4">          <Button
             variant="outline"
             className="w-full gap-2"
             onClick={() =>
@@ -354,6 +354,20 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
           >
             <BarChart3 className="w-4 h-4" />
             Analytics Global — Productos Migrados
+          </Button>
+          <Button
+            variant="default" // Puedes usar "outline" si prefieres que se vea igual al otro
+            className="w-full gap-2"
+            onClick={() =>
+              navigate(
+                isModerationSubdomain
+                  ? '/revisor-productos'
+                  : '/moderacion/revisor-productos',
+              )
+            }
+          >
+            <ClipboardList className="w-4 h-4" />
+            Revisor de Productos Migrados
           </Button>
         </div>
       </div>
