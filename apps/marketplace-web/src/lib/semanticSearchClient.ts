@@ -55,16 +55,11 @@ export async function semanticSearch(request: SearchRequest): Promise<SearchResp
       'Content-Type': 'application/json',
     };
 
-    // Agregar API key si está configurada
-    // if (SEMANTIC_SEARCH_API_KEY) {
-    //   headers['x-api-key'] = SEMANTIC_SEARCH_API_KEY;
-    // }
-
     const response = await axios.post<SearchResponse>(
       `${SEMANTIC_SEARCH_API_URL}/api/search/products`,
       {
         query: request.query,
-        limit: request.limit || 20,
+        top_k: request.limit || 20,
         min_similarity: request.min_similarity || 0.3,
       },
       { headers }
