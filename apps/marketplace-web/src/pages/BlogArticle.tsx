@@ -69,7 +69,7 @@ const BlogArticle = () => {
             Volver a Historias
           </Link>
         </div>
-        <Footer />
+        <Footer showNewsletter />
       </div>
     );
   }
@@ -258,7 +258,7 @@ const BlogArticle = () => {
         </section>
 
         <div className="pb-24" />
-        <Footer />
+        <Footer showNewsletter />
       </div>
     </>
   );
