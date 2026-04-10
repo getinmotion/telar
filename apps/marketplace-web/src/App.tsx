@@ -42,8 +42,10 @@ import GoogleAuthCallback from "./pages/GoogleAuthCallback";
 import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
+import Explorar from "./pages/Explorar";
 import Newsletter from "./pages/Newsletter";
 import Territory from "./pages/Territory";
+import Territorios from "./pages/Territorios";
 import SobreTelar from "./pages/SobreTelar";
 import Ayuda from "./pages/Ayuda";
 import FAQs from "./pages/ayuda/FAQs";
@@ -92,10 +94,11 @@ const App = () => (
                           <Route path="/blog" element={<Blog />} />
                           <Route path="/blog/:slug" element={<BlogArticle />} />
                           <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
-                          <Route path="/explorar" element={<ExploreProducts />} />
+                          <Route path="/explorar" element={<Explorar />} />
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                           <Route path="/newsletter" element={<Newsletter />} />
+                          <Route path="/territorios" element={<Territorios />} />
                           <Route path="/territorio/:slug" element={<Territory />} />
                           <Route path="/sobre-telar" element={<SobreTelar />} />
                           <Route path="/ayuda" element={<Ayuda />} />

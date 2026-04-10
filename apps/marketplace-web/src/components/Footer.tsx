@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import telarFooterLogo from "@/assets/telar-footer-logo.svg";
 
-export const Footer = () => {
+export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean }) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,47 +18,49 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-[#1a1a1a] text-white pt-32 overflow-visible mt-40">
-      {/* ── Floating Newsletter Module ── */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
-        <div className="bg-white text-[#1a1a1a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
-          <div className="max-w-md">
-            <h2 className="font-serif text-3xl md:text-4xl italic mb-4 leading-tight">
-              Historias del mundo artesanal
-            </h2>
-            <p className="font-sans text-[#1a1a1a]/60 text-base">
-              Crónicas de maestros artesanos y lanzamientos exclusivos.
-            </p>
-          </div>
-          <div className="w-full max-w-md">
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-6">
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/50 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@correo.com"
-                  required
-                  className="w-full bg-transparent border-0 border-b border-[#1a1a1a]/20 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-[#1a1a1a]/30 transition-colors outline-none"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-full hover:bg-[#783200] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
-              >
-                {loading ? "Suscribiendo..." : "Suscribirme Gratis"}
-              </button>
-            </form>
+    <footer className={`relative bg-[#1a1a1a] text-white overflow-visible ${showNewsletter ? "pt-32 mt-40" : "pt-16 mt-0"}`}>
+      {/* ── Floating Newsletter Module (only on Historias & Sobre Telar) ── */}
+      {showNewsletter && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
+          <div className="bg-white text-[#1a1a1a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
+            <div className="max-w-md">
+              <h2 className="font-serif text-3xl md:text-4xl italic mb-4 leading-tight">
+                Historias del mundo artesanal
+              </h2>
+              <p className="font-sans text-[#1a1a1a]/60 text-base">
+                Crónicas de maestros artesanos y lanzamientos exclusivos.
+              </p>
+            </div>
+            <div className="w-full max-w-md">
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-6">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/50 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    required
+                    className="w-full bg-transparent border-0 border-b border-[#1a1a1a]/20 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-[#1a1a1a]/30 transition-colors outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-full hover:bg-[#783200] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
+                >
+                  {loading ? "Suscribiendo..." : "Suscribirme Gratis"}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── 6-Column Navigation ── */}
-      <div className="max-w-7xl mx-auto px-8 py-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 mt-20 md:mt-0">
+      <div className={`max-w-7xl mx-auto px-8 py-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 ${showNewsletter ? "mt-20 md:mt-0" : ""}`}>
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
           <FooterLink to="/productos">Categorías</FooterLink>

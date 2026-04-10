@@ -226,7 +226,7 @@ export default function SobreTelar() {
       </section>
 
       {/* 18.7 Footer */}
-      <Footer />
+      <Footer showNewsletter />
     </div>
   );
 }

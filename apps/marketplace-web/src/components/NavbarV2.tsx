@@ -38,7 +38,7 @@ interface NavbarV2Props {
 
 // ── Nav links config ────────────────────────────────
 const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[] = [
-  { to: "/productos", label: "Explorar" },
+  { to: "/explorar", label: "Explorar" },
   { to: "/categorias", label: "Categorías", hasMegaMenu: true },
   { to: "/giftcards", label: "Regalos" },
   { to: "/productos", label: "Colecciones" },
