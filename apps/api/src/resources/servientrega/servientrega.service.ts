@@ -17,8 +17,11 @@ import {
   ShopGroup,
   ShopQuoteResult,
   QuoteShippingResponse,
+  StandaloneQuoteResponse,
+  ShopPhysicalSpecsRow,
   ServientregaPiece,
 } from './interfaces/servientrega.interface';
+import { QuoteStandaloneDto } from './dto/quote-standalone.dto';
 
 @Injectable()
 export class ServientregaService {
@@ -298,6 +301,76 @@ export class ServientregaService {
         error: error.message || 'Error interno del servidor',
       };
     }
+  }
+
+  /**
+   * Cotizar envio standalone (sin carrito)
+   */
+  async quoteStandalone(dto: QuoteStandaloneDto): Promise<StandaloneQuoteResponse> {
+    try {
+      const token = await this.getServientregaToken();
+
+      const shopGroup: ShopGroup = {
+        shopId: 'standalone',
+        shopName: 'Standalone',
+        originCity: dto.idCityOrigen,
+        totalValue: Math.max(dto.valorDeclarado, 30000),
+        itemsCount: dto.pieces.length,
+        pieces: dto.pieces.map((p) => ({
+          Peso: Math.max(p.peso, 0.5),
+          Largo: Math.max(p.largo, 10),
+          Ancho: Math.max(p.ancho, 10),
+          Alto: Math.max(p.alto, 10),
+        })),
+      };
+
+      const result = await this.quoteForShop(token, shopGroup, dto.idCityDestino);
+
+      return {
+        success: !result.error || result.shippingCost > 0,
+        shippingCost: result.shippingCost,
+        estimatedDays: result.estimatedDays,
+        error: result.error,
+        rawResponse: result.rawResponse,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        shippingCost: 0,
+        estimatedDays: 0,
+        error: error.message || 'Error interno',
+      };
+    }
+  }
+
+  /**
+   * Obtener tiendas activas con specs fisicas de sus productos
+   */
+  async getShopsWithPhysicalSpecs(): Promise<ShopPhysicalSpecsRow[]> {
+    const query = `
+      SELECT
+        s.id as shop_id,
+        s.shop_name,
+        s.department,
+        s.municipality,
+        s.region,
+        s.servientrega_coverage,
+        pc.id as product_id,
+        pc.name as product_name,
+        ps.height_cm,
+        ps.width_cm,
+        ps.length_or_diameter_cm,
+        ps.real_weight_kg,
+        pv.base_price_minor
+      FROM shop.artisan_shops s
+      LEFT JOIN shop.products_core pc ON pc.store_id = s.id AND pc.deleted_at IS NULL
+      LEFT JOIN shop.product_physical_specs ps ON ps.product_id = pc.id
+      LEFT JOIN shop.product_variants pv ON pv.product_id = pc.id AND pv.is_active = true
+      WHERE s.active = true
+      ORDER BY s.shop_name, pc.name
+    `;
+
+    return this.dataSource.query(query);
   }
 
   /**

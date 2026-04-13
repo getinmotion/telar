@@ -17,6 +17,8 @@ interface LocationData {
 interface UseColombiaLocationsReturn {
   departments: string[];
   getMunicipalities: (department: string) => string[];
+  getDaneCode: (department: string, municipality: string) => string | null;
+  locationData: LocationData[];
   isLoading: boolean;
   error: string | null;
 }
@@ -108,9 +110,31 @@ export const useColombiaLocations = (): UseColombiaLocationsReturn => {
     return uniqueMunicipalities.sort((a, b) => a.localeCompare(b, 'es'));
   }, [data]);
 
+  // Get DANE code for a department+municipality pair (normalized matching)
+  const getDaneCode = useCallback((department: string, municipality: string): string | null => {
+    const normalize = (s: string) =>
+      s.toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const normDept = normalize(department);
+    const normMuni = normalize(municipality);
+
+    const match = data.find(
+      (item) =>
+        normalize(item.dpto) === normDept &&
+        normalize(item.nom_mpio) === normMuni,
+    );
+
+    return match?.cod_mpio ?? null;
+  }, [data]);
+
   return {
     departments,
     getMunicipalities,
+    getDaneCode,
+    locationData: data,
     isLoading,
     error,
   };
