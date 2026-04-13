@@ -47,6 +47,8 @@ import Newsletter from "./pages/Newsletter";
 import Territory from "./pages/Territory";
 import Territorios from "./pages/Territorios";
 import SobreTelar from "./pages/SobreTelar";
+import Tecnicas from "./pages/Tecnicas";
+import TecnicaDetail from "./pages/TecnicaDetail";
 import Ayuda from "./pages/Ayuda";
 import FAQs from "./pages/ayuda/FAQs";
 import ComoComprar from "./pages/ayuda/ComoComprar";
@@ -100,6 +102,8 @@ const App = () => (
                           <Route path="/newsletter" element={<Newsletter />} />
                           <Route path="/territorios" element={<Territorios />} />
                           <Route path="/territorio/:slug" element={<Territory />} />
+                          <Route path="/tecnicas" element={<Tecnicas />} />
+                          <Route path="/tecnica/:slug" element={<TecnicaDetail />} />
                           <Route path="/sobre-telar" element={<SobreTelar />} />
                           <Route path="/ayuda" element={<Ayuda />} />
                           <Route path="/ayuda/faqs" element={<FAQs />} />

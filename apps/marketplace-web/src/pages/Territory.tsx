@@ -275,30 +275,33 @@ export default function Territory() {
 
           {territoryTechniques.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {territoryTechniques.slice(0, 3).map((tech, i) => (
-                <div
-                  key={tech.id}
-                  className="p-12 space-y-8 border transition-colors duration-500 hover:bg-white"
-                  style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
-                >
-                  <div className="space-y-4">
-                    <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="text-3xl font-serif">{tech.name}</h3>
-                    <p className="font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.7)" }}>
-                      Técnica artesanal presente en los talleres de {territory.name.split(",")[0]}.
-                    </p>
-                  </div>
-                  <Link
-                    to="/productos"
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:gap-4 transition-all"
-                    style={{ color: "#ec6d13" }}
+              {territoryTechniques.slice(0, 3).map((tech, i) => {
+                const techSlug = tech.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+                return (
+                  <div
+                    key={tech.id}
+                    className="p-12 space-y-8 border transition-colors duration-500 hover:bg-white"
+                    style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
                   >
-                    Explorar técnica <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              ))}
+                    <div className="space-y-4">
+                      <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <h3 className="text-3xl font-serif">{tech.name}</h3>
+                      <p className="font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.7)" }}>
+                        Técnica artesanal presente en los talleres de {territory.name.split(",")[0]}.
+                      </p>
+                    </div>
+                    <Link
+                      to={`/tecnica/${techSlug}`}
+                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:gap-4 transition-all"
+                      style={{ color: "#ec6d13" }}
+                    >
+                      Explorar técnica <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           ) : loading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
