@@ -13,6 +13,7 @@ import {
   TrendingUp,
   BarChart3,
   ClipboardList,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
@@ -356,7 +357,7 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
             Analytics Global — Productos Migrados
           </Button>
           <Button
-            variant="default" // Puedes usar "outline" si prefieres que se vea igual al otro
+            variant="default"
             className="w-full gap-2"
             onClick={() =>
               navigate(
@@ -368,6 +369,20 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
           >
             <ClipboardList className="w-4 h-4" />
             Revisor de Productos Migrados
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() =>
+              navigate(
+                isModerationSubdomain
+                  ? '/envios-dashboard'
+                  : '/moderacion/envios-dashboard',
+              )
+            }
+          >
+            <Truck className="w-4 h-4" />
+            Dashboard de Envios
           </Button>
         </div>
       </div>

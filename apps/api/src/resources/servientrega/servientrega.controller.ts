@@ -1,8 +1,13 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ServientregaService } from './servientrega.service';
 import { QuoteShippingDto } from './dto/quote-shipping.dto';
-import { QuoteShippingResponse } from './interfaces/servientrega.interface';
+import { QuoteStandaloneDto } from './dto/quote-standalone.dto';
+import {
+  QuoteShippingResponse,
+  StandaloneQuoteResponse,
+  ShopPhysicalSpecsRow,
+} from './interfaces/servientrega.interface';
 
 @ApiTags('servientrega')
 @Controller('servientrega')
@@ -45,5 +50,30 @@ export class ServientregaController {
     @Body() dto: QuoteShippingDto,
   ): Promise<QuoteShippingResponse> {
     return this.servientregaService.quoteShipping(dto);
+  }
+
+  @Post('quote-standalone')
+  @ApiOperation({
+    summary: 'Cotizar envío standalone (sin carrito)',
+    description:
+      'Calcula el costo de envío usando dimensiones y peso directamente, sin necesidad de un carrito existente.',
+  })
+  @ApiResponse({ status: 200, description: 'Cotización exitosa' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  async quoteStandalone(
+    @Body() dto: QuoteStandaloneDto,
+  ): Promise<StandaloneQuoteResponse> {
+    return this.servientregaService.quoteStandalone(dto);
+  }
+
+  @Get('shops-physical-specs')
+  @ApiOperation({
+    summary: 'Obtener tiendas con specs físicas de productos',
+    description:
+      'Retorna todas las tiendas activas con las dimensiones y pesos de sus productos para análisis de envíos.',
+  })
+  @ApiResponse({ status: 200, description: 'Datos obtenidos exitosamente' })
+  async getShopsWithPhysicalSpecs(): Promise<ShopPhysicalSpecsRow[]> {
+    return this.servientregaService.getShopsWithPhysicalSpecs();
   }
 }

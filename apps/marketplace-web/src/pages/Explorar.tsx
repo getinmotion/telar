@@ -351,7 +351,7 @@ const Explorar = () => {
                 Ver piezas
               </Link>
               <Link
-                to="/blog"
+                to="/historias"
                 className="flex items-center gap-2 hover:text-white transition-colors"
                 style={{ color: "rgba(255,255,255,0.4)" }}
               >
