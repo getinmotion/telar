@@ -183,7 +183,7 @@ const Shops = () => {
       <section className="max-w-[1400px] mx-auto px-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
-            to="/productos"
+            to="/tecnicas"
             className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
           >
             <div>
@@ -196,7 +196,7 @@ const Shops = () => {
             </div>
           </Link>
           <Link
-            to="/productos"
+            to="/territorios"
             className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
           >
             <div>
