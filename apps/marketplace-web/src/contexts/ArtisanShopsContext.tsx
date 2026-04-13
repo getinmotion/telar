@@ -94,11 +94,26 @@ export const ArtisanShopsProvider = ({ children }: { children: ReactNode }) => {
   const fetchFeaturedShops = async (limitParam: number = 8) => {
     setLoading(true);
     try {
-      const featuredShops = await ArtisanShopsActions.getFeaturedShops(limitParam);
-      setShops(featuredShops);
-      setTotal(featuredShops.length);
+      const response = await ArtisanShopsActions.getFeaturedShops(limitParam);
+      
+      // Manejamos de forma segura si la respuesta es un arreglo o viene envuelta
+      let validShops: ArtisanShop[] = [];
+      
+      if (Array.isArray(response)) {
+        validShops = response;
+      } else if (response && Array.isArray((response as any).data)) {
+        validShops = (response as any).data;
+      } else if (response && Array.isArray((response as any).shops)) {
+        validShops = (response as any).shops;
+      } else {
+        console.warn('fetchFeaturedShops: API no devolvió un arreglo esperado', response);
+      }
+
+      setShops(validShops);
+      setTotal(validShops.length);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Error al cargar tiendas destacadas'));
+      setShops([]); // Limpiamos en caso de error
       throw error;
     } finally {
       setLoading(false);

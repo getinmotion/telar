@@ -50,12 +50,15 @@ const Explorar = () => {
     fetchFeaturedShops(4);
   }, []);
 
-  // Pick a few categories for the quick-links
-  const topCategories = categoryHierarchy.slice(0, 3);
-  const topTechniques = techniques.slice(0, 3);
+  // 1. Validamos que sean arreglos reales. Si no lo son, asignamos un arreglo vacío []
+  const safeCategories = Array.isArray(categoryHierarchy) ? categoryHierarchy : [];
+  const safeTechniques = Array.isArray(techniques) ? techniques : [];
+  const safeShops = Array.isArray(shops) ? shops : [];
 
-  // Featured shops (up to 4)
-  const featuredShops = shops.slice(0, 4);
+  // 2. Ahora hacemos los recortes de forma 100% segura
+  const topCategories = safeCategories.slice(0, 3);
+  const topTechniques = safeTechniques.slice(0, 3);
+  const featuredShops = safeShops.slice(0, 4);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#1b1c19" }}>
@@ -130,7 +133,7 @@ const Explorar = () => {
           </Link>
 
           {/* Por Técnica */}
-          <Link to="/productos" className="group cursor-pointer block">
+          <Link to="/tecnicas" className="group cursor-pointer block">
             <div
               className="aspect-[4/5] mb-6 relative"
               style={{ backgroundColor: "#e5e1d8" }}
@@ -144,15 +147,20 @@ const Explorar = () => {
                   Explora tradiciones artesanales
                 </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {topTechniques.map((tech) => (
-                    <span
-                      key={tech.id}
-                      className="text-[10px] uppercase tracking-widest"
-                      style={{ color: "rgba(27,28,25,0.4)" }}
-                    >
-                      {tech.name}
-                    </span>
-                  ))}
+                  {topTechniques.map((tech) => {
+                    const techSlug = tech.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+                    return (
+                      <Link
+                        key={tech.id}
+                        to={`/tecnica/${techSlug}`}
+                        className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                        style={{ color: "rgba(27,28,25,0.4)" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {tech.name}
+                      </Link>
+                    );
+                  })}
                   {topTechniques.length === 0 && (
                     <>
                       <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(27,28,25,0.4)" }}>Tejeduría</span>
