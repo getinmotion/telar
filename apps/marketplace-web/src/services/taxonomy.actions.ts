@@ -67,8 +67,10 @@ export const getCategories = async (): Promise<TaxonomyCategory[]> => {
 
 /** GET /categories/active — only active categories */
 export const getActiveCategories = async (): Promise<TaxonomyCategory[]> => {
-  const response = await telarApiPublic.get<TaxonomyCategory[]>('/categories/active');
-  return response.data;
+  const response = await telarApiPublic.get('/categories/active');
+  const raw = response.data;
+  // Handle both array and { data: [...] } response formats
+  return Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
 };
 
 /** GET /categories/parent/:parentId — subcategories of a parent */
@@ -108,6 +110,7 @@ export const getCuratorialCategories = async (): Promise<TaxonomyCuratorialCateg
  * Returns top-level categories (parentId === null) each with a `subcategories` array.
  */
 export function buildCategoryHierarchy(flat: TaxonomyCategory[]): CategoryWithChildren[] {
+  if (!Array.isArray(flat)) return [];
   const topLevel = flat.filter(c => !c.parentId);
   return topLevel.map(parent => ({
     ...parent,
