@@ -9,6 +9,9 @@ import { useEffect } from "react";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { Footer } from "@/components/Footer";
+import explorarCategoriasImg from "@/assets/explorar-categorias.png";
+import explorarTecnicasImg from "@/assets/explorar-tecnicas.png";
+import explorarTerritoriosImg from "@/assets/explorar-territorios.png";
 
 /* ── helpers ─────────────────────────────────────────── */
 const Arrow = () => (
@@ -90,14 +93,12 @@ const Explorar = () => {
               className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarCategoriasImg}
+                alt="Explorar por Categoría"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
-              {topCategories[0]?.imageUrl && (
-                <img
-                  src={topCategories[0].imageUrl}
-                  alt="Categorías"
-                  className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700"
-                />
-              )}
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
               <div>
@@ -135,9 +136,14 @@ const Explorar = () => {
           {/* Por Técnica */}
           <Link to="/tecnicas" className="group cursor-pointer block">
             <div
-              className="aspect-[4/5] mb-6 relative"
+              className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarTecnicasImg}
+                alt="Explorar por Técnica"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
@@ -179,9 +185,14 @@ const Explorar = () => {
           {/* Por Territorio */}
           <Link to="/territorios" className="group cursor-pointer block">
             <div
-              className="aspect-[4/5] mb-6 relative"
+              className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarTerritoriosImg}
+                alt="Explorar por Territorio"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
