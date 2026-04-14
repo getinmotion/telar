@@ -28,17 +28,22 @@ import {
   Palette,
   ChevronRight,
   ArrowRight,
+  Lasso,
+  CircleDot,
 } from "lucide-react";
 
 // ── Icon mapping per category slug ──────────────────
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
-  "joyeria-y-accesorios": Gem,
+  "joyeria-y-accesorios": CircleDot,
   "decoracion-del-hogar": Home,
   "textiles-y-moda": Shirt,
   "bolsos-y-carteras": ShoppingBag,
-  "muebles": Armchair,
+  muebles: Armchair,
   "vajillas-y-cocina": UtensilsCrossed,
   "arte-y-esculturas": Palette,
+  "anillos": CircleDot,
+  "collares": CircleDot,
+  "aretes": CircleDot,
 };
 
 const EXCLUDED_SLUGS = ["cuidado-personal"];
@@ -49,13 +54,14 @@ interface CategoriesMegaMenuProps {
 
 export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
   const { categoryHierarchy, loading } = useTaxonomy();
-  const [activeCategory, setActiveCategory] = useState<CategoryWithChildren | null>(null);
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryWithChildren | null>(null);
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [allProducts, setAllProducts] = useState<ProductNewCore[]>([]);
 
   const categories = categoryHierarchy.filter(
-    (c) => c.isActive && !EXCLUDED_SLUGS.includes(c.slug)
+    (c) => c.isActive && !EXCLUDED_SLUGS.includes(c.slug),
   );
 
   // Pre-fetch products once
@@ -66,7 +72,9 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
         if (!cancelled) setAllProducts(res.data);
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Set first category as active on load
@@ -79,8 +87,13 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
   // Filter products when active category changes
   useEffect(() => {
     if (!activeCategory || allProducts.length === 0) return;
-    const catIds = new Set([activeCategory.id, ...activeCategory.subcategories.map((s) => s.id)]);
-    const filtered = allProducts.filter((p) => catIds.has(p.categoryId)).slice(0, 2);
+    const catIds = new Set([
+      activeCategory.id,
+      ...activeCategory.subcategories.map((s) => s.id),
+    ]);
+    const filtered = allProducts
+      .filter((p) => catIds.has(p.categoryId))
+      .slice(0, 2);
     setProducts(filtered);
   }, [activeCategory, allProducts]);
 
@@ -113,8 +126,8 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                     <button
                       className={`flex items-center space-x-4 p-3 -mx-3 rounded-sm w-full text-left transition-all ${
                         isActive
-                          ? "bg-[#f2eee4] text-[#ec6d13]"
-                          : "text-foreground/60 hover:text-[#ec6d13] hover:bg-[#f2eee4]/50"
+                          ? "bg-[#f2eee4] text-primary"
+                          : "text-foreground/60 hover:text-primary hover:bg-[#f2eee4]/50"
                       }`}
                       onMouseEnter={() => setActiveCategory(cat)}
                       onClick={() => {
@@ -139,7 +152,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
             <Link
               to="/categorias"
               onClick={onClose}
-              className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-foreground hover:text-[#ec6d13] transition-all group"
+              className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-all group"
             >
               <span>Ver todas las categorias</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -167,11 +180,9 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                       <Link
                         to={`/productos?categoria=${sub.slug}`}
                         onClick={onClose}
-                        className={`flex items-center justify-between group transition-colors ${
-                          i < 3
-                            ? "text-base font-bold text-foreground hover:text-[#ec6d13]"
-                            : "text-sm font-medium text-foreground/60 hover:text-[#ec6d13]"
-                        }`}
+                        className={`flex items-center justify-between group transition-colors
+                             text-sm font-medium text-foreground/60 hover:text-primary
+                        `}
                       >
                         {sub.name}
                         {i < 3 && (
@@ -185,7 +196,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                   <Link
                     to={`/productos?categoria=${activeCategory.slug}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ec6d13] border-b border-[#ec6d13]/30 pb-1 hover:border-[#ec6d13] transition-all group"
+                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary border-b border-primary/30 pb-1 hover:border-primary transition-all group"
                   >
                     Explorar todo {activeCategory.name}
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -229,7 +240,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <h4 className="font-serif text-2xl leading-tight group-hover:text-[#ec6d13] transition-colors">
+                        <h4 className="font-serif text-2xl leading-tight group-hover:text-primary transition-colors">
                           {product.name}
                         </h4>
                         <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/40 italic">
@@ -237,12 +248,14 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                         </p>
                         <div className="flex gap-1.5 items-center">
                           {technique && (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#ec6d13]">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
                               {technique}
                             </span>
                           )}
                           {technique && department && (
-                            <span className="text-[10px] text-foreground/20">·</span>
+                            <span className="text-[10px] text-foreground/20">
+                              ·
+                            </span>
                           )}
                           {department && (
                             <span className="text-[9px] font-medium uppercase tracking-widest text-foreground/40">

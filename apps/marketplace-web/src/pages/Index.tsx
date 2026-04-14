@@ -161,7 +161,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/productos"
-                className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors text-center"
+                className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-primary transition-colors text-center"
               >
                 Explorar piezas
               </Link>
@@ -187,7 +187,7 @@ const Index = () => {
               </div>
               {/* Quote area */}
               <div className="col-span-3 border-t border-[#2c2c2c]/10 pt-4">
-                <p className="text-[10px] uppercase tracking-widest text-[#ec6d13] font-bold mb-2">
+                <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-2">
                   Origen: Nariño, Colombia
                 </p>
                 <p className="font-serif italic text-lg leading-snug">
@@ -251,7 +251,7 @@ const Index = () => {
                   </Link>
                   <Link
                     to={`/categoria/${cat.slug}`}
-                    className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
+                    className="text-xl font-serif hover:italic hover:text-primary transition-all"
                   >
                     {cat.name}
                   </Link>
@@ -282,7 +282,7 @@ const Index = () => {
             </div>
             <Link
               to="/productos"
-              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-primary hover:border-primary transition-colors"
             >
               Ver colección completa
             </Link>
@@ -322,7 +322,7 @@ const Index = () => {
                           )}
                         </div>
                         <div className="space-y-3">
-                          <span className="inline-block bg-[#ec6d13]/10 text-[#ec6d13] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
+                          <span className="inline-block bg-primary/10 text-primary text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
                             Hecho a mano
                           </span>
                           <h3 className="text-2xl font-serif leading-tight">
@@ -361,7 +361,7 @@ const Index = () => {
                 </p>
                 <Link
                   to="/newsletter"
-                  className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
+                  className="inline-block border border-primary text-primary px-10 py-4 uppercase text-xs tracking-widest hover:bg-primary hover:text-white transition-all"
                 >
                   Descubrir cómo funciona Telar
                 </Link>
@@ -386,7 +386,7 @@ const Index = () => {
               <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
                 <Link
                   to="/newsletter"
-                  className="border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                  className="border-b border-[#2c2c2c] pb-1 hover:text-primary hover:border-primary transition-colors"
                 >
                   Conocer más
                 </Link>
@@ -424,7 +424,7 @@ const Index = () => {
               </p>
               <div className="space-y-8">
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-primary font-serif italic text-3xl">
                     01
                   </span>
                   <div>
@@ -437,7 +437,7 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-primary font-serif italic text-3xl">
                     02
                   </span>
                   <div>
@@ -451,7 +451,7 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-primary font-serif italic text-3xl">
                     03
                   </span>
                   <div>
@@ -503,7 +503,7 @@ const Index = () => {
                 {featuredShop ? (
                   <>
                     <div className="space-y-2">
-                      <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px]">
+                      <span className="text-primary font-bold uppercase tracking-widest text-[11px]">
                         Taller del Mes
                       </span>
                       <h3 className="text-5xl md:text-6xl font-serif">
@@ -518,7 +518,7 @@ const Index = () => {
                     <div className="space-y-6">
                       {featuredShop.craftType && (
                         <div className="flex items-start gap-4 pb-6 border-b border-[#2c2c2c]/10">
-                          <span className="text-[#ec6d13] mt-1 text-xl">★</span>
+                          <span className="text-primary mt-1 text-xl">★</span>
                           <span className="text-lg font-serif">
                             Especialidad: {featuredShop.craftType}
                           </span>
@@ -530,7 +530,7 @@ const Index = () => {
                       </p>
                       <Link
                         to={`/artesano/${featuredShop.shopSlug}`}
-                        className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                        className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] pb-1 hover:text-primary hover:border-primary transition-colors"
                       >
                         Ver perfil del taller
                       </Link>
@@ -561,7 +561,7 @@ const Index = () => {
                 </p>
                 <Link
                   to="/giftcards"
-                  className="inline-block bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors"
+                  className="inline-block bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-primary transition-colors"
                 >
                   Explorar piezas para regalar
                 </Link>

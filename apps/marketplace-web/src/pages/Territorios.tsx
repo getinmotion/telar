@@ -30,7 +30,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Tejeduría Wayúu · Desierto y Mar",
     lat: 11.55,
     lng: -72.9,
-    color: "#ec6d13",
+    color: "hsl(var(--primary))",
     size: 16,
     techniques: "Tejeduría Wayúu",
     region: "Caribe",
@@ -41,7 +41,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Hamacas y Telar · Montes de María",
     lat: 9.83,
     lng: -75.12,
-    color: "#ec6d13",
+    color: "hsl(var(--primary))",
     size: 22,
     techniques: "Telar vertical, Macramé",
     region: "Caribe",
@@ -52,7 +52,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Tradición Textil · Altiplano",
     lat: 5.53,
     lng: -73.36,
-    color: "#ec6d13",
+    color: "hsl(var(--primary))",
     size: 18,
     techniques: "Hilado manual, Ruanas",
     region: "Andina",
@@ -131,7 +131,7 @@ const Territorios = () => {
         <div className="md:col-span-8">
           <span
             className="text-sm tracking-[0.3em] uppercase mb-6 block font-sans font-bold"
-            style={{ color: "#ec6d13" }}
+            style={{ color: "hsl(var(--primary))" }}
           >
             Geografía Humana
           </span>
@@ -156,7 +156,7 @@ const Territorios = () => {
             { value: "+24", label: "Técnicas" },
           ].map((stat) => (
             <div key={stat.label}>
-              <span className="block text-4xl font-serif" style={{ color: "#ec6d13" }}>
+              <span className="block text-4xl font-serif" style={{ color: "hsl(var(--primary))" }}>
                 {stat.value}
               </span>
               <span className="text-xs tracking-widest uppercase font-sans" style={{ color: "#584237" }}>
@@ -277,7 +277,7 @@ const Territorios = () => {
           <div className="lg:col-span-5 order-2 lg:order-1">
             <span
               className="text-sm tracking-widest uppercase mb-4 block font-sans font-bold"
-              style={{ color: "#ec6d13" }}
+              style={{ color: "hsl(var(--primary))" }}
             >
               Foco Regional
             </span>
@@ -292,7 +292,7 @@ const Territorios = () => {
 
             <div className="space-y-6 mb-10">
               <div className="flex items-start gap-4">
-                <span className="mt-1 text-[#ec6d13]">
+                <span className="mt-1 text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                     <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                   </svg>
@@ -305,7 +305,7 @@ const Territorios = () => {
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <span className="mt-1 text-[#ec6d13]">
+                <span className="mt-1 text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                     <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                   </svg>
@@ -322,7 +322,7 @@ const Territorios = () => {
             <Link
               to={`/territorio/${spotlight.slug}`}
               className="inline-block px-10 py-4 rounded-md text-sm tracking-widest uppercase font-sans font-bold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#ec6d13", color: "#fff" }}
+              style={{ backgroundColor: "hsl(var(--primary))", color: "#fff" }}
             >
               Explorar Colección
             </Link>
@@ -361,16 +361,16 @@ const Territorios = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
             <div className="space-y-12">
               <div className="max-w-md">
-                <span className="text-4xl mb-6 block" style={{ color: "#ec6d13" }}>"</span>
+                <span className="text-4xl mb-6 block" style={{ color: "hsl(var(--primary))" }}>"</span>
                 <p className="text-3xl font-serif leading-snug mb-6">
                   La geografía dicta la técnica. Donde hay palma, hay cestería; donde hay volcán, hay
                   barro negro.
                 </p>
-                <div className="w-16 h-[2px]" style={{ backgroundColor: "#ec6d13" }} />
+                <div className="w-16 h-[2px]" style={{ backgroundColor: "hsl(var(--primary))" }} />
               </div>
               <div className="grid grid-cols-2 gap-8">
                 <div className="p-8 border rounded-lg" style={{ borderColor: "rgba(228,226,221,0.1)" }}>
-                  <span className="block text-5xl font-serif mb-2" style={{ color: "#ec6d13" }}>
+                  <span className="block text-5xl font-serif mb-2" style={{ color: "hsl(var(--primary))" }}>
                     +120
                   </span>
                   <p className="text-xs uppercase tracking-widest opacity-60 font-sans">
@@ -408,7 +408,7 @@ const Territorios = () => {
                   domina la materia, la acompaña en su metamorfosis natural."
                 </p>
                 <div className="mt-12 flex justify-center gap-4">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#ec6d13" }} />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "rgba(236,109,19,0.4)" }} />
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "rgba(236,109,19,0.2)" }} />
                 </div>
@@ -424,7 +424,7 @@ const Territorios = () => {
           <div>
             <span
               className="text-sm tracking-widest uppercase mb-4 block font-sans font-bold"
-              style={{ color: "#ec6d13" }}
+              style={{ color: "hsl(var(--primary))" }}
             >
               Índice Editorial
             </span>
@@ -433,7 +433,7 @@ const Territorios = () => {
           <div
             className="w-full md:w-1/2 mb-4 h-[1px]"
             style={{
-              background: "linear-gradient(90deg, #ec6d13 0%, transparent 100%)",
+              background: "linear-gradient(90deg, hsl(var(--primary)) 0%, transparent 100%)",
               opacity: 0.2,
             }}
           />
@@ -460,7 +460,7 @@ const Territorios = () => {
                     {String(i + 1).padStart(2, "0")}.
                   </span>
                   <h4 className="text-4xl md:text-6xl font-serif group-hover:italic transition-all" style={{
-                    color: hoveredTerritory === t.slug ? "#ec6d13" : "#1b1c19",
+                    color: hoveredTerritory === t.slug ? "hsl(var(--primary))" : "#1b1c19",
                   }}>
                     {t.name}
                   </h4>

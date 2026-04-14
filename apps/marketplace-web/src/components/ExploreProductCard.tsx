@@ -85,7 +85,7 @@ export function ExploreProductCard({
           {/* Wishlist */}
           <button
             className={`absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-all ${
-              isFavorite ? "!opacity-100 text-[#ec6d13]" : "text-charcoal"
+              isFavorite ? "!opacity-100 text-primary" : "text-charcoal"
             }`}
             onClick={(e) => {
               e.preventDefault();
@@ -94,7 +94,7 @@ export function ExploreProductCard({
             }}
             disabled={wishlistLoading}
           >
-            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-[#ec6d13]" : ""}`} />
+            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-primary" : ""}`} />
           </button>
         </div>
 

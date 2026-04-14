@@ -179,7 +179,7 @@ export default function Colecciones() {
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
+                <p className="text-[10px] uppercase tracking-[0.4em] text-primary font-bold">
                   Curaduría / Colecciones
                 </p>
                 <h1 className="text-5xl md:text-6xl font-serif leading-[0.95] italic tracking-tight">
@@ -195,7 +195,7 @@ export default function Colecciones() {
               <div className="pt-2">
                 <Link
                   to="/productos"
-                  className="inline-block px-8 py-4 bg-[#ec6d13] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors duration-300"
+                  className="inline-block px-8 py-4 bg-primary text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors duration-300"
                 >
                   Explorar todas las piezas
                 </Link>
@@ -237,8 +237,8 @@ export default function Colecciones() {
                   )}
                   <div className="max-w-4xl">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="h-px w-8 bg-[#ec6d13]" />
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-[#ec6d13] font-bold">
+                      <span className="h-px w-8 bg-primary" />
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">
                         {ed.subtitle}
                       </p>
                     </div>
@@ -250,7 +250,7 @@ export default function Colecciones() {
                     </p>
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#ec6d13] transition-all duration-300"
+                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all duration-300"
                     >
                       {ed.ctaLabel}
                     </Link>
@@ -326,7 +326,7 @@ export default function Colecciones() {
                   <div className="pt-4">
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#ec6d13] transition-all duration-300"
+                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all duration-300"
                     >
                       {ed.ctaLabel}
                     </Link>
@@ -358,7 +358,7 @@ export default function Colecciones() {
                   <li key={col.id}>
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all flex items-center justify-between group"
+                      className="text-xl font-serif hover:italic hover:text-primary transition-all flex items-center justify-between group"
                     >
                       {col.name}
                       <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -377,7 +377,7 @@ export default function Colecciones() {
                 <li>
                   <Link
                     to="/territorios"
-                    className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all flex items-center justify-between group"
+                    className="text-xl font-serif hover:italic hover:text-primary transition-all flex items-center justify-between group"
                   >
                     Explorar el mapa
                     <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -398,7 +398,7 @@ export default function Colecciones() {
                     <Link
                       key={slug}
                       to={`/tecnica/${slug}`}
-                      className="px-4 py-2 bg-[#2c2c2c]/[0.03] border border-[#2c2c2c]/5 rounded-full text-[10px] uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] hover:bg-white transition-all"
+                      className="px-4 py-2 bg-[#2c2c2c]/[0.03] border border-[#2c2c2c]/5 rounded-full text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary hover:bg-white transition-all"
                     >
                       {name}
                     </Link>
@@ -413,7 +413,7 @@ export default function Colecciones() {
         <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20 gap-6">
             <div className="max-w-xl">
-              <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px] mb-4 block">
+              <span className="text-primary font-bold uppercase tracking-widest text-[11px] mb-4 block">
                 Actualidad
               </span>
               <h2 className="text-5xl font-serif leading-[1.1]">
@@ -443,7 +443,7 @@ export default function Colecciones() {
                     <p className="text-[10px] text-[#2c2c2c]/50 leading-relaxed uppercase tracking-widest font-medium">
                       {item.description}
                     </p>
-                    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-[#ec6d13] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       {item.cta}
                     </p>
                   </div>
@@ -457,7 +457,7 @@ export default function Colecciones() {
         <section className="bg-[#1a1a1a] py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16 px-6">
             <div className="space-y-6">
-              <p className="text-[10px] uppercase tracking-[0.5em] text-[#ec6d13] font-bold">
+              <p className="text-[10px] uppercase tracking-[0.5em] text-primary font-bold">
                 El viaje continúa
               </p>
               <h2 className="text-5xl md:text-7xl font-serif leading-[1.1] text-[#f9f7f2] italic">
@@ -468,22 +468,22 @@ export default function Colecciones() {
             </div>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-10 md:gap-16">
               <Link to="/productos" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-primary transition-colors">
                   Explorar piezas
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-primary transition-all duration-500" />
               </Link>
               <Link to="/historias" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-primary transition-colors">
                   Descubrir historias
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-primary transition-all duration-500" />
               </Link>
               <Link to="/territorios" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-primary transition-colors">
                   Conocer territorios
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-primary transition-all duration-500" />
               </Link>
             </div>
           </div>

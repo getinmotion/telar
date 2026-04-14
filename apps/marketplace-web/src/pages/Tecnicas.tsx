@@ -122,7 +122,7 @@ export default function Tecnicas() {
           <div className="max-w-3xl">
             <p
               className="text-[10px] font-bold uppercase tracking-[0.5em] mb-6 font-sans"
-              style={{ color: "#ec6d13" }}
+              style={{ color: "hsl(var(--primary))" }}
             >
               Archivo de técnicas
             </p>
@@ -153,7 +153,7 @@ export default function Tecnicas() {
             <button
               onClick={() => setActiveCraft(null)}
               className={`text-[10px] uppercase tracking-[0.3em] font-bold font-sans pb-1 border-b-2 transition-colors ${
-                !activeCraft ? "border-[#ec6d13] text-[#ec6d13]" : "border-transparent text-[#2c2c2c]/40 hover:text-[#2c2c2c]/70"
+                !activeCraft ? "border-primary text-primary" : "border-transparent text-[#2c2c2c]/40 hover:text-[#2c2c2c]/70"
               }`}
             >
               Todas
@@ -163,7 +163,7 @@ export default function Tecnicas() {
                 key={craft.id}
                 onClick={() => setActiveCraft(craft.id)}
                 className={`text-[10px] uppercase tracking-[0.3em] font-bold font-sans pb-1 border-b-2 transition-colors ${
-                  activeCraft === craft.id ? "border-[#ec6d13] text-[#ec6d13]" : "border-transparent text-[#2c2c2c]/40 hover:text-[#2c2c2c]/70"
+                  activeCraft === craft.id ? "border-primary text-primary" : "border-transparent text-[#2c2c2c]/40 hover:text-[#2c2c2c]/70"
                 }`}
               >
                 {craft.name}
@@ -188,7 +188,7 @@ export default function Tecnicas() {
             {/* Info — 35% */}
             <div className="md:col-span-5 p-10 lg:p-14 flex flex-col justify-between" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="space-y-6">
-                <span className="text-[9px] font-bold uppercase tracking-[0.5em] font-sans" style={{ color: "#ec6d13" }}>
+                <span className="text-[9px] font-bold uppercase tracking-[0.5em] font-sans" style={{ color: "hsl(var(--primary))" }}>
                   Técnica destacada
                 </span>
                 <h2 className="text-4xl font-serif italic leading-tight">{featured.name}</h2>
@@ -202,7 +202,7 @@ export default function Tecnicas() {
               <Link
                 to={`/tecnica/${getEditorial(featured.name).slug}`}
                 className="inline-flex items-center gap-3 mt-8 text-[10px] font-bold uppercase tracking-widest hover:gap-5 transition-all"
-                style={{ color: "#ec6d13" }}
+                style={{ color: "hsl(var(--primary))" }}
               >
                 Explorar técnica <ArrowRight className="w-4 h-4" />
               </Link>
@@ -268,11 +268,11 @@ export default function Tecnicas() {
                   <div className="space-y-2">
                     <span
                       className="text-[9px] font-bold uppercase tracking-[0.4em] font-sans"
-                      style={{ color: "#ec6d13" }}
+                      style={{ color: "hsl(var(--primary))" }}
                     >
                       {editorial.origin}
                     </span>
-                    <h3 className="text-2xl font-serif italic group-hover:text-[#ec6d13] transition-colors">
+                    <h3 className="text-2xl font-serif italic group-hover:text-primary transition-colors">
                       {tech.name}
                     </h3>
                     <p className="text-sm font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.6)" }}>
@@ -292,25 +292,25 @@ export default function Tecnicas() {
       <section className="px-6 py-24" style={{ backgroundColor: "#f5f3ee" }}>
         <div className="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
           <div>
-            <span className="text-4xl font-serif italic" style={{ color: "#ec6d13" }}>{techniques.length || "—"}</span>
+            <span className="text-4xl font-serif italic" style={{ color: "hsl(var(--primary))" }}>{techniques.length || "—"}</span>
             <p className="text-[9px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(44,44,44,0.4)" }}>
               Técnicas
             </p>
           </div>
           <div>
-            <span className="text-4xl font-serif italic" style={{ color: "#ec6d13" }}>{crafts.length || "—"}</span>
+            <span className="text-4xl font-serif italic" style={{ color: "hsl(var(--primary))" }}>{crafts.length || "—"}</span>
             <p className="text-[9px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(44,44,44,0.4)" }}>
               Oficios
             </p>
           </div>
           <div>
-            <span className="text-4xl font-serif italic" style={{ color: "#ec6d13" }}>6</span>
+            <span className="text-4xl font-serif italic" style={{ color: "hsl(var(--primary))" }}>6</span>
             <p className="text-[9px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(44,44,44,0.4)" }}>
               Territorios
             </p>
           </div>
           <div>
-            <span className="text-4xl font-serif italic" style={{ color: "#ec6d13" }}>∞</span>
+            <span className="text-4xl font-serif italic" style={{ color: "hsl(var(--primary))" }}>∞</span>
             <p className="text-[9px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(44,44,44,0.4)" }}>
               Generaciones
             </p>
@@ -333,13 +333,13 @@ export default function Tecnicas() {
           <Link
             to="/productos"
             className="px-12 py-4 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
-            style={{ backgroundColor: "#ec6d13" }}
+            style={{ backgroundColor: "hsl(var(--primary))" }}
           >
             Explorar piezas
           </Link>
           <Link
             to="/territorios"
-            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-primary hover:text-primary"
             style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
           >
             Ver territorios

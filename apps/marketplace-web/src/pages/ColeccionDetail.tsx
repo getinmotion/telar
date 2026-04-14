@@ -272,7 +272,7 @@ export default function ColeccionDetail() {
         <h1 className="text-4xl font-serif">Colección no encontrada</h1>
         <Link
           to="/colecciones"
-          className="text-[#ec6d13] text-sm uppercase tracking-widest font-bold"
+          className="text-primary text-sm uppercase tracking-widest font-bold"
         >
           Volver a colecciones
         </Link>
@@ -304,10 +304,10 @@ export default function ColeccionDetail() {
                 Colecciones
               </Link>
               <span>/</span>
-              <span className="text-[#ec6d13]">{displayTitle}</span>
+              <span className="text-primary">{displayTitle}</span>
             </nav>
 
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#ec6d13] block">
+            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary block">
               Colección
             </span>
             <h1 className="text-6xl md:text-7xl font-serif leading-[0.9] italic tracking-tighter">
@@ -372,7 +372,7 @@ export default function ColeccionDetail() {
               </p>
               <Link
                 to="/productos"
-                className="inline-block mt-6 text-[#ec6d13] text-xs font-bold uppercase tracking-widest"
+                className="inline-block mt-6 text-primary text-xs font-bold uppercase tracking-widest"
               >
                 Explorar todas las piezas →
               </Link>
@@ -432,10 +432,10 @@ export default function ColeccionDetail() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <Link
               to="/territorios"
-              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-[#ec6d13]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-primary/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Map className="w-10 h-10 text-[#ec6d13] mb-8" />
+                <Map className="w-10 h-10 text-primary mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Ver productos por territorio relacionado
                 </h4>
@@ -446,10 +446,10 @@ export default function ColeccionDetail() {
             </Link>
             <Link
               to="/tecnicas"
-              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-[#ec6d13]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-primary/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Waypoints className="w-10 h-10 text-[#ec6d13] mb-8" />
+                <Waypoints className="w-10 h-10 text-primary mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Explorar técnica de tejeduría
                 </h4>
@@ -460,10 +460,10 @@ export default function ColeccionDetail() {
             </Link>
             <Link
               to="/tiendas"
-              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-[#ec6d13]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#2c2c2c]/10 hover:bg-gradient-to-br hover:from-primary/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Store className="w-10 h-10 text-[#ec6d13] mb-8" />
+                <Store className="w-10 h-10 text-primary mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Conocer talleres y maestros
                 </h4>
@@ -482,7 +482,7 @@ export default function ColeccionDetail() {
               <h2 className="text-4xl md:text-5xl font-serif italic">
                 Seguir explorando historias
               </h2>
-              <div className="w-12 h-px bg-[#ec6d13] mx-auto mt-6" />
+              <div className="w-12 h-px bg-primary mx-auto mt-6" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
               {meta.stories.map((story, i) => {
@@ -505,13 +505,13 @@ export default function ColeccionDetail() {
                       )}
                     </div>
                     <div className="space-y-4">
-                      <h3 className="text-3xl font-serif italic leading-tight group-hover:text-[#ec6d13] transition-colors">
+                      <h3 className="text-3xl font-serif italic leading-tight group-hover:text-primary transition-colors">
                         {story.title}
                       </h3>
                       <p className="text-[#2c2c2c]/60 leading-relaxed font-light line-clamp-2">
                         {story.excerpt}
                       </p>
-                      <div className="inline-flex items-center gap-2 text-[#ec6d13] group-hover:gap-4 transition-all">
+                      <div className="inline-flex items-center gap-2 text-primary group-hover:gap-4 transition-all">
                         <span className="text-[10px] font-bold tracking-widest uppercase">
                           Leer el relato
                         </span>

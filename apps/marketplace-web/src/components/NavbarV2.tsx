@@ -40,8 +40,8 @@ interface NavbarV2Props {
 const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[] = [
   { to: "/explorar", label: "Explorar" },
   { to: "/categorias", label: "Categorías", hasMegaMenu: true },
-  { to: "/giftcards", label: "Regalos" },
-  { to: "/colecciones", label: "Colecciones" },
+  // { to: "/giftcards", label: "Regalos" },
+  { to: "/productos", label: "Colecciones" },
   { to: "/tiendas", label: "Talleres" },
   { to: "/historias", label: "Historias" },
   { to: "/sobre-telar", label: "Sobre Telar" },
@@ -415,11 +415,11 @@ export const NavbarV2 = ({
                   >
                     <Link
                       to={link.to}
-                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-[#ec6d13]" : ""}`}
+                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-primary" : ""}`}
                     >
                       {link.label}
                       {megaMenuOpen && (
-                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-[#ec6d13]" />
+                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-primary" />
                       )}
                     </Link>
                   </div>

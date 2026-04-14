@@ -123,7 +123,7 @@ const Historias = () => {
             <div className="pt-4">
               <a
                 href="#featured"
-                className="inline-block px-10 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#2c2c2c] transition-colors duration-300"
+                className="inline-block px-10 py-4 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#2c2c2c] transition-colors duration-300"
               >
                 Explorar historias
               </a>
@@ -188,11 +188,11 @@ const Historias = () => {
                     </div>
                     <div className="mt-6 space-y-3">
                       {featured.category && (
-                        <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                        <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                           {featured.category}
                         </span>
                       )}
-                      <h2 className="font-serif text-4xl md:text-5xl italic leading-tight group-hover:text-[#ec6d13] transition-colors">
+                      <h2 className="font-serif text-4xl md:text-5xl italic leading-tight group-hover:text-primary transition-colors">
                         {featured.title}
                       </h2>
                       {featured.description && (
@@ -230,7 +230,7 @@ const Historias = () => {
                       </div>
                       <div className="mt-4 space-y-2">
                         {article.category && (
-                          <span className="text-[9px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[9px] text-primary uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
@@ -265,10 +265,10 @@ const Historias = () => {
                   <Link
                     key={type.title}
                     to={type.to}
-                    className="group p-8 md:p-10 border border-[#2c2c2c]/10 hover:border-[#ec6d13]/30 hover:bg-white transition-all duration-300 text-center"
+                    className="group p-8 md:p-10 border border-[#2c2c2c]/10 hover:border-primary/30 hover:bg-white transition-all duration-300 text-center"
                   >
                     <div className="text-4xl mb-6">{type.icon}</div>
-                    <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-[#ec6d13] transition-colors">
+                    <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-primary transition-colors">
                       {type.title}
                     </h4>
                     <p className="text-[10px] uppercase tracking-[0.2em] text-[#2c2c2c]/40 font-bold">
@@ -348,7 +348,7 @@ const Historias = () => {
                           )}
                         </div>
                         <div className="space-y-1">
-                          <h4 className="font-serif text-lg leading-tight group-hover:text-[#ec6d13] transition-colors line-clamp-2">
+                          <h4 className="font-serif text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
                             {product.name}
                           </h4>
                           {price != null && (
@@ -367,12 +367,12 @@ const Historias = () => {
             {/* ═══════════════ CULTURAL CAPSULE ═══════════════ */}
             <section className="py-24 md:py-32 px-6 bg-white/50 border-y border-[#2c2c2c]/5">
               <div className="max-w-3xl mx-auto text-center">
-                <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
+                <div className="w-16 h-px bg-primary/40 mx-auto mb-16" />
                 <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
                   "El oficio artesanal no es nostalgia: es memoria viva que se
                   reinventa con cada puntada, cada quema, cada trenzado."
                 </blockquote>
-                <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
+                <div className="w-16 h-px bg-primary/40 mx-auto mt-16" />
               </div>
             </section>
 
@@ -405,7 +405,7 @@ const Historias = () => {
                       </div>
                       <div className="space-y-3">
                         {article.category && (
-                          <span className="text-[9px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[9px] text-primary uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
@@ -455,7 +455,7 @@ const Historias = () => {
                       </div>
                       <div className="space-y-3">
                         {article.category && (
-                          <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
@@ -523,7 +523,7 @@ const Historias = () => {
         <section className="bg-[#1a1a1a] py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-12 px-6">
             <div className="space-y-6">
-              <p className="text-[10px] uppercase tracking-[0.5em] text-[#ec6d13] font-bold">
+              <p className="text-[10px] uppercase tracking-[0.5em] text-primary font-bold">
                 Continúa el viaje
               </p>
               <h2 className="text-4xl md:text-6xl font-serif leading-[1.1] text-[#f9f7f2] italic">
@@ -535,19 +535,19 @@ const Historias = () => {
             <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
               <Link
                 to="/productos"
-                className="px-12 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
+                className="px-12 py-4 bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
               >
                 Explorar piezas
               </Link>
               <Link
                 to="/territorios"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
               >
                 Ver territorios
               </Link>
               <Link
                 to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
               >
                 Conocer talleres
               </Link>

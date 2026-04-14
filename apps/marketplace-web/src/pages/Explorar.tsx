@@ -69,7 +69,7 @@ const Explorar = () => {
       <section className="max-w-[1400px] mx-auto px-8 py-20 text-center">
         <span
           className="font-bold uppercase tracking-[0.5em] text-[10px] block mb-6"
-          style={{ color: "#ec6d13" }}
+          style={{ color: "hsl(var(--primary))" }}
         >
           Explorar
         </span>
@@ -111,7 +111,7 @@ const Explorar = () => {
                     <Link
                       key={cat.id}
                       to={`/categoria/${cat.slug}`}
-                      className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                      className="text-[10px] uppercase tracking-widest hover:text-primary transition-colors"
                       style={{ color: "rgba(27,28,25,0.4)" }}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -127,7 +127,7 @@ const Explorar = () => {
                   )}
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-primary group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -159,7 +159,7 @@ const Explorar = () => {
                       <Link
                         key={tech.id}
                         to={`/tecnica/${techSlug}`}
-                        className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                        className="text-[10px] uppercase tracking-widest hover:text-primary transition-colors"
                         style={{ color: "rgba(27,28,25,0.4)" }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -176,7 +176,7 @@ const Explorar = () => {
                   )}
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-primary group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -207,7 +207,7 @@ const Explorar = () => {
                   <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(27,28,25,0.4)" }}>Nariño</span>
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-primary group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -216,16 +216,15 @@ const Explorar = () => {
       </section>
 
       {/* ═══════════════ GUIDED DISCOVERY ═══════════════ */}
-      <section className="mb-32">
+      {/* <section className="mb-32">
         <div className="max-w-[1400px] mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Piezas Únicas */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
                 <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
               </div>
               <div className="w-2/3">
-                <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
+                <span className="text-primary font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
                   Editorial
                 </span>
                 <h2 className="font-serif text-2xl mb-2 italic">Piezas Únicas</h2>
@@ -234,20 +233,19 @@ const Explorar = () => {
                 </p>
                 <Link
                   to="/productos"
-                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#ec6d13] hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-primary hover:gap-3 transition-all"
                 >
                   Explorar <Arrow />
                 </Link>
               </div>
             </div>
 
-            {/* Regalos con Historia */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
                 <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
               </div>
               <div className="w-2/3">
-                <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
+                <span className="text-primary font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
                   Selección
                 </span>
                 <h2 className="font-serif text-2xl mb-2 italic">Regalos con Historia</h2>
@@ -256,7 +254,7 @@ const Explorar = () => {
                 </p>
                 <Link
                   to="/giftcards"
-                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#ec6d13] hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-primary hover:gap-3 transition-all"
                 >
                   Ver Guía <Arrow />
                 </Link>
@@ -264,7 +262,7 @@ const Explorar = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ═══════════════ FEATURED WORKSHOPS ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-8 mb-32">
@@ -272,7 +270,7 @@ const Explorar = () => {
           <h2 className="font-serif text-3xl italic">Talleres Destacados</h2>
           <Link
             to="/tiendas"
-            className="text-[10px] font-bold uppercase tracking-widest text-[#ec6d13] flex items-center gap-2 group"
+            className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 group"
           >
             Ver todos los talleres
             <span className="group-hover:translate-x-1 transition-transform">
@@ -311,10 +309,10 @@ const Explorar = () => {
                       <div className="absolute inset-0 bg-black/5 group-hover:scale-105 transition-transform duration-700" />
                     )}
                   </div>
-                  <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[9px] mb-2 block">
+                  <span className="text-primary font-bold uppercase tracking-widest text-[9px] mb-2 block">
                     {shop.department || shop.region || "Colombia"} {shop.craftType ? `· ${shop.craftType}` : ""}
                   </span>
-                  <h4 className="font-serif text-xl group-hover:text-[#ec6d13] transition-colors">
+                  <h4 className="font-serif text-xl group-hover:text-primary transition-colors">
                     {shop.shopName}
                   </h4>
                   {shop.description && (
@@ -344,7 +342,7 @@ const Explorar = () => {
           style={{ backgroundColor: "#1a1a1a", color: "#fff" }}
         >
           <div className="w-full md:w-1/2 p-10 lg:p-14 flex flex-col justify-center">
-            <span className="text-[#ec6d13] font-extrabold tracking-[0.5em] uppercase mb-4 text-[9px] block">
+            <span className="text-primary font-extrabold tracking-[0.5em] uppercase mb-4 text-[9px] block">
               Crónica del Mes
             </span>
             <h2 className="font-serif text-3xl italic mb-4" style={{ letterSpacing: "-0.04em" }}>
@@ -357,7 +355,7 @@ const Explorar = () => {
               <Link
                 to="/productos"
                 className="px-6 py-3 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-[#1a1a1a] transition-all"
-                style={{ backgroundColor: "#ec6d13", color: "#fff" }}
+                style={{ backgroundColor: "hsl(var(--primary))", color: "#fff" }}
               >
                 Ver piezas
               </Link>
@@ -387,12 +385,12 @@ const Explorar = () => {
           <h2 className="font-serif text-3xl mb-8 italic">¿Buscas algo específico?</h2>
           <Link to="/productos" className="group inline-flex items-center gap-6">
             <span
-              className="text-lg font-light border-b pb-1 group-hover:border-[#ec6d13] transition-colors"
+              className="text-lg font-light border-b pb-1 group-hover:border-primary transition-colors"
               style={{ borderColor: "rgba(27,28,25,0.2)" }}
             >
               Ver catálogo completo del marketplace
             </span>
-            <span className="text-[#ec6d13] group-hover:translate-x-3 transition-transform">
+            <span className="text-primary group-hover:translate-x-3 transition-transform">
               <Arrow />
             </span>
           </Link>

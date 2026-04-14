@@ -110,7 +110,7 @@ export const RelatedProducts = ({
         <div className="mb-12">
           <p
             className="text-[9px] font-bold uppercase tracking-[0.3em] mb-3 font-sans"
-            style={{ color: "#ec6d13" }}
+            style={{ color: "hsl(var(--primary))" }}
           >
             Descubre más
           </p>

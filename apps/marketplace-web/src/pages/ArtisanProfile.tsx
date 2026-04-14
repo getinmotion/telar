@@ -174,7 +174,7 @@ const ArtisanProfile = () => {
         <div className="max-w-[1440px] mx-auto px-8 w-full relative z-10">
           <div className="grid grid-cols-12 gap-0">
             <div className="col-span-12 lg:col-span-9">
-              <p className="text-[#ec6d13] font-extrabold tracking-[0.5em] uppercase mb-6 text-[11px]">
+              <p className="text-primary font-extrabold tracking-[0.5em] uppercase mb-6 text-[11px]">
                 {editorial.tagline}
               </p>
               <h1
@@ -195,7 +195,7 @@ const ArtisanProfile = () => {
             </div>
           </div>
           <div className="grid grid-cols-12 gap-8 items-end">
-            <div className="col-span-12 lg:col-span-4 border-l-2 border-[#ec6d13] pl-8 py-1">
+            <div className="col-span-12 lg:col-span-4 border-l-2 border-primary pl-8 py-1">
               <div className="grid grid-cols-1 gap-4">
                 {location && (
                   <div>
@@ -253,7 +253,7 @@ const ArtisanProfile = () => {
           <div className="grid grid-cols-12 gap-12 lg:gap-24 items-start">
             <div className="col-span-12 lg:col-span-1 hidden lg:block">
               <span
-                className="font-serif text-6xl text-[#ec6d13]/10 select-none"
+                className="font-serif text-6xl text-primary/10 select-none"
                 style={{ writingMode: "vertical-rl" }}
               >
                 HISTORIA
@@ -285,7 +285,7 @@ const ArtisanProfile = () => {
                     </p>
                   ))
                 )}
-                <p className="italic font-serif text-3xl md:text-4xl text-[#ec6d13] py-8 border-y border-[#ec6d13]/20 leading-snug">
+                <p className="italic font-serif text-3xl md:text-4xl text-primary py-8 border-y border-primary/20 leading-snug">
                   {editorial.quote}
                 </p>
               </div>
@@ -304,7 +304,7 @@ const ArtisanProfile = () => {
                   </div>
                 )}
                 <div className="absolute -bottom-8 -left-8 w-56 h-56 bg-[#2c2c2c] text-white p-8 flex flex-col justify-center">
-                  <p className="text-[9px] tracking-[0.3em] uppercase mb-4 text-[#ec6d13] font-bold">
+                  <p className="text-[9px] tracking-[0.3em] uppercase mb-4 text-primary font-bold">
                     {editorial.storyOverlayLabel}
                   </p>
                   <p className="font-serif text-xl italic">
@@ -322,7 +322,7 @@ const ArtisanProfile = () => {
         <section className="py-24 md:py-32 px-8 bg-[#f9f7f2]">
           <div className="max-w-[1440px] mx-auto">
             <div className="mb-16">
-              <p className="text-[#ec6d13] font-bold tracking-[0.4em] uppercase mb-4 text-[10px]">
+              <p className="text-primary font-bold tracking-[0.4em] uppercase mb-4 text-[10px]">
                 Saber-hacer
               </p>
               <h3 className="font-serif text-5xl md:text-6xl mb-6 leading-none italic">
@@ -370,7 +370,7 @@ const ArtisanProfile = () => {
           </div>
         </div>
         <div className="max-w-4xl mx-auto px-8 text-center relative z-10">
-          <p className="text-[#ec6d13] font-bold tracking-[0.6em] uppercase mb-8 text-[10px]">
+          <p className="text-primary font-bold tracking-[0.6em] uppercase mb-8 text-[10px]">
             Ubicacion Geografica
           </p>
           <h3 className="font-serif text-6xl md:text-7xl text-[#f9f7f2] mb-10 italic leading-tight">
@@ -382,7 +382,7 @@ const ArtisanProfile = () => {
           {currentShop?.department && (
             <Link
               to={`/territorio/${currentShop.department.toLowerCase().replace(/\s+/g, "-")}`}
-              className="inline-block border border-[#ec6d13] text-[#ec6d13] px-12 py-4 text-xs font-bold tracking-[0.3em] uppercase hover:bg-[#ec6d13] hover:text-white transition-all"
+              className="inline-block border border-primary text-primary px-12 py-4 text-xs font-bold tracking-[0.3em] uppercase hover:bg-primary hover:text-white transition-all"
             >
               Explorar la Region
             </Link>
@@ -426,7 +426,7 @@ const ArtisanProfile = () => {
                   i === 1 ? "lg:mt-16" : i === 2 ? "lg:mt-32" : ""
                 }`}
               >
-                <span className="font-serif text-[8rem] font-bold text-[#ec6d13]/5 absolute -top-20 -left-4 group-hover:text-[#ec6d13]/10 transition-colors">
+                <span className="font-serif text-[8rem] font-bold text-primary/5 absolute -top-20 -left-4 group-hover:text-primary/10 transition-colors">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="relative z-10">
@@ -458,8 +458,8 @@ const ArtisanProfile = () => {
           <div className="grid grid-cols-12 items-center gap-12 lg:gap-24">
             <div className="col-span-12 lg:col-span-7">
               <div className="inline-flex items-center gap-4 mb-8">
-                <span className="w-10 h-[1px] bg-[#ec6d13]" />
-                <span className="text-[#ec6d13] text-[9px] font-extrabold tracking-[0.4em] uppercase">
+                <span className="w-10 h-[1px] bg-primary" />
+                <span className="text-primary text-[9px] font-extrabold tracking-[0.4em] uppercase">
                   Certificacion de Autoria Digital
                 </span>
               </div>
@@ -479,10 +479,10 @@ const ArtisanProfile = () => {
             </div>
             <div className="col-span-12 lg:col-span-5 flex justify-end">
               <div className="w-full max-w-md bg-white p-12 shadow-2xl relative overflow-hidden border border-[#2c2c2c]/5">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#ec6d13]/5 rounded-bl-full" />
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full" />
                 <div className="flex justify-center mb-10">
-                  <div className="w-20 h-20 rounded-full border-2 border-[#ec6d13]/20 flex items-center justify-center">
-                    <span className="text-[#ec6d13] text-2xl">✦</span>
+                  <div className="w-20 h-20 rounded-full border-2 border-primary/20 flex items-center justify-center">
+                    <span className="text-primary text-2xl">✦</span>
                   </div>
                 </div>
                 <div className="text-center mb-12">
@@ -550,7 +550,7 @@ const ArtisanProfile = () => {
         <div className="max-w-[1440px] mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
-              <p className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[10px] mb-3">
+              <p className="text-primary font-bold uppercase tracking-[0.4em] text-[10px] mb-3">
                 Catalogo Editorial
               </p>
               <h3 className="font-serif text-5xl md:text-6xl italic">
@@ -560,7 +560,7 @@ const ArtisanProfile = () => {
             {currentShop?.shopSlug && (
               <Link
                 to={`/tienda/${currentShop.shopSlug}`}
-                className="group inline-flex items-center gap-3 text-xs font-bold tracking-widest uppercase pb-1 hover:text-[#ec6d13] transition-colors"
+                className="group inline-flex items-center gap-3 text-xs font-bold tracking-widest uppercase pb-1 hover:text-primary transition-colors"
               >
                 <span>Ver coleccion completa</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -608,7 +608,7 @@ const ArtisanProfile = () => {
                       )}
                       <button
                         className={`absolute top-4 right-4 transition-all opacity-0 group-hover:opacity-100 ${
-                          isInWishlist(product.id) ? "!opacity-100 text-[#ec6d13]" : "text-[#2c2c2c] hover:text-[#ec6d13]"
+                          isInWishlist(product.id) ? "!opacity-100 text-primary" : "text-[#2c2c2c] hover:text-primary"
                         }`}
                         onClick={(e) => {
                           e.preventDefault();
@@ -617,15 +617,15 @@ const ArtisanProfile = () => {
                         }}
                         disabled={wishlistLoading}
                       >
-                        <Heart className={`w-5 h-5 transition-colors ${isInWishlist(product.id) ? "fill-[#ec6d13]" : ""}`} />
+                        <Heart className={`w-5 h-5 transition-colors ${isInWishlist(product.id) ? "fill-primary" : ""}`} />
                       </button>
                     </div>
                     <div className="space-y-3">
                       <div className="space-y-1">
-                        <h4 className="font-serif text-2xl leading-tight group-hover:text-[#ec6d13] transition-colors">
+                        <h4 className="font-serif text-2xl leading-tight group-hover:text-primary transition-colors">
                           {product.name}
                         </h4>
-                        <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#ec6d13]">
+                        <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-primary">
                           {shopName}
                         </p>
                         {technique && (
@@ -657,7 +657,7 @@ const ArtisanProfile = () => {
       {/* Section 8: Fair Trade Statement */}
       <section className="py-24 md:py-32 bg-[#f9f7f2] border-t border-[#2c2c2c]/5">
         <div className="max-w-4xl mx-auto px-8 text-center">
-          <div className="text-[#ec6d13] text-4xl mb-10">✦</div>
+          <div className="text-primary text-4xl mb-10">✦</div>
           <h3 className="font-serif text-5xl md:text-6xl mb-8 italic">
             Compromiso Etico y Comercio Justo
           </h3>
@@ -669,15 +669,15 @@ const ArtisanProfile = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-6 md:gap-12 text-[9px] font-bold uppercase tracking-[0.3em] text-[#2c2c2c]/40">
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />{" "}
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />{" "}
               100% Hecho a Mano
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />{" "}
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />{" "}
               Pago Justo Directo
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />{" "}
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />{" "}
               Impacto Sostenible
             </span>
           </div>

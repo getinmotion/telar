@@ -63,7 +63,7 @@ const BlogArticle = () => {
           </p>
           <Link
             to="/historias"
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-3 h-3" />
             Volver a Historias
@@ -126,7 +126,7 @@ const BlogArticle = () => {
               )}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 hover:text-[#ec6d13] transition-colors"
+                className="flex items-center gap-2 hover:text-primary transition-colors"
               >
                 <Share2 className="w-3 h-3" />
                 Compartir
@@ -155,11 +155,11 @@ const BlogArticle = () => {
         {article.description && (
           <section className="py-32 px-6 flex justify-center bg-white/50 border-y border-[#2c2c2c]/5">
             <div className="max-w-3xl text-center">
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
+              <div className="w-16 h-px bg-primary/40 mx-auto mb-16" />
               <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
                 "{article.description}"
               </blockquote>
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
+              <div className="w-16 h-px bg-primary/40 mx-auto mt-16" />
             </div>
           </section>
         )}
@@ -177,7 +177,7 @@ const BlogArticle = () => {
         {article.author_name && (
           <section className="py-24 bg-[#2c2c2c] text-[#f9f7f2] px-6">
             <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center space-y-6">
-              <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+              <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                 Escrito por
               </span>
               <h3 className="font-serif text-3xl italic">
@@ -195,7 +195,7 @@ const BlogArticle = () => {
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <Link to="/tiendas" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-primary text-3xl">
                   ✦
                 </div>
                 <div>
@@ -208,7 +208,7 @@ const BlogArticle = () => {
                 </div>
               </Link>
               <Link to="/productos" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-primary text-3xl">
                   ◆
                 </div>
                 <div>
@@ -221,7 +221,7 @@ const BlogArticle = () => {
                 </div>
               </Link>
               <Link to="/historias" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-primary text-3xl">
                   ●
                 </div>
                 <div>
@@ -245,7 +245,7 @@ const BlogArticle = () => {
             </blockquote>
             <Link
               to="/historias"
-              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#ec6d13] transition-all duration-500 shadow-lg"
+              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-primary transition-all duration-500 shadow-lg"
             >
               Descubrir mas relatos del territorio
             </Link>

@@ -78,7 +78,7 @@ const HistoriaDetail = () => {
         </p>
         <Link
           to="/historias"
-          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-primary transition-colors"
         >
           <ArrowLeft className="w-3 h-3" />
           Volver a Historias
@@ -126,13 +126,13 @@ const HistoriaDetail = () => {
                 Historias
               </Link>
               <span>/</span>
-              <span className="text-[#ec6d13] truncate max-w-[200px]">
+              <span className="text-primary truncate max-w-[200px]">
                 {article.title}
               </span>
             </nav>
 
             <div className="space-y-8">
-              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
+              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-primary font-bold">
                 {article.category || "Crónica del Territorio"}
               </span>
               <h1 className="text-5xl md:text-7xl lg:text-8xl leading-[0.9] font-serif italic tracking-tight">
@@ -163,7 +163,7 @@ const HistoriaDetail = () => {
               )}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 hover:text-[#ec6d13] transition-colors"
+                className="flex items-center gap-2 hover:text-primary transition-colors"
               >
                 <Share2 className="w-3 h-3" />
                 Compartir
@@ -192,11 +192,11 @@ const HistoriaDetail = () => {
         {article.description && (
           <section className="py-24 md:py-32 px-6 flex justify-center bg-white/50 border-y border-[#2c2c2c]/5">
             <div className="max-w-3xl text-center">
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
+              <div className="w-16 h-px bg-primary/40 mx-auto mb-16" />
               <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
                 "{article.description}"
               </blockquote>
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
+              <div className="w-16 h-px bg-primary/40 mx-auto mt-16" />
             </div>
           </section>
         )}
@@ -204,7 +204,7 @@ const HistoriaDetail = () => {
         {/* ═══════════════ MAIN CONTENT (CMS RICH TEXT) ═══════════════ */}
         {article.content && (
           <section className="py-24 md:py-32 px-6">
-            <div className="max-w-3xl mx-auto prose prose-lg prose-neutral prose-headings:font-serif prose-headings:italic prose-a:text-[#ec6d13]">
+            <div className="max-w-3xl mx-auto prose prose-lg prose-neutral prose-headings:font-serif prose-headings:italic prose-a:text-primary">
               <StoryblokRichText content={article.content} />
             </div>
           </section>
@@ -214,7 +214,7 @@ const HistoriaDetail = () => {
         {article.author_name && (
           <section className="py-20 bg-[#2c2c2c] text-[#f9f7f2] px-6">
             <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center space-y-6">
-              <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+              <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                 Escrito por
               </span>
               <h3 className="font-serif text-3xl italic">
@@ -255,7 +255,7 @@ const HistoriaDetail = () => {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#ec6d13] transition-colors line-clamp-2">
+                      <h4 className="font-serif text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
                         {product.name}
                       </h4>
                       {price != null && (
@@ -280,7 +280,7 @@ const HistoriaDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <Link to="/tiendas" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Store className="w-8 h-8 text-[#ec6d13]" />
+                  <Store className="w-8 h-8 text-primary" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
@@ -293,7 +293,7 @@ const HistoriaDetail = () => {
               </Link>
               <Link to="/tecnicas" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Waypoints className="w-8 h-8 text-[#ec6d13]" />
+                  <Waypoints className="w-8 h-8 text-primary" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
@@ -306,7 +306,7 @@ const HistoriaDetail = () => {
               </Link>
               <Link to="/territorios" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Map className="w-8 h-8 text-[#ec6d13]" />
+                  <Map className="w-8 h-8 text-primary" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
@@ -329,7 +329,7 @@ const HistoriaDetail = () => {
             </blockquote>
             <Link
               to="/historias"
-              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#ec6d13] transition-all duration-500 shadow-lg"
+              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-primary transition-all duration-500 shadow-lg"
             >
               Descubrir más relatos del territorio
             </Link>

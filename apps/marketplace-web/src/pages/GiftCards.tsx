@@ -136,7 +136,7 @@ const GiftCards = () => {
       <header className="relative w-full h-[70vh] min-h-[500px] max-h-[820px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[#e5e5e5]" />
         <div className="relative z-10 text-center px-6 max-w-4xl">
-          <span className="text-[#ec6d13] text-xs uppercase tracking-[0.3em] mb-4 block font-bold">
+          <span className="text-primary text-xs uppercase tracking-[0.3em] mb-4 block font-bold">
             Curaduria Exclusiva
           </span>
           <h1 className="font-serif text-6xl md:text-8xl font-bold tracking-tighter leading-none mb-8">
@@ -192,13 +192,13 @@ const GiftCards = () => {
             <h2 className="font-serif text-5xl italic mb-6">
               Selecciones Curadas
             </h2>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto" />
+            <div className="w-24 h-px bg-primary mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Large Feature */}
             <div className="md:col-span-7 bg-[#f9f7f2] rounded-sm p-12 flex flex-col justify-between min-h-[500px]">
               <div>
-                <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
+                <span className="text-primary font-bold text-xs tracking-widest uppercase mb-4 block">
                   Especial de Temporada
                 </span>
                 <h3 className="font-serif text-4xl mb-6">
@@ -213,7 +213,7 @@ const GiftCards = () => {
                 <div className="w-full h-64 bg-[#e5e5e5] mb-8 rounded-sm" />
                 <Link
                   to="/productos"
-                  className="font-bold border-b-2 border-[#ec6d13] pb-1 hover:text-[#ec6d13] transition-colors text-sm uppercase tracking-widest"
+                  className="font-bold border-b-2 border-primary pb-1 hover:text-primary transition-colors text-sm uppercase tracking-widest"
                 >
                   Descubrir la ruta
                 </Link>
@@ -227,7 +227,7 @@ const GiftCards = () => {
               >
                 <div className="w-24 h-24 bg-[#e5e5e5] shrink-0 rounded-sm" />
                 <div>
-                  <h4 className="font-serif text-xl mb-1 group-hover:text-[#ec6d13] transition-colors">
+                  <h4 className="font-serif text-xl mb-1 group-hover:text-primary transition-colors">
                     Tecnicas Ancestrales
                   </h4>
                   <p className="text-xs text-[#584237]">
@@ -244,7 +244,7 @@ const GiftCards = () => {
                   Nuestros empaques son piezas de arte por derecho propio,
                   creados en papel de fibra natural.
                 </p>
-                <span className="text-[#ec6d13] text-xs tracking-widest font-bold uppercase">
+                <span className="text-primary text-xs tracking-widest font-bold uppercase">
                   Ver mas
                 </span>
               </div>
@@ -260,7 +260,7 @@ const GiftCards = () => {
             <h2 className="font-serif text-4xl">Recomendaciones de Telar</h2>
             <Link
               to="/productos"
-              className="text-sm uppercase tracking-tight border-b border-[#1b1c19] font-bold hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+              className="text-sm uppercase tracking-tight border-b border-[#1b1c19] font-bold hover:text-primary hover:border-primary transition-colors"
             >
               Ver todos los productos
             </Link>
@@ -302,10 +302,10 @@ const GiftCards = () => {
                       {dept && technique && " / "}
                       {technique}
                     </p>
-                    <h3 className="font-serif text-lg group-hover:text-[#ec6d13] transition-colors">
+                    <h3 className="font-serif text-lg group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-[#ec6d13] font-bold text-sm">
+                    <p className="text-primary font-bold text-sm">
                       {price ? formatCurrency(price) : "Consultar"}
                     </p>
                   </div>
@@ -320,7 +320,7 @@ const GiftCards = () => {
       <section className="py-32 bg-white border-y border-[#1b1c19]/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
-            <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
+            <span className="text-primary font-bold text-xs tracking-widest uppercase mb-4 block">
               Tarjetas de Regalo
             </span>
             <h2 className="font-serif text-5xl italic mb-6">
@@ -330,25 +330,25 @@ const GiftCards = () => {
               El regalo perfecto para quienes aman la artesania colombiana. Deja
               que elijan sus propias piezas unicas.
             </p>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
+            <div className="w-24 h-px bg-primary mx-auto mt-8" />
           </div>
 
           {/* Info badges */}
           <div className="flex flex-wrap justify-center gap-12 mb-16">
             <div className="flex items-center gap-3">
-              <ShoppingCart className="w-4 h-4 text-[#ec6d13]" />
+              <ShoppingCart className="w-4 h-4 text-primary" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Valida en todo el marketplace
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <Gift className="w-4 h-4 text-[#ec6d13]" />
+              <Gift className="w-4 h-4 text-primary" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Saldo multiples compras
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <Mail className="w-4 h-4 text-[#ec6d13]" />
+              <Mail className="w-4 h-4 text-primary" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Entrega por correo
               </span>
@@ -366,12 +366,12 @@ const GiftCards = () => {
                   key={card.id}
                   className={`relative border transition-all duration-300 p-8 ${
                     isSelected
-                      ? "border-[#ec6d13] shadow-lg"
+                      ? "border-primary shadow-lg"
                       : "border-[#1b1c19]/10 hover:border-[#1b1c19]/30"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <Gift className="w-6 h-6 text-[#ec6d13]" />
+                    <Gift className="w-6 h-6 text-primary" />
                     <span className="font-serif text-2xl font-bold">
                       {fmt(card.amount)}
                     </span>
@@ -430,7 +430,7 @@ const GiftCards = () => {
                         </button>
                         <button
                           onClick={() => handleAddToCart(card)}
-                          className="flex-1 bg-[#ec6d13] text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 bg-primary text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors flex items-center justify-center gap-2"
                         >
                           <ShoppingCart className="w-3 h-3" />
                           Agregar
@@ -446,7 +446,7 @@ const GiftCards = () => {
                       className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                         isAdded
                           ? "bg-[#2c2c2c] text-white"
-                          : "bg-[#2c2c2c] text-white hover:bg-[#ec6d13]"
+                          : "bg-[#2c2c2c] text-white hover:bg-primary"
                       }`}
                     >
                       {isAdded ? (
@@ -477,7 +477,7 @@ const GiftCards = () => {
           </div>
           <div className="order-1 md:order-2 space-y-12">
             <div className="space-y-6">
-              <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase block">
+              <span className="text-primary font-bold text-xs tracking-widest uppercase block">
                 Servicios B2B
               </span>
               <h2 className="font-serif text-5xl md:text-6xl text-[#f9f7f2] leading-tight">
@@ -491,7 +491,7 @@ const GiftCards = () => {
             </div>
             <div className="flex flex-col gap-6">
               <div className="flex items-start gap-4">
-                <span className="text-[#ec6d13] mt-1">✦</span>
+                <span className="text-primary mt-1">✦</span>
                 <div>
                   <h4 className="text-[#f9f7f2] font-bold mb-1">
                     Trazabilidad Total
@@ -503,7 +503,7 @@ const GiftCards = () => {
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <span className="text-[#ec6d13] mt-1">✦</span>
+                <span className="text-primary mt-1">✦</span>
                 <div>
                   <h4 className="text-[#f9f7f2] font-bold mb-1">
                     Curaduria a Medida
@@ -517,7 +517,7 @@ const GiftCards = () => {
             </div>
             <a
               href="mailto:hola@telar.co"
-              className="inline-block bg-[#ec6d13] text-white px-12 py-5 font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#1b1c19] transition-all"
+              className="inline-block bg-primary text-white px-12 py-5 font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#1b1c19] transition-all"
             >
               Solicitar catalogo corporativo
             </a>

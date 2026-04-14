@@ -42,12 +42,12 @@ function getProductBadge(product: ProductNewCore): {
   if (stock > 0 && stock <= 3)
     return {
       label: "Últimas piezas",
-      className: "bg-[#ec6d13] text-white",
+      className: "bg-primary text-white",
     };
   if (isNew)
     return {
       label: "Nuevo",
-      className: "bg-[#ec6d13] text-white",
+      className: "bg-primary text-white",
     };
   return null;
 }
@@ -223,7 +223,7 @@ export default function ShopDetail() {
           <h1 className="font-serif text-4xl">Taller no encontrado</h1>
           <Link
             to="/tiendas"
-            className="text-[#ec6d13] text-sm font-bold uppercase tracking-widest"
+            className="text-primary text-sm font-bold uppercase tracking-widest"
           >
             Volver a talleres
           </Link>
@@ -258,7 +258,7 @@ export default function ShopDetail() {
         <div className="lg:col-span-5 space-y-10">
           <div className="space-y-6">
             {shop.region && (
-              <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[10px]">
+              <span className="text-primary font-bold uppercase tracking-[0.4em] text-[10px]">
                 {shop.region}
               </span>
             )}
@@ -279,7 +279,7 @@ export default function ShopDetail() {
           <div className="flex flex-col sm:flex-row gap-4">
             <a
               href="#productos"
-              className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#ec6d13] transition-colors text-center"
+              className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-primary transition-colors text-center"
             >
               Explorar piezas del taller
             </a>
@@ -310,7 +310,7 @@ export default function ShopDetail() {
           <div className="flex items-center gap-12 pt-8 border-t border-[#2c2c2c]/5">
             {primaryTechnique && (
               <div className="flex items-center gap-3">
-                <span className="text-[#ec6d13] text-lg">✦</span>
+                <span className="text-primary text-lg">✦</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {primaryTechnique}
                 </span>
@@ -318,7 +318,7 @@ export default function ShopDetail() {
             )}
             {shop.department && (
               <div className="flex items-center gap-3">
-                <span className="text-[#ec6d13] text-lg">◆</span>
+                <span className="text-primary text-lg">◆</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {shop.department}, {shop.municipality || shop.region}
                 </span>
@@ -346,25 +346,25 @@ export default function ShopDetail() {
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex flex-wrap justify-between items-center gap-8">
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-primary">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Origen cultural trazable
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-primary">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Tecnica artesanal identificada
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-primary">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Piezas con huella digital
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-primary">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Produccion artesanal
               </span>
@@ -389,8 +389,8 @@ export default function ShopDetail() {
                 className={cn(
                   "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                   activeFilter === "all"
-                    ? "bg-[#ec6d13] text-white"
-                    : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
+                    ? "bg-primary text-white"
+                    : "border border-[#2c2c2c]/10 hover:border-primary"
                 )}
               >
                 Todos
@@ -402,8 +402,8 @@ export default function ShopDetail() {
                   className={cn(
                     "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                     activeFilter === slug
-                      ? "bg-[#ec6d13] text-white"
-                      : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
+                      ? "bg-primary text-white"
+                      : "border border-[#2c2c2c]/10 hover:border-primary"
                   )}
                 >
                   {name}
@@ -445,7 +445,7 @@ export default function ShopDetail() {
             {activeFilter !== "all" && (
               <button
                 onClick={() => setActiveFilter("all")}
-                className="inline-block mt-8 px-8 py-3 bg-[#2c2c2c] text-white text-xs uppercase tracking-widest hover:bg-[#ec6d13] transition-colors"
+                className="inline-block mt-8 px-8 py-3 bg-[#2c2c2c] text-white text-xs uppercase tracking-widest hover:bg-primary transition-colors"
               >
                 Ver todos los productos
               </button>
@@ -493,7 +493,7 @@ export default function ShopDetail() {
                     </div>
                   )}
                   <button
-                    className="absolute top-4 right-4 z-10 text-[#2c2c2c] hover:text-[#ec6d13] transition-colors opacity-0 group-hover:opacity-100"
+                    className="absolute top-4 right-4 z-10 text-[#2c2c2c] hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -504,10 +504,10 @@ export default function ShopDetail() {
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-serif leading-tight group-hover:text-[#ec6d13] transition-colors">
+                    <h3 className="text-2xl font-serif leading-tight group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#ec6d13]">
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-primary">
                       {shop.shopName}
                     </p>
                     <p className="text-[9px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
@@ -520,7 +520,7 @@ export default function ShopDetail() {
                     </p>
                     {primaryMaterial && (
                       <div className="flex flex-wrap gap-1">
-                        <span className="text-[8px] bg-[#ec6d13]/5 text-[#ec6d13] border border-[#ec6d13]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
+                        <span className="text-[8px] bg-primary/5 text-primary border border-primary/10 px-2 py-0.5 uppercase tracking-widest font-bold">
                           {primaryMaterial}
                         </span>
                       </div>
@@ -605,7 +605,7 @@ export default function ShopDetail() {
                     ? `https://instagram.com/${shop.contactInfo.instagram}`
                     : "#"
                 }
-                className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#ec6d13] pb-3 hover:text-[#ec6d13] transition-all inline-flex items-center gap-3 group"
+                className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-primary pb-3 hover:text-primary transition-all inline-flex items-center gap-3 group"
               >
                 Leer historia del artesano
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -621,7 +621,7 @@ export default function ShopDetail() {
           <div className="grid lg:grid-cols-2 gap-24">
             <div className="space-y-12">
               <div className="space-y-6">
-                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#ec6d13]">
+                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-primary">
                   Detalles del Oficio
                 </span>
                 <h3 className="text-3xl lg:text-4xl font-serif italic leading-tight">
@@ -704,7 +704,7 @@ export default function ShopDetail() {
             </p>
             <Link
               to={`/artesano/${shop.shopSlug}`}
-              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#ec6d13] transition-colors"
+              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-primary transition-colors"
             >
               Ver perfil del artesano
             </Link>

@@ -81,7 +81,7 @@ const Blog = () => {
               Cronicas de origen, tecnicas ancestrales y los rostros detras de
               cada pieza artesanal colombiana.
             </p>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
+            <div className="w-24 h-px bg-primary mx-auto mt-8" />
           </div>
         </header>
 
@@ -151,11 +151,11 @@ const Blog = () => {
                 </div>
                 <div className="space-y-6">
                   {featured.category && (
-                    <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                    <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                       {featured.category}
                     </span>
                   )}
-                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-[#ec6d13] transition-colors">
+                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-primary transition-colors">
                     {featured.title}
                   </h2>
                   {featured.description && (
@@ -203,7 +203,7 @@ const Blog = () => {
                     </div>
                     <div className="space-y-3">
                       {article.category && (
-                        <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                        <span className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">
                           {article.category}
                         </span>
                       )}
@@ -280,13 +280,13 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link
                 to="/productos"
-                className="px-12 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
+                className="px-12 py-4 bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
               >
                 Explorar piezas
               </Link>
               <Link
                 to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
               >
                 Conocer talleres
               </Link>
