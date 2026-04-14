@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const SEMANTIC_SEARCH_API_URL = import.meta.env.VITE_SEMANTIC_SEARCH_API_URL
 
-const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY;
+// const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY;
 
 export interface SearchFilters {
   craft_type?: string;
@@ -56,11 +56,11 @@ export async function semanticSearch(request: SearchRequest): Promise<SearchResp
     };
 
     const response = await axios.post<SearchResponse>(
-      `${SEMANTIC_SEARCH_API_URL}/api/search/products`,
+      `${SEMANTIC_SEARCH_API_URL}/api/joyitas-search/products`,
       {
         query: request.query,
-        top_k: request.limit || 20,
-        min_similarity: request.min_similarity || 0.3,
+        top_k: 40,
+        min_similarity:  0.2,
       },
       { headers }
     );
