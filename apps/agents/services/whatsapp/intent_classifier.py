@@ -44,24 +44,38 @@ Analiza el mensaje del usuario (y el contexto previo si lo hay) y responde ÚNIC
                     Ejemplos: "¿qué materiales tienen?", "¿en qué materiales trabajan?"
 "ask_stores"      → Pregunta POR las tiendas/artesanos disponibles (sin buscar producto).
                     Ejemplos: "¿qué tiendas tienen?", "¿quiénes son los artesanos?"
+"ask_knowledge"   → Pregunta SOBRE qué es un material, técnica o tipo de artesanía.
+                    Ejemplos: "¿qué es la alfarería?", "¿qué es el macramé?",
+                    "cuéntame sobre el tejido wayuu", "¿cómo se hace la cerámica?"
 
 ═══ EMPATHETIC_INTRO ═══
-Una sola frase corta (máx 15 palabras) cálida y empática que reconozca la INTENCIÓN del usuario.
-- Para "greeting": "" (vacío)
-- Para "ask_regions": algo como "¡Con gusto! Nuestros artesanos vienen de todo Colombia 🗺️"
-- Para "ask_materials": algo como "¡Tenemos una gran variedad de materiales! 🎨"
-- Para "ask_stores": algo como "¡Claro! Estos son nuestros talentosos artesanos 🏪"
-- Para "search_products": frase empática según el contexto del query. Ejemplos:
-  * "regalo para mamá" → "¡Qué lindo detalle para tu mamá! 💝"
-  * "cerámica decorativa" → "¡Excelente elección! La cerámica artesanal es hermosa 🏺"
-  * "productos de madera para mi hijo" → "¡Qué bonito regalo para tu hijo! 🪵"
-  * "artesanías baratas" → "¡Encontré opciones a buen precio! 💰"
+2-3 oraciones cálidas y empáticas (máx 60 palabras) que reconozcan profundamente la INTENCIÓN del usuario.
+La intro debe: (1) reconocer la intención con calidez, (2) añadir un dato cultural interesante o contexto
+emocional relevante, (3) conectar con el resultado que viene.
 
-═══ PRECIO ═══
-Extrae en pesos colombianos (entero, sin decimales):
-- "250 mil", "250k", "250.000" → 250000
+- Para "greeting": "" (vacío)
+- Para "ask_knowledge": algo breve como "¡Qué pregunta tan interesante! 🎨"
+- Para "ask_regions": "¡Con gusto! Colombia es un país increíblemente diverso — nuestros artesanos vienen de montañas, costas y selvas 🗺️"
+- Para "ask_materials": "¡Tenemos una gran variedad! Cada material cuenta una historia diferente de Colombia 🎨"
+- Para "ask_stores": "¡Claro! Trabajamos con artesanos apasionados de todo el país 🏪"
+- Para "search_products": intro rica según el contexto. Ejemplos:
+  * "regalo de madera para mamá" → "¡Qué gesto tan especial! La madera es símbolo de fortaleza y amor eterno — un regalo que durará toda la vida. Aquí encontré algunas piezas únicas hechas a mano por artesanos colombianos: 🪵"
+  * "cerámica decorativa" → "¡Excelente elección! La cerámica artesanal colombiana tiene siglos de historia — cada pieza lleva el alma del artesano que la moldeó. Aquí algunas opciones hermosas: 🏺"
+  * "textiles wayuu" → "¡Maravilloso! Los textiles Wayuu son patrimonio cultural de Colombia — tejidos a mano con técnicas que se transmiten de generación en generación. Aquí algunas piezas disponibles: 🧶"
+  * precio mencionado → incluir algo como: "...todo dentro de tu presupuesto de hasta $X COP."
+
+Si el usuario menciona un PRECIO, el intro debe reflejar ese presupuesto de forma positiva.
+
+═══ PRECIO — MUY IMPORTANTE: notación española ═══
+En español, el PUNTO (.) es separador de miles, NO decimal.
+- "50.000" = cincuenta mil = 50000 (NO 50 millones)
+- "250.000" = doscientos cincuenta mil = 250000
+- "1.000.000" = un millón = 1000000
+- "250 mil", "250k" → 250000
+- "50 lucas", "50 mil pesos" → 50000
 - "hasta 500 mil" → price_max=500000
 - "entre 100k y 300k" → price_min=100000, price_max=300000
+- "no mayor a 50.000" → price_max=50000
 - Sin precio mencionado → null
 
 Responde SOLO con el JSON. Sin texto adicional.
@@ -70,8 +84,8 @@ Responde SOLO con el JSON. Sin texto adicional.
 
 @dataclass
 class IntentResult:
-    intent_type: str               # "greeting" | "search_products" | "ask_regions" | "ask_materials" | "ask_stores"
-    empathetic_intro: str          # short warm sentence, empty for greetings
+    intent_type: str               # "greeting" | "search_products" | "ask_regions" | "ask_materials" | "ask_stores" | "ask_knowledge"
+    empathetic_intro: str          # 2-3 warm sentences, empty for greetings
     price_min: Optional[int]       # COP pesos
     price_max: Optional[int]       # COP pesos
 
@@ -99,8 +113,8 @@ class IntentClassifier:
                     {"role": "system", "content": _SYSTEM_PROMPT},
                     {"role": "user", "content": user_content},
                 ],
-                temperature=0.3,
-                max_tokens=150,
+                temperature=0.4,
+                max_tokens=350,
                 response_format={"type": "json_object"},
             )
 
