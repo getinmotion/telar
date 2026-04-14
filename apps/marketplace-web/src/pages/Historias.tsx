@@ -27,25 +27,21 @@ const STORY_TYPES = [
   {
     title: "Artesanos",
     subtitle: "Vida y Oficio",
-    icon: "👤",
     to: "/tiendas",
   },
   {
     title: "Territorios",
     subtitle: "Contexto Cultural",
-    icon: "🗺",
     to: "/territorios",
   },
   {
     title: "Técnicas",
     subtitle: "Proceso y Conocimiento",
-    icon: "🏛",
     to: "/tecnicas",
   },
   {
     title: "Piezas",
     subtitle: "Origen de Objetos",
-    icon: "📖",
     to: "/productos",
   },
 ];
@@ -267,7 +263,7 @@ const Historias = () => {
                     to={type.to}
                     className="group p-8 md:p-10 border border-[#2c2c2c]/10 hover:border-[#ec6d13]/30 hover:bg-white transition-all duration-300 text-center"
                   >
-                    <div className="text-4xl mb-6">{type.icon}</div>
+                    <div className="w-12 h-px bg-[#ec6d13]/40 mx-auto mb-6 group-hover:w-16 transition-all" />
                     <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-[#ec6d13] transition-colors">
                       {type.title}
                     </h4>

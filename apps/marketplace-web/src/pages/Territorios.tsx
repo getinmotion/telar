@@ -90,6 +90,17 @@ const TERRITORIES: TerritoryPoint[] = [
     techniques: "Cestería, Semillas",
     region: "Amazonía",
   },
+  {
+    slug: "cauca",
+    name: "Cauca",
+    subtitle: "Seda y Tintes de Paz · Popayán · Timbío · El Tambo",
+    lat: 2.44,
+    lng: -76.61,
+    color: "#ec6d13",
+    size: 20,
+    techniques: "Sericultura, Tintes Naturales, Telar",
+    region: "Pacífico",
+  },
 ];
 
 /* ── Map style — Carto Positron with warm editorial tones ── */
