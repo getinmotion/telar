@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     profile_update_interval: int = int(os.getenv("PROFILE_UPDATE_INTERVAL", "5"))
     conversation_summary_interval: int = int(os.getenv("CONVERSATION_SUMMARY_INTERVAL", "10"))
 
+    # WhatsApp Business API
+    whatsapp_access_token: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+    whatsapp_phone_number_id: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+    whatsapp_webhook_verify_token: str = os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+    whatsapp_webhook_secret: str = os.getenv("WHATSAPP_WEBHOOK_SECRET", "")
+    whatsapp_api_url: str = os.getenv("WHATSAPP_API_URL", "https://graph.facebook.com/v21.0")
+
     class Config:
         env_file = ".env"
         case_sensitive = False

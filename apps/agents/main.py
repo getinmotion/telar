@@ -22,6 +22,7 @@ if backend_path not in sys.path:
 from agents.api import router as agents_router
 from agents.search_api import router as search_router
 from agents.joyitas_search_api import router as joyitas_search_router
+from agents.whatsapp_api import router as whatsapp_router
 from agents.tracing import init_langsmith
 from src.api.config import settings
 from src.database.pg_client import get_pool, close_pool
@@ -53,6 +54,12 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("📈 LangSmith Tracing: Disabled")
     
+    # Log WhatsApp bot status
+    if settings.whatsapp_access_token and settings.whatsapp_phone_number_id:
+        logger.info("WhatsApp bot: configured (phone_number_id=%s...)", settings.whatsapp_phone_number_id[:10])
+    else:
+        logger.warning("WhatsApp bot: NOT configured (WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID missing)")
+
     # Check Tavily API for pricing agent
     if settings.tavily_api_key:
         logger.info("🌐 Tavily Web Search: Enabled (Pricing Agent)")
@@ -143,6 +150,7 @@ app.add_middleware(
 app.include_router(agents_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(joyitas_search_router, prefix="/api")
+app.include_router(whatsapp_router, prefix="/api")
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
