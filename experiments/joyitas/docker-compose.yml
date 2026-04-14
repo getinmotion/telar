@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # API (NestJS) — api.telar.store → :3040
+  # ========================================
+  api:
+    image: ghcr.io/getinmotion/gim-api:${API_IMAGE_TAG:-latest}
+    container_name: joyitas-api
+    restart: unless-stopped
+    ports:
+      - "3040:3000"
+    environment:
+      # Database
+      DATABASE_URL: ${DATABASE_URL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+
+      # App Config
+      NODE_ENV: production
+      PORT: 3000
+      API_URL: ${API_URL}
+
+      # JWT & Auth
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+
+      # Supabase (if using)
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      # Cobre Payment Gateway
+      COBRE_API_KEY: ${COBRE_API_KEY}
+      COBRE_BASE_URL: ${COBRE_BASE_URL}
+      COBRE_BALANCE_ID: ${COBRE_BALANCE_ID}
+
+      # Wompi Payment Gateway
+      WOMPI_BASE_URL: ${WOMPI_BASE_URL}
+      WOMPI_PUBLIC_KEY: ${WOMPI_PUBLIC_KEY}
+      WOMPI_PRIVATE_KEY: ${WOMPI_PRIVATE_KEY}
+
+      # Other services
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-http://payment-svc:8080}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - joyitas-network
+
+  # ========================================
+  # Marketplace Web (React) — telar.store → :3001
+  # ========================================
+  marketplace-web:
+    image: ghcr.io/getinmotion/gim-marketplace-web:${MARKETPLACE_IMAGE_TAG:-latest}
+    container_name: joyitas-marketplace
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    environment:
+      # API URLs
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+
+      # Wompi Public Key
+      VITE_WOMPI_PUBLIC_KEY: ${VITE_WOMPI_PUBLIC_KEY}
+
+      # Environment
+      VITE_ENV: production
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - joyitas-network
+
+networks:
+  joyitas-network:
+    driver: bridge
