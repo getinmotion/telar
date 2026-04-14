@@ -21,9 +21,11 @@ if backend_path not in sys.path:
 # Import after path setup
 from agents.api import router as agents_router
 from agents.search_api import router as search_router
+from agents.joyitas_search_api import router as joyitas_search_router
 from agents.tracing import init_langsmith
 from src.api.config import settings
 from src.database.pg_client import get_pool, close_pool
+from src.database.joyitas_pg_client import get_joyitas_pool, close_joyitas_pool
 
 # Configure logging
 logging.basicConfig(
@@ -67,12 +69,20 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("CATALOG_DB_URL not set - semantic search will be unavailable")
 
+    # Warm up joyitas DB connection pool (stage test DB — graceful on failure)
+    try:
+        await get_joyitas_pool()
+        logger.info("Joyitas DB pool ready")
+    except Exception as exc:
+        logger.warning(f"Joyitas DB pool could not be created at startup: {exc}")
+
     logger.info("Agents Service Ready")
 
     yield
 
     # Shutdown
     await close_pool()
+    await close_joyitas_pool()
     logger.info("Shutting down GetInMotion Agents Service")
 
 
@@ -132,6 +142,7 @@ app.add_middleware(
 # Include routers
 app.include_router(agents_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
+app.include_router(joyitas_search_router, prefix="/api")
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
