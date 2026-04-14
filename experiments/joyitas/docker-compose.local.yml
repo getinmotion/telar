@@ -93,15 +93,7 @@ services:
   marketplace-web:
     build:
       context: ../../
-      dockerfile: experiments/joyitas/Dockerfile.marketplace
-      args:
-        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-        VITE_API_PAYMENT_URL: ${VITE_API_PAYMENT_URL}
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
-        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
-        VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL}
-        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
+      dockerfile: experiments/joyitas/Dockerfile.marketplace-prebuilt
     container_name: joyitas-marketplace
     restart: unless-stopped
     ports:

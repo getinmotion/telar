@@ -33,7 +33,8 @@ ENV VITE_BACKEND_URL=$VITE_BACKEND_URL \
     VITE_SEMANTIC_SEARCH_API_URL=$VITE_SEMANTIC_SEARCH_API_URL \
     VITE_SEMANTIC_SEARCH_API_KEY=$VITE_SEMANTIC_SEARCH_API_KEY
 
-# Build
+# Build with increased memory
+ENV NODE_OPTIONS=--max_old_space_size=4096
 RUN npm run build
 
 # ========================================

@@ -1,0 +1,15 @@
+# ========================================
+# Marketplace-Web - Using Pre-built dist
+# Build locally, then use this Dockerfile
+# ========================================
+
+FROM nginx:alpine
+
+# Copy pre-built files from local build
+COPY marketplace-build /usr/share/nginx/html
+
+# Expose port
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
