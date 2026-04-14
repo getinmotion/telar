@@ -9,6 +9,7 @@ import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
   getProductsNew,
+  getPrimaryImageUrl,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
@@ -369,11 +370,15 @@ export default function TecnicaDetail() {
           </div>
           <div className="lg:col-span-7">
             <div className="aspect-[21/9] rounded-sm relative overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-6xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
-                  {displayData.name}
-                </span>
-              </div>
+              {displayProducts[0] && getPrimaryImageUrl(displayProducts[0]) ? (
+                <img src={getPrimaryImageUrl(displayProducts[0])!} alt={displayData.name} className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-6xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                    {displayData.name}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
