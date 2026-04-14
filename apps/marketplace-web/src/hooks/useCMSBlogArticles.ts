@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchBlogArticles } from '@/lib/storyblokClient';
 import { BlogArticleListResponse } from '@/types/storyblok';
-import { FALLBACK_STORIES } from '@/data/fallbackStories';
+import { FALLBACK_STORIES } from '@/datafallback/fallbackStories';
 
 function buildFallbackResponse(
   page: number,

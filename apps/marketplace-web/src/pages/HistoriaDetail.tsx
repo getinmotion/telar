@@ -22,7 +22,7 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import { getStoryKeywords } from "@/data/fallbackStories";
+import { getStoryKeywords } from "@/datafallback/fallbackStories";
 
 // ── helpers ────────────────────────────────────────────
 /** Normalise a string for accent/case-insensitive matching. */
