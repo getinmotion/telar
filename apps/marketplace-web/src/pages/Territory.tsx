@@ -111,6 +111,19 @@ const TERRITORY_DATA: Record<string, TerritoryMeta> = {
     culturalTitle: "La voz de las semillas",
     ctaHeadline: "Descubra la maestría del Putumayo",
   },
+  cauca: {
+    name: "Cauca",
+    department: "Cauca",
+    subtitle: "Seda de paz · Popayán, Timbío y El Tambo",
+    description:
+      "En las montañas del Cauca, Colteseda y Agroarte tejen una revolución silenciosa: mujeres cabeza de familia transforman la morera en seda y la hoja de coca en tintes naturales, convirtiendo cada telar en un refugio de paz.",
+    longDescription:
+      "Entre Popayán, Timbío y El Tambo, el cultivo de la morera y la sericultura han sustituido economías de la guerra por una economía legal, digna y circular. Las maestras tejedoras de Agroarte integran a los jóvenes en el proceso, asegurando relevo generacional y convirtiendo cada pieza en un manifiesto de reconciliación.",
+    culturalQuote:
+      "La hoja que fue combustible de guerra se sumerge hoy en las tinas de teñido para dar vida a verdes profundos y amarillos solares. La coca vuelve a su origen artesanal como pigmento de esperanza.",
+    culturalTitle: "De la coca al color: alquimia de paz",
+    ctaHeadline: "Descubra la seda del Cauca",
+  },
 };
 
 const ALL_TERRITORIES = Object.keys(TERRITORY_DATA);
