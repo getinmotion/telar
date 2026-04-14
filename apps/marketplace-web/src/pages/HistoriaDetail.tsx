@@ -4,7 +4,7 @@
  * Reference: telar_historia_interna_refinamiento_editorial_final
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
@@ -22,6 +22,52 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { getStoryKeywords } from "@/data/fallbackStories";
+
+// ── helpers ────────────────────────────────────────────
+/** Normalise a string for accent/case-insensitive matching. */
+function normalize(s: string | null | undefined): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
+ * Score a product against a set of keywords — higher is more relevant.
+ * We check name, short description, technique, craft, materials, territory
+ * so the story surfaces pieces that actually match its topic.
+ */
+function productKeywordScore(
+  product: ProductNewCore,
+  keywords: string[],
+): number {
+  if (!keywords.length) return 0;
+  const haystack = normalize(
+    [
+      product.name,
+      product.shortDescription,
+      product.history,
+      product.artisanalIdentity?.primaryTechnique?.name,
+      product.artisanalIdentity?.secondaryTechnique?.name,
+      product.artisanalIdentity?.primaryCraft?.name,
+      product.artisanalIdentity?.pieceType,
+      product.artisanalIdentity?.style,
+      product.artisanShop?.department,
+      product.artisanShop?.municipality,
+      product.artisanShop?.shopName,
+      ...(product.materials || []).map((m) => m.material?.name),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+  let score = 0;
+  for (const kw of keywords) {
+    const needle = normalize(kw);
+    if (needle && haystack.includes(needle)) score += 1;
+  }
+  return score;
+}
 
 const HistoriaDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -29,13 +75,42 @@ const HistoriaDetail = () => {
   const [products, setProducts] = useState<ProductNewCore[]>([]);
 
   useEffect(() => {
-    getProductsNew({ page: 1, limit: 8 })
+    // Pull a wider window so keyword matching has something to score against.
+    getProductsNew({ page: 1, limit: 100 })
       .then((res) => {
         const d = Array.isArray(res) ? res : res.data ?? [];
         setProducts(d as ProductNewCore[]);
       })
       .catch(() => {});
   }, []);
+
+  // Keyword-filtered products — story keywords first, then title/description
+  // as a fallback so even CMS articles without an explicit keywords field
+  // still get a relevant slice.
+  const relatedProducts = useMemo(() => {
+    if (!products.length) return [];
+    const explicit = getStoryKeywords(article ?? null);
+    const derived = article
+      ? [
+          ...(article.title?.split(/\s+/) ?? []),
+          ...(article.category?.split(/\s+/) ?? []),
+        ]
+          .map((w) => w.replace(/[^\p{L}]/gu, ""))
+          .filter((w) => w.length > 3)
+      : [];
+    const keywords = explicit.length ? explicit : derived;
+    if (!keywords.length) return products.slice(0, 4);
+
+    const scored = products
+      .map((p) => ({ p, score: productKeywordScore(p, keywords) }))
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((x) => x.p);
+
+    // If nothing matched, fall back to the first few products so the
+    // "Del Relato al Objeto" grid is never empty.
+    return (scored.length ? scored : products).slice(0, 4);
+  }, [products, article]);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -225,7 +300,7 @@ const HistoriaDetail = () => {
         )}
 
         {/* ═══════════════ PRODUCTS — DEL RELATO AL OBJETO ═══════════════ */}
-        {products.length > 0 && (
+        {relatedProducts.length > 0 && (
           <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
             <div className="mb-16 text-center">
               <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
@@ -236,7 +311,7 @@ const HistoriaDetail = () => {
               </p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-              {products.slice(0, 4).map((product) => {
+              {relatedProducts.map((product) => {
                 const img = getPrimaryImageUrl(product);
                 const price = getProductPrice(product);
                 return (
