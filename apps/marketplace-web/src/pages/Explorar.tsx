@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { Footer } from "@/components/Footer";
+import { useFeaturedProducts, getFeaturedImage } from "@/hooks/useFeaturedProducts";
 import explorarCategoriasImg from "@/assets/explorar-categorias.png";
 import explorarTecnicasImg from "@/assets/explorar-tecnicas.png";
 import explorarTerritoriosImg from "@/assets/explorar-territorios.png";
@@ -62,6 +63,8 @@ const Explorar = () => {
   const topCategories = safeCategories.slice(0, 3);
   const topTechniques = safeTechniques.slice(0, 3);
   const featuredShops = safeShops.slice(0, 4);
+
+  const { data: featuredProducts } = useFeaturedProducts();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#1b1c19" }}>
@@ -222,7 +225,11 @@ const Explorar = () => {
             {/* Piezas Únicas */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
-                <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
+                <div className="aspect-square overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+                  {getFeaturedImage(featuredProducts, 0) && (
+                    <img src={getFeaturedImage(featuredProducts, 0)!} alt="Piezas Únicas" className="w-full h-full object-cover" loading="lazy" />
+                  )}
+                </div>
               </div>
               <div className="w-2/3">
                 <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
@@ -244,7 +251,11 @@ const Explorar = () => {
             {/* Regalos con Historia */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
-                <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
+                <div className="aspect-square overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+                  {getFeaturedImage(featuredProducts, 1) && (
+                    <img src={getFeaturedImage(featuredProducts, 1)!} alt="Regalos con Historia" className="w-full h-full object-cover" loading="lazy" />
+                  )}
+                </div>
               </div>
               <div className="w-2/3">
                 <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
@@ -371,12 +382,16 @@ const Explorar = () => {
               </Link>
             </div>
           </div>
-          <div className="w-full md:w-1/2 relative" style={{ backgroundColor: "rgba(27,28,25,0.2)" }}>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-6xl font-black tracking-tighter" style={{ color: "rgba(255,255,255,0.05)" }}>
-                ORIGEN
-              </span>
-            </div>
+          <div className="w-full md:w-1/2 relative overflow-hidden" style={{ backgroundColor: "rgba(27,28,25,0.2)" }}>
+            {getFeaturedImage(featuredProducts, 2) ? (
+              <img src={getFeaturedImage(featuredProducts, 2)!} alt="Crónica del Mes" className="w-full h-full object-cover opacity-80" loading="lazy" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-6xl font-black tracking-tighter" style={{ color: "rgba(255,255,255,0.05)" }}>
+                  ORIGEN
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
