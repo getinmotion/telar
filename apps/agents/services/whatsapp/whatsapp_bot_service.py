@@ -21,11 +21,14 @@ from agents.services.whatsapp.response_formatter import (
     format_regions,
     format_stores,
     format_welcome,
+    get_emoji,
 )
+import openai
+
 from agents.services.whatsapp.transcription_service import transcription_service
 from agents.services.whatsapp.webhook_handler import IncomingMessage
 from agents.services.whatsapp.whatsapp_client import whatsapp_client
-from src.database.pg_client import get_pool
+from src.api.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +128,9 @@ async def process_message(msg: IncomingMessage) -> None:
         elif intent.intent_type == "ask_stores":
             reply = await _handle_ask_stores(query, intent.empathetic_intro)
 
+        elif intent.intent_type == "ask_knowledge":
+            reply = await _handle_ask_knowledge(query, intent.empathetic_intro, context)
+
         else:
             # Default: semantic product search
             reply = await _handle_product_search(query, intent)
@@ -150,24 +156,33 @@ async def process_message(msg: IncomingMessage) -> None:
 # ─────────────────────────────────────────────
 
 async def _handle_ask_regions(intro: str) -> str:
-    """Return a deduplicated, sorted list of artisan store locations."""
+    """Return a deduplicated list of artisan regions extracted from store names."""
     try:
-        pool = await get_pool()
-        async with pool.acquire() as conn:
-            # artisan_shops is in the public schema and has a region column
-            rows = await conn.fetch(
-                """
-                SELECT DISTINCT region
-                FROM public.artisan_shops
-                WHERE region IS NOT NULL AND region != '' AND active = true
-                ORDER BY region
-                """
-            )
-        regions = [r["region"] for r in rows]
-        logger.info("ask_regions: found %d raw locations", len(regions))
-        return format_regions(regions, intro)
+        # Broad semantic search to gather stores from across Colombia
+        results = await semantic_search_service.search_products(
+            query="artesanías colombianas productos artesanales",
+            top_k=80,
+            min_similarity=0.15,
+        )
+
+        raw_regions: list[str] = []
+        for r in results:
+            loc = _extract_location(r.store_name)
+            if loc:
+                raw_regions.append(loc)
+
+        # Also try to extract city/department from store names that include "Colombia"
+        # e.g. "SAN JOSÉ DE TOLUVIEJO, SUCRE, Colombia" → "SAN JOSÉ DE TOLUVIEJO, SUCRE"
+        cleaned: list[str] = []
+        for loc in raw_regions:
+            loc = loc.replace(", Colombia", "").replace(",Colombia", "").strip(", ")
+            if loc:
+                cleaned.append(loc)
+
+        logger.info("ask_regions: found %d raw locations from semantic search", len(cleaned))
+        return format_regions(cleaned, intro)
     except Exception as exc:
-        logger.error("ask_regions DB query failed: %s", exc)
+        logger.error("ask_regions failed: %s", exc)
         return (
             (f"{intro}\n\n") if intro else ""
         ) + "😅 No pude obtener la lista de regiones en este momento. Intenta buscar un producto y te mostraré la ubicación de cada artesano."
@@ -176,6 +191,7 @@ async def _handle_ask_regions(intro: str) -> str:
 async def _handle_ask_materials(intro: str) -> str:
     """Return a list of unique craft types from the taxonomy."""
     try:
+        from src.database.pg_client import get_pool
         pool = await get_pool()
         async with pool.acquire() as conn:
             rows = await conn.fetch(
@@ -250,6 +266,58 @@ async def _handle_product_search(query: str, intent) -> str:
     if results:
         return format_products(results, query, empathetic_intro=intent.empathetic_intro)
     return format_no_results(query)
+
+
+async def _handle_ask_knowledge(query: str, intro: str, context: str = "") -> str:
+    """Answer a knowledge question about crafts/materials using GPT, then suggest related products."""
+    _KNOWLEDGE_SYSTEM = (
+        "Eres el asistente experto de Telar.co, un marketplace de artesanías colombianas. "
+        "El usuario pregunta sobre un material, técnica o tipo de artesanía colombiana. "
+        "Responde en 3-4 oraciones en español: explica qué es, su origen o tradición en Colombia, "
+        "y por qué es especial. Usa un tono cálido y apasionado. Sin markdown complejo — solo texto plano "
+        "con saltos de línea. Termina con una oración invitando a explorar los productos disponibles."
+    )
+    try:
+        client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
+        user_msg = f"{context}\n\nPREGUNTA: {query}" if context else query
+        resp = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": _KNOWLEDGE_SYSTEM},
+                {"role": "user", "content": user_msg},
+            ],
+            temperature=0.7,
+            max_tokens=300,
+        )
+        explanation = resp.choices[0].message.content.strip()
+        logger.info("ask_knowledge: generated explanation (%d chars)", len(explanation))
+    except Exception as exc:
+        logger.error("ask_knowledge LLM call failed: %s", exc)
+        explanation = "¡Excelente pregunta! En Telar.co trabajamos con muchos tipos de artesanías colombianas. Aquí te muestro algunos productos relacionados:"
+
+    # Follow up with related product search
+    try:
+        results = await semantic_search_service.search_products(
+            query=query, top_k=5, min_similarity=0.35
+        )
+        results = results[:3]
+    except Exception:
+        results = []
+
+    parts = []
+    if intro:
+        parts.append(intro)
+    parts.append(explanation)
+
+    if results:
+        parts.append("\n🛍️ *Productos relacionados:*")
+        for i, r in enumerate(results, 1):
+            emoji = get_emoji(r.craft_name, r.category_name)
+            name = r.product_name or "Producto artesanal"
+            price_str = f" — 💰 ${r.price / 100:,.0f} COP" if r.price else ""
+            parts.append(f"{emoji} *{i}. {name}*{price_str}\n🔗 https://telar.co/product/{r.product_id}")
+
+    return "\n\n".join(parts)
 
 
 # ─────────────────────────────────────────────
