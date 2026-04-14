@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { Footer } from "@/components/Footer";
 import { ArrowRight } from "lucide-react";
+import { useFeaturedProducts, getFeaturedImage, getFeaturedByTechnique } from "@/hooks/useFeaturedProducts";
 
 /* ── Technique editorial metadata ──────────────────── */
 interface TechniqueEditorial {
@@ -104,6 +105,7 @@ function getEditorial(name: string): TechniqueEditorial {
 /* ── Component ──────────────────────────────────────── */
 export default function Tecnicas() {
   const { techniques, crafts, loading } = useTaxonomy();
+  const { data: featuredProducts } = useFeaturedProducts();
   const [activeCraft, setActiveCraft] = useState<string | null>(null);
 
   const filteredTechniques = useMemo(() => {
@@ -177,13 +179,21 @@ export default function Tecnicas() {
       {featured && !activeCraft && (
         <section className="max-w-[1400px] mx-auto px-6 mb-32">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-0 border" style={{ borderColor: "rgba(44,44,44,0.08)" }}>
-            {/* Image placeholder — 65% */}
-            <div className="md:col-span-7 aspect-[16/10] relative" style={{ backgroundColor: "#e5e1d8" }}>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-7xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
-                  {featured.name}
-                </span>
-              </div>
+            {/* Image — 65% */}
+            <div className="md:col-span-7 aspect-[16/10] relative overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+              {(() => {
+                const match = getFeaturedByTechnique(featuredProducts, featured.name);
+                const imgUrl = match[0]?.imageUrl || getFeaturedImage(featuredProducts, 0);
+                return imgUrl ? (
+                  <img src={imgUrl} alt={featured.name} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="text-7xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                      {featured.name}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
             {/* Info — 35% */}
             <div className="md:col-span-5 p-10 lg:p-14 flex flex-col justify-between" style={{ backgroundColor: "#f5f3ee" }}>
@@ -256,14 +266,22 @@ export default function Tecnicas() {
                     className={`${isWide ? "aspect-[21/9]" : "aspect-[4/3]"} mb-6 relative overflow-hidden rounded-sm`}
                     style={{ backgroundColor: "#e5e1d8" }}
                   >
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <span
-                        className="text-4xl md:text-5xl font-serif italic opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-500"
-                      >
-                        {tech.name}
-                      </span>
-                    </div>
+                    {(() => {
+                      const match = getFeaturedByTechnique(featuredProducts, tech.name);
+                      const imgUrl = match[0]?.imageUrl || getFeaturedImage(featuredProducts, i);
+                      return imgUrl ? (
+                        <img src={imgUrl} alt={tech.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <span className="text-4xl md:text-5xl font-serif italic opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-500">
+                              {tech.name}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                   <div className="space-y-2">
                     <span
