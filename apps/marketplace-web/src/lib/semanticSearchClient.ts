@@ -56,7 +56,7 @@ export async function semanticSearch(request: SearchRequest): Promise<SearchResp
     };
 
     const response = await axios.post<SearchResponse>(
-      `${SEMANTIC_SEARCH_API_URL}/api/joyitas-search/products`,
+      `https://stage-agents.telar.co/api/joyitas-search/products`,
       {
         query: request.query,
         top_k: 40,
