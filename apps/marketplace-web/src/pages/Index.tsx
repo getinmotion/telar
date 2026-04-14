@@ -49,7 +49,7 @@ const Index = () => {
         // Validamos si la data ya es un arreglo
         if (Array.isArray(data)) {
           setProducts(data);
-        } 
+        }
         // Si viene envuelta en una propiedad "data" (muy común en APIs)
         else if (data && Array.isArray((data as any).data)) {
           setProducts((data as any).data);
@@ -73,7 +73,7 @@ const Index = () => {
     fetchFeaturedShops(8);
   }, []);
 
-// 3 featured products (purchasable, shuffled, from different stores)
+  // 3 featured products (purchasable, shuffled, from different stores)
   const featuredProducts = useMemo(() => {
     // 1. Aseguramos que sea un arreglo antes de filtrar
     const safeProducts = Array.isArray(products) ? products : [];
@@ -82,12 +82,12 @@ const Index = () => {
     const available = safeProducts.filter(
       (p) => !p.status || p.status === "published" || p.status === "approved",
     );
-    
+
     if (available.length === 0 && safeProducts.length > 0) {
       const shuffled = shuffleArray(safeProducts, dailySeed);
       return shuffled.slice(0, 3);
     }
-    
+
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
@@ -110,7 +110,7 @@ const Index = () => {
     return picked;
   }, [products, dailySeed]);
 
-// Featured shop (first one or Karen Dayana if available)
+  // Featured shop (first one or Karen Dayana if available)
   const featuredShop = useMemo(() => {
     const safeShops = Array.isArray(featuredShops) ? featuredShops : [];
 
@@ -128,7 +128,7 @@ const Index = () => {
   }, [categoryHierarchy]);
 
   const HERO_IMAGE =
-    "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png";
+    "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/subcategories_joyas%20(1).png";
 
   return (
     <>
@@ -229,13 +229,13 @@ const Index = () => {
 
         {/* ═══════════════ CATEGORIES ═══════════════ */}
         <section className="py-12 border-y border-[#2c2c2c]/10">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <div className="flex flex-wrap justify-between gap-y-12">
-              <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
-                Explorar por categorías
-              </span>
+          <div className="max-w-[1400px] mx-auto px-6 space-y-12">
+            <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full pb-10 opacity-40">
+              Explorar por categorías
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-4 justify-between gap-y-12">
               {displayCategories.map((cat) => (
-                <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
+                <div key={cat.id} className="w-full  space-y-2 px-2">
                   <Link to={`/categoria/${cat.slug}`}>
                     <div className="aspect-[16/10] bg-[#e5e1d8] mb-4 overflow-hidden relative">
                       {cat.imageUrl ? (
@@ -393,12 +393,12 @@ const Index = () => {
               </div>
             </div>
             {featuredProducts[2]?.imageUrl ? (
-                <img
-                  src={featuredProducts[2].imageUrl}
-                  alt="Huella digital"
-                  className="w-full h-full object-cover"
-                />
-              ) : null}
+              <img
+                src={featuredProducts[2].imageUrl}
+                alt="Huella digital"
+                className="w-full h-full object-cover"
+              />
+            ) : null}
           </div>
         </section>
 
@@ -662,7 +662,11 @@ const Index = () => {
               Aliados
             </h2>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-48 h-12 bg-[#e5e1d8] opacity-50" />
+              <img
+                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
+                alt="Artesanías de Colombia"
+                className="w-48 h-auto object-contain"
+              />
               <h3 className="text-2xl font-serif">
                 Con el apoyo de Artesanías de Colombia
               </h3>
