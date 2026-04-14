@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchBlogArticle } from '@/lib/storyblokClient';
 import { BlogArticle } from '@/types/storyblok';
-import { getFallbackStoryBySlug } from '@/data/fallbackStories';
+import { getFallbackStoryBySlug } from '@/datafallback/fallbackStories';
 
 export function useCMSBlogArticle(slug: string) {
   return useQuery({
