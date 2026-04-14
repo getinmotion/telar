@@ -7,6 +7,7 @@ All functions are pure (no I/O) and return WhatsApp-safe strings
 
 from __future__ import annotations
 
+import unicodedata
 from typing import Optional
 
 from agents.services.semantic_search_service import ProductSearchResult
@@ -15,100 +16,225 @@ _PRODUCT_BASE_URL = "https://telar.co/product/"
 _MAX_DESCRIPTION_CHARS = 120
 
 
+# ─────────────────────────────────────────────
+# Static messages
+# ─────────────────────────────────────────────
+
 def format_welcome() -> str:
     return (
         "👋 *¡Hola! Bienvenido a Telar.co*\n\n"
-        "Soy tu asistente de productos artesanales. Puedo ayudarte a encontrar:\n\n"
-        "🎨 Artesanías únicas\n"
-        "🪵 Productos de madera\n"
-        "🏺 Cerámica tradicional\n"
-        "🧶 Textiles artesanales\n"
-        "💍 Joyería hecha a mano\n\n"
+        "Soy tu asistente de productos artesanales colombianos. Puedo ayudarte a:\n\n"
+        "🔍 Buscar productos artesanales\n"
+        "💰 Filtrar por precio\n"
+        "🗺️ Conocer las regiones de nuestros artesanos\n"
+        "🏪 Descubrir tiendas y artesanos\n"
+        "🎤 Enviar mensajes de voz\n\n"
         "✨ *¿Qué estás buscando?*\n\n"
         "Ejemplos:\n"
-        "• \"Busco un regalo de madera para mi mamá\"\n"
-        "• \"Quiero cerámica decorativa\"\n"
-        "• \"Artesanías colombianas baratas\"\n\n"
+        "• _\"Busco un regalo de madera para mi mamá\"_\n"
+        "• _\"Cerámica decorativa hasta 200 mil pesos\"_\n"
+        "• _\"¿De qué regiones son los artesanos?\"_\n"
+        "• _\"¿Qué tiendas tienen?\"_\n\n"
         "¡Pregúntame lo que necesites! 😊"
     )
 
 
-def format_no_results() -> str:
+def format_no_results(query: str = "") -> str:
     return (
         "🤔 *No encontré productos que coincidan exactamente.*\n\n"
         "💡 *Sugerencias:*\n"
-        "• Describe el material: \"madera\", \"cerámica\", \"textiles\"\n"
-        "• Menciona el uso: \"decoración\", \"regalo\", \"joyería\"\n"
-        "• Di para quién: \"para mi mamá\", \"para el hogar\"\n\n"
-        "📋 *Ejemplos que funcionan bien:*\n"
-        "• \"Productos de madera para decoración\"\n"
-        "• \"Artesanías en cerámica\"\n"
-        "• \"Regalos artesanales colombianos\"\n\n"
-        "🌟 ¿Qué tipo de producto artesanal estás buscando?"
+        "• Describe el material: _\"madera\"_, _\"cerámica\"_, _\"textiles\"_\n"
+        "• Menciona el uso: _\"decoración\"_, _\"regalo\"_, _\"joyería\"_\n"
+        "• Di para quién: _\"para mi mamá\"_, _\"para el hogar\"_\n"
+        "• Ajusta el precio: _\"hasta 100 mil pesos\"_\n\n"
+        "🌟 ¿Qué tipo de artesanía colombiana estás buscando?"
     )
 
 
-def format_products(results: list[ProductSearchResult], query: str) -> str:
-    """Format a list of ProductSearchResult objects into a WhatsApp message."""
-    message = f"🔍 *Encontré {len(results)} producto{'s' if len(results) != 1 else ''}:*\n\n"
+# ─────────────────────────────────────────────
+# Product listing
+# ─────────────────────────────────────────────
+
+def format_products(results: list[ProductSearchResult], query: str, empathetic_intro: str = "") -> str:
+    """Format product results into a WhatsApp message with optional empathetic intro."""
+    parts = []
+
+    if empathetic_intro:
+        parts.append(empathetic_intro)
+
+    parts.append(f"🔍 *Encontré {len(results)} producto{'s' if len(results) != 1 else ''}:*")
+    parts.append("")
 
     for i, r in enumerate(results, 1):
         emoji = get_emoji(r.craft_name, r.category_name)
-        message += f"{emoji} *{i}. {r.product_name}*\n"
+        block = [f"{emoji} *{i}. {r.product_name}*"]
 
         if r.short_description:
             desc = r.short_description.strip()
             if len(desc) > _MAX_DESCRIPTION_CHARS:
                 desc = desc[:_MAX_DESCRIPTION_CHARS].rstrip() + "..."
-            message += f"📝 {desc}\n"
+            block.append(f"📝 {desc}")
 
         if r.price is not None:
             price_display = r.price / 100
-            message += f"💰 ${price_display:,.0f} COP\n"
+            block.append(f"💰 ${price_display:,.0f} COP")
 
         if r.category_name:
-            message += f"🏷️ {r.category_name}\n"
+            block.append(f"🏷️ {r.category_name}")
 
-        if r.store_name:
-            message += f"🏪 {r.store_name}\n"
+        # Store + location on one line
+        store_line = _format_store_line(r)
+        if store_line:
+            block.append(store_line)
 
-        if r.similarity >= 0.75:
-            message += "⭐ Muy relevante para tu búsqueda\n"
+        block.append(f"🔗 {_PRODUCT_BASE_URL}{r.product_id}")
+        parts.append("\n".join(block))
 
-        message += f"🔗 {_PRODUCT_BASE_URL}{r.product_id}\n"
-        message += "\n"
+    parts.append("✨ _¿Necesitas más opciones o quieres filtrar por precio? Pregúntame_ 😊")
+    return "\n\n".join(parts)
 
-    message += "✨ _¿Necesitas más opciones? Pregúntame lo que quieras_ 😊"
-    return message
 
+def _format_store_line(r: ProductSearchResult) -> str:
+    """Build '🏪 Tienda (Ciudad, Región)' line from available fields."""
+    store = r.store_name or ""
+    # store_name sometimes already includes location in parens — use as-is
+    if store:
+        return f"🏪 {store}"
+    return ""
+
+
+# ─────────────────────────────────────────────
+# Informational responses
+# ─────────────────────────────────────────────
+
+def format_regions(regions: list[str], intro: str = "") -> str:
+    """Format a deduplicated, sorted list of artisan regions."""
+    cleaned = _deduplicate_regions(regions)
+
+    parts = []
+    if intro:
+        parts.append(intro)
+
+    parts.append(f"🗺️ *Nuestros artesanos vienen de {len(cleaned)} regiones de Colombia:*\n")
+    parts.append("\n".join(f"📍 {r}" for r in cleaned))
+    parts.append("\n💬 _¿Quieres ver productos de alguna región específica? Solo dímelo_ 😊")
+    return "\n".join(parts)
+
+
+def format_materials(materials: list[str], intro: str = "") -> str:
+    """Format a list of available craft materials/types."""
+    cleaned = sorted(set(m.strip().capitalize() for m in materials if m and m.strip()))
+
+    parts = []
+    if intro:
+        parts.append(intro)
+
+    parts.append(f"🎨 *Trabajamos con {len(cleaned)} tipos de artesanía:*\n")
+    parts.append("\n".join(f"{get_emoji(m, '')} {m}" for m in cleaned))
+    parts.append("\n💬 _¿En qué material te gustaría buscar?_ 😊")
+    return "\n".join(parts)
+
+
+def format_stores(stores: list[dict], intro: str = "") -> str:
+    """
+    Format a list of unique stores.
+    Each store dict: {name, location, craft_name, product_count}
+    """
+    parts = []
+    if intro:
+        parts.append(intro)
+
+    parts.append(f"🏪 *Tenemos {len(stores)} tiendas de artesanos:*\n")
+
+    for i, s in enumerate(stores, 1):
+        block = [f"*{i}. {s['name']}*"]
+        if s.get("craft_name"):
+            block.append(f"   🎨 {s['craft_name'].capitalize()}")
+        if s.get("location"):
+            block.append(f"   📍 {s['location']}")
+        if s.get("product_count"):
+            block.append(f"   📦 {s['product_count']} producto{'s' if s['product_count'] != 1 else ''}")
+        parts.append("\n".join(block))
+
+    parts.append("💬 _¿Quieres ver productos de alguna tienda? Solo dime su nombre_ 😊")
+    return "\n\n".join(parts)
+
+
+# ─────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────
 
 def get_emoji(craft_name: Optional[str], category_name: Optional[str]) -> str:
     """Return an appropriate emoji based on craft type or product category."""
-    craft = (craft_name or "").lower()
-    category = (category_name or "").lower()
+    craft = _normalize(craft_name or "")
+    category = _normalize(category_name or "")
 
-    if "madera" in craft or "wood" in craft or "ebanistería" in craft:
+    if any(w in craft for w in ["madera", "wood", "ebanisteria", "talla"]):
         return "🪵"
-    if "cerámica" in craft or "ceramic" in craft or "barro" in craft:
+    if any(w in craft for w in ["ceramica", "ceramic", "barro", "alfareria"]):
         return "🏺"
-    if "textil" in craft or "textile" in craft or "tejido" in craft or "mochila" in craft:
+    if any(w in craft for w in ["textil", "textile", "tejido", "mochila", "fibra"]):
         return "🧶"
-    if "joyería" in craft or "jewelry" in craft or "orfebrería" in craft:
+    if any(w in craft for w in ["joyeria", "jewelry", "orfebreria", "bisuteria"]):
         return "💍"
-    if "cuero" in craft or "leather" in craft:
+    if any(w in craft for w in ["cuero", "leather"]):
         return "👜"
-    if "metal" in craft or "forja" in craft:
+    if any(w in craft for w in ["metal", "forja", "hierro"]):
         return "⚙️"
-    if "vidrio" in craft or "glass" in craft:
+    if any(w in craft for w in ["vidrio", "glass"]):
         return "🫙"
+    if any(w in craft for w in ["mimbre", "cesteria", "werregue", "palma"]):
+        return "🧺"
 
-    if "decoración" in category or "decoration" in category:
+    if any(w in category for w in ["decoracion", "decoration", "arte"]):
         return "🎨"
-    if "joyería" in category or "jewelry" in category:
+    if any(w in category for w in ["joyeria", "jewelry", "accesorio"]):
         return "💍"
-    if "textil" in category:
+    if any(w in category for w in ["textil", "bolso", "cartera"]):
         return "🧶"
-    if "hogar" in category or "home" in category:
+    if any(w in category for w in ["hogar", "home", "cocina"]):
         return "🏠"
+    if any(w in category for w in ["juguete", "nino", "infantil"]):
+        return "🧸"
 
     return "✨"
+
+
+def _normalize(text: str) -> str:
+    """Lowercase + remove accents for fuzzy matching."""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", text.lower())
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def _deduplicate_regions(regions: list[str]) -> list[str]:
+    """
+    Deduplicate and clean region strings.
+
+    The DB has inconsistent values: "Bogotá", "Bogota, Colombia",
+    "BOGOTÁ D.C., BOGOTÁ D.C.", "Bogotá, Colombia", etc.
+    Strategy: normalize → group → pick the shortest/cleanest representative.
+    """
+    # Group by normalized key
+    groups: dict[str, list[str]] = {}
+    for r in regions:
+        if not r or not r.strip():
+            continue
+        key = _normalize(r.strip())
+        # Strip trailing ", colombia" and ", colombia." for grouping
+        key = key.replace(", colombia", "").replace(",colombia", "").strip(" ,.")
+        groups.setdefault(key, []).append(r.strip())
+
+    # From each group, pick the value that looks cleanest:
+    # prefer title-case, prefer shorter, avoid ALL CAPS
+    result = []
+    for variants in groups.values():
+        # filter out ALL CAPS strings unless that's the only option
+        normal = [v for v in variants if not v.isupper()]
+        pool = normal if normal else variants
+        # pick shortest (less redundant info)
+        best = min(pool, key=lambda v: len(v))
+        result.append(best)
+
+    return sorted(result, key=lambda v: _normalize(v))
