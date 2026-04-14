@@ -5,7 +5,9 @@ services:
   # API (NestJS) — api.telar.store → :3040
   # ========================================
   api:
-    image: ghcr.io/getinmotion/gim-api:${API_IMAGE_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: experiments/joyitas/Dockerfile.api
     container_name: joyitas-api
     restart: unless-stopped
     ports:
@@ -82,12 +84,6 @@ services:
       CMS_KEY: ${CMS_KEY}
       AGENT_URL: ${AGENT_URL}
 
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
       - joyitas-network
 
@@ -95,31 +91,21 @@ services:
   # Marketplace Web (React) — telar.store → :3001
   # ========================================
   marketplace-web:
-    image: ghcr.io/getinmotion/gim-marketplace-web:${MARKETPLACE_IMAGE_TAG:-latest}
+    build:
+      context: ../../
+      dockerfile: experiments/joyitas/Dockerfile.marketplace
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_API_PAYMENT_URL: ${VITE_API_PAYMENT_URL}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL}
+        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
     container_name: joyitas-marketplace
     restart: unless-stopped
     ports:
       - "3001:80"
-    environment:
-      # Backend & API URLs
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-      VITE_API_PAYMENT_URL: ${VITE_API_PAYMENT_URL}
-
-      # Supabase
-      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-      VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
-
-      # Semantic Search
-      VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL}
-      VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
-
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
     networks:
       - joyitas-network
 
