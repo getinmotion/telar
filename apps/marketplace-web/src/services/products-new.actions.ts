@@ -91,6 +91,7 @@ export interface ProductNewCore {
   history?: string;
   careNotes?: string;
   status: string; // 'draft' | 'published' | 'archived'
+  isFeatured?: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

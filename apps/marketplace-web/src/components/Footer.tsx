@@ -63,8 +63,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       <div className={`max-w-7xl mx-auto px-8 py-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 ${showNewsletter ? "mt-20 md:mt-0" : ""}`}>
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
-          <FooterLink to="/productos">Categorías</FooterLink>
-          <FooterLink to="/productos">Colecciones</FooterLink>
+          <FooterLink to="/categorias">Categorías</FooterLink>
+          <FooterLink to="/colecciones">Colecciones</FooterLink>
         </FooterNav>
 
         <FooterNav title="Telar">
@@ -76,8 +76,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
 
         <FooterNav title="Descubrir">
           <FooterLink to="/tiendas">Artesanos</FooterLink>
-          <FooterLink to="/productos">Técnicas</FooterLink>
-          <FooterLink to="/productos">Territorios</FooterLink>
+          <FooterLink to="/tecnicas">Técnicas</FooterLink>
+          <FooterLink to="/territorios">Territorios</FooterLink>
         </FooterNav>
 
         <FooterNav title="Ayuda">

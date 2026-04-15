@@ -46,7 +46,23 @@ const Index = () => {
   useEffect(() => {
     getFeaturedProductsNew()
       .then((data) => {
-        setProducts(data);
+        // Validamos si la data ya es un arreglo
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } 
+        // Si viene envuelta en una propiedad "data" (muy común en APIs)
+        else if (data && Array.isArray((data as any).data)) {
+          setProducts((data as any).data);
+        }
+        // Si viene envuelta en "products"
+        else if (data && Array.isArray((data as any).products)) {
+          setProducts((data as any).products);
+        }
+        // Fallback preventivo
+        else {
+          console.warn("La API no devolvió un arreglo esperado:", data);
+          setProducts([]);
+        }
       })
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false));
@@ -57,18 +73,21 @@ const Index = () => {
     fetchFeaturedShops(8);
   }, []);
 
-  // 3 featured products (purchasable, shuffled, from different stores)
+// 3 featured products (purchasable, shuffled, from different stores)
   const featuredProducts = useMemo(() => {
-    // Filter out archived/draft — keep published or approved status
-    const available = products.filter(
+    // 1. Aseguramos que sea un arreglo antes de filtrar
+    const safeProducts = Array.isArray(products) ? products : [];
+
+    // 2. Usamos safeProducts en lugar de products directamente
+    const available = safeProducts.filter(
       (p) => !p.status || p.status === "published" || p.status === "approved",
     );
-    if (available.length === 0 && products.length > 0) {
-      // Fallback: if all products have a non-published status, use all
-      // (the API likely only returns published products anyway)
-      const shuffled = shuffleArray(products, dailySeed);
+    
+    if (available.length === 0 && safeProducts.length > 0) {
+      const shuffled = shuffleArray(safeProducts, dailySeed);
       return shuffled.slice(0, 3);
     }
+    
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
@@ -91,12 +110,14 @@ const Index = () => {
     return picked;
   }, [products, dailySeed]);
 
-  // Featured shop (first one or Karen Dayana if available)
+// Featured shop (first one or Karen Dayana if available)
   const featuredShop = useMemo(() => {
-    const karen = featuredShops.find((s) =>
+    const safeShops = Array.isArray(featuredShops) ? featuredShops : [];
+
+    const karen = safeShops.find((s) =>
       s.shopName?.toLowerCase().includes("karen dayana"),
     );
-    return karen || featuredShops[0] || null;
+    return karen || safeShops[0] || null;
   }, [featuredShops]);
 
   // Categories for display (up to 8 parent categories)
@@ -371,7 +392,7 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-                         {featuredProducts[1] && featuredProducts[1].imageUrl ? (
+            {featuredProducts[2]?.imageUrl ? (
                 <img
                   src={featuredProducts[2].imageUrl}
                   alt="Huella digital"
