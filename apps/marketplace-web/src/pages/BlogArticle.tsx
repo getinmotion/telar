@@ -62,7 +62,7 @@ const BlogArticle = () => {
             El articulo que buscas no existe o ha sido eliminado.
           </p>
           <Link
-            to="/blog"
+            to="/historias"
             className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
           >
             <ArrowLeft className="w-3 h-3" />
@@ -220,7 +220,7 @@ const BlogArticle = () => {
                   </span>
                 </div>
               </Link>
-              <Link to="/blog" className="group text-center space-y-6">
+              <Link to="/historias" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
                   ●
                 </div>
@@ -244,7 +244,7 @@ const BlogArticle = () => {
               "Cada puntada es un susurro de nuestros ancestros."
             </blockquote>
             <Link
-              to="/blog"
+              to="/historias"
               className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#ec6d13] transition-all duration-500 shadow-lg"
             >
               Descubrir mas relatos del territorio

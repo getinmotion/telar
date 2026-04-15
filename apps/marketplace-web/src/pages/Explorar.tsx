@@ -9,6 +9,10 @@ import { useEffect } from "react";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import { Footer } from "@/components/Footer";
+import { useFeaturedProducts, getFeaturedImage } from "@/hooks/useFeaturedProducts";
+import explorarCategoriasImg from "@/assets/explorar-categorias.png";
+import explorarTecnicasImg from "@/assets/explorar-tecnicas.png";
+import explorarTerritoriosImg from "@/assets/explorar-territorios.png";
 
 /* ── helpers ─────────────────────────────────────────── */
 const Arrow = () => (
@@ -50,12 +54,17 @@ const Explorar = () => {
     fetchFeaturedShops(4);
   }, []);
 
-  // Pick a few categories for the quick-links
-  const topCategories = categoryHierarchy.slice(0, 3);
-  const topTechniques = techniques.slice(0, 3);
+  // 1. Validamos que sean arreglos reales. Si no lo son, asignamos un arreglo vacío []
+  const safeCategories = Array.isArray(categoryHierarchy) ? categoryHierarchy : [];
+  const safeTechniques = Array.isArray(techniques) ? techniques : [];
+  const safeShops = Array.isArray(shops) ? shops : [];
 
-  // Featured shops (up to 4)
-  const featuredShops = shops.slice(0, 4);
+  // 2. Ahora hacemos los recortes de forma 100% segura
+  const topCategories = safeCategories.slice(0, 3);
+  const topTechniques = safeTechniques.slice(0, 3);
+  const featuredShops = safeShops.slice(0, 4);
+
+  const { data: featuredProducts } = useFeaturedProducts();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#1b1c19" }}>
@@ -87,14 +96,12 @@ const Explorar = () => {
               className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarCategoriasImg}
+                alt="Explorar por Categoría"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
-              {topCategories[0]?.imageUrl && (
-                <img
-                  src={topCategories[0].imageUrl}
-                  alt="Categorías"
-                  className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700"
-                />
-              )}
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
               <div>
@@ -130,11 +137,16 @@ const Explorar = () => {
           </Link>
 
           {/* Por Técnica */}
-          <Link to="/productos" className="group cursor-pointer block">
+          <Link to="/tecnicas" className="group cursor-pointer block">
             <div
-              className="aspect-[4/5] mb-6 relative"
+              className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarTecnicasImg}
+                alt="Explorar por Técnica"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
@@ -144,15 +156,20 @@ const Explorar = () => {
                   Explora tradiciones artesanales
                 </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {topTechniques.map((tech) => (
-                    <span
-                      key={tech.id}
-                      className="text-[10px] uppercase tracking-widest"
-                      style={{ color: "rgba(27,28,25,0.4)" }}
-                    >
-                      {tech.name}
-                    </span>
-                  ))}
+                  {topTechniques.map((tech) => {
+                    const techSlug = tech.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+                    return (
+                      <Link
+                        key={tech.id}
+                        to={`/tecnica/${techSlug}`}
+                        className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                        style={{ color: "rgba(27,28,25,0.4)" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {tech.name}
+                      </Link>
+                    );
+                  })}
                   {topTechniques.length === 0 && (
                     <>
                       <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(27,28,25,0.4)" }}>Tejeduría</span>
@@ -171,9 +188,14 @@ const Explorar = () => {
           {/* Por Territorio */}
           <Link to="/territorios" className="group cursor-pointer block">
             <div
-              className="aspect-[4/5] mb-6 relative"
+              className="aspect-[4/5] mb-6 overflow-hidden relative"
               style={{ backgroundColor: "#e5e1d8" }}
             >
+              <img
+                src={explorarTerritoriosImg}
+                alt="Explorar por Territorio"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
             </div>
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
@@ -203,7 +225,11 @@ const Explorar = () => {
             {/* Piezas Únicas */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
-                <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
+                <div className="aspect-square overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+                  {getFeaturedImage(featuredProducts, 0) && (
+                    <img src={getFeaturedImage(featuredProducts, 0)!} alt="Piezas Únicas" className="w-full h-full object-cover" loading="lazy" />
+                  )}
+                </div>
               </div>
               <div className="w-2/3">
                 <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
@@ -225,7 +251,11 @@ const Explorar = () => {
             {/* Regalos con Historia */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#f5f3ee" }}>
               <div className="w-1/3">
-                <div className="aspect-square" style={{ backgroundColor: "#e5e1d8" }} />
+                <div className="aspect-square overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+                  {getFeaturedImage(featuredProducts, 1) && (
+                    <img src={getFeaturedImage(featuredProducts, 1)!} alt="Regalos con Historia" className="w-full h-full object-cover" loading="lazy" />
+                  )}
+                </div>
               </div>
               <div className="w-2/3">
                 <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
@@ -343,7 +373,7 @@ const Explorar = () => {
                 Ver piezas
               </Link>
               <Link
-                to="/blog"
+                to="/historias"
                 className="flex items-center gap-2 hover:text-white transition-colors"
                 style={{ color: "rgba(255,255,255,0.4)" }}
               >
@@ -352,12 +382,16 @@ const Explorar = () => {
               </Link>
             </div>
           </div>
-          <div className="w-full md:w-1/2 relative" style={{ backgroundColor: "rgba(27,28,25,0.2)" }}>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-6xl font-black tracking-tighter" style={{ color: "rgba(255,255,255,0.05)" }}>
-                ORIGEN
-              </span>
-            </div>
+          <div className="w-full md:w-1/2 relative overflow-hidden" style={{ backgroundColor: "rgba(27,28,25,0.2)" }}>
+            {getFeaturedImage(featuredProducts, 2) ? (
+              <img src={getFeaturedImage(featuredProducts, 2)!} alt="Crónica del Mes" className="w-full h-full object-cover opacity-80" loading="lazy" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-6xl font-black tracking-tighter" style={{ color: "rgba(255,255,255,0.05)" }}>
+                  ORIGEN
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>

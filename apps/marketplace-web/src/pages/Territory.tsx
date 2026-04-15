@@ -111,6 +111,19 @@ const TERRITORY_DATA: Record<string, TerritoryMeta> = {
     culturalTitle: "La voz de las semillas",
     ctaHeadline: "Descubra la maestría del Putumayo",
   },
+  cauca: {
+    name: "Cauca",
+    department: "Cauca",
+    subtitle: "Seda de paz · Popayán, Timbío y El Tambo",
+    description:
+      "En las montañas del Cauca, Colteseda y Agroarte tejen una revolución silenciosa: mujeres cabeza de familia transforman la morera en seda y la hoja de coca en tintes naturales, convirtiendo cada telar en un refugio de paz.",
+    longDescription:
+      "Entre Popayán, Timbío y El Tambo, el cultivo de la morera y la sericultura han sustituido economías de la guerra por una economía legal, digna y circular. Las maestras tejedoras de Agroarte integran a los jóvenes en el proceso, asegurando relevo generacional y convirtiendo cada pieza en un manifiesto de reconciliación.",
+    culturalQuote:
+      "La hoja que fue combustible de guerra se sumerge hoy en las tinas de teñido para dar vida a verdes profundos y amarillos solares. La coca vuelve a su origen artesanal como pigmento de esperanza.",
+    culturalTitle: "De la coca al color: alquimia de paz",
+    ctaHeadline: "Descubra la seda del Cauca",
+  },
 };
 
 const ALL_TERRITORIES = Object.keys(TERRITORY_DATA);
@@ -275,30 +288,33 @@ export default function Territory() {
 
           {territoryTechniques.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {territoryTechniques.slice(0, 3).map((tech, i) => (
-                <div
-                  key={tech.id}
-                  className="p-12 space-y-8 border transition-colors duration-500 hover:bg-white"
-                  style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
-                >
-                  <div className="space-y-4">
-                    <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="text-3xl font-serif">{tech.name}</h3>
-                    <p className="font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.7)" }}>
-                      Técnica artesanal presente en los talleres de {territory.name.split(",")[0]}.
-                    </p>
-                  </div>
-                  <Link
-                    to="/productos"
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:gap-4 transition-all"
-                    style={{ color: "#ec6d13" }}
+              {territoryTechniques.slice(0, 3).map((tech, i) => {
+                const techSlug = tech.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+                return (
+                  <div
+                    key={tech.id}
+                    className="p-12 space-y-8 border transition-colors duration-500 hover:bg-white"
+                    style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
                   >
-                    Explorar técnica <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              ))}
+                    <div className="space-y-4">
+                      <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <h3 className="text-3xl font-serif">{tech.name}</h3>
+                      <p className="font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.7)" }}>
+                        Técnica artesanal presente en los talleres de {territory.name.split(",")[0]}.
+                      </p>
+                    </div>
+                    <Link
+                      to={`/tecnica/${techSlug}`}
+                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:gap-4 transition-all"
+                      style={{ color: "#ec6d13" }}
+                    >
+                      Explorar técnica <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           ) : loading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
