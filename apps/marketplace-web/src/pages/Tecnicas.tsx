@@ -12,10 +12,9 @@ import { Link } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { Footer } from "@/components/Footer";
 import {
-  useFeaturedProducts,
-  getFeaturedImage,
-  getFeaturedByTechnique,
-} from "@/hooks/useFeaturedProducts";
+  useProductImagesByTechnique,
+  getTechniqueImage,
+} from "@/hooks/useProductImagesByTechnique";
 
 /* ── Editorial metadata per technique (fallback for names not here) ── */
 interface TechniqueEditorial {
@@ -235,7 +234,7 @@ const VISIBLE_COUNT = 24;
 /* ── Component ──────────────────────────────────────── */
 export default function Tecnicas() {
   const { techniques, loading } = useTaxonomy();
-  const { data: featuredProducts } = useFeaturedProducts();
+  const { data: techImages } = useProductImagesByTechnique();
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [visible, setVisible] = useState(VISIBLE_COUNT);
 
@@ -371,19 +370,14 @@ export default function Tecnicas() {
                   style={{ backgroundColor: "#e4e2dd" }}
                 >
                   {(() => {
-                    const ed = getEditorial(primary.name);
-                    const match = getFeaturedByTechnique(
-                      featuredProducts,
-                      primary.name,
-                    );
-                    const imgUrl =
-                      match[0]?.imageUrl || getFeaturedImage(featuredProducts, 0);
+                    const imgUrl = getTechniqueImage(techImages, primary.name);
                     return imgUrl ? (
                       <img
                         src={imgUrl}
-                        alt={ed.slug}
+                        alt={primary.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -475,19 +469,14 @@ export default function Tecnicas() {
                       style={{ backgroundColor: "#e4e2dd" }}
                     >
                       {(() => {
-                        const match = getFeaturedByTechnique(
-                          featuredProducts,
-                          secondary.name,
-                        );
-                        const imgUrl =
-                          match[0]?.imageUrl ||
-                          getFeaturedImage(featuredProducts, 1);
+                        const imgUrl = getTechniqueImage(techImages, secondary.name);
                         return imgUrl ? (
                           <img
                             src={imgUrl}
                             alt={secondary.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             loading="lazy"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -618,7 +607,7 @@ export default function Tecnicas() {
                 <ArchiveSquareCard
                   tech={archiveRow1[0]}
                   index={2}
-                  featuredProducts={featuredProducts}
+                  techImages={techImages}
                 />
               )}
               <div
@@ -643,7 +632,7 @@ export default function Tecnicas() {
                 <ArchiveSquareCard
                   tech={archiveRow1[1]}
                   index={3}
-                  featuredProducts={featuredProducts}
+                  techImages={techImages}
                 />
               )}
 
@@ -682,7 +671,7 @@ export default function Tecnicas() {
                 <ArchiveHorizontalCard
                   tech={archiveRowWide[0]}
                   index={4}
-                  featuredProducts={featuredProducts}
+                  techImages={techImages}
                 />
               )}
 
@@ -692,7 +681,7 @@ export default function Tecnicas() {
                   key={t.id}
                   tech={t}
                   index={5 + i}
-                  featuredProducts={featuredProducts}
+                  techImages={techImages}
                 />
               ))}
 
@@ -703,7 +692,7 @@ export default function Tecnicas() {
                     key={t.id}
                     tech={t}
                     index={9 + i}
-                    featuredProducts={featuredProducts}
+                    techImages={techImages}
                   />
                 ))}
             </div>
@@ -850,21 +839,19 @@ export default function Tecnicas() {
 interface ArchiveCardProps {
   tech: { id: string; name: string };
   index: number;
-  featuredProducts: ReturnType<typeof useFeaturedProducts>["data"];
+  techImages: Record<string, string> | undefined;
 }
 
 function resolveImage(
   tech: { name: string },
-  index: number,
-  featuredProducts: ReturnType<typeof useFeaturedProducts>["data"],
+  techImages: Record<string, string> | undefined,
 ): string | null {
-  const match = getFeaturedByTechnique(featuredProducts, tech.name);
-  return match[0]?.imageUrl || getFeaturedImage(featuredProducts, index);
+  return getTechniqueImage(techImages, tech.name);
 }
 
-function ArchiveSquareCard({ tech, index, featuredProducts }: ArchiveCardProps) {
+function ArchiveSquareCard({ tech, techImages }: ArchiveCardProps) {
   const ed = getEditorial(tech.name);
-  const img = resolveImage(tech, index, featuredProducts);
+  const img = resolveImage(tech, techImages);
   return (
     <div className="col-span-12 md:col-span-4 flex flex-col gap-6 group">
       <Link to={`/tecnica/${ed.slug}`}>
@@ -878,6 +865,7 @@ function ArchiveSquareCard({ tech, index, featuredProducts }: ArchiveCardProps) 
               alt={tech.name}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -922,11 +910,10 @@ function ArchiveSquareCard({ tech, index, featuredProducts }: ArchiveCardProps) 
 
 function ArchiveHorizontalCard({
   tech,
-  index,
-  featuredProducts,
+  techImages,
 }: ArchiveCardProps) {
   const ed = getEditorial(tech.name);
-  const img = resolveImage(tech, index, featuredProducts);
+  const img = resolveImage(tech, techImages);
   return (
     <div className="col-span-12 md:col-span-9">
       <div className="flex flex-col md:flex-row gap-10 group">
@@ -941,6 +928,7 @@ function ArchiveHorizontalCard({
                 alt={tech.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -998,9 +986,9 @@ function ArchiveHorizontalCard({
   );
 }
 
-function ArchiveThumbCard({ tech, index, featuredProducts }: ArchiveCardProps) {
+function ArchiveThumbCard({ tech, techImages }: ArchiveCardProps) {
   const ed = getEditorial(tech.name);
-  const img = resolveImage(tech, index, featuredProducts);
+  const img = resolveImage(tech, techImages);
   return (
     <Link
       to={`/tecnica/${ed.slug}`}
@@ -1016,6 +1004,7 @@ function ArchiveThumbCard({ tech, index, featuredProducts }: ArchiveCardProps) {
             alt={tech.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

@@ -16,6 +16,11 @@ import { ExploreProductCard } from "@/components/ExploreProductCard";
 import { Footer } from "@/components/Footer";
 import { ArrowRight } from "lucide-react";
 import type { TaxonomyTechnique } from "@/services/taxonomy.actions";
+import {
+  useProductImagesByTechnique,
+  getTechniqueImage,
+  sanitizeImageUrl,
+} from "@/hooks/useProductImagesByTechnique";
 
 /* ── Technique editorial metadata ──────────────────── */
 interface TechniqueEditorial {
@@ -279,6 +284,7 @@ export default function TecnicaDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { techniques: allTechniques } = useTaxonomy();
   const { shops } = useArtisanShops();
+  const { data: techImages } = useProductImagesByTechnique();
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -406,15 +412,28 @@ export default function TecnicaDetail() {
           </div>
           <div className="lg:col-span-7">
             <div className="aspect-[21/9] rounded-sm relative overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
-              {displayProducts[0] && getPrimaryImageUrl(displayProducts[0]) ? (
-                <img src={getPrimaryImageUrl(displayProducts[0])!} alt={displayData.name} className="w-full h-full object-cover" loading="lazy" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="text-6xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
-                    {displayData.name}
-                  </span>
-                </div>
-              )}
+              {(() => {
+                // Try product image first (sanitised), then technique image map
+                const productImg = displayProducts[0] && getPrimaryImageUrl(displayProducts[0]);
+                const imgUrl = productImg
+                  ? sanitizeImageUrl(productImg)
+                  : getTechniqueImage(techImages, displayData.name);
+                return imgUrl ? (
+                  <img
+                    src={imgUrl}
+                    alt={displayData.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="text-6xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                      {displayData.name}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -609,17 +628,28 @@ export default function TecnicaDetail() {
           {relatedTechniques.map((tSlug) => {
             const t = TECHNIQUE_DATA[tSlug];
             if (!t) return null;
+            const relImg = getTechniqueImage(techImages, t.name);
             return (
               <Link key={tSlug} to={`/tecnica/${tSlug}`} className="group block">
                 <div
                   className="aspect-[4/3] rounded-sm mb-6 grayscale group-hover:grayscale-0 transition-all duration-700 relative overflow-hidden"
                   style={{ backgroundColor: "#e5e1d8" }}
                 >
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="text-4xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
-                      {t.name}
-                    </span>
-                  </div>
+                  {relImg ? (
+                    <img
+                      src={relImg}
+                      alt={t.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="text-4xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                        {t.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-2xl font-serif italic group-hover:text-[#ec6d13] transition-colors">{t.name}</h3>
                 <p className="text-sm mt-2 font-light" style={{ color: "rgba(44,44,44,0.6)" }}>
