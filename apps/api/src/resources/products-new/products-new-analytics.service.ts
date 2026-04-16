@@ -89,63 +89,93 @@ export class ProductsNewAnalyticsService {
     };
   }
 
-  // ─── 2. TAXONOMY DISTRIBUTION ───────────────────────────────
+// ─── 2. TAXONOMY DISTRIBUTION ───────────────────────────────
   private async getTaxonomyDistribution() {
-    const [crafts, techniques, curatorialCategories, materials, pieceTypes, styles, processTypes] =
-      await Promise.all([
-        this.dataSource.query(`
-          SELECT c.name, COUNT(pai.product_id) as count
-          FROM shop.product_artisanal_identity pai
-          JOIN taxonomy.crafts c ON c.id = pai.primary_craft_id
-          WHERE pai.deleted_at IS NULL
-          GROUP BY c.name
-          ORDER BY count DESC
-        `),
-        this.dataSource.query(`
-          SELECT t.name, COUNT(pai.product_id) as count
-          FROM shop.product_artisanal_identity pai
-          JOIN taxonomy.techniques t ON t.id = pai.primary_technique_id
-          WHERE pai.deleted_at IS NULL
-          GROUP BY t.name
-          ORDER BY count DESC
-        `),
-        this.dataSource.query(`
-          SELECT cc.name, COUNT(pai.product_id) as count
-          FROM shop.product_artisanal_identity pai
-          JOIN taxonomy.curatorial_categories cc ON cc.id = pai.curatorial_category_id
-          WHERE pai.deleted_at IS NULL
-          GROUP BY cc.name
-          ORDER BY count DESC
-        `),
-        this.dataSource.query(`
-          SELECT m.name, COUNT(pml.product_id) as count
-          FROM shop.product_materials_link pml
-          JOIN taxonomy.materials m ON m.id = pml.material_id
-          WHERE pml.deleted_at IS NULL
-          GROUP BY m.name
-          ORDER BY count DESC
-        `),
-        this.dataSource.query(`
-          SELECT piece_type as name, COUNT(product_id) as count
-          FROM shop.product_artisanal_identity
-          WHERE piece_type IS NOT NULL AND deleted_at IS NULL
-          GROUP BY piece_type
-        `),
-        this.dataSource.query(`
-          SELECT style as name, COUNT(product_id) as count
-          FROM shop.product_artisanal_identity
-          WHERE style IS NOT NULL AND deleted_at IS NULL
-          GROUP BY style
-        `),
-        this.dataSource.query(`
-          SELECT process_type as name, COUNT(product_id) as count
-          FROM shop.product_artisanal_identity
-          WHERE process_type IS NOT NULL AND deleted_at IS NULL
-          GROUP BY process_type
-        `),
-      ]);
+    const [
+      categories,           // <-- NUEVA
+      crafts, 
+      techniques, 
+      curatorialCategories, 
+      materials, 
+      pieceTypes, 
+      styles, 
+      processTypes,
+      noCategoryData        // <-- NUEVA
+    ] = await Promise.all([
+      // 1. Categorías Principales (Textiles, Joyería, etc.)
+      // Nota: Asumo que category_id está en products_core (pc). Si está en identity (pai), cambia pc.category_id por pai.category_id
+      this.dataSource.query(`
+        SELECT c.name, COUNT(pc.id) as count
+        FROM shop.products_core pc
+        JOIN taxonomy.categories c ON c.id = pc.category_id
+        WHERE pc.deleted_at IS NULL
+        GROUP BY c.name
+        ORDER BY count DESC
+      `),
+      // 2. Oficios
+      this.dataSource.query(`
+        SELECT c.name, COUNT(pai.product_id) as count
+        FROM shop.product_artisanal_identity pai
+        JOIN taxonomy.crafts c ON c.id = pai.primary_craft_id
+        WHERE pai.deleted_at IS NULL
+        GROUP BY c.name
+        ORDER BY count DESC
+      `),
+      // 3. Técnicas
+      this.dataSource.query(`
+        SELECT t.name, COUNT(pai.product_id) as count
+        FROM shop.product_artisanal_identity pai
+        JOIN taxonomy.techniques t ON t.id = pai.primary_technique_id
+        WHERE pai.deleted_at IS NULL
+        GROUP BY t.name
+        ORDER BY count DESC
+      `),
+      // 4. Categorías Curatoriales
+      this.dataSource.query(`
+        SELECT cc.name, COUNT(pai.product_id) as count
+        FROM shop.product_artisanal_identity pai
+        JOIN taxonomy.curatorial_categories cc ON cc.id = pai.curatorial_category_id
+        WHERE pai.deleted_at IS NULL
+        GROUP BY cc.name
+        ORDER BY count DESC
+      `),
+      // 5. Materiales
+      this.dataSource.query(`
+        SELECT m.name, COUNT(pml.product_id) as count
+        FROM shop.product_materials_link pml
+        JOIN taxonomy.materials m ON m.id = pml.material_id
+        WHERE pml.deleted_at IS NULL
+        GROUP BY m.name
+        ORDER BY count DESC
+      `),
+      // 6. Tipos de Pieza
+      this.dataSource.query(`
+        SELECT piece_type as name, COUNT(product_id) as count
+        FROM shop.product_artisanal_identity
+        WHERE piece_type IS NOT NULL AND deleted_at IS NULL
+        GROUP BY piece_type
+      `),
+      // 7. Estilos
+      this.dataSource.query(`
+        SELECT style as name, COUNT(product_id) as count
+        FROM shop.product_artisanal_identity
+        WHERE style IS NOT NULL AND deleted_at IS NULL
+        GROUP BY style
+      `),
+      // 8. Procesos
+      this.dataSource.query(`
+        SELECT process_type as name, COUNT(product_id) as count
+        FROM shop.product_artisanal_identity
+        WHERE process_type IS NOT NULL AND deleted_at IS NULL
+        GROUP BY process_type
+      `),
+      // 9. Conteo de productos sin categoría principal
+      this.dataSource.query(`
+        SELECT COUNT(id) as count FROM shop.products_core WHERE category_id IS NULL AND deleted_at IS NULL
+      `)
+    ]);
 
-    // Count products without craft assigned
+    // Conteo de campos vacíos en la identidad artesanal
     const noCraft = await this.identityRepo.count({
       where: { primaryCraftId: IsNull() },
     });
@@ -154,6 +184,8 @@ export class ProductsNewAnalyticsService {
     });
 
     return {
+      categories: this.parseCountRows(categories),
+      noCategory: parseInt(noCategoryData[0]?.count || '0'),
       crafts: this.parseCountRows(crafts),
       noCraft,
       techniques: this.parseCountRows(techniques),
@@ -165,7 +197,6 @@ export class ProductsNewAnalyticsService {
       processTypes: this.parseCountRows(processTypes),
     };
   }
-
   // ─── 3. PHYSICAL STATS ──────────────────────────────────────
   private async getPhysicalStats() {
     const [specsStats, logisticsStats, fragilityDist, packagingDist, outliers, defaults] =
@@ -320,10 +351,10 @@ export class ProductsNewAnalyticsService {
         : 0,
     }));
   }
-
-  // ─── 6. PRICE DISTRIBUTION ─────────────────────────────────
+// ─── 6. PRICE DISTRIBUTION ─────────────────────────────────
   private async getPriceDistribution() {
-    const [stats, cheapCount] = await Promise.all([
+    const [stats, cheapCount, ranges, groupedByCat] = await Promise.all([
+      // 1. Estadísticas generales
       this.dataSource.query(`
         SELECT
           COUNT(*) as total,
@@ -334,35 +365,84 @@ export class ProductsNewAnalyticsService {
         FROM shop.product_variants
         WHERE base_price_minor > 0 AND deleted_at IS NULL
       `),
+      
+      // 2. Precios sospechosamente baratos
       this.dataSource.query(`
         SELECT COUNT(*) as count
         FROM shop.product_variants
         WHERE base_price_minor > 0 AND base_price_minor <= 100 AND deleted_at IS NULL
       `),
+
+      // 3. Rangos de precio para el histograma
+      this.dataSource.query(`
+        SELECT
+          CASE
+            WHEN base_price_minor / 100 < 10000 THEN '< $10,000'
+            WHEN base_price_minor / 100 < 50000 THEN '$10,000 - $50,000'
+            WHEN base_price_minor / 100 < 100000 THEN '$50,000 - $100,000'
+            WHEN base_price_minor / 100 < 200000 THEN '$100,000 - $200,000'
+            WHEN base_price_minor / 100 < 500000 THEN '$200,000 - $500,000'
+            ELSE '> $500,000'
+          END as range,
+          COUNT(*) as count
+        FROM shop.product_variants
+        WHERE base_price_minor > 0 AND deleted_at IS NULL
+        GROUP BY range
+        ORDER BY MIN(base_price_minor)
+      `),
+
+    // 4. NUEVO: Agrupación por Categoría Principal y Técnica
+      this.dataSource.query(`
+        SELECT 
+          c.name as category_name,
+          t.name as technique_name,
+          COUNT(pv.id) as count,
+          ROUND(AVG(pv.base_price_minor / 100.0)::numeric, 0) as avg_price,
+          ROUND(MIN(pv.base_price_minor / 100.0)::numeric, 0) as min_price,
+          ROUND(MAX(pv.base_price_minor / 100.0)::numeric, 0) as max_price
+        FROM shop.product_variants pv
+        JOIN shop.products_core pc ON pc.id = pv.product_id
+        JOIN shop.product_artisanal_identity pai ON pai.product_id = pc.id
+        -- Asegúrate de que category_id esté en products_core (pc). Si está en identity, usa pai.category_id
+        LEFT JOIN taxonomy.categories c ON c.id = pc.category_id 
+        LEFT JOIN taxonomy.techniques t ON t.id = pai.primary_technique_id
+        WHERE pv.base_price_minor > 0 
+          AND pv.deleted_at IS NULL 
+          AND pc.deleted_at IS NULL
+          AND pai.deleted_at IS NULL
+        GROUP BY c.name, t.name
+        ORDER BY c.name ASC, count DESC
+      `)
     ]);
 
-    // Price ranges for histogram
-    const ranges = await this.dataSource.query(`
-      SELECT
-        CASE
-          WHEN base_price_minor / 100 < 10000 THEN '< $10,000'
-          WHEN base_price_minor / 100 < 50000 THEN '$10,000 - $50,000'
-          WHEN base_price_minor / 100 < 100000 THEN '$50,000 - $100,000'
-          WHEN base_price_minor / 100 < 200000 THEN '$100,000 - $200,000'
-          WHEN base_price_minor / 100 < 500000 THEN '$200,000 - $500,000'
-          ELSE '> $500,000'
-        END as range,
-        COUNT(*) as count
-      FROM shop.product_variants
-      WHERE base_price_minor > 0 AND deleted_at IS NULL
-      GROUP BY range
-      ORDER BY MIN(base_price_minor)
-    `);
+    // Lógica para transformar el resultado SQL plano en el array anidado que pide el Frontend
+    const byCategoryMap = new Map<string, any>();
+
+    for (const row of groupedByCat) {
+      const catName = row.category_name || 'Sin Categoría Asignada';
+      const techName = row.technique_name || 'Sin Técnica Asignada';
+
+      if (!byCategoryMap.has(catName)) {
+        byCategoryMap.set(catName, {
+          categoryName: catName,
+          techniques: []
+        });
+      }
+
+      byCategoryMap.get(catName).techniques.push({
+        name: techName,
+        count: parseInt(row.count || '0'),
+        avg_price: parseFloat(row.avg_price || '0'),
+        min_price: parseFloat(row.min_price || '0'),
+        max_price: parseFloat(row.max_price || '0')
+      });
+    }
 
     return {
       stats: stats[0] || {},
       suspiciousCheapCount: parseInt(cheapCount[0]?.count || '0'),
       ranges: this.parseCountRows(ranges, 'range'),
+      byCategory: Array.from(byCategoryMap.values()), // Enviamos el array anidado
     };
   }
 
