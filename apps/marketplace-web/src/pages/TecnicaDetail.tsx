@@ -32,48 +32,48 @@ interface TechniqueEditorial {
 }
 
 const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
-  "telar-vertical": {
-    name: "Telar Vertical",
-    slug: "telar-vertical",
+  "tejido-plano": {
+    name: "Tejido Plano",
+    slug: "tejido-plano",
     subtitle: "Un diálogo entre tensión y paciencia",
     heroDescription:
-      "El telar vertical es una de las técnicas textiles más antiguas de la humanidad. En Colombia, artesanos de múltiples regiones mantienen vivo este oficio, tejiendo identidad y tradición en cada pasada de hilo.",
+      "El tejido plano es una de las técnicas textiles más antiguas de la humanidad. En Colombia, artesanos de múltiples regiones mantienen vivo este oficio, tejiendo identidad y tradición en cada pasada de hilo sobre el telar.",
     longDescription:
-      "El telar vertical funciona mediante hilos de urdimbre tensados verticalmente, entre los que el artesano entrelaza la trama usando una lanzadera. La gravedad asiste el proceso, permitiendo crear tejidos densos con patrones complejos.",
+      "El tejido plano funciona mediante hilos de urdimbre tensados entre los que el artesano entrelaza la trama usando una lanzadera. Ya sea en telar vertical u horizontal, cada región le imprime su identidad a través de materiales, patrones y rituales.",
     explanationCards: [
-      { title: "Proceso", text: "Los hilos de urdimbre se tensan verticalmente en un marco de madera. La trama se pasa horizontalmente con una lanzadera, creando el tejido patrón a patrón." },
+      { title: "Proceso", text: "Los hilos de urdimbre se tensan en un marco de madera. La trama se pasa horizontalmente con una lanzadera, creando el tejido patrón a patrón." },
       { title: "Materiales", text: "Algodón, lana virgen, fique y fibras naturales. Cada región privilegia materiales locales que dan carácter único a sus tejidos." },
       { title: "Tiempo", text: "Una hamaca puede tardar de 15 a 30 días. Una ruana compleja, hasta 2 meses. El tiempo es parte integral del valor artesanal." },
     ],
     culturalQuote: "El telar no es solo un instrumento, es un altar donde se teje la memoria de un pueblo. Cada hilo lleva consigo la voz de quien lo tensó.",
     culturalTitle: "La memoria en el hilo",
     territories: ["san-jacinto", "boyaca", "narino"],
-    ctaHeadline: "Descubra la maestría del Telar Vertical",
+    ctaHeadline: "Descubra la maestría del Tejido Plano",
   },
-  crochet: {
-    name: "Crochet",
-    slug: "crochet",
-    subtitle: "Nudos que cuentan historias",
+  "tejido-en-chaquira": {
+    name: "Tejido en Chaquira",
+    slug: "tejido-en-chaquira",
+    subtitle: "Cuentas de color que codifican la cosmovisión",
     heroDescription:
-      "El crochet Wayúu es mucho más que una técnica textil. Es un lenguaje visual donde cada patrón — los Kanás — narra elementos de la naturaleza, la cosmovisión y la vida cotidiana del pueblo Wayúu.",
+      "El tejido en chaquira ensarta diminutas cuentas de vidrio para crear manillas, collares y objetos ceremoniales con patrones geométricos que codifican la cosmovisión de comunidades indígenas.",
     longDescription:
-      "Con una sola aguja de ganchillo y hilos de colores, las artesanas Wayúu crean mochilas cuyos patrones geométricos son únicos e irrepetibles. Cada mochila tarda entre 20 y 30 días en completarse.",
+      "Las artesanas enhebran cientos de cuentas de vidrio en hilos de nailon, construyendo mosaicos geométricos que narran elementos de la naturaleza y la cosmogonía. Cada pieza puede requerir miles de cuentas colocadas una a una.",
     explanationCards: [
-      { title: "Proceso", text: "Con una aguja de ganchillo, se crean cadenas de puntos que forman el tejido circular. Los patrones se memorizan y se transmiten oralmente." },
-      { title: "Materiales", text: "Hilos de algodón y acrílico en colores vibrantes. Los colores tradicionales representan elementos de la naturaleza: tierra, agua, sol." },
-      { title: "Tiempo", text: "Una mochila pequeña tarda 15 días. Las mochilas de un solo hilo pueden requerir hasta 30 días de trabajo continuo." },
+      { title: "Proceso", text: "Se enhebran cuentas de vidrio en hilo de nailon siguiendo patrones geométricos memorizados. Cada fila se tensa para mantener la estructura." },
+      { title: "Materiales", text: "Chaquiras (cuentas de vidrio), hilo de nailon, agujas finas. Los colores tradicionales representan elementos de la naturaleza." },
+      { title: "Tiempo", text: "Una manilla sencilla tarda 2-3 días. Collares y pectorales complejos pueden requerir hasta 3 semanas de trabajo continuo." },
     ],
-    culturalQuote: "Wale'kerü, la araña, enseñó a tejer a la primera mujer Wayúu. Desde entonces, cada mochila es una conversación entre la artesana y su ancestro.",
-    culturalTitle: "El mito de Wale'kerü",
+    culturalQuote: "Cada cuenta de chaquira lleva un color que habla. El rojo es sangre y fuerza, el blanco es pureza, el negro es la noche madre.",
+    culturalTitle: "El lenguaje de las cuentas",
     territories: ["la-guajira"],
-    ctaHeadline: "Descubra la maestría del Crochet Wayúu",
+    ctaHeadline: "Descubra la maestría del Tejido en Chaquira",
   },
-  ceramica: {
-    name: "Cerámica",
-    slug: "ceramica",
+  modelado: {
+    name: "Modelado",
+    slug: "modelado",
     subtitle: "Alquimia de tierra y fuego",
     heroDescription:
-      "Desde el barro negro de La Chamba hasta la cerámica de Ráquira, la arcilla colombiana es un lienzo donde las manos del artesano esculpen la identidad de cada territorio.",
+      "Desde el barro negro de La Chamba hasta la cerámica de Ráquira, el modelado en arcilla es un lienzo donde las manos del artesano esculpen la identidad de cada territorio.",
     longDescription:
       "La cerámica artesanal colombiana preserva técnicas precolombinas. El barro se extrae, se amasa, se moldea a mano o en torno, se pule con piedras de río y se cuece en hornos de leña a cielo abierto.",
     explanationCards: [
@@ -84,32 +84,32 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     culturalQuote: "Las ollas de La Chamba no llevan esmalte. El brillo negro viene del bruñido con piedra de río y la cocción a fuego abierto con hojarasca.",
     culturalTitle: "Alquimia del barro negro",
     territories: ["la-chamba", "boyaca"],
-    ctaHeadline: "Descubra la maestría de la Cerámica",
+    ctaHeadline: "Descubra la maestría del Modelado",
   },
-  cesteria: {
-    name: "Cestería",
-    slug: "cesteria",
+  trenzado: {
+    name: "Trenzado",
+    slug: "trenzado",
     subtitle: "La geometría de la fibra",
     heroDescription:
-      "La cestería transforma fibras vegetales en objetos utilitarios y ceremoniales. En el Putumayo y la Amazonía, cada canasto es un mapa del bosque y de la cosmovisión del artesano.",
+      "El trenzado transforma fibras vegetales en canastos, esteras y objetos ceremoniales. En el Putumayo y la Amazonía, cada pieza trenzada es un mapa del bosque y de la cosmovisión del artesano.",
     longDescription:
-      "Las comunidades indígenas recolectan fibras de chambira, werregue y otras palmas. Cada fibra se procesa artesanalmente: se pela, se seca, se tiñe con tintes naturales y se teje en patrones transmitidos oralmente.",
+      "Las comunidades indígenas recolectan fibras de chambira, werregue y otras palmas. Cada fibra se procesa artesanalmente: se pela, se seca, se tiñe con tintes naturales y se trenza en patrones transmitidos oralmente.",
     explanationCards: [
-      { title: "Proceso", text: "Recolección de palma, extracción de fibra, secado, teñido natural y tejido manual. Los patrones se memorizan y se transmiten de madre a hija." },
+      { title: "Proceso", text: "Recolección de palma, extracción de fibra, secado, teñido natural y trenzado manual. Los patrones se memorizan y se transmiten de madre a hija." },
       { title: "Materiales", text: "Fibra de werregue, chambira, iraca, caña flecha. Los tintes provienen de plantas, cortezas y frutos del bosque." },
       { title: "Tiempo", text: "Un canasto puede tardar de 3 días a 3 semanas según tamaño y complejidad del patrón." },
     ],
     culturalQuote: "Cada semilla elegida para un collar del Putumayo tiene un nombre, un origen y un propósito. Los artesanos escuchan a la selva antes de tomar.",
     culturalTitle: "La voz de la selva",
     territories: ["putumayo"],
-    ctaHeadline: "Descubra la maestría de la Cestería",
+    ctaHeadline: "Descubra la maestría del Trenzado",
   },
-  orfebreria: {
-    name: "Orfebrería",
-    slug: "orfebreria",
+  filigrana: {
+    name: "Filigrana",
+    slug: "filigrana",
     subtitle: "El resplandor de lo ancestral",
     heroDescription:
-      "La orfebrería colombiana es heredera directa de las técnicas precolombinas. La filigrana momposina, declarada Patrimonio Cultural, transforma hilos de plata en joyas de complejidad asombrosa.",
+      "La filigrana colombiana es heredera directa de las técnicas precolombinas. La filigrana momposina, declarada Patrimonio Cultural, transforma hilos de plata en joyas de complejidad asombrosa.",
     longDescription:
       "En Mompox, los orfebres funden plata, la estiran en hilos finísimos y los enrollan, sueldan y ensamblan sin moldes. Cada pieza es única, resultado de horas de concentración y pulso firme.",
     explanationCards: [
@@ -120,7 +120,7 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     culturalQuote: "La filigrana de Mompox no usa moldes. Cada espiral es única porque nace del pulso del orfebre, no de una máquina.",
     culturalTitle: "El pulso del orfebre",
     territories: [],
-    ctaHeadline: "Descubra la maestría de la Orfebrería",
+    ctaHeadline: "Descubra la maestría de la Filigrana",
   },
   "barniz-de-pasto": {
     name: "Barniz de Pasto",
@@ -140,12 +140,12 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     territories: ["narino"],
     ctaHeadline: "Descubra la maestría del Barniz de Pasto",
   },
-  "talla-en-madera": {
-    name: "Talla en Madera",
-    slug: "talla-en-madera",
+  talla: {
+    name: "Talla",
+    slug: "talla",
     subtitle: "Memoria esculpida en el tiempo",
     heroDescription:
-      "La talla en madera transforma troncos en objetos de arte que narran mitos, creencias y la relación profunda de las comunidades con su entorno natural.",
+      "La talla transforma troncos y bloques de madera en objetos de arte que narran mitos, creencias y la relación profunda de las comunidades con su entorno natural.",
     longDescription:
       "Los talladores seleccionan maderas locales como cedro, tagua o chonta, y con formones, gubias y cuchillos dan forma a figuras que van desde utensilios cotidianos hasta esculturas ceremoniales.",
     explanationCards: [
@@ -156,61 +156,97 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     culturalQuote: "La madera tiene memoria. El artesano no impone una forma: descubre la que ya estaba dentro del tronco.",
     culturalTitle: "La voz de la madera",
     territories: [],
-    ctaHeadline: "Descubra la maestría de la Talla en Madera",
+    ctaHeadline: "Descubra la maestría de la Talla",
   },
-  bordado: {
-    name: "Bordado",
-    slug: "bordado",
-    subtitle: "Hilos que narran la vida",
+  tallado: {
+    name: "Tallado",
+    slug: "tallado",
+    subtitle: "El alma de la madera revelada a cincel",
     heroDescription:
-      "El bordado colombiano va desde el delicado bordado en tul de Cartago hasta las coloridas mantas del Caribe. Cada puntada es un registro cultural de la región que la produce.",
+      "El tallado transforma bloques de madera en esculturas, máscaras y objetos rituales. En el Pacífico colombiano, los talladores dan forma a la cosmogonía afrocolombiana e indígena con gubias y formones.",
     longDescription:
-      "Con aguja, hilo y tela, las artesanas bordan patrones florales, geométricos o figurativos que narran historias locales. El bordado en tul de Cartago es reconocido como patrimonio cultural del Valle del Cauca.",
+      "A diferencia de la talla desbastada, el tallado fino trabaja los detalles con gubias y cinceles, creando texturas, rostros y figuras con un nivel de detalle que solo la mano humana puede lograr.",
     explanationCards: [
-      { title: "Proceso", text: "Diseño del patrón sobre tela, selección de hilos, bordado punto a punto. Los patrones pueden ser florales, geométricos o narrativos." },
-      { title: "Materiales", text: "Hilos de algodón, seda o lana sobre telas de lino, tul o algodón. Los colores varían según la tradición regional." },
-      { title: "Tiempo", text: "Un mantel bordado puede tardar de 1 semana a 1 mes según la complejidad del diseño." },
+      { title: "Proceso", text: "Selección de la pieza, desbaste inicial, tallado de detalle con gubias curvas y rectas, pulido con lija fina y acabado con cera o aceite." },
+      { title: "Materiales", text: "Maderas duras como chonta, nazareno y granadillo. Maderas blandas como balso para piezas decorativas." },
+      { title: "Tiempo", text: "Una máscara ceremonial puede tardar de 1 a 3 semanas. Esculturas de gran formato, varios meses." },
     ],
-    culturalQuote: "En cada puntada hay una conversación entre la artesana y la tela. El bordado no se apura: se conversa.",
-    culturalTitle: "La conversación de la aguja",
-    territories: ["boyaca"],
-    ctaHeadline: "Descubra la maestría del Bordado",
+    culturalQuote: "En el Pacífico, tallar es orar. Cada máscara que emerge de la madera lleva la voz de los ancestros.",
+    culturalTitle: "Tallado del Pacífico",
+    territories: [],
+    ctaHeadline: "Descubra la maestría del Tallado",
   },
-  macrame: {
-    name: "Macramé",
-    slug: "macrame",
-    subtitle: "Arquitectura de nudos",
+  "tejido-de-punto": {
+    name: "Tejido de Punto",
+    slug: "tejido-de-punto",
+    subtitle: "Bucles que abrazan la tradición",
     heroDescription:
-      "El macramé transforma cuerdas en hamacas, redes y piezas decorativas mediante una técnica de nudos que requiere precisión milimétrica y una paciencia extraordinaria.",
+      "El tejido de punto entrelaza hilos en bucles sucesivos para crear prendas y accesorios. De las ruanas boyacenses a las mantas del Caribe, cada puntada es un registro cultural.",
     longDescription:
-      "Sin agujas ni herramientas, solo con las manos, el artesano crea estructuras de nudos que pueden soportar el peso de una persona. Las hamacas de San Jacinto son el ejemplo más conocido.",
+      "Con agujas de dos puntas o circulares, las artesanas crean puntos que se entrelazan en filas formando telas elásticas y abrigadas. Es la base de la tradición textil del altiplano colombiano.",
     explanationCards: [
-      { title: "Proceso", text: "Se fijan cuerdas a un soporte y se anudan siguiendo patrones específicos. Cada nudo debe tener la misma tensión para garantizar la resistencia." },
-      { title: "Materiales", text: "Hilo de algodón, fique, nailon. Las hamacas tradicionales usan hilo de algodón por su suavidad y resistencia." },
-      { title: "Tiempo", text: "Una hamaca matrimonial en macramé puede tardar entre 2 y 4 semanas de trabajo continuo." },
-    ],
-    culturalQuote: "La hamaca no es un mueble, es una cuna, una cama, un columpio, un refugio. Es donde se nace, se descansa y se muere en el Caribe colombiano.",
-    culturalTitle: "La hamaca como hogar",
-    territories: ["san-jacinto"],
-    ctaHeadline: "Descubra la maestría del Macramé",
-  },
-  "telar-horizontal": {
-    name: "Telar Horizontal",
-    slug: "telar-horizontal",
-    subtitle: "Donde la tradición se extiende",
-    heroDescription:
-      "El telar horizontal permite crear tejidos más anchos y complejos. Utilizado ancestralmente para ruanas, cobijas y telas de uso cotidiano en el altiplano colombiano.",
-    longDescription:
-      "A diferencia del telar vertical, los hilos de urdimbre se extienden horizontalmente, lo que permite al artesano trabajar sentado y producir telas de mayor ancho. Es la base de la tradición textil boyacense.",
-    explanationCards: [
-      { title: "Proceso", text: "Montaje de urdimbre horizontal, uso de pedales para crear la calada y paso de la lanzadera con hilo de trama." },
+      { title: "Proceso", text: "Se montan puntos en agujas y se tejen en filas, creando puntos del derecho y del revés que forman patrones. Se transmite de madre a hija." },
       { title: "Materiales", text: "Lana virgen de oveja, lana merino, algodón. En Boyacá, la lana se hila a mano con huso." },
       { title: "Tiempo", text: "Una ruana puede tardar entre 1 y 2 meses. Una cobija grande, hasta 3 meses de trabajo." },
     ],
     culturalQuote: "La ruana boyacense no es solo una prenda. Es un abrazo de lana virgen que conecta al artesano con siglos de tradición pastoril del páramo.",
     culturalTitle: "La ruana y el páramo",
     territories: ["boyaca"],
-    ctaHeadline: "Descubra la maestría del Telar Horizontal",
+    ctaHeadline: "Descubra la maestría del Tejido de Punto",
+  },
+  anudados: {
+    name: "Anudados",
+    slug: "anudados",
+    subtitle: "Arquitectura de nudos",
+    heroDescription:
+      "Los anudados transforman cuerdas en hamacas, redes y piezas decorativas mediante una técnica de nudos que requiere precisión milimétrica y una paciencia extraordinaria.",
+    longDescription:
+      "Sin agujas ni herramientas, solo con las manos, el artesano crea estructuras de nudos que pueden soportar el peso de una persona. Las hamacas de San Jacinto son el ejemplo más conocido de esta técnica.",
+    explanationCards: [
+      { title: "Proceso", text: "Se fijan cuerdas a un soporte y se anudan siguiendo patrones específicos. Cada nudo debe tener la misma tensión para garantizar la resistencia." },
+      { title: "Materiales", text: "Hilo de algodón, fique, nailon. Las hamacas tradicionales usan hilo de algodón por su suavidad y resistencia." },
+      { title: "Tiempo", text: "Una hamaca matrimonial puede tardar entre 2 y 4 semanas de trabajo continuo." },
+    ],
+    culturalQuote: "La hamaca no es un mueble, es una cuna, una cama, un columpio, un refugio. Es donde se nace, se descansa y se muere en el Caribe colombiano.",
+    culturalTitle: "La hamaca como hogar",
+    territories: ["san-jacinto"],
+    ctaHeadline: "Descubra la maestría de los Anudados",
+  },
+  "pintado-a-mano": {
+    name: "Pintado a Mano",
+    slug: "pintado-a-mano",
+    subtitle: "El color como lenguaje ancestral",
+    heroDescription:
+      "El pintado a mano aplica pigmentos con pinceles sobre cerámica, madera y textiles, convirtiendo cada pieza en un lienzo irrepetible que refleja la iconografía regional colombiana.",
+    longDescription:
+      "Los artesanos preparan sus propias mezclas de color a partir de tierras, óxidos y pigmentos vegetales. Cada pincelada sigue patrones heredados pero adaptados al pulso individual del maestro.",
+    explanationCards: [
+      { title: "Proceso", text: "Preparación de superficie, mezcla de pigmentos, trazado de patrones a mano libre con pinceles finos y sellado con barniz natural." },
+      { title: "Materiales", text: "Pigmentos naturales y minerales, pinceles de pelo animal, barnices vegetales. Los colores varían según la tradición regional." },
+      { title: "Tiempo", text: "Una pieza sencilla de cerámica tarda 1-2 días. Piezas con patrones complejos pueden requerir 1-2 semanas." },
+    ],
+    culturalQuote: "El pintor artesano no copia: dialoga con la superficie. Cada trazo es una conversación entre la mano y el material.",
+    culturalTitle: "El diálogo del color",
+    territories: ["narino"],
+    ctaHeadline: "Descubra la maestría del Pintado a Mano",
+  },
+  "textil-vegetal": {
+    name: "Textil Vegetal",
+    slug: "textil-vegetal",
+    subtitle: "La selva tejida entre las manos",
+    heroDescription:
+      "El textil vegetal emplea fibras extraídas de palmas, cortezas y lianas amazónicas para crear telas, bolsos y hamacas que preservan el conocimiento botánico indígena.",
+    longDescription:
+      "Las comunidades indígenas identifican, recolectan y procesan fibras vegetales siguiendo calendarios lunares y estacionales. El resultado son textiles de una resistencia y belleza imposibles de replicar industrialmente.",
+    explanationCards: [
+      { title: "Proceso", text: "Recolección de fibra, descortezado, secado al sol, blanqueo natural en agua y tejido manual en bastidores improvisados." },
+      { title: "Materiales", text: "Fibra de chambira, cumare, yanchama y cortezas. Los tintes provienen de raíces, hojas y frutos del bosque." },
+      { title: "Tiempo", text: "Un bolso mediano tarda de 1 a 2 semanas. Una hamaca de fibra vegetal puede requerir hasta un mes." },
+    ],
+    culturalQuote: "La fibra no se arranca, se pide permiso al árbol. El textil vegetal comienza con un acto de respeto al bosque.",
+    culturalTitle: "El permiso del bosque",
+    territories: ["putumayo"],
+    ctaHeadline: "Descubra la maestría del Textil Vegetal",
   },
 };
 
