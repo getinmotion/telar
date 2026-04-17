@@ -1,11 +1,10 @@
 // Cliente para la API de búsqueda semántica en AWS Lightsail
-// Documentación: https://getinmotion.bgwc43c90at7y.us-east-1.cs.amazonlightsail.com/docs
 
 import axios from 'axios';
 
 const SEMANTIC_SEARCH_API_URL = import.meta.env.VITE_SEMANTIC_SEARCH_API_URL
 
-// const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY;
+
 
 export interface SearchFilters {
   craft_type?: string;
