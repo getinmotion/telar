@@ -2,10 +2,10 @@
  * ProductReviewPage — Review and edit migrated products by store.
  *
  * Features:
- *   - Navigate products by store
- *   - Summary table with key product info
- *   - Edit each layer via tabs (Core, Identity, Physical, Variant, Media, Legacy)
- *   - View legacy data for comparison
+ * - Navigate products by store
+ * - Summary table with key product info
+ * - Edit each layer via tabs (Core, Identity, Physical, Variant, Media, Legacy)
+ * - View legacy data for comparison
  */
 import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, Store, Package, Loader2, Search } from 'lucide-react';
@@ -138,6 +138,12 @@ export const ProductReviewPage: React.FC = () => {
     );
   }, [products, searchQuery, categoryMap]);
 
+  // Ordenar tiendas alfabéticamente
+  const sortedStores = useMemo(() => {
+    if (!stores) return [];
+    return [...stores].sort((a, b) => a.name.localeCompare(b.name));
+  }, [stores]);
+
   // Select product and load full detail
   const handleSelectProduct = async (productId: string) => {
     await fetchProductDetail(productId);
@@ -264,7 +270,7 @@ export const ProductReviewPage: React.FC = () => {
                 className="flex h-10 w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">— Selecciona una tienda —</option>
-                {stores.map((store) => (
+                {sortedStores.map((store) => (
                   <option key={store.id} value={store.id}>
                     {store.name}
                   </option>

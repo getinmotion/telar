@@ -9,6 +9,7 @@ import {
   Layers,
   Tag,
   AlertTriangle,
+  TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -218,10 +219,12 @@ const ProductAnalyticsPage: React.FC = () => {
                   1. Distribucion Taxonomica
                 </h2>
                 <Tabs defaultValue="craft">
-                  <TabsList>
+                  {/* Actualizamos el menú de pestañas para soportar ambas categorías */}
+                  <TabsList className="flex flex-wrap h-auto">
                     <TabsTrigger value="craft">Oficio</TabsTrigger>
                     <TabsTrigger value="tech">Tecnica</TabsTrigger>
-                    <TabsTrigger value="cat">Categoria</TabsTrigger>
+                    <TabsTrigger value="cat_main">Categoría Principal</TabsTrigger>
+                    <TabsTrigger value="cat_cur">Categoría Curatorial</TabsTrigger>
                     <TabsTrigger value="mat">Material</TabsTrigger>
                     <TabsTrigger value="style">Estilo/Tipo</TabsTrigger>
                   </TabsList>
@@ -282,7 +285,38 @@ const ProductAnalyticsPage: React.FC = () => {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="cat">
+                  {/* NUEVA PESTAÑA: Categoría Principal */}
+                  <TabsContent value="cat_main">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="lg:col-span-2">
+                        <Card>
+                          <CardContent className="pt-4">
+                            <DistributionChart data={data.taxonomyDistribution.categories || []} />
+                          </CardContent>
+                        </Card>
+                      </div>
+                      <Card>
+                        <CardContent className="pt-4">
+                          <DataTable
+                            columns={[
+                              { key: 'name', label: 'Categoría Principal' },
+                              { key: 'count', label: 'Productos' },
+                            ]}
+                            rows={[
+                              ...(data.taxonomyDistribution.categories || []),
+                              ...(data.taxonomyDistribution.noCategory > 0
+                                ? [{ name: 'Sin asignar', count: data.taxonomyDistribution.noCategory }]
+                                : []),
+                            ]}
+                            maxHeight="300px"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  {/* PESTAÑA ACTUALIZADA: Categoría Curatorial */}
+                  <TabsContent value="cat_cur">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="lg:col-span-2">
                         <Card>
@@ -574,53 +608,145 @@ const ProductAnalyticsPage: React.FC = () => {
                 )}
               </section>
 
-              {/* ─── 5. PRICE DISTRIBUTION ───────────────────── */}
+{/* ─── 5. PRICE DISTRIBUTION ───────────────────── */}
               <section>
                 <h2 className="text-lg font-semibold mb-3">
                   5. Distribucion de Precios
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Estadisticas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <DataTable
-                        columns={[
-                          { key: 'stat', label: 'Estadistica' },
-                          { key: 'value', label: 'Valor COP' },
-                        ]}
-                        rows={[
-                          { stat: 'Total variantes', value: data.priceDistribution.stats.total },
-                          { stat: 'Promedio', value: `$${Number(data.priceDistribution.stats.avg_price || 0).toLocaleString()}` },
-                          { stat: 'Minimo', value: `$${Number(data.priceDistribution.stats.min_price || 0).toLocaleString()}` },
-                          { stat: 'Maximo', value: `$${Number(data.priceDistribution.stats.max_price || 0).toLocaleString()}` },
-                          { stat: 'Mediana', value: `$${Number(data.priceDistribution.stats.median_price || 0).toLocaleString()}` },
-                        ]}
-                      />
-                      {data.priceDistribution.suspiciousCheapCount > 0 && (
-                        <div className="mt-3 flex items-center gap-2 p-3 bg-warning/10 border border-warning/30 rounded-md text-sm">
-                          <AlertTriangle className="w-4 h-4 text-warning" />
-                          {data.priceDistribution.suspiciousCheapCount} productos con
-                          precio &le; $1 COP (probable fallback de migracion)
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">
-                        Rangos de Precio
+                {/* --- NUEVA TABLA DE RESUMEN POR CATEGORÍA --- */}
+                {data.priceDistribution.byCategory?.length > 0 && (
+                  <Card className="mb-6 border-primary/20 shadow-sm">
+                    <CardHeader className="pb-2 bg-primary/5">
+                      <CardTitle className="text-sm font-bold flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                        Resumen Consolidado por Categoría Principal
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <DistributionChart
-                        data={data.priceDistribution.ranges}
-                        label="Productos"
+                    <CardContent className="pt-4">
+                      <DataTable
+                        columns={[
+                          { key: 'categoryName', label: 'Categoría' },
+                          { key: 'totalCount', label: 'Total Prod.' },
+                          { key: 'weightedAvg', label: 'Precio Promedio' },
+                          { key: 'absMin', label: 'Precio Mínimo' },
+                          { key: 'absMax', label: 'Precio Máximo' },
+                        ]}
+                        rows={data.priceDistribution.byCategory.map(cat => {
+                          const totalCount = cat.techniques.reduce((acc, t) => acc + t.count, 0);
+                          
+                          // Calculamos el promedio ponderado (weighted average)
+                          const weightedSum = cat.techniques.reduce((acc, t) => acc + (t.avg_price * t.count), 0);
+                          const avg = totalCount > 0 ? weightedSum / totalCount : 0;
+                          
+                          // Buscamos los extremos reales de toda la categoría
+                          const min = Math.min(...cat.techniques.map(t => t.min_price));
+                          const max = Math.max(...cat.techniques.map(t => t.max_price));
+
+                          return {
+                            categoryName: cat.categoryName,
+                            totalCount: totalCount,
+                            weightedAvg: `$${Math.round(avg).toLocaleString()}`,
+                            absMin: `$${Math.round(min).toLocaleString()}`,
+                            absMax: `$${Math.round(max).toLocaleString()}`,
+                          };
+                        })}
                       />
                     </CardContent>
                   </Card>
-                </div>
+                )}
+                <Tabs defaultValue="general">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="general">Visión General</TabsTrigger>
+                    <TabsTrigger value="grouped">Por Categoría y Técnica</TabsTrigger>
+                  </TabsList>
+
+                  {/* PESTAÑA 1: Lo que ya tenías */}
+                  <TabsContent value="general">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">Estadisticas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <DataTable
+                            columns={[
+                              { key: 'stat', label: 'Estadistica' },
+                              { key: 'value', label: 'Valor COP' },
+                            ]}
+                            rows={[
+                              { stat: 'Total variantes', value: data.priceDistribution.stats.total },
+                              { stat: 'Promedio', value: `$${Number(data.priceDistribution.stats.avg_price || 0).toLocaleString()}` },
+                              { stat: 'Minimo', value: `$${Number(data.priceDistribution.stats.min_price || 0).toLocaleString()}` },
+                              { stat: 'Maximo', value: `$${Number(data.priceDistribution.stats.max_price || 0).toLocaleString()}` },
+                              { stat: 'Mediana', value: `$${Number(data.priceDistribution.stats.median_price || 0).toLocaleString()}` },
+                            ]}
+                          />
+                          {data.priceDistribution.suspiciousCheapCount > 0 && (
+                            <div className="mt-3 flex items-center gap-2 p-3 bg-warning/10 border border-warning/30 rounded-md text-sm">
+                              <AlertTriangle className="w-4 h-4 text-warning" />
+                              {data.priceDistribution.suspiciousCheapCount} productos con
+                              precio &le; $1 COP (probable fallback de migracion)
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm">
+                            Rangos de Precio
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <DistributionChart
+                            data={data.priceDistribution.ranges}
+                            label="Productos"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+
+                  {/* PESTAÑA 2: Nueva agrupación por Categorías y Técnicas */}
+                  <TabsContent value="grouped" className="space-y-4">
+                    {/* Si la data viene del backend, usamos data.priceDistribution.byCategory. 
+                        Si aún no la tienes, esto evitará que se rompa mostrando un estado vacío */}
+                    {data.priceDistribution.byCategory?.length > 0 ? (
+                      data.priceDistribution.byCategory.map((categoryGroup, idx) => (
+                        <Card key={idx}>
+                          <CardHeader className="pb-3 border-b bg-muted/20">
+                            <CardTitle className="text-base font-bold text-primary">
+                              Categoría: {categoryGroup.categoryName}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-4">
+                            <DataTable
+                              columns={[
+                                { key: 'technique', label: 'Técnica' },
+                                { key: 'count', label: 'Cant. Productos' },
+                                { key: 'avg', label: 'Precio Promedio' },
+                                { key: 'min', label: 'Mínimo' },
+                                { key: 'max', label: 'Máximo' },
+                              ]}
+                              rows={categoryGroup.techniques.map(tech => ({
+                                technique: tech.name,
+                                count: tech.count,
+                                avg: `$${Number(tech.avg_price).toLocaleString()}`,
+                                min: `$${Number(tech.min_price).toLocaleString()}`,
+                                max: `$${Number(tech.max_price).toLocaleString()}`,
+                              }))}
+                            />
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Card>
+                        <CardContent className="py-8 text-center text-muted-foreground">
+                          Aún no hay datos agrupados por categoría y técnica disponibles.
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </section>
 
               {/* ─── 6. VOLUMETRIC ANALYSIS ──────────────────── */}
