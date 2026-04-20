@@ -51,7 +51,7 @@ class LegalAgent(BaseAgent):
                 conversation_history = context['conversation_history']
                 logger.info(f"Using conversation history with {len(conversation_history)} messages")
 
-            # Generate RAG response with conversation history
+            # Generate RAG response with conversation history (falls back to LLM if no docs)
             rag_response = await rag_service.generate_rag_response(
                 query=user_input,
                 category='legal',
@@ -59,14 +59,14 @@ class LegalAgent(BaseAgent):
                 context=context,
                 conversation_history=conversation_history
             )
-            
+
             # Build response
             response = {
                 "agent_type": self.agent_type,
                 "answer": rag_response['answer'],
                 "sources": rag_response.get('sources', []),
                 "confidence": rag_response.get('confidence', 'medium'),
-                "retrieved_chunks": rag_response.get('retrieved_chunks', 0)
+                "retrieved_chunks": rag_response.get('retrieved_chunks', 0),
             }
             
             # Add disclaimer

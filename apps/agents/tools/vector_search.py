@@ -172,10 +172,38 @@ class RAGService:
             
             if not search_results:
                 logger.warning(f"No knowledge base results found for query: {query[:50]}...")
+                # Fall back to LLM-only using the provided system prompt
+                context_summary = ""
+                if context:
+                    from src.utils.helpers import extract_context_summary
+                    context_summary = extract_context_summary(context)
+                history_text = ""
+                if conversation_history:
+                    history_text = "\n\nHistorial de conversación:\n"
+                    for msg in conversation_history[-6:]:
+                        role = "Usuario" if msg.get('role') == 'user' else "Asistente"
+                        history_text += f"{role}: {msg.get('content', '')}\n"
+                messages = [{"role": "system", "content": system_prompt}]
+                if conversation_history:
+                    for msg in conversation_history[-4:]:
+                        messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+                user_message_fallback = query
+                if context_summary:
+                    user_message_fallback += f"\n\nContexto del usuario:\n{context_summary}"
+                if history_text:
+                    user_message_fallback += history_text
+                messages.append({"role": "user", "content": user_message_fallback})
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=1000
+                )
                 return {
-                    "answer": "Lo siento, no encontré información relevante en mi base de conocimiento para responder tu pregunta. ¿Podrías reformular tu pregunta o proporcionar más detalles?",
+                    "answer": response.choices[0].message.content,
                     "sources": [],
-                    "confidence": "low"
+                    "confidence": "low",
+                    "retrieved_chunks": 0
                 }
             
             # Build context from search results

@@ -73,7 +73,7 @@ class ArtisanProfile(BaseModel):
     key_insights: Dict[str, Any]
     interaction_count: int
     maturity_snapshot: Dict[str, Any]
-    embedding: list[float]
+    embedding: Optional[list[float]] = None
     last_interaction_at: Optional[datetime] = None
 
 
