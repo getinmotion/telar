@@ -463,6 +463,13 @@ Devuelve tu decisión en formato JSON."""
         if context.get('image_url') or context.get('image_data'):
             return 'fotografia'
 
+        # Hard override: active wizard → servicio_cliente (skip LLM routing)
+        # wizard_data is a dict of collected answers; if it exists and is non-empty,
+        # the user is mid-wizard and must continue with servicio_cliente.
+        wizard_data = context.get('wizard_data')
+        if isinstance(wizard_data, dict) and wizard_data:
+            return 'servicio_cliente'
+
         selected = state.get('selected_agent', 'faq')
         # Safety: if selected agent is not registered, fall back to faq
         if selected not in self.agents:

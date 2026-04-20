@@ -76,17 +76,24 @@ class ServicioClienteAgent(BaseAgent):
         # ── Wizard continuation ──────────────────────────────────────────────
         wizard_data = context.get("wizard_data")
         if wizard_data is not None:
-            # User is in the middle of the wizard — record their answer and advance
             artisan_name = (
                 context.get("artisan_profile", {})
                 .get("key_insights", {})
                 .get("nombre", "")
             )
-            result = return_policy_wizard.build_response(
-                wizard_data=wizard_data,
-                user_answer=user_input,
-                artisan_name=artisan_name,
-            )
+            bulk_answers = context.get("wizard_answers")
+            if bulk_answers:
+                result = return_policy_wizard.build_response_bulk(
+                    wizard_data=wizard_data,
+                    answers=bulk_answers,
+                    artisan_name=artisan_name,
+                )
+            else:
+                result = return_policy_wizard.build_response(
+                    wizard_data=wizard_data,
+                    user_answer=user_input,
+                    artisan_name=artisan_name,
+                )
 
             # Store memory if wizard completed
             if result.get("wizard_complete") and result.get("policy_document"):
@@ -108,11 +115,23 @@ class ServicioClienteAgent(BaseAgent):
         logger.info(f"ServicioCliente intent detected: {intent}")
 
         if intent == "return_policy":
-            # Start wizard from scratch
-            result = return_policy_wizard.build_response(
-                wizard_data={},
-                user_answer=None,
+            artisan_name = (
+                context.get("artisan_profile", {})
+                .get("key_insights", {})
+                .get("nombre", "")
             )
+            bulk_answers = context.get("wizard_answers")
+            if bulk_answers:
+                result = return_policy_wizard.build_response_bulk(
+                    wizard_data={},
+                    answers=bulk_answers,
+                    artisan_name=artisan_name,
+                )
+            else:
+                result = return_policy_wizard.build_response(
+                    wizard_data={},
+                    user_answer=None,
+                )
             return {
                 "agent_type": self.agent_type,
                 **result,

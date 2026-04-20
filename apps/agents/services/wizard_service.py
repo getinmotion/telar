@@ -132,6 +132,25 @@ Si tienes preguntas sobre esta política, comunícate con nosotros a través de 
 """
         return policy.strip()
 
+    def build_response_bulk(
+        self,
+        wizard_data: Dict[str, Any],
+        answers: list,
+        artisan_name: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Process multiple answers in one shot.
+
+        answers: ordered list of answer strings, starting from the current unanswered step.
+        Extra answers beyond the remaining steps are ignored.
+        """
+        current_data = wizard_data.copy()
+        for answer in answers:
+            if self.is_complete(current_data):
+                break
+            current_data = self.advance(current_data, answer)
+        return self.build_response(current_data, user_answer=None, artisan_name=artisan_name)
+
     def build_response(
         self,
         wizard_data: Dict[str, Any],

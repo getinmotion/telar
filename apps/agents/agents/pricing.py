@@ -123,7 +123,7 @@ class PricingAgent(BaseAgent):
                         rag_has_useful_info = True
                         
                 except Exception as e:
-                    logger.error("RAG Query", str(e), {"category": "pricing"})
+                    logger.error(f"RAG Query failed: {str(e)}")
                     strategy_guidance = ""
                     rag_has_useful_info = False
             
@@ -136,7 +136,7 @@ class PricingAgent(BaseAgent):
                     sources.append("Búsqueda web (Tavily)")
                     logger.web_search_results(1 if market_data else 0)
                 except Exception as e:
-                    logger.error("Web Search", str(e), {"query": search_query[:50]})
+                    logger.error(f"Web Search failed: {str(e)}")
                     market_data = ""
             
             # 3. If we have both, combine them intelligently
@@ -286,10 +286,7 @@ Sé específico, práctico y educativo. Tu respuesta debe ser tan útil como la 
             
         except Exception as e:
             total_duration = (time.time() - start_time) * 1000
-            logger.error("Pricing Agent Processing", str(e), {
-                "query": user_input[:100],
-                "duration_ms": total_duration
-            })
+            logger.error(f"Pricing Agent Processing failed: {str(e)} | query={user_input[:100]} | duration_ms={total_duration:.0f}")
             raise
     
     def _extract_pricing_insights(self, answer: str) -> Dict[str, Any]:
