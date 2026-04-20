@@ -17,10 +17,10 @@ class Settings(BaseSettings):
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     embedding_dimensions: int = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
     
-    # Supabase Configuration
-    supabase_url: str = os.getenv("SUPABASE_URL", "")
-    supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-    supabase_db_url: str = os.getenv("SUPABASE_DB_URL", "")
+    # Agents Database (Lightsail PostgreSQL - agents schema: memories, profiles, conversations, etc.)
+    # Local dev: ssh -i ~/Downloads/LightsailDefaultKey-us-east-1.pem -L 5433:localhost:5432 ubuntu@52.7.98.126 -N -f
+    # Then set: AGENTS_DB_URL=postgresql://postgres:password@localhost:5433/getinmotion
+    agents_db_url: str = os.getenv("AGENTS_DB_URL", "")
 
     # Catalog Database (Lightsail PostgreSQL - shop.* and taxonomy.* tables)
     catalog_db_url: str = os.getenv("CATALOG_DB_URL", "")

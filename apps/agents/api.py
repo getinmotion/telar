@@ -3,7 +3,7 @@ FastAPI router for agents system.
 Exposes all agent endpoints with proper request/response models.
 """
 
-from fastapi import APIRouter, HTTPException, status, Body
+from fastapi import APIRouter, HTTPException, status, Body, UploadFile, File, Form
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 from uuid import UUID
@@ -19,7 +19,10 @@ if backend_path not in sys.path:
 
 from agents.core.orchestrator import get_supervisor
 from agents.core.memory import memory_service
-from agents.core.state import ConversationRecord
+from agents.core.embedding_cache import embedding_cache
+from agents.core.state import ConversationRecord, KnowledgeDocument
+from agents.tools.vector_search import rag_service
+from agents.tools.storage import upload_image_to_storage
 from agents.helpers import format_timestamp
 from src.database.supabase_client import db
 
@@ -377,7 +380,7 @@ async def get_session_memories(session_id: str, user_id: Optional[str] = None, l
 async def health_check():
     """
     Health check endpoint for the agents system.
-    
+
     Returns:
     - Service status
     - Available agents
@@ -385,24 +388,187 @@ async def health_check():
     """
     return HealthCheck(
         status="healthy",
-        version="1.0.0",
+        version="1.1.0",
         agents={
             "onboarding": True,
             "legal": True,
             "producto": True,
             "pricing": True,
             "presencia_digital": True,
-            "faq": True
+            "faq": True,
+            "servicio_cliente": True,
+            "fotografia": True,
         },
         services={
             "supervisor": True,
             "memory": True,
             "rag": True,
             "web_search": True,
-            "database": True
+            "database": True,
+            "embedding_cache": True,
         },
         timestamp=format_timestamp()
     )
+
+
+# ============================================================
+# KNOWLEDGE BASE ENDPOINTS
+# ============================================================
+
+class KnowledgeUploadResponse(BaseModel):
+    status: str
+    filename: str
+    knowledge_category: str
+    chunk_count: int
+    document_id: str
+
+
+@router.post(
+    "/knowledge/upload",
+    response_model=KnowledgeUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_knowledge_document(
+    file: UploadFile = File(..., description="Document file (.txt, .md, .pdf text)"),
+    knowledge_category: str = Form(
+        ...,
+        description="Category: legal, faq, pricing, presencia_digital, producto, servicio_cliente, fotografia, general",
+    ),
+    uploaded_by: str = Form(default="admin", description="User or system uploading the document"),
+):
+    """
+    Upload a document to the RAG knowledge base.
+
+    The document will be:
+    1. Chunked into smaller pieces
+    2. Embedded with OpenAI text-embedding-3-small
+    3. Stored in Supabase pgvector for semantic retrieval
+
+    **Supported categories:** legal, faq, pricing, presencia_digital, producto,
+    servicio_cliente, fotografia, general
+
+    **Supported formats:** Plain text (.txt), Markdown (.md). For PDFs, extract
+    text first and upload as .txt.
+    """
+    try:
+        content_bytes = await file.read()
+        try:
+            text_content = content_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            text_content = content_bytes.decode("latin-1")
+
+        if not text_content.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is empty or could not be decoded as text.",
+            )
+
+        document = KnowledgeDocument(
+            filename=file.filename or "upload.txt",
+            file_type=file.content_type or "text/plain",
+            content=text_content,
+            knowledge_category=knowledge_category,
+            uploaded_by=uploaded_by,
+        )
+
+        document_id = await rag_service.process_document(document)
+
+        # Get chunk count from the processed document (estimate from text length)
+        from agents.helpers import chunk_text
+        from src.api.config import settings as app_settings
+        chunks = chunk_text(text_content, app_settings.chunk_size, app_settings.chunk_overlap)
+
+        return KnowledgeUploadResponse(
+            status="processed",
+            filename=document.filename,
+            knowledge_category=knowledge_category,
+            chunk_count=len(chunks),
+            document_id=str(document_id),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process document: {str(e)}",
+        )
+
+
+@router.get("/knowledge/cache/stats", status_code=status.HTTP_200_OK)
+async def get_cache_stats():
+    """
+    Get embedding cache statistics.
+    Useful for monitoring cache hit rate and memory usage.
+    """
+    return {
+        "embedding_cache": embedding_cache.stats,
+        "timestamp": format_timestamp(),
+    }
+
+
+# ============================================================
+# FOTOGRAFÍA ENDPOINT (multimodal)
+# ============================================================
+
+@router.post("/fotografia/analyze", status_code=status.HTTP_200_OK)
+async def analyze_product_photo(
+    session_id: str = Form(..., description="Session identifier"),
+    user_id: Optional[str] = Form(default=None, description="Artisan user ID (UUID)"),
+    user_input: str = Form(
+        default="Analiza esta foto de mi producto y dime cómo mejorarla.",
+        description="Optional instruction for the analysis",
+    ),
+    image: Optional[UploadFile] = File(default=None, description="Product photo file"),
+    image_url: Optional[str] = Form(default=None, description="Public URL of the product photo"),
+    wizard_data_json: Optional[str] = Form(default=None, description="JSON string of wizard state (for wizard continuation)"),
+):
+    """
+    Analyze a product photo using GPT-4o vision and return improvement tips.
+
+    Accepts either:
+    - An uploaded image file (multipart/form-data)
+    - A public image URL
+
+    The image is uploaded to Supabase Storage (if file provided), then passed to the
+    Photography agent for GPT-4o vision analysis.
+
+    **Returns:** Composition analysis, lighting feedback, and 3-5 actionable tips.
+    """
+    # Resolve the final image URL
+    final_image_url: Optional[str] = image_url
+
+    if image and image.filename:
+        try:
+            final_image_url = await upload_image_to_storage(image)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except RuntimeError as e:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+
+    if not final_image_url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide either 'image' (file upload) or 'image_url' (public URL).",
+        )
+
+    # Parse optional wizard_data
+    context: Dict[str, Any] = {"image_url": final_image_url}
+    if wizard_data_json:
+        import json as _json
+        try:
+            context["wizard_data"] = _json.loads(wizard_data_json)
+        except Exception:
+            pass  # Ignore malformed wizard data
+
+    request = AgentRequest(
+        session_id=session_id,
+        user_input=user_input,
+        context=context,
+        user_id=user_id,
+    )
+
+    return await process_agent_request(request)
 
 
 @router.get("/info", status_code=status.HTTP_200_OK)

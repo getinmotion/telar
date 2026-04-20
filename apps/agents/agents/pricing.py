@@ -34,9 +34,9 @@ class PricingAgent(BaseAgent):
             api_key=settings.openai_api_key
         )
     
-    def get_system_prompt(self) -> str:
-        """Get the pricing agent system prompt."""
-        return get_pricing_agent_prompt()
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """Get the pricing agent system prompt, personalized with artisan context."""
+        return get_pricing_agent_prompt(context)
     
     async def process(
         self,

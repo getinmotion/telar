@@ -21,10 +21,10 @@ class LegalAgent(BaseAgent):
         """Initialize legal agent."""
         super().__init__("legal")
     
-    def get_system_prompt(self) -> str:
-        """Get the legal agent system prompt."""
-        return get_legal_agent_prompt()
-    
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """Get the legal agent system prompt, personalized with artisan context."""
+        return get_legal_agent_prompt(context)
+
     async def process(
         self,
         user_input: str,
@@ -33,29 +33,29 @@ class LegalAgent(BaseAgent):
     ) -> Dict[str, Any]:
         """
         Process a legal question using RAG.
-        
+
         Args:
             user_input: User's legal question
             context: Optional context with onboarding data, user info, and conversation history
             metadata: Optional metadata
-            
+
         Returns:
             Legal advice with sources
         """
         try:
             logger.info(f"Processing legal query: {user_input[:100]}...")
-            
+
             # Extract conversation history if available
             conversation_history = []
             if context and 'conversation_history' in context:
                 conversation_history = context['conversation_history']
                 logger.info(f"Using conversation history with {len(conversation_history)} messages")
-            
+
             # Generate RAG response with conversation history
             rag_response = await rag_service.generate_rag_response(
                 query=user_input,
                 category='legal',
-                system_prompt=self.get_system_prompt(),
+                system_prompt=self.get_system_prompt(context),
                 context=context,
                 conversation_history=conversation_history
             )
