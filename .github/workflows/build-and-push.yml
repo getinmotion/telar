@@ -338,3 +338,6 @@ jobs:
             git pull origin develop
             docker compose pull
             docker compose up -d --remove-orphans
+            # Run agents DB migration (idempotent — CREATE IF NOT EXISTS throughout)
+            docker cp ~/telar/apps/agents/scripts/migrate_agents_db.sql gim-postgres:/tmp/migrate_agents_db.sql
+            docker exec gim-postgres psql -U postgres -d getinmotion_stage -f /tmp/migrate_agents_db.sql

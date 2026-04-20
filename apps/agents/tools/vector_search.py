@@ -7,6 +7,7 @@ from src.api.config import settings
 from src.database.supabase_client import db
 from src.services.embedding_service import embedding_service
 from agents.core.state import KnowledgeDocument, KnowledgeSearchResult
+from agents.core.embedding_cache import embedding_cache
 from agents.helpers import chunk_text
 from src.utils.enhanced_logger import create_enhanced_logger
 from typing import List, Dict, Any, Optional
@@ -116,8 +117,8 @@ class RAGService:
             if top_k is None:
                 top_k = settings.rag_top_k
             
-            # Generate query embedding
-            query_embedding = await embedding_service.generate_embedding(query)
+            # Generate query embedding (cached)
+            query_embedding = await embedding_cache.get_or_generate(query, embedding_service.generate_embedding)
             
             # Search database
             results = await db.search_knowledge(

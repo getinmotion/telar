@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # Add backend to path
 backend_path = str(Path(__file__).parent.parent)
@@ -44,8 +45,8 @@ async def lifespan(app: FastAPI):
     logger.info(f"📊 Version: 1.0.0")
     logger.info(f"🤖 OpenAI Model: {settings.openai_model}")
     logger.info(f"📦 Embedding Model: {settings.embedding_model}")
-    logger.info(f"🗄️  Supabase URL: {settings.supabase_url}")
-    logger.info(f"🔧 Available Agents: 6 (Onboarding, Legal, Product, Pricing, Digital Presence, FAQ)")
+    logger.info(f"🗄️  Agents DB: {'configured' if settings.agents_db_url else 'NOT configured'}")
+    logger.info(f"🔧 Available Agents: 8 (Onboarding, Legal, Product, Pricing, Digital Presence, FAQ, Servicio Cliente, Fotografia)")
     
     # Initialize LangSmith tracing
     init_langsmith()
@@ -66,6 +67,17 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("⚠️  Tavily Web Search: Disabled (Pricing Agent will have limited capabilities)")
     
+    # Warm up agents DB connection pool
+    if settings.agents_db_url:
+        try:
+            from src.database.supabase_client import db as agents_db
+            await agents_db._get_pool()
+            logger.info("Agents DB pool ready")
+        except Exception as exc:
+            logger.warning(f"Agents DB pool could not be created at startup: {exc}")
+    else:
+        logger.warning("AGENTS_DB_URL not set - memory and profile persistence will be unavailable")
+
     # Warm up catalog DB connection pool
     if settings.catalog_db_url:
         try:
@@ -90,6 +102,11 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await close_pool()
     await close_joyitas_pool()
+    try:
+        from src.database.supabase_client import db as agents_db
+        await agents_db.close()
+    except Exception:
+        pass
     logger.info("Shutting down GetInMotion Agents Service")
 
 
@@ -152,6 +169,11 @@ app.include_router(search_router, prefix="/api")
 app.include_router(joyitas_search_router, prefix="/api")
 app.include_router(whatsapp_router, prefix="/api")
 
+# Serve uploaded product photos as static files
+_uploads_dir = os.path.join(os.path.dirname(__file__), "uploads", "product-photos")
+os.makedirs(_uploads_dir, exist_ok=True)
+app.mount("/uploads/product-photos", StaticFiles(directory=_uploads_dir), name="product-photos")
+
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def root():
@@ -209,7 +231,7 @@ async def health_check():
         "version": "1.0.0",
         "checks": {
             "openai": bool(settings.openai_api_key),
-            "supabase": bool(settings.supabase_url and settings.supabase_service_role_key),
+            "agents_db": bool(settings.agents_db_url),
             "langsmith": bool(settings.langsmith_api_key),
             "tavily": bool(settings.tavily_api_key)
         },

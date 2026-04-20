@@ -8,6 +8,7 @@ from src.api.config import settings
 from src.database.supabase_client import db
 from src.services.embedding_service import embedding_service
 from agents.core.state import MemoryEntry, ArtisanProfile, MemorySearchResult
+from agents.core.embedding_cache import embedding_cache
 from typing import List, Dict, Any, Optional
 from uuid import UUID
 import logging
@@ -65,8 +66,8 @@ class MemoryService:
                     agent_type=agent_type
                 )
             
-            # Generate embedding for the content
-            embedding = await embedding_service.generate_embedding(content)
+            # Generate embedding for the content (cached)
+            embedding = await embedding_cache.get_or_generate(content, embedding_service.generate_embedding)
             
             # Create memory entry
             memory_entry = MemoryEntry(
@@ -122,8 +123,8 @@ class MemoryService:
             List of memory search results
         """
         try:
-            # Generate query embedding
-            query_embedding = await embedding_service.generate_embedding(query)
+            # Generate query embedding (cached)
+            query_embedding = await embedding_cache.get_or_generate(query, embedding_service.generate_embedding)
             
             # Search memories
             results = await db.search_memories(
@@ -198,8 +199,8 @@ class MemoryService:
             Updated profile data
         """
         try:
-            # Generate embedding for profile summary
-            embedding = await embedding_service.generate_embedding(profile_summary)
+            # Generate embedding for profile summary (cached)
+            embedding = await embedding_cache.get_or_generate(profile_summary, embedding_service.generate_embedding)
             
             # Upsert profile
             result = await db.save_artisan_profile(
