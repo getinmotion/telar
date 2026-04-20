@@ -59,7 +59,7 @@ class RAGService:
             logger.info(f"Document chunked into {len(chunks)} pieces")
             
             # Generate embeddings for all chunks
-            embeddings = await embedding_service.generate_embeddings_batch(chunks)
+            embeddings = await embedding_service.generate_embeddings(chunks)
             
             # Prepare embedding records
             embedding_records = []

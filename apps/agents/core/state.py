@@ -109,7 +109,7 @@ class KnowledgeDocument(BaseModel):
     
     filename: str
     file_type: str
-    file_size: int
+    file_size: int = 0
     content: str
     knowledge_category: str
     tags: Optional[list[str]] = None
