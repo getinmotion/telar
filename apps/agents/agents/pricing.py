@@ -34,9 +34,9 @@ class PricingAgent(BaseAgent):
             api_key=settings.openai_api_key
         )
     
-    def get_system_prompt(self) -> str:
-        """Get the pricing agent system prompt."""
-        return get_pricing_agent_prompt()
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """Get the pricing agent system prompt, personalized with artisan context."""
+        return get_pricing_agent_prompt(context)
     
     async def process(
         self,
@@ -88,7 +88,7 @@ class PricingAgent(BaseAgent):
             # 1. Get internal best practices from RAG if needed
             rag_has_useful_info = False
             if needs_strategy or not needs_market_data:
-                logger.rag_search_start(user_input, category='pricing')
+                logger.info(f"🔍 RAG search start: {user_input[:60]}")
                 try:
                     rag_response = await rag_service.generate_rag_response(
                         query=user_input,
@@ -101,7 +101,7 @@ class PricingAgent(BaseAgent):
                     rag_sources = rag_response.get('sources', [])
                     
                     # Log RAG results
-                    logger.rag_search_results(len(rag_sources), rag_sources if rag_sources else None)
+                    logger.info(f"📚 RAG results: {len(rag_sources)} sources")
                     
                     # Check if RAG actually found useful information
                     rag_not_found_phrases = [
@@ -114,7 +114,7 @@ class PricingAgent(BaseAgent):
                     ]
                     
                     if any(phrase in strategy_guidance.lower() for phrase in rag_not_found_phrases):
-                        logger.fallback_triggered("RAG returned 'not found' response", "General LLM knowledge")
+                        logger.info("⚠️ RAG returned 'not found' — falling back to LLM knowledge")
                         strategy_guidance = ""
                         rag_has_useful_info = False
                     else:
@@ -123,20 +123,20 @@ class PricingAgent(BaseAgent):
                         rag_has_useful_info = True
                         
                 except Exception as e:
-                    logger.error("RAG Query", str(e), {"category": "pricing"})
+                    logger.error(f"RAG Query failed: {str(e)}")
                     strategy_guidance = ""
                     rag_has_useful_info = False
             
             # 2. Get current market data from web if needed
             if needs_market_data:
                 search_query = f"{user_input} Colombia artesanía"
-                logger.web_search_start(search_query)
+                logger.info(f"🌐 Web search start: {search_query[:60]}")
                 try:
                     market_data = self.web_search_tool.invoke(search_query)
                     sources.append("Búsqueda web (Tavily)")
-                    logger.web_search_results(1 if market_data else 0)
+                    logger.info(f"🌐 Web search results: {'found' if market_data else 'empty'}")
                 except Exception as e:
-                    logger.error("Web Search", str(e), {"query": search_query[:50]})
+                    logger.error(f"Web Search failed: {str(e)}")
                     market_data = ""
             
             # 3. If we have both, combine them intelligently
@@ -201,7 +201,7 @@ Analiza estos datos del mercado y proporciona recomendaciones específicas de pr
                 )
             else:
                 # Fallback: general LLM response with enhanced expertise
-                logger.fallback_triggered("No RAG or web search results", "Expert LLM knowledge")
+                logger.info("⚠️ No RAG or web search results — using expert LLM knowledge")
                 context_summary = ""
                 if context:
                     context_summary = extract_context_summary(context)
@@ -239,7 +239,6 @@ Proporciona una respuesta completa y detallada que incluya:
 
 Sé específico, práctico y educativo. Tu respuesta debe ser tan útil como la de un consultor de negocios."""
                 
-                logger.llm_call_start(model=settings.openai_model, temperature=0.7, max_tokens=2000)
                 llm_start = time.time()
                 answer = await self._call_llm(
                     user_message=prompt,
@@ -247,7 +246,7 @@ Sé específico, práctico y educativo. Tu respuesta debe ser tan útil como la 
                     max_tokens=2000
                 )
                 llm_duration = (time.time() - llm_start) * 1000
-                logger.llm_call_complete(response_length=len(answer), duration_ms=llm_duration)
+                logger.info(f"✅ LLM call complete: {len(answer)} chars in {llm_duration:.0f}ms")
                 sources = ["Conocimiento experto en pricing artesanal"]
             
             # Build response
@@ -270,26 +269,18 @@ Sé específico, práctico y educativo. Tu respuesta debe ser tan útil como la 
             
             # Log final metrics
             total_duration = (time.time() - start_time) * 1000
-            logger.agent_response(
-                agent="pricing",
-                response_length=len(answer),
-                sources_count=len(response['sources']),
-                confidence=response['confidence']
+            logger.info(
+                f"✅ Pricing agent done: {len(answer)} chars | "
+                f"sources={len(response['sources'])} | confidence={response['confidence']} | "
+                f"rag={response['used_rag']} | web={response['used_web_search']} | "
+                f"duration={total_duration:.0f}ms"
             )
-            logger.performance_metrics({
-                "total_duration_ms": total_duration,
-                "used_web_search": response['used_web_search'],
-                "used_rag": response['used_rag']
-            })
             
             return response
             
         except Exception as e:
             total_duration = (time.time() - start_time) * 1000
-            logger.error("Pricing Agent Processing", str(e), {
-                "query": user_input[:100],
-                "duration_ms": total_duration
-            })
+            logger.error(f"Pricing Agent Processing failed: {str(e)} | query={user_input[:100]} | duration_ms={total_duration:.0f}")
             raise
     
     def _extract_pricing_insights(self, answer: str) -> Dict[str, Any]:
