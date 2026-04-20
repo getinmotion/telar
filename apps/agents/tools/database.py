@@ -72,19 +72,11 @@ def get_shop_data_tool(user_id: str):
             
             # Execute query based on type
             if query_type == 'shop_info':
-                result = {
-                    'shop_name': shop['shop_name'],
-                    'description': shop.get('description', ''),
-                    'craft_type': shop.get('craft_type', ''),
-                    'region': shop.get('region', ''),
-                    'active': shop.get('active', False),
-                    'featured': shop.get('featured', False)
-                }
-                return f"Información de la tienda '{shop_name}':\n" + \
-                       f"Tipo de artesanía: {result['craft_type']}\n" + \
-                       f"Región: {result['region']}\n" + \
-                       f"Descripción: {result['description']}\n" + \
-                       f"Estado: {'Activa' if result['active'] else 'Inactiva'}"
+                return (
+                    f"Información de la tienda '{shop_name}':\n"
+                    f"Slug: {shop.get('slug', '')}\n"
+                    f"Descripción: {shop.get('description', 'Sin descripción')}"
+                )
             
             elif query_type == 'products':
                 products = await shop_db_service.query_products(shop_id, parsed_filters)
@@ -141,12 +133,17 @@ def get_shop_data_tool(user_id: str):
                     result_text += f"    - Inventario: {data['total_inventory']} unidades\n"
                     result_text += f"    - Valor total: ${data['total_value']:,.2f}\n"
                 
+                if summary.get('products'):
+                    result_text += "\nDetalle por producto:\n"
+                    for p in sorted(summary['products'], key=lambda x: x['stock_quantity'], reverse=True):
+                        result_text += f"  - {p['name']}: {p['stock_quantity']} uds | ${p['price']:,.0f} COP | {p['stock_status']}\n"
+
                 if summary['low_stock_count'] > 0:
                     result_text += f"\n⚠️  {summary['low_stock_count']} productos con stock bajo (< 5 unidades)\n"
-                
+
                 if summary['out_of_stock_count'] > 0:
                     result_text += f"❌ {summary['out_of_stock_count']} productos sin stock\n"
-                
+
                 return result_text
             
             elif query_type == 'top_products':
