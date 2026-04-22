@@ -3,6 +3,11 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Sparkles, TrendingUp } from "lucide-react";
 
+// Imagen editorial subida a S3 — reemplaza con la URL del CDN cuando la subas
+// POST /file-upload/image con folder=hero
+const ARTESANA_TEJIENDO_URL =
+  "https://cdn.telar.co/hero-images/last-version/artisan_capture.png";
+
 export default function SobreTelar() {
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">
@@ -131,10 +136,23 @@ export default function SobreTelar() {
       {/* 18.4 Inteligencia artesanal — Diferencia del sistema */}
       <section className="max-w-[1400px] mx-auto px-6 mb-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="relative h-[400px] rounded-lg overflow-hidden order-2 md:order-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/10" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="h-32 w-32 text-primary/30" />
+          <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden order-2 md:order-1">
+            <img
+              src={ARTESANA_TEJIENDO_URL}
+              alt="Artesana tejiendo con lanas de colores"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-orange-500/5 -z-10" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent p-6 md:p-8">
+              <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-sans text-white/70 font-bold mb-2">
+                Tecnología al servicio
+              </p>
+              <p className="font-serif italic text-2xl md:text-3xl text-white leading-tight">
+                de la tradición
+              </p>
             </div>
           </div>
 
