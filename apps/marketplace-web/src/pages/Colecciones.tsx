@@ -27,16 +27,32 @@ interface CollectionEditorial {
   description: string;
   layout: "wide" | "dark" | "centered";
   ctaLabel: string;
+  /** Optional: override the preview image with a curated URL (e.g. S3) */
+  heroImage?: string;
 }
+
+// S3 gallery reused for the La Chamba featured card
+const CHAMBA_HERO_IMAGE =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/vajilla_n/VAJILLA%20NEGRA%20-%201.jpg";
 
 const COLLECTION_EDITORIAL: CollectionEditorial[] = [
   {
+    slug: "ceramica-de-la-chamba",
+    title: "El Legado del Barro Negro",
+    subtitle: "Colección Principal",
+    description:
+      "La Chamba, Tolima: más de 300 años de tradición alfarera a orillas del Magdalena. Herencia Pijao, liderazgo femenino y Denominación de Origen reconocida mundialmente.",
+    layout: "wide",
+    ctaLabel: "Entrar en la colección",
+    heroImage: CHAMBA_HERO_IMAGE,
+  },
+  {
     slug: "tejeduria-de-san-jacinto",
-    title: "El Aliento de la Tierra",
+    title: "Donde la Hamaca se Teje con Notas de Gaita",
     subtitle: "Selección Editorial",
     description:
-      "Una exploración profunda de fibras naturales que conservan el aroma del monte y el tacto del origen. Piezas que dialogan con el entorno y respiran con el paso del tiempo.",
-    layout: "wide",
+      "El legado textil de San Jacinto, Bolívar: hamacas grandes tejidas en telar vertical por herederas del Reino Finzenú, al ritmo de gaitas y cumbia.",
+    layout: "dark",
     ctaLabel: "Entrar en la selección",
   },
   {
@@ -45,17 +61,8 @@ const COLLECTION_EDITORIAL: CollectionEditorial[] = [
     subtitle: "Curada por TELAR",
     description:
       "El mapa de una cultura trazado en hilos. Una gramática de simetría y cosmogonía ancestral donde cada rombo cuenta una historia de territorio.",
-    layout: "dark",
-    ctaLabel: "Entrar en la colección",
-  },
-  {
-    slug: "ceramica-de-la-chamba",
-    title: "El Silencio de la Greda",
-    subtitle: "Selección Editorial",
-    description:
-      "La cerámica negra de La Chamba en su expresión más contemporánea y utilitaria. Objetos diseñados para habitar la calma y celebrar el ritual cotidiano.",
     layout: "centered",
-    ctaLabel: "Entrar en la selección",
+    ctaLabel: "Entrar en la colección",
   },
   {
     slug: "ceramica-de-raquira",
@@ -156,8 +163,15 @@ export default function Colecciones() {
     });
   }, [curatorialCategories, products]);
 
-  // Collections with editorial content get featured treatment
-  const featured = collections.filter((c) => c.editorial);
+  // Collections with editorial content get featured treatment, ordered by
+  // the explicit sequence declared in COLLECTION_EDITORIAL (La Chamba first).
+  const editorialOrder = COLLECTION_EDITORIAL.map((e) => e.slug);
+  const featured = collections
+    .filter((c) => c.editorial)
+    .sort(
+      (a, b) =>
+        editorialOrder.indexOf(a.slug) - editorialOrder.indexOf(b.slug),
+    );
   const remaining = collections.filter((c) => !c.editorial);
 
   // Territory + technique data for the archive nav
@@ -202,15 +216,11 @@ export default function Colecciones() {
               </div>
             </div>
             <div className="lg:col-span-6">
-              {products[0] ? (
-                <img
-                  src={getPrimaryImageUrl(products[0]) ?? undefined}
-                  alt="Colecciones"
-                  className="aspect-[16/10] w-full object-cover"
-                />
-              ) : (
-                <div className="aspect-[16/10] w-full bg-[#e5e1d8]" />
-              )}
+              <img
+                src={CHAMBA_HERO_IMAGE}
+                alt="Colecciones — La Chamba"
+                className="aspect-[16/10] w-full object-cover"
+              />
             </div>
           </div>
         </header>
@@ -220,8 +230,9 @@ export default function Colecciones() {
           {featured.map((col) => {
             const ed = col.editorial!;
             const previewImg =
-              col.previewProducts[0] &&
-              getPrimaryImageUrl(col.previewProducts[0]);
+              ed.heroImage ??
+              (col.previewProducts[0] &&
+                getPrimaryImageUrl(col.previewProducts[0]));
 
             if (ed.layout === "wide") {
               return (

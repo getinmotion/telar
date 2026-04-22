@@ -9,6 +9,7 @@ import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { getArtisanShops } from "@/services/artisan-shops.actions";
 import {
   getProductsNew,
+  getProductNewById,
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
@@ -21,6 +22,12 @@ import type { ArtisanShop } from "@/types/artisan-shops.types";
 import { ArrowRight } from "lucide-react";
 
 /* ── Territory metadata ──────────────────────────────── */
+interface TerritoryExtraSection {
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
 interface TerritoryMeta {
   name: string;
   department: string;
@@ -30,21 +37,33 @@ interface TerritoryMeta {
   culturalQuote: string;
   culturalTitle: string;
   ctaHeadline: string;
+  /** Optional: product whose primary image is used in the hero and featured card */
+  featuredProductId?: string;
+  /** Optional: extra narrative sections rendered before the cultural quote */
+  extraSections?: TerritoryExtraSection[];
 }
 
 const TERRITORY_DATA: Record<string, TerritoryMeta> = {
   "san-jacinto": {
     name: "San Jacinto, Bolívar",
     department: "Bolivar",
-    subtitle: "Cuna de la hamaca y el telar",
+    subtitle: "Donde la hamaca se teje con notas de gaita",
     description:
-      "Un pilar fundamental del ecosistema TELAR, donde las manos de los artesanos mantienen vivo el diálogo entre la historia de los Montes de María y la tejeduría contemporánea.",
+      "En las sabanas del norte de Bolívar, a menos de tres horas de Cartagena, se encuentra San Jacinto, un territorio donde el tiempo no se mide en horas, sino en las pasadas del hilo por el telar. Considerado la “Cuna de la Hamaca”, este municipio es un paraíso donde la herencia textil del antiguo Reino Finzenú —cultura Zenú— sigue viva en cada hogar.",
     longDescription:
-      "San Jacinto se posiciona como un centro histórico y cultural de la tejeduría en telar en Colombia. Es un territorio donde el oficio trasciende la producción para convertirse en un lenguaje de preservación de la memoria y la identidad local.",
+      "La hamaca es el alma de San Jacinto. Durante generaciones, las mujeres —madres, abuelas e hijas— han custodiado el telar vertical. En los patios de sus casas, entre risas y saberes compartidos, realizan procesos ancestrales como el devanado y el trenzado. Para ellas, tejer no es solo un oficio; es un legado familiar que las convierte en las guardianas de la identidad del Caribe.",
+    culturalTitle: "Mucho más que un lugar para descansar",
     culturalQuote:
-      "Los patrones geométricos de San Jacinto son un eco de la cultura Zenú, representaciones de la naturaleza y del complejo sistema de canales que esta civilización construyó hace siglos.",
-    culturalTitle: "Simbolismo en el hilo",
-    ctaHeadline: "Descubra la maestría de San Jacinto",
+      "Para la cultura Zenú, la hamaca tenía un significado sagrado: era la pieza central en los ritos fúnebres y el símbolo de compromiso que un novio entregaba a su novia. Hoy, esa mística se transforma en piezas de diseño contemporáneo: mochilas, cojines y centros de mesa que llevan consigo siglos de historia y leyendas.",
+    ctaHeadline: "Descubra la tierra de la hamaca grande",
+    featuredProductId: "b5e6e8c6-5d50-404d-b295-38a7346d7333",
+    extraSections: [
+      {
+        eyebrow: "Sinfonía textil",
+        title: "Gaitas y cumbia",
+        body: "San Jacinto no solo se mira, se escucha. Es la tierra de los legendarios Gaiteros de San Jacinto, donde el ritmo de la gaita y la cumbia marca el compás de las tejedoras. Un territorio donde la música y la artesanía son una sola voz; como dice la canción, es “la tierra de la hamaca grande”, donde el folclor se siente en cada fibra de algodón.",
+      },
+    ],
   },
   "la-guajira": {
     name: "La Guajira",
@@ -123,6 +142,7 @@ const TERRITORY_DATA: Record<string, TerritoryMeta> = {
       "La hoja que fue combustible de guerra se sumerge hoy en las tinas de teñido para dar vida a verdes profundos y amarillos solares. La coca vuelve a su origen artesanal como pigmento de esperanza.",
     culturalTitle: "De la coca al color: alquimia de paz",
     ctaHeadline: "Descubra la seda del Cauca",
+    featuredProductId: "963a11d1-98a2-480e-993c-c722b1f248de",
   },
 };
 
@@ -134,9 +154,30 @@ export default function Territory() {
   const { techniques: allTechniques } = useTaxonomy();
   const [shops, setShops] = useState<ArtisanShop[]>([]);
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [featuredProduct, setFeaturedProduct] = useState<ProductNewCore | null>(null);
   const [loading, setLoading] = useState(true);
 
   const territory = slug ? TERRITORY_DATA[slug] : undefined;
+
+  // Fetch featured product (if territory defines one)
+  useEffect(() => {
+    const id = territory?.featuredProductId;
+    if (!id) {
+      setFeaturedProduct(null);
+      return;
+    }
+    let cancelled = false;
+    getProductNewById(id)
+      .then((p) => {
+        if (!cancelled) setFeaturedProduct(p);
+      })
+      .catch(() => {
+        if (!cancelled) setFeaturedProduct(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [territory?.featuredProductId]);
 
   // Fetch shops and products for this territory
   useEffect(() => {
@@ -251,7 +292,38 @@ export default function Territory() {
           </Link>
         </div>
         <div className="lg:col-span-7">
-          <div className="aspect-[21/9] rounded-sm" style={{ backgroundColor: "#f0eee9" }} />
+          {(() => {
+            const heroUrl = featuredProduct ? getPrimaryImageUrl(featuredProduct) : null;
+            if (heroUrl) {
+              return (
+                <Link
+                  to={`/product/${featuredProduct!.id}`}
+                  className="relative block aspect-[21/9] rounded-sm overflow-hidden group"
+                >
+                  <img
+                    src={heroUrl}
+                    alt={featuredProduct!.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                    onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2c2c2c]/80 via-[#2c2c2c]/20 to-transparent p-6 md:p-8 text-white">
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold mb-2 opacity-80">
+                      Pieza destacada del territorio
+                    </p>
+                    <p className="font-serif italic text-2xl md:text-3xl leading-tight">
+                      {featuredProduct!.name}
+                      {featuredProduct!.artisanShop?.shopName && (
+                        <span className="block text-sm md:text-base not-italic font-sans font-normal opacity-70 mt-2 tracking-wide">
+                          Taller {featuredProduct!.artisanShop.shopName}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </Link>
+              );
+            }
+            return <div className="aspect-[21/9] rounded-sm" style={{ backgroundColor: "#f0eee9" }} />;
+          })()}
         </div>
       </section>
 
@@ -461,6 +533,40 @@ export default function Territory() {
           )}
         </div>
       </section>
+
+      {/* ═══════════════ EXTRA NARRATIVE SECTIONS ═══════════════ */}
+      {territory.extraSections?.length ? (
+        <section className="px-6 py-24 md:py-32" style={{ backgroundColor: "#f9f7f2" }}>
+          <div className="max-w-[1100px] mx-auto space-y-20">
+            {territory.extraSections.map((sec) => (
+              <div
+                key={sec.title}
+                className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 items-start"
+              >
+                <div className="md:col-span-4">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans mb-4"
+                    style={{ color: "#ec6d13" }}
+                  >
+                    {sec.eyebrow}
+                  </p>
+                  <h3 className="text-4xl md:text-5xl font-serif italic leading-tight">
+                    {sec.title}
+                  </h3>
+                </div>
+                <div className="md:col-span-8">
+                  <p
+                    className="text-lg md:text-xl leading-relaxed font-light"
+                    style={{ color: "rgba(44,44,44,0.75)" }}
+                  >
+                    {sec.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* ═══════════════ CULTURAL STORY CAPSULE ═══════════════ */}
       <section className="relative px-6 py-40 overflow-hidden bg-white border-y" style={{ borderColor: "rgba(44,44,44,0.05)" }}>

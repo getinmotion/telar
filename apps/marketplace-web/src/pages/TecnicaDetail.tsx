@@ -112,20 +112,58 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
   filigrana: {
     name: "Filigrana",
     slug: "filigrana",
-    subtitle: "El resplandor de lo ancestral",
+    subtitle: "El arte de tejer el metal",
     heroDescription:
-      "La filigrana colombiana es heredera directa de las técnicas precolombinas. La filigrana momposina, declarada Patrimonio Cultural, transforma hilos de plata en joyas de complejidad asombrosa.",
+      "La filigrana es joyería convertida en encaje. Hilos finísimos de plata u oro se enrollan, sueldan y ensamblan a mano sin moldes, dando vida a piezas que parecen bordadas sobre el aire.",
     longDescription:
-      "En Mompox, los orfebres funden plata, la estiran en hilos finísimos y los enrollan, sueldan y ensamblan sin moldes. Cada pieza es única, resultado de horas de concentración y pulso firme.",
+      "Heredera del encuentro entre la orfebrería precolombina —Quimbaya, Tayrona, Zenú— y la técnica morisca llegada a América con la Colonia, la filigrana colombiana es una cartografía de maestrías regionales: la escuela momposina (Bolívar), declarada Patrimonio Cultural Inmaterial de la Nación; la tradición antioqueña de Santa Fe de Antioquia; el pulso del Zenú en Ciénaga de Oro (Córdoba); la orfebrería afro del Pacífico en Quibdó (Chocó); y la tradición pastusa en Barbacoas (Nariño). En Telar acompañamos a cada taller con trazabilidad del metal, pago directo a la maestra o maestro orfebre y apoyo a la recuperación de plata reciclada.",
     explanationCards: [
-      { title: "Proceso", text: "Fundición del metal, estirado en hilos, enrollado en espirales, soldado con soplete y ensamblado pieza a pieza sin moldes." },
-      { title: "Materiales", text: "Plata, oro, bronce y cobre. La filigrana usa exclusivamente hilos de metal estirados a mano." },
-      { title: "Tiempo", text: "Un par de aretes en filigrana tarda 2-3 días. Un collar complejo puede requerir hasta 2 semanas de trabajo." },
+      {
+        title: "Encuentro de dos mundos",
+        text: "Oro ancestral y plata morisca convergen en un oficio que tiene 500 años de diálogo cultural. La filigrana no copia a ninguno de sus padres: los reinterpreta en cada pulso.",
+      },
+      {
+        title: "Geografía de la filigrana",
+        text: "Mompox, Santa Fe de Antioquia, Ciénaga de Oro, Quibdó y Barbacoas. Cinco escuelas regionales, cinco gramáticas del hilo, un mismo respeto por el metal hecho encaje.",
+      },
+      {
+        title: "Impacto Telar",
+        text: "Transparencia de origen, inclusión financiera para artesanos sin banca y materias primas sostenibles (plata reciclada, oro libre de mercurio). Comprar filigrana en Telar es financiar un linaje.",
+      },
     ],
-    culturalQuote: "La filigrana de Mompox no usa moldes. Cada espiral es única porque nace del pulso del orfebre, no de una máquina.",
+    culturalQuote:
+      "La filigrana no se hace: se teje. Cada espiral nace del pulso, no del molde; y cada pieza lleva el nombre de una escuela, un taller y una mano.",
     culturalTitle: "El pulso del orfebre",
     territories: [],
     ctaHeadline: "Descubra la maestría de la Filigrana",
+  },
+  calado: {
+    name: "Calado",
+    slug: "calado",
+    subtitle: "La filigrana de la madera",
+    heroDescription:
+      "El calado es el arte de perforar la madera para que la luz la atraviese. Lo que se retira es tan importante como lo que queda: el vacío se vuelve dibujo, la silueta se vuelve materia.",
+    longDescription:
+      "Arquitectura de detalle en balcones y celosías, mobiliario de autor con respaldares que parecen bordados, y una soberanía del oficio que se resiste a la producción industrial: el calado colombiano es heredero de la carpintería colonial y de las tradiciones indígenas de la talla. Cada pieza calada exige precisión de cirujano y paciencia de tejedora — porque una gubia que resbala no tiene vuelta atrás.",
+    explanationCards: [
+      {
+        title: "Técnica y herramienta",
+        text: "Dibujo del patrón, perforación con taladro para abrir el paso, y recorte fino con segueta, gubia y formón. Pulido a mano hasta que el borde del vacío sea tan limpio como el del sólido.",
+      },
+      {
+        title: "Arquitectura y mobiliario",
+        text: "Balcones, celosías, biombos y respaldares. El calado convierte el mueble en un filtro de luz y el detalle arquitectónico en una firma del territorio.",
+      },
+      {
+        title: "Soberanía del oficio",
+        text: "Cada taller guarda sus plantillas heredadas. No hay dos calados iguales, y esa imposibilidad de copia es la garantía del oficio frente a la réplica industrial.",
+      },
+    ],
+    culturalQuote:
+      "En el calado, lo que se quita le da forma a lo que queda. Es la filigrana de la madera: un arte donde el vacío es el protagonista.",
+    culturalTitle: "Arquitectura de detalle",
+    territories: [],
+    ctaHeadline: "Descubra la maestría del Calado",
   },
   "barniz-de-pasto": {
     name: "Barniz de Pasto",
@@ -314,13 +352,17 @@ export default function TecnicaDetail() {
           });
           setProducts(filtered);
         } else {
-          // Fallback: match by name substring
-          const nameLC = technique?.name.toLowerCase() || slug?.replace(/-/g, " ") || "";
-          const filtered = res.data.filter((p) => {
-            const primary = p.artisanalIdentity?.primaryTechnique?.name?.toLowerCase() || "";
-            const secondary = p.artisanalIdentity?.secondaryTechnique?.name?.toLowerCase() || "";
-            return primary.includes(nameLC) || secondary.includes(nameLC);
-          });
+          // Fallback: strict normalized equality so "talla" ≠ "tallado".
+          const norm = (s: string) =>
+            s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+          const target = norm(technique?.name || slug?.replace(/-/g, " ") || "");
+          const filtered = target
+            ? res.data.filter((p) => {
+                const primary = norm(p.artisanalIdentity?.primaryTechnique?.name || "");
+                const secondary = norm(p.artisanalIdentity?.secondaryTechnique?.name || "");
+                return primary === target || secondary === target;
+              })
+            : [];
           setProducts(filtered);
         }
       } catch {
