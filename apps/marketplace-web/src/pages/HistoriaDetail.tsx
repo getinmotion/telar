@@ -17,12 +17,18 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   getProductsNew,
+  getProductsByStore,
   getPrimaryImageUrl,
   getProductPrice,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import { getStoryKeywords } from "@/datafallback/fallbackStories";
+import {
+  getStoryKeywords,
+  ALCIDES_STORY_SLUG,
+  ARTESOL_SHOP_SLUG,
+} from "@/datafallback/fallbackStories";
+import { getArtisanShopBySlug } from "@/services/artisan-shops.actions";
 
 // ── helpers ────────────────────────────────────────────
 /** Normalise a string for accent/case-insensitive matching. */
@@ -73,6 +79,9 @@ const HistoriaDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading, error } = useCMSBlogArticle(slug || "");
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [shopProducts, setShopProducts] = useState<ProductNewCore[]>([]);
+
+  const isAlcides = slug === ALCIDES_STORY_SLUG;
 
   useEffect(() => {
     // Pull a wider window so keyword matching has something to score against.
@@ -84,10 +93,30 @@ const HistoriaDetail = () => {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!isAlcides) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const shop = await getArtisanShopBySlug(ARTESOL_SHOP_SLUG);
+        if (!shop || cancelled) return;
+        const prods = await getProductsByStore(shop.id);
+        if (!cancelled) setShopProducts(prods);
+      } catch {
+        // silent
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAlcides]);
+
   // Keyword-filtered products — story keywords first, then title/description
   // as a fallback so even CMS articles without an explicit keywords field
   // still get a relevant slice.
   const relatedProducts = useMemo(() => {
+    // Alcides story: use Artesol shop products exclusively.
+    if (isAlcides) return shopProducts.slice(0, 8);
     if (!products.length) return [];
     const explicit = getStoryKeywords(article ?? null);
     const derived = article
@@ -110,7 +139,7 @@ const HistoriaDetail = () => {
     // If nothing matched, fall back to the first few products so the
     // "Del Relato al Objeto" grid is never empty.
     return (scored.length ? scored : products).slice(0, 4);
-  }, [products, article]);
+  }, [products, article, isAlcides, shopProducts]);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -163,11 +192,17 @@ const HistoriaDetail = () => {
     );
   }
 
-  const coverImageUrl = getStoryblokImageUrl(article.cover, {
-    width: 1400,
-    height: 660,
-    quality: 85,
-  });
+  const artesolCoverUrl =
+    isAlcides && shopProducts.length > 0
+      ? getPrimaryImageUrl(shopProducts[0])
+      : null;
+  const coverImageUrl =
+    artesolCoverUrl ||
+    getStoryblokImageUrl(article.cover, {
+      width: 1400,
+      height: 660,
+      quality: 85,
+    });
   const publishDate = article.first_published_at || article.published_at;
 
   return (

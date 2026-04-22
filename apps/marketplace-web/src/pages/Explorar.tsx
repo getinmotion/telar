@@ -362,7 +362,7 @@ const Explorar = () => {
               Tejeduría de San Jacinto
             </h2>
             <p className="text-base leading-relaxed font-light italic mb-8 max-w-md" style={{ color: "rgba(255,255,255,0.7)" }}>
-              En los Montes de María, las hamacas son lienzos donde se narra la resiliencia y la paz de un territorio.
+              En los Montes de María, las hamacas se tejen en telar vertical al ritmo de gaitas y cumbia — herencia viva del Reino Finzenú.
             </p>
             <div className="flex items-center gap-6">
               <Link

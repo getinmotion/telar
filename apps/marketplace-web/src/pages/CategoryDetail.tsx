@@ -36,10 +36,10 @@ const CATEGORY_EDITORIAL: Record<string, CategoryEditorial> = {
     storyTitle: "El tejido en",
     storyLocation: "San Jacinto",
     storyText:
-      "San Jacinto es reconocido por su tradición textil en telar, una herencia que ha perdurado a través de generaciones de artesanos que capturan la esencia del Caribe en cada urdimbre.",
+      "San Jacinto, la “tierra de la hamaca grande”, es cuna del telar vertical heredado del Reino Finzenú. Sus tejedoras transforman el algodón en hamacas y caminos de mesa al ritmo de gaitas y cumbia.",
     storyCTAs: [
-      { label: "Conoce la historia", href: "#" },
-      { label: "Explorar piezas de San Jacinto", href: "#" },
+      { label: "Conoce la historia", href: "/territorio/san-jacinto" },
+      { label: "Explorar piezas de San Jacinto", href: "/territorio/san-jacinto" },
     ],
   },
   "joyeria-y-accesorios": {
