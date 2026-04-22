@@ -107,14 +107,26 @@ const TECHNIQUE_EDITORIAL: Record<string, TechniqueEditorial> = {
   },
   filigrana: {
     slug: "filigrana",
-    tagline: "El resplandor de lo ancestral.",
-    origin: "Bolívar · Joyería",
+    tagline: "El arte de tejer el metal.",
+    origin: "Mompox · Joyería",
     region: "Bolívar",
     craftLabel: "Joyería",
     description:
-      "Herencia de los orfebres que entendieron el metal como una extensión del alma. La filigrana momposina es Patrimonio Cultural Inmaterial de la Nación.",
+      "Heredera del encuentro entre la orfebrería precolombina y la técnica morisca. Cinco escuelas regionales —Mompox, Santa Fe de Antioquia, Ciénaga de Oro, Quibdó y Barbacoas— tejen hilos de plata y oro sin moldes, a puro pulso.",
     pieces: 12,
     masters: 5,
+    mastery: "Extrema",
+  },
+  calado: {
+    slug: "calado",
+    tagline: "La filigrana de la madera.",
+    origin: "Colombia · Madera",
+    region: "Colombia",
+    craftLabel: "Madera",
+    description:
+      "El arte de perforar la madera para que la luz la atraviese. Arquitectura de detalle, mobiliario de autor y una soberanía del oficio que se resiste a la réplica industrial.",
+    pieces: 11,
+    masters: 4,
     mastery: "Extrema",
   },
   "barniz de pasto": {
@@ -260,8 +272,21 @@ export default function Tecnicas() {
             rank[getEditorial(a.name).mastery] - rank[getEditorial(b.name).mastery],
         );
       }
-      default:
-        return list;
+      default: {
+        // Feature filigrana as the primary; drop alambrismo from the archive
+        // so it doesn't outshine the curated técnica.
+        const filtered = list.filter(
+          (t) => t.name.toLowerCase() !== "alambrismo",
+        );
+        const figIdx = filtered.findIndex(
+          (t) => t.name.toLowerCase() === "filigrana",
+        );
+        if (figIdx > 0) {
+          const [fig] = filtered.splice(figIdx, 1);
+          filtered.unshift(fig);
+        }
+        return filtered;
+      }
     }
   }, [techniques, activeFilter]);
 
@@ -591,6 +616,180 @@ export default function Tecnicas() {
           </div>
         </section>
 
+        {/* ═══════════════ LA MADERA EN COLOMBIA ═══════════════ */}
+        <section className="mb-48">
+          <div className="max-w-4xl mb-16">
+            <span
+              className="text-[10px] uppercase tracking-[0.5em] mb-6 block font-bold font-sans"
+              style={{ color: "#ec6d13" }}
+            >
+              La Madera en Colombia
+            </span>
+            <h2
+              className="font-serif text-5xl md:text-6xl font-bold leading-[1.05] mb-10"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              El alma de la biodiversidad transformada.
+            </h2>
+            <p
+              className="text-lg leading-relaxed opacity-90"
+              style={{ color: "#584237" }}
+            >
+              De la selva chocoana al bosque andino, la madera colombiana
+              sostiene una cartografía de oficios que convierten veta, dureza y
+              aroma en arquitectura, mobiliario y escultura. Cada pieza parte
+              de una ciencia silenciosa: la selección del árbol correcto para
+              lo que la mano quiere decir.
+            </p>
+          </div>
+
+          {/* Ciencia y Selección */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-24">
+            <div
+              className="p-10 border-t-2"
+              style={{ backgroundColor: "#f0eee9", borderColor: "#ec6d13" }}
+            >
+              <span
+                className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
+                style={{ color: "#ec6d13" }}
+              >
+                Maderas nobles / duras
+              </span>
+              <h3 className="font-serif text-2xl font-bold mb-4 italic">
+                Para durar siglos.
+              </h3>
+              <p
+                className="text-sm leading-relaxed opacity-80"
+                style={{ color: "#584237" }}
+              >
+                Chonta, nazareno, granadillo, guayacán. Densas y resistentes,
+                son la materia de máscaras ceremoniales, mobiliario de autor y
+                tallados que retan al tiempo.
+              </p>
+            </div>
+            <div
+              className="p-10 border-t-2"
+              style={{ backgroundColor: "#f0eee9", borderColor: "#ec6d13" }}
+            >
+              <span
+                className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
+                style={{ color: "#ec6d13" }}
+              >
+                Maderas ligeras / versátiles
+              </span>
+              <h3 className="font-serif text-2xl font-bold mb-4 italic">
+                Para que la luz pase.
+              </h3>
+              <p
+                className="text-sm leading-relaxed opacity-80"
+                style={{ color: "#584237" }}
+              >
+                Balso, cedro, sauce, pino colombiano. Fáciles de calar, labrar
+                y pirograbar, permiten la filigrana de la madera y las piezas
+                decorativas que habitan la casa sin pesarle.
+              </p>
+            </div>
+          </div>
+
+          {/* Técnicas que Inmortalizan la Tradición */}
+          <div className="mb-12">
+            <span
+              className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans block mb-4"
+              style={{ color: "rgba(44,44,44,0.4)" }}
+            >
+              Técnicas que inmortalizan la tradición
+            </span>
+            <h3
+              className="font-serif text-3xl md:text-4xl font-bold leading-tight"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              Cuatro gramáticas para un mismo material.
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              {
+                title: "Ebanistería de Autor",
+                slug: null,
+                text: "El mobiliario como firma. Ensambles sin clavos, acabados aceitados y una relación íntima con la veta: cada mueble es un objeto que guarda la biografía del taller.",
+                imgKey: "Talla",
+              },
+              {
+                title: "Talla y Labrado Artístico",
+                slug: "tallado",
+                text: "Gubias y formones dan forma a la cosmogonía afrocolombiana e indígena. Tallar es descubrir la figura que ya vivía dentro del tronco.",
+                imgKey: "Tallado",
+              },
+              {
+                title: "Taracea y Calado",
+                slug: "calado",
+                text: "La taracea compone marquetería con maderas de contraste; el calado perfora la madera para que la luz la atraviese. Dos maneras de convertir el detalle en protagonista.",
+                imgKey: "Calado",
+              },
+              {
+                title: "Torneado y Pirograbado",
+                slug: null,
+                text: "El torno esculpe simetría; el pirograbado firma la superficie con fuego. Dos técnicas que llevan la madera del utensilio cotidiano al objeto de culto.",
+                imgKey: "Talla",
+              },
+            ].map((card) => {
+              const img = getTechniqueImage(techImages, card.imgKey);
+              const inner = (
+                <>
+                  <div
+                    className="aspect-[4/3] overflow-hidden mb-6"
+                    style={{ backgroundColor: "#e4e2dd" }}
+                  >
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={card.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span
+                          className="font-serif italic text-3xl"
+                          style={{ color: "rgba(44,44,44,0.08)" }}
+                        >
+                          {card.title}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="font-serif text-2xl font-bold mb-3 group-hover:text-[#ec6d13] transition-colors">
+                    {card.title}
+                  </h4>
+                  <p
+                    className="text-sm leading-relaxed opacity-80"
+                    style={{ color: "#584237" }}
+                  >
+                    {card.text}
+                  </p>
+                </>
+              );
+              return card.slug ? (
+                <Link
+                  key={card.title}
+                  to={`/tecnica/${card.slug}`}
+                  className="group block"
+                >
+                  {inner}
+                </Link>
+              ) : (
+                <div key={card.title} className="group">
+                  {inner}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* ═══════════════ DYNAMIC ARCHIVE — ASYMMETRIC ═══════════════ */}
         {!loading && rest.length > 0 && (
           <section className="mb-48">
@@ -602,37 +801,21 @@ export default function Tecnicas() {
             </h2>
 
             <div className="grid grid-cols-12 gap-8">
-              {/* ── Row 1: square + curator note + square ── */}
+              {/* ── Row 1: two squares, full-width ── */}
               {archiveRow1[0] && (
                 <ArchiveSquareCard
                   tech={archiveRow1[0]}
                   index={2}
                   techImages={techImages}
+                  span="md:col-span-6"
                 />
               )}
-              <div
-                className="col-span-12 md:col-span-4 flex items-center px-8 border-x"
-                style={{ borderColor: "rgba(140,114,101,0.1)" }}
-              >
-                <div className="py-12">
-                  <span
-                    className="text-[9px] uppercase tracking-[0.4em] mb-4 block font-sans"
-                    style={{ color: "#ec6d13" }}
-                  >
-                    Nota del Curador
-                  </span>
-                  <p className="font-serif text-xl italic leading-relaxed opacity-90">
-                    La filigrana no es solo un adorno, es la herencia de los
-                    orfebres que entendieron el metal como una extensión del
-                    alma.
-                  </p>
-                </div>
-              </div>
               {archiveRow1[1] && (
                 <ArchiveSquareCard
                   tech={archiveRow1[1]}
                   index={3}
                   techImages={techImages}
+                  span="md:col-span-6"
                 />
               )}
 
@@ -849,11 +1032,15 @@ function resolveImage(
   return getTechniqueImage(techImages, tech.name);
 }
 
-function ArchiveSquareCard({ tech, techImages }: ArchiveCardProps) {
+function ArchiveSquareCard({
+  tech,
+  techImages,
+  span = "md:col-span-4",
+}: ArchiveCardProps & { span?: string }) {
   const ed = getEditorial(tech.name);
   const img = resolveImage(tech, techImages);
   return (
-    <div className="col-span-12 md:col-span-4 flex flex-col gap-6 group">
+    <div className={`col-span-12 ${span} flex flex-col gap-6 group`}>
       <Link to={`/tecnica/${ed.slug}`}>
         <div
           className="aspect-square overflow-hidden"

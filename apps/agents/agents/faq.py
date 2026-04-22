@@ -22,9 +22,9 @@ class FAQAgent(BaseAgent):
         """Initialize FAQ agent."""
         super().__init__("faq")
     
-    def get_system_prompt(self) -> str:
-        """Get the FAQ agent system prompt."""
-        return get_faq_agent_prompt()
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """Get the FAQ agent system prompt, personalized with artisan context."""
+        return get_faq_agent_prompt(context)
     
     async def process(
         self,

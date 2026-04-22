@@ -297,7 +297,7 @@ const Territorios = () => {
             </h3>
             <p className="text-lg italic leading-relaxed mb-8" style={{ color: "#584237" }}>
               {spotlight.slug === "san-jacinto"
-                ? '"En el corazón del Caribe, el hilo se tensa para narrar la paz de un territorio."'
+                ? '"Donde la hamaca se teje con notas de gaita: la tierra de la hamaca grande, cuna del Reino Finzenú."'
                 : `Región: ${spotlight.region}. Tradiciones artesanales arraigadas en el paisaje y la memoria.`}
             </p>
 

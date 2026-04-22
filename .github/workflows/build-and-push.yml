@@ -338,3 +338,8 @@ jobs:
             git pull origin develop
             docker compose pull
             docker compose up -d --remove-orphans
+            # Run agents DB migration (idempotent — CREATE IF NOT EXISTS throughout)
+            docker cp ~/telar/apps/agents/scripts/migrate_agents_db.sql gim-postgres:/tmp/migrate_agents_db.sql
+            DB_NAME=$(grep '^POSTGRES_DB=' .env | cut -d'=' -f2 | tr -d '"' | tr -d "'" | xargs)
+            echo "Running migration on DB: ${DB_NAME:-getinmotion}"
+            docker exec gim-postgres psql -U postgres -d "${DB_NAME:-getinmotion}" -f /tmp/migrate_agents_db.sql || echo "Migration warning (non-fatal): already applied or DB unreachable"

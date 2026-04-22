@@ -10,9 +10,17 @@ import { Helmet } from "react-helmet-async";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { Footer } from "@/components/Footer";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { ArrowRight, Map, Waypoints, Store } from "lucide-react";
 import {
   getProductsNew,
+  getProductNewById,
   getPrimaryImageUrl,
   type ProductNewCore,
 } from "@/services/products-new.actions";
@@ -27,35 +35,50 @@ interface CollectionMeta {
   manifestoTitle: string;
   manifestoText: string;
   stories: { title: string; excerpt: string }[];
+  /** Optional: product whose image should be used as the hero of the collection */
+  featuredProductId?: string;
+  /** Optional: curated gallery images (S3 URLs) used for hero/manifesto/stories
+   * when there are no products that represent the collection well. */
+  galleryImages?: string[];
+  /** Optional: extra editorial narrative sections rendered before the manifesto */
+  extraSections?: { eyebrow?: string; title: string; body: string }[];
 }
+
+// ── Gallery: La Chamba — Vajilla Negra (S3) ──────────
+const CHAMBA_S3_BASE =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/vajilla_n";
+const CHAMBA_GALLERY = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15].map(
+  (n) => `${CHAMBA_S3_BASE}/VAJILLA%20NEGRA%20-%20${n}.jpg`,
+);
 
 const COLLECTION_META: CollectionMeta[] = [
   {
     slug: "tejeduria-de-san-jacinto",
-    title: "El Aliento de la Tierra",
+    title: "Donde la Hamaca se Teje con Notas de Gaita",
     description:
-      "Una exploración profunda de fibras naturales que conservan el aroma del monte y el tacto del origen. Piezas únicas tejidas a mano.",
+      "El legado textil de San Jacinto, Bolívar: hamacas grandes tejidas en telar vertical por herederas del Reino Finzenú, al ritmo de gaitas y cumbia.",
     longDescription:
-      "Las piezas de esta colección celebran la imperfección como sello definitivo de la mano humana sobre la materia prima. Cada hilo de fique, cada fibra de palma, respira la historia de quien la procesó antes de tejerla.",
-    tags: ["Fibras naturales", "Tejeduría", "San Jacinto"],
-    manifestoTitle: "Diálogo Material",
+      "La hamaca es el alma de San Jacinto. Durante generaciones, las mujeres han tejido en telares verticales piezas que son mucho más que objetos de descanso: son un documento vivo de técnica, tradición y resistencia.",
+    tags: ["Hamaca grande", "Telar vertical", "San Jacinto"],
+    featuredProductId: "b5e6e8c6-5d50-404d-b295-38a7346d7333",
+    manifestoTitle: "Mucho más que un lugar para descansar",
     manifestoText:
-      "En San Jacinto, la hamaca no es solo un objeto de descanso: es un documento vivo de técnica y tradición. El algodón se hila y tiñe con procesos que datan de siglos, y cada pieza lleva la firma invisible de su artesana.",
+      "Para la cultura Zenú, la hamaca tenía un significado sagrado: se usaba para dormir, descansar, recibir visitas y también como mortaja en los ritos funerarios. Hoy, cada hamaca sanjacintera conserva esa memoria en la trama de sus hilos.",
     stories: [
       {
-        title: "Memoria del Agua",
+        title: "El telar vertical",
         excerpt:
-          "Relatos sobre cómo el cauce de los ríos determina el ritmo del tejido en las comunidades del Caribe profundo.",
+          "La técnica heredada del Reino Finzenú que permite tejer hamacas de gran formato con dibujos geométricos y franjas de color.",
       },
       {
-        title: "Barros Sagrados",
+        title: "Gaitas y cumbia",
         excerpt:
-          "Un viaje al corazón de Ráquira donde el barro negro se convierte en herencia tangible y espiritual.",
+          "San Jacinto no solo se mira, se escucha. Cuna de los Gaiteros, el pueblo late al ritmo de gaita hembra, gaita macho y tambor.",
       },
       {
-        title: "Urdimbre Primigenia",
+        title: "Mujeres tejedoras",
         excerpt:
-          "El secreto de las fibras naturales y el legado de las tejedoras que guardan el silencio de la montaña.",
+          "El oficio pasa de madres a hijas. Cada pieza lleva la firma invisible de su artesana y del linaje que la formó.",
       },
     ],
   },
@@ -90,30 +113,48 @@ const COLLECTION_META: CollectionMeta[] = [
   },
   {
     slug: "ceramica-de-la-chamba",
-    title: "El Silencio de la Greda",
+    title: "La Chamba, Tolima: El Legado del Barro Negro",
     description:
-      "La cerámica negra de La Chamba en su expresión más contemporánea y utilitaria. Objetos diseñados para habitar la calma.",
+      "En el corazón del Tolima, a orillas del Magdalena, una comunidad donde el barro no es solo tierra: es memoria viva. Con más de 300 años de tradición, el 85% de la vereda respira a través de la alfarería.",
     longDescription:
-      "La técnica de La Chamba es una conversación entre el fuego y la tierra. Las piezas se modelan sin torno, se pulen con piedras de río y se queman en hornos abiertos que les otorgan su característico color negro.",
-    tags: ["Cerámica negra", "La Chamba", "Tolima"],
-    manifestoTitle: "El Fuego Interior",
+      "La Chamba es hoy uno de los centros cerámicos más importantes del país. Cada pieza conserva el engobe de barro rojo y el ahumado natural heredados de la cultura Pijao, técnicas que los artesanos han custodiado como un tesoro innegociable.",
+    tags: ["Cerámica negra", "La Chamba", "Tolima", "Denominación de Origen"],
+    galleryImages: CHAMBA_GALLERY,
+    manifestoTitle: "Herencia Pijao: El Origen de la Forma",
     manifestoText:
-      "En La Chamba, el barro no se moldea: se negocia. La artesana conoce el temperamento de cada lote de arcilla, sabe cuándo ceder y cuándo insistir. El resultado es una pieza que conserva la energía del proceso.",
+      "La historia de estas piezas se remonta a los pueblos Poinco y Yaporogo de la cultura Pijao, quienes modelaban el barro con fines ceremoniales. Aunque el tiempo transformó sus símbolos, la esencia técnica permanece intacta: el engobe con barro rojo y el ahumado natural son herencias vivas.",
+    extraSections: [
+      {
+        eyebrow: "Liderazgo femenino",
+        title: "Sinergia familiar",
+        body: "La cerámica de La Chamba tiene rostro de mujer. Son ellas, madres y jefas de hogar, quienes con destreza magistral dan vida a las piezas, mientras los hombres lideran la compleja labor de conseguir y preparar la materia prima. Esta sinergia familiar es la base de una economía popular sólida que ha permitido que el oficio trascienda los siglos.",
+      },
+      {
+        eyebrow: "Educación y futuro",
+        title: "El relevo generacional",
+        body: "Desde 1972, con la creación de la Institución Educativa Técnica La Chamba, los niños y jóvenes reciben formación especializada. En Telar potenciamos esta base educativa integrando herramientas digitales y de comercialización directa, asegurando que el talento de estos jóvenes se convierta en una empresa global sin tener que abandonar su vereda.",
+      },
+      {
+        eyebrow: "De la utilidad al culto",
+        title: "Denominación de origen",
+        body: "Lo que comenzó en 1937 como la creación de ollas y platos para las cocinas típicas de Colombia, hoy es una Denominación de Origen reconocida mundialmente. En Telar eliminamos los intermediarios para que el valor de estas piezas —que llevan el alma, la vida y el corazón de los artesanos del Tolima— regrese de manera justa y transparente al territorio.",
+      },
+    ],
     stories: [
       {
-        title: "Negro Profundo",
+        title: "Liderazgo femenino",
         excerpt:
-          "El secreto de la cerámica negra de La Chamba y las familias que mantienen viva una técnica milenaria.",
+          "Madres y jefas de hogar son el alma del oficio. Su destreza sostiene una economía popular que ha trascendido siglos.",
       },
       {
-        title: "Piedras del Río",
+        title: "Escuela de barro",
         excerpt:
-          "El pulido con cantos rodados que le da a cada pieza su brillo característico, sin esmaltes ni químicos.",
+          "Desde 1972 la Institución Educativa Técnica La Chamba forma al relevo generacional — tradición y tecnología en un mismo aula.",
       },
       {
-        title: "Hornos al Cielo",
+        title: "Denominación de origen",
         excerpt:
-          "La quema abierta como rito: cuando el fuego decide el destino final de cada vasija.",
+          "De ollas de cocina a objeto de culto: la cerámica negra de La Chamba es hoy patrimonio reconocido mundialmente.",
       },
     ],
   },
@@ -221,6 +262,7 @@ export default function ColeccionDetail() {
   const { curatorialCategories, loading: taxonomyLoading } = useTaxonomy();
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [featuredProduct, setFeaturedProduct] = useState<ProductNewCore | null>(null);
 
   // Find the curatorial category matching this slug
   const category = useMemo(() => {
@@ -243,6 +285,15 @@ export default function ColeccionDetail() {
       .catch(() => {})
       .finally(() => setLoadingProducts(false));
   }, []);
+
+  // Fetch featured product when specified in collection metadata
+  useEffect(() => {
+    setFeaturedProduct(null);
+    if (!meta?.featuredProductId) return;
+    getProductNewById(meta.featuredProductId)
+      .then((p) => setFeaturedProduct(p as ProductNewCore))
+      .catch(() => {});
+  }, [meta?.featuredProductId]);
 
   const collectionProducts = useMemo(() => {
     if (!category) return [];
@@ -330,23 +381,53 @@ export default function ColeccionDetail() {
             )}
           </div>
           <div className="md:col-span-5">
-            {collectionProducts[0] ? (
-              <img
-                src={
-                  getPrimaryImageUrl(collectionProducts[0]) ?? undefined
-                }
-                alt={displayTitle}
-                className="aspect-[4/3] w-full object-cover shadow-[20px_20px_60px_rgba(0,0,0,0.03)]"
-              />
-            ) : (
-              <div className="aspect-[4/3] w-full bg-[#e5e1d8]" />
-            )}
+            {(() => {
+              const galleryHero = meta?.galleryImages?.[0];
+              const heroProduct = featuredProduct ?? collectionProducts[0];
+              const heroUrl =
+                galleryHero ??
+                (heroProduct ? getPrimaryImageUrl(heroProduct) : null);
+              return heroUrl ? (
+                <img
+                  src={heroUrl}
+                  alt={displayTitle}
+                  className="aspect-[4/3] w-full object-cover shadow-[20px_20px_60px_rgba(0,0,0,0.03)]"
+                />
+              ) : (
+                <div className="aspect-[4/3] w-full bg-[#e5e1d8]" />
+              );
+            })()}
           </div>
         </header>
 
-        {/* ═══════════════ PRODUCT GRID ═══════════════ */}
+        {/* ═══════════════ PRODUCT / GALLERY GRID ═══════════════ */}
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
-          {loadingProducts ? (
+          {meta?.galleryImages && meta.galleryImages.length > 0 ? (
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {meta.galleryImages.map((src, i) => (
+                  <CarouselItem
+                    key={src}
+                    className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="aspect-[4/5] overflow-hidden bg-[#e5e1d8] group">
+                      <img
+                        src={src}
+                        alt={`${displayTitle} — pieza ${i + 1}`}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-2 md:-left-6 bg-white/90 border-[#2c2c2c]/10 hover:bg-white" />
+              <CarouselNext className="right-2 md:-right-6 bg-white/90 border-[#2c2c2c]/10 hover:bg-white" />
+            </Carousel>
+          ) : loadingProducts ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="space-y-6">
@@ -407,22 +488,56 @@ export default function ColeccionDetail() {
                 </p>
               </div>
               <div className="w-full md:w-[55%] relative">
-                {collectionProducts[1] ? (
-                  <img
-                    src={
-                      getPrimaryImageUrl(collectionProducts[1]) ??
-                      undefined
-                    }
-                    alt={meta.manifestoTitle}
-                    className="aspect-video w-full object-cover opacity-70"
-                  />
-                ) : (
-                  <div className="aspect-video w-full bg-[#3a3a3a] opacity-30" />
-                )}
+                {(() => {
+                  const manifestoImg =
+                    meta.galleryImages?.[1] ??
+                    (collectionProducts[1]
+                      ? getPrimaryImageUrl(collectionProducts[1])
+                      : null);
+                  return manifestoImg ? (
+                    <img
+                      src={manifestoImg}
+                      alt={meta.manifestoTitle}
+                      className="aspect-video w-full object-cover opacity-70"
+                    />
+                  ) : (
+                    <div className="aspect-video w-full bg-[#3a3a3a] opacity-30" />
+                  );
+                })()}
                 <p className="mt-4 text-[10px] uppercase tracking-widest opacity-40">
                   {category?.description}
                 </p>
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* ═══════════════ EXTRA NARRATIVE SECTIONS ═══════════════ */}
+        {meta?.extraSections && meta.extraSections.length > 0 && (
+          <section className="max-w-[1400px] mx-auto px-6 py-24">
+            <div className="max-w-[1100px] mx-auto space-y-20">
+              {meta.extraSections.map((sec) => (
+                <div
+                  key={sec.title}
+                  className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 items-start"
+                >
+                  <div className="md:col-span-4">
+                    {sec.eyebrow && (
+                      <p className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans mb-4 text-[#ec6d13]">
+                        {sec.eyebrow}
+                      </p>
+                    )}
+                    <h3 className="text-4xl md:text-5xl font-serif italic leading-tight">
+                      {sec.title}
+                    </h3>
+                  </div>
+                  <div className="md:col-span-8">
+                    <p className="text-lg md:text-xl leading-relaxed font-light text-[#2c2c2c]/75">
+                      {sec.body}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -487,9 +602,9 @@ export default function ColeccionDetail() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
               {meta.stories.map((story, i) => {
                 const storyProduct = collectionProducts[i + 2];
-                const storyImg = storyProduct
-                  ? getPrimaryImageUrl(storyProduct)
-                  : null;
+                const storyImg =
+                  meta.galleryImages?.[i + 2] ??
+                  (storyProduct ? getPrimaryImageUrl(storyProduct) : null);
                 return (
                   <article
                     key={story.title}

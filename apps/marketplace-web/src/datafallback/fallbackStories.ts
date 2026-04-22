@@ -90,8 +90,166 @@ export const CAUCA_SEDA_STORY: BlogArticle = {
   ],
 };
 
+// ── Alcides Vides: El Pescador que Tejió su Propio Destino ────
+export const ARTESOL_SHOP_SLUG = "artesol-el-cedro";
+export const ALCIDES_STORY_SLUG = "alcides-vides-artesol";
+
+const linkParagraph = (
+  leading: string,
+  linkText: string,
+  href: string,
+  trailing = ""
+): RichTextContent => ({
+  type: "paragraph",
+  content: [
+    { type: "text", text: leading },
+    {
+      type: "text",
+      text: linkText,
+      marks: [{ type: "link", attrs: { href, target: "_self" } }],
+    },
+    { type: "text", text: trailing },
+  ],
+});
+
+const alcidesContent: RichTextContent = {
+  type: "doc",
+  content: [
+    paragraph(
+      "La historia de Alcides Vides es la de muchos hombres en la Colombia rural: una infancia de rebusque en las calles que encontró su redención en el agua y, finalmente, en las manos. Tras años como pescador en la Ciénaga Grande de Ayapel, la escasez del bocachico lo obligó a reinventarse. Hoy, a sus 44 años, Alcides no solo es un maestro artesano; es el líder del Taller Artesol, un faro de esperanza en el corregimiento de El Cedro, Córdoba."
+    ),
+
+    heading("La Palma de Seje: De la Flor al Objeto de Diseño"),
+    paragraph(
+      "El oficio con la palma de seje es una danza con los tiempos de la naturaleza. El proceso, heredado y perfeccionado por Alcides bajo la guía de su esposa, es una muestra de técnica y paciencia:"
+    ),
+    {
+      type: "bullet_list",
+      content: [
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Recolección y Secado: Se corta la flor de la palma y se somete al sol por varios días."
+            ),
+          ],
+        },
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Maleabilidad: La fibra seca se hierve en agua, transformando su dureza en una ductilidad que permite el tejido manual."
+            ),
+          ],
+        },
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Creación: De este proceso nacen piezas de gran formato, desde lámparas esculturales hasta jarrones y centros de mesa que capturan la estética de la ciénaga."
+            ),
+          ],
+        },
+      ],
+    },
+
+    heading("Impacto Social: El Motor de El Cedro"),
+    paragraph(
+      "Lo que comenzó como un hobby para Alcides se convirtió en el sustento de 700 familias en Ayapel. Tras el declive de la pesca, la artesanía en palma de seje hoy sostiene a una cuarta parte de la población de El Cedro. El Taller Artesol es una cadena de valor completa:"
+    ),
+    {
+      type: "bullet_list",
+      content: [
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Recolectores: Quienes se adentran en el monte por la materia prima."
+            ),
+          ],
+        },
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Soldadores: Que crean las estructuras metálicas (esqueletos) para lámparas y canastos."
+            ),
+          ],
+        },
+        {
+          type: "list_item",
+          content: [
+            paragraph(
+              "Tejedores: Hombres y mujeres que plasman la imaginación de la cuenca del San Jorge en cada nudo."
+            ),
+          ],
+        },
+      ],
+    },
+
+    heading("Relevo Generacional: Un Legado de Orgullo"),
+    paragraph(
+      "Con ocho hijos, Alcides tiene claro su propósito: ser un ejemplo de tenacidad. Para él, la artesanía es el camino para que los jóvenes no \"agarren el mal camino\", sino que vean en el trabajo manual una forma digna y creativa de habitar su territorio. En Telar, potenciamos este legado brindando la infraestructura digital para que el Taller Artesol conecte su creatividad de ciénaga con el mundo."
+    ),
+
+    {
+      type: "blockquote",
+      content: [
+        paragraph(
+          "\"Ser un padre artesano es demostrarle a mis hijos lo incansable que somos y lo importante que es crear con las manos.\" — Alcides Vides"
+        ),
+      ],
+    },
+
+    linkParagraph(
+      "Conoce todas las piezas del Taller Artesol: ",
+      "ver el taller completo",
+      `/tienda/${ARTESOL_SHOP_SLUG}`,
+      "."
+    ),
+  ],
+};
+
+export const ALCIDES_VIDES_STORY: BlogArticle = {
+  _uid: "fallback-alcides-vides",
+  component: "blog_article",
+  title: "Alcides Vides: El Pescador que Tejió su Propio Destino",
+  slug: "alcides-vides-artesol",
+  full_slug: "historias/alcides-vides-artesol",
+  description:
+    "Del agua de la Ciénaga de Ayapel al tejido de la palma de seje: la historia de Alcides Vides y el Taller Artesol, motor artesanal de El Cedro, Córdoba.",
+  cover: {
+    filename: "",
+    alt: "Alcides Vides tejiendo palma de seje en el Taller Artesol",
+  },
+  author_name: "Redacción Telar",
+  category: "Crónica del Territorio",
+  reading_time: 7,
+  content: alcidesContent,
+  first_published_at: "2026-04-21T00:00:00.000Z",
+  published_at: "2026-04-21T00:00:00.000Z",
+  // @ts-expect-error — extension field
+  keywords: [
+    "alcides",
+    "vides",
+    "artesol",
+    "seje",
+    "palma",
+    "ayapel",
+    "el cedro",
+    "cordoba",
+    "san jorge",
+    "cienaga",
+    "pescador",
+    "tejido",
+  ],
+};
+
 // ── Registry ───────────────────────────────────────────
-export const FALLBACK_STORIES: BlogArticle[] = [CAUCA_SEDA_STORY];
+export const FALLBACK_STORIES: BlogArticle[] = [
+  ALCIDES_VIDES_STORY,
+  CAUCA_SEDA_STORY,
+];
 
 /** Find a fallback story by slug. */
 export function getFallbackStoryBySlug(

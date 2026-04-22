@@ -7,6 +7,7 @@ from src.api.config import settings
 from src.database.supabase_client import db
 from src.services.embedding_service import embedding_service
 from agents.core.state import KnowledgeDocument, KnowledgeSearchResult
+from agents.core.embedding_cache import embedding_cache
 from agents.helpers import chunk_text
 from src.utils.enhanced_logger import create_enhanced_logger
 from typing import List, Dict, Any, Optional
@@ -58,7 +59,7 @@ class RAGService:
             logger.info(f"Document chunked into {len(chunks)} pieces")
             
             # Generate embeddings for all chunks
-            embeddings = await embedding_service.generate_embeddings_batch(chunks)
+            embeddings = await embedding_service.generate_embeddings(chunks)
             
             # Prepare embedding records
             embedding_records = []
@@ -116,8 +117,8 @@ class RAGService:
             if top_k is None:
                 top_k = settings.rag_top_k
             
-            # Generate query embedding
-            query_embedding = await embedding_service.generate_embedding(query)
+            # Generate query embedding (cached)
+            query_embedding = await embedding_cache.get_or_generate(query, embedding_service.generate_embedding)
             
             # Search database
             results = await db.search_knowledge(
@@ -171,10 +172,38 @@ class RAGService:
             
             if not search_results:
                 logger.warning(f"No knowledge base results found for query: {query[:50]}...")
+                # Fall back to LLM-only using the provided system prompt
+                context_summary = ""
+                if context:
+                    from src.utils.helpers import extract_context_summary
+                    context_summary = extract_context_summary(context)
+                history_text = ""
+                if conversation_history:
+                    history_text = "\n\nHistorial de conversación:\n"
+                    for msg in conversation_history[-6:]:
+                        role = "Usuario" if msg.get('role') == 'user' else "Asistente"
+                        history_text += f"{role}: {msg.get('content', '')}\n"
+                messages = [{"role": "system", "content": system_prompt}]
+                if conversation_history:
+                    for msg in conversation_history[-4:]:
+                        messages.append({"role": msg.get('role', 'user'), "content": msg.get('content', '')})
+                user_message_fallback = query
+                if context_summary:
+                    user_message_fallback += f"\n\nContexto del usuario:\n{context_summary}"
+                if history_text:
+                    user_message_fallback += history_text
+                messages.append({"role": "user", "content": user_message_fallback})
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=1000
+                )
                 return {
-                    "answer": "Lo siento, no encontré información relevante en mi base de conocimiento para responder tu pregunta. ¿Podrías reformular tu pregunta o proporcionar más detalles?",
+                    "answer": response.choices[0].message.content,
                     "sources": [],
-                    "confidence": "low"
+                    "confidence": "low",
+                    "retrieved_chunks": 0
                 }
             
             # Build context from search results
