@@ -52,6 +52,14 @@ import { CategoriesModule } from './resources/categories/categories.module';
 import { CareTagsModule } from './resources/care-tags/care-tags.module';
 import { PaymentProvidersModule } from './resources/payment-providers/payment-providers.module';
 import { PaymentIntentsModule } from './resources/payment-intents/payment-intents.module';
+import { ArtisanOriginModule } from './resources/artisan-origin/artisan-origin.module';
+import { ArtisanIdentityModule } from './resources/artisan-identity/artisan-identity.module';
+import { ArtisanMaterialsModule } from './resources/artisan-materials/artisan-materials.module';
+import { ArtisanMediaFamilyModule } from './resources/artisan-media-family/artisan-media-family.module';
+import { ArtisanMediaWorkingModule } from './resources/artisan-media-working/artisan-media-working.module';
+import { ArtisanMediaWorkshopModule } from './resources/artisan-media-workshop/artisan-media-workshop.module';
+import { ArtisanMediaCommunityModule } from './resources/artisan-media-community/artisan-media-community.module';
+import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisan-territorial.module';
 
 @Module({
   imports: [
@@ -111,6 +119,14 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
     CareTagsModule,
     PaymentProvidersModule,
     PaymentIntentsModule,
+    ArtisanOriginModule,
+    ArtisanIdentityModule,
+    ArtisanMaterialsModule,
+    ArtisanMediaFamilyModule,
+    ArtisanMediaWorkingModule,
+    ArtisanMediaWorkshopModule,
+    ArtisanMediaCommunityModule,
+    ArtisanTerritorialModule,
   ],
   controllers: [],
   providers: [],

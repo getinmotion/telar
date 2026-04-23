@@ -464,20 +464,6 @@ Responde SOLO con un array JSON de objetos con esta estructura:
       const unifiedProfile = {
         businessName: brandName,
         businessDescription: businessInfo,
-        businessType: profile?.businessType ?? undefined,
-        marketTarget: profile?.targetMarket ?? undefined,
-        currentStage: profile?.currentStage ?? undefined,
-        location: profile?.businessLocation ?? undefined,
-        teamSize: profile?.teamSize ?? undefined,
-        timeAvailability: profile?.timeAvailability ?? undefined,
-        salesChannels: profile?.salesChannels || [],
-        monthlyRevenueGoal: profile?.monthlyRevenueGoal ?? undefined,
-        yearsInBusiness: profile?.yearsInBusiness ?? undefined,
-        initialInvestment: profile?.initialInvestmentRange ?? undefined,
-        primarySkills: profile?.primarySkills || [],
-        currentChallenges: profile?.currentChallenges || [],
-        businessGoals: profile?.businessGoals || [],
-        socialMediaPresence: profile?.socialMediaPresence ?? undefined,
         maturityScores: maturityData
           ? {
               ideaValidation: maturityData.ideaValidation,
@@ -615,20 +601,6 @@ Responde SOLO con un array JSON de objetos con esta estructura:
   private buildTaskGenerationPrompt(unifiedProfile: {
     businessName: string;
     businessDescription: string;
-    businessType?: string;
-    marketTarget?: string;
-    currentStage?: string;
-    location?: string;
-    teamSize?: string;
-    timeAvailability?: string;
-    salesChannels: string[];
-    monthlyRevenueGoal?: number;
-    yearsInBusiness?: number;
-    initialInvestment?: string;
-    primarySkills: string[];
-    currentChallenges: string[];
-    businessGoals: string[];
-    socialMediaPresence?: Record<string, unknown>;
     maturityScores: {
       ideaValidation: number;
       userExperience: number;
@@ -637,27 +609,11 @@ Responde SOLO con un array JSON de objetos con esta estructura:
     } | null;
   }): string {
     return `
-Eres un Master Coordinator AI experto en emprendimiento. Analiza el PERFIL COMPLETO Y FUSIONADO del usuario y genera tareas ULTRA-PERSONALIZADAS y ESPECÍFICAS para su negocio.
+Eres un Master Coordinator AI experto en emprendimiento. Analiza el PERFIL del usuario y genera tareas ULTRA-PERSONALIZADAS y ESPECÍFICAS para su negocio.
 
-PERFIL EMPRESARIAL COMPLETO:
+PERFIL EMPRESARIAL:
 Negocio: "${unifiedProfile.businessName}"
 Descripción: "${unifiedProfile.businessDescription}"
-Tipo: ${unifiedProfile.businessType || 'No definido'}
-Mercado objetivo: ${unifiedProfile.marketTarget || 'No definido'}
-Etapa actual: ${unifiedProfile.currentStage || 'No definido'}
-Ubicación: ${unifiedProfile.location || 'No definido'}
-Canales de venta: ${JSON.stringify(unifiedProfile.salesChannels)}
-Tamaño del equipo: ${unifiedProfile.teamSize || 'No definido'}
-Tiempo disponible: ${unifiedProfile.timeAvailability || 'No definido'}
-Meta de ingresos: $${unifiedProfile.monthlyRevenueGoal || 'No definido'} mensuales
-Años en el negocio: ${unifiedProfile.yearsInBusiness || 'Nuevo'}
-Inversión inicial: ${unifiedProfile.initialInvestment || 'No definido'}
-
-HABILIDADES Y CONTEXTO:
-Habilidades principales: ${JSON.stringify(unifiedProfile.primarySkills)}
-Desafíos actuales: ${JSON.stringify(unifiedProfile.currentChallenges)}
-Objetivos del negocio: ${JSON.stringify(unifiedProfile.businessGoals)}
-Presencia en redes: ${JSON.stringify(unifiedProfile.socialMediaPresence)}
 
 PUNTUACIONES DE MADUREZ (PRIORIZAR ÁREAS MÁS BAJAS):
 ${
@@ -846,13 +802,6 @@ Responde en JSON con este formato:
     const profileContext = {
       businessName: profile?.brandName || 'Negocio sin nombre',
       businessDescription: profile?.businessDescription || 'Sin descripción',
-      businessType: profile?.businessType,
-      salesChannels: profile?.salesChannels || [],
-      teamSize: profile?.teamSize,
-      timeAvailability: profile?.timeAvailability,
-      monthlyRevenueGoal: profile?.monthlyRevenueGoal,
-      currentChallenges: profile?.currentChallenges || [],
-      businessGoals: profile?.businessGoals || [],
       maturityScores: maturityData,
     };
 

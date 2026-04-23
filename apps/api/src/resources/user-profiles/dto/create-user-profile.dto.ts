@@ -4,14 +4,17 @@ import {
   IsUUID,
   IsInt,
   IsBoolean,
-  IsArray,
   IsEnum,
-  IsObject,
   MaxLength,
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserType, AccountType } from '../entities/user-profile.entity';
+import {
+  UserType,
+  AccountType,
+  IdType,
+  Gender,
+} from '../entities/user-profile.entity';
 
 export class CreateUserProfileDto {
   @ApiProperty({
@@ -54,138 +57,6 @@ export class CreateUserProfileDto {
   brandName?: string;
 
   @ApiPropertyOptional({
-    description: 'Tipo de negocio',
-    example: 'Artesanía',
-  })
-  @IsOptional()
-  @IsString({ message: 'El tipo de negocio debe ser una cadena de texto' })
-  businessType?: string;
-
-  @ApiPropertyOptional({
-    description: 'Mercado objetivo',
-    example: 'Turistas y coleccionistas',
-  })
-  @IsOptional()
-  @IsString({ message: 'El mercado objetivo debe ser una cadena de texto' })
-  targetMarket?: string;
-
-  @ApiPropertyOptional({
-    description: 'Etapa actual',
-    example: 'Crecimiento',
-  })
-  @IsOptional()
-  @IsString({ message: 'La etapa actual debe ser una cadena de texto' })
-  currentStage?: string;
-
-  @ApiPropertyOptional({
-    description: 'Objetivos del negocio',
-    example: ['Expandir mercado', 'Aumentar ventas'],
-    type: [String],
-  })
-  @IsOptional()
-  @IsArray({ message: 'Los objetivos deben ser un array' })
-  @IsString({
-    each: true,
-    message: 'Cada objetivo debe ser una cadena de texto',
-  })
-  businessGoals?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Meta de ingresos mensuales',
-    example: 5000000,
-  })
-  @IsOptional()
-  @IsInt({ message: 'La meta de ingresos debe ser un número entero' })
-  monthlyRevenueGoal?: number;
-
-  @ApiPropertyOptional({
-    description: 'Disponibilidad de tiempo',
-    example: 'Tiempo completo',
-  })
-  @IsOptional()
-  @IsString({ message: 'La disponibilidad debe ser una cadena de texto' })
-  timeAvailability?: string;
-
-  @ApiPropertyOptional({
-    description: 'Tamaño del equipo',
-    example: '1-5 personas',
-  })
-  @IsOptional()
-  @IsString({ message: 'El tamaño del equipo debe ser una cadena de texto' })
-  teamSize?: string;
-
-  @ApiPropertyOptional({
-    description: 'Desafíos actuales',
-    example: ['Falta de capital', 'Marketing digital'],
-    type: [String],
-  })
-  @IsOptional()
-  @IsArray({ message: 'Los desafíos deben ser un array' })
-  @IsString({
-    each: true,
-    message: 'Cada desafío debe ser una cadena de texto',
-  })
-  currentChallenges?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Canales de venta',
-    example: ['Tienda física', 'Instagram', 'WhatsApp'],
-    type: [String],
-  })
-  @IsOptional()
-  @IsArray({ message: 'Los canales de venta deben ser un array' })
-  @IsString({
-    each: true,
-    message: 'Cada canal de venta debe ser una cadena de texto',
-  })
-  salesChannels?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Presencia en redes sociales (JSON)',
-    example: { instagram: '@mitienda', facebook: 'MiTienda' },
-  })
-  @IsOptional()
-  @IsObject({ message: 'La presencia en redes sociales debe ser un objeto' })
-  socialMediaPresence?: Record<string, any>;
-
-  @ApiPropertyOptional({
-    description: 'Ubicación del negocio',
-    example: 'Bogotá, Colombia',
-  })
-  @IsOptional()
-  @IsString({ message: 'La ubicación debe ser una cadena de texto' })
-  businessLocation?: string;
-
-  @ApiPropertyOptional({
-    description: 'Años en el negocio',
-    example: 5,
-  })
-  @IsOptional()
-  @IsInt({ message: 'Los años en el negocio deben ser un número entero' })
-  yearsInBusiness?: number;
-
-  @ApiPropertyOptional({
-    description: 'Rango de inversión inicial',
-    example: '$1M - $5M',
-  })
-  @IsOptional()
-  @IsString({ message: 'El rango de inversión debe ser una cadena de texto' })
-  initialInvestmentRange?: string;
-
-  @ApiPropertyOptional({
-    description: 'Habilidades principales',
-    example: ['Tejido', 'Diseño', 'Marketing'],
-    type: [String],
-  })
-  @IsOptional()
-  @IsArray({ message: 'Las habilidades deben ser un array' })
-  @IsString({
-    each: true,
-    message: 'Cada habilidad debe ser una cadena de texto',
-  })
-  primarySkills?: string[];
-
-  @ApiPropertyOptional({
     description: 'Preferencia de idioma',
     example: 'es',
     default: 'es',
@@ -223,6 +94,32 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString({ message: 'El apellido debe ser una cadena de texto' })
   lastName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Tipo de identificación',
+    enum: IdType,
+    example: IdType.CC,
+  })
+  @IsOptional()
+  @IsEnum(IdType, { message: 'El tipo de identificación no es válido' })
+  idType?: IdType;
+
+  @ApiPropertyOptional({
+    description: 'Número de identificación',
+    example: '1234567890',
+  })
+  @IsOptional()
+  @IsString({ message: 'El número de identificación debe ser una cadena de texto' })
+  idNumber?: string;
+
+  @ApiPropertyOptional({
+    description: 'Género',
+    enum: Gender,
+    example: Gender.M,
+  })
+  @IsOptional()
+  @IsEnum(Gender, { message: 'El género no es válido' })
+  gender?: Gender;
 
   @ApiPropertyOptional({
     description: 'Número de WhatsApp en formato E.164',
@@ -292,4 +189,28 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsInt({ message: 'El código DANE debe ser un número entero' })
   daneCity?: number;
+
+  @ApiPropertyOptional({
+    description: 'ID del país',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsUUID('4', { message: 'El countryId debe ser un UUID válido' })
+  countryId?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID del acuerdo',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsUUID('4', { message: 'El agreementId debe ser un UUID válido' })
+  agreementId?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID del origen artesanal',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsUUID('4', { message: 'El artisanOriginId debe ser un UUID válido' })
+  artisanOriginId?: string;
 }
