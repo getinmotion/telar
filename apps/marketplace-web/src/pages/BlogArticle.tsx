@@ -5,6 +5,7 @@
  */
 
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
 import { useCMSBlogArticle } from "@/hooks/useCMSBlogArticle";
@@ -14,10 +15,44 @@ import { getStoryblokImageUrl } from "@/types/storyblok";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  ALCIDES_STORY_SLUG,
+  ARTESOL_SHOP_SLUG,
+} from "@/datafallback/fallbackStories";
+import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
+import {
+  getProductsByStore,
+  getPrimaryImageUrl,
+  getProductPrice,
+  type ProductNewCore,
+} from "@/services/products-new.actions";
+import { formatCurrency } from "@/lib/currencyUtils";
 
 const BlogArticle = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading, error } = useCMSBlogArticle(slug || "");
+  const { fetchShopBySlug } = useArtisanShops();
+  const [artesolProducts, setArtesolProducts] = useState<ProductNewCore[]>([]);
+
+  const isAlcides = slug === ALCIDES_STORY_SLUG;
+
+  useEffect(() => {
+    if (!isAlcides) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const shop = await fetchShopBySlug(ARTESOL_SHOP_SLUG);
+        if (!shop || cancelled) return;
+        const prods = await getProductsByStore(shop.id);
+        if (!cancelled) setArtesolProducts(prods);
+      } catch {
+        // silent
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAlcides, fetchShopBySlug]);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -62,23 +97,29 @@ const BlogArticle = () => {
             El articulo que buscas no existe o ha sido eliminado.
           </p>
           <Link
-            to="/blog"
+            to="/historias"
             className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
           >
             <ArrowLeft className="w-3 h-3" />
             Volver a Historias
           </Link>
         </div>
-        <Footer />
+        <Footer showNewsletter />
       </div>
     );
   }
 
-  const coverImageUrl = getStoryblokImageUrl(article.cover, {
-    width: 1200,
-    height: 630,
-    quality: 85,
-  });
+  const artesolCoverUrl =
+    isAlcides && artesolProducts.length > 0
+      ? getPrimaryImageUrl(artesolProducts[0])
+      : null;
+  const coverImageUrl =
+    artesolCoverUrl ||
+    getStoryblokImageUrl(article.cover, {
+      width: 1200,
+      height: 630,
+      quality: 85,
+    });
   const publishDate = article.first_published_at || article.published_at;
 
   return (
@@ -173,6 +214,66 @@ const BlogArticle = () => {
           </section>
         )}
 
+        {/* Artesol — Piezas del Taller */}
+        {isAlcides && artesolProducts.length > 0 && (
+          <section className="max-w-[1400px] mx-auto px-6 pb-32">
+            <div className="mb-12 text-center">
+              <span className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
+                Taller Artesol
+              </span>
+              <h3 className="mt-4 font-serif text-4xl md:text-5xl italic leading-tight">
+                Piezas del Taller
+              </h3>
+              <p className="mt-4 text-[#2c2c2c]/60 italic font-serif max-w-2xl mx-auto">
+                Cada pieza nace de la palma de seje recolectada en los montes de
+                El Cedro y tejida por las manos del equipo de Alcides.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+              {artesolProducts.slice(0, 8).map((product) => {
+                const img = getPrimaryImageUrl(product);
+                const price = getProductPrice(product);
+                return (
+                  <Link
+                    key={product.id}
+                    to={`/product/${product.id}`}
+                    className="group space-y-4"
+                  >
+                    <div className="aspect-square overflow-hidden bg-[#e5e1d8]">
+                      {img && (
+                        <img
+                          src={img}
+                          alt={product.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#ec6d13] transition-colors line-clamp-2">
+                        {product.name}
+                      </h4>
+                      {price != null && (
+                        <p className="text-sm font-bold text-[#2c2c2c]">
+                          {formatCurrency(price)}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="mt-16 text-center">
+              <Link
+                to={`/tienda/${ARTESOL_SHOP_SLUG}`}
+                className="inline-block px-12 py-4 border border-[#2c2c2c]/20 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#2c2c2c] hover:text-white transition-all"
+              >
+                Visitar el Taller Artesol
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* Author Section */}
         {article.author_name && (
           <section className="py-24 bg-[#2c2c2c] text-[#f9f7f2] px-6">
@@ -220,7 +321,7 @@ const BlogArticle = () => {
                   </span>
                 </div>
               </Link>
-              <Link to="/blog" className="group text-center space-y-6">
+              <Link to="/historias" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
                   ●
                 </div>
@@ -244,7 +345,7 @@ const BlogArticle = () => {
               "Cada puntada es un susurro de nuestros ancestros."
             </blockquote>
             <Link
-              to="/blog"
+              to="/historias"
               className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#ec6d13] transition-all duration-500 shadow-lg"
             >
               Descubrir mas relatos del territorio
@@ -258,7 +359,7 @@ const BlogArticle = () => {
         </section>
 
         <div className="pb-24" />
-        <Footer />
+        <Footer showNewsletter />
       </div>
     </>
   );

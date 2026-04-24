@@ -65,3 +65,27 @@ export interface QuoteShippingResponse {
   totalShipping: number;
   error?: string;
 }
+
+export interface StandaloneQuoteResponse {
+  success: boolean;
+  shippingCost: number;
+  estimatedDays: number;
+  error?: string;
+  rawResponse?: ServientregaQuoteResponse;
+}
+
+export interface ShopPhysicalSpecsRow {
+  shop_id: string;
+  shop_name: string;
+  department: string;
+  municipality: string;
+  region: string;
+  servientrega_coverage: boolean;
+  product_id: string | null;
+  product_name: string | null;
+  height_cm: number | null;
+  width_cm: number | null;
+  length_or_diameter_cm: number | null;
+  real_weight_kg: number | null;
+  base_price_minor: string | null;
+}

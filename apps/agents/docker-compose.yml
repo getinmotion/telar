@@ -13,11 +13,9 @@ services:
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
       - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-1536}
       
-      # Supabase Configuration
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
-      
+      # Agents Database (Lightsail PostgreSQL — agents schema)
+      - AGENTS_DB_URL=${AGENTS_DB_URL}
+
       # API Security
       - API_SECRET_KEY=${API_SECRET_KEY}
       

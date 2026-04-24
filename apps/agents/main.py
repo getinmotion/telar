@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # Add backend to path
 backend_path = str(Path(__file__).parent.parent)
@@ -21,9 +22,12 @@ if backend_path not in sys.path:
 # Import after path setup
 from agents.api import router as agents_router
 from agents.search_api import router as search_router
+from agents.joyitas_search_api import router as joyitas_search_router
+from agents.whatsapp_api import router as whatsapp_router
 from agents.tracing import init_langsmith
 from src.api.config import settings
 from src.database.pg_client import get_pool, close_pool
+from src.database.joyitas_pg_client import get_joyitas_pool, close_joyitas_pool
 
 # Configure logging
 logging.basicConfig(
@@ -41,8 +45,8 @@ async def lifespan(app: FastAPI):
     logger.info(f"📊 Version: 1.0.0")
     logger.info(f"🤖 OpenAI Model: {settings.openai_model}")
     logger.info(f"📦 Embedding Model: {settings.embedding_model}")
-    logger.info(f"🗄️  Supabase URL: {settings.supabase_url}")
-    logger.info(f"🔧 Available Agents: 6 (Onboarding, Legal, Product, Pricing, Digital Presence, FAQ)")
+    logger.info(f"🗄️  Agents DB: {'configured' if settings.agents_db_url else 'NOT configured'}")
+    logger.info(f"🔧 Available Agents: 8 (Onboarding, Legal, Product, Pricing, Digital Presence, FAQ, Servicio Cliente, Fotografia)")
     
     # Initialize LangSmith tracing
     init_langsmith()
@@ -51,12 +55,29 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("📈 LangSmith Tracing: Disabled")
     
+    # Log WhatsApp bot status
+    if settings.whatsapp_access_token and settings.whatsapp_phone_number_id:
+        logger.info("WhatsApp bot: configured (phone_number_id=%s...)", settings.whatsapp_phone_number_id[:10])
+    else:
+        logger.warning("WhatsApp bot: NOT configured (WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID missing)")
+
     # Check Tavily API for pricing agent
     if settings.tavily_api_key:
         logger.info("🌐 Tavily Web Search: Enabled (Pricing Agent)")
     else:
         logger.warning("⚠️  Tavily Web Search: Disabled (Pricing Agent will have limited capabilities)")
     
+    # Warm up agents DB connection pool
+    if settings.agents_db_url:
+        try:
+            from src.database.supabase_client import db as agents_db
+            await agents_db._get_pool()
+            logger.info("Agents DB pool ready")
+        except Exception as exc:
+            logger.warning(f"Agents DB pool could not be created at startup: {exc}")
+    else:
+        logger.warning("AGENTS_DB_URL not set - memory and profile persistence will be unavailable")
+
     # Warm up catalog DB connection pool
     if settings.catalog_db_url:
         try:
@@ -67,12 +88,25 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("CATALOG_DB_URL not set - semantic search will be unavailable")
 
+    # Warm up joyitas DB connection pool (stage test DB — graceful on failure)
+    try:
+        await get_joyitas_pool()
+        logger.info("Joyitas DB pool ready")
+    except Exception as exc:
+        logger.warning(f"Joyitas DB pool could not be created at startup: {exc}")
+
     logger.info("Agents Service Ready")
 
     yield
 
     # Shutdown
     await close_pool()
+    await close_joyitas_pool()
+    try:
+        from src.database.supabase_client import db as agents_db
+        await agents_db.close()
+    except Exception:
+        pass
     logger.info("Shutting down GetInMotion Agents Service")
 
 
@@ -132,6 +166,13 @@ app.add_middleware(
 # Include routers
 app.include_router(agents_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
+app.include_router(joyitas_search_router, prefix="/api")
+app.include_router(whatsapp_router, prefix="/api")
+
+# Serve uploaded product photos as static files
+_uploads_dir = os.path.join(os.path.dirname(__file__), "uploads", "product-photos")
+os.makedirs(_uploads_dir, exist_ok=True)
+app.mount("/uploads/product-photos", StaticFiles(directory=_uploads_dir), name="product-photos")
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
@@ -190,7 +231,7 @@ async def health_check():
         "version": "1.0.0",
         "checks": {
             "openai": bool(settings.openai_api_key),
-            "supabase": bool(settings.supabase_url and settings.supabase_service_role_key),
+            "agents_db": bool(settings.agents_db_url),
             "langsmith": bool(settings.langsmith_api_key),
             "tavily": bool(settings.tavily_api_key)
         },

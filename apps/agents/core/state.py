@@ -73,7 +73,7 @@ class ArtisanProfile(BaseModel):
     key_insights: Dict[str, Any]
     interaction_count: int
     maturity_snapshot: Dict[str, Any]
-    embedding: list[float]
+    embedding: Optional[list[float]] = None
     last_interaction_at: Optional[datetime] = None
 
 
@@ -109,7 +109,7 @@ class KnowledgeDocument(BaseModel):
     
     filename: str
     file_type: str
-    file_size: int
+    file_size: int = 0
     content: str
     knowledge_category: str
     tags: Optional[list[str]] = None

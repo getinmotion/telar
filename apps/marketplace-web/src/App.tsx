@@ -42,15 +42,23 @@ import GoogleAuthCallback from "./pages/GoogleAuthCallback";
 import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
+import Explorar from "./pages/Explorar";
 import Newsletter from "./pages/Newsletter";
 import Territory from "./pages/Territory";
+import Territorios from "./pages/Territorios";
 import SobreTelar from "./pages/SobreTelar";
+import Tecnicas from "./pages/Tecnicas";
+import TecnicaDetail from "./pages/TecnicaDetail";
+import Colecciones from "./pages/Colecciones";
+import ColeccionDetail from "./pages/ColeccionDetail";
 import Ayuda from "./pages/Ayuda";
 import FAQs from "./pages/ayuda/FAQs";
 import ComoComprar from "./pages/ayuda/ComoComprar";
 import Envios from "./pages/ayuda/Envios";
 import Devoluciones from "./pages/ayuda/Devoluciones";
 import Contacto from "./pages/ayuda/Contacto";
+import Historias from "./pages/Historias";
+import HistoriaDetail from "./pages/HistoriaDetail";
 
 const queryClient = new QueryClient();
 
@@ -92,11 +100,18 @@ const App = () => (
                           <Route path="/blog" element={<Blog />} />
                           <Route path="/blog/:slug" element={<BlogArticle />} />
                           <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
-                          <Route path="/explorar" element={<ExploreProducts />} />
+                          <Route path="/explorar" element={<Explorar />} />
                           <Route path="/categoria/:slug" element={<CategoryDetail />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                           <Route path="/newsletter" element={<Newsletter />} />
+                          <Route path="/territorios" element={<Territorios />} />
                           <Route path="/territorio/:slug" element={<Territory />} />
+                          <Route path="/tecnicas" element={<Tecnicas />} />
+                          <Route path="/tecnica/:slug" element={<TecnicaDetail />} />
+                          <Route path="/colecciones" element={<Colecciones />} />
+                          <Route path="/coleccion/:slug" element={<ColeccionDetail />} />
+                          <Route path="/historias" element={<Historias />} />
+                          <Route path="/historia/:slug" element={<HistoriaDetail />} />
                           <Route path="/sobre-telar" element={<SobreTelar />} />
                           <Route path="/ayuda" element={<Ayuda />} />
                           <Route path="/ayuda/faqs" element={<FAQs />} />

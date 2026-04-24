@@ -10,9 +10,9 @@ const FALLBACK_STORIES = [
   {
     id: 1,
     title: "Tejidos Ancestrales de San Jacinto",
-    description: "Descubre la tradición centenaria del tejido de hamacas y mochilas que ha pasado de generación en generación.",
+    description: "La tierra de la hamaca grande: telar vertical heredado del Reino Finzenú, al ritmo de gaitas y cumbia.",
     image: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=800&h=1000&fit=crop",
-    link: "#"
+    link: "/territorio/san-jacinto"
   },
   {
     id: 2,

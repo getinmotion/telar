@@ -91,6 +91,7 @@ export interface ProductNewCore {
   history?: string;
   careNotes?: string;
   status: string; // 'draft' | 'published' | 'archived'
+  isFeatured?: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
@@ -233,14 +234,22 @@ export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
 
 // ── Helpers ───────────────────────────────────────────
 
+/**
+ * Rewrite CDN URLs to direct S3 for local dev where cdn.telar.co doesn't resolve.
+ * Preserves the full file key including double-extensions (those are the real S3 keys).
+ */
+function fixImageHost(url: string): string {
+  return url.startsWith('https://cdn.telar.co/')
+    ? url.replace('https://cdn.telar.co/', 'https://telar-prod-bucket.s3.us-east-1.amazonaws.com/')
+    : url;
+}
+
 /** Get primary image URL from a product's media array */
 export function getPrimaryImageUrl(product: ProductNewCore): string | null {
   const primary = product.media?.find(m => m.isPrimary);
-  if (primary) return primary.mediaUrl;
-  console.log(primary)
-  console.log(product.media)
+  if (primary) return fixImageHost(primary.mediaUrl);
   const first = product.media?.[0];
-  return first?.mediaUrl ?? null;
+  return first?.mediaUrl ? fixImageHost(first.mediaUrl) : null;
 }
 
 /** Get all image URLs sorted by display order */
@@ -248,7 +257,7 @@ export function getAllImageUrls(product: ProductNewCore): string[] {
   return (product.media ?? [])
     .filter(m => m.mediaType === 'image')
     .sort((a, b) => a.displayOrder - b.displayOrder)
-    .map(m => m.mediaUrl);
+    .map(m => fixImageHost(m.mediaUrl));
 }
 
 /** Get the price from variants (first variant or min price).

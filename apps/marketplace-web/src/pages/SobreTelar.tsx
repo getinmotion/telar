@@ -3,6 +3,11 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Sparkles, TrendingUp } from "lucide-react";
 
+// Imagen editorial subida a S3 — reemplaza con la URL del CDN cuando la subas
+// POST /file-upload/image con folder=hero
+const ARTESANA_TEJIENDO_URL =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/artisan_capture.png";
+
 export default function SobreTelar() {
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">
@@ -76,7 +81,7 @@ export default function SobreTelar() {
         </div>
       </section>
 
-      {/* 18.3 Comercio justo — Cómo funciona */}
+      {/* 18.3 Comercio justo — Honestidad en cada fibra */}
       <section className="max-w-[1400px] mx-auto px-6 mb-24">
         <div className="bg-white rounded-2xl p-8 md:p-12 border border-charcoal/5">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
@@ -86,44 +91,27 @@ export default function SobreTelar() {
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-8 text-charcoal tracking-tight">
-            Transparencia en
+            Honestidad en
             <br />
-            <span className="italic text-primary">cada transacción</span>
+            <span className="italic text-primary">cada fibra</span>
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-3">
-              <div className="text-3xl font-bold text-primary">85%</div>
-              <h3 className="text-lg font-semibold text-charcoal">
-                Va directo al artesano
-              </h3>
-              <p className="text-sm text-charcoal/70 font-sans leading-relaxed">
-                El artesano recibe la mayor parte del precio de venta. Solo
-                cobramos una comisión del 15% para mantener la plataforma.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-3xl font-bold text-primary">0</div>
-              <h3 className="text-lg font-semibold text-charcoal">
-                Intermediarios
-              </h3>
-              <p className="text-sm text-charcoal/70 font-sans leading-relaxed">
-                Conexión directa entre artesano y comprador. Sin cadenas de
-                distribución que inflan precios y reducen ganancias.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-3xl font-bold text-primary">100%</div>
-              <h3 className="text-lg font-semibold text-charcoal">
-                Precios justos
-              </h3>
-              <p className="text-sm text-charcoal/70 font-sans leading-relaxed">
-                Cada artesano define sus precios considerando materiales, tiempo
-                y valor de su conocimiento ancestral.
-              </p>
-            </div>
+          <div className="space-y-5 max-w-3xl">
+            <p className="text-base md:text-lg text-charcoal/70 font-sans leading-relaxed">
+              En Telar eliminamos las barreras entre el territorio y tú. Nuestra
+              plataforma habilita el comercio directo para que el beneficio
+              económico llegue íntegramente a los verdaderos protagonistas:
+              comunidades indígenas, afrodescendientes, campesinos y mujeres
+              cabeza de familia que lideran la economía popular desde la
+              Colombia profunda.
+            </p>
+            <p className="text-base md:text-lg text-charcoal/70 font-sans leading-relaxed">
+              Comprar aquí es una inversión social: es garantizar un pago justo,
+              respaldar el liderazgo de líderes sociales en sus comunidades y
+              asegurar que el saber ancestral sea una oportunidad real para las
+              nuevas generaciones. Sin intermediarios y con trazabilidad total,
+              conectamos tu compra con la fuerza y la cultura de cada territorio.
+            </p>
           </div>
         </div>
       </section>
@@ -131,10 +119,23 @@ export default function SobreTelar() {
       {/* 18.4 Inteligencia artesanal — Diferencia del sistema */}
       <section className="max-w-[1400px] mx-auto px-6 mb-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="relative h-[400px] rounded-lg overflow-hidden order-2 md:order-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/10" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="h-32 w-32 text-primary/30" />
+          <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden order-2 md:order-1">
+            <img
+              src={ARTESANA_TEJIENDO_URL}
+              alt="Artesana tejiendo con lanas de colores"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-orange-500/5 -z-10" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent p-6 md:p-8">
+              <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-sans text-white/70 font-bold mb-2">
+                Tecnología al servicio
+              </p>
+              <p className="font-serif italic text-2xl md:text-3xl text-white leading-tight">
+                de la tradición
+              </p>
             </div>
           </div>
 
@@ -226,7 +227,7 @@ export default function SobreTelar() {
       </section>
 
       {/* 18.7 Footer */}
-      <Footer />
+      <Footer showNewsletter />
     </div>
   );
 }

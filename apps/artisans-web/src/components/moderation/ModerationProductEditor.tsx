@@ -8,15 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModerationHistory } from "./ModerationHistory";
 import { ModerationStatusBadge } from "./ModerationStatusBadge";
 import { ModerationTaxonomyModal } from "./ModerationTaxonomyModal";
+import { ModerationImageViewer } from "./ModerationImageViewer";
 import {
-  Save,
   RotateCcw,
   CheckCircle,
   Edit,
   AlertCircle,
   XCircle,
   Package,
-  Store,
   History,
   Loader2,
   Truck,
@@ -44,6 +43,7 @@ interface ProductEdits {
   inventory: number;
   weight: number | null;
   dimensions: ProductDimensions | null;
+  images: string[];
   // Taxonomías
   craftId?: string;
   primaryTechniqueId?: string;
@@ -86,6 +86,7 @@ export const ModerationProductEditor: React.FC<
     inventory: 0,
     weight: null,
     dimensions: null,
+    images: [],
     // Taxonomías iniciales vacías
     craftId: undefined,
     primaryTechniqueId: undefined,
@@ -111,6 +112,7 @@ export const ModerationProductEditor: React.FC<
       inventory: product.inventory || 0,
       weight: product.weight ?? null,
       dimensions: product.dimensions ?? null,
+      images: Array.isArray(product.images) ? product.images : [],
       // Taxonomías (solo si es producto multicapa con artisanalIdentity)
       craftId: isLegacyProduct
         ? undefined
@@ -185,6 +187,7 @@ export const ModerationProductEditor: React.FC<
       inventory: product.inventory || 0,
       weight: product.weight ?? null,
       dimensions: product.dimensions ?? null,
+      images: Array.isArray(product.images) ? product.images : [],
       // Reset taxonomías (solo si es producto multicapa)
       craftId: isLegacyProduct
         ? undefined
@@ -306,10 +309,7 @@ export const ModerationProductEditor: React.FC<
           {/* Images */}
           {/* <Card>
             <CardContent className="pt-4">
-              <ModerationImageEditor
-                images={edits.images}
-                onChange={(imgs) => setEdits(prev => ({ ...prev, images: imgs }))}
-              />
+              <ModerationImageViewer images={edits.images} />
             </CardContent>
           </Card> */}
 

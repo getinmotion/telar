@@ -295,7 +295,7 @@ const Blog = () => {
         </section>
 
         <div className="pb-24" />
-        <Footer />
+        <Footer showNewsletter />
       </div>
     </>
   );
