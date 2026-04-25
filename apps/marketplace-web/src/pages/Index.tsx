@@ -16,6 +16,8 @@ import {
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { NavbarV2 } from "@/components/NavbarV2";
+import { HeroSectionV2 } from "@/components/HeroSectionV2";
 
 // ── Seeded random for consistent daily shuffle ──
 const seededRandom = (seed: number) => {
@@ -143,7 +145,8 @@ const Index = () => {
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
         {/* ═══════════════ HERO (dinámico desde Storyblok) ═══════════════ */}
-        <HeroCarousel />
+        {/* <HeroCarousel /> */}
+        <HeroSectionV2/>
 
         {/* ═══════════════ VALUE PROPS ═══════════════ */}
         <section className="py-12 bg-[#fdfaf6]/50 border-b border-[#2c2c2c]/5">
@@ -609,7 +612,11 @@ const Index = () => {
               Aliados
             </h2>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-48 h-12 bg-[#e5e1d8] opacity-50" />
+              <img
+                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
+                alt="Artesanías de Colombia"
+                className="w-48 h-auto object-contain"
+              />
               <h3 className="text-2xl font-serif">
                 Con el apoyo de Artesanías de Colombia
               </h3>
