@@ -609,7 +609,11 @@ const Index = () => {
               Aliados
             </h2>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-48 h-12 bg-[#e5e1d8] opacity-50" />
+              <img
+                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
+                alt="Artesanías de Colombia"
+                className="w-48 h-auto object-contain"
+              />
               <h3 className="text-2xl font-serif">
                 Con el apoyo de Artesanías de Colombia
               </h3>

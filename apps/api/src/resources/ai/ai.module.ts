@@ -13,6 +13,7 @@ import { GenerateShopHeroSlideService } from './services/generate-shop-hero-slid
 import { GenerateHeroImageService } from './services/generate-hero-image.service';
 import { AnalyzeImageService } from './services/analyze-image.service';
 import { RefineContentService } from './services/refine-content.service';
+import { CreateIntelligentShopService } from './services/create-intelligent-shop.service';
 import { AuthModule } from '../auth/auth.module';
 import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 import { UserMasterContextModule } from '../user-master-context/user-master-context.module';
@@ -48,6 +49,7 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     GenerateHeroImageService,
     AnalyzeImageService,
     RefineContentService,
+    CreateIntelligentShopService,
   ],
   exports: [
     AiService,
@@ -61,6 +63,7 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     GenerateHeroImageService,
     AnalyzeImageService,
     RefineContentService,
+    CreateIntelligentShopService,
   ],
 })
 export class AiModule {}
