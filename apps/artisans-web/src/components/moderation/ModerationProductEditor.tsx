@@ -307,11 +307,11 @@ export const ModerationProductEditor: React.FC<
         {/* Product Tab */}
         <TabsContent value="product" className="space-y-4 mt-4">
           {/* Images */}
-          {/* <Card>
+          <Card>
             <CardContent className="pt-4">
               <ModerationImageViewer images={edits.images} />
             </CardContent>
-          </Card> */}
+          </Card>
 
           {/* Basic Info */}
           <Card>

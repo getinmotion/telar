@@ -64,6 +64,7 @@ services:
       AWS_S3_ACL: ${AWS_S3_ACL}
       MAX_FILE_SIZE: ${MAX_FILE_SIZE}
       CMS_KEY: ${CMS_KEY}
+      AGENT_URL: ${AGENT_URL}
     ports:
       - "127.0.0.1:${API_PORT}:${API_PORT}"
     networks:
