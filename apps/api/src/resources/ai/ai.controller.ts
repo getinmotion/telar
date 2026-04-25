@@ -34,6 +34,11 @@ import { GenerateShopHeroSlideDto } from './dto/generate-shop-hero-slide.dto';
 import { GenerateHeroImageDto } from './dto/generate-hero-image.dto';
 import { AnalyzeImageDto } from './dto/analyze-image.dto';
 import { RefineContentDto } from './dto/refine-content.dto';
+import { PreConfigurateShopDto } from './dto/preconfigurate-shop.dto';
+import { AnalyzeProfileDto } from './dto/analyze-profile.dto';
+import { ProcessConversationDto } from './dto/process-conversation.dto';
+import { GenerateShopProductSuggestionsDto } from './dto/generate-shop-product-suggestions.dto';
+import { CreateIntelligentShopService } from './services/create-intelligent-shop.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('ai')
@@ -50,6 +55,7 @@ export class AiController {
     private readonly generateHeroImageService: GenerateHeroImageService,
     private readonly analyzeImageService: AnalyzeImageService,
     private readonly refineContentService: RefineContentService,
+    private readonly createIntelligentShopService: CreateIntelligentShopService,
   ) {}
 
   /**
@@ -555,5 +561,190 @@ export class AiController {
   })
   async refineContent(@Body() dto: RefineContentDto) {
     return await this.refineContentService.refineContent(dto);
+  }
+
+  /**
+   * POST /ai/intelligent-shop/preconfigurate
+   * Precarga datos de tienda con IA basados en el perfil del usuario
+   */
+  @Post('intelligent-shop/preconfigurate')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Preconfigurar tienda inteligente',
+    description:
+      'Analiza el perfil del usuario y genera sugerencias iniciales de tienda con IA',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Datos de tienda precargados exitosamente',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          shopData: {
+            shop_name: 'Artesanías Doña María',
+            description: 'Tejidos tradicionales de alta calidad',
+            story: 'Historia del artesano generada por IA...',
+            craft_type: 'textiles',
+            region: 'Boyacá',
+          },
+          coordinatorMessage:
+            '¡Bienvenido! He analizado tu perfil y preparado sugerencias para tu tienda.',
+          userContext: {
+            hasExistingData: true,
+            detectedCraft: 'textiles',
+            maturityLevel: 75,
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async preconfigurateShop(@Body() dto: PreConfigurateShopDto) {
+    const result = await this.createIntelligentShopService.preconfigurate(dto);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  /**
+   * POST /ai/intelligent-shop/analyze-profile
+   * Analiza si el perfil tiene suficiente información o necesita conversación
+   */
+  @Post('intelligent-shop/analyze-profile')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Analizar perfil para tienda inteligente',
+    description:
+      'Determina si el usuario tiene suficiente información o necesita una conversación guiada',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Análisis de perfil completado',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          needsMoreInfo: true,
+          coordinatorMessage:
+            'Hola! Vamos a crear tu tienda juntos. Primero, cuéntame sobre tu negocio.',
+          nextQuestion: 'business_name',
+          missingInfo: ['business_name', 'business_products'],
+          shopData: {},
+          userContext: {
+            hasExistingData: false,
+            detectedCraft: 'other',
+            maturityLevel: 0,
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async analyzeProfile(@Body() dto: AnalyzeProfileDto) {
+    const result = await this.createIntelligentShopService.analyzeProfile(dto);
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  /**
+   * POST /ai/intelligent-shop/process-conversation
+   * Procesa cada paso del diálogo conversacional
+   */
+  @Post('intelligent-shop/process-conversation')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Procesar conversación de tienda inteligente',
+    description:
+      'Procesa la respuesta del usuario y genera la siguiente pregunta o marca como lista para crear',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Conversación procesada exitosamente',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          message: '¡Perfecto! "Artesanías Doña María" suena auténtico.',
+          nextQuestion: 'business_products',
+          updatedShopData: {
+            shop_name: 'Artesanías Doña María',
+          },
+          readyToCreate: false,
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async processConversation(@Body() dto: ProcessConversationDto) {
+    const result = await this.createIntelligentShopService.processConversation(
+      dto,
+    );
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  /**
+   * POST /ai/intelligent-shop/generate-product-suggestions
+   * Genera 5 productos sugeridos para la tienda
+   */
+  @Post('intelligent-shop/generate-product-suggestions')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Generar sugerencias de productos',
+    description:
+      'Genera 5 productos específicos con descripciones SEO y precios sugeridos',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Sugerencias de productos generadas',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          productSuggestions: {
+            products: [
+              {
+                name: 'Collar de Chaquira Wayúu',
+                description:
+                  'Hermoso collar artesanal elaborado con chaquira tradicional...',
+                suggested_price: 65000,
+                category: 'Joyería',
+                tags: ['collar', 'chaquira', 'wayúu', 'artesanal'],
+              },
+            ],
+          },
+          shopContext: {
+            craftType: 'jewelry',
+            region: 'La Guajira',
+            description: 'Joyería artesanal wayúu',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async generateShopProductSuggestions(
+    @Body() dto: GenerateShopProductSuggestionsDto,
+  ) {
+    const result =
+      await this.createIntelligentShopService.generateProductSuggestions(dto);
+    return {
+      success: true,
+      data: result,
+    };
   }
 }
