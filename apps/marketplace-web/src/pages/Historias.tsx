@@ -68,7 +68,8 @@ const Historias = () => {
   }, []);
 
   const articles =
-    data?.articles?.map((a) => ({
+    data?.articles?.map((a) => (
+      {
       id: a._uid,
       title: a.title,
       slug: a.slug,
@@ -164,7 +165,7 @@ const Historias = () => {
             {/* ═══════════════ FEATURED STORIES GRID ═══════════════ */}
             <section
               id="featured"
-              className="max-w-[1400px] mx-auto px-6 pb-24 md:pb-32"
+              className="max-w-[1400px] mx-auto px-6 pb-10 md:pb-10"
             >
               <div className="grid grid-cols-12 gap-6 md:gap-8 items-start">
                 {/* Large featured story */}
@@ -247,7 +248,7 @@ const Historias = () => {
             </section>
 
             {/* ═══════════════ EXPLORAR POR RELATO ═══════════════ */}
-            <section className="max-w-[1400px] mx-auto px-6 py-20 md:py-24 border-y border-[#2c2c2c]/5">
+            <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#2c2c2c]/5">
               <div className="mb-16">
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
                   Navegar el archivo

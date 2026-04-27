@@ -34,6 +34,7 @@ export function useCMSBlogArticles(page: number = 1, perPage: number = 10) {
         // Merge fallback stories as the featured entries (but avoid dupes).
         const existingSlugs = new Set(data.articles.map((a) => a.slug));
         const extras = FALLBACK_STORIES.filter((a) => !existingSlugs.has(a.slug));
+        
         return {
           ...data,
           articles: [...extras, ...data.articles],
