@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './resources/auth/auth.module';
 import { UsersModule } from './resources/users/users.module';
 import { MailModule } from './resources/mail/mail.module';
@@ -40,6 +41,7 @@ import { InventoryMovementsModule } from './resources/inventory-movements/invent
 import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
+import { CmsSectionsModule } from './resources/cms-sections/cms-sections.module';
 import { PaymentsModule } from './resources/payments/payments.module';
 import { StoresModule } from './resources/stores/stores.module';
 import { ProductsNewModule } from './resources/products-new/products-new.module';
@@ -58,6 +60,15 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri:
+          config.get<string>('MONGO_URI') ||
+          'mongodb://localhost:27017/telar_cms',
+      }),
     }),
     S3Module,
     AuthModule,
@@ -99,6 +110,7 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
     InventoryMovementsModule,
     FileUploadModule,
     CmsModule,
+    CmsSectionsModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,
