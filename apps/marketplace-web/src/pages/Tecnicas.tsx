@@ -18,7 +18,7 @@ import {
 import { useCmsSections } from "@/hooks/useCmsSections";
 import { useTechniquesWithProductCount } from "@/hooks/useTechniquesWithProductCount";
 import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
-import { techniqueToSlug } from "@/lib/techniqueSlug";
+// import { techniqueToSlug } from "@/lib/techniqueSlug";
 import type { CmsSection } from "@/services/cms-sections.actions";
 
 /* ── Editorial metadata per technique (fallback for names not here) ── */
@@ -657,7 +657,7 @@ export default function Tecnicas() {
                 return (
                   <Link
                     key={t.id}
-                    to={`/tecnica/${techniqueToSlug(t.name)}`}
+                    to={`/tecnica`}
                     className="group block"
                   >
                     <div
