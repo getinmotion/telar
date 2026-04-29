@@ -71,7 +71,7 @@ export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
 
   // Validar número de palabras en descripción corta
   const wordCount = shortDescription.trim().split(/\s+/).filter(Boolean).length;
-  const isShortDescriptionValid = wordCount <= 20;
+  const isShortDescriptionValid = wordCount <= 100;
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -129,7 +129,7 @@ export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
     }
 
     if (!isShortDescriptionValid) {
-      toast.error("La descripción corta debe tener máximo 20 palabras");
+      toast.error("La descripción corta debe tener máximo 100 palabras");
       return;
     }
 
@@ -178,20 +178,20 @@ export const Step1ImageUpload: React.FC<Step1ImageUploadProps> = ({
                   : "text-red-500"
               }`}
             >
-              ({wordCount}/20 palabras)
+              ({wordCount}/100 palabras)
             </span>
           </Label>
           <Textarea
             id="shortDescription"
             value={shortDescription}
             onChange={(e) => onShortDescriptionChange(e.target.value)}
-            placeholder="Describe brevemente tu producto (máximo 20 palabras)"
+            placeholder="Describe tu producto en detalle (máximo 100 palabras)"
             className="text-left resize-none"
             rows={3}
           />
           {!isShortDescriptionValid && shortDescription.trim() && (
             <p className="text-xs text-red-500 text-left">
-              La descripción debe tener máximo 20 palabras
+              La descripción debe tener máximo 100 palabras
             </p>
           )}
         </div>
