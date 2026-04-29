@@ -91,8 +91,7 @@ import { AdminDesignSystemFAB } from './components/admin/design-system/AdminDesi
 import ModerationPage from './pages/ModerationPage';
 import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 import { ProductReviewPage } from './pages/ProductReviewPage';
-import ShippingDashboardPage from './pages/ShippingDashboardPage';
-import CmsAdminPage from './pages/CmsAdminPage'; 
+import ShippingDashboardPage from './pages/ShippingDashboardPage'; 
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -478,14 +477,6 @@ function App() {
                               element={
                                 <ModeratorProtectedRoute>
                                   <ShippingDashboardPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/cms"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <CmsAdminPage />
                                 </ModeratorProtectedRoute>
                               }
                             />

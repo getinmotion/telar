@@ -10,7 +10,6 @@ import {
   ValidateNested,
   IsObject,
   Min,
-  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -321,9 +320,6 @@ export class CreateProductsNewDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(1000, {
-    message: 'shortDescription excede el largo permitido (~100 palabras).',
-  })
   shortDescription!: string;
 
   @IsOptional()

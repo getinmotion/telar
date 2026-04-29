@@ -92,10 +92,6 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
       toast.error("Ingresa un precio válido");
       return;
     }
-    if (!inventory || inventory <= 0) {
-      toast.error("Ingresa una cantidad disponible válida");
-      return;
-    }
     onNext();
   };
 
@@ -190,24 +186,12 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
           <Label htmlFor="inventory">Cantidad disponible</Label>
           <Input
             id="inventory"
-            type="text"
-            value={inventory?.toString() ?? ""}
-            onChange={(e) => {
-              const value = e.target.value;
-
-              // Permitir campo vacío
-              if (value === "") {
-                onDataChange({ inventory: undefined });
-                return;
-              }
-
-              // Convertir a número si es válido
-              const numValue = parseInt(value, 10);
-              if (!isNaN(numValue) && numValue > 0) {
-                onDataChange({ inventory: numValue });
-              }
-            }}
-            placeholder="Ej: 10"
+            type="number"
+            value={inventory ?? 1}
+            onChange={(e) =>
+              onDataChange({ inventory: Number(e.target.value) || 1 })
+            }
+            placeholder="1"
           />
         </div>
 
@@ -414,12 +398,8 @@ export const Step4PriceCategory: React.FC<Step4PriceCategoryProps> = ({
         </Button>
 
         <div className="flex gap-2">
-          {(!isEditMode || wizardState.status === "draft") && (
-            <SaveDraftButton
-              wizardState={wizardState}
-              productId={productIdToEdit}
-              variant="outline"
-            />
+          {(!isEditMode || wizardState.status === 'draft') && (
+            <SaveDraftButton wizardState={wizardState} productId={productIdToEdit} variant="outline" />
           )}
 
           <Button
