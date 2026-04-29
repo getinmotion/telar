@@ -65,8 +65,15 @@ export const CoreTab: React.FC<CoreTabProps> = ({
 
   const currentStatus = STATUS_OPTIONS.find((s) => s.value === product.status);
 
+  const shortDescriptionWordCount = shortDescription
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+  const isShortDescriptionValid = shortDescriptionWordCount <= 100;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isShortDescriptionValid) return;
     onSave({
       name,
       shortDescription,
@@ -105,13 +112,27 @@ export const CoreTab: React.FC<CoreTabProps> = ({
 
       {/* Short Description */}
       <div className="space-y-2">
-        <Label htmlFor="core-short-desc">Descripción Corta</Label>
+        <Label htmlFor="core-short-desc" className="flex items-center justify-between">
+          <span>Descripción Corta</span>
+          <span
+            className={`text-xs ${
+              isShortDescriptionValid ? 'text-muted-foreground' : 'text-red-500'
+            }`}
+          >
+            {shortDescriptionWordCount}/100 palabras
+          </span>
+        </Label>
         <Textarea
           id="core-short-desc"
           value={shortDescription}
           onChange={(e) => setShortDescription(e.target.value)}
-          rows={3}
+          rows={5}
         />
+        {!isShortDescriptionValid && (
+          <p className="text-xs text-red-500">
+            La descripción debe tener máximo 100 palabras.
+          </p>
+        )}
       </div>
 
       {/* History */}
@@ -181,7 +202,7 @@ export const CoreTab: React.FC<CoreTabProps> = ({
       </div>
 
       {/* Submit */}
-      <Button type="submit" disabled={saving} className="w-full">
+      <Button type="submit" disabled={saving || !isShortDescriptionValid} className="w-full">
         {saving ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (

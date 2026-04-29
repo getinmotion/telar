@@ -26,7 +26,10 @@ import {
 import { useProductReview } from '@/hooks/useProductReview';
 import { getActiveCategories } from '@/services/categories.actions';
 import { telarApi } from '@/integrations/api/telarApi';
-import type { CreateProductsNewDto } from '@/services/products-new.types';
+import type {
+  CreateProductMediaDto,
+  CreateProductsNewDto,
+} from '@/services/products-new.types';
 
 // Tabs
 import { CoreTab } from '@/components/product-review/tabs/CoreTab';
@@ -216,6 +219,18 @@ export const ProductReviewPage: React.FC = () => {
       shortDescription: selectedProduct.shortDescription,
       variants: updates.variants,
       production: updates.production,
+    };
+    await updateProduct(dto);
+  };
+
+  const handleSaveMedia = async (updates: { media: CreateProductMediaDto[] }) => {
+    if (!selectedProduct) return;
+    const dto: CreateProductsNewDto = {
+      productId: selectedProduct.id,
+      storeId: selectedProduct.storeId,
+      name: selectedProduct.name,
+      shortDescription: selectedProduct.shortDescription,
+      media: updates.media,
     };
     await updateProduct(dto);
   };
@@ -436,7 +451,11 @@ export const ProductReviewPage: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="media">
-                  <MediaTab product={selectedProduct} />
+                  <MediaTab
+                    product={selectedProduct}
+                    saving={saving}
+                    onSave={handleSaveMedia}
+                  />
                 </TabsContent>
 
                 <TabsContent value="legacy">
