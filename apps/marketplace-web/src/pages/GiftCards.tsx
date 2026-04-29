@@ -457,7 +457,7 @@ const GiftCards = () => {
       )}
 
       {/* Gift Cards Section */}
-      {/* <section className="py-32 bg-white border-y border-[#1b1c19]/5">
+      <section className="py-32 bg-white border-y border-[#1b1c19]/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
             <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
@@ -473,6 +473,7 @@ const GiftCards = () => {
             <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
           </div>
 
+          {/* Info badges */}
           <div className="flex flex-wrap justify-center gap-12 mb-16">
             <div className="flex items-center gap-3">
               <ShoppingCart className="w-4 h-4 text-[#ec6d13]" />
@@ -494,6 +495,7 @@ const GiftCards = () => {
             </div>
           </div>
 
+          {/* Gift Card Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {GIFTCARD_OPTIONS.map((card) => {
               const isSelected = selectedCard === card.id;
@@ -605,9 +607,7 @@ const GiftCards = () => {
             })}
           </div>
         </div>
-      </section> */}
-
-      
+      </section>
 
       {/* Corporate Section */}
       <section className="w-full bg-[#1b1c19] py-32 overflow-hidden">

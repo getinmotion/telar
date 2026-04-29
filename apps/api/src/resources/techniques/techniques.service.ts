@@ -46,34 +46,6 @@ export class TechniquesService {
   }
 
   /**
-   * Obtener todas las técnicas con el conteo de productos asociados
-   * (productos cuya `primary_technique_id` o `secondary_technique_id` coincide).
-   */
-  async findAllWithProductCount(): Promise<
-    Array<{ id: string; name: string; productCount: number }>
-  > {
-    const rows = await this.techniquesRepository
-      .createQueryBuilder('t')
-      .leftJoin(
-        'shop.product_artisanal_identity',
-        'pai',
-        '(pai.primary_technique_id = t.id OR pai.secondary_technique_id = t.id) AND pai.deleted_at IS NULL',
-      )
-      .select('t.id', 'id')
-      .addSelect('t.name', 'name')
-      .addSelect('COUNT(DISTINCT pai.product_id)::int', 'productCount')
-      .groupBy('t.id')
-      .orderBy('t.name', 'ASC')
-      .getRawMany<{ id: string; name: string; productCount: number }>();
-
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      productCount: Number(r.productCount) || 0,
-    }));
-  }
-
-  /**
    * Obtener una técnica por ID
    */
   async findOne(id: string): Promise<Technique> {

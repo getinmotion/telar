@@ -17,10 +17,7 @@ import { useImageUpload } from "../hooks/useImageUpload";
 import { WizardState, getImageUrl } from "../hooks/useWizardState";
 import { deleteUploadedFile } from "@/services/fileUpload.actions";
 import { useAuth } from "@/context/AuthContext";
-import {
-  getArtisanShopByUserId,
-  getStoreByUserId,
-} from "@/services/artisanShops.actions";
+import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
 import {
   createProduct,
   getProductsByShopId,
@@ -463,8 +460,8 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
 
     try {
       // Verificar tienda
-      const storeData = await getStoreByUserId(user.id);
-      if (!storeData) throw new Error("No tienes una tienda activa");
+      const shopData = await getArtisanShopByUserId(user.id);
+      if (!shopData) throw new Error("No tienes una tienda activa");
 
       // Subir imágenes (solo las nuevas - tipo File)
       const imagesToUpload = wizardState.images.filter(
@@ -489,7 +486,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({
       // Crear o actualizar producto como borrador usando products-new (arquitectura multicapa)
       const createDto = mapWizardStateToCreateDto(
         wizardState,
-        storeData.id,
+        shopData.id,
         uploadedImageUrls,
       );
 

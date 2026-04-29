@@ -12,7 +12,6 @@ import type {
   UpdateArtisanShopPayload,
   ArtisanShopErrorResponse
 } from '@/types/artisanShop.types';
-import type { Store } from '@telar/shared-types/stores';
 
 /**
  * Obtiene todas las tiendas publicadas para el directorio público
@@ -100,35 +99,6 @@ export const getArtisanShopByUserId = async (
 };
 
 /**
- * Obtiene el store de la nueva arquitectura por userId
- * @param userId - ID del usuario propietario
- * @returns El store de la nueva tabla o null si no existe
- *
- * Endpoint: GET /stores/user/:userId
- */
-export const getStoreByUserId = async (
-  userId: string
-): Promise<Store | null> => {
-  try {
-    const response = await telarApi.get<Store>(
-      `/stores/user/${userId}`
-    );
-    return response.data;
-  } catch (error: any) {
-    // Si es 404, el store no existe (es válido)
-    if (error.response?.status === 404) {
-      return null;
-    }
-
-    // Para otros errores, lanzar error
-    if (error.response?.data) {
-      throw new Error(error.response.data.message || 'Error al obtener el store');
-    }
-    throw error;
-  }
-};
-
-/**
  * Obtiene una tienda por su slug
  * @param shopSlug - Slug de la tienda
  * @returns La tienda o null si no existe
@@ -148,6 +118,7 @@ export const getArtisanShopBySlug = async (
     if (error.response?.status === 404) {
       return null;
     }
+
 
     // Para otros errores, lanzar la respuesta estructurada
     if (error.response?.data) {
