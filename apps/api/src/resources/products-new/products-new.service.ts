@@ -1214,7 +1214,7 @@ export class ProductsNewService {
       .leftJoinAndSelect('pc.materials', 'materials')
       .leftJoinAndSelect('materials.material', 'material')
       .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
-      .where('pc.storeId = :shopId', { shopId })
+      .where('pc.artisanShopId = :shopId', { shopId })
       .andWhere('pc.status IN (:...statuses)', {
         statuses: ['approved_with_edits', 'approved'],
       })
@@ -1376,7 +1376,7 @@ export class ProductsNewService {
 
     // Aplicar filtros
     if (filters?.storeId) {
-      queryBuilder.andWhere('product.store_id = :storeId', {
+      queryBuilder.andWhere('product.artisanShop_id = :storeId', {
         storeId: filters.storeId,
       });
     }

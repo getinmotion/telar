@@ -29,6 +29,26 @@ services:
       start_period: 30s
 
   # ========================================
+  # MongoDB (CMS — contenido editorial)
+  # ========================================
+  mongo:
+    image: mongo:7
+    container_name: getinmotion-mongo
+    restart: unless-stopped
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - getinmotion-network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ========================================
   # NestJS Application
   # ========================================
   app:
@@ -41,6 +61,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mongo:
+        condition: service_healthy
     environment:
       # Database (dentro de la red Docker Postgres escucha en 5432)
       HOST_DB: postgres
@@ -48,6 +70,9 @@ services:
       USER_DB: ${USER_DB}
       PASS_DB: ${PASS_DB}
       NAME_DB: ${NAME_DB}
+
+      # CMS Mongo (dentro de la red Docker)
+      MONGO_URI: mongodb://mongo:27017/telar_cms
 
       # JWT
       PASSWORD_SECRET: ${PASSWORD_SECRET}
@@ -86,6 +111,9 @@ volumes:
   postgres_data:
     driver: local
     name: getinmotion-postgres-data
+  mongo_data:
+    driver: local
+    name: getinmotion-mongo-data
 
 # ========================================
 # Networks

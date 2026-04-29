@@ -14,6 +14,7 @@ import {
   BarChart3,
   ClipboardList,
   Truck,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
@@ -383,6 +384,16 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
           >
             <Truck className="w-4 h-4" />
             Dashboard de Envios
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() =>
+              navigate(isModerationSubdomain ? '/cms' : '/moderacion/cms')
+            }
+          >
+            <FileText className="w-4 h-4" />
+            CMS — Contenido Editorial
           </Button>
         </div>
       </div>
