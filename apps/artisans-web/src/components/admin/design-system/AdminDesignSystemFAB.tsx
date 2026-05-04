@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Palette } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useDesignSystemEditor } from '@/hooks/useDesignSystemEditor';
-import { DesignSystemQuickEditor } from './DesignSystemQuickEditor';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Palette } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useDesignSystemEditor } from "@/hooks/useDesignSystemEditor";
+import { DesignSystemQuickEditor } from "./DesignSystemQuickEditor";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AdminDesignSystemFAB() {
   const [isAdmin, setIsAdmin] = useState(false);
   const { openEditor, hasUnsavedChanges } = useDesignSystemEditor();
   const location = useLocation();
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
+  // useEffect(() => {
+  //   const checkAdminStatus = async () => {
+  //     const { data: { user } } = await supabase.auth.getUser();
+  //     if (!user) {
+  //       setIsAdmin(false);
+  //       return;
+  //     }
 
-      const { data, error } = await supabase.rpc('is_admin');
-      if (!error && data === true) {
-        setIsAdmin(true);
-      }
-    };
+  //     const { data, error } = await supabase.rpc('is_admin');
+  //     if (!error && data === true) {
+  //       setIsAdmin(true);
+  //     }
+  //   };
 
-    checkAdminStatus();
-  }, []);
+  //   checkAdminStatus();
+  // }, []);
 
   // Hide FAB on design system editor page
-  if (!isAdmin || location.pathname === '/admin/design-system') return null;
+  if (!isAdmin || location.pathname === "/admin/design-system") return null;
 
   return (
     <>
@@ -41,14 +41,14 @@ export function AdminDesignSystemFAB() {
         <div className="relative">
           {/* Badge de cambios sin guardar */}
           {hasUnsavedChanges && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center text-xs z-10"
             >
               !
             </Badge>
           )}
-          
+
           {/* Botón principal */}
           <div className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center group-hover:scale-110">
             <Palette className="w-6 h-6" />

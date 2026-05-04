@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { CategoryScore, RecommendedAgents } from '@/types/dashboard';
-import { FusedMaturityCalculator } from '@/components/cultural/FusedMaturityCalculator';
-import { SEOHead } from '@/components/seo/SEOHead';
-import { SEO_CONFIG } from '@/config/seo';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { useLanguage } from '@/context/LanguageContext';
-import { mapToLegacyLanguage } from '@/utils/languageMapper';
-import { useMasterCoordinator } from '@/hooks/useMasterCoordinator';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
-import { upsertUserProgress } from '@/services/userProgress.actions';
-import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
+import { CategoryScore, RecommendedAgents } from "@/types/dashboard";
+import { FusedMaturityCalculator } from "@/components/cultural/FusedMaturityCalculator";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/config/seo";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useLanguage } from "@/context/LanguageContext";
+import { mapToLegacyLanguage } from "@/utils/languageMapper";
+import { useMasterCoordinator } from "@/hooks/useMasterCoordinator";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { upsertUserProgress } from "@/services/userProgress.actions";
+import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
 
 const MaturityCalculator = () => {
   const { language } = useLanguage();
@@ -24,41 +24,48 @@ const MaturityCalculator = () => {
   const { user } = useAuth();
   const { analyzeProfileAndGenerateTasks } = useMasterCoordinator();
   const [searchParams] = useSearchParams();
-  const { trackEvent } = useAnalyticsTracking();
+  // const { trackEvent } = useAnalyticsTracking();
 
   const [isGeneratingTasks, setIsGeneratingTasks] = useState(false);
 
-  const finalLanguage = 'es';
+  const finalLanguage = "es";
 
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    
-    // Track assessment page view
-    trackEvent({
-      eventType: 'onboarding_assessment_started',
-      eventData: {
-        language: finalLanguage,
-        timestamp: new Date().toISOString()
-      }
-    });
-  }, [trackEvent, finalLanguage]);
+  // // Scroll to top when component mounts
+  // useEffect(() => {
+  //   window.scrollTo(0, 0);
+
+  //   // Track assessment page view
+  //   trackEvent({
+  //     eventType: 'onboarding_assessment_started',
+  //     eventData: {
+  //       language: finalLanguage,
+  //       timestamp: new Date().toISOString()
+  //     }
+  //   });
+  // }, [trackEvent, finalLanguage]);
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard/home');
+    navigate("/dashboard/home");
   };
 
-  const handleComplete = async (scores: CategoryScore, recommendedAgents: RecommendedAgents, profileData?: any) => {
+  const handleComplete = async (
+    scores: CategoryScore,
+    recommendedAgents: RecommendedAgents,
+    profileData?: any,
+  ) => {
     // ✅ DETECCIÓN AUTOMÁTICA: Detectar onboarding por scores en 0, no por mode
-    const isOnboardingCompletion = Object.values(scores).every(v => {
+    const isOnboardingCompletion = Object.values(scores).every((v) => {
       const score = Number(v);
       return !isNaN(score) && score === 0;
     });
 
     // Store completion flag for dashboard integration
     if (!isOnboardingCompletion) {
-      localStorage.setItem('maturity_assessment_completed', 'true');
-      localStorage.setItem('assessment_completion_time', new Date().toISOString());
+      localStorage.setItem("maturity_assessment_completed", "true");
+      localStorage.setItem(
+        "assessment_completion_time",
+        new Date().toISOString(),
+      );
     }
 
     setIsGeneratingTasks(true);
@@ -73,10 +80,10 @@ const MaturityCalculator = () => {
           nextLevelXp: 100,
           currentStreak: 0,
           longestStreak: 0,
-          totalTimeSpent: 0
+          totalTimeSpent: 0,
         }).catch((insertError) => {
-          console.error('Failed to create user_progress:', insertError);
-          throw new Error('No se pudo inicializar el progreso del usuario');
+          console.error("Failed to create user_progress:", insertError);
+          throw new Error("No se pudo inicializar el progreso del usuario");
         });
       }
 
@@ -92,11 +99,10 @@ const MaturityCalculator = () => {
 
       // Redirigir al dashboard
       setTimeout(() => {
-        navigate('/dashboard/home');
+        navigate("/dashboard/home");
       }, 2000);
-
     } catch (error) {
-      console.error('Error durante el proceso de completado:', error);
+      console.error("Error durante el proceso de completado:", error);
       toast({
         title: "Completado",
         description: isOnboardingCompletion
@@ -106,7 +112,7 @@ const MaturityCalculator = () => {
 
       // Redirigir incluso si hay errores
       setTimeout(() => {
-        navigate('/dashboard/home');
+        navigate("/dashboard/home");
       }, 2000);
     } finally {
       setIsGeneratingTasks(false);
@@ -114,9 +120,9 @@ const MaturityCalculator = () => {
   };
 
   const seoData = SEO_CONFIG.pages.maturityCalculator?.en || {
-    title: 'Business Maturity Calculator - Motion',
-    description: 'Assess your business maturity level',
-    keywords: 'maturity calculator, business assessment'
+    title: "Business Maturity Calculator - Motion",
+    description: "Assess your business maturity level",
+    keywords: "maturity calculator, business assessment",
   };
 
   return (
@@ -149,7 +155,8 @@ const MaturityCalculator = () => {
                     ✨ Generando tus misiones personalizadas
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Estamos analizando tu perfil para crear las misiones perfectas para ti...
+                    Estamos analizando tu perfil para crear las misiones
+                    perfectas para ti...
                   </p>
                 </div>
               </div>

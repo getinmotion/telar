@@ -161,15 +161,15 @@ export const useMasterCoordinator = () => {
         });
 
         // Track successful task generation
-        trackEvent({
-          eventType: 'tasks_generated',
-          eventData: {
-            tasksCount: data.tasks.length,
-            hasMaturityScores: !!currentScores,
-            hasBusinessProfile: !!businessProfile
-          },
-          success: true
-        });
+        // trackEvent({
+        //   eventType: 'tasks_generated',
+        //   eventData: {
+        //     tasksCount: data.tasks.length,
+        //     hasMaturityScores: !!currentScores,
+        //     hasBusinessProfile: !!businessProfile
+        //   },
+        //   success: true
+        // });
 
         return data.tasks;
       } else {

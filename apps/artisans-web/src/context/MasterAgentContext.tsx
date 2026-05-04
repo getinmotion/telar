@@ -780,30 +780,6 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [refreshModule, syncAll, user, invalidateCache]);
 
-  // Setup realtime subscription for products
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel("products-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "products",
-        },
-        (payload) => {
-          EventBus.publish("inventory.updated", payload);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
   return (
     <MasterAgentContext.Provider
       value={{

@@ -119,23 +119,23 @@ export const useUserProgress = () => {
       // ⚠️ TODO: Migrate achievements catalog to NestJS
       // Currently using Supabase direct query
       // Endpoint needed: GET /achievements-catalog
-      const { data: catalogData, error: catalogError } = await supabase
-        .from('achievements_catalog')
-        .select('*')
-        .order('display_order', { ascending: true });
+      // const { data: catalogData, error: catalogError } = await supabase
+      //   .from('achievements_catalog')
+      //   .select('*')
+      //   .order('display_order', { ascending: true });
 
-      if (catalogError) throw catalogError;
+      // if (catalogError) throw catalogError;
 
-      setAchievementsCatalog(
-        (catalogData || []).map((c: any) => ({
-          id: c.id,
-          title: c.title,
-          description: c.description,
-          icon: c.icon,
-          unlockCriteria: c.unlock_criteria,
-          category: c.category
-        }))
-      );
+      // setAchievementsCatalog(
+      //   (catalogData || []).map((c: any) => ({
+      //     id: c.id,
+      //     title: c.title,
+      //     description: c.description,
+      //     icon: c.icon,
+      //     unlockCriteria: c.unlock_criteria,
+      //     category: c.category
+      //   }))
+      // );
     } catch (error) {
       console.error('Error fetching achievements:', error);
     }

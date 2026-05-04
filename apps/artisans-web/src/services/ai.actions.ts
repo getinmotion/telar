@@ -557,3 +557,55 @@ export const generateIntelligentShopProductSuggestions = async (
     throw error;
   }
 };
+
+// ============= Extract Business Info =============
+
+export interface ExtractBusinessInfoRequest {
+  userText: string;
+  fieldsToExtract: string[];
+  language?: string;
+}
+
+export interface ExtractedBusinessData {
+  businessName?: string;
+  craftType?: string;
+  location?: string;
+  [key: string]: any;
+}
+
+export interface ExtractBusinessInfoResponse {
+  success: boolean;
+  data: ExtractedBusinessData;
+  message?: string;
+}
+
+/**
+ * Extrae información estructurada de una descripción de negocio
+ * Endpoint: POST /ai/extract-business-info
+ *
+ * @param request - Texto del usuario, campos a extraer e idioma
+ * @returns Información extraída del negocio
+ */
+export const extractBusinessInfo = async (
+  request: ExtractBusinessInfoRequest
+): Promise<ExtractBusinessInfoResponse> => {
+  try {
+    const response = await telarApi.post<ExtractBusinessInfoResponse>(
+      '/ai/extract-business-info',
+      {
+        userText: request.userText,
+        fieldsToExtract: request.fieldsToExtract,
+        language: request.language || 'es',
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error extracting business info:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al extraer información del negocio'
+      );
+    }
+    throw error;
+  }
+};

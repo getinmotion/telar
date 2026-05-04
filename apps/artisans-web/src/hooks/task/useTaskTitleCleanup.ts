@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedUserData } from '@/hooks/user/useUnifiedUserData';
 import { formatTaskTitleForDisplayEnhanced } from '../utils/agentTaskUtils';
+import { getAgentTasksByUserId, updateAgentTask } from '@/services/agentTasks.actions';
 
 /**
  * Hook to automatically clean up task titles with JSON arrays
@@ -26,12 +26,9 @@ export const useTaskTitleCleanup = () => {
         if (!profile?.brandName) return; // Skip if no brand name
 
         // Get all tasks that might need cleaning
-        const { data: tasks } = await supabase
-          .from('agent_tasks')
-          .select('id, title')
-          .eq('user_id', user.id);
+        const tasks = await getAgentTasksByUserId(user.id);
 
-        if (!tasks) return;
+        if (!tasks || tasks.length === 0) return;
 
         // Filter tasks that need cleaning (contain arrays or are too long)
         const tasksToClean = tasks.filter(task => 
@@ -50,15 +47,11 @@ export const useTaskTitleCleanup = () => {
         // Clean each task title
         for (const task of tasksToClean) {
           const cleanedTitle = await formatTaskTitleForDisplayEnhanced(task.title, profile.brandName);
-          
+
           if (cleanedTitle !== task.title) {
-            await supabase
-              .from('agent_tasks')
-              .update({ 
-                title: cleanedTitle,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', task.id);
+            await updateAgentTask(task.id, {
+              title: cleanedTitle,
+            });
 
             console.log('✅ Cleaned task title:', task.title, '→', cleanedTitle);
           }

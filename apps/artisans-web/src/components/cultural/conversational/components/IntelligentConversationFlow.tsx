@@ -1,37 +1,62 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Sparkles, ArrowRight, ArrowLeft, Brain, Star, CheckCircle, Loader2, Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ConversationBlock } from '../types/conversationalTypes';
-import { UserProfileData } from '../../types/wizardTypes';
-import { QuestionRenderer } from './QuestionRenderer';
-import { CheckpointProgress } from './CheckpointProgress';
-import { getCraftTypeLabel } from '@/utils/aiCraftTypeDetection';
-import { detectLocation, getLocationEmoji } from '@/utils/locationDetection';
-import { MATURITY_TEST_CONFIG, getProgressPercentage, isAssessmentComplete } from '@/config/maturityTest';
-import { BusinessInfoConfirmationClean } from './BusinessInfoConfirmationClean';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { getUserMasterContextByUserId, upsertUserMasterContext } from '@/services/userMasterContext.actions';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MessageSquare,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Brain,
+  Star,
+  CheckCircle,
+  Loader2,
+  Save,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConversationBlock } from "../types/conversationalTypes";
+import { UserProfileData } from "../../types/wizardTypes";
+import { QuestionRenderer } from "./QuestionRenderer";
+import { CheckpointProgress } from "./CheckpointProgress";
+import { getCraftTypeLabel } from "@/utils/aiCraftTypeDetection";
+import { detectLocation, getLocationEmoji } from "@/utils/locationDetection";
+import {
+  MATURITY_TEST_CONFIG,
+  getProgressPercentage,
+  isAssessmentComplete,
+} from "@/config/maturityTest";
+import { BusinessInfoConfirmationClean } from "./BusinessInfoConfirmationClean";
+import { toast } from "sonner";
+import {
+  getUserMasterContextByUserId,
+  upsertUserMasterContext,
+} from "@/services/userMasterContext.actions";
+import { extractBusinessInfo } from "@/services/ai.actions";
+import { useAuth } from "@/context/AuthContext";
+import {
+  getUserProfileByUserId,
+  updateUserProfile,
+} from "@/services/userProfiles.actions";
 
 // Hook de debounce para evitar guardados constantes
 const useDebouncedCallback = (callback: Function, delay: number) => {
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  return useCallback((...args: any[]) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
+  return useCallback(
+    (...args: any[]) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay],
+  );
 };
 
 interface IntelligentConversationFlowProps {
   block: ConversationBlock;
   profileData: UserProfileData;
-  language: 'en' | 'es';
+  language: "en" | "es";
   onAnswer: (questionId: string, answer: any) => void;
   onNext: () => void;
   onPrevious: () => void;
@@ -45,7 +70,9 @@ interface IntelligentConversationFlowProps {
   isOnboarding?: boolean;
 }
 
-export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowProps> = ({
+export const IntelligentConversationFlow: React.FC<
+  IntelligentConversationFlowProps
+> = ({
   block,
   profileData,
   language,
@@ -53,23 +80,27 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
   onNext,
   onPrevious,
   updateProfileData,
-  businessType = 'creative',
+  businessType = "creative",
   isProcessing = false,
   totalAnswered = 0,
   totalQuestions = MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
   globalQuestionNumber = 1,
   showSaveIndicator = false,
-  isOnboarding = false
+  isOnboarding = false,
 }) => {
   // ✅ CRITICAL FIX: ALL HOOKS MUST BE AT THE TOP (React error #310 fix)
   // Moved validations to AFTER hooks - no early returns before hooks!
 
   // 1. ALL HOOKS FIRST
+  const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showCraftTypeDetection, setShowCraftTypeDetection] = useState(false);
   const [showLocationDetection, setShowLocationDetection] = useState(false);
-  const [detectedLocation, setDetectedLocation] = useState<{ location: string; type: 'city' | 'state' | 'country' | 'online' } | null>(null);
+  const [detectedLocation, setDetectedLocation] = useState<{
+    location: string;
+    type: "city" | "state" | "country" | "online";
+  } | null>(null);
   const [localShowSaveIndicator, setLocalShowSaveIndicator] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<any>(undefined);
@@ -79,11 +110,10 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
   const [extractedInfo, setExtractedInfo] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-
   // Debounced version of updateProfileData to prevent constant saves
-  const debouncedUpdateProfile = useDebouncedCallback((data: Partial<UserProfileData>) => {
-    updateProfileData(data);
-  }, 1000); // Increased to 1 second for better typing experience
+  // const debouncedUpdateProfile = useDebouncedCallback((data: Partial<UserProfileData>) => {
+  //   updateProfileData(data);
+  // }, 1000); // Increased to 1 second for better typing experience
 
   // 🧹 CLEANUP: Resetear confirmación al cambiar de pregunta/bloque (excepto primera confirmación)
   useEffect(() => {
@@ -104,7 +134,11 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
 
   // Show craft type detection confirmation when it's auto-detected
   useEffect(() => {
-    if (profileData.craftType && profileData.businessDescription && !showCraftTypeDetection) {
+    if (
+      profileData.craftType &&
+      profileData.businessDescription &&
+      !showCraftTypeDetection
+    ) {
       setShowCraftTypeDetection(true);
       // Auto-hide after 3 seconds
       const timer = setTimeout(() => setShowCraftTypeDetection(false), 3000);
@@ -114,7 +148,8 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
 
   useEffect(() => {
     const locationValue = profileData.businessLocation;
-    const locationStr = typeof locationValue === 'string' ? locationValue.trim() : '';
+    const locationStr =
+      typeof locationValue === "string" ? locationValue.trim() : "";
 
     if (locationStr.length >= 3) {
       const result = detectLocation(locationStr);
@@ -137,21 +172,35 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       return [];
     }
 
-    return block.questions.filter(q => {
+    return block.questions.filter((q) => {
       if (!q.showIf) return true;
 
       const condition = q.showIf;
       const fieldValue = profileData[condition.field];
 
       switch (condition.operator) {
-        case 'equals': return fieldValue === condition.value;
-        case 'not_equals': return fieldValue !== condition.value;
-        case 'includes': return Array.isArray(fieldValue) && fieldValue.includes(condition.value);
-        case 'greater_than': return Number(fieldValue) > Number(condition.value);
-        case 'less_than': return Number(fieldValue) < Number(condition.value);
-        case 'exists': return fieldValue !== undefined && fieldValue !== null && fieldValue !== '';
-        case 'not_exists': return fieldValue === undefined || fieldValue === null || fieldValue === '';
-        default: return true;
+        case "equals":
+          return fieldValue === condition.value;
+        case "not_equals":
+          return fieldValue !== condition.value;
+        case "includes":
+          return (
+            Array.isArray(fieldValue) && fieldValue.includes(condition.value)
+          );
+        case "greater_than":
+          return Number(fieldValue) > Number(condition.value);
+        case "less_than":
+          return Number(fieldValue) < Number(condition.value);
+        case "exists":
+          return (
+            fieldValue !== undefined && fieldValue !== null && fieldValue !== ""
+          );
+        case "not_exists":
+          return (
+            fieldValue === undefined || fieldValue === null || fieldValue === ""
+          );
+        default:
+          return true;
       }
     });
   }, [block, profileData]);
@@ -164,7 +213,10 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
   }, [block.id, visibleQuestions.length]);
 
   useEffect(() => {
-    if (currentQuestionIndex >= visibleQuestions.length && visibleQuestions.length > 0) {
+    if (
+      currentQuestionIndex >= visibleQuestions.length &&
+      visibleQuestions.length > 0
+    ) {
       setCurrentQuestionIndex(visibleQuestions.length - 1);
     }
   }, [visibleQuestions.length, currentQuestionIndex]);
@@ -176,7 +228,7 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       whatIsThis: "What is this?",
       lastQuestion: "Continue to next section",
       finalizeAssessment: "Finalize Assessment",
-      processingResults: "Processing results..."
+      processingResults: "Processing results...",
     },
     es: {
       next: "Siguiente",
@@ -184,14 +236,15 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       whatIsThis: "¿Qué es esto?",
       lastQuestion: "Continuar a la siguiente sección",
       finalizeAssessment: "Finalizar Evaluación",
-      processingResults: "Procesando resultados..."
-    }
+      processingResults: "Procesando resultados...",
+    },
   };
 
   const t = translations[language];
 
   const currentQuestion = visibleQuestions[currentQuestionIndex];
-  const isLastQuestionInBlock = currentQuestionIndex === visibleQuestions.length - 1;
+  const isLastQuestionInBlock =
+    currentQuestionIndex === visibleQuestions.length - 1;
   const isLastQuestionGlobal = isAssessmentComplete(totalAnswered);
   const isFirstQuestion = currentQuestionIndex === 0;
 
@@ -206,10 +259,14 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
     if (!currentQuestion) return;
 
     setCurrentAnswer(answer);
-    debouncedUpdateProfile({ [currentQuestion.fieldName]: answer });
+    // debouncedUpdateProfile({ [currentQuestion.fieldName]: answer });
   };
 
-  const evaluateConditionalLogic = (question: any, answer: any, profileData: UserProfileData): boolean => {
+  const evaluateConditionalLogic = (
+    question: any,
+    answer: any,
+    profileData: UserProfileData,
+  ): boolean => {
     // Implement conditional logic based on question dependencies
     if (question.showIf) {
       const condition = question.showIf;
@@ -217,15 +274,17 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
 
       // Evaluate condition
       switch (condition.operator) {
-        case 'equals':
+        case "equals":
           return fieldValue === condition.value;
-        case 'not_equals':
+        case "not_equals":
           return fieldValue !== condition.value;
-        case 'includes':
-          return Array.isArray(fieldValue) && fieldValue.includes(condition.value);
-        case 'greater_than':
+        case "includes":
+          return (
+            Array.isArray(fieldValue) && fieldValue.includes(condition.value)
+          );
+        case "greater_than":
           return Number(fieldValue) > Number(condition.value);
-        case 'less_than':
+        case "less_than":
           return Number(fieldValue) < Number(condition.value);
         default:
           return true;
@@ -242,69 +301,91 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       return;
     }
 
-    if (currentQuestion.id === 'business_description') {
+    if (currentQuestion.id === "business_description") {
       const description = currentAnswer || profileData.businessDescription;
 
-      const minLength = block.id === 'onboarding_essentials' ? 30 : 50;
-      if (description && typeof description === 'string' && description.length >= minLength) {
+      const minLength = block.id === "onboarding_essentials" ? 30 : 50;
+      if (
+        description &&
+        typeof description === "string" &&
+        description.length >= minLength
+      ) {
         setIsExtracting(true);
 
         try {
-          const { data, error } = await supabase.functions.invoke('extract-business-info', {
-            body: {
-              userText: description,
-              fieldsToExtract: ['businessName', 'craftType', 'location'],
-              language
-            }
+          const data = await extractBusinessInfo({
+            userText: description,
+            fieldsToExtract: ["businessName", "craftType", "location"],
+            language,
           });
-
-          if (error) {
-            toast.error(
-              language === 'es'
-                ? '⚠️ Procesando tu respuesta... Continuamos de todos modos'
-                : '⚠️ Processing your response... We continue anyway',
-              { duration: 2000 }
-            );
-            onAnswer(currentQuestion.id, description);
-            setIsExtracting(false);
-            setCurrentQuestionIndex(prev => prev + 1);
-            return;
-          }
 
           if (data?.success && data?.data) {
             // ✅ Validación frontend adicional mejorada
             const invalidBrandPhrases = [
               // Verbos de primera persona
-              'hago', 'i make', 'trabajo', 'i work',
-              'soy', 'i am', 'creo', 'i create',
-              'elaboro', 'produzco', 'vendo', 'realizo',
-              'me dedico', 'ofrezco', 'fabrico',
+              "hago",
+              "i make",
+              "trabajo",
+              "i work",
+              "soy",
+              "i am",
+              "creo",
+              "i create",
+              "elaboro",
+              "produzco",
+              "vendo",
+              "realizo",
+              "me dedico",
+              "ofrezco",
+              "fabrico",
 
               // NUEVO: Artículos indefinidos
-              'un ', 'una ', 'a ', 'an ',
+              "un ",
+              "una ",
+              "a ",
+              "an ",
 
               // NUEVO: Descripciones genéricas
-              'estudio de', 'taller de', 'tienda de', 'empresa de',
-              'negocio de', 'marca de', 'shop of', 'studio of',
-              'taller artesanal', 'estudio artesanal'
+              "estudio de",
+              "taller de",
+              "tienda de",
+              "empresa de",
+              "negocio de",
+              "marca de",
+              "shop of",
+              "studio of",
+              "taller artesanal",
+              "estudio artesanal",
             ];
 
-            const startsWithInvalid = invalidBrandPhrases.some(phrase =>
-              data.data.brand_name?.toLowerCase().startsWith(phrase)
+            const startsWithInvalid = invalidBrandPhrases.some((phrase) =>
+              data.data.brand_name?.toLowerCase().startsWith(phrase),
             );
 
             // NUEVO: Detectar si es solo descripción genérica
-            const isOnlyDescription = /^(un |una |a |an )/i.test(data.data.brand_name);
+            const isOnlyDescription = /^(un |una |a |an )/i.test(
+              data.data.brand_name,
+            );
 
             // NUEVO: Detectar si el nombre es igual a craft_type
-            const isSameCraftType = data.data.brand_name?.toLowerCase() === data.data.craft_type?.toLowerCase();
+            const isSameCraftType =
+              data.data.brand_name?.toLowerCase() ===
+              data.data.craft_type?.toLowerCase();
 
-            const isLocationNotBrand = data.data.brand_name === data.data.business_location;
+            const isLocationNotBrand =
+              data.data.brand_name === data.data.business_location;
 
-            const isTooLong = data.data.brand_name?.split(' ').length > 5;
+            const isTooLong = data.data.brand_name?.split(" ").length > 5;
 
-            if (startsWithInvalid || isLocationNotBrand || isTooLong || isOnlyDescription || isSameCraftType) {
-              data.data.brand_name = language === 'es' ? 'Sin nombre definido' : 'No name defined';
+            if (
+              startsWithInvalid ||
+              isLocationNotBrand ||
+              isTooLong ||
+              isOnlyDescription ||
+              isSameCraftType
+            ) {
+              data.data.brand_name =
+                language === "es" ? "Sin nombre definido" : "No name defined";
               data.data.confidence = Math.min(data.data.confidence, 0.4);
             }
 
@@ -322,7 +403,7 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
               brandName: mappedExtractedInfo.brand_name,
               craftType: mappedExtractedInfo.craft_type,
               businessLocation: mappedExtractedInfo.business_location,
-              uniqueValue: mappedExtractedInfo.unique_value
+              uniqueValue: mappedExtractedInfo.unique_value,
             });
 
             setExtractedInfo(mappedExtractedInfo);
@@ -332,25 +413,25 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           } else {
             onAnswer(currentQuestion.id, description);
             setIsExtracting(false);
-            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentQuestionIndex((prev) => prev + 1);
             return;
           }
         } catch {
           toast.error(
-            language === 'es'
-              ? '⚠️ Error inesperado al analizar'
-              : '⚠️ Unexpected error analyzing'
+            language === "es"
+              ? "⚠️ Error inesperado al analizar"
+              : "⚠️ Unexpected error analyzing",
           );
           onAnswer(currentQuestion.id, description);
           setIsExtracting(false);
-          setCurrentQuestionIndex(prev => prev + 1);
+          setCurrentQuestionIndex((prev) => prev + 1);
           return;
         }
       } else {
         toast.error(
-          language === 'es'
-            ? 'Por favor escribe al menos 20 caracteres para poder analizar tu negocio'
-            : 'Please write at least 20 characters so we can analyze your business'
+          language === "es"
+            ? "Por favor escribe al menos 20 caracteres para poder analizar tu negocio"
+            : "Please write at least 20 characters so we can analyze your business",
         );
         return;
       }
@@ -358,18 +439,23 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
 
     const currentValue = currentAnswer;
 
-    if (currentQuestion.required && (currentValue === undefined || currentValue === null || currentValue === '')) {
+    if (
+      currentQuestion.required &&
+      (currentValue === undefined ||
+        currentValue === null ||
+        currentValue === "")
+    ) {
       return;
     }
 
     setIsSaving(true);
 
-    onAnswer(currentQuestion.id, currentValue || '');
+    onAnswer(currentQuestion.id, currentValue || "");
 
     if (isLastQuestionInBlock) {
       onNext();
     } else {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
 
     setTimeout(() => setIsSaving(false), 500);
@@ -379,23 +465,23 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
     if (isFirstQuestion) {
       onPrevious();
     } else {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
   const handleConfirmExtractedInfo = async (confirmedData: any) => {
     // ✅ Si la ubicación extraída es inválida, usar la del perfil como fallback
-    const { data: { user } } = await supabase.auth.getUser();
     let finalLocation = confirmedData.business_location;
 
-    if (user && (!finalLocation || finalLocation === 'No especificado')) {
-      const { data: profileData } = await supabase
-        .from('user_profiles')
-        .select('business_location')
-        .eq('user_id', user.id)
-        .single();
-
-      finalLocation = profileData?.business_location || confirmedData.business_location;
+    if (user && (!finalLocation || finalLocation === "No especificado")) {
+      try {
+        const userProfileData = await getUserProfileByUserId(user.id);
+        finalLocation =
+          userProfileData?.businessLocation || confirmedData.business_location;
+      } catch {
+        // Si falla obtener el perfil, usar el valor extraído
+        finalLocation = confirmedData.business_location;
+      }
     }
 
     // Update profile with extracted data - prioritize craft_type
@@ -405,37 +491,37 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       businessLocation: finalLocation,
       uniqueValue: confirmedData.unique_value,
       aiExtracted: true,
-      extractionConfidence: confirmedData.confidence
+      extractionConfidence: confirmedData.confidence,
     });
 
     // ✅ NUEVO: Sincronizar inmediatamente a user_profiles Y user_master_context
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (user && confirmedData.brand_name) {
         // Actualizar user_profiles
-        await supabase
-          .from('user_profiles')
-          .update({
-            brand_name: confirmedData.brand_name,
-            business_description: profileData.businessDescription,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
+        await updateUserProfile(user.id, {
+          brandName: confirmedData.brand_name,
+          businessDescription: profileData.businessDescription,
+        });
 
         // ✅ CRÍTICO: También actualizar conversation_insights en user_master_context (NestJS)
         const existingContext = await getUserMasterContextByUserId(user.id);
 
         const currentBusinessProfile = existingContext?.businessProfile || {};
-        const currentConversationInsights = existingContext?.conversationInsights || {};
+        const currentConversationInsights =
+          existingContext?.conversationInsights || {};
 
         await upsertUserMasterContext(user.id, {
           businessProfile: {
-            ...(typeof currentBusinessProfile === 'object' ? currentBusinessProfile : {}),
-            brandName: confirmedData.brand_name
+            ...(typeof currentBusinessProfile === "object"
+              ? currentBusinessProfile
+              : {}),
+            brandName: confirmedData.brand_name,
           },
           conversationInsights: {
-            ...(typeof currentConversationInsights === 'object' ? currentConversationInsights : {}),
-            nombre_marca: confirmedData.brand_name
+            ...(typeof currentConversationInsights === "object"
+              ? currentConversationInsights
+              : {}),
+            nombre_marca: confirmedData.brand_name,
           },
         });
       }
@@ -448,43 +534,53 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
     setExtractedInfo(null);
 
     toast.success(
-      language === 'es'
-        ? '¡Perfecto! Entendimos tu negocio. Continuemos...'
-        : 'Perfect! We understood your business. Let\'s continue...'
+      language === "es"
+        ? "¡Perfecto! Entendimos tu negocio. Continuemos..."
+        : "Perfect! We understood your business. Let's continue...",
     );
 
-    setCurrentQuestionIndex(prev => prev + 1);
+    setCurrentQuestionIndex((prev) => prev + 1);
   };
 
   const isQuestionAnswered = (question: any) => {
-    const fieldValue = question.id === currentQuestion?.id
-      ? currentAnswer
-      : profileData[question.fieldName];
+    const fieldValue =
+      question.id === currentQuestion?.id
+        ? currentAnswer
+        : profileData[question.fieldName];
 
     // Handle different question types
-    if (question.type === 'multiple-choice' && Array.isArray(fieldValue)) {
+    if (question.type === "multiple-choice" && Array.isArray(fieldValue)) {
       return fieldValue.length > 0;
     }
 
-    if (question.type === 'slider' || question.type === 'rating') {
+    if (question.type === "slider" || question.type === "rating") {
       return fieldValue !== undefined && fieldValue !== null && fieldValue > 0;
     }
 
-    if (question.type === 'text-input' || question.type === 'text' || question.type === 'textarea' || question.type === 'long_text_with_ai') {
-      return fieldValue !== undefined && fieldValue !== null &&
-        typeof fieldValue === 'string' && fieldValue.trim() !== '';
+    if (
+      question.type === "text-input" ||
+      question.type === "text" ||
+      question.type === "textarea" ||
+      question.type === "long_text_with_ai"
+    ) {
+      return (
+        fieldValue !== undefined &&
+        fieldValue !== null &&
+        typeof fieldValue === "string" &&
+        fieldValue.trim() !== ""
+      );
     }
 
-    if (question.type === 'yes-no') {
+    if (question.type === "yes-no") {
       return fieldValue !== undefined && fieldValue !== null;
     }
 
     // For single-choice questions
-    return fieldValue !== undefined && fieldValue !== null && fieldValue !== '';
+    return fieldValue !== undefined && fieldValue !== null && fieldValue !== "";
   };
 
-
-  const shouldShowConfirmation = showConfirmation && extractedInfo && totalAnswered === 1;
+  const shouldShowConfirmation =
+    showConfirmation && extractedInfo && totalAnswered === 1;
 
   // ✅ CONDITIONAL RENDERING - After ALL hooks
   if (!block || !block.questions || block.questions.length === 0) {
@@ -493,7 +589,9 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
         <div className="animate-pulse">
           <Brain className="w-8 h-8 mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">
-            {language === 'es' ? 'Preparando preguntas inteligentes...' : 'Preparing intelligent questions...'}
+            {language === "es"
+              ? "Preparando preguntas inteligentes..."
+              : "Preparing intelligent questions..."}
           </p>
         </div>
       </div>
@@ -507,7 +605,9 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
         <div className="animate-pulse">
           <Brain className="w-8 h-8 mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">
-            {language === 'es' ? 'Preparando siguiente sección...' : 'Preparing next section...'}
+            {language === "es"
+              ? "Preparando siguiente sección..."
+              : "Preparing next section..."}
           </p>
         </div>
       </div>
@@ -521,7 +621,7 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
       <div className="animate-pulse">
         <Brain className="w-8 h-8 mx-auto mb-4 text-primary" />
         <p className="text-muted-foreground">
-          {language === 'es' ? 'Cargando pregunta...' : 'Loading question...'}
+          {language === "es" ? "Cargando pregunta..." : "Loading question..."}
         </p>
       </div>
     </div>
@@ -530,12 +630,14 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
     <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
       <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
       <p className="text-lg font-medium text-foreground">
-        {language === 'es' ? 'Analizando tu descripción con IA...' : 'Analyzing your description with AI...'}
+        {language === "es"
+          ? "Analizando tu descripción con IA..."
+          : "Analyzing your description with AI..."}
       </p>
       <p className="text-sm text-muted-foreground mt-2">
-        {language === 'es'
-          ? 'Estamos extrayendo información clave de tu negocio'
-          : 'We are extracting key information from your business'}
+        {language === "es"
+          ? "Estamos extrayendo información clave de tu negocio"
+          : "We are extracting key information from your business"}
       </p>
     </div>
   ) : shouldShowConfirmation ? (
@@ -564,7 +666,6 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
         transition={{ duration: 0.2 }}
         className="overflow-hidden"
       >
-
         {/* Progress Saved Indicator */}
         <AnimatePresence>
           {localShowSaveIndicator && (
@@ -576,7 +677,7 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
             >
               <Save className="w-4 h-4 text-success flex-shrink-0" />
               <span className="text-sm font-medium text-success">
-                {language === 'es' ? '✓ Progreso guardado' : '✓ Progress saved'}
+                {language === "es" ? "✓ Progreso guardado" : "✓ Progress saved"}
               </span>
             </motion.div>
           )}
@@ -594,16 +695,14 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
               <Loader2 className="w-5 h-5 text-primary animate-spin flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-charcoal">
-                  {language === 'es'
-                    ? '🤖 Analizando tu negocio con IA...'
-                    : '🤖 Analyzing your business with AI...'
-                  }
+                  {language === "es"
+                    ? "🤖 Analizando tu negocio con IA..."
+                    : "🤖 Analyzing your business with AI..."}
                 </p>
                 <p className="text-xs text-charcoal/60 mt-0.5">
-                  {language === 'es'
-                    ? 'Detectando automáticamente el tipo de artesanía'
-                    : 'Auto-detecting craft type'
-                  }
+                  {language === "es"
+                    ? "Detectando automáticamente el tipo de artesanía"
+                    : "Auto-detecting craft type"}
                 </p>
               </div>
               <Sparkles className="w-5 h-5 text-accent animate-pulse" />
@@ -620,22 +719,31 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           {/* Línea principal con indicadores */}
           <div className="flex items-center gap-2 text-xs text-charcoal/70 flex-wrap">
             <span className="font-medium text-primary">
-              {language === 'es' ? 'Pregunta' : 'Question'} {globalQuestionNumber} {language === 'es' ? 'de' : 'of'} {isOnboarding ? 3 : totalQuestions}
+              {language === "es" ? "Pregunta" : "Question"}{" "}
+              {globalQuestionNumber} {language === "es" ? "de" : "of"}{" "}
+              {isOnboarding ? 3 : totalQuestions}
             </span>
 
             {/* Craft type inline */}
             {profileData.craftType && (
               <span className="flex items-center gap-1">
                 • <CheckCircle className="w-3 h-3 text-accent" />
-                <span className="text-accent font-medium">{getCraftTypeLabel(profileData.craftType, language)}</span>
+                <span className="text-accent font-medium">
+                  {getCraftTypeLabel(profileData.craftType, language)}
+                </span>
               </span>
             )}
 
             {/* Location inline */}
             {detectedLocation && (
               <span className="flex items-center gap-1">
-                • <span className="text-base">{getLocationEmoji(detectedLocation.type)}</span>
-                <span className="text-primary font-medium">{detectedLocation.location}</span>
+                •{" "}
+                <span className="text-base">
+                  {getLocationEmoji(detectedLocation.type)}
+                </span>
+                <span className="text-primary font-medium">
+                  {detectedLocation.location}
+                </span>
               </span>
             )}
 
@@ -644,7 +752,9 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
               <span className="flex items-center gap-1">
                 • <Sparkles className="w-3 h-3 text-accent" />
                 <span className="text-accent/80 italic">
-                  {language === 'es' ? 'Tu taller digital te espera' : 'Your digital workshop awaits'}
+                  {language === "es"
+                    ? "Tu taller digital te espera"
+                    : "Your digital workshop awaits"}
                 </span>
               </span>
             )}
@@ -653,10 +763,10 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
           {/* Línea secundaria con contexto (opcional) */}
           {block.strategicContext && (
             <p className="text-xs text-charcoal/60 mt-1.5 leading-relaxed">
-              ℹ️ {block.strategicContext.length > 80
-                ? block.strategicContext.substring(0, 80) + '...'
-                : block.strategicContext
-              }
+              ℹ️{" "}
+              {block.strategicContext.length > 80
+                ? block.strategicContext.substring(0, 80) + "..."
+                : block.strategicContext}
             </p>
           )}
         </motion.div>
@@ -672,16 +782,17 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
               exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
               transition={{
                 duration: 0.3,
-                layout: { duration: 0.3, ease: "easeInOut" }
+                layout: { duration: 0.3, ease: "easeInOut" },
               }}
             >
-
               {/* Compact Question Header */}
               <div className="mb-6 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-charcoal/60">
-                      {language === 'es' ? 'Pregunta' : 'Question'} {globalQuestionNumber} {language === 'es' ? 'de' : 'of'} {isOnboarding ? 3 : totalQuestions}
+                      {language === "es" ? "Pregunta" : "Question"}{" "}
+                      {globalQuestionNumber} {language === "es" ? "de" : "of"}{" "}
+                      {isOnboarding ? 3 : totalQuestions}
                     </span>
                   </div>
 
@@ -705,11 +816,13 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
                   {showExplanation && currentQuestion.explanation && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
+                      animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       className="p-4 bg-primary/5 rounded-lg border border-primary/20"
                     >
-                      <p className="text-sm text-charcoal/70">{currentQuestion.explanation}</p>
+                      <p className="text-sm text-charcoal/70">
+                        {currentQuestion.explanation}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -721,13 +834,13 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
                 value={currentAnswer}
                 onAnswer={handleQuestionAnswer}
                 onComplete={() => {
-                  if (currentQuestion.type === 'long_text_with_ai') {
-                    onAnswer(currentQuestion.id, currentAnswer || '');
+                  if (currentQuestion.type === "long_text_with_ai") {
+                    onAnswer(currentQuestion.id, currentAnswer || "");
 
                     if (isLastQuestionInBlock) {
                       onNext();
                     } else {
-                      setCurrentQuestionIndex(prev => prev + 1);
+                      setCurrentQuestionIndex((prev) => prev + 1);
                     }
 
                     setIsSaving(false);
@@ -735,11 +848,9 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
                 }}
                 language={language}
               />
-
             </motion.div>
           </AnimatePresence>
         </div>
-
 
         {/* Simplified Navigation Footer */}
         <div className="px-6 py-4">
@@ -756,17 +867,23 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
 
             <Button
               onClick={handleNext}
-              disabled={currentQuestion.required && !isQuestionAnswered(currentQuestion) || isProcessing || isExtracting}
+              disabled={
+                (currentQuestion.required &&
+                  !isQuestionAnswered(currentQuestion)) ||
+                isProcessing ||
+                isExtracting
+              }
               className="flex-1 sm:flex-initial min-w-[140px] justify-center"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> {t.processingResults}
+                  <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                  {t.processingResults}
                 </>
               ) : isExtracting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {language === 'es' ? 'Analizando...' : 'Analyzing...'}
+                  {language === "es" ? "Analizando..." : "Analyzing..."}
                 </>
               ) : (
                 <>
@@ -779,5 +896,5 @@ export const IntelligentConversationFlow: React.FC<IntelligentConversationFlowPr
         </div>
       </motion.div>
     </>
-  );  // ✅ Closes the ternary operator and return statement
+  ); // ✅ Closes the ternary operator and return statement
 };
