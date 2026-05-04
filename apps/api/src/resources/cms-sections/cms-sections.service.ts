@@ -1,16 +1,16 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
 import { CmsSection } from './types/cms-section.types';
 import { CreateCmsSectionDto } from './dto/create-cms-section.dto';
 import { UpdateCmsSectionDto } from './dto/update-cms-section.dto';
-import { CmsPage, CmsPageDocument } from './schemas/cms-page.schema';
+import { CmsPageDocument, CmsPageSection } from './schemas/cms-page.schema';
 
 /**
  * Cada vista pública del marketplace es UN documento en `cms_pages`. El
@@ -22,13 +22,13 @@ export class CmsSectionsService {
   private readonly logger = new Logger(CmsSectionsService.name);
 
   constructor(
-    @InjectModel(CmsPage.name)
+    @Inject('CMS_PAGE_MODEL')
     private readonly pageModel: Model<CmsPageDocument>,
   ) {}
 
   // ── helpers ───────────────────────────────────────────
 
-  private nowSection(input: Omit<CmsSection, 'createdAt' | 'updatedAt'>): any {
+  private toSection(input: Omit<CmsSection, 'createdAt' | 'updatedAt'>): CmsPageSection {
     return {
       id: input.id,
       type: input.type,
@@ -38,10 +38,9 @@ export class CmsSectionsService {
     };
   }
 
-  /** Map a Mongo-stored page section to the public CmsSection shape. */
   private toPublic(
     pageKey: string,
-    raw: any,
+    raw: CmsPageSection,
     page: CmsPageDocument,
   ): CmsSection {
     return {
@@ -51,8 +50,8 @@ export class CmsSectionsService {
       type: raw.type,
       payload: raw.payload ?? {},
       published: !!raw.published,
-      createdAt: page.get('createdAt') ?? new Date(),
-      updatedAt: page.get('updatedAt') ?? new Date(),
+      createdAt: page.createdAt ?? new Date(),
+      updatedAt: page.updatedAt ?? new Date(),
     };
   }
 
@@ -71,9 +70,9 @@ export class CmsSectionsService {
     const page = await this.pageModel.findOne({ pageKey }).exec();
     if (!page) return [];
     const list = (page.sections ?? [])
-      .filter((s: any) => includeUnpublished || s.published)
-      .sort((a: any, b: any) => a.position - b.position);
-    return list.map((s: any) => this.toPublic(pageKey, s, page));
+      .filter((s) => includeUnpublished || s.published)
+      .sort((a, b) => a.position - b.position);
+    return list.map((s) => this.toPublic(pageKey, s, page));
   }
 
   async findOne(id: string): Promise<CmsSection> {
@@ -81,7 +80,7 @@ export class CmsSectionsService {
       .findOne({ 'sections.id': id })
       .exec();
     if (!page) throw new NotFoundException(`CmsSection ${id} not found`);
-    const raw = (page.sections ?? []).find((s: any) => s.id === id);
+    const raw = (page.sections ?? []).find((s) => s.id === id);
     if (!raw) throw new NotFoundException(`CmsSection ${id} not found`);
     return this.toPublic(page.pageKey, raw, page);
   }
@@ -90,7 +89,7 @@ export class CmsSectionsService {
     if (!dto.pageKey) throw new BadRequestException('pageKey is required');
 
     const page = await this.getOrCreatePage(dto.pageKey);
-    const positions = (page.sections ?? []).map((s: any) => s.position);
+    const positions = (page.sections ?? []).map((s) => s.position);
     const position =
       typeof dto.position === 'number'
         ? dto.position
@@ -98,7 +97,7 @@ export class CmsSectionsService {
         ? Math.max(...positions) + 1
         : 0;
 
-    const newSection = this.nowSection({
+    const newSection = this.toSection({
       id: randomUUID(),
       pageKey: dto.pageKey,
       type: dto.type,
@@ -119,11 +118,11 @@ export class CmsSectionsService {
       .exec();
     if (!page) throw new NotFoundException(`CmsSection ${id} not found`);
 
-    const idx = (page.sections ?? []).findIndex((s: any) => s.id === id);
+    const idx = (page.sections ?? []).findIndex((s) => s.id === id);
     if (idx < 0) throw new NotFoundException(`CmsSection ${id} not found`);
 
-    const current: any = page.sections[idx];
-    const next = {
+    const current = page.sections[idx];
+    const next: CmsPageSection = {
       ...current,
       ...(dto.type !== undefined ? { type: dto.type } : {}),
       ...(dto.payload !== undefined ? { payload: dto.payload } : {}),
@@ -141,7 +140,7 @@ export class CmsSectionsService {
       .findOne({ 'sections.id': id })
       .exec();
     if (!page) throw new NotFoundException(`CmsSection ${id} not found`);
-    page.sections = (page.sections ?? []).filter((s: any) => s.id !== id);
+    page.sections = (page.sections ?? []).filter((s) => s.id !== id);
     page.markModified('sections');
     await page.save();
     return { id };
@@ -152,10 +151,10 @@ export class CmsSectionsService {
     orderedIds: string[],
   ): Promise<CmsSection[]> {
     const page = await this.getOrCreatePage(pageKey);
-    const byId = new Map<string, any>(
-      (page.sections ?? []).map((s: any) => [s.id, s]),
+    const byId = new Map<string, CmsPageSection>(
+      (page.sections ?? []).map((s) => [s.id, s]),
     );
-    const next: any[] = [];
+    const next: CmsPageSection[] = [];
     orderedIds.forEach((id, position) => {
       const found = byId.get(id);
       if (!found) return;
