@@ -352,6 +352,47 @@ export class CmsService {
   }
 
   /**
+   * Normalize a blog_article Storyblok content block into the shape the
+   * frontend expects. Tolerates PascalCase field names and the two possible
+   * cover/excerpt field spellings used by different Content Type versions.
+   */
+  private normalizeBlogArticle(story: any): any {
+    const c = story.content || {};
+    const rawCover =
+      c.Cover_image || c.cover_image || c.Cover || c.cover || null;
+    const tagsField = c.Tags || c.tags || '';
+    const tags = Array.isArray(tagsField)
+      ? tagsField
+      : typeof tagsField === 'string'
+        ? tagsField
+            .split(',')
+            .map((t: string) => t.trim())
+            .filter(Boolean)
+        : [];
+
+    return {
+      _uid: c._uid || story.uuid || '',
+      component: c.component || 'blog_article',
+      title: c.Title || c.title || story.name || '',
+      slug: story.slug,
+      full_slug: story.full_slug,
+      description: c.Excerpt || c.excerpt || c.Description || c.description || '',
+      cover: this.normalizeImage(rawCover),
+      author_name: c.Author_name || c.author_name || '',
+      author_avatar: this.normalizeImage(c.Author_avatar || c.author_avatar),
+      category: c.Category || c.category || '',
+      tags,
+      reading_time: parseInt(
+        c.Reading_time || c.reading_time || '0',
+        10,
+      ) || undefined,
+      content: c.Content || c.content || null,
+      first_published_at: story.first_published_at,
+      published_at: story.published_at,
+    };
+  }
+
+  /**
    * Get blog articles with pagination
    */
   private async getBlogArticles(page = 1, perPage = 10): Promise<any> {
@@ -364,13 +405,8 @@ export class CmsService {
 
     return {
       articles:
-        data.stories?.map((story: any) => ({
-          ...story.content,
-          slug: story.slug,
-          full_slug: story.full_slug,
-          first_published_at: story.first_published_at,
-          published_at: story.published_at,
-        })) || [],
+        data.stories?.map((story: any) => this.normalizeBlogArticle(story)) ||
+        [],
       total: data.total || 0,
       per_page: data.per_page || perPage,
       page: page,
@@ -387,13 +423,7 @@ export class CmsService {
 
     if (!data.story) return null;
 
-    return {
-      ...data.story.content,
-      slug: data.story.slug,
-      full_slug: data.story.full_slug,
-      first_published_at: data.story.first_published_at,
-      published_at: data.story.published_at,
-    };
+    return this.normalizeBlogArticle(data.story);
   }
 
   /**

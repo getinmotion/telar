@@ -15,6 +15,9 @@ import {
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { NavbarV2 } from "@/components/NavbarV2";
+import { HeroSectionV2 } from "@/components/HeroSectionV2";
 
 // ── Seeded random for consistent daily shuffle ──
 const seededRandom = (seed: number) => {
@@ -141,62 +144,9 @@ const Index = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
-        {/* ═══════════════ HERO ═══════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-16 grid lg:grid-cols-12 gap-12 items-center">
-          {/* Left: Text */}
-          <div className="lg:col-span-5 space-y-10 lg:border-r border-[#2c2c2c]/5 lg:pr-12">
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl leading-[0.9] text-[#2c2c2c] font-serif italic">
-                Historias hechas a mano
-              </h1>
-              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
-                Objetos auténticos creados por talleres artesanales de Colombia.
-                Cada pieza conserva la historia, el origen y el conocimiento de
-                quienes la crean.
-              </p>
-              <p className="text-xs uppercase tracking-widest text-[#2c2c2c]/50 mt-2">
-                Hecho a mano por talleres artesanales de Colombia.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/productos"
-                className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors text-center"
-              >
-                Explorar piezas
-              </Link>
-              <Link
-                to="/tiendas"
-                className="border border-[#2c2c2c]/20 px-10 py-4 uppercase text-xs tracking-widest hover:border-[#2c2c2c] transition-colors text-center"
-              >
-                Conocer talleres
-              </Link>
-            </div>
-          </div>
-
-          {/* Right: Hero image + quote */}
-          <div className="lg:col-span-7">
-            <div className="grid grid-cols-6 gap-4">
-              {/* Main hero image */}
-              <div className="col-span-6 aspect-[16/9] bg-[#e5e1d8] overflow-hidden relative">
-                <img
-                  src={HERO_IMAGE}
-                  alt="Artesanía colombiana"
-                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              {/* Quote area */}
-              <div className="col-span-3 border-t border-[#2c2c2c]/10 pt-4">
-                <p className="text-[10px] uppercase tracking-widest text-[#ec6d13] font-bold mb-2">
-                  Origen: Nariño, Colombia
-                </p>
-                <p className="font-serif italic text-lg leading-snug">
-                  "Cada puntada es un susurro de nuestros ancestros."
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ═══════════════ HERO (dinámico desde Storyblok) ═══════════════ */}
+        {/* <HeroCarousel /> */}
+        <HeroSectionV2/>
 
         {/* ═══════════════ VALUE PROPS ═══════════════ */}
         <section className="py-12 bg-[#fdfaf6]/50 border-b border-[#2c2c2c]/5">
@@ -662,7 +612,11 @@ const Index = () => {
               Aliados
             </h2>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-48 h-12 bg-[#e5e1d8] opacity-50" />
+              <img
+                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
+                alt="Artesanías de Colombia"
+                className="w-48 h-auto object-contain"
+              />
               <h3 className="text-2xl font-serif">
                 Con el apoyo de Artesanías de Colombia
               </h3>

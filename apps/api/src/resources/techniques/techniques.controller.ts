@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { TechniquesService } from './techniques.service';
 import { CreateTechniqueDto } from './dto/create-technique.dto';
@@ -21,7 +22,10 @@ export class TechniquesController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query('withProductCount') withProductCount?: string) {
+    if (withProductCount === 'true' || withProductCount === '1') {
+      return this.techniquesService.findAllWithProductCount();
+    }
     return this.techniquesService.findAll();
   }
 

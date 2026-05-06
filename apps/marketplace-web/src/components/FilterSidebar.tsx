@@ -109,6 +109,20 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
     return counts;
   }, [products, uniqueCrafts]);
 
+  // Listas visibles (solo items con al menos 1 producto)
+  const visibleCategories = useMemo(
+    () => FALLBACK_MARKETPLACE_CATEGORIES.filter(c => (categoryCounts.get(c.name) || 0) > 0),
+    [categoryCounts]
+  );
+  const visibleMaterials = useMemo(
+    () => uniqueMaterials.filter(m => (materialCounts.get(m) || 0) > 0),
+    [uniqueMaterials, materialCounts]
+  );
+  const visibleTechniques = useMemo(
+    () => uniqueTechniques.filter(t => (techniqueCounts.get(t) || 0) > 0),
+    [uniqueTechniques, techniqueCounts]
+  );
+
   const updateFilters = (updates: Partial<FilterState>) => {
     onFiltersChange({ ...filters, ...updates });
   };
@@ -200,10 +214,11 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
           </div>
 
         {/* Categories */}
+        {visibleCategories.length > 0 && (
         <div className="space-y-4">
           <Label className="text-base font-semibold">Categorías</Label>
           <div className="space-y-1">
-            {FALLBACK_MARKETPLACE_CATEGORIES.map((category) => {
+            {visibleCategories.map((category) => {
               const isActive = filters.categories.includes(category.name);
               const count = categoryCounts.get(category.name) || 0;
               return (
@@ -241,6 +256,7 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
             })}
           </div>
         </div>
+        )}
 
         {/* Oficios Artesanales */}
         {uniqueCrafts.length > 0 && (
@@ -313,7 +329,7 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
         </div>
 
         {/* Materials */}
-        {uniqueMaterials.length > 0 && (
+        {visibleMaterials.length > 0 && (
           <div className="space-y-4">
             <Label className="text-base font-semibold">Materiales</Label>
             <div className="relative">
@@ -322,13 +338,13 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
             </div>
             <ScrollArea className="h-[200px]">
               <div className="space-y-1">
-                {uniqueMaterials.filter(m => !materialSearch || m.toLowerCase().includes(materialSearch.toLowerCase())).map((material) => {
+                {visibleMaterials.filter(m => !materialSearch || m.toLowerCase().includes(materialSearch.toLowerCase())).map((material) => {
                   const isActive = filters.materials.includes(material);
                   const count = materialCounts.get(material) || 0;
                   return (
-                    <div key={material} className={cn("flex items-center gap-3 py-2 px-2 rounded-md transition-all", "hover:bg-accent/30", isActive && "bg-accent/50 border-l-2 border-primary", count === 0 && "opacity-50")}>
-                      <Checkbox id={`mat-${material}`} checked={isActive} onCheckedChange={() => toggleMaterial(material)} disabled={count === 0} className="shrink-0" />
-                      <label htmlFor={`mat-${material}`} className={cn("text-sm leading-none cursor-pointer flex-1", isActive && "text-primary font-medium", count === 0 && "cursor-not-allowed")}>
+                    <div key={material} className={cn("flex items-center gap-3 py-2 px-2 rounded-md transition-all", "hover:bg-accent/30", isActive && "bg-accent/50 border-l-2 border-primary")}>
+                      <Checkbox id={`mat-${material}`} checked={isActive} onCheckedChange={() => toggleMaterial(material)} className="shrink-0" />
+                      <label htmlFor={`mat-${material}`} className={cn("text-sm leading-none cursor-pointer flex-1", isActive && "text-primary font-medium")}>
                         <div className="flex items-center justify-between">
                           <span>{material}</span>
                           <div className="flex items-center gap-2">
@@ -346,7 +362,7 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
         )}
 
         {/* Techniques */}
-        {uniqueTechniques.length > 0 && (
+        {visibleTechniques.length > 0 && (
           <div className="space-y-4">
             <Label className="text-base font-semibold">Técnicas Artesanales</Label>
             <div className="relative">
@@ -355,13 +371,13 @@ export const FilterSidebar = ({ filters, onFiltersChange, availableCategories, p
             </div>
             <ScrollArea className="h-[200px]">
               <div className="space-y-1">
-                {uniqueTechniques.filter(t => !techniqueSearch || t.toLowerCase().includes(techniqueSearch.toLowerCase())).map((technique) => {
+                {visibleTechniques.filter(t => !techniqueSearch || t.toLowerCase().includes(techniqueSearch.toLowerCase())).map((technique) => {
                   const isActive = filters.techniques.includes(technique);
                   const count = techniqueCounts.get(technique) || 0;
                   return (
-                    <div key={technique} className={cn("flex items-center gap-3 py-2 px-2 rounded-md transition-all", "hover:bg-accent/30", isActive && "bg-accent/50 border-l-2 border-primary", count === 0 && "opacity-50")}>
-                      <Checkbox id={`tech-${technique}`} checked={isActive} onCheckedChange={() => toggleTechnique(technique)} disabled={count === 0} className="shrink-0" />
-                      <label htmlFor={`tech-${technique}`} className={cn("text-sm leading-none cursor-pointer flex-1", isActive && "text-primary font-medium", count === 0 && "cursor-not-allowed")}>
+                    <div key={technique} className={cn("flex items-center gap-3 py-2 px-2 rounded-md transition-all", "hover:bg-accent/30", isActive && "bg-accent/50 border-l-2 border-primary")}>
+                      <Checkbox id={`tech-${technique}`} checked={isActive} onCheckedChange={() => toggleTechnique(technique)} className="shrink-0" />
+                      <label htmlFor={`tech-${technique}`} className={cn("text-sm leading-none cursor-pointer flex-1", isActive && "text-primary font-medium")}>
                         <div className="flex items-center justify-between">
                           <span>{technique}</span>
                           <div className="flex items-center gap-2">

@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import {
   getProductsNew,
+  getProductNewById,
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
@@ -29,6 +30,21 @@ import {
   Heart,
   ArrowRight,
 } from "lucide-react";
+
+// ── Featured editorial story — Cauca / Agroarte ─────
+const CAUCA_FEATURED_PRODUCT_ID = "963a11d1-98a2-480e-993c-c722b1f248de";
+
+// ── Editorial photography (S3 · hero-images/last-version/artesanos_p) ──
+// Drop the exact S3 keys here when available. Until then, the page falls
+// back to imagery drawn from real products so no grey placeholders remain.
+const ARTESANOS_P_BASE =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/artesanos_p";
+const ARTESANOS_P_FILES: string[] = [
+  // e.g. "artesanos_p_1.jpg", "artesanos_p_2.jpg", ...
+];
+const ARTESANOS_P_IMAGES = ARTESANOS_P_FILES.map(
+  (f) => `${ARTESANOS_P_BASE}/${encodeURIComponent(f)}`,
+);
 
 // ── Gift card options ───────────────────────────────
 const GIFTCARD_OPTIONS = [
@@ -83,6 +99,7 @@ const GiftCards = () => {
   const [forms, setForms] = useState<Record<string, GiftCardForm>>({});
   const [addedCards, setAddedCards] = useState<Set<string>>(new Set());
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [caucaProduct, setCaucaProduct] = useState<ProductNewCore | null>(null);
 
   // Fetch featured products
   useEffect(() => {
@@ -91,11 +108,50 @@ const GiftCards = () => {
       .catch(() => {});
   }, []);
 
+  // Fetch the Cauca / Agroarte featured product for the editorial story
+  useEffect(() => {
+    getProductNewById(CAUCA_FEATURED_PRODUCT_ID)
+      .then((p) => setCaucaProduct(p as ProductNewCore))
+      .catch(() => {});
+  }, []);
+
   // Pick 4 varied recommended products
   const recommendations = useMemo(() => {
     const shuffled = [...products].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 4);
   }, [products]);
+
+  // Pick an editorial image for a given slot index.
+  // Prefers curated S3 images from ARTESANOS_P_IMAGES; falls back to real
+  // product imagery so no grey placeholders are rendered.
+  const editorialImage = (slot: number): string | null => {
+    if (ARTESANOS_P_IMAGES[slot]) return ARTESANOS_P_IMAGES[slot];
+    const p = products[slot];
+    return p ? getPrimaryImageUrl(p) ?? null : null;
+  };
+
+  // Image that represents a gift intention (category slug) — first product
+  // whose category matches. Falls back to editorialImage() if nothing matches.
+  const intentionImage = (slug: string, slot: number): string | null => {
+    if (ARTESANOS_P_IMAGES[slot]) return ARTESANOS_P_IMAGES[slot];
+    const match = products.find((p) => {
+      const cats = p.artisanalIdentity?.curatorialCategory;
+      if (cats?.name) {
+        const norm = cats.name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s+/g, "-");
+        if (norm.includes(slug) || slug.includes(norm)) return true;
+      }
+      return false;
+    });
+    return (match ? getPrimaryImageUrl(match) : null) ?? editorialImage(slot);
+  };
+
+  const caucaImage = caucaProduct
+    ? getPrimaryImageUrl(caucaProduct)
+    : editorialImage(0);
 
   const handleFormChange = (
     cardId: string,
@@ -134,7 +190,21 @@ const GiftCards = () => {
     <div className="min-h-screen bg-[#f9f7f2] text-[#1b1c19]">
       {/* Hero Editorial Section */}
       <header className="relative w-full h-[70vh] min-h-[500px] max-h-[820px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[#e5e5e5]" />
+        {(() => {
+          const heroImg = ARTESANOS_P_IMAGES[0] ?? caucaImage ?? editorialImage(0);
+          return heroImg ? (
+            <>
+              <img
+                src={heroImg}
+                alt="Regalos con historia"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#1b1c19]/30 via-[#1b1c19]/20 to-[#f9f7f2]/90" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-[#1b1c19]/5" />
+          );
+        })()}
         <div className="relative z-10 text-center px-6 max-w-4xl">
           <span className="text-[#ec6d13] text-xs uppercase tracking-[0.3em] mb-4 block font-bold">
             Curaduria Exclusiva
@@ -163,25 +233,36 @@ const GiftCards = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {GIFT_INTENTIONS.map((intent, i) => (
-            <Link
-              key={intent.slug}
-              to={`/productos?categoria=${intent.slug}`}
-              className={`group relative aspect-[3/4] bg-[#e5e5e5] overflow-hidden rounded-sm cursor-pointer ${
-                i % 2 === 1 ? "md:mt-12" : ""
-              }`}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c19]/60 to-transparent z-10" />
-              <div className="absolute bottom-8 left-8 z-20">
-                <h3 className="font-serif text-2xl text-[#f9f7f2]">
-                  {intent.title}
-                </h3>
-                <p className="text-[#f9f7f2]/80 text-sm uppercase tracking-widest mt-2 font-bold">
-                  {intent.subtitle}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {GIFT_INTENTIONS.map((intent, i) => {
+            const img = intentionImage(intent.slug, i + 1);
+            return (
+              <Link
+                key={intent.slug}
+                to={`/productos?categoria=${intent.slug}`}
+                className={`group relative aspect-[3/4] bg-[#1b1c19]/5 overflow-hidden rounded-sm cursor-pointer ${
+                  i % 2 === 1 ? "md:mt-12" : ""
+                }`}
+              >
+                {img && (
+                  <img
+                    src={img}
+                    alt={intent.title}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c19]/80 via-[#1b1c19]/20 to-transparent z-10" />
+                <div className="absolute bottom-8 left-8 z-20">
+                  <h3 className="font-serif text-2xl text-[#f9f7f2]">
+                    {intent.title}
+                  </h3>
+                  <p className="text-[#f9f7f2]/80 text-sm uppercase tracking-widest mt-2 font-bold">
+                    {intent.subtitle}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -195,37 +276,83 @@ const GiftCards = () => {
             <div className="w-24 h-px bg-[#ec6d13] mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            {/* Large Feature */}
+            {/* Large Feature — La Ruta de la Seda (Cauca · Agroarte) */}
             <div className="md:col-span-7 bg-[#f9f7f2] rounded-sm p-12 flex flex-col justify-between min-h-[500px]">
               <div>
                 <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
-                  Especial de Temporada
+                  Crónica del Territorio · Cauca
                 </span>
-                <h3 className="font-serif text-4xl mb-6">
-                  La Ruta de la Seda y el Barro
+                <h3 className="font-serif text-4xl mb-6 leading-tight">
+                  La Ruta de la Seda:
+                  <br />
+                  <span className="italic">de la morera al telar de paz</span>
                 </h3>
-                <p className="text-[#584237] leading-relaxed max-w-sm">
-                  Una seleccion de piezas que exploran la conexion entre las
-                  texturas suaves y la tierra cocida.
+                <p className="text-[#584237] leading-relaxed mb-4">
+                  En las montañas del Cauca, Colteseda y Agroarte tejen una
+                  revolución silenciosa. Mujeres cabeza de familia transforman
+                  la morera en seda y la hoja de coca en tintes naturales,
+                  sustituyendo economías de la guerra por una economía legal,
+                  digna y circular.
+                </p>
+                <p className="text-[#584237] leading-relaxed">
+                  Cada pieza de Agroarte lleva el alma de esta transformación:
+                  seda hilada a mano, teñida con pigmentos que devuelven a la
+                  coca su origen artesanal. Regalar una pieza del Cauca es
+                  portar una historia de reconciliación.
                 </p>
               </div>
               <div className="mt-8">
-                <div className="w-full h-64 bg-[#e5e5e5] mb-8 rounded-sm" />
-                <Link
-                  to="/productos"
-                  className="font-bold border-b-2 border-[#ec6d13] pb-1 hover:text-[#ec6d13] transition-colors text-sm uppercase tracking-widest"
-                >
-                  Descubrir la ruta
-                </Link>
+                <div className="w-full h-64 mb-8 rounded-sm overflow-hidden bg-[#1b1c19]/5">
+                  {caucaImage && (
+                    <img
+                      src={caucaImage}
+                      alt={caucaProduct?.name ?? "Seda del Cauca · Agroarte"}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-6">
+                  <Link
+                    to={
+                      caucaProduct
+                        ? `/product/${caucaProduct.id}`
+                        : `/product/${CAUCA_FEATURED_PRODUCT_ID}`
+                    }
+                    className="font-bold border-b-2 border-[#ec6d13] pb-1 hover:text-[#ec6d13] transition-colors text-sm uppercase tracking-widest"
+                  >
+                    Ver la pieza {caucaProduct?.artisanShop?.shopName
+                      ? `de ${caucaProduct.artisanShop.shopName}`
+                      : "de Agroarte"}
+                  </Link>
+                  <Link
+                    to="/territorio/cauca"
+                    className="text-[10px] uppercase tracking-widest font-bold text-[#584237] hover:text-[#ec6d13] transition-colors"
+                  >
+                    Conocer el territorio →
+                  </Link>
+                </div>
               </div>
             </div>
             {/* Side Features */}
             <div className="md:col-span-5 flex flex-col gap-8">
               <Link
-                to="/productos"
-                className="bg-[#f9f7f2] p-8 rounded-sm flex items-center gap-6 group cursor-pointer"
+                to="/tecnicas"
+                className="bg-[#f9f7f2] p-8 rounded-sm flex items-center gap-6 group cursor-pointer overflow-hidden"
               >
-                <div className="w-24 h-24 bg-[#e5e5e5] shrink-0 rounded-sm" />
+                {(() => {
+                  const img = editorialImage(5);
+                  return (
+                    <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden bg-[#1b1c19]/5">
+                      {img && (
+                        <img
+                          src={img}
+                          alt="Técnicas ancestrales"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                  );
+                })()}
                 <div>
                   <h4 className="font-serif text-xl mb-1 group-hover:text-[#ec6d13] transition-colors">
                     Tecnicas Ancestrales
@@ -235,8 +362,21 @@ const GiftCards = () => {
                   </p>
                 </div>
               </Link>
-              <div className="bg-[#1b1c19] p-8 rounded-sm flex flex-col justify-between flex-grow">
-                <div className="w-full h-40 bg-[#e5e5e5]/10 mb-6 rounded-sm" />
+              <div className="bg-[#1b1c19] p-8 rounded-sm flex flex-col justify-between flex-grow overflow-hidden">
+                {(() => {
+                  const img = editorialImage(6);
+                  return (
+                    <div className="w-full h-40 mb-6 rounded-sm overflow-hidden bg-[#f9f7f2]/5">
+                      {img && (
+                        <img
+                          src={img}
+                          alt="El arte de empacar"
+                          className="w-full h-full object-cover opacity-90"
+                        />
+                      )}
+                    </div>
+                  );
+                })()}
                 <h4 className="font-serif text-2xl text-[#f9f7f2] mb-4">
                   El Arte de Empacar
                 </h4>
@@ -278,7 +418,7 @@ const GiftCards = () => {
                   to={`/product/${product.id}`}
                   className="group"
                 >
-                  <div className="relative aspect-[4/5] bg-[#e5e5e5] overflow-hidden mb-6 rounded-sm">
+                  <div className="relative aspect-[4/5] bg-[#1b1c19]/5 overflow-hidden mb-6 rounded-sm">
                     {imageUrl && (
                       <img
                         src={imageUrl}
@@ -317,7 +457,7 @@ const GiftCards = () => {
       )}
 
       {/* Gift Cards Section */}
-      <section className="py-32 bg-white border-y border-[#1b1c19]/5">
+      {/* <section className="py-32 bg-white border-y border-[#1b1c19]/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
             <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
@@ -333,7 +473,6 @@ const GiftCards = () => {
             <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
           </div>
 
-          {/* Info badges */}
           <div className="flex flex-wrap justify-center gap-12 mb-16">
             <div className="flex items-center gap-3">
               <ShoppingCart className="w-4 h-4 text-[#ec6d13]" />
@@ -355,7 +494,6 @@ const GiftCards = () => {
             </div>
           </div>
 
-          {/* Gift Card Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {GIFTCARD_OPTIONS.map((card) => {
               const isSelected = selectedCard === card.id;
@@ -467,13 +605,26 @@ const GiftCards = () => {
             })}
           </div>
         </div>
-      </section>
+      </section> */}
+
+      
 
       {/* Corporate Section */}
       <section className="w-full bg-[#1b1c19] py-32 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
           <div className="order-2 md:order-1">
-            <div className="w-full aspect-square bg-[#e5e5e5] rounded-sm overflow-hidden" />
+            <div className="w-full aspect-square rounded-sm overflow-hidden bg-[#f9f7f2]/5">
+              {(() => {
+                const img = editorialImage(7);
+                return img ? (
+                  <img
+                    src={img}
+                    alt="Regalos corporativos"
+                    className="w-full h-full object-cover"
+                  />
+                ) : null;
+              })()}
+            </div>
           </div>
           <div className="order-1 md:order-2 space-y-12">
             <div className="space-y-6">

@@ -8,6 +8,10 @@
       {
         "include": "**/*.hbs",
         "watchAssets": true
+      },
+      {
+        "include": "**/*.md",
+        "watchAssets": true
       }
     ],
     "plugins": [

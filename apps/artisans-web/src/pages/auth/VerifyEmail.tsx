@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,25 @@ export const VerifyEmail = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
+  // 🔒 Evitar llamadas duplicadas (especialmente en React.StrictMode)
+  const hasVerified = useRef(false);
+
   useEffect(() => {
     const handleVerifyEmail = async () => {
+      // ✅ Si ya se verificó, no hacer nada
+      if (hasVerified.current) {
+        return;
+      }
+
       // Validar que exista el token
       if (!token) {
         setStatus('error');
         setMessage('Token de verificación inválido');
         return;
       }
+
+      // 🔒 Marcar como verificado ANTES de la llamada
+      hasVerified.current = true;
 
       try {
         // Llamar a la función verifyEmail del nuevo backend NestJS

@@ -97,6 +97,22 @@ export const getTechniques = async (): Promise<TaxonomyTechnique[]> => {
   return response.data;
 };
 
+export interface TechniqueWithProductCount {
+  id: string;
+  name: string;
+  productCount: number;
+}
+
+/** GET /techniques?withProductCount=true — técnicas + cantidad de productos asociados */
+export const getTechniquesWithProductCount = async (): Promise<
+  TechniqueWithProductCount[]
+> => {
+  const response = await telarApiPublic.get<TechniqueWithProductCount[]>(
+    '/techniques?withProductCount=true',
+  );
+  return Array.isArray(response.data) ? response.data : [];
+};
+
 /** GET /curatorial-categories — all curatorial collections */
 export const getCuratorialCategories = async (): Promise<TaxonomyCuratorialCategory[]> => {
   const response = await telarApiPublic.get<TaxonomyCuratorialCategory[]>('/curatorial-categories');
