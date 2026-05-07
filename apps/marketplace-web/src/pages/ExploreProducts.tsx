@@ -99,7 +99,7 @@ const ExploreProducts = () => {
       try {
         const response = await semanticSearch({
           query: searchQuery,
-          limit: 50,
+          limit: 70,
           min_similarity: 0.3,
         });
 

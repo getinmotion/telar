@@ -10,10 +10,10 @@ import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Store, Sparkles, ArrowRight, MessageCircle, Bot, User, Wand2, Edit2, Check } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { mapProfileDataToShopData, getMissingShopFields, hasCompleteShopData, getPrefilledDataSummary } from '@/utils/shopDataMapper';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ColombiaLocationSelect, formatRegionFromLocation } from '@/components/ui/colombia-location-select';
+import { processIntelligentShopConversation, type ConversationMessage as AIConversationMessage } from '@/services/ai.actions';
 
 interface ConversationalMessage {
   id: string;
@@ -187,25 +187,22 @@ export const ConversationalShopCreation: React.FC<ConversationalShopCreationProp
           let mappedShopData = mapProfileDataToShopData(profileData);
 
           // 🔥 NUEVO: Refinar descripción con IA si existe
-          if (mappedShopData.description && mappedShopData.description.length > 10) {
+          if (mappedShopData.description && mappedShopData.description.length > 10 && user?.id) {
             try {
-              const { data: refinedData, error: refineError } = await supabase.functions.invoke('create-intelligent-shop', {
-                body: {
-                  userId: user?.id,
-                  action: 'process_conversation',
-                  userResponse: mappedShopData.description,
-                  currentQuestion: 'products',
-                  conversationHistory: [],
-                  shopData: mappedShopData,
-                  language: 'es'
-                }
+              const refinedData = await processIntelligentShopConversation({
+                userId: user.id,
+                userResponse: mappedShopData.description,
+                currentQuestion: 'business_products',
+                conversationHistory: [],
+                shopData: mappedShopData,
+                language: 'es'
               });
 
-              if (!refineError && refinedData?.updatedShopData?.description) {
+              if (refinedData.success && refinedData.data?.updatedShopData?.description) {
                 mappedShopData = {
                   ...mappedShopData,
-                  description: refinedData.updatedShopData.description,
-                  craft_type: refinedData.updatedShopData.craft_type || mappedShopData.craft_type
+                  description: refinedData.data.updatedShopData.description,
+                  craft_type: refinedData.data.updatedShopData.craft_type || mappedShopData.craft_type
                 };
               }
             } catch (refineErr) {
@@ -459,21 +456,39 @@ export const ConversationalShopCreation: React.FC<ConversationalShopCreationProp
     }
 
     try {
-      // 🔥 NUEVO: Llamar al edge function para refinar el texto con IA
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('create-intelligent-shop', {
-        body: {
-          userId: user!.id,
-          action: 'process_conversation',
-          userResponse: response,
-          currentQuestion: currentQ.key,
-          conversationHistory: state.conversation,
-          shopData: state.shopData,
-          language: 'es'
-        }
+      // 🔥 NUEVO: Llamar al servicio de IA para refinar el texto
+      // Mapear el currentQuestion a los valores esperados por el backend
+      const questionMap: Record<string, string> = {
+        'shop_name': 'business_name',
+        'products': 'business_products',
+        'location': 'business_location'
+      };
+
+      const mappedQuestion = questionMap[currentQ.key] || currentQ.key;
+
+      // Mapear conversación al formato esperado por el backend
+      const conversationHistory: AIConversationMessage[] = state.conversation
+        .filter(msg => msg.type === 'coordinator' || msg.type === 'user')
+        .map(msg => ({
+          question: msg.type === 'coordinator' ? msg.content : '',
+          answer: msg.type === 'user' ? msg.content : '',
+          timestamp: msg.timestamp.toISOString()
+        }))
+        .filter(msg => msg.question || msg.answer);
+
+      const aiResponse = await processIntelligentShopConversation({
+        userId: user!.id,
+        userResponse: response,
+        currentQuestion: mappedQuestion,
+        conversationHistory,
+        shopData: state.shopData,
+        language: 'es'
       });
 
-      if (edgeError) {
-        console.warn('⚠️ Edge function error, usando texto original:', edgeError);
+      if (aiResponse.success && aiResponse.data?.updatedShopData) {
+        // ✅ Usar datos refinados por IA
+        updatedShopData = aiResponse.data.updatedShopData;
+      } else {
         // Fallback: usar texto original sin refinar
         if (currentQ.key === 'shop_name') {
           updatedShopData.shop_name = response.trim();
@@ -483,9 +498,6 @@ export const ConversationalShopCreation: React.FC<ConversationalShopCreationProp
         } else if (currentQ.key === 'location') {
           updatedShopData.region = response.trim();
         }
-      } else {
-        // ✅ Usar datos refinados por IA
-        updatedShopData = edgeData.updatedShopData || updatedShopData;
       }
     } catch (error) {
       console.error('Error refinando con IA:', error);

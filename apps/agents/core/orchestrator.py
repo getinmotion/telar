@@ -10,6 +10,8 @@ from agents.agents.legal import LegalAgent
 from agents.agents.presencia_digital import PresenciaDigitalAgent
 from agents.agents.faq import FAQAgent
 from agents.agents.pricing import PricingAgent
+from agents.agents.servicio_cliente import ServicioClienteAgent
+from agents.agents.fotografia import FotografiaAgent
 from agents.core.state import AgentState
 from agents.core.memory import memory_service
 from agents.prompts import get_supervisor_prompt
@@ -45,7 +47,9 @@ class SupervisorAgent:
             "legal": LegalAgent(),
             "presencia_digital": PresenciaDigitalAgent(),
             "faq": FAQAgent(),
-            "pricing": PricingAgent()
+            "pricing": PricingAgent(),
+            "servicio_cliente": ServicioClienteAgent(),
+            "fotografia": FotografiaAgent(),
         }
         
         # Initialize hierarchical memory service
@@ -78,10 +82,12 @@ class SupervisorAgent:
         workflow.add_node("presencia_digital", self._presencia_digital_node)
         workflow.add_node("faq", self._faq_node)
         workflow.add_node("pricing", self._pricing_node)
-        
+        workflow.add_node("servicio_cliente", self._servicio_cliente_node)
+        workflow.add_node("fotografia", self._fotografia_node)
+
         # Set entry point
         workflow.set_entry_point("supervisor")
-        
+
         # Add conditional edges from supervisor to workers
         workflow.add_conditional_edges(
             "supervisor",
@@ -92,7 +98,9 @@ class SupervisorAgent:
                 "legal": "legal",
                 "presencia_digital": "presencia_digital",
                 "faq": "faq",
-                "pricing": "pricing"
+                "pricing": "pricing",
+                "servicio_cliente": "servicio_cliente",
+                "fotografia": "fotografia",
             }
         )
         
@@ -402,11 +410,13 @@ Solicitud del usuario: {state['user_input'][:500]}{'...' if len(state['user_inpu
 
 Agentes disponibles:
 - onboarding: Diagnóstico inicial con 16 preguntas (Q1-Q16) para evaluar madurez artesanal
-- producto: Catálogo de productos, inventario, descripciones de tienda
-- legal: Temas legales, impuestos, contabilidad, formalización
-- presencia_digital: Marketing digital, redes sociales, visibilidad online
-- pricing: Estrategias de precios, análisis de mercado
-- faq: Preguntas generales sobre negocios artesanales
+- producto: Catálogo de productos, inventario, descripciones de tienda, recomendaciones de productos
+- legal: Temas legales, impuestos, contabilidad, formalización, DIAN, registros
+- presencia_digital: Marketing digital, redes sociales, Instagram, TikTok, visibilidad online
+- pricing: Estrategias de precios, análisis de mercado, costos, márgenes
+- servicio_cliente: Devoluciones, PQRS, quejas, reclamos, envíos, garantías, políticas de devolución
+- fotografia: Fotografía de productos, análisis de imágenes, consejos para mejorar fotos
+- faq: Preguntas generales sobre negocios artesanales (usar si confidence < 0.6)
 
 Devuelve tu decisión en formato JSON."""
             
@@ -437,17 +447,35 @@ Devuelve tu decisión en formato JSON."""
             state['error'] = str(e)
             return state
     
-    def _route_to_agent(self, state: AgentState) -> Literal["onboarding", "producto", "legal", "presencia_digital", "faq", "pricing"]:
+    def _route_to_agent(self, state: AgentState) -> str:
         """
         Route to the selected agent.
-        
+        If context contains image_url, always route to fotografia regardless of LLM decision.
+
         Args:
             state: Current agent state
-            
+
         Returns:
             Agent name to route to
         """
-        return state.get('selected_agent', 'faq')
+        # Hard override: image present → fotografia
+        context = state.get('context') or {}
+        if context.get('image_url') or context.get('image_data'):
+            return 'fotografia'
+
+        # Hard override: active wizard → servicio_cliente (skip LLM routing)
+        # wizard_data is a dict of collected answers; if it exists and is non-empty,
+        # the user is mid-wizard and must continue with servicio_cliente.
+        wizard_data = context.get('wizard_data')
+        if isinstance(wizard_data, dict) and wizard_data:
+            return 'servicio_cliente'
+
+        selected = state.get('selected_agent', 'faq')
+        # Safety: if selected agent is not registered, fall back to faq
+        if selected not in self.agents:
+            logger.warning(f"Unknown agent '{selected}' selected, falling back to faq")
+            return 'faq'
+        return selected
     
     async def _onboarding_node(self, state: AgentState) -> AgentState:
         """Process request with onboarding agent."""
@@ -472,6 +500,14 @@ Devuelve tu decisión en formato JSON."""
     async def _pricing_node(self, state: AgentState) -> AgentState:
         """Process request with Pricing agent."""
         return await self._process_with_agent(state, "pricing")
+
+    async def _servicio_cliente_node(self, state: AgentState) -> AgentState:
+        """Process request with Customer Service agent."""
+        return await self._process_with_agent(state, "servicio_cliente")
+
+    async def _fotografia_node(self, state: AgentState) -> AgentState:
+        """Process request with Photography agent."""
+        return await self._process_with_agent(state, "fotografia")
     
     async def _process_with_agent(self, state: AgentState, agent_name: str) -> AgentState:
         """

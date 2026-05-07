@@ -332,3 +332,228 @@ export const analyzeImage = async (
     throw error;
   }
 };
+
+// ============= Intelligent Shop Actions =============
+
+export interface ConversationMessage {
+  question: string;
+  answer: string;
+  timestamp?: string;
+}
+
+export interface ShopData {
+  shop_name?: string;
+  shop_slug?: string;
+  description?: string;
+  story?: string;
+  craft_type?: string;
+  region?: string;
+}
+
+export interface UserContext {
+  hasExistingData: boolean;
+  detectedCraft: string;
+  maturityLevel: number;
+}
+
+export interface PreConfigurateShopRequest {
+  userId: string;
+  language?: string;
+}
+
+export interface PreConfigurateShopResponse {
+  success: boolean;
+  data: {
+    shopData: ShopData;
+    coordinatorMessage: string;
+    userContext: UserContext;
+  };
+}
+
+export interface AnalyzeProfileRequest {
+  userId: string;
+  language?: string;
+}
+
+export interface AnalyzeProfileResponse {
+  success: boolean;
+  data: {
+    needsMoreInfo: boolean;
+    coordinatorMessage: string;
+    nextQuestion: string | null;
+    missingInfo: string[];
+    shopData: ShopData;
+    userContext: UserContext;
+  };
+}
+
+export interface ProcessConversationRequest {
+  userId: string;
+  userResponse: string;
+  currentQuestion: string;
+  conversationHistory?: ConversationMessage[];
+  shopData?: ShopData;
+  language?: string;
+}
+
+export interface ProcessConversationResponse {
+  success: boolean;
+  data: {
+    message: string;
+    nextQuestion?: string;
+    updatedShopData: ShopData;
+    readyToCreate: boolean;
+    finalShopData?: ShopData;
+  };
+}
+
+export interface ProductSuggestion {
+  name: string;
+  description: string;
+  suggested_price: number;
+  category: string;
+  tags: string[];
+}
+
+export interface GenerateProductSuggestionsRequest {
+  shopData: ShopData;
+  language?: string;
+}
+
+export interface GenerateProductSuggestionsResponse {
+  success: boolean;
+  data: {
+    productSuggestions: {
+      products: ProductSuggestion[];
+    };
+    shopContext: {
+      craftType: string;
+      region: string;
+      description: string;
+    };
+  };
+}
+
+/**
+ * Preconfigurar tienda inteligente
+ * Endpoint: POST /ai/intelligent-shop/preconfigurate
+ *
+ * @param request - ID del usuario y idioma
+ * @returns Datos de tienda precargados con IA
+ */
+export const preconfigurateIntelligentShop = async (
+  request: PreConfigurateShopRequest
+): Promise<PreConfigurateShopResponse> => {
+  try {
+    const response = await telarApi.post<PreConfigurateShopResponse>(
+      '/ai/intelligent-shop/preconfigurate',
+      {
+        userId: request.userId,
+        language: request.language || 'es',
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error preconfiguring intelligent shop:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al preconfigurar la tienda'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Analizar perfil para tienda inteligente
+ * Endpoint: POST /ai/intelligent-shop/analyze-profile
+ *
+ * @param request - ID del usuario y idioma
+ * @returns Análisis del perfil y necesidad de conversación
+ */
+export const analyzeProfileForIntelligentShop = async (
+  request: AnalyzeProfileRequest
+): Promise<AnalyzeProfileResponse> => {
+  try {
+    const response = await telarApi.post<AnalyzeProfileResponse>(
+      '/ai/intelligent-shop/analyze-profile',
+      {
+        userId: request.userId,
+        language: request.language || 'es',
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error analyzing profile for intelligent shop:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al analizar el perfil'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Procesar conversación de tienda inteligente
+ * Endpoint: POST /ai/intelligent-shop/process-conversation
+ *
+ * @param request - Datos de la conversación (respuesta del usuario, pregunta actual, historial, etc.)
+ * @returns Mensaje siguiente, datos actualizados y estado de la conversación
+ */
+export const processIntelligentShopConversation = async (
+  request: ProcessConversationRequest
+): Promise<ProcessConversationResponse> => {
+  try {
+    const response = await telarApi.post<ProcessConversationResponse>(
+      '/ai/intelligent-shop/process-conversation',
+      {
+        userId: request.userId,
+        userResponse: request.userResponse,
+        currentQuestion: request.currentQuestion,
+        conversationHistory: request.conversationHistory || [],
+        shopData: request.shopData || {},
+        language: request.language || 'es',
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error processing intelligent shop conversation:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al procesar la conversación'
+      );
+    }
+    throw error;
+  }
+};
+
+/**
+ * Generar sugerencias de productos para tienda inteligente
+ * Endpoint: POST /ai/intelligent-shop/generate-product-suggestions
+ *
+ * @param request - Datos de la tienda e idioma
+ * @returns Sugerencias de 5 productos específicos
+ */
+export const generateIntelligentShopProductSuggestions = async (
+  request: GenerateProductSuggestionsRequest
+): Promise<GenerateProductSuggestionsResponse> => {
+  try {
+    const response = await telarApi.post<GenerateProductSuggestionsResponse>(
+      '/ai/intelligent-shop/generate-product-suggestions',
+      {
+        shopData: request.shopData,
+        language: request.language || 'es',
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error generating intelligent shop product suggestions:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al generar sugerencias de productos'
+      );
+    }
+    throw error;
+  }
+};

@@ -22,9 +22,9 @@ class PresenciaDigitalAgent(BaseAgent):
         """Initialize digital presence agent."""
         super().__init__("presencia_digital")
     
-    def get_system_prompt(self) -> str:
-        """Get the digital presence agent system prompt."""
-        return get_presencia_digital_agent_prompt()
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """Get the digital presence agent system prompt, personalized with artisan context."""
+        return get_presencia_digital_agent_prompt(context)
     
     async def process(
         self,

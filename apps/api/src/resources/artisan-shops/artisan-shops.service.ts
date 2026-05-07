@@ -5,8 +5,9 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository, In } from 'typeorm';
+import { Repository, In, DataSource } from 'typeorm';
 import { ArtisanShop } from './entities/artisan-shop.entity';
+import { Store } from '../stores/entities/store.entity';
 import { CreateArtisanShopDto } from './dto/create-artisan-shop.dto';
 import { UpdateArtisanShopDto } from './dto/update-artisan-shop.dto';
 import { ArtisanShopsQueryDto } from './dto/artisan-shops-query.dto';
@@ -17,10 +18,15 @@ export class ArtisanShopsService {
   constructor(
     @Inject('ARTISAN_SHOPS_REPOSITORY')
     private readonly artisanShopsRepository: Repository<ArtisanShop>,
+    @Inject('STORES_REPOSITORY')
+    private readonly storesRepository: Repository<Store>,
+    @Inject('DATA_SOURCE')
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
    * Crear una nueva tienda de artesano
+   * También crea automáticamente el registro correspondiente en la tabla stores
    */
   async create(createDto: CreateArtisanShopDto): Promise<ArtisanShop> {
     // Verificar si ya existe una tienda con ese slug
@@ -43,8 +49,49 @@ export class ArtisanShopsService {
       throw new ConflictException('El usuario ya tiene una tienda registrada');
     }
 
-    const newShop = this.artisanShopsRepository.create(createDto);
-    return await this.artisanShopsRepository.save(newShop);
+    // Verificar si el usuario ya tiene un registro en stores
+    const existingStore = await this.storesRepository.findOne({
+      where: { userId: createDto.userId },
+    });
+
+    if (existingStore) {
+      throw new ConflictException(
+        'El usuario ya tiene un registro en stores',
+      );
+    }
+
+    // Usar transacción para crear en ambas tablas de forma atómica
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 1. Crear en artisan_shops
+      const newShop = this.artisanShopsRepository.create(createDto);
+      const savedShop = await queryRunner.manager.save(ArtisanShop, newShop);
+
+      // 2. Crear registro correspondiente en stores
+      const newStore = this.storesRepository.create({
+        userId: savedShop.userId,
+        name: savedShop.shopName,
+        slug: savedShop.shopSlug,
+        story: savedShop.story || undefined,
+        legacyId: savedShop.id,
+      });
+      await queryRunner.manager.save(Store, newStore);
+
+      // Commit de la transacción
+      await queryRunner.commitTransaction();
+
+      return savedShop;
+    } catch (error) {
+      // Rollback en caso de error
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // Liberar el query runner
+      await queryRunner.release();
+    }
   }
 
   /**

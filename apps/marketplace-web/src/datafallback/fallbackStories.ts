@@ -62,7 +62,7 @@ export const CAUCA_SEDA_STORY: BlogArticle = {
     "Entre las montañas del Cauca, Colteseda y Agroarte demuestran que la seda, cultivada por mujeres cabeza de familia, es el hilo conductor de la reconciliación.",
   cover: {
     filename:
-      "https://cdn.telar.co/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
+      "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
     alt: "Tejedoras de seda del Cauca trabajando en el telar",
   },
   author_name: "Redacción Telar",
@@ -219,7 +219,7 @@ export const ALCIDES_VIDES_STORY: BlogArticle = {
   description:
     "Del agua de la Ciénaga de Ayapel al tejido de la palma de seje: la historia de Alcides Vides y el Taller Artesol, motor artesanal de El Cedro, Córdoba.",
   cover: {
-    filename: "",
+    filename: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1765475664530_0_IMG_4019.jpeg.jpeg",
     alt: "Alcides Vides tejiendo palma de seje en el Taller Artesol",
   },
   author_name: "Redacción Telar",

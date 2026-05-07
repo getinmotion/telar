@@ -17,10 +17,10 @@ class Settings(BaseSettings):
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     embedding_dimensions: int = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
     
-    # Supabase Configuration
-    supabase_url: str = os.getenv("SUPABASE_URL", "")
-    supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-    supabase_db_url: str = os.getenv("SUPABASE_DB_URL", "")
+    # Agents Database (Lightsail PostgreSQL - agents schema: memories, profiles, conversations, etc.)
+    # Local dev: ssh -i ~/Downloads/LightsailDefaultKey-us-east-1.pem -L 5433:localhost:5432 ubuntu@52.7.98.126 -N -f
+    # Then set: AGENTS_DB_URL=postgresql://postgres:password@localhost:5433/getinmotion
+    agents_db_url: str = os.getenv("AGENTS_DB_URL", "")
 
     # Catalog Database (Lightsail PostgreSQL - shop.* and taxonomy.* tables)
     catalog_db_url: str = os.getenv("CATALOG_DB_URL", "")
@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     memory_importance_threshold: float = float(os.getenv("MEMORY_IMPORTANCE_THRESHOLD", "0.5"))
     profile_update_interval: int = int(os.getenv("PROFILE_UPDATE_INTERVAL", "5"))
     conversation_summary_interval: int = int(os.getenv("CONVERSATION_SUMMARY_INTERVAL", "10"))
+
+    # WhatsApp Business API
+    whatsapp_access_token: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+    whatsapp_phone_number_id: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+    whatsapp_webhook_verify_token: str = os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+    whatsapp_webhook_secret: str = os.getenv("WHATSAPP_WEBHOOK_SECRET", "")
+    whatsapp_api_url: str = os.getenv("WHATSAPP_API_URL", "https://graph.facebook.com/v21.0")
 
     class Config:
         env_file = ".env"

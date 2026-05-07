@@ -206,5 +206,11 @@ data/
 
 #=================================================================
 apps/payment-svc/repomix-output.xml
+
+# Env files with real secrets (keep only .env.example files)
+infra/dev/.env.prod
+infra/dev/.env.stage
+infra/dev/.env 2.stage
+infra/dev/docker-compose.local.yml
 .DS_Store
 apps/marketplace-web/backups/backup_telar_ia.backup
