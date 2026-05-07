@@ -8,8 +8,44 @@ import { ConfigService } from '@nestjs/config';
 import { ImageUrlBuilder } from './common/utils/image-url-builder.util';
 
 async function bootstrap() {
+  // Allowed origins. Tomadas de la env CORS_ORIGINS (csv) cuando esté
+  // presente; si no, default permisivo para dev + dominios telar.co.
+  const envOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const defaultOrigins = [
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'http://localhost:8082',
+    'http://localhost:3000',
+    'https://stage-artisans.telar.co',
+    'https://stage-marketplace.telar.co',
+    'https://stage-api.telar.co',
+    'https://artisans.telar.co',
+    'https://marketplace.telar.co',
+    'https://www.telar.co',
+    'https://telar.co',
+  ];
+  const allowedOrigins = envOrigins.length > 0 ? envOrigins : defaultOrigins;
+
   const app = await NestFactory.create(AppModule, {
-    cors: true,
+    cors: {
+      origin: (origin, callback) => {
+        // Permite requests sin origin (ej. mobile, curl, server-to-server)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // En stage permitimos también subdominios *.telar.co como fallback
+        if (/^https?:\/\/([a-z0-9-]+\.)*telar\.co$/i.test(origin)) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    },
     logger: console,
   });
 
