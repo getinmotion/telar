@@ -18,6 +18,71 @@ import telarHorizontal from "@/assets/telar-horizontal.svg";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { NavbarV2 } from "@/components/NavbarV2";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
+import type { CmsSection } from "@/services/cms-sections.actions";
+
+/** Fallback editorial — keep in sync with apps/api/.../seed/home.seed.ts */
+const fb = (id: string, position: number, type: string, payload: any): CmsSection => ({
+  id, pageKey: "home", position, type, published: true, payload,
+  createdAt: "", updatedAt: "",
+});
+const FALLBACK_HOME_SECTIONS: CmsSection[] = [
+  fb("fb-h-hero", 5, "home_hero_carousel", {
+    description: "Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean.",
+    tagline: "Hecho a mano por talleres artesanales de Colombia.",
+    primaryCtaLabel: "Explorar Piezas", primaryCtaHref: "/productos",
+    secondaryCtaLabel: "Conocer Talleres", secondaryCtaHref: "/tiendas",
+    autoplaySeconds: 6,
+    slides: [
+      {
+        title: "HISTORIAS HECHAS", subtitle: "A MANO",
+        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png",
+        imageAlt: "Artesanía colombiana",
+        origin: "Nariño, Colombia",
+        quote: "Cada puntada es un susurro de nuestros ancestros.",
+      },
+      {
+        title: "ARTESANÍA", subtitle: "AUTÉNTICA",
+        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
+        imageAlt: "Tejedoras del Cauca",
+        origin: "Valle del Cauca, Colombia",
+        quote: "Cada pieza cuenta una historia única.",
+      },
+    ],
+  }),
+  fb("fb-h-value-props", 0, "home_value_props", {
+    cards: [
+      { title: "Hecho a mano", body: "Cada pieza es creada por talleres artesanales reales que mantienen vivas técnicas tradicionales." },
+      { title: "Origen cultural", body: "Los objetos conservan la historia de la región y las comunidades donde fueron creados." },
+      { title: "Autenticidad registrada", body: "Cada pieza cuenta con una huella digital que documenta su origen, su taller y su proceso artesanal." },
+    ],
+  }),
+  fb("fb-h-cats", 1, "home_section_header", {
+    slot: "categories",
+    kicker: "Explorar por categorías", title: "", subtitle: "", ctaLabel: "", ctaHref: "",
+  }),
+  fb("fb-h-feat", 2, "home_section_header", {
+    slot: "featured_products",
+    title: "Creaciones Destacadas",
+    subtitle: "Piezas con alma seleccionadas por su maestría técnica.",
+    ctaLabel: "Ver colección completa", ctaHref: "/productos",
+  }),
+  fb("fb-h-mp", 3, "home_block", {
+    slot: "marketplace_diferente",
+    kicker: "Un marketplace diferente",
+    body: "Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.",
+    ctaLabel: "Descubrir cómo funciona Telar", ctaHref: "/newsletter",
+    variant: "dark",
+  }),
+  fb("fb-h-cj", 4, "home_block", {
+    slot: "comercio_justo",
+    title: "Comercio justo para quienes crean",
+    body: "Trabajamos directamente con talleres artesanales para asegurar que quienes crean las piezas reciban una compensación justa por su trabajo. Construimos relaciones directas entre quienes crean las piezas y quienes las valoran.",
+    ctaLabel: "Conocer más", ctaHref: "/newsletter",
+    variant: "bordered",
+  }),
+];
 
 // ── Seeded random for consistent daily shuffle ──
 const seededRandom = (seed: number) => {
@@ -133,6 +198,23 @@ const Index = () => {
   const HERO_IMAGE =
     "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png";
 
+  // CMS: editorial slots para homepage (con FALLBACK quemado)
+  const { data: cmsHomeSections } = useCmsSections("home");
+  const homeSections =
+    cmsHomeSections && cmsHomeSections.length > 0
+      ? cmsHomeSections
+      : FALLBACK_HOME_SECTIONS;
+  const findSlot = (type: string, slot?: string): CmsSection | undefined =>
+    homeSections.find(
+      (s) => s.type === type && (!slot || s.payload?.slot === slot),
+    );
+  const heroCarouselSection = findSlot("home_hero_carousel");
+  const valuePropsSection = findSlot("home_value_props");
+  const categoriesHeader = findSlot("home_section_header", "categories");
+  const featuredHeader = findSlot("home_section_header", "featured_products");
+  const marketplaceDiferenteBlock = findSlot("home_block", "marketplace_diferente");
+  const comercioJustoBlock = findSlot("home_block", "comercio_justo");
+
   return (
     <>
       <Helmet>
@@ -144,46 +226,25 @@ const Index = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
-        {/* ═══════════════ HERO (dinámico desde Storyblok) ═══════════════ */}
-        {/* <HeroCarousel /> */}
-        <HeroSectionV2/>
+        {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
+        {heroCarouselSection ? (
+          <CmsSectionRenderer section={heroCarouselSection} />
+        ) : (
+          <HeroSectionV2 />
+        )}
 
-        {/* ═══════════════ VALUE PROPS ═══════════════ */}
-        <section className="py-12 bg-[#fdfaf6]/50 border-b border-[#2c2c2c]/5">
-          <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-3 gap-12">
-            <div className="space-y-3">
-              <h4 className="font-serif italic text-xl">Hecho a mano</h4>
-              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
-                Cada pieza es creada por talleres artesanales reales que
-                mantienen vivas técnicas tradicionales.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-serif italic text-xl">Origen cultural</h4>
-              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
-                Los objetos conservan la historia de la región y las comunidades
-                donde fueron creados.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-serif italic text-xl">
-                Autenticidad registrada
-              </h4>
-              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
-                Cada pieza cuenta con una huella digital que documenta su
-                origen, su taller y su proceso artesanal.
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
+        {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />}
 
         {/* ═══════════════ CATEGORIES ═══════════════ */}
         <section className="py-12 border-y border-[#2c2c2c]/10">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-wrap justify-between gap-y-12">
-              <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
-                Explorar por categorías
-              </span>
+              {categoriesHeader?.payload?.kicker && (
+                <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
+                  {categoriesHeader.payload.kicker}
+                </span>
+              )}
               {displayCategories.map((cat) => (
                 <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
                   <Link to={`/categoria/${cat.slug}`}>
@@ -219,24 +280,9 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ FEATURED PRODUCTS ═══════════════ */}
+        {/* ═══════════════ FEATURED PRODUCTS (header CMS) ═══════════════ */}
         <section className="py-24 max-w-[1400px] mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div className="max-w-xl">
-              <h2 className="text-5xl font-serif mb-4">
-                Creaciones Destacadas
-              </h2>
-              <p className="text-[#2c2c2c]/60 italic font-serif">
-                Piezas con alma seleccionadas por su maestría técnica.
-              </p>
-            </div>
-            <Link
-              to="/productos"
-              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
-            >
-              Ver colección completa
-            </Link>
-          </div>
+          {featuredHeader && <CmsSectionRenderer section={featuredHeader} />}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {productsLoading || featuredProducts.length === 0
               ? [...Array(3)].map((_, i) => (
@@ -297,60 +343,15 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ UN MARKETPLACE DIFERENTE ═══════════════ */}
-        <section className="bg-[#2c2c2c] text-[#fdfaf6] py-32">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
-              Un marketplace diferente
-            </h2>
-            <div className="grid md:grid-cols-3 gap-16">
-              <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
-                <p className="text-2xl font-serif italic opacity-90">
-                  Telar conecta a compradores con talleres artesanales reales.
-                  Cada pieza tiene origen, autor y proceso documentado.
-                </p>
-                <Link
-                  to="/newsletter"
-                  className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
-                >
-                  Descubrir cómo funciona Telar
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ═══════════════ UN MARKETPLACE DIFERENTE (CMS) ═══════════════ */}
+        {marketplaceDiferenteBlock && (
+          <CmsSectionRenderer section={marketplaceDiferenteBlock} />
+        )}
 
-        {/* ═══════════════ COMERCIO JUSTO ═══════════════ */}
-        <section className="py-24 px-6 max-w-[1400px] mx-auto">
-          <div className="border border-[#2c2c2c]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
-            <div className="max-w-xl space-y-8 relative z-10">
-              <h2 className="text-4xl md:text-5xl font-serif">
-                Comercio justo para quienes crean
-              </h2>
-              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed italic">
-                Trabajamos directamente con talleres artesanales para asegurar
-                que quienes crean las piezas reciban una compensación justa por
-                su trabajo. Construimos relaciones directas entre quienes crean
-                las piezas y quienes las valoran.
-              </p>
-              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
-                <Link
-                  to="/newsletter"
-                  className="border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
-                >
-                  Conocer más
-                </Link>
-              </div>
-            </div>
-            {featuredProducts[2]?.imageUrl ? (
-                <img
-                  src={featuredProducts[2].imageUrl}
-                  alt="Huella digital"
-                  className="w-full h-full object-cover"
-                />
-              ) : null}
-          </div>
-        </section>
+        {/* ═══════════════ COMERCIO JUSTO (CMS) ═══════════════ */}
+        {comercioJustoBlock && (
+          <CmsSectionRenderer section={comercioJustoBlock} />
+        )}
 
         {/* ═══════════════ HUELLA DIGITAL ═══════════════ */}
         <section className="py-24 bg-white">
