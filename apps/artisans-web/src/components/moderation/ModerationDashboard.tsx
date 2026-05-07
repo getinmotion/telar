@@ -16,6 +16,7 @@ import {
   Truck,
   FileText,
   ShieldCheck,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
@@ -410,6 +411,22 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
             >
               <ShieldCheck className="w-4 h-4" />
               Gestión de Usuarios
+            </Button>
+          )}
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain
+                    ? '/historias-cms'
+                    : '/moderacion/historias-cms',
+                )
+              }
+            >
+              <BookOpen className="w-4 h-4" />
+              Historias / Blog
             </Button>
           )}
         </div>

@@ -12,6 +12,10 @@ export type CmsSectionType =
   | 'muestra_intro'
   | 'archive_label'
   | 'editorial_footer'
+  | 'home_value_props'
+  | 'home_section_header'
+  | 'home_block'
+  | 'home_hero_carousel'
   | string;
 
 export interface CmsSection {

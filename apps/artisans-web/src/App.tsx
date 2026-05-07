@@ -94,6 +94,7 @@ import { ProductReviewPage } from './pages/ProductReviewPage';
 import ShippingDashboardPage from './pages/ShippingDashboardPage';
 import CmsAdminPage from './pages/CmsAdminPage';
 import UserRolesAdminPage from './pages/UserRolesAdminPage';
+import BlogPostsAdminPage from './pages/BlogPostsAdminPage';
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -495,6 +496,14 @@ function App() {
                               element={
                                 <ModeratorProtectedRoute>
                                   <UserRolesAdminPage />
+                                </ModeratorProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/moderacion/historias-cms"
+                              element={
+                                <ModeratorProtectedRoute>
+                                  <BlogPostsAdminPage />
                                 </ModeratorProtectedRoute>
                               }
                             />

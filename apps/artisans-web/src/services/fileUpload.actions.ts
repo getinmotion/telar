@@ -15,6 +15,7 @@ export enum UploadFolder {
   BRANDS = 'brands',
   CATEGORIES = 'categories',
   HERO = 'hero',
+  CMS = 'cms',
   OTHER = 'other',
 }
 

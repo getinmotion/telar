@@ -10,6 +10,7 @@ import {
   useProductImagesByTechnique,
   getTechniqueImage,
 } from '@/hooks/useProductImagesByTechnique';
+import { CmsHeroCarousel } from '@/components/cms/CmsHeroCarousel';
 
 interface Props {
   section: CmsSection;
@@ -478,6 +479,224 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
           )}
         </footer>
+      );
+    }
+
+    case 'home_hero_carousel': {
+      const slides: any[] = Array.isArray(p.slides) ? p.slides : [];
+      return (
+        <CmsHeroCarousel
+          description={p.description}
+          tagline={p.tagline}
+          primaryCtaLabel={p.primaryCtaLabel}
+          primaryCtaHref={p.primaryCtaHref}
+          secondaryCtaLabel={p.secondaryCtaLabel}
+          secondaryCtaHref={p.secondaryCtaHref}
+          autoplaySeconds={p.autoplaySeconds}
+          slides={slides}
+        />
+      );
+    }
+
+    case 'home_value_props': {
+      const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
+      return (
+        <section className="py-12 bg-[#fdfaf6]/50 border-b border-[#2c2c2c]/5">
+          <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-3 gap-12">
+            {cards.map((c, i) => (
+              <div key={i} className="space-y-3">
+                {c.imageUrl && (
+                  <div className="aspect-square bg-[#e5e1d8] overflow-hidden mb-4">
+                    <img
+                      src={c.imageUrl}
+                      alt={c.title ?? ''}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                {c.title && (
+                  <h4 className="font-serif italic text-xl">{c.title}</h4>
+                )}
+                {c.body && (
+                  <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
+                    {c.body}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    case 'home_section_header':
+      return (
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+          <div className="max-w-xl">
+            {p.kicker && (
+              <span className="text-[11px] font-bold uppercase tracking-[0.3em] block mb-4 opacity-40">
+                {p.kicker}
+              </span>
+            )}
+            {p.title && (
+              <h2 className="text-5xl font-serif mb-4">{p.title}</h2>
+            )}
+            {p.subtitle && (
+              <p className="text-[#2c2c2c]/60 italic font-serif">
+                {p.subtitle}
+              </p>
+            )}
+          </div>
+          {p.ctaLabel && p.ctaHref && (
+            <Link
+              to={p.ctaHref}
+              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors w-fit"
+            >
+              {p.ctaLabel}
+            </Link>
+          )}
+        </div>
+      );
+
+    case 'home_block': {
+      const variant = (p.variant as string) || 'light';
+      if (variant === 'dark') {
+        return (
+          <section className="bg-[#2c2c2c] text-[#fdfaf6] py-32">
+            <div className="max-w-[1400px] mx-auto px-6">
+              {p.kicker && (
+                <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
+                  {p.kicker}
+                </h2>
+              )}
+              <div className="text-center space-y-10 max-w-2xl mx-auto">
+                {p.title && (
+                  <h3 className="text-4xl md:text-5xl font-serif">{p.title}</h3>
+                )}
+                {p.body && (
+                  <p className="text-2xl font-serif italic opacity-90">
+                    {p.body}
+                  </p>
+                )}
+                {p.ctaLabel && p.ctaHref && (
+                  <Link
+                    to={p.ctaHref}
+                    className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
+                  >
+                    {p.ctaLabel}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      }
+      if (variant === 'bordered') {
+        return (
+          <section className="py-24 px-6 max-w-[1400px] mx-auto">
+            <div className="border border-[#2c2c2c]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
+              <div className="max-w-xl space-y-8 relative z-10">
+                {p.kicker && (
+                  <span className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-50">
+                    {p.kicker}
+                  </span>
+                )}
+                {p.title && (
+                  <h2 className="text-4xl md:text-5xl font-serif">{p.title}</h2>
+                )}
+                {p.body && (
+                  <p className="text-xl text-[#2c2c2c]/70 leading-relaxed italic">
+                    {p.body}
+                  </p>
+                )}
+                {p.ctaLabel && p.ctaHref && (
+                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
+                    <Link
+                      to={p.ctaHref}
+                      className="border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                    >
+                      {p.ctaLabel}
+                    </Link>
+                  </div>
+                )}
+              </div>
+              {p.imageUrl && (
+                <img
+                  src={p.imageUrl}
+                  alt={p.title || ''}
+                  className="w-full md:w-1/2 aspect-[4/3] object-cover"
+                />
+              )}
+            </div>
+          </section>
+        );
+      }
+      if (variant === 'cream') {
+        return (
+          <section className="py-24 px-6 bg-[#fdfaf6]">
+            <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 items-center">
+              {p.imageUrl && (
+                <img
+                  src={p.imageUrl}
+                  alt={p.title || ''}
+                  className="w-full aspect-square object-cover"
+                />
+              )}
+              <div className="space-y-6">
+                {p.kicker && (
+                  <span className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-50">
+                    {p.kicker}
+                  </span>
+                )}
+                {p.title && (
+                  <h2 className="text-5xl font-serif">{p.title}</h2>
+                )}
+                {p.body && (
+                  <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
+                    {p.body}
+                  </p>
+                )}
+                {p.ctaLabel && p.ctaHref && (
+                  <Link
+                    to={p.ctaHref}
+                    className="inline-block border-b border-[#2c2c2c] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                  >
+                    {p.ctaLabel}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      }
+      // light (default)
+      return (
+        <section className="py-24 px-6 max-w-[1400px] mx-auto">
+          <div className="space-y-6 max-w-3xl">
+            {p.kicker && (
+              <span className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-50">
+                {p.kicker}
+              </span>
+            )}
+            {p.title && (
+              <h2 className="text-4xl md:text-5xl font-serif">{p.title}</h2>
+            )}
+            {p.body && (
+              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed italic">
+                {p.body}
+              </p>
+            )}
+            {p.ctaLabel && p.ctaHref && (
+              <Link
+                to={p.ctaHref}
+                className="inline-block border-b border-[#2c2c2c] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors w-fit"
+              >
+                {p.ctaLabel}
+              </Link>
+            )}
+          </div>
+        </section>
       );
     }
 
