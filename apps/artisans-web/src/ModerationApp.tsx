@@ -9,6 +9,7 @@ import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 import { ProductReviewPage } from './pages/ProductReviewPage'; // <-- Ajusta la ruta si es necesario
 import ShippingDashboardPage from './pages/ShippingDashboardPage';
 import CmsAdminPage from './pages/CmsAdminPage';
+import UserRolesAdminPage from './pages/UserRolesAdminPage';
 
 /**
  * ModerationApp - Aplicación simplificada para el subdominio de moderación
@@ -68,6 +69,18 @@ export const ModerationApp: React.FC = () => {
         <Route path="/moderacion/cms" element={
           <ModeratorProtectedRoute>
             <CmsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Gestión de Usuarios — super-admin only (guarded by backend ensureSuperAdmin) */}
+        <Route path="/usuarios" element={
+          <ModeratorProtectedRoute>
+            <UserRolesAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/usuarios" element={
+          <ModeratorProtectedRoute>
+            <UserRolesAdminPage />
           </ModeratorProtectedRoute>
         } />
 

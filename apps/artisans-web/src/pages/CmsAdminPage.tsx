@@ -53,6 +53,11 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'quote', label: 'Cita destacada' },
   { value: 'two_column_intro', label: 'Intro a dos columnas' },
   { value: 'technique_grid', label: 'Grilla de técnicas (4 cards)' },
+  { value: 'featured_aside_card', label: 'Card lateral destacada (Archivo Digital)' },
+  { value: 'metrics_stat', label: 'Métrica destacada (caja naranja)' },
+  { value: 'muestra_intro', label: 'Intro de muestra (kicker + título + cuerpo)' },
+  { value: 'archive_label', label: 'Etiqueta de archivo (label centrado)' },
+  { value: 'editorial_footer', label: 'Footer editorial (Legado Viviente)' },
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -81,6 +86,30 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
           { title: '', body: '', slug: '', imageKey: '' },
           { title: '', body: '', slug: '', imageKey: '' },
         ],
+      };
+    case 'featured_aside_card':
+      return { title: '', body: '', ctaLabel: '', ctaHref: '' };
+    case 'metrics_stat':
+      return { kicker: '', value: '', caption: '' };
+    case 'muestra_intro':
+      return { kicker: '', title: '', body: '' };
+    case 'archive_label':
+      return { kicker: '' };
+    case 'editorial_footer':
+      return {
+        kicker: '',
+        title: '',
+        body: '',
+        links: [
+          { label: '', href: '' },
+          { label: '', href: '' },
+          { label: '', href: '' },
+        ],
+        asideTitle: '',
+        asideBody: '',
+        asideCtaLabel: '',
+        copyright: '',
+        edition: '',
       };
     default:
       return {};
@@ -360,9 +389,32 @@ function SectionCard({
         {section.type === 'technique_grid' && (
           <TechniqueGridForm draft={draft} setField={setField} setNested={setNested} />
         )}
-        {!['hero', 'quote', 'two_column_intro', 'technique_grid'].includes(
-          section.type,
-        ) && (
+        {section.type === 'featured_aside_card' && (
+          <FeaturedAsideCardForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'metrics_stat' && (
+          <MetricsStatForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'muestra_intro' && (
+          <MuestraIntroForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'archive_label' && (
+          <ArchiveLabelForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'editorial_footer' && (
+          <EditorialFooterForm draft={draft} setField={setField} setNested={setNested} />
+        )}
+        {![
+          'hero',
+          'quote',
+          'two_column_intro',
+          'technique_grid',
+          'featured_aside_card',
+          'metrics_stat',
+          'muestra_intro',
+          'archive_label',
+          'editorial_footer',
+        ].includes(section.type) && (
           <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); setDirty(true); }} />
         )}
 
@@ -487,6 +539,80 @@ function TechniqueGridForm({ draft, setField, setNested }: any) {
             </CardContent>
           </Card>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function FeaturedAsideCardForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+      <FieldText label="Texto del CTA" value={draft.ctaLabel} onChange={(v) => setField('ctaLabel', v)} placeholder="Ver Catálogo" />
+      <FieldText label="Link del CTA (opcional)" value={draft.ctaHref} onChange={(v) => setField('ctaHref', v)} placeholder="/catalogo" />
+    </div>
+  );
+}
+
+function MetricsStatForm({ draft, setField }: any) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Métricas 2024" />
+      <FieldText label="Valor" value={draft.value} onChange={(v) => setField('value', v)} placeholder="24" />
+      <div className="md:col-span-3">
+        <FieldArea label="Caption" value={draft.caption} onChange={(v) => setField('caption', v)} rows={2} />
+      </div>
+    </div>
+  );
+}
+
+function MuestraIntroForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+    </div>
+  );
+}
+
+function ArchiveLabelForm({ draft, setField }: any) {
+  return (
+    <FieldText label="Etiqueta (kicker centrado)" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Exploración del Archivo" />
+  );
+}
+
+function EditorialFooterForm({ draft, setField, setNested }: any) {
+  const links = draft.links ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+      <div>
+        <Label className="text-xs uppercase tracking-widest mb-2 block">Links</Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[0, 1, 2].map((i) => (
+            <Card key={i} className="bg-muted/30">
+              <CardContent className="pt-4 space-y-2">
+                <FieldText label={`Link ${i + 1}`} value={links[i]?.label ?? ''} onChange={(v) => setNested(['links', i, 'label'], v)} />
+                <FieldText label="href" value={links[i]?.href ?? ''} onChange={(v) => setNested(['links', i, 'href'], v)} placeholder="/historias" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Aside — Título" value={draft.asideTitle} onChange={(v) => setField('asideTitle', v)} />
+        <FieldText label="Aside — CTA" value={draft.asideCtaLabel} onChange={(v) => setField('asideCtaLabel', v)} />
+        <div className="md:col-span-2">
+          <FieldArea label="Aside — Cuerpo" value={draft.asideBody} onChange={(v) => setField('asideBody', v)} rows={3} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Copyright" value={draft.copyright} onChange={(v) => setField('copyright', v)} placeholder="TELAR © 2025 · Colombia" />
+        <FieldText label="Edición" value={draft.edition} onChange={(v) => setField('edition', v)} placeholder="Edición 01: El gesto primordial" />
       </div>
     </div>
   );
