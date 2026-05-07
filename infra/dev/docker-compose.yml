@@ -33,6 +33,9 @@ services:
   # ========================================
   # API Service (NestJS)
   # ========================================
+  # NOTE: MongoDB es Atlas managed (externo). La API arma la URI a partir
+  # de MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_NAME (ver .env de stage).
+  # ========================================
   api:
     image: ghcr.io/getinmotion/gim-api:${IMAGE_TAG:-develop}
     container_name: gim-api

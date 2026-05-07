@@ -15,9 +15,11 @@ import {
   ClipboardList,
   Truck,
   FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
+import { useAuthStore } from '@/stores/authStore';
 import { ModerationStats, ShopSummary, ProductSummary } from '@/hooks/useModerationStats';
 import { ModerationDrillDownModal } from './ModerationDrillDownModal';
 
@@ -110,6 +112,7 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isModerationSubdomain } = useSubdomain();
+  const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownConfig, setDrillDownConfig] = useState<DrillDownConfig | null>(null);
 
@@ -395,6 +398,20 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
             <FileText className="w-4 h-4" />
             CMS — Contenido Editorial
           </Button>
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain ? '/usuarios' : '/moderacion/usuarios',
+                )
+              }
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Gestión de Usuarios
+            </Button>
+          )}
         </div>
       </div>
 

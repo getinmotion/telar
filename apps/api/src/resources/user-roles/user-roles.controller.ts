@@ -10,6 +10,9 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  ForbiddenException,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,12 +20,21 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserRolesService } from './user-roles.service';
 import { CreateUserRoleDto } from './dto/create-user-role.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UserRoleResponseDto } from './dto/user-role-response.dto';
 import { AppRole } from './enums/app-role.enum';
+
+function ensureSuperAdmin(req: Request) {
+  const user: any = (req as any).user ?? {};
+  if (user.isSuperAdmin === true) return;
+  throw new ForbiddenException('Super-admin role required');
+}
 
 @ApiTags('User Roles')
 @Controller('user-roles')
@@ -30,14 +42,17 @@ export class UserRolesController {
   constructor(private readonly userRolesService: UserRolesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Asignar un rol a un usuario' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Asignar un rol a un usuario (super_admin only)' })
   @ApiResponse({
     status: 201,
     description: 'Rol asignado exitosamente',
     type: UserRoleResponseDto,
   })
   @ApiResponse({ status: 409, description: 'El usuario ya tiene ese rol' })
-  create(@Body() createUserRoleDto: CreateUserRoleDto) {
+  create(@Req() req: Request, @Body() createUserRoleDto: CreateUserRoleDto) {
+    ensureSuperAdmin(req);
     return this.userRolesService.create(createUserRoleDto);
   }
 
@@ -137,20 +152,27 @@ export class UserRolesController {
   })
   @ApiResponse({ status: 404, description: 'Rol de usuario no encontrado' })
   @ApiResponse({ status: 409, description: 'El usuario ya tiene ese rol' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   update(
+    @Req() req: Request,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
   ) {
+    ensureSuperAdmin(req);
     return this.userRolesService.update(id, updateUserRoleDto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remover un rol de usuario por ID' })
+  @ApiOperation({ summary: 'Remover un rol de usuario por ID (super_admin only)' })
   @ApiParam({ name: 'id', description: 'ID del rol de usuario' })
   @ApiResponse({ status: 204, description: 'Rol removido exitosamente' })
   @ApiResponse({ status: 404, description: 'Rol de usuario no encontrado' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Req() req: Request, @Param('id', ParseUUIDPipe) id: string) {
+    ensureSuperAdmin(req);
     return this.userRolesService.remove(id);
   }
 
@@ -161,10 +183,14 @@ export class UserRolesController {
   @ApiParam({ name: 'role', enum: AppRole, description: 'Rol a remover' })
   @ApiResponse({ status: 204, description: 'Rol removido exitosamente' })
   @ApiResponse({ status: 404, description: 'El usuario no tiene ese rol' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   removeUserRole(
+    @Req() req: Request,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Param('role') role: AppRole,
   ) {
+    ensureSuperAdmin(req);
     return this.userRolesService.removeUserRole(userId, role);
   }
 }

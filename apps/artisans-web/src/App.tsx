@@ -92,7 +92,8 @@ import ModerationPage from './pages/ModerationPage';
 import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 import { ProductReviewPage } from './pages/ProductReviewPage';
 import ShippingDashboardPage from './pages/ShippingDashboardPage';
-import CmsAdminPage from './pages/CmsAdminPage'; 
+import CmsAdminPage from './pages/CmsAdminPage';
+import UserRolesAdminPage from './pages/UserRolesAdminPage';
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -486,6 +487,14 @@ function App() {
                               element={
                                 <ModeratorProtectedRoute>
                                   <CmsAdminPage />
+                                </ModeratorProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/moderacion/usuarios"
+                              element={
+                                <ModeratorProtectedRoute>
+                                  <UserRolesAdminPage />
                                 </ModeratorProtectedRoute>
                               }
                             />

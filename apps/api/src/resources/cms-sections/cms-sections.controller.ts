@@ -39,14 +39,14 @@ export class CmsSectionsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'List published sections for a page' })
-  findAll(
+  async findAll(
     @Query('pageKey') pageKey: string,
     @Query('includeUnpublished') includeUnpublished?: string,
   ) {
     if (!pageKey) {
       return { data: [] };
     }
-    const data = this.service.findAllByPage(
+    const data = await this.service.findAllByPage(
       pageKey,
       includeUnpublished === 'true',
     );
@@ -94,9 +94,9 @@ export class CmsSectionsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.OK)
-  reorder(@Body() dto: ReorderCmsSectionsDto, @Req() req: Request) {
+  async reorder(@Body() dto: ReorderCmsSectionsDto, @Req() req: Request) {
     ensureAdmin(req);
-    const data = this.service.reorder(dto.pageKey, dto.orderedIds);
+    const data = await this.service.reorder(dto.pageKey, dto.orderedIds);
     return { data };
   }
 }

@@ -249,36 +249,73 @@ type FilterKey = (typeof FILTER_DIMENSIONS)[number]["key"];
 const VISIBLE_COUNT = 24;
 
 /* ── Fallback editorial (used when CMS is empty / unreachable) ──────── */
+/* Mantener en sync con apps/api/src/resources/cms-sections/seed/tecnicas.seed.ts */
+const SLOT_TYPES = new Set([
+  "hero",
+  "featured_aside_card",
+  "metrics_stat",
+  "muestra_intro",
+  "archive_label",
+  "editorial_footer",
+]);
+
+const fb = (id: string, position: number, type: string, payload: any): CmsSection => ({
+  id,
+  pageKey: "tecnicas",
+  position,
+  type,
+  published: true,
+  payload,
+  createdAt: "",
+  updatedAt: "",
+});
+
 const FALLBACK_TECNICAS_SECTIONS: CmsSection[] = [
-  {
-    id: "fallback-hero",
-    pageKey: "tecnicas",
-    position: 0,
-    type: "hero",
-    published: true,
-    payload: {
-      kicker: "Archivo Maestro de Técnicas",
-      title: "El lenguaje silencioso de las manos.",
-      body: "Una cartografía viva del saber hacer colombiano. Documentamos el gesto, la materia y el territorio como pilares de nuestra identidad cultural, conectando la herencia ancestral con el diseño del mañana.",
-      totalCountLabel: "Técnicas Documentadas",
-    },
-    createdAt: "",
-    updatedAt: "",
-  },
-  {
-    id: "fallback-quote",
-    pageKey: "tecnicas",
-    position: 1,
-    type: "quote",
-    published: true,
-    payload: {
-      kicker: "Filosofía del Oficio",
-      body: "Cada gesto es una forma de resistencia cultural, una huella que el tiempo no ha podido borrar.",
-      attribution: "— Manifiesto del Saber Hacer, 2024",
-    },
-    createdAt: "",
-    updatedAt: "",
-  },
+  fb("fb-hero", 0, "hero", {
+    kicker: "Archivo Maestro de Técnicas",
+    title: "El lenguaje silencioso de las manos.",
+    body: "Una cartografía viva del saber hacer colombiano. Documentamos el gesto, la materia y el territorio como pilares de nuestra identidad cultural, conectando la herencia ancestral con el diseño del mañana.",
+    totalCountLabel: "Técnicas Documentadas",
+  }),
+  fb("fb-aside", 1, "featured_aside_card", {
+    title: "Archivo Digital de Patrones",
+    body: "Acceda a nuestra base de datos de iconografía y patrones técnicos digitalizados para investigación.",
+    ctaLabel: "Ver Catálogo",
+    ctaHref: "",
+  }),
+  fb("fb-metrics", 2, "metrics_stat", {
+    kicker: "Métricas 2024",
+    value: "24",
+    caption: "Nuevos talleres registrados en el último trimestre.",
+  }),
+  fb("fb-quote", 3, "quote", {
+    kicker: "Filosofía del Oficio",
+    body: "Cada gesto es una forma de resistencia cultural, una huella que el tiempo no ha podido borrar.",
+    attribution: "— Manifiesto del Saber Hacer, 2024",
+  }),
+  fb("fb-muestra", 6, "muestra_intro", {
+    kicker: "Muestra de Técnicas",
+    title: "Técnicas con piezas disponibles ahora.",
+    body: "Solo aparecen técnicas que tienen al menos un producto publicado en Telar. Cada tarjeta abre el detalle de la técnica.",
+  }),
+  fb("fb-archive-label", 7, "archive_label", {
+    kicker: "Exploración del Archivo",
+  }),
+  fb("fb-footer", 8, "editorial_footer", {
+    kicker: "Legado Viviente",
+    title: "El archivo del saber hacer es una conversación inacabada.",
+    body: "Buscamos no solo preservar, sino activar. Cada técnica documentada aquí es una invitación a la colaboración entre el artesano y el innovador.",
+    links: [
+      { label: "Talleres", href: "/tiendas" },
+      { label: "Piezas", href: "/productos" },
+      { label: "Historias", href: "/historias" },
+    ],
+    asideTitle: "Colabora",
+    asideBody: "¿Conoces una técnica que aún no hemos documentado? Ayúdanos a expandir el archivo maestro.",
+    asideCtaLabel: "Postular Técnica",
+    copyright: "TELAR © 2025 · Colombia",
+    edition: "Edición 01: El gesto primordial",
+  }),
 ];
 
 /* ── Component ──────────────────────────────────────── */
@@ -339,8 +376,23 @@ export default function Tecnicas() {
       : FALLBACK_TECNICAS_SECTIONS;
 
   const heroSection = activeSections.find((s) => s.type === "hero");
+  const featuredAsideCardSection = activeSections.find(
+    (s) => s.type === "featured_aside_card",
+  );
+  const metricsStatSection = activeSections.find(
+    (s) => s.type === "metrics_stat",
+  );
+  const muestraIntroSection = activeSections.find(
+    (s) => s.type === "muestra_intro",
+  );
+  const archiveLabelSection = activeSections.find(
+    (s) => s.type === "archive_label",
+  );
+  const editorialFooterSection = activeSections.find(
+    (s) => s.type === "editorial_footer",
+  );
   const editorialSections = activeSections.filter(
-    (s) => s.type !== "hero",
+    (s) => !SLOT_TYPES.has(s.type),
   );
 
   // Muestra de Técnicas: only API techniques with at least one product.
@@ -574,49 +626,9 @@ export default function Tecnicas() {
                   </div>
                 )}
 
-                <div
-                  className="p-10 md:p-12 flex flex-col justify-center"
-                  style={{ backgroundColor: "#f0eee9" }}
-                >
-                  <div
-                    className="mb-6 flex items-center justify-center w-10 h-10"
-                    style={{
-                      backgroundColor: "rgba(236,109,19,0.1)",
-                      color: "#ec6d13",
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="font-serif text-xl font-bold mb-4 italic">
-                    Archivo Digital de Patrones
-                  </h4>
-                  <p
-                    className="text-xs leading-relaxed opacity-80 mb-6"
-                    style={{ color: "#584237" }}
-                  >
-                    Acceda a nuestra base de datos de iconografía y patrones
-                    técnicos digitalizados para investigación.
-                  </p>
-                  <button
-                    className="text-[10px] uppercase tracking-[0.3em] font-bold w-fit border-b font-sans"
-                    style={{ borderColor: "#1b1c19" }}
-                  >
-                    Ver Catálogo
-                  </button>
-                </div>
+                {featuredAsideCardSection && (
+                  <CmsSectionRenderer section={featuredAsideCardSection} />
+                )}
               </div>
             </div>
           </section>
@@ -630,27 +642,9 @@ export default function Tecnicas() {
         {/* ═══════════════ MUESTRA DE TÉCNICAS (API → con productos) ═══════════════ */}
         {muestraTecnicas.length > 0 && (
           <section className="mb-48">
-            <div className="mb-12 max-w-3xl">
-              <span
-                className="text-[10px] uppercase tracking-[0.5em] mb-4 block font-bold font-sans"
-                style={{ color: "#ec6d13" }}
-              >
-                Muestra de Técnicas
-              </span>
-              <h2
-                className="font-serif text-4xl md:text-5xl font-bold leading-tight"
-                style={{ letterSpacing: "-0.02em" }}
-              >
-                Técnicas con piezas disponibles ahora.
-              </h2>
-              <p
-                className="mt-4 text-base leading-relaxed opacity-80"
-                style={{ color: "#584237" }}
-              >
-                Solo aparecen técnicas que tienen al menos un producto publicado
-                en Telar. Cada tarjeta abre el detalle de la técnica.
-              </p>
-            </div>
+            {muestraIntroSection && (
+              <CmsSectionRenderer section={muestraIntroSection} />
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {muestraTecnicas.map((t) => {
                 const img = getTechniqueImage(techImages, t.name);
@@ -702,191 +696,13 @@ export default function Tecnicas() {
           </section>
         )}
 
-        {/* ═══════════════ LA MADERA EN COLOMBIA (legacy, hidden — ahora vive en CMS) ═══════════════ */}
-        {false && (
-        <section className="mb-48">
-          <div className="max-w-4xl mb-16">
-            <span
-              className="text-[10px] uppercase tracking-[0.5em] mb-6 block font-bold font-sans"
-              style={{ color: "#ec6d13" }}
-            >
-              La Madera en Colombia
-            </span>
-            <h2
-              className="font-serif text-5xl md:text-6xl font-bold leading-[1.05] mb-10"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              El alma de la biodiversidad transformada.
-            </h2>
-            <p
-              className="text-lg leading-relaxed opacity-90"
-              style={{ color: "#584237" }}
-            >
-              De la selva chocoana al bosque andino, la madera colombiana
-              sostiene una cartografía de oficios que convierten veta, dureza y
-              aroma en arquitectura, mobiliario y escultura. Cada pieza parte
-              de una ciencia silenciosa: la selección del árbol correcto para
-              lo que la mano quiere decir.
-            </p>
-          </div>
-
-          {/* Ciencia y Selección */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-24">
-            <div
-              className="p-10 border-t-2"
-              style={{ backgroundColor: "#f0eee9", borderColor: "#ec6d13" }}
-            >
-              <span
-                className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
-                style={{ color: "#ec6d13" }}
-              >
-                Maderas nobles / duras
-              </span>
-              <h3 className="font-serif text-2xl font-bold mb-4 italic">
-                Para durar siglos.
-              </h3>
-              <p
-                className="text-sm leading-relaxed opacity-80"
-                style={{ color: "#584237" }}
-              >
-                Chonta, nazareno, granadillo, guayacán. Densas y resistentes,
-                son la materia de máscaras ceremoniales, mobiliario de autor y
-                tallados que retan al tiempo.
-              </p>
-            </div>
-            <div
-              className="p-10 border-t-2"
-              style={{ backgroundColor: "#f0eee9", borderColor: "#ec6d13" }}
-            >
-              <span
-                className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
-                style={{ color: "#ec6d13" }}
-              >
-                Maderas ligeras / versátiles
-              </span>
-              <h3 className="font-serif text-2xl font-bold mb-4 italic">
-                Para que la luz pase.
-              </h3>
-              <p
-                className="text-sm leading-relaxed opacity-80"
-                style={{ color: "#584237" }}
-              >
-                Balso, cedro, sauce, pino colombiano. Fáciles de calar, labrar
-                y pirograbar, permiten la filigrana de la madera y las piezas
-                decorativas que habitan la casa sin pesarle.
-              </p>
-            </div>
-          </div>
-
-          {/* Técnicas que Inmortalizan la Tradición */}
-          <div className="mb-12">
-            <span
-              className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans block mb-4"
-              style={{ color: "rgba(44,44,44,0.4)" }}
-            >
-              Técnicas que inmortalizan la tradición
-            </span>
-            <h3
-              className="font-serif text-3xl md:text-4xl font-bold leading-tight"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              Cuatro gramáticas para un mismo material.
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Ebanistería de Autor",
-                slug: null,
-                text: "El mobiliario como firma. Ensambles sin clavos, acabados aceitados y una relación íntima con la veta: cada mueble es un objeto que guarda la biografía del taller.",
-                imgKey: "Talla",
-              },
-              {
-                title: "Talla y Labrado Artístico",
-                slug: "tallado",
-                text: "Gubias y formones dan forma a la cosmogonía afrocolombiana e indígena. Tallar es descubrir la figura que ya vivía dentro del tronco.",
-                imgKey: "Tallado",
-              },
-              {
-                title: "Taracea y Calado",
-                slug: "calado",
-                text: "La taracea compone marquetería con maderas de contraste; el calado perfora la madera para que la luz la atraviese. Dos maneras de convertir el detalle en protagonista.",
-                imgKey: "Calado",
-              },
-              {
-                title: "Torneado y Pirograbado",
-                slug: null,
-                text: "El torno esculpe simetría; el pirograbado firma la superficie con fuego. Dos técnicas que llevan la madera del utensilio cotidiano al objeto de culto.",
-                imgKey: "Talla",
-              },
-            ].map((card) => {
-              const img = getTechniqueImage(techImages, card.imgKey);
-              const inner = (
-                <>
-                  <div
-                    className="aspect-[4/3] overflow-hidden mb-6"
-                    style={{ backgroundColor: "#e4e2dd" }}
-                  >
-                    {img ? (
-                      <img
-                        src={img}
-                        alt={card.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span
-                          className="font-serif italic text-3xl"
-                          style={{ color: "rgba(44,44,44,0.08)" }}
-                        >
-                          {card.title}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <h4 className="font-serif text-2xl font-bold mb-3 group-hover:text-[#ec6d13] transition-colors">
-                    {card.title}
-                  </h4>
-                  <p
-                    className="text-sm leading-relaxed opacity-80"
-                    style={{ color: "#584237" }}
-                  >
-                    {card.text}
-                  </p>
-                </>
-              );
-              return card.slug ? (
-                <Link
-                  key={card.title}
-                  to={`/tecnica/${card.slug}`}
-                  className="group block"
-                >
-                  {inner}
-                </Link>
-              ) : (
-                <div key={card.title} className="group">
-                  {inner}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-        )}
 
         {/* ═══════════════ DYNAMIC ARCHIVE — ASYMMETRIC ═══════════════ */}
         {!loading && rest.length > 0 && (
           <section className="mb-48">
-            <h2
-              className="text-[10px] uppercase tracking-[0.5em] mb-24 block font-bold text-center font-sans"
-              style={{ color: "#ec6d13" }}
-            >
-              Exploración del Archivo
-            </h2>
+            {archiveLabelSection && (
+              <CmsSectionRenderer section={archiveLabelSection} />
+            )}
 
             <div className="grid grid-cols-12 gap-8">
               {/* ── Row 1: two squares, full-width ── */}
@@ -908,36 +724,9 @@ export default function Tecnicas() {
               )}
 
               {/* ── Row 2: data card + horizontal feature ── */}
-              <div
-                className="col-span-12 md:col-span-3 p-10 flex flex-col justify-between aspect-square md:aspect-auto"
-                style={{ backgroundColor: "#ec6d13", color: "#fff" }}
-              >
-                <span className="text-[10px] uppercase tracking-[0.3em] font-sans">
-                  Métricas 2024
-                </span>
-                <div>
-                  <span className="text-6xl font-serif font-bold block mb-2">
-                    24
-                  </span>
-                  <p className="text-[10px] uppercase tracking-widest font-bold opacity-80 font-sans">
-                    Nuevos talleres registrados en el último trimestre.
-                  </p>
-                </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="w-8 h-8"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-                  />
-                </svg>
-              </div>
+              {metricsStatSection && (
+                <CmsSectionRenderer section={metricsStatSection} />
+              )}
               {archiveRowWide[0] && (
                 <ArchiveHorizontalCard
                   tech={archiveRowWide[0]}
@@ -1011,90 +800,10 @@ export default function Tecnicas() {
           </section>
         )}
 
-        {/* ═══════════════ EDITORIAL FOOTER MODULE ═══════════════ */}
-        <footer
-          className="mb-24 pt-24 border-t"
-          style={{ borderColor: "rgba(140,114,101,0.2)" }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
-            <div>
-              <p
-                className="text-[10px] uppercase tracking-[0.5em] mb-8 block font-bold font-sans"
-                style={{ color: "#ec6d13" }}
-              >
-                Legado Viviente
-              </p>
-              <h3
-                className="font-serif text-4xl font-bold mb-8 leading-tight"
-                style={{ letterSpacing: "-0.02em" }}
-              >
-                El archivo del saber hacer es una conversación inacabada.
-              </h3>
-              <p
-                className="leading-relaxed opacity-80 text-lg mb-10"
-                style={{ color: "#584237" }}
-              >
-                Buscamos no solo preservar, sino activar. Cada técnica
-                documentada aquí es una invitación a la colaboración entre el
-                artesano y el innovador.
-              </p>
-              <div className="flex gap-8">
-                <Link
-                  to="/tiendas"
-                  className="text-[10px] uppercase tracking-[0.2em] font-bold border-b font-sans"
-                  style={{ borderColor: "#1b1c19" }}
-                >
-                  Talleres
-                </Link>
-                <Link
-                  to="/productos"
-                  className="text-[10px] uppercase tracking-[0.2em] font-bold border-b font-sans"
-                  style={{ borderColor: "#1b1c19" }}
-                >
-                  Piezas
-                </Link>
-                <Link
-                  to="/historias"
-                  className="text-[10px] uppercase tracking-[0.2em] font-bold border-b font-sans"
-                  style={{ borderColor: "#1b1c19" }}
-                >
-                  Historias
-                </Link>
-              </div>
-            </div>
-            <div
-              className="p-12 flex flex-col justify-between"
-              style={{ backgroundColor: "#eae8e3" }}
-            >
-              <div className="max-w-xs">
-                <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold mb-4 opacity-50 font-sans">
-                  Colabora
-                </h4>
-                <p className="text-sm leading-relaxed mb-8">
-                  ¿Conoces una técnica que aún no hemos documentado? Ayúdanos a
-                  expandir el archivo maestro.
-                </p>
-              </div>
-              <button
-                className="w-full py-4 border text-[10px] uppercase tracking-[0.3em] font-bold transition-colors hover:bg-[#1b1c19] hover:text-[#f9f7f2] font-sans"
-                style={{ borderColor: "#1b1c19" }}
-              >
-                Postular Técnica
-              </button>
-            </div>
-          </div>
-          <div
-            className="mt-24 pt-12 border-t flex flex-col md:flex-row justify-between items-center gap-8"
-            style={{ borderColor: "rgba(140,114,101,0.1)" }}
-          >
-            <span className="text-[9px] uppercase tracking-[0.4em] opacity-40 font-sans">
-              TELAR © 2025 · Colombia
-            </span>
-            <span className="text-[9px] uppercase tracking-[0.4em] opacity-40 font-sans">
-              Edición 01: El gesto primordial
-            </span>
-          </div>
-        </footer>
+        {/* ═══════════════ EDITORIAL FOOTER MODULE (CMS) ═══════════════ */}
+        {editorialFooterSection && (
+          <CmsSectionRenderer section={editorialFooterSection} />
+        )}
       </main>
 
       <Footer />

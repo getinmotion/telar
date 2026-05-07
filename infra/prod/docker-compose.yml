@@ -11,6 +11,7 @@ version: '3.8'
 services:
   # ========================================
   # API Service (NestJS)
+  # NOTE: MongoDB es Atlas managed (externo). Variables MONGO_* viven en .env de prod.
   # ========================================
   api:
     image: ghcr.io/getinmotion/gim-api:${IMAGE_TAG:-main}

@@ -1,19 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
 import { CmsSectionsController } from './cms-sections.controller';
 import { CmsSectionsService } from './cms-sections.service';
-import { CmsPage, CmsPageSchema } from './schemas/cms-page.schema';
+import { cmsSectionsProviders } from './cms-sections.providers';
 
 @Module({
-  imports: [
-    AuthModule,
-    MongooseModule.forFeature([
-      { name: CmsPage.name, schema: CmsPageSchema },
-    ]),
-  ],
+  imports: [AuthModule],
   controllers: [CmsSectionsController],
-  providers: [CmsSectionsService],
-  exports: [CmsSectionsService],
+  providers: [...cmsSectionsProviders, CmsSectionsService],
+  exports: [CmsSectionsService, ...cmsSectionsProviders],
 })
 export class CmsSectionsModule {}
