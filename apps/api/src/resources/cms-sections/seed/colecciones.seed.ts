@@ -18,12 +18,12 @@ export const coleccionesSeedSections: Omit<
     published: true,
     payload: {
       slot: 'colecciones_header',
-      kicker: 'El Archivo TELAR',
-      title: 'Colecciones',
+      kicker: 'Curaduría / Colecciones',
+      title: 'Mundos tejidos, historias que habitan',
       subtitle:
-        'Selecciones editoriales que reúnen piezas, oficios y territorios bajo una misma narrativa curatorial.',
-      ctaLabel: '',
-      ctaHref: '',
+        'Descubre selecciones curadas que exploran la materialidad y el alma de la artesanía colombiana.',
+      ctaLabel: 'Explorar todas las piezas',
+      ctaHref: '/productos',
     },
   },
   {
