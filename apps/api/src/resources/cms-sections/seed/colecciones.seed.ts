@@ -1,11 +1,16 @@
 import { CmsSection } from '../types/cms-section.types';
 
 /**
- * Secciones editoriales para el ÍNDICE /colecciones (no las páginas
- * individuales — esas viven en `collections` collection).
+ * Secciones editoriales para el ÍNDICE /colecciones.
  *
- * Reusa los types existentes home_section_header y home_block. El front
- * busca por type para renderizar arriba/abajo del grid de cards.
+ * El frontend resuelve cada bloque por `slot` (no por type), así el curador
+ * puede reorganizar `position` libremente sin romper layout.
+ *
+ * Slots usados:
+ *   - colecciones_header   → hero (kicker / title / subtitle / CTA)
+ *   - colecciones_intro    → bloque editorial entre hero y grid de colecciones
+ *   - colecciones_quote    → cita destacada antes de "El Archivo del Saber"
+ *   - colecciones_footer   → CTA final (continúa el viaje)
  */
 export const coleccionesSeedSections: Omit<
   CmsSection,
@@ -29,6 +34,33 @@ export const coleccionesSeedSections: Omit<
   {
     pageKey: 'colecciones',
     position: 1,
+    type: 'home_block',
+    published: true,
+    payload: {
+      slot: 'colecciones_intro',
+      kicker: 'El archivo TELAR',
+      title: 'Selecciones que reúnen oficio, territorio y memoria',
+      body: 'Cada colección es un recorte editorial: una mirada que conecta piezas, maestros y geografías bajo una sola narrativa. No son catálogos — son lecturas curadas del saber hacer colombiano.',
+      ctaLabel: '',
+      ctaHref: '',
+      variant: 'light',
+      imageUrl: '',
+    },
+  },
+  {
+    pageKey: 'colecciones',
+    position: 2,
+    type: 'quote',
+    published: true,
+    payload: {
+      slot: 'colecciones_quote',
+      body: 'No solo se teje con hilo, se teje con paciencia; no solo se cultiva la tierra, se cultiva la memoria.',
+      attribution: 'Manifiesto TELAR',
+    },
+  },
+  {
+    pageKey: 'colecciones',
+    position: 3,
     type: 'home_block',
     published: true,
     payload: {
