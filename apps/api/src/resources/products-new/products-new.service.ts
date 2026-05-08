@@ -1346,6 +1346,7 @@ export class ProductsNewService {
       storeId?: string;
       categoryId?: string;
       status?: string;
+      search?: string;
     },
   ): Promise<{
     data: ProductCore[];
@@ -1395,6 +1396,12 @@ export class ProductsNewService {
       // Por defecto, solo mostrar productos aprobados en el marketplace público
       queryBuilder.andWhere('product.status IN (:...publicStatuses)', {
         publicStatuses: PUBLIC_STATUSES,
+      });
+    }
+
+    if (filters?.search && filters.search.trim().length > 0) {
+      queryBuilder.andWhere('product.name ILIKE :search', {
+        search: `%${filters.search.trim()}%`,
       });
     }
 

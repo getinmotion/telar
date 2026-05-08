@@ -48,6 +48,7 @@ import type {
 const PAGE_KEYS = [
   { key: 'tecnicas', label: 'Página /tecnicas' },
   { key: 'home', label: 'Página / (homepage)' },
+  { key: 'colecciones', label: 'Página /colecciones (índice)' },
 ];
 
 const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [

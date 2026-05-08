@@ -17,6 +17,7 @@ import {
   FileText,
   ShieldCheck,
   BookOpen,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
@@ -427,6 +428,22 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
             >
               <BookOpen className="w-4 h-4" />
               Historias / Blog
+            </Button>
+          )}
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain
+                    ? '/colecciones-cms'
+                    : '/moderacion/colecciones-cms',
+                )
+              }
+            >
+              <Layers className="w-4 h-4" />
+              Colecciones
             </Button>
           )}
         </div>

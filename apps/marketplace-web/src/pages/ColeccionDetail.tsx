@@ -24,6 +24,8 @@ import {
   getPrimaryImageUrl,
   type ProductNewCore,
 } from "@/services/products-new.actions";
+import { useCollection } from "@/hooks/useCollections";
+import { CollectionBlocksRenderer } from "@/components/collections/CollectionBlocksRenderer";
 
 // ── Editorial metadata per collection slug ───────────
 interface CollectionMeta {
@@ -258,6 +260,60 @@ function nameToSlug(name: string): string {
 }
 
 export default function ColeccionDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const { data: cmsCollection } = useCollection(slug ?? '');
+
+  if (cmsCollection) {
+    return <CmsCollectionView collection={cmsCollection} />;
+  }
+
+  return <LegacyColeccionDetail />;
+}
+
+function CmsCollectionView({ collection }: { collection: import('@/services/collections.actions').Collection }) {
+  const heroBg = collection.heroImageUrl
+    ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.55)), url(${collection.heroImageUrl})`
+    : undefined;
+  const isDark = collection.layoutVariant === 'dark' || !!heroBg;
+  return (
+    <div className="min-h-screen bg-[#f9f7f2]">
+      <Helmet>
+        <title>{collection.title} · Telar</title>
+        {collection.excerpt && <meta name="description" content={collection.excerpt} />}
+      </Helmet>
+      <header
+        className={`relative px-4 py-24 text-center ${isDark ? 'text-white' : 'text-[#2c2c2c]'}`}
+        style={
+          heroBg
+            ? { backgroundImage: heroBg, backgroundSize: 'cover', backgroundPosition: 'center' }
+            : undefined
+        }
+      >
+        {collection.region && (
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] opacity-80">{collection.region}</p>
+        )}
+        <h1 className="mx-auto max-w-4xl font-serif text-4xl md:text-6xl">{collection.title}</h1>
+        {collection.excerpt && (
+          <p className="mx-auto mt-6 max-w-2xl text-base opacity-90">{collection.excerpt}</p>
+        )}
+      </header>
+      <main className="py-16">
+        <CollectionBlocksRenderer blocks={collection.blocks ?? []} />
+      </main>
+      <div className="border-t bg-white py-12 text-center">
+        <Link
+          to="/colecciones"
+          className="text-sm font-bold uppercase tracking-widest text-[#ec6d13]"
+        >
+          ← Ver todas las colecciones
+        </Link>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+function LegacyColeccionDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { curatorialCategories, loading: taxonomyLoading } = useTaxonomy();
   const [products, setProducts] = useState<ProductNewCore[]>([]);

@@ -264,6 +264,47 @@ export const getProductsNewByStoreId = async (
  * Marca como eliminado el producto y todas sus entidades relacionadas
  * @param productId ID del producto a eliminar
  */
+/**
+ * Busca productos paginados (con filtro `search` por nombre).
+ * Endpoint: GET /products-new?search=&limit=&page=
+ */
+export const searchProductsNew = async (params: {
+  search?: string;
+  limit?: number;
+  page?: number;
+  status?: string;
+}): Promise<{
+  data: ProductResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> => {
+  const response = await telarApi.get('/products-new', {
+    params: {
+      search: params.search,
+      limit: params.limit ?? 20,
+      page: params.page ?? 1,
+      status: params.status,
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Hidrata productos por IDs.
+ * Endpoint: POST /products-new/by-ids
+ */
+export const getProductsNewByIds = async (
+  ids: string[],
+): Promise<ProductResponse[]> => {
+  if (!ids || ids.length === 0) return [];
+  const response = await telarApi.post<ProductResponse[]>('/products-new/by-ids', {
+    ids,
+  });
+  return response.data;
+};
+
 export const deleteProductNew = async (productId: string): Promise<void> => {
   try {
     await telarApi.delete(`/products-new/${productId}`);

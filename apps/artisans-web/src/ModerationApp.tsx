@@ -11,6 +11,7 @@ import ShippingDashboardPage from './pages/ShippingDashboardPage';
 import CmsAdminPage from './pages/CmsAdminPage';
 import UserRolesAdminPage from './pages/UserRolesAdminPage';
 import BlogPostsAdminPage from './pages/BlogPostsAdminPage';
+import CollectionsAdminPage from './pages/CollectionsAdminPage';
 
 /**
  * ModerationApp - Aplicación simplificada para el subdominio de moderación
@@ -94,6 +95,18 @@ export const ModerationApp: React.FC = () => {
         <Route path="/moderacion/historias-cms" element={
           <ModeratorProtectedRoute>
             <BlogPostsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Collections CMS — super-admin only */}
+        <Route path="/colecciones-cms" element={
+          <ModeratorProtectedRoute>
+            <CollectionsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/colecciones-cms" element={
+          <ModeratorProtectedRoute>
+            <CollectionsAdminPage />
           </ModeratorProtectedRoute>
         } />
 
