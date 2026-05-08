@@ -211,7 +211,7 @@ export class PaymentsService {
       );
 
       // 9. Generar guías de envío con Servientrega
-      await this.generateShippingGuides(webhookData.cart_id);
+      // await this.generateShippingGuides(webhookData.cart_id);
 
       // TODO: Implementar lógica adicional
       // - await this.checkoutsService.updateStatus(cartId, 'PAID');

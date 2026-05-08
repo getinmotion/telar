@@ -109,7 +109,7 @@ export const ConfirmPurchase: React.FC = () => {
   const [deliveryMethod, setDeliveryMethod] = useState<'shipping' | 'pickup'>('shipping');
 
   // Payment method state: 'wompi' (Tarjeta) or 'cobre' (PSE)
-  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'cobre'>('cobre');
+  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'cobre'>('wompi');
 
   // Save address state
   const [saveNewAddress, setSaveNewAddress] = useState<boolean>(false);
@@ -855,7 +855,7 @@ export const ConfirmPurchase: React.FC = () => {
                             {paymentMethod === 'wompi' ? (
                               <>
                                 <CreditCard className="h-4 w-4" />
-                                <span>Tarjeta de crédito</span>
+                                <span>Wompi</span>
                               </>
                             ) : (
                               <>
@@ -870,15 +870,15 @@ export const ConfirmPurchase: React.FC = () => {
                         <SelectItem value="wompi">
                           <div className="flex items-center gap-2">
                             <CreditCard className="h-4 w-4" />
-                            <span>Tarjeta de crédito</span>
+                            <span>Wompi</span>
                           </div>
                         </SelectItem>
-                        <SelectItem value="cobre">
+                        {/* <SelectItem value="cobre">
                           <div className="flex items-center gap-2">
                             <img src="/pse-icon.png" alt="PSE" className="h-4 w-4" />
                             <span>PSE</span>
                           </div>
-                        </SelectItem>
+                        </SelectItem> */}
                       </SelectContent>
                     </Select>
                   </div>
