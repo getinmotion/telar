@@ -69,15 +69,15 @@ import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisa
       envFilePath: '.env',
       isGlobal: true,
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri:
-          config.get<string>('MONGO_URI') ||
-          'mongodb://localhost:27017/telar_cms',
-      }),
-    }),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (config: ConfigService) => ({
+    //     uri:
+    //       config.get<string>('MONGO_URI') ||
+    //       'mongodb://localhost:27017/telar_cms',
+    //   }),
+    // }),
     S3Module,
     AuthModule,
     UsersModule,
@@ -118,7 +118,7 @@ import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisa
     InventoryMovementsModule,
     FileUploadModule,
     CmsModule,
-    CmsSectionsModule,
+    // CmsSectionsModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,

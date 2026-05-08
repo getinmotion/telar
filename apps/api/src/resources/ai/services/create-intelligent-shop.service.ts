@@ -39,7 +39,9 @@ export class CreateIntelligentShopService {
   ): Promise<PreConfigurateResponse> {
     try {
       // 1. Obtener datos del usuario
-      const userProfile = await this.userProfilesService.getByUserId(dto.userId);
+      const userProfile = await this.userProfilesService.getByUserId(
+        dto.userId,
+      );
       const masterContext = await this.userMasterContextService.getByUserId(
         dto.userId,
       );
@@ -75,8 +77,6 @@ export class CreateIntelligentShopService {
         brand_name: userProfile?.brandName || 'Sin nombre',
         business_description:
           userProfile?.businessDescription || 'Sin descripción',
-        business_location: userProfile?.businessLocation || 'Sin ubicación',
-        business_goals: userProfile?.businessGoals || 'Sin objetivos definidos',
         maturity_level: maturityLevel.toString(),
         detected_craft: detectedCraft,
       });
@@ -104,7 +104,6 @@ export class CreateIntelligentShopService {
           aiResponse.description || userProfile?.businessDescription || '',
         story: aiResponse.story || '',
         craft_type: detectedCraft as CraftType,
-        region: userProfile?.businessLocation || '',
       };
 
       return {
@@ -132,7 +131,9 @@ export class CreateIntelligentShopService {
   ): Promise<AnalyzeProfileResponse> {
     try {
       // 1. Obtener datos del usuario
-      const userProfile = await this.userProfilesService.getByUserId(dto.userId);
+      const userProfile = await this.userProfilesService.getByUserId(
+        dto.userId,
+      );
       const maturityScore = await this.userMaturityScoresService
         .getLatestByUserId(dto.userId)
         .catch(() => null);
@@ -162,7 +163,6 @@ export class CreateIntelligentShopService {
       const prompt = this.promptsService.replacePlaceholders(systemPrompt, {
         brand_name: userProfile?.brandName || '',
         business_description: userProfile?.businessDescription || '',
-        business_location: userProfile?.businessLocation || '',
         detected_craft: detectedCraft,
       });
 
@@ -186,15 +186,13 @@ export class CreateIntelligentShopService {
       const shopData: Partial<ShopData> = {
         shop_name: userProfile?.brandName || '',
         description: userProfile?.businessDescription || '',
-        region: userProfile?.businessLocation || '',
         craft_type: detectedCraft as CraftType,
       };
 
       return {
         needsMoreInfo: aiResponse.needs_more_info || false,
         coordinatorMessage:
-          aiResponse.coordinator_message ||
-          'Vamos a crear tu tienda juntos.',
+          aiResponse.coordinator_message || 'Vamos a crear tu tienda juntos.',
         nextQuestion: aiResponse.next_question || null,
         missingInfo: aiResponse.missing_info || [],
         shopData,
@@ -598,7 +596,7 @@ export class CreateIntelligentShopService {
         story:
           'Una historia de dedicación y amor por el arte artesanal colombiano.',
         craft_type: 'other',
-        region: userProfile?.businessLocation || 'Colombia',
+        region: 'Colombia',
       },
       coordinatorMessage:
         'Bienvenido. Puedes editar estos datos para personalizarlos.',

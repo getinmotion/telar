@@ -14,7 +14,7 @@ import { StoreAward } from './store-award.entity';
 import { StoreBadge } from './store-badge.entity';
 import { ArtisanShop } from './artisan-shop.entity';
 
-@Entity({ schema: 'shop', name: 'stores' })
+@Entity({ schema: 'store', name: 'stores' })
 export class Store {
   @PrimaryGeneratedColumn('uuid')
   id: string;

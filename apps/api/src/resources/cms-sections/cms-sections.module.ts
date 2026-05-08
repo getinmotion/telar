@@ -8,9 +8,9 @@ import { CmsPage, CmsPageSchema } from './schemas/cms-page.schema';
 @Module({
   imports: [
     AuthModule,
-    MongooseModule.forFeature([
-      { name: CmsPage.name, schema: CmsPageSchema },
-    ]),
+    // MongooseModule.forFeature([
+    //   { name: CmsPage.name, schema: CmsPageSchema },
+    // ]),
   ],
   controllers: [CmsSectionsController],
   providers: [CmsSectionsService],

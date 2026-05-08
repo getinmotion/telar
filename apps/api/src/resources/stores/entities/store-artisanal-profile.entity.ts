@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Store } from './store.entity';
 
-@Entity({ schema: 'shop', name: 'store_artisanal_profiles' })
+@Entity({ schema: 'store', name: 'store_artisanal_profiles' })
 export class StoreArtisanalProfile {
   @PrimaryGeneratedColumn('uuid', { name: 'store_id' })
   storeId: string;

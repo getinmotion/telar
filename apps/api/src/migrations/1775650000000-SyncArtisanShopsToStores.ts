@@ -14,7 +14,7 @@ export class SyncArtisanShopsToStores1775650000000
     // Insertar en stores los registros de artisan_shops que no existen
     // Validación: artisan_shops.id vs stores.legacy_id
     await queryRunner.query(`
-      INSERT INTO shop.stores (
+      INSERT INTO store.stores (
         user_id,
         name,
         slug,
@@ -34,7 +34,7 @@ export class SyncArtisanShopsToStores1775650000000
       FROM shop.artisan_shops ash
       WHERE NOT EXISTS (
         SELECT 1
-        FROM shop.stores s
+        FROM store.stores s
         WHERE s.legacy_id = ash.id
       )
       ON CONFLICT (user_id) DO NOTHING;
@@ -46,7 +46,7 @@ export class SyncArtisanShopsToStores1775650000000
       FROM shop.artisan_shops ash
       WHERE NOT EXISTS (
         SELECT 1
-        FROM shop.stores s
+        FROM store.stores s
         WHERE s.legacy_id = ash.id
       )
     `);
@@ -61,14 +61,14 @@ export class SyncArtisanShopsToStores1775650000000
     console.log('Revirtiendo sincronización...');
 
     await queryRunner.query(`
-      DELETE FROM shop.stores
+      DELETE FROM store.stores
       WHERE legacy_id IN (
         SELECT id
         FROM shop.artisan_shops
       )
       AND created_at >= (
         SELECT created_at
-        FROM shop.stores
+        FROM store.stores
         ORDER BY created_at DESC
         LIMIT 1
       );
