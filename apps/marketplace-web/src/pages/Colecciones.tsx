@@ -33,10 +33,6 @@ interface CollectionEditorial {
   heroImage?: string;
 }
 
-// S3 gallery reused for the La Chamba featured card
-const CHAMBA_HERO_IMAGE =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/vajilla_n/VAJILLA%20NEGRA%20-%201.jpg";
-
 const COLLECTION_EDITORIAL: CollectionEditorial[] = [
   {
     slug: "ceramica-de-la-chamba",
@@ -46,7 +42,6 @@ const COLLECTION_EDITORIAL: CollectionEditorial[] = [
       "La Chamba, Tolima: más de 300 años de tradición alfarera a orillas del Magdalena. Herencia Pijao, liderazgo femenino y Denominación de Origen reconocida mundialmente.",
     layout: "wide",
     ctaLabel: "Entrar en la colección",
-    heroImage: CHAMBA_HERO_IMAGE,
   },
   {
     slug: "tejeduria-de-san-jacinto",
@@ -150,6 +145,8 @@ export default function Colecciones() {
       'Descubre selecciones curadas que exploran la materialidad y el alma de la artesanía colombiana.',
     ctaLabel: heroSection?.payload?.ctaLabel ?? 'Explorar todas las piezas',
     ctaHref: heroSection?.payload?.ctaHref ?? '/productos',
+    imageUrl: (heroSection?.payload?.imageUrl as string | undefined) ?? null,
+    imageAlt: (heroSection?.payload?.imageAlt as string | undefined) ?? 'Colecciones',
   };
 
   useEffect(() => {
@@ -231,13 +228,15 @@ export default function Colecciones() {
                 </div>
               )}
             </div>
-            <div className="lg:col-span-6">
-              <img
-                src={CHAMBA_HERO_IMAGE}
-                alt="Colecciones — La Chamba"
-                className="aspect-[16/10] w-full object-cover"
-              />
-            </div>
+            {hero.imageUrl && (
+              <div className="lg:col-span-6">
+                <img
+                  src={hero.imageUrl}
+                  alt={hero.imageAlt}
+                  className="aspect-[16/10] w-full object-cover"
+                />
+              </div>
+            )}
           </div>
         </header>
 

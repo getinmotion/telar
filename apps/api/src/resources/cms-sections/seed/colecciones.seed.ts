@@ -29,6 +29,9 @@ export const coleccionesSeedSections: Omit<
         'Descubre selecciones curadas que exploran la materialidad y el alma de la artesanía colombiana.',
       ctaLabel: 'Explorar todas las piezas',
       ctaHref: '/productos',
+      imageUrl:
+        'https://telar-prod-bucket.s3.us-east-1.amazonaws.com/vajilla_n/VAJILLA%20NEGRA%20-%201.jpg',
+      imageAlt: 'Colecciones — La Chamba',
     },
   },
   {
