@@ -18,6 +18,7 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { useCollections } from "@/hooks/useCollections";
 
 // ── Editorial metadata per curatorial collection ─────
 interface CollectionEditorial {
@@ -134,6 +135,8 @@ const SEASONAL = [
 export default function Colecciones() {
   const { curatorialCategories, techniques, loading } = useTaxonomy();
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const { data: cmsCollectionsRes } = useCollections({ limit: 50 });
+  const cmsCollections = cmsCollectionsRes?.data ?? [];
 
   useEffect(() => {
     getProductsNew({ page: 1, limit: 200 })
@@ -224,6 +227,41 @@ export default function Colecciones() {
             </div>
           </div>
         </header>
+
+        {/* ═══════════════ CMS COLLECTIONS (curadas desde el admin) ═══════════════ */}
+        {cmsCollections.length > 0 && (
+          <section className="max-w-[1400px] mx-auto px-6 pb-16">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold mb-3">
+              Colecciones curadas
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {cmsCollections.map((c) => (
+                <Link
+                  key={c._id}
+                  to={`/coleccion/${c.slug}`}
+                  className="group block overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-lg"
+                >
+                  <div
+                    className="aspect-[4/3] w-full bg-muted bg-cover bg-center"
+                    style={c.heroImageUrl ? { backgroundImage: `url(${c.heroImageUrl})` } : undefined}
+                  />
+                  <div className="space-y-2 p-5">
+                    {c.region && (
+                      <p className="text-[10px] uppercase tracking-widest text-[#ec6d13]">{c.region}</p>
+                    )}
+                    <h3 className="font-serif text-2xl">{c.title}</h3>
+                    {c.excerpt && (
+                      <p className="line-clamp-3 text-sm text-[#2c2c2c]/70">{c.excerpt}</p>
+                    )}
+                    <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#ec6d13]">
+                      Ver colección <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ═══════════════ FEATURED COLLECTIONS ═══════════════ */}
         <section className="space-y-24 md:space-y-40 mb-32 md:mb-48 max-w-[1400px] mx-auto px-6">

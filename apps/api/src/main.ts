@@ -40,6 +40,14 @@ async function bootstrap() {
         if (/^https?:\/\/([a-z0-9-]+\.)*telar\.co$/i.test(origin)) {
           return callback(null, true);
         }
+        // En dev permitimos cualquier puerto en localhost / 127.0.0.1
+        // (vite preview elige puerto dinámico cuando 8080 está ocupado).
+        if (
+          process.env.NODE_ENV !== 'production' &&
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+        ) {
+          return callback(null, true);
+        }
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
       },
       credentials: true,

@@ -95,6 +95,7 @@ import ShippingDashboardPage from './pages/ShippingDashboardPage';
 import CmsAdminPage from './pages/CmsAdminPage';
 import UserRolesAdminPage from './pages/UserRolesAdminPage';
 import BlogPostsAdminPage from './pages/BlogPostsAdminPage';
+import CollectionsAdminPage from './pages/CollectionsAdminPage';
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -504,6 +505,14 @@ function App() {
                               element={
                                 <ModeratorProtectedRoute>
                                   <BlogPostsAdminPage />
+                                </ModeratorProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/moderacion/colecciones-cms"
+                              element={
+                                <ModeratorProtectedRoute>
+                                  <CollectionsAdminPage />
                                 </ModeratorProtectedRoute>
                               }
                             />

@@ -79,9 +79,10 @@ export class ProductsNewController {
     @Query('storeId') storeId?: string,
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
     // Si se especifican parámetros de paginación, usar método paginado
-    if (page || limit || storeId || categoryId || status) {
+    if (page || limit || storeId || categoryId || status || search) {
       const pageNum = page ? parseInt(page) : 1;
       const limitNum = limit ? parseInt(limit) : 20;
 
@@ -89,11 +90,24 @@ export class ProductsNewController {
         storeId,
         categoryId,
         status,
+        search,
       });
     }
 
     // De lo contrario, obtener todos
     return this.productsNewService.findAll();
+  }
+
+  /**
+   * POST /products-new/by-ids
+   * Hidrata productos por sus IDs (usado por CMS picker / collection blocks)
+   */
+  @Post('by-ids')
+  @HttpCode(HttpStatus.OK)
+  async findByIdsBatch(@Body() body: { ids: string[] }) {
+    const ids = Array.isArray(body?.ids) ? body.ids.filter(Boolean) : [];
+    if (ids.length === 0) return [];
+    return this.productsNewService.findByIds(ids);
   }
 
  
