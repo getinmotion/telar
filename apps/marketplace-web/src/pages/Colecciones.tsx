@@ -20,6 +20,7 @@ import {
 import { formatCurrency } from "@/lib/currencyUtils";
 import { useCollections } from "@/hooks/useCollections";
 import { useCmsSections } from "@/hooks/useCmsSections";
+import { ContentPicks } from "@/components/cms/ContentPicks";
 
 // ── Editorial metadata per curatorial collection ─────
 interface CollectionEditorial {
@@ -239,6 +240,11 @@ export default function Colecciones() {
             )}
           </div>
         </header>
+
+        {/* ═══════════════ CONTENT PICKS (banners/cards de blog o colección) ═══════════════ */}
+        <section className="max-w-[1400px] mx-auto px-6 pb-12">
+          <ContentPicks pageKey="colecciones" />
+        </section>
 
         {/* ═══════════════ CMS COLLECTIONS (curadas desde el admin) ═══════════════ */}
         {cmsCollections.length > 0 && (
