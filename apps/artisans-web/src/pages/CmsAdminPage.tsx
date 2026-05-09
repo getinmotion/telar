@@ -134,6 +134,8 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
         subtitle: '',
         ctaLabel: '',
         ctaHref: '',
+        imageUrl: '',
+        imageAlt: '',
       };
     case 'home_block':
       return {
@@ -715,7 +717,7 @@ function HomeValuePropsForm({ draft, setNested }: any) {
 function HomeSectionHeaderForm({ draft, setField }: any) {
   return (
     <div className="space-y-4">
-      <FieldText label="Slot (categories | featured_products | …)" value={draft.slot ?? ''} onChange={(v) => setField('slot', v)} placeholder="featured_products" />
+      <FieldText label="Slot (categories | featured_products | colecciones_header | …)" value={draft.slot ?? ''} onChange={(v) => setField('slot', v)} placeholder="featured_products" />
       <FieldText label="Kicker" value={draft.kicker ?? ''} onChange={(v) => setField('kicker', v)} />
       <FieldText label="Título" value={draft.title ?? ''} onChange={(v) => setField('title', v)} />
       <FieldText label="Subtítulo" value={draft.subtitle ?? ''} onChange={(v) => setField('subtitle', v)} />
@@ -723,6 +725,13 @@ function HomeSectionHeaderForm({ draft, setField }: any) {
         <FieldText label="CTA texto" value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
         <FieldText label="CTA href" value={draft.ctaHref ?? ''} onChange={(v) => setField('ctaHref', v)} />
       </div>
+      <ImageUploadField
+        label="Imagen del hero (opcional, slot 'colecciones_header')"
+        value={draft.imageUrl ?? ''}
+        onChange={(v) => setField('imageUrl', v)}
+        altValue={draft.imageAlt ?? ''}
+        onAltChange={(v) => setField('imageAlt', v)}
+      />
     </div>
   );
 }
