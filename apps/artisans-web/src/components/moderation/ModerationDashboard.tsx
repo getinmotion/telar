@@ -347,105 +347,113 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
           </div>
         </div>
 
-        {/* Analytics Button */}
-      <div className="pt-2 flex flex-col sm:flex-row gap-4">          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() =>
-              navigate(
-                isModerationSubdomain
-                  ? '/analytics'
-                  : '/moderacion/analytics',
-              )
-            }
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics Global — Productos Migrados
-          </Button>
-          <Button
-            variant="default"
-            className="w-full gap-2"
-            onClick={() =>
-              navigate(
-                isModerationSubdomain
-                  ? '/revisor-productos'
-                  : '/moderacion/revisor-productos',
-              )
-            }
-          >
-            <ClipboardList className="w-4 h-4" />
-            Revisor de Productos Migrados
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() =>
-              navigate(
-                isModerationSubdomain
-                  ? '/envios-dashboard'
-                  : '/moderacion/envios-dashboard',
-              )
-            }
-          >
-            <Truck className="w-4 h-4" />
-            Dashboard de Envios
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={() =>
-              navigate(isModerationSubdomain ? '/cms' : '/moderacion/cms')
-            }
-          >
-            <FileText className="w-4 h-4" />
-            CMS — Contenido Editorial
-          </Button>
+        {/* Acciones rápidas — grid responsive */}
+        <div className="pt-2 space-y-3">
           {isSuperAdmin && (
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() =>
-                navigate(
-                  isModerationSubdomain ? '/usuarios' : '/moderacion/usuarios',
-                )
-              }
-            >
-              <ShieldCheck className="w-4 h-4" />
-              Gestión de Usuarios
-            </Button>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold">
+              Super-admin
+            </div>
           )}
           {isSuperAdmin && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-11"
+                onClick={() =>
+                  navigate(
+                    isModerationSubdomain ? '/usuarios' : '/moderacion/usuarios',
+                  )
+                }
+              >
+                <ShieldCheck className="w-4 h-4 flex-none" />
+                <span className="truncate">Gestión de Usuarios</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-11"
+                onClick={() =>
+                  navigate(
+                    isModerationSubdomain
+                      ? '/historias-cms'
+                      : '/moderacion/historias-cms',
+                  )
+                }
+              >
+                <BookOpen className="w-4 h-4 flex-none" />
+                <span className="truncate">Historias / Blog</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-11"
+                onClick={() =>
+                  navigate(
+                    isModerationSubdomain
+                      ? '/colecciones-cms'
+                      : '/moderacion/colecciones-cms',
+                  )
+                }
+              >
+                <Layers className="w-4 h-4 flex-none" />
+                <span className="truncate">Colecciones</span>
+              </Button>
+            </div>
+          )}
+
+          <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold pt-2">
+            Operación
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Button
-              variant="outline"
-              className="w-full gap-2"
+              variant="default"
+              className="w-full justify-start gap-2 h-11"
               onClick={() =>
                 navigate(
                   isModerationSubdomain
-                    ? '/historias-cms'
-                    : '/moderacion/historias-cms',
+                    ? '/revisor-productos'
+                    : '/moderacion/revisor-productos',
                 )
               }
             >
-              <BookOpen className="w-4 h-4" />
-              Historias / Blog
+              <ClipboardList className="w-4 h-4 flex-none" />
+              <span className="truncate">Revisor de Productos</span>
             </Button>
-          )}
-          {isSuperAdmin && (
             <Button
               variant="outline"
-              className="w-full gap-2"
+              className="w-full justify-start gap-2 h-11"
               onClick={() =>
                 navigate(
                   isModerationSubdomain
-                    ? '/colecciones-cms'
-                    : '/moderacion/colecciones-cms',
+                    ? '/envios-dashboard'
+                    : '/moderacion/envios-dashboard',
                 )
               }
             >
-              <Layers className="w-4 h-4" />
-              Colecciones
+              <Truck className="w-4 h-4 flex-none" />
+              <span className="truncate">Dashboard de Envíos</span>
             </Button>
-          )}
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 h-11"
+              onClick={() =>
+                navigate(isModerationSubdomain ? '/cms' : '/moderacion/cms')
+              }
+            >
+              <FileText className="w-4 h-4 flex-none" />
+              <span className="truncate">CMS Editorial</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 h-11"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain ? '/analytics' : '/moderacion/analytics',
+                )
+              }
+            >
+              <BarChart3 className="w-4 h-4 flex-none" />
+              <span className="truncate">Analytics Productos</span>
+            </Button>
+          </div>
         </div>
       </div>
 
