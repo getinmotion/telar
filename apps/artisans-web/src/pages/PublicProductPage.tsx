@@ -3,6 +3,7 @@ import { formatCurrency } from '@/utils/currency';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
+import { getProductNewById, getProductsNewByStoreId, mapProductResponseToLegacy } from '@/services/products-new.actions';
 import { ArtisanShop } from '@/types/artisanShop.types';
 import { Product } from '@/types/artisan';
 import { Button } from '@/components/ui/button';
@@ -88,35 +89,41 @@ export const PublicProductPage: React.FC = () => {
 
         setShop(shopData);
 
-        let productQuery = supabase
-          .from('products')
-          .select('*')
-          .eq('id', productId)
-          .eq('shop_id', shopData.id);
+        // Fetch product from NestJS (products_core)
+        const productResponse = await getProductNewById(productId);
 
-        if (!ownerCheck) {
-          productQuery = productQuery.eq('active', true);
-        }
-
-        const { data: productData, error: productError } = await productQuery.maybeSingle();
-
-        if (productError || !productData) {
+        if (!productResponse) {
           toast.error('Producto no encontrado');
           navigate(`/tienda/${shopSlug}${isPreviewMode ? '?preview=true' : ''}`);
           return;
         }
 
-        setProduct(productData);
+        const mappedProduct = mapProductResponseToLegacy(productResponse);
 
-        const { data: relatedData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('shop_id', shopData.id)
-          .eq('active', true)
-          .neq('id', productId)
-          .limit(6);
+        // Verify product belongs to this shop
+        if (mappedProduct.shop_id !== shopData.id) {
+          toast.error('Producto no encontrado');
+          navigate(`/tienda/${shopSlug}${isPreviewMode ? '?preview=true' : ''}`);
+          return;
+        }
 
-        setRelatedProducts(relatedData || []);
+        // Non-owners can only see approved products
+        if (!ownerCheck && !mappedProduct.active) {
+          toast.error('Producto no disponible');
+          navigate(`/tienda/${shopSlug}${isPreviewMode ? '?preview=true' : ''}`);
+          return;
+        }
+
+        setProduct(mappedProduct as any);
+
+        // Fetch related products from NestJS
+        const allStoreProducts = await getProductsNewByStoreId(shopData.id).catch(() => []);
+        const relatedMapped = allStoreProducts
+          .filter(p => p.id !== productId && p.status === 'approved')
+          .slice(0, 6)
+          .map(p => mapProductResponseToLegacy(p));
+
+        setRelatedProducts(relatedMapped as any[]);
 
       } catch (error) {
         console.error('Error fetching product:', error);

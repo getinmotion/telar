@@ -7,7 +7,11 @@
       "Bash(find /Users/sebastianfanchi/Documents/GIM/repos/telar/.ref-getinmotion -type f -name \"*.sql\" -exec grep -l \"CREATE TABLE\" {} \\\\;)",
       "Bash(find /Users/sebastianfanchi/Documents/GIM/repos/telar/.ref-getinmotion/supabase/migrations -name \"*.sql\" -exec sh -c 'grep -q \"whatsapp_sessions\" \"$1\" && cat \"$1\"' _ {} \\\\;)",
       "Bash(find /Users/sebastianfanchi/Documents/GIM/repos/telar/.ref-getinmotion/backend -type f -name \"*.py\" -exec grep -l \"whatsapp\\\\|telegram\\\\|bot\" {} \\\\;)",
-      "Bash(find /Users/sebastianfanchi/Documents/GIM/repos/telar/apps/api/src -type f -name \"*.ts\" -exec grep -l \"whatsapp\\\\|webhook.*handler\\\\|PHONE_NUMBER\" {} \\\\;)"
+      "Bash(find /Users/sebastianfanchi/Documents/GIM/repos/telar/apps/api/src -type f -name \"*.ts\" -exec grep -l \"whatsapp\\\\|webhook.*handler\\\\|PHONE_NUMBER\" {} \\\\;)",
+      "Bash(npx tsc *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git stash *)",
+      "Bash(git add *)"
     ]
   }
 }

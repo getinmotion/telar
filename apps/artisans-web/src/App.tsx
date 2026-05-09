@@ -60,7 +60,7 @@ import { BiomeConfigPage } from './pages/BiomeConfigPage';
 import HelpPage from './pages/HelpPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 // ArtisanDashboardPage removed - redirects to /profile
-import { CreateShopPage } from './pages/CreateShopPage';
+// CreateShopPage removed - tienda se crea automáticamente al completar el test de madurez
 import PublicShopPage from './pages/PublicShopPage';
 import PublicShopAbout from './pages/PublicShopAbout';
 import PublicShopContact from './pages/PublicShopContact';
@@ -69,7 +69,7 @@ import ShopConfigDashboard from './pages/ShopConfigDashboard';
 import { ShopDirectoryPage } from './pages/ShopDirectoryPage';
 import { ProductUploadPage } from './pages/ProductUploadPage';
 import { ProductEditPage } from './pages/ProductEditPage';
-import { ShopDashboardPage } from './pages/ShopDashboardPage';
+// ShopDashboardPage removed - fusionado en /dashboard (CommercialDashboard)
 import { LatestShopRedirect } from './components/shop/LatestShopRedirect';
 import InventoryPage from './pages/InventoryPage';
 import { StockWizard } from './pages/StockWizard';
@@ -96,6 +96,7 @@ import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ShopSalesPage from './pages/ShopSalesPage';
+import BioLinkPage from './pages/BioLinkPage';
 
 // Legal pages
 import TerminosPage from './pages/legal/TerminosPage';
@@ -161,6 +162,9 @@ function App() {
                             <Route path="/publicidad" element={<PublicidadPage />} />
                             <Route path="/terms" element={<Navigate to="/terminos" replace />} />
                             <Route path="/privacy" element={<Navigate to="/privacidad" replace />} />
+
+                            {/* BIO link page (linktree-style, pública) */}
+                            <Route path="/bio/:shopSlug" element={<BioLinkPage />} />
 
                             {/* Public shop routes */}
                             <Route path="/tiendas" element={<ShopDirectoryPage />} />
@@ -296,15 +300,8 @@ function App() {
                               }
                             />
                             <Route path="/dashboard/artisan" element={<Navigate to="/profile" replace />} />
-                            <Route
-                              path="/dashboard/create-shop"
-                              element={
-                                <ProtectedRoute>
-                                  <CreateShopPage />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route path="/mi-tienda" element={<ProtectedRoute><ShopDashboardPage /></ProtectedRoute>} />
+                            <Route path="/dashboard/create-shop" element={<Navigate to="/dashboard" replace />} />
+                            <Route path="/mi-tienda" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/mi-tienda/ventas" element={<ProtectedRoute><ShopSalesPage /></ProtectedRoute>} />
                             <Route path="/mi-tienda/configurar" element={<ProtectedRoute><ShopConfigDashboard /></ProtectedRoute>} />
                             <Route path="/mi-cuenta/datos-bancarios" element={<ProtectedRoute><BankDataPage /></ProtectedRoute>} />
