@@ -18,6 +18,7 @@ interface HeroSlide {
   image: string;
   origin: string;
   quote: string;
+  action?: string;
 }
 
 const HERO_SLIDES: HeroSlide[] = [
@@ -44,6 +45,15 @@ const HERO_SLIDES: HeroSlide[] = [
     image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
     origin: "Valle del Cauca, Colombia",
     quote: "Cada pieza cuenta una historia única.",
+  },
+    {
+    id: "3",
+    title: "COLECCIÓN",
+    subtitle: "DÍA DE LAS MADRES",
+    image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1765405865051_0_IMG-20251206-WA0004.jpg.jpg",
+    origin: "Corregimiento La Mina, Cesar, Colombia",
+    quote: "Cada pieza cuenta una historia única.",
+    action: '/coleccion/dia-de-la-madre'
   },
 ];
 
@@ -101,23 +111,36 @@ export const HeroSectionV2 = () => {
 
                     {/* Botones */}
                     <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                      <Link to="/productos">
-                        <Button
-                          size="lg"
-                          className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
-                        >
-                          Explorar Piezas
-                        </Button>
-                      </Link>
-                      <Link to="/tiendas">
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="w-full sm:w-auto border-2"
-                        >
-                          Conocer Talleres
-                        </Button>
-                      </Link>
+                      {slide.action ? (
+                        <Link to={slide.action}>
+                          <Button
+                            size="lg"
+                            className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
+                          >
+                            Explorar Colección
+                          </Button>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link to="/productos">
+                            <Button
+                              size="lg"
+                              className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
+                            >
+                              Explorar Piezas
+                            </Button>
+                          </Link>
+                          <Link to="/tiendas">
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              className="w-full sm:w-auto border-2"
+                            >
+                              Conocer Talleres
+                            </Button>
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </div>
 

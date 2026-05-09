@@ -227,12 +227,9 @@ const Index = () => {
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
-        {heroCarouselSection ? (
-          <CmsSectionRenderer section={heroCarouselSection} />
-        ) : (
-          <HeroSectionV2 />
-        )}
 
+          <HeroSectionV2 />
+      
         {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
         {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />}
 
