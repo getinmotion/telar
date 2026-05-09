@@ -8,6 +8,10 @@ import ModerationPage from './pages/ModerationPage';
 import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
 import { ProductReviewPage } from './pages/ProductReviewPage'; // <-- Ajusta la ruta si es necesario
 import ShippingDashboardPage from './pages/ShippingDashboardPage';
+import CmsAdminPage from './pages/CmsAdminPage';
+import UserRolesAdminPage from './pages/UserRolesAdminPage';
+import BlogPostsAdminPage from './pages/BlogPostsAdminPage';
+import CollectionsAdminPage from './pages/CollectionsAdminPage';
 
 /**
  * ModerationApp - Aplicación simplificada para el subdominio de moderación
@@ -55,6 +59,54 @@ export const ModerationApp: React.FC = () => {
         <Route path="/moderacion/revisor-productos" element={
           <ModeratorProtectedRoute>
             <ProductReviewPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* CMS Editorial */}
+        <Route path="/cms" element={
+          <ModeratorProtectedRoute>
+            <CmsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/cms" element={
+          <ModeratorProtectedRoute>
+            <CmsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Gestión de Usuarios — super-admin only (guarded by backend ensureSuperAdmin) */}
+        <Route path="/usuarios" element={
+          <ModeratorProtectedRoute>
+            <UserRolesAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/usuarios" element={
+          <ModeratorProtectedRoute>
+            <UserRolesAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Blog / Historias — super-admin only */}
+        <Route path="/historias-cms" element={
+          <ModeratorProtectedRoute>
+            <BlogPostsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/historias-cms" element={
+          <ModeratorProtectedRoute>
+            <BlogPostsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+
+        {/* Collections CMS — super-admin only */}
+        <Route path="/colecciones-cms" element={
+          <ModeratorProtectedRoute>
+            <CollectionsAdminPage />
+          </ModeratorProtectedRoute>
+        } />
+        <Route path="/moderacion/colecciones-cms" element={
+          <ModeratorProtectedRoute>
+            <CollectionsAdminPage />
           </ModeratorProtectedRoute>
         } />
 

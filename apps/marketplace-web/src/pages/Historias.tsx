@@ -1,16 +1,17 @@
 /**
  * Historias — Editorial Stories Archive
  * Route: /historias
- * Reference: telar_historias_hero_tipogr_fico_final
+ *
+ * Listado público de blog posts. Datos del CMS propio (Mongo) vía
+ * /blog-posts. FALLBACK con historias quemadas cuando el endpoint está vacío.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
-import { useCMSBlogArticles } from "@/hooks/useCMSBlogArticles";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
-import { getStoryblokImageUrl } from "@/types/storyblok";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -21,41 +22,22 @@ import {
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { cn } from "@/lib/utils";
+import { FALLBACK_BLOG_POSTS } from "@/datafallback/fallbackBlogPosts";
+import type { BlogPost } from "@/services/blog-posts.actions";
 
 // ── Explore by story type ──────────────────────────
 const STORY_TYPES = [
-  {
-    title: "Artesanos",
-    subtitle: "Vida y Oficio",
-    to: "/tiendas",
-  },
-  {
-    title: "Territorios",
-    subtitle: "Contexto Cultural",
-    to: "/territorios",
-  },
-  {
-    title: "Técnicas",
-    subtitle: "Proceso y Conocimiento",
-    to: "/tecnicas",
-  },
-  {
-    title: "Piezas",
-    subtitle: "Origen de Objetos",
-    to: "/productos",
-  },
+  { title: "Artesanos", subtitle: "Vida y Oficio", to: "/tiendas" },
+  { title: "Territorios", subtitle: "Contexto Cultural", to: "/territorios" },
+  { title: "Técnicas", subtitle: "Proceso y Conocimiento", to: "/tecnicas" },
+  { title: "Piezas", subtitle: "Origen de Objetos", to: "/productos" },
 ];
 
-// helper
-function articleImage(article: any, width = 800, height = 500) {
-  return article.cover?.filename
-    ? getStoryblokImageUrl(article.cover, { width, height, quality: 80 })
-    : null;
-}
+const PER_PAGE = 12;
 
 const Historias = () => {
   const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useCMSBlogArticles(page, 12);
+  const { data, isLoading } = useBlogPosts({ page, perPage: PER_PAGE });
   const [products, setProducts] = useState<ProductNewCore[]>([]);
 
   useEffect(() => {
@@ -67,24 +49,14 @@ const Historias = () => {
       .catch(() => {});
   }, []);
 
-  const articles =
-    data?.articles?.map((a) => (
-      {
-      id: a._uid,
-      title: a.title,
-      slug: a.slug,
-      description: a.description,
-      coverUrl: articleImage(a),
-      coverUrlLarge: articleImage(a, 1200, 750),
-      coverAlt: a.cover?.alt || a.title,
-      category: a.category || null,
-      authorName: a.author_name || null,
-      publishedAt:
-        a.first_published_at || a.published_at || new Date().toISOString(),
-      readingTime: a.reading_time || 5,
-    })) || [];
+  // Use API data when available; cold-start / outage falls back to baked-in posts.
+  const articles: BlogPost[] = useMemo(() => {
+    if (data && data.data.length > 0) return data.data;
+    return FALLBACK_BLOG_POSTS;
+  }, [data]);
 
-  const totalPages = data ? Math.ceil(data.total / data.per_page) : 1;
+  const total = data?.total ?? FALLBACK_BLOG_POSTS.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   // Split articles for featured grid (first 3) + rest
   const featured = articles[0];
@@ -103,7 +75,7 @@ const Historias = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
-        {/* ═══════════════ HERO ═══════════════ */}
+        {/* HERO */}
         <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
             <span className="text-[10px] uppercase tracking-[0.4em] text-[#2c2c2c]/40 font-bold">
@@ -128,17 +100,7 @@ const Historias = () => {
           </div>
         </header>
 
-        {error ? (
-          <section className="py-32 px-6 text-center">
-            <div className="max-w-xl mx-auto space-y-6">
-              <h2 className="font-serif text-4xl italic">Próximamente</h2>
-              <p className="text-[#2c2c2c]/60 leading-relaxed">
-                Estamos preparando contenido increíble sobre nuestros artesanos
-                y sus técnicas ancestrales.
-              </p>
-            </div>
-          </section>
-        ) : isLoading ? (
+        {isLoading ? (
           <section className="max-w-[1400px] mx-auto px-6 pb-32 animate-pulse">
             <div className="grid grid-cols-12 gap-8">
               <div className="col-span-12 lg:col-span-7">
@@ -162,23 +124,22 @@ const Historias = () => {
           </section>
         ) : (
           <>
-            {/* ═══════════════ FEATURED STORIES GRID ═══════════════ */}
+            {/* FEATURED STORIES GRID */}
             <section
               id="featured"
               className="max-w-[1400px] mx-auto px-6 pb-10 md:pb-10"
             >
               <div className="grid grid-cols-12 gap-6 md:gap-8 items-start">
-                {/* Large featured story */}
                 {featured && (
                   <Link
                     to={`/historia/${featured.slug}`}
                     className="col-span-12 lg:col-span-7 group"
                   >
                     <div className="aspect-[16/10] bg-[#e5e1d8] overflow-hidden rounded-sm">
-                      {featured.coverUrlLarge && (
+                      {featured.coverUrl && (
                         <img
-                          src={featured.coverUrlLarge}
-                          alt={featured.coverAlt}
+                          src={featured.coverUrl}
+                          alt={featured.coverAlt ?? featured.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                         />
                       )}
@@ -192,27 +153,28 @@ const Historias = () => {
                       <h2 className="font-serif text-4xl md:text-5xl italic leading-tight group-hover:text-[#ec6d13] transition-colors">
                         {featured.title}
                       </h2>
-                      {featured.description && (
+                      {featured.excerpt && (
                         <p className="text-lg text-[#2c2c2c]/60 leading-relaxed font-light line-clamp-2 max-w-xl">
-                          {featured.description}
+                          {featured.excerpt}
                         </p>
                       )}
                       <div className="flex items-center gap-4 text-[9px] tracking-[0.2em] font-semibold uppercase text-[#2c2c2c]/40 pt-4 border-t border-[#2c2c2c]/5">
                         {featured.category && <span>{featured.category}</span>}
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {featured.readingTime} min
-                        </span>
+                        {featured.readingTimeMin && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {featured.readingTimeMin} min
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
                 )}
 
-                {/* Two smaller stories (stacked) */}
                 <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 md:gap-8 lg:mt-12">
                   {sideFeatured.map((article) => (
                     <Link
-                      key={article.id}
+                      key={article._id}
                       to={`/historia/${article.slug}`}
                       className="group flex flex-col"
                     >
@@ -220,7 +182,7 @@ const Historias = () => {
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
-                            alt={article.coverAlt}
+                            alt={article.coverAlt ?? article.title}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                           />
                         )}
@@ -234,12 +196,14 @@ const Historias = () => {
                         <h3 className="font-serif text-2xl leading-tight group-hover:italic transition-all">
                           {article.title}
                         </h3>
-                        <div className="flex items-center gap-3 text-[9px] tracking-widest font-semibold uppercase text-[#2c2c2c]/30 pt-2">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {article.readingTime} min
-                          </span>
-                        </div>
+                        {article.readingTimeMin && (
+                          <div className="flex items-center gap-3 text-[9px] tracking-widest font-semibold uppercase text-[#2c2c2c]/30 pt-2">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {article.readingTimeMin} min
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </Link>
                   ))}
@@ -247,7 +211,7 @@ const Historias = () => {
               </div>
             </section>
 
-            {/* ═══════════════ EXPLORAR POR RELATO ═══════════════ */}
+            {/* EXPLORAR POR RELATO */}
             <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#2c2c2c]/5">
               <div className="mb-16">
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
@@ -276,7 +240,7 @@ const Historias = () => {
               </div>
             </section>
 
-            {/* ═══════════════ IMMERSIVE DARK BLOCK — GRAN RELATO ═══════════════ */}
+            {/* IMMERSIVE DARK BLOCK — GRAN RELATO */}
             {featured && (
               <section className="bg-[#2c2c2c] text-[#f9f7f2] py-24 md:py-32">
                 <div className="max-w-[1400px] mx-auto px-6 grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
@@ -287,9 +251,9 @@ const Historias = () => {
                     <h2 className="text-4xl md:text-6xl font-serif italic leading-tight">
                       {featured.title}
                     </h2>
-                    {featured.description && (
+                    {featured.excerpt && (
                       <p className="text-xl text-[#f9f7f2]/70 leading-relaxed font-light italic max-w-lg">
-                        {featured.description}
+                        {featured.excerpt}
                       </p>
                     )}
                     <Link
@@ -300,10 +264,10 @@ const Historias = () => {
                     </Link>
                   </div>
                   <div>
-                    {featured.coverUrlLarge ? (
+                    {featured.coverUrl ? (
                       <img
-                        src={featured.coverUrlLarge}
-                        alt={featured.coverAlt}
+                        src={featured.coverUrl}
+                        alt={featured.coverAlt ?? featured.title}
                         className="aspect-[4/5] w-full object-cover opacity-80"
                       />
                     ) : (
@@ -314,7 +278,7 @@ const Historias = () => {
               </section>
             )}
 
-            {/* ═══════════════ PRODUCTS — PIEZAS QUE NACEN DE ESTA HISTORIA ═══════════════ */}
+            {/* PRODUCTS */}
             {products.length > 0 && (
               <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
                 <div className="mb-16">
@@ -361,7 +325,7 @@ const Historias = () => {
               </section>
             )}
 
-            {/* ═══════════════ CULTURAL CAPSULE ═══════════════ */}
+            {/* CULTURAL CAPSULE */}
             <section className="py-24 md:py-32 px-6 bg-white/50 border-y border-[#2c2c2c]/5">
               <div className="max-w-3xl mx-auto text-center">
                 <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
@@ -373,7 +337,7 @@ const Historias = () => {
               </div>
             </section>
 
-            {/* ═══════════════ RELATOS POR DESCUBRIR ═══════════════ */}
+            {/* RELATOS POR DESCUBRIR */}
             {discoverArticles.length > 0 && (
               <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
                 <div className="mb-16">
@@ -387,7 +351,7 @@ const Historias = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16">
                   {discoverArticles.map((article) => (
                     <Link
-                      key={article.id}
+                      key={article._id}
                       to={`/historia/${article.slug}`}
                       className="group space-y-6"
                     >
@@ -395,7 +359,7 @@ const Historias = () => {
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
-                            alt={article.coverAlt}
+                            alt={article.coverAlt ?? article.title}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                           />
                         )}
@@ -409,20 +373,24 @@ const Historias = () => {
                         <h3 className="font-serif text-2xl leading-tight group-hover:italic transition-all">
                           {article.title}
                         </h3>
-                        {article.description && (
+                        {article.excerpt && (
                           <p className="text-sm text-[#2c2c2c]/60 leading-relaxed font-light line-clamp-3">
-                            {article.description}
+                            {article.excerpt}
                           </p>
                         )}
                         <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2c2c2c]/30 pt-4 border-t border-[#2c2c2c]/5">
-                          <span>
-                            {format(
-                              new Date(article.publishedAt),
-                              "d MMM yyyy",
-                              { locale: es },
-                            )}
-                          </span>
-                          <span>{article.readingTime} min</span>
+                          {article.publishedAt && (
+                            <span>
+                              {format(
+                                new Date(article.publishedAt),
+                                "d MMM yyyy",
+                                { locale: es },
+                              )}
+                            </span>
+                          )}
+                          {article.readingTimeMin && (
+                            <span>{article.readingTimeMin} min</span>
+                          )}
                         </div>
                       </div>
                     </Link>
@@ -431,13 +399,13 @@ const Historias = () => {
               </section>
             )}
 
-            {/* ═══════════════ REMAINING ARTICLES GRID ═══════════════ */}
+            {/* REMAINING ARTICLES GRID */}
             {remainingArticles.length > 0 && (
               <section className="max-w-[1400px] mx-auto px-6 pb-24">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
                   {remainingArticles.map((article) => (
                     <Link
-                      key={article.id}
+                      key={article._id}
                       to={`/historia/${article.slug}`}
                       className="group space-y-6"
                     >
@@ -445,7 +413,7 @@ const Historias = () => {
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
-                            alt={article.coverAlt}
+                            alt={article.coverAlt ?? article.title}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                           />
                         )}
@@ -460,14 +428,18 @@ const Historias = () => {
                           {article.title}
                         </h3>
                         <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2c2c2c]/30 pt-4 border-t border-[#2c2c2c]/5">
-                          <span>
-                            {format(
-                              new Date(article.publishedAt),
-                              "d MMM yyyy",
-                              { locale: es },
-                            )}
-                          </span>
-                          <span>{article.readingTime} min</span>
+                          {article.publishedAt && (
+                            <span>
+                              {format(
+                                new Date(article.publishedAt),
+                                "d MMM yyyy",
+                                { locale: es },
+                              )}
+                            </span>
+                          )}
+                          {article.readingTimeMin && (
+                            <span>{article.readingTimeMin} min</span>
+                          )}
                         </div>
                       </div>
                     </Link>
@@ -516,7 +488,7 @@ const Historias = () => {
           </>
         )}
 
-        {/* ═══════════════ FINAL CTA ═══════════════ */}
+        {/* FINAL CTA */}
         <section className="bg-[#1a1a1a] py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-12 px-6">
             <div className="space-y-6">

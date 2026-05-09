@@ -40,6 +40,9 @@ import { InventoryMovementsModule } from './resources/inventory-movements/invent
 import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
+import { CmsSectionsModule } from './resources/cms-sections/cms-sections.module';
+import { BlogPostsModule } from './resources/blog-posts/blog-posts.module';
+import { CollectionsModule } from './resources/collections/collections.module';
 import { PaymentsModule } from './resources/payments/payments.module';
 import { StoresModule } from './resources/stores/stores.module';
 import { ProductsNewModule } from './resources/products-new/products-new.module';
@@ -99,6 +102,9 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
     InventoryMovementsModule,
     FileUploadModule,
     CmsModule,
+    CmsSectionsModule,
+    BlogPostsModule,
+    CollectionsModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,

@@ -220,6 +220,13 @@ export const getProductsByCategory = async (categoryId: string): Promise<Product
   return response.data;
 };
 
+/** POST /products-new/by-ids — hidrata productos por IDs (usado por bloques CMS) */
+export const getProductsByIds = async (ids: string[]): Promise<ProductNewCore[]> => {
+  if (!ids || ids.length === 0) return [];
+  const response = await telarApiPublic.post<ProductNewCore[]>('/products-new/by-ids', { ids });
+  return response.data;
+};
+
 /** GET /products-new/store/:storeId — products by store */
 export const getProductsByStore = async (storeId: string): Promise<ProductNewCore[]> => {
   const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/marketplace/store/${storeId}`);

@@ -14,9 +14,14 @@ import {
   BarChart3,
   ClipboardList,
   Truck,
+  FileText,
+  ShieldCheck,
+  BookOpen,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSubdomain } from '@/hooks/useSubdomain';
+import { useAuthStore } from '@/stores/authStore';
 import { ModerationStats, ShopSummary, ProductSummary } from '@/hooks/useModerationStats';
 import { ModerationDrillDownModal } from './ModerationDrillDownModal';
 
@@ -109,6 +114,7 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isModerationSubdomain } = useSubdomain();
+  const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin === true);
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownConfig, setDrillDownConfig] = useState<DrillDownConfig | null>(null);
 
@@ -384,6 +390,62 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
             <Truck className="w-4 h-4" />
             Dashboard de Envios
           </Button>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() =>
+              navigate(isModerationSubdomain ? '/cms' : '/moderacion/cms')
+            }
+          >
+            <FileText className="w-4 h-4" />
+            CMS — Contenido Editorial
+          </Button>
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain ? '/usuarios' : '/moderacion/usuarios',
+                )
+              }
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Gestión de Usuarios
+            </Button>
+          )}
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain
+                    ? '/historias-cms'
+                    : '/moderacion/historias-cms',
+                )
+              }
+            >
+              <BookOpen className="w-4 h-4" />
+              Historias / Blog
+            </Button>
+          )}
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(
+                  isModerationSubdomain
+                    ? '/colecciones-cms'
+                    : '/moderacion/colecciones-cms',
+                )
+              }
+            >
+              <Layers className="w-4 h-4" />
+              Colecciones
+            </Button>
+          )}
         </div>
       </div>
 

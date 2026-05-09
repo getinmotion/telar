@@ -3,8 +3,12 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Sparkles, TrendingUp } from "lucide-react";
 
-// Imagen editorial subida a S3 — reemplaza con la URL del CDN cuando la subas
-// POST /file-upload/image con folder=hero
+// Imágenes editoriales subidas a S3
+const S3_ABOUT_BASE =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/about";
+const ABOUT_1_URL = `${S3_ABOUT_BASE}/about_1.jpeg`;
+const ABOUT_2_URL = `${S3_ABOUT_BASE}/about_2.jpeg`;
+// Artesana original — se mantiene al final
 const ARTESANA_TEJIENDO_URL =
   "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/artisan_capture.png";
 
@@ -24,19 +28,34 @@ export default function SobreTelar() {
 
       {/* 18.1 Hero — Qué es TELAR */}
       <section className="max-w-[1400px] mx-auto px-6 mb-24">
-        <div className="py-8 border-b border-charcoal/5">
-          <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
-            TELAR ES EL
-            <br />
-            <span className="italic text-primary">PUENTE DIGITAL</span>
-            <br />
-            DE LA ARTESANÍA
-          </h1>
-          <p className="text-base md:text-lg text-charcoal/70 max-w-2xl font-sans leading-relaxed">
-            Somos una plataforma que conecta directamente a artesanos colombianos
-            con personas que valoran el trabajo manual, la tradición y el impacto
-            social. Cada producto cuenta una historia, cada compra transforma una vida.
-          </p>
+        <div className="relative rounded-2xl overflow-hidden">
+          {/* Imagen de fondo */}
+          <img
+            src={ABOUT_1_URL}
+            alt="Artesanía colombiana"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: "center 30%" }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+          {/* Overlay para legibilidad */}
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/85 via-charcoal/60 to-charcoal/30" />
+
+          <div className="relative px-8 md:px-16 py-20 md:py-32">
+            <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-white tracking-tight">
+              TELAR ES EL
+              <br />
+              <span className="italic text-primary">PUENTE DIGITAL</span>
+              <br />
+              DE LA ARTESANÍA
+            </h1>
+            <p className="text-base md:text-lg text-white/80 max-w-2xl font-sans leading-relaxed">
+              Somos una plataforma que conecta directamente a artesanos colombianos
+              con personas que valoran el trabajo manual, la tradición y el impacto
+              social. Cada producto cuenta una historia, cada compra transforma una vida.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -68,13 +87,21 @@ export default function SobreTelar() {
             </p>
           </div>
           <div className="relative h-[400px] rounded-lg overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="text-6xl font-bold text-primary mb-2">1.500+</div>
-                <div className="text-sm uppercase tracking-widest text-charcoal/60 font-sans">
-                  Artesanos conectados
-                </div>
+            <img
+              src={ABOUT_2_URL}
+              alt="Artesanos conectados a Telar"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 -z-10" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent p-6 md:p-8">
+              <div className="text-5xl md:text-6xl font-bold text-white mb-1 font-serif">
+                1.500+
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-white/80 font-sans font-bold">
+                Artesanos conectados
               </div>
             </div>
           </div>
