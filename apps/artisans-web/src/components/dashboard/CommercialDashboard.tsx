@@ -126,9 +126,8 @@ const NavItem: React.FC<{
 }> = ({ icon, label, active, onClick }) => (
   <button
     onClick={onClick}
-    title={label}
     className={cn(
-      'w-10 h-10 flex items-center justify-center rounded-full transition-all',
+      'w-full flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all',
       active
         ? 'bg-[#151b2d] text-white'
         : 'text-[#54433e]/50 hover:bg-white/60 hover:text-[#151b2d]',
@@ -139,6 +138,18 @@ const NavItem: React.FC<{
       style={{ fontSize: 20, fontVariationSettings: "'FILL' 0, 'wght' 300" }}
     >
       {icon}
+    </span>
+    <span
+      style={{
+        fontFamily: SANS,
+        fontSize: 8,
+        fontWeight: 800,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        lineHeight: 1,
+      }}
+    >
+      {label}
     </span>
   </button>
 );
@@ -401,8 +412,8 @@ export const CommercialDashboard: React.FC = () => {
     <>
       {/* Page background — radial gradient tricolor fijo */}
       <div
+        className="h-screen overflow-hidden"
         style={{
-          minHeight: '100vh',
           backgroundColor: '#f9f7f2',
           backgroundImage: [
             'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%)',
@@ -414,7 +425,7 @@ export const CommercialDashboard: React.FC = () => {
       >
         {/* Canvas wrapper */}
         <div
-          className="max-w-[1400px] mx-auto flex min-h-screen"
+          className="max-w-[1400px] mx-auto flex h-full"
           style={{
             background: 'rgba(247,246,242,0.45)',
             backdropFilter: 'blur(24px)',
