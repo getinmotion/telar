@@ -268,10 +268,16 @@ export const CommercialDashboard: React.FC = () => {
   }, [isProfileLoading, isProfileComplete, user?.id]);
 
   // ── Metrics ───────────────────────────────────────────────────────────────
-  const publishedProducts = products.filter((p) => p.status === 'published');
-  const draftProducts     = products.filter((p) => p.status === 'draft');
-  const totalStock        = products.reduce((acc, p) => acc + (p.stock || 0), 0);
-  const lowStockProducts  = products.filter((p) => p.stock > 0 && p.stock <= 5);
+  // mapProductResponseToLegacy usa: active (bool), moderation_status (string), inventory (number), images (string[])
+  const getStock = (p: any) => p.inventory ?? p.stock ?? 0;
+  const isProductActive = (p: any) => !!(p.active || p.moderation_status === 'approved' || p.moderation_status === 'approved_with_edits');
+  const isProductDraft  = (p: any) => p.moderation_status === 'draft' || (!p.active && !p.moderation_status);
+  const getImage        = (p: any) => typeof p.images?.[0] === 'string' ? p.images[0] : p.images?.[0]?.url;
+
+  const publishedProducts = products.filter(isProductActive);
+  const draftProducts     = products.filter(isProductDraft);
+  const totalStock        = products.reduce((acc, p) => acc + getStock(p), 0);
+  const lowStockProducts  = products.filter((p) => getStock(p) > 0 && getStock(p) <= 5);
 
   // ── Checklist ─────────────────────────────────────────────────────────────
   const hasProfile   = !!masterState.perfil?.nombre;
@@ -666,10 +672,12 @@ export const CommercialDashboard: React.FC = () => {
                           <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#151b2d' }}>
                             {completedSteps} de {totalSteps} pasos completados
                           </span>
-                          <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: isPublished ? '#166534' : requiredPending.length > 0 ? '#ef4444' : '#ec6d13' }}>
-                            {isPublished
-                              ? '¡Configuración inicial completa!'
-                              : `Faltan ${requiredPending.length} requisito${requiredPending.length !== 1 ? 's' : ''} obligatorio${requiredPending.length !== 1 ? 's' : ''}`}
+                          <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: completedSteps === totalSteps ? '#166534' : requiredPending.length > 0 ? '#ef4444' : '#ec6d13' }}>
+                            {completedSteps === totalSteps
+                              ? '¡Todo completo!'
+                              : requiredPending.length > 0
+                              ? `Faltan ${requiredPending.length} obligatorio${requiredPending.length !== 1 ? 's' : ''}`
+                              : 'Pasos opcionales pendientes'}
                           </span>
                         </div>
                         <div className="relative h-[3px] rounded-full" style={{ background: 'rgba(21,27,45,0.06)' }}>
@@ -808,8 +816,12 @@ export const CommercialDashboard: React.FC = () => {
                             </thead>
                             <tbody>
                               {products.slice(0, 8).map((product) => {
-                                const isLow = product.stock > 0 && product.stock <= 5;
-                                const isOut = product.stock === 0;
+                                const stock  = getStock(product);
+                                const active = isProductActive(product);
+                                const draft  = isProductDraft(product);
+                                const isLow  = active && stock > 0 && stock <= 5;
+                                const isOut  = active && stock === 0;
+                                const imgSrc = getImage(product);
                                 return (
                                   <tr
                                     key={product.id}
@@ -818,8 +830,8 @@ export const CommercialDashboard: React.FC = () => {
                                   >
                                     <td className="py-4">
                                       <div className="w-10 h-10 rounded-lg overflow-hidden" style={{ background: 'rgba(21,27,45,0.04)' }}>
-                                        {product.images?.[0]?.url && (
-                                          <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
+                                        {imgSrc && (
+                                          <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" />
                                         )}
                                       </div>
                                     </td>
@@ -827,16 +839,16 @@ export const CommercialDashboard: React.FC = () => {
                                       {product.name}
                                     </td>
                                     <td className="py-4">
-                                      {product.status === 'published' && !isLow && <Pill variant="success">Publicado</Pill>}
-                                      {product.status === 'published' && isLow  && <Pill variant="warning">Bajo stock</Pill>}
-                                      {product.status === 'draft'             && <Pill variant="draft">Borrador</Pill>}
-                                      {product.status === 'inactive'          && <Pill variant="error">Inactivo</Pill>}
+                                      {active && !isLow && <Pill variant="success">Publicado</Pill>}
+                                      {active && isLow  && <Pill variant="warning">Bajo stock</Pill>}
+                                      {draft            && <Pill variant="draft">Borrador</Pill>}
+                                      {!active && !draft && <Pill variant="info">En revisión</Pill>}
                                     </td>
                                     <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
                                       {product.price ? `$${product.price.toLocaleString('es-CO')}` : '—'}
                                     </td>
                                     <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {product.stock}
+                                      {stock ?? '—'}
                                     </td>
                                     <td className="py-4 text-right">
                                       <button
@@ -844,7 +856,7 @@ export const CommercialDashboard: React.FC = () => {
                                         className="hover:underline"
                                         style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
                                       >
-                                        {isOut || isLow ? 'Reponer' : product.status === 'draft' ? 'Completar' : 'Editar'}
+                                        {isOut || isLow ? 'Reponer' : draft ? 'Completar' : 'Editar'}
                                       </button>
                                     </td>
                                   </tr>
