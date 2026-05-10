@@ -11,7 +11,12 @@
       "Bash(npx tsc *)",
       "Bash(git cherry-pick *)",
       "Bash(git stash *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git commit -m ' *)",
+      "Bash(git -C /Users/mad/telar add apps/artisans-web/src/components/dashboard/CommercialDashboard.tsx)",
+      "Bash(git -C /Users/mad/telar status --short)",
+      "Bash(npx --prefix apps/artisans-web tsc --noEmit)"
     ]
   }
 }
