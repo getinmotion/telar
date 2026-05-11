@@ -35,6 +35,7 @@ export const uploadImage = async (
   file: File | Blob,
   folder: UploadFolder,
   fileName?: string,
+  options?: { suppressToast?: boolean },
 ): Promise<UploadResult> => {
   const formData = new FormData();
   formData.append('file', file, fileName ?? (file instanceof File ? file.name : 'image.jpg'));
@@ -42,7 +43,8 @@ export const uploadImage = async (
 
   const response = await telarApi.post<UploadResult>('/file-upload/image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-  });
+    _suppressToast: options?.suppressToast,
+  } as any);
 
   return response.data;
 };

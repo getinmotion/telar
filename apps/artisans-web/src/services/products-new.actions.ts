@@ -179,13 +179,15 @@ export const mapWizardStateToCreateDto = (
  * @returns Producto creado con todas sus relaciones
  */
 export const createProductNew = async (
-  createDto: CreateProductsNewDto
+  createDto: CreateProductsNewDto,
+  options?: { suppressToast?: boolean }
 ): Promise<ProductResponse> => {
   try {
     console.log('📤 Enviando producto a /products-new:', createDto);
     const response = await telarApi.post<ProductResponse>(
       '/products-new',
-      createDto
+      createDto,
+      { _suppressToast: options?.suppressToast } as any
     );
     console.log('✅ Producto creado exitosamente:', response.data);
     return response.data;
@@ -203,14 +205,16 @@ export const createProductNew = async (
  */
 export const updateProductNew = async (
   productId: string,
-  updateDto: Partial<CreateProductsNewDto>
+  updateDto: Partial<CreateProductsNewDto>,
+  options?: { suppressToast?: boolean }
 ): Promise<ProductResponse> => {
   try {
     const dtoWithId = { ...updateDto, productId };
     console.log('📤 Actualizando producto:', dtoWithId);
     const response = await telarApi.post<ProductResponse>(
       '/products-new',
-      dtoWithId
+      dtoWithId,
+      { _suppressToast: options?.suppressToast } as any
     );
     console.log('✅ Producto actualizado exitosamente:', response.data);
     return response.data;
@@ -349,7 +353,7 @@ export const mapProductResponseToLegacy = (product: ProductResponse): any => {
       .map((m) => m.mediaUrl) || [],
     inventory: firstVariant?.stockQuantity || 0,
     sku: firstVariant?.sku || '',
-    active: product.status === 'approved',
+    active: product.status === 'approved' || product.status === 'approved_with_edits',
     moderation_status: product.status,
     created_at: product.createdAt,
     updated_at: product.updatedAt,
