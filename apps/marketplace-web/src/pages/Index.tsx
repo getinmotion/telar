@@ -1,220 +1,21 @@
 /**
- * Homepage — Editorial Design
- * Matches telar_inicio_refinado_estrategico reference exactly
+ * Homepage — 100% CMS-driven via PageRenderer.
+ *
+ * Toda la página se compone de secciones en `cms_pages.pageKey='home'`
+ * ordenadas por `position`. El curador reordena, añade y quita desde
+ * el admin sin pedir cambios al equipo de frontend.
+ *
+ * Para añadir un widget hardcoded nuevo:
+ *  1. Crearlo en `components/home/widgets/HomeWidgets.tsx`
+ *  2. Registrarlo en `components/cms/SectionDispatcher.tsx` (WIDGET_REGISTRY)
+ *  3. Añadir una sección `embedded_widget` con `payload.widget = 'tu_widget'`
+ *     desde el admin o el seed.
  */
+import { Helmet } from 'react-helmet-async';
+import { Footer } from '@/components/Footer';
+import { PageRenderer } from '@/components/cms/PageRenderer';
 
-import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { Footer } from "@/components/Footer";
-import { useTaxonomy } from "@/hooks/useTaxonomy";
-import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
-import {
-  getFeaturedProductsNew,
-  type ProductFeatured,
-} from "@/services/products-new.actions";
-import { formatCurrency } from "@/lib/currencyUtils";
-import telarHorizontal from "@/assets/telar-horizontal.svg";
-import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { NavbarV2 } from "@/components/NavbarV2";
-import { HeroSectionV2 } from "@/components/HeroSectionV2";
-import { useCmsSections } from "@/hooks/useCmsSections";
-import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
-import type { CmsSection } from "@/services/cms-sections.actions";
-
-/** Fallback editorial — keep in sync with apps/api/.../seed/home.seed.ts */
-const fb = (id: string, position: number, type: string, payload: any): CmsSection => ({
-  id, pageKey: "home", position, type, published: true, payload,
-  createdAt: "", updatedAt: "",
-});
-const FALLBACK_HOME_SECTIONS: CmsSection[] = [
-  fb("fb-h-hero", 5, "home_hero_carousel", {
-    description: "Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean.",
-    tagline: "Hecho a mano por talleres artesanales de Colombia.",
-    primaryCtaLabel: "Explorar Piezas", primaryCtaHref: "/productos",
-    secondaryCtaLabel: "Conocer Talleres", secondaryCtaHref: "/tiendas",
-    autoplaySeconds: 6,
-    slides: [
-      {
-        title: "HISTORIAS HECHAS", subtitle: "A MANO",
-        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png",
-        imageAlt: "Artesanía colombiana",
-        origin: "Nariño, Colombia",
-        quote: "Cada puntada es un susurro de nuestros ancestros.",
-      },
-      {
-        title: "ARTESANÍA", subtitle: "AUTÉNTICA",
-        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
-        imageAlt: "Tejedoras del Cauca",
-        origin: "Valle del Cauca, Colombia",
-        quote: "Cada pieza cuenta una historia única.",
-      },
-    ],
-  }),
-  fb("fb-h-value-props", 0, "home_value_props", {
-    cards: [
-      { title: "Hecho a mano", body: "Cada pieza es creada por talleres artesanales reales que mantienen vivas técnicas tradicionales." },
-      { title: "Origen cultural", body: "Los objetos conservan la historia de la región y las comunidades donde fueron creados." },
-      { title: "Autenticidad registrada", body: "Cada pieza cuenta con una huella digital que documenta su origen, su taller y su proceso artesanal." },
-    ],
-  }),
-  fb("fb-h-cats", 1, "home_section_header", {
-    slot: "categories",
-    kicker: "Explorar por categorías", title: "", subtitle: "", ctaLabel: "", ctaHref: "",
-  }),
-  fb("fb-h-feat", 2, "home_section_header", {
-    slot: "featured_products",
-    title: "Creaciones Destacadas",
-    subtitle: "Piezas con alma seleccionadas por su maestría técnica.",
-    ctaLabel: "Ver colección completa", ctaHref: "/productos",
-  }),
-  fb("fb-h-mp", 3, "home_block", {
-    slot: "marketplace_diferente",
-    kicker: "Un marketplace diferente",
-    body: "Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.",
-    ctaLabel: "Descubrir cómo funciona Telar", ctaHref: "/newsletter",
-    variant: "dark",
-  }),
-  fb("fb-h-cj", 4, "home_block", {
-    slot: "comercio_justo",
-    title: "Comercio justo para quienes crean",
-    body: "Trabajamos directamente con talleres artesanales para asegurar que quienes crean las piezas reciban una compensación justa por su trabajo. Construimos relaciones directas entre quienes crean las piezas y quienes las valoran.",
-    ctaLabel: "Conocer más", ctaHref: "/newsletter",
-    variant: "bordered",
-  }),
-];
-
-// ── Seeded random for consistent daily shuffle ──
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed++) * 10000;
-  return x - Math.floor(x);
-};
-
-const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(seededRandom(seed + i) * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
-
-const Index = () => {
-  const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
-  const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
-  const [products, setProducts] = useState<ProductFeatured[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-
-  const dailySeed = useMemo(() => {
-    const d = new Date();
-    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-  }, []);
-
-  // Fetch featured products
-  useEffect(() => {
-    getFeaturedProductsNew()
-      .then((data) => {
-        // Validamos si la data ya es un arreglo
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } 
-        // Si viene envuelta en una propiedad "data" (muy común en APIs)
-        else if (data && Array.isArray((data as any).data)) {
-          setProducts((data as any).data);
-        }
-        // Si viene envuelta en "products"
-        else if (data && Array.isArray((data as any).products)) {
-          setProducts((data as any).products);
-        }
-        // Fallback preventivo
-        else {
-          console.warn("La API no devolvió un arreglo esperado:", data);
-          setProducts([]);
-        }
-      })
-      .catch(() => setProducts([]))
-      .finally(() => setProductsLoading(false));
-  }, []);
-
-  // Fetch featured shops
-  useEffect(() => {
-    fetchFeaturedShops(8);
-  }, []);
-
-// 3 featured products (purchasable, shuffled, from different stores)
-  const featuredProducts = useMemo(() => {
-    // 1. Aseguramos que sea un arreglo antes de filtrar
-    const safeProducts = Array.isArray(products) ? products : [];
-
-    // 2. Usamos safeProducts en lugar de products directamente
-    const available = safeProducts.filter(
-      (p) => !p.status || p.status === "published" || p.status === "approved",
-    );
-    
-    if (available.length === 0 && safeProducts.length > 0) {
-      const shuffled = shuffleArray(safeProducts, dailySeed);
-      return shuffled.slice(0, 3);
-    }
-    
-    const shuffled = shuffleArray(available, dailySeed);
-    // Pick from different stores
-    const seen = new Set<string>();
-    const picked: ProductFeatured[] = [];
-    for (const p of shuffled) {
-      const store = p.storeName ?? "";
-      if (!seen.has(store)) {
-        picked.push(p);
-        seen.add(store);
-      }
-      if (picked.length >= 3) break;
-    }
-    // If not enough from different stores, fill with any remaining
-    if (picked.length < 3) {
-      for (const p of shuffled) {
-        if (!picked.includes(p)) picked.push(p);
-        if (picked.length >= 3) break;
-      }
-    }
-    return picked;
-  }, [products, dailySeed]);
-
-// Featured shop (first one or Karen Dayana if available)
-  const featuredShop = useMemo(() => {
-    const safeShops = Array.isArray(featuredShops) ? featuredShops : [];
-
-    const karen = safeShops.find((s) =>
-      s.shopName?.toLowerCase().includes("karen dayana"),
-    );
-    return karen || safeShops[0] || null;
-  }, [featuredShops]);
-
-  // Categories for display (up to 8 parent categories)
-  const displayCategories = useMemo(() => {
-    return categoryHierarchy
-      .filter((c) => c.isActive && c.slug !== "cuidado-personal")
-      .slice(0, 8);
-  }, [categoryHierarchy]);
-
-  const HERO_IMAGE =
-    "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png";
-
-  // CMS: editorial slots para homepage (con FALLBACK quemado)
-  const { data: cmsHomeSections } = useCmsSections("home");
-  const homeSections =
-    cmsHomeSections && cmsHomeSections.length > 0
-      ? cmsHomeSections
-      : FALLBACK_HOME_SECTIONS;
-  const findSlot = (type: string, slot?: string): CmsSection | undefined =>
-    homeSections.find(
-      (s) => s.type === type && (!slot || s.payload?.slot === slot),
-    );
-  const heroCarouselSection = findSlot("home_hero_carousel");
-  const valuePropsSection = findSlot("home_value_props");
-  const categoriesHeader = findSlot("home_section_header", "categories");
-  const featuredHeader = findSlot("home_section_header", "featured_products");
-  const marketplaceDiferenteBlock = findSlot("home_block", "marketplace_diferente");
-  const comercioJustoBlock = findSlot("home_block", "comercio_justo");
-
+export default function Index() {
   return (
     <>
       <Helmet>
@@ -627,6 +428,4 @@ const Index = () => {
       </div>
     </>
   );
-};
-
-export default Index;
+}

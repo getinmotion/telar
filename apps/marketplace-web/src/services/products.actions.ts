@@ -42,11 +42,16 @@ function mapNewToLegacy(p: ProductNewCore): Product {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  const ps = p.physicalSpecs;
+  const hasAnyDimension = !!ps && !!(ps.width || ps.height || ps.depth);
+  const hasWeight = !!ps && !!ps.weight;
+
   return {
     id: p.id,
     name: p.name,
-    description: p.history ?? p.shortDescription ?? '',
+    description: p.shortDescription ?? '',
     shortDescription: p.shortDescription ?? '',
+    history: p.history ?? null,
     price: price != null ? String(price) : '0',
     imageUrl,
     images,
@@ -68,15 +73,15 @@ function mapNewToLegacy(p: ProductNewCore): Product {
     craft: craft,
     material: materialNames[0] ?? null,
 
-    // Physical specs
-    dimensions: p.physicalSpecs
+    // Physical specs — only include when real values exist
+    dimensions: hasAnyDimension
       ? {
-          width: p.physicalSpecs.width ?? 0,
-          height: p.physicalSpecs.height ?? 0,
-          length: p.physicalSpecs.depth ?? 0,
+          width: ps!.width || undefined,
+          height: ps!.height || undefined,
+          length: ps!.depth || undefined,
         }
       : undefined,
-    weight: p.physicalSpecs?.weight != null ? String(p.physicalSpecs.weight) : undefined,
+    weight: hasWeight ? String(ps!.weight) : undefined,
     productionTime: p.artisanalIdentity?.estimatedElaborationTime ?? null,
     leadTimeDays: p.production?.productionTime
       ? parseInt(p.production.productionTime) || undefined
