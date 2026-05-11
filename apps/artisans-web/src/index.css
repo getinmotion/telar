@@ -3,6 +3,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TELAR Design System — Material Symbols defaults */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 @layer base {
   :root {
     /* Primary Colors - Navy Blue Palette */
