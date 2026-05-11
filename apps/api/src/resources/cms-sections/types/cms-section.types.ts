@@ -17,6 +17,7 @@ export type CmsSectionType =
   | 'home_block'
   | 'home_hero_carousel'
   | 'content_pick'
+  | 'embedded_widget'
   | string;
 
 export interface CmsSection {

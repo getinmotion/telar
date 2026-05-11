@@ -65,6 +65,8 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'home_section_header', label: 'Home — Section Header' },
   { value: 'home_block', label: 'Home — Block (variant: light/dark/cream/bordered)' },
   { value: 'home_hero_carousel', label: 'Home — Hero Carousel (slides editables)' },
+  { value: 'content_pick', label: 'Content Pick (banner/card que apunta a un blog o colección)' },
+  { value: 'embedded_widget', label: 'Embedded Widget (categorías, productos destacados, taller del mes…)' },
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -160,6 +162,27 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
         slides: [
           { title: '', subtitle: '', imageUrl: '', imageAlt: '', origin: '', quote: '' },
         ],
+      };
+    case 'content_pick':
+      return {
+        slot: '',
+        targetType: 'collection',
+        slug: '',
+        label: '',
+        ctaLabel: '',
+        variant: 'banner',
+        overrideTitle: '',
+        overrideExcerpt: '',
+        overrideImageUrl: '',
+      };
+    case 'embedded_widget':
+      return {
+        widget: 'categories_grid',
+        kicker: '',
+        title: '',
+        subtitle: '',
+        ctaLabel: '',
+        ctaHref: '',
       };
     default:
       return {};
@@ -471,6 +494,12 @@ function SectionCard({
             setDraft={setDraft}
           />
         )}
+        {section.type === 'content_pick' && (
+          <ContentPickForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'embedded_widget' && (
+          <EmbeddedWidgetForm draft={draft} setField={setField} />
+        )}
         {![
           'hero',
           'quote',
@@ -485,6 +514,8 @@ function SectionCard({
           'home_section_header',
           'home_block',
           'home_hero_carousel',
+          'content_pick',
+          'embedded_widget',
         ].includes(section.type) && (
           <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); setDirty(true); }} />
         )}
@@ -732,6 +763,108 @@ function HomeSectionHeaderForm({ draft, setField }: any) {
         altValue={draft.imageAlt ?? ''}
         onAltChange={(v) => setField('imageAlt', v)}
       />
+    </div>
+  );
+}
+
+function EmbeddedWidgetForm({ draft, setField }: any) {
+  const widget = draft.widget ?? 'categories_grid';
+  const supportsHeader = widget === 'categories_grid' || widget === 'featured_products';
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-xs uppercase tracking-widest">Widget</Label>
+        <Select value={widget} onValueChange={(v) => setField('widget', v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="categories_grid">Grid de categorías (8 cards)</SelectItem>
+            <SelectItem value="featured_products">Productos destacados (3 cards)</SelectItem>
+            <SelectItem value="huella_digital">Huella digital (texto + imagen)</SelectItem>
+            <SelectItem value="featured_shop">Taller del mes</SelectItem>
+            <SelectItem value="regalos_con_historia">Regalos con historia</SelectItem>
+            <SelectItem value="colecciones_overview">Overview de colecciones (3 cards)</SelectItem>
+            <SelectItem value="aliados">Aliados</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Cápsula hardcoded con su propia data (productos, talleres, taxonomía). El payload solo puede pasar copy de header — la data viene de la DB.
+        </p>
+      </div>
+      {supportsHeader && (
+        <>
+          <FieldText label="Kicker (opcional)" value={draft.kicker ?? ''} onChange={(v) => setField('kicker', v)} />
+          <FieldText label="Título (opcional)" value={draft.title ?? ''} onChange={(v) => setField('title', v)} />
+          <FieldText label="Subtítulo (opcional)" value={draft.subtitle ?? ''} onChange={(v) => setField('subtitle', v)} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FieldText label="CTA texto" value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+            <FieldText label="CTA href" value={draft.ctaHref ?? ''} onChange={(v) => setField('ctaHref', v)} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ContentPickForm({ draft, setField }: any) {
+  const isBlog = draft.targetType === 'blog';
+  return (
+    <div className="space-y-4">
+      <FieldText
+        label="Slot (identificador único — ej. home_pick_1, colecciones_pick_featured)"
+        value={draft.slot ?? ''}
+        onChange={(v) => setField('slot', v)}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-widest">Tipo de destino</Label>
+          <Select
+            value={draft.targetType ?? 'collection'}
+            onValueChange={(v) => setField('targetType', v)}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="collection">Colección</SelectItem>
+              <SelectItem value="blog">Blog post</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-widest">Variante visual</Label>
+          <Select
+            value={draft.variant ?? 'banner'}
+            onValueChange={(v) => setField('variant', v)}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="banner">Banner (full-width oscuro)</SelectItem>
+              <SelectItem value="card">Card (con cover arriba)</SelectItem>
+              <SelectItem value="inline">Inline (lista compacta)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <FieldText
+        label={isBlog ? 'Slug del blog post (ej. cauca-seda-paz)' : 'Slug de la colección (ej. dia-de-la-madre)'}
+        value={draft.slug ?? ''}
+        onChange={(v) => setField('slug', v)}
+        placeholder={isBlog ? 'cauca-seda-paz' : 'dia-de-la-madre'}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Label / pill (ej. Editorial)" value={draft.label ?? ''} onChange={(v) => setField('label', v)} />
+        <FieldText label={`CTA texto (default: ${isBlog ? 'Leer historia' : 'Ver colección'})`} value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+      </div>
+      <div className="border-t pt-3">
+        <p className="text-xs text-muted-foreground mb-3">
+          Overrides opcionales — pisan los datos del doc referenciado. Deja vacío para usar los originales.
+        </p>
+        <FieldText label="Override título" value={draft.overrideTitle ?? ''} onChange={(v) => setField('overrideTitle', v)} />
+        <FieldArea label="Override excerpt" value={draft.overrideExcerpt ?? ''} onChange={(v) => setField('overrideExcerpt', v)} rows={2} />
+        <ImageUploadField
+          label="Override imagen"
+          value={draft.overrideImageUrl ?? ''}
+          onChange={(v) => setField('overrideImageUrl', v)}
+        />
+      </div>
     </div>
   );
 }

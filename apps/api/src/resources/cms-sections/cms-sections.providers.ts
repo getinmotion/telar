@@ -1,6 +1,10 @@
 import * as mongoose from 'mongoose';
 import { Logger } from '@nestjs/common';
 import { CmsPageSchema, CmsPageDocument } from './schemas/cms-page.schema';
+import {
+  CmsSeedSkipSchema,
+  CmsSeedSkipDocument,
+} from './schemas/cms-seed-skip.schema';
 
 /**
  * Proveedores de Mongo para el CMS, alineados con la convención del repo
@@ -65,6 +69,16 @@ export const cmsSectionsProviders = [
     provide: 'CMS_PAGE_MODEL',
     useFactory: (m: typeof mongoose) =>
       m.model<CmsPageDocument>('CmsPage', CmsPageSchema, 'cms_pages'),
+    inject: ['MONGO_DATA_SOURCE'],
+  },
+  {
+    provide: 'CMS_SEED_SKIP_MODEL',
+    useFactory: (m: typeof mongoose) =>
+      m.model<CmsSeedSkipDocument>(
+        'CmsSeedSkip',
+        CmsSeedSkipSchema,
+        'cms_seed_skips',
+      ),
     inject: ['MONGO_DATA_SOURCE'],
   },
 ];
