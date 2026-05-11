@@ -65,6 +65,7 @@ import PublicShopPage from './pages/PublicShopPage';
 import PublicShopAbout from './pages/PublicShopAbout';
 import PublicShopContact from './pages/PublicShopContact';
 import { PublicProductPage } from './pages/PublicProductPage';
+import { ProductIdentityPage } from './pages/product-identity';
 import ShopConfigDashboard from './pages/ShopConfigDashboard';
 import { ShopDirectoryPage } from './pages/ShopDirectoryPage';
 import { ProductUploadPage } from './pages/ProductUploadPage';
@@ -201,6 +202,10 @@ function App() {
                                   <PublicProductPage />
                                 </ShoppingCartProvider>
                               }
+                            />
+                            <Route
+                              path="/product-identity"
+                              element={<ProductIdentityPage />}
                             />
                             <Route
                               path="/checkout"
