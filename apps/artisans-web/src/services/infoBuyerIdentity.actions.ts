@@ -79,3 +79,34 @@ export const getInfoBuyerIdentityBySku = async (
     throw error;
   }
 };
+
+export interface UpdateInfoBuyerIdentityDto {
+  nombreCompleto?: string;
+  email?: string;
+  celular?: string;
+}
+
+/**
+ * Actualiza la información de contacto de un registro de info-buyer-identity
+ * Endpoint: PATCH /info-buyer-identity/:id
+ */
+export const updateInfoBuyerIdentity = async (
+  id: number,
+  updateData: UpdateInfoBuyerIdentityDto
+): Promise<InfoBuyerIdentity> => {
+  try {
+    const response = await telarApi.patch<InfoBuyerIdentity>(
+      `/info-buyer-identity/${id}`,
+      updateData
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error updating info-buyer-identity:', error);
+    if (error.response?.data) {
+      throw new Error(
+        error.response.data.message || 'Error al actualizar la información'
+      );
+    }
+    throw error;
+  }
+};

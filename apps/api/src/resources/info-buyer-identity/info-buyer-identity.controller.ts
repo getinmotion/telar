@@ -1,6 +1,15 @@
-import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  ParseIntPipe,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { InfoBuyerIdentityService } from './info-buyer-identity.service';
 import { InfoBuyerIdentity } from './entities/info-buyer-identity.entity';
+import { UpdateInfoBuyerIdentityDto } from './dto/update-info-buyer-identity.dto';
 
 @Controller('info-buyer-identity')
 export class InfoBuyerIdentityController {
@@ -46,5 +55,17 @@ export class InfoBuyerIdentityController {
     @Param('skuProduct') skuProduct: string,
   ): Promise<InfoBuyerIdentity[]> {
     return this.infoBuyerIdentityService.findBySkuProduct(skuProduct);
+  }
+
+  /**
+   * PATCH /info-buyer-identity/:id
+   * Actualizar información de contacto de un registro
+   */
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateInfoBuyerIdentityDto,
+  ): Promise<InfoBuyerIdentity> {
+    return this.infoBuyerIdentityService.update(id, updateDto);
   }
 }

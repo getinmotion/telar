@@ -71,4 +71,34 @@ export class InfoBuyerIdentityService {
       order: { id: 'ASC' },
     });
   }
+
+  /**
+   * Actualizar un registro de info-buyer-identity
+   */
+  async update(
+    id: number,
+    updateData: Partial<
+      Pick<InfoBuyerIdentity, 'nombreCompleto' | 'email' | 'celular'>
+    >,
+  ): Promise<InfoBuyerIdentity> {
+    if (!id) {
+      throw new BadRequestException('El ID es requerido');
+    }
+
+    // Verificar que el registro existe
+    const record = await this.findOne(id);
+
+    // Actualizar los campos permitidos
+    if (updateData.nombreCompleto !== undefined) {
+      record.nombreCompleto = updateData.nombreCompleto;
+    }
+    if (updateData.email !== undefined) {
+      record.email = updateData.email;
+    }
+    if (updateData.celular !== undefined) {
+      record.celular = updateData.celular;
+    }
+
+    return await this.infoBuyerIdentityRepository.save(record);
+  }
 }
