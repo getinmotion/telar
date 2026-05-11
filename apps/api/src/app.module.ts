@@ -55,6 +55,7 @@ import { CategoriesModule } from './resources/categories/categories.module';
 import { CareTagsModule } from './resources/care-tags/care-tags.module';
 import { PaymentProvidersModule } from './resources/payment-providers/payment-providers.module';
 import { PaymentIntentsModule } from './resources/payment-intents/payment-intents.module';
+import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-buyer-identity.module';
 
 @Module({
   imports: [
@@ -117,6 +118,7 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
     CareTagsModule,
     PaymentProvidersModule,
     PaymentIntentsModule,
+    InfoBuyerIdentityModule,
   ],
   controllers: [],
   providers: [],
