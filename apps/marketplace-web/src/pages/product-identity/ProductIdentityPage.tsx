@@ -263,19 +263,6 @@ export const ProductIdentityPage = () => {
                     <p className="text-sm text-muted-foreground">SKU</p>
                     <p className="font-mono">{buyerInfo.skuProduct}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Precio</p>
-                    <p className="font-semibold text-2xl text-primary">
-                      $
-                      {(
-                        parseInt(
-                          product.variants?.[0]?.basePriceMinor?.toString() || "0",
-                          10,
-                        ) / 100
-                      ).toLocaleString("es-CO")}{" "}
-                      COP
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
