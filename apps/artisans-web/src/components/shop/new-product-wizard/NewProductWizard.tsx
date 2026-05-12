@@ -16,7 +16,8 @@ import { toast } from 'sonner';
 const TOTAL_STEPS = 6;
 
 export const NewProductWizard: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const urlParamsInit = new URLSearchParams(window.location.search);
+  const [currentStep, setCurrentStep] = useState(urlParamsInit.get('edit') === 'true' ? TOTAL_STEPS : 1);
   const [hasShop, setHasShop] = useState<boolean | null>(null);
   const [isCheckingShop, setIsCheckingShop] = useState(true);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
@@ -27,10 +28,9 @@ export const NewProductWizard: React.FC = () => {
 
   const { user } = useAuth();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const isEditMode = urlParams.get('edit') === 'true';
-  const productIdToEdit = urlParams.get('productId') ?? undefined;
-  const shouldContinue = urlParams.get('continue') === 'true';
+  const isEditMode = urlParamsInit.get('edit') === 'true';
+  const productIdToEdit = urlParamsInit.get('productId') ?? undefined;
+  const shouldContinue = urlParamsInit.get('continue') === 'true';
 
   const { state, update, reset } = useNewWizardState(shouldContinue);
   const { saveDraft, isSavingDraft } = useWizardDraft(state, update, shopId, false);
@@ -136,15 +136,7 @@ export const NewProductWizard: React.FC = () => {
 
   if (showSuccess) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center px-6"
-        style={{
-          background: '#f9f7f2',
-          backgroundImage:
-            'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%), radial-gradient(circle at bottom right, rgba(238,241,245,0.95), transparent 42%), radial-gradient(circle at top right, rgba(255,244,223,0.75), transparent 34%)',
-          backgroundAttachment: 'fixed',
-        }}
-      >
+      <div className="flex-1 flex items-center justify-center px-6">
         <div
           className="max-w-lg w-full rounded-2xl p-10 text-center"
           style={{
@@ -212,7 +204,7 @@ export const NewProductWizard: React.FC = () => {
 
   if (isCheckingShop || isLoadingEdit) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: '#f9f7f2', backgroundImage: 'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%), radial-gradient(circle at bottom right, rgba(238,241,245,0.95), transparent 42%), radial-gradient(circle at top right, rgba(255,244,223,0.75), transparent 34%)', backgroundAttachment: 'fixed' }}>
+      <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mx-auto" />
           <p className="font-['Manrope'] text-[#54433e]/60 text-sm font-[500]">
@@ -225,7 +217,7 @@ export const NewProductWizard: React.FC = () => {
 
   if (hasShop === false) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6" style={{ background: '#f9f7f2', backgroundImage: 'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%), radial-gradient(circle at bottom right, rgba(238,241,245,0.95), transparent 42%), radial-gradient(circle at top right, rgba(255,244,223,0.75), transparent 34%)', backgroundAttachment: 'fixed' }}>
+      <div className="flex-1 flex items-center justify-center p-6">
         <div
           className="max-w-md w-full p-10 text-center rounded-2xl"
           style={{
@@ -266,12 +258,7 @@ export const NewProductWizard: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen"
-      style={{
-        backgroundColor: '#f9f7f2',
-        backgroundImage: 'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%), radial-gradient(circle at bottom right, rgba(238,241,245,0.95), transparent 42%), radial-gradient(circle at top right, rgba(255,244,223,0.75), transparent 34%)',
-        backgroundAttachment: 'fixed',
-      }}
+      className="flex-1 overflow-y-auto"
     >
       {currentStep === 1 && <Step1NewPiece {...stepProps} />}
       {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}

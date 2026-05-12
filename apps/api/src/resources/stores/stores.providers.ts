@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
 import {
   Store,
-  StoreArtisanalProfile,
   StoreContacts,
   StoreAward,
   StoreBadge,
@@ -12,12 +11,6 @@ export const storesProviders = [
   {
     provide: 'STORES_REPOSITORY',
     useFactory: (dataSource: DataSource) => dataSource.getRepository(Store),
-    inject: ['DATA_SOURCE'],
-  },
-  {
-    provide: 'STORE_ARTISANAL_PROFILES_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(StoreArtisanalProfile),
     inject: ['DATA_SOURCE'],
   },
   {

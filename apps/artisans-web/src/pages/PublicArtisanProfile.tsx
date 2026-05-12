@@ -1,356 +1,345 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Clock, Heart, Sparkles, Users, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
-import { ShopThemeProvider } from '@/contexts/ShopThemeContext';
-import { ShopNavbar } from '@/components/shop/ShopNavbar';
-import { ShopFooter } from '@/components/shop/ShopFooter';
-import { ArtisanProfileData, LEARNED_FROM_OPTIONS } from '@/types/artisanProfile';
+import { ArtisanProfileData, LEARNED_FROM_OPTIONS, ETHNIC_RELATION_OPTIONS } from '@/types/artisanProfile';
+import {
+  T, pageBg, glassCard, glassLoom,
+  LabelCaps, HeadingSerif,
+  ShopTopBar, ShopPublicFooter, TrustStrip,
+  normShop, getHeroImage,
+  ShopLoadingState, ShopNotFoundState,
+} from '@/components/shop/public/ShopPublicShell';
+import { ShoppingCartProvider } from '@/contexts/ShoppingCartContext';
 
-export const PublicArtisanProfile: React.FC = () => {
-  const { shopSlug } = useParams();
-  const location = useLocation();
-  const [shop, setShop] = useState<any>(null);
-  const [profile, setProfile] = useState<ArtisanProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
+// ─── helpers ──────────────────────────────────────────────────────────────────
+function galleryPhotos(p: ArtisanProfileData): string[] {
+  return [
+    ...(p.workingPhotos     ?? []),
+    ...(p.maestrosPhotos    ?? []),
+    ...(p.communityPhotos   ?? []),
+    ...(p.environmentPhotos ?? []),
+    ...(p.familyPhotos      ?? []),
+    ...(p.workshopPhotos    ?? []),
+  ].filter(Boolean);
+}
 
-  const previewParam = new URLSearchParams(location.search).get('preview') === 'true' ? '?preview=true' : '';
+// ─── Page ─────────────────────────────────────────────────────────────────────
+const PublicArtisanProfile: React.FC = () => {
+  const { shopSlug }  = useParams<{ shopSlug: string }>();
+  const location      = useLocation();
+  const isPreview     = new URLSearchParams(location.search).get('preview') === 'true';
+
+  const [rawShop,  setRawShop]  = useState<any>(null);
+  const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    const fetchShop = async () => {
-      if (!shopSlug) return;
-
-      const data = await getArtisanShopBySlug(shopSlug);
-
-      if (data) {
-        setShop(data);
-        const shopAny = data as any;
-        if (shopAny.artisanProfile) {
-          setProfile(shopAny.artisanProfile as ArtisanProfileData);
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchShop();
+    if (!shopSlug) return;
+    getArtisanShopBySlug(shopSlug)
+      .then(d => setRawShop(d ?? null))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [shopSlug]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Cargando...</div>
-      </div>
-    );
-  }
+  const shop    = useMemo(() => rawShop ? normShop(rawShop) : null, [rawShop]);
+  const profile = (rawShop as any)?.artisanProfile as ArtisanProfileData | null;
 
-  if (!shop || !profile) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <p className="text-muted-foreground mb-4">Perfil no encontrado</p>
-        <Link to={`/tienda/${shopSlug}${previewParam}`}>
-          <Button variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a la tienda
-          </Button>
-        </Link>
-      </div>
-    );
-  }
+  if (loading) return <ShopLoadingState />;
+  if (!shop)   return <ShopNotFoundState message="Tienda no encontrada" />;
+  if (!profile || !shop.artisanProfileCompleted)
+    return <ShopNotFoundState message="Historia del taller no disponible" />;
 
-  const learnedFromLabel = LEARNED_FROM_OPTIONS.find(o => o.value === profile.learnedFrom)?.label || profile.learnedFrom;
-  const story = profile.generatedStory;
+  const learnedFromLabel = LEARNED_FROM_OPTIONS.find(o => o.value === profile.learnedFrom)?.label ?? profile.learnedFrom;
+  const ethnicLabel      = ETHNIC_RELATION_OPTIONS.find(o => o.value === profile.ethnicRelation)?.label ?? null;
+  const location_str     = [profile.municipality, profile.department, profile.country].filter(Boolean).join(', ');
+  const photos           = galleryPhotos(profile);
+  const heroImage        = profile.artisanPhoto ?? getHeroImage(shop);
+  const quote            = profile.craftMessage || profile.culturalMeaning;
+
+  const workshopImages = [
+    profile.workshopPhoto,
+    profile.workshopActionPhoto,
+    profile.workshopToolsPhoto,
+    ...(profile.workshopPhotos ?? []),
+  ].filter(Boolean) as string[];
 
   return (
-    <ShopThemeProvider theme={shop}>
-      <div className="min-h-screen bg-background">
-        <ShopNavbar
-          shopName={shop.shopName}
-          logoUrl={shop.logoUrl}
-          shopSlug={shop.shopSlug}
-        />
+    <ShoppingCartProvider>
+      <div style={pageBg}>
+        <Helmet>
+          <title>{`Historia de ${profile.artisanName ?? shop.shopName} · TELAR`}</title>
+        </Helmet>
 
-        {/* Hero Section */}
-        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-          {/* Background */}
-          <div className="absolute inset-0">
-            {profile.artisanPhoto && (
-              <img 
-                src={profile.artisanPhoto}
-                alt={profile.artisanName}
-                className="w-full h-full object-cover"
-              />
+        <ShopTopBar shop={shop} shopSlug={shopSlug!} activePage="profile"
+          isPreviewMode={isPreview} />
+
+        <TrustStrip />
+
+        {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden" style={{ minHeight: 520 }}>
+          {heroImage
+            ? <img src={heroImage} alt={profile.artisanName}
+                className="absolute inset-0 w-full h-full object-cover" />
+            : <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${T.dark}, ${T.muted})` }} />
+          }
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to right, rgba(21,27,45,0.88) 45%, rgba(21,27,45,0.3) 100%)',
+          }} />
+          <div className="relative z-10 max-w-[1400px] mx-auto px-10 py-20 flex flex-col justify-end" style={{ minHeight: 520 }}>
+            <LabelCaps color={T.orange} style={{ marginBottom: 12 }}>Historia del taller</LabelCaps>
+            <HeadingSerif as="h1" size={54} style={{ color: 'white', maxWidth: 640, marginBottom: 16 }}>
+              {profile.artisticName || profile.artisanName}
+            </HeadingSerif>
+            {quote && (
+              <p style={{ fontFamily: T.sans, fontSize: 16, color: 'rgba(255,255,255,0.70)', maxWidth: 520, lineHeight: 1.7, marginBottom: 20 }}>
+                "{quote}"
+              </p>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+            <div className="flex items-center gap-3 flex-wrap">
+              {location_str && (
+                <span className="flex items-center gap-1.5 text-white/60" style={{ fontFamily: T.sans, fontSize: 11 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>
+                  {location_str}
+                </span>
+              )}
+              {profile.startAge > 0 && (
+                <span className="flex items-center gap-1.5 text-white/60" style={{ fontFamily: T.sans, fontSize: 11 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>history_edu</span>
+                  Artesano/a desde los {profile.startAge} años
+                </span>
+              )}
+              {ethnicLabel && (
+                <span className="px-3 py-1 rounded-full text-white" style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', background: `${T.orange}cc` }}>
+                  {ethnicLabel.toUpperCase()}
+                </span>
+              )}
+            </div>
           </div>
-
-          {/* Content */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="relative z-10 text-center px-4 max-w-4xl mx-auto"
-          >
-            <Badge variant="outline" className="mb-4 bg-background/50 backdrop-blur">
-              Perfil Artesanal
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">
-              {story?.heroTitle || profile.artisticName || profile.artisanName}
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-6">
-              {story?.heroSubtitle || `Artesano desde los ${profile.startAge} años`}
-            </p>
-            {profile.artisanVideo && (
-              <Button size="lg" variant="outline" className="gap-2">
-                <Play className="w-5 h-5" />
-                Ver presentación
-              </Button>
-            )}
-          </motion.div>
         </section>
 
-        {/* Origin Section */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="grid md:grid-cols-2 gap-12 items-center"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Heart className="w-6 h-6 text-accent" />
-                  <span className="text-sm font-medium text-accent uppercase tracking-wider">Mi Origen</span>
+        {/* ── 2. APRENDIZAJE ─────────────────────────────────────────────── */}
+        <div className="max-w-[1400px] mx-auto px-10 py-10">
+          <div style={{ ...glassLoom, borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 60px -10px rgba(0,0,0,0.06)' }}>
+
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {/* Left: story text */}
+              <div className="p-10 flex flex-col justify-center gap-5 border-r" style={{ borderColor: 'rgba(255,255,255,0.5)' }}>
+                <div>
+                  <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 8 }}>El aprendizaje</LabelCaps>
+                  <HeadingSerif size={32} style={{ marginBottom: 16 }}>
+                    De dónde viene este oficio
+                  </HeadingSerif>
+                  {profile.learnedFromDetail && (
+                    <p style={{ fontFamily: T.sans, fontSize: 14, color: `${T.muted}cc`, lineHeight: 1.8 }}>
+                      {profile.learnedFromDetail}
+                    </p>
+                  )}
                 </div>
-                <h2 className="text-3xl font-bold mb-6">De dónde vengo</h2>
-                <p className="text-lg text-muted-foreground mb-4">
-                  {story?.originNarrative || profile.culturalMeaning}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="w-4 h-4" />
-                  <span>Aprendí de: {learnedFromLabel}</span>
+
+                {learnedFromLabel && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: `${T.orange}08`, border: `1px solid ${T.orange}20` }}>
+                    <span className="material-symbols-outlined mt-0.5" style={{ fontSize: 18, color: T.orange }}>school</span>
+                    <div>
+                      <p style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', color: `${T.muted}60`, textTransform: 'uppercase', marginBottom: 2 }}>Aprendí de</p>
+                      <p style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 700, color: T.dark }}>{learnedFromLabel}</p>
+                    </div>
+                  </div>
+                )}
+
+                {profile.culturalMeaning && (
+                  <div>
+                    <LabelCaps style={{ display: 'block', marginBottom: 8 }}>Significado del oficio</LabelCaps>
+                    <p style={{ fontFamily: T.sans, fontSize: 14, color: `${T.muted}cc`, lineHeight: 1.8 }}>
+                      {profile.culturalMeaning}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Right: photo + territory */}
+              <div className="flex flex-col">
+                {profile.artisanPhoto && (
+                  <div className="flex-1 overflow-hidden" style={{ minHeight: 260 }}>
+                    <img src={profile.artisanPhoto} alt={profile.artisanName}
+                      className="w-full h-full object-cover" style={{ maxHeight: 340 }} />
+                  </div>
+                )}
+                <div className="p-8 space-y-4" style={{ background: 'rgba(255,255,255,0.6)' }}>
+                  <LabelCaps color={T.orange}>Territorio de origen</LabelCaps>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: 'public',        label: 'País',         value: profile.country },
+                      { icon: 'map',           label: 'Departamento', value: profile.department },
+                      { icon: 'location_city', label: 'Municipio',    value: profile.municipality },
+                      { icon: 'cottage',       label: 'Comunidad',    value: profile.communityVillage },
+                    ].filter(x => x.value).map(({ icon, label, value }) => (
+                      <div key={label} className="flex items-start gap-2">
+                        <span className="material-symbols-outlined mt-0.5" style={{ fontSize: 14, color: T.orange }}>{icon}</span>
+                        <div>
+                          <p style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', color: `${T.muted}50`, textTransform: 'uppercase' }}>{label}</p>
+                          <p style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.dark }}>{value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {profile.regionalHistory && (
+                    <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}90`, lineHeight: 1.7, borderTop: `1px solid ${T.dark}10`, paddingTop: 12 }}>
+                      {profile.regionalHistory}
+                    </p>
+                  )}
                 </div>
-                {profile.learnedFromDetail && (
-                  <p className="mt-4 text-muted-foreground italic border-l-2 border-accent pl-4">
-                    "{profile.learnedFromDetail}"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3. TALLER ──────────────────────────────────────────────────── */}
+        {(profile.workshopDescription || workshopImages.length > 0) && (
+          <section className="py-10" style={{ background: T.dark }}>
+            <div className="max-w-[1400px] mx-auto px-10">
+              <div className="mb-8">
+                <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 8 }}>El taller</LabelCaps>
+                <HeadingSerif size={36} style={{ color: 'white' }}>Donde nace el arte</HeadingSerif>
+                {profile.workshopDescription && (
+                  <p style={{ fontFamily: T.sans, fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, maxWidth: 600, marginTop: 12 }}>
+                    {profile.workshopDescription}
+                  </p>
+                )}
+                {profile.creationProcess && (
+                  <p style={{ fontFamily: T.sans, fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, maxWidth: 600, marginTop: 8 }}>
+                    {profile.creationProcess}
                   </p>
                 )}
               </div>
-              {profile.familyPhotos.length > 0 && (
-                <div className="relative">
-                  <img 
-                    src={profile.familyPhotos[0]}
-                    alt="Mi origen"
-                    className="rounded-2xl shadow-2xl"
-                  />
-                </div>
-              )}
-            </motion.div>
-          </div>
-        </section>
 
-        {/* Cultural History Section */}
-        <section className="py-20 px-4 bg-muted/30">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-golden" />
-                <span className="text-sm font-medium text-golden uppercase tracking-wider">Mi Cultura</span>
-              </div>
-              <h2 className="text-3xl font-bold mb-6">Tradición y Raíces</h2>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="bg-background rounded-2xl p-6 shadow-lg"
-              >
-                <h3 className="font-semibold mb-3">Historia de mi tradición</h3>
-                <p className="text-muted-foreground">{profile.culturalHistory}</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="bg-background rounded-2xl p-6 shadow-lg"
-              >
-                <h3 className="font-semibold mb-3">Mi conexión cultural</h3>
-                <p className="text-muted-foreground">{profile.ethnicRelation}</p>
-              </motion.div>
-
-              {profile.ancestralKnowledge && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="md:col-span-2 bg-gradient-to-r from-golden/10 to-accent/10 rounded-2xl p-6"
-                >
-                  <h3 className="font-semibold mb-3">Conocimientos ancestrales</h3>
-                  <p className="text-muted-foreground">{profile.ancestralKnowledge}</p>
-                </motion.div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Workshop Section */}
-        <section className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <MapPin className="w-6 h-6 text-primary" />
-                <span className="text-sm font-medium text-primary uppercase tracking-wider">Mi Taller</span>
-              </div>
-              <h2 className="text-3xl font-bold mb-4">Donde nace el arte</h2>
-              {profile.workshopAddress && (
-                <p className="text-muted-foreground">{profile.workshopAddress}</p>
-              )}
-            </motion.div>
-
-            <p className="text-center text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              {profile.workshopDescription}
-            </p>
-
-            {profile.workshopPhotos.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {profile.workshopPhotos.map((photo, i) => (
-                  <motion.img
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    src={photo}
-                    alt={`Taller ${i + 1}`}
-                    className="w-full h-48 md:h-64 object-cover rounded-xl"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Craft Section */}
-        <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-accent/5">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl font-bold mb-4">Mi Arte</h2>
-              <p className="text-lg text-muted-foreground">{profile.uniqueness}</p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <div className="text-center p-6 bg-background rounded-2xl shadow">
-                <Sparkles className="w-8 h-8 text-accent mx-auto mb-3" />
-                <h3 className="font-semibold mb-3">Técnicas</h3>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {profile.techniques.map((t) => (
-                    <Badge key={t} variant="secondary">{t}</Badge>
+              {workshopImages.length > 0 && (
+                <div className="grid gap-3" style={{
+                  gridTemplateColumns: workshopImages.length === 1 ? '1fr'
+                    : workshopImages.length === 2 ? 'repeat(2, 1fr)'
+                    : 'repeat(3, 1fr)',
+                }}>
+                  {workshopImages.slice(0, 3).map((src, i) => (
+                    <div key={i} className="overflow-hidden rounded-xl" style={{ aspectRatio: '4/3' }}>
+                      <img src={src} alt={`Taller ${i + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                    </div>
                   ))}
                 </div>
-              </div>
+              )}
 
-              <div className="text-center p-6 bg-background rounded-2xl shadow">
-                <Heart className="w-8 h-8 text-golden mx-auto mb-3" />
-                <h3 className="font-semibold mb-3">Materiales</h3>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {profile.materials.map((m) => (
-                    <Badge key={m} variant="outline">{m}</Badge>
+              {(profile.workshopTools?.length ?? 0) > 0 && (
+                <div className="mt-8 flex flex-wrap gap-2">
+                  {(profile.workshopTools ?? []).map(tool => (
+                    <span key={tool} className="px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)', fontFamily: T.sans, fontSize: 11, color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      {tool}
+                    </span>
                   ))}
                 </div>
-              </div>
-
-              <div className="text-center p-6 bg-background rounded-2xl shadow">
-                <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold mb-3">Tiempo</h3>
-                <p className="text-muted-foreground">{profile.averageTime}</p>
-              </div>
-            </div>
-
-            {profile.craftMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center p-8 bg-background rounded-2xl shadow-lg border-t-4 border-accent"
-              >
-                <p className="text-xl italic text-foreground">"{profile.craftMessage}"</p>
-                <p className="mt-4 text-muted-foreground">— {profile.artisanName}</p>
-              </motion.div>
-            )}
-          </div>
-        </section>
-
-        {/* Human Gallery */}
-        {profile.workingPhotos.length > 0 && (
-          <section className="py-20 px-4">
-            <div className="max-w-6xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center mb-12"
-              >
-                <h2 className="text-3xl font-bold mb-4">Galería</h2>
-                <p className="text-muted-foreground">El arte en proceso</p>
-              </motion.div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[...profile.workingPhotos, ...profile.communityPhotos].map((photo, i) => (
-                  <motion.img
-                    key={i}
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                    src={photo}
-                    alt={`Galería ${i + 1}`}
-                    className="w-full h-40 md:h-56 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
-                  />
-                ))}
-              </div>
+              )}
             </div>
           </section>
         )}
 
-        {/* CTA */}
-        <section className="py-16 px-4 bg-primary/5">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4">Conoce mis creaciones</h2>
-            <p className="text-muted-foreground mb-6">
-              Cada pieza lleva mi historia y mi tradición
-            </p>
-            <Link to={`/tienda/${shopSlug}${previewParam}`}>
-              <Button size="lg">
-                Ver productos
-              </Button>
-            </Link>
-          </div>
-        </section>
+        {/* ── 4. TÉCNICAS + MATERIALES ──────────────────────────────────── */}
+        <div className="max-w-[1400px] mx-auto px-10 py-10">
+          <div style={{ ...glassCard, borderRadius: 20, boxShadow: '0 4px 24px -6px rgba(0,0,0,0.06)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ '--tw-divide-opacity': 0.3, borderColor: `${T.dark}20` } as any}>
 
-        <ShopFooter shopName={shop.shopName} />
+              {/* Técnicas */}
+              {(profile.techniques?.length ?? 0) > 0 && (
+                <div className="p-8 space-y-4">
+                  <LabelCaps color={T.orange}>Técnicas</LabelCaps>
+                  <div className="flex flex-wrap gap-2">
+                    {(profile.techniques ?? []).map(t => (
+                      <span key={t} className="px-3 py-1.5 rounded-full" style={{ background: `${T.orange}12`, fontFamily: T.sans, fontSize: 12, fontWeight: 700, color: T.orange }}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Materiales */}
+              {(profile.materials?.length ?? 0) > 0 && (
+                <div className="p-8 space-y-4">
+                  <LabelCaps color={T.orange}>Materiales</LabelCaps>
+                  <div className="flex flex-wrap gap-2">
+                    {(profile.materials ?? []).map(m => (
+                      <span key={m} className="px-3 py-1.5 rounded-full" style={{ background: `${T.dark}08`, fontFamily: T.sans, fontSize: 12, fontWeight: 700, color: T.dark, border: `1px solid ${T.dark}10` }}>
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Esencia / Lo que me hace único */}
+              {profile.uniqueness && (
+                <div className="p-8 space-y-4">
+                  <LabelCaps color={T.orange}>Lo que me hace único</LabelCaps>
+                  <p style={{ fontFamily: T.sans, fontSize: 14, color: `${T.muted}cc`, lineHeight: 1.7 }}>
+                    {profile.uniqueness}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Motivación */}
+            {profile.motivation && (
+              <div className="px-8 py-6 border-t" style={{ borderColor: `${T.dark}08`, background: `${T.orange}05` }}>
+                <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 8 }}>¿Qué me motiva a seguir?</LabelCaps>
+                <p style={{ fontFamily: T.sans, fontSize: 14, color: `${T.muted}cc`, lineHeight: 1.8, maxWidth: 740 }}>
+                  {profile.motivation}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── 5. GALERÍA HUMANA ──────────────────────────────────────────── */}
+        {photos.length > 0 && (
+          <div className="max-w-[1400px] mx-auto px-10 pb-6">
+            <div className="mb-6">
+              <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 4 }}>Galería humana</LabelCaps>
+              <HeadingSerif size={28}>El oficio en imágenes</HeadingSerif>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {photos.slice(0, 8).map((src, i) => (
+                <div key={i} className="overflow-hidden rounded-xl group" style={{ aspectRatio: i % 5 === 0 ? '3/4' : '1/1' }}>
+                  <img src={src} alt={`Galería ${i + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── 6. QUOTE FINAL ─────────────────────────────────────────────── */}
+        {profile.craftMessage && (
+          <div className="max-w-[1400px] mx-auto px-10 pb-10">
+            <div className="p-12 rounded-2xl text-center" style={{ background: T.dark }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: T.orange, marginBottom: 16, display: 'block' }}>format_quote</span>
+              <HeadingSerif size={28} style={{ color: 'white', maxWidth: 620, margin: '0 auto 16px' }}>
+                {profile.craftMessage}
+              </HeadingSerif>
+              <p style={{ fontFamily: T.sans, fontSize: 12, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                — {profile.artisanName ?? shop.shopName}
+              </p>
+              <Link to={`/tienda/${shopSlug}${isPreview ? '?preview=true' : ''}`}>
+                <button
+                  className="mt-8 px-8 py-3 rounded-full text-white transition-colors"
+                  style={{ background: T.orange, fontFamily: T.sans, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}
+                >
+                  VER LAS PIEZAS DEL TALLER
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <ShopPublicFooter shop={shop} shopSlug={shopSlug!} />
       </div>
-    </ShopThemeProvider>
+    </ShoppingCartProvider>
   );
 };
 

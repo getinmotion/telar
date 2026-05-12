@@ -271,7 +271,7 @@ export const BankDataPage: React.FC = () => {
 
   if (loading || loadingCounterparty) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse">
           <CreditCard className="w-12 h-12 text-muted-foreground" />
         </div>
@@ -284,7 +284,7 @@ export const BankDataPage: React.FC = () => {
   // Display counterparty data as read-only labels if exists (and not editing)
   if (hasCounterparty && counterpartyData && !isEditing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4">
+      <div className="min-h-screen p-4">
         <div className="max-w-3xl mx-auto py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -438,7 +438,7 @@ export const BankDataPage: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4">
+      <div className="min-h-screen p-4">
         <div className="max-w-3xl mx-auto py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

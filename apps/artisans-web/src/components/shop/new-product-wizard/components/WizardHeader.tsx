@@ -17,16 +17,6 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-3 py-4 px-6 md:px-10 max-w-[1200px] mx-auto w-full">
-      <a
-        href="/dashboard"
-        className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[#e2d5cf]/20 transition-colors shrink-0"
-        title="Volver al dashboard"
-      >
-        <span className="material-symbols-outlined text-[18px] text-[#54433e]/50">arrow_back</span>
-      </a>
-
-      <div className="h-5 w-px bg-[#e2d5cf]/40 shrink-0" />
-
       <span className="material-symbols-outlined text-[18px] text-[#ec6d13] shrink-0">{icon}</span>
 
       <h1 className="font-['Manrope'] text-[13px] font-[700] text-[#151b2d] shrink-0">

@@ -68,7 +68,6 @@ export interface UserTaskState {
   productCount: number;
   hasRUT: boolean;
   hasHeroSlider?: boolean;
-  hasStory?: boolean;
   hasArtisanProfile?: boolean;
   hasSocialLinks?: boolean;
   hasContactInfo?: boolean;

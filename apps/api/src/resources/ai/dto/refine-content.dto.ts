@@ -4,7 +4,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export type ContentContext =
   | 'product_name'
   | 'product_description'
-  | 'shop_story'
   | 'shop_mission'
   | 'shop_vision'
   | 'shop_description'
@@ -16,7 +15,6 @@ export class RefineContentDto {
     enum: [
       'product_name',
       'product_description',
-      'shop_story',
       'shop_mission',
       'shop_vision',
       'shop_description',
@@ -29,7 +27,6 @@ export class RefineContentDto {
   @IsIn([
     'product_name',
     'product_description',
-    'shop_story',
     'shop_mission',
     'shop_vision',
     'shop_description',

@@ -56,43 +56,42 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
     <>
       {/* Desktop Navigation - Sidebar */}
       <nav className="hidden lg:flex flex-col w-64 shrink-0 sticky top-24 h-fit">
-        <div className="space-y-1">
+        <div className="glass-card rounded-2xl p-2 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
-            
+
             return (
               <button
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200",
-                  "hover:bg-muted/50",
-                  isActive 
-                    ? "bg-primary/10 text-primary font-medium border-l-4 border-primary" 
-                    : "text-muted-foreground"
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200",
+                  isActive
+                    ? "bg-[#ec6d13] text-white font-semibold shadow-sm"
+                    : "text-[#54433e]/70 hover:bg-white/60 hover:text-[#151b2d]"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="font-['Manrope'] text-[13px]">{item.label}</span>
               </button>
             );
           })}
         </div>
-        
-        <div className="mt-8 pt-4 border-t border-border">
+
+        <div className="mt-3 glass-card-sm rounded-2xl p-2">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-destructive hover:bg-destructive/10"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 text-red-500/80 hover:bg-red-50/60 hover:text-red-600"
           >
-            <LogOut className="h-5 w-5" />
-            <span>Cerrar Sesión</span>
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className="font-['Manrope'] text-[13px] font-medium">Cerrar Sesión</span>
           </button>
         </div>
       </nav>
 
       {/* Mobile/Tablet Navigation - Icon + Short Label */}
-      <div className="lg:hidden sticky top-[57px] z-10 bg-background/95 backdrop-blur-sm border-b border-border -mx-3 sm:-mx-4 px-2">
+      <div className="lg:hidden sticky top-[57px] z-10 glass-header border-b border-white/40 -mx-3 sm:-mx-4 px-2">
         <ScrollArea className="w-full">
           <div className="flex gap-0.5 py-2">
             {navItems.map((item) => {
@@ -105,9 +104,9 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
                   onClick={() => onSectionChange(item.id)}
                   className={cn(
                     "flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg min-w-[52px] transition-all duration-200",
-                    isActive 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:bg-muted/50"
+                    isActive
+                      ? "bg-[#ec6d13] text-white"
+                      : "text-[#54433e]/70 hover:bg-white/60"
                   )}
                 >
                   <Icon className="h-4 w-4" />

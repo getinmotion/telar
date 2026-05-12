@@ -1,281 +1,225 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Eye, Check, Sparkles, Clock, MapPin, Heart, Camera, Star, MessageSquare } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArtisanProfileData, LEARNED_FROM_OPTIONS } from '@/types/artisanProfile';
+import { ArtisanProfileData } from '@/types/artisanProfile';
 
-interface Step7PreviewProps {
+interface Props {
   data: ArtisanProfileData;
-  generatedStory?: {
-    heroTitle: string;
-    heroSubtitle: string;
-    originNarrative: string;
-    culturalNarrative?: string;
-    craftNarrative?: string;
-    closingMessage?: string;
-  };
+  generatedStory?: any;
   isGenerating?: boolean;
+  onEditStep?: (step: number) => void;
 }
 
-export const Step7Preview: React.FC<Step7PreviewProps> = ({ data, generatedStory, isGenerating }) => {
-  const learnedFromLabel = LEARNED_FROM_OPTIONS.find(o => o.value === data.learnedFrom)?.label || data.learnedFrom;
+const glassCard = {
+  background: 'rgba(255,255,255,0.82)',
+  backdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255,255,255,0.65)',
+  boxShadow: '0 2px 8px -2px rgba(0,0,0,0.04)',
+};
+
+const SectionCard: React.FC<{ title: string; step: number; onEdit?: (step: number) => void; children: React.ReactNode }> = ({ title, step, onEdit, children }) => (
+  <div className="relative rounded-xl p-5 group" style={glassCard}>
+    <div className="flex items-center justify-between mb-4">
+      <p className="font-['Noto_Serif'] text-[16px] font-[700] text-[#151b2d]">{title}</p>
+      {onEdit && (
+        <button
+          onClick={() => onEdit(step)}
+          className="flex items-center gap-1 font-['Manrope'] text-[10px] font-[700] text-[#ec6d13] opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
+        >
+          <span className="material-symbols-outlined text-[13px]">edit</span>
+          Editar
+        </button>
+      )}
+    </div>
+    {children}
+  </div>
+);
+
+const Val: React.FC<{ v?: string | null }> = ({ v }) =>
+  v?.trim()
+    ? <span className="font-['Manrope'] text-[13px] font-[500] text-[#151b2d] leading-relaxed">{v}</span>
+    : <span className="font-['Manrope'] text-[13px] text-[#54433e]/30 italic">Pendiente por completar</span>;
+
+const Chip: React.FC<{ label: string; color?: 'orange' | 'green' | 'neutral' }> = ({ label, color = 'orange' }) => {
+  const cls = {
+    orange:  'bg-[#ec6d13]/10 text-[#ec6d13] border-[#ec6d13]/20',
+    green:   'bg-[#166534]/10 text-[#166534] border-[#166534]/20',
+    neutral: 'bg-[#54433e]/6 text-[#54433e] border-[#54433e]/10',
+  }[color];
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-[700] uppercase tracking-wider border ${cls}`}>
+      {label}
+    </span>
+  );
+};
+
+export const Step7Preview: React.FC<Props> = ({ data, isGenerating, onEditStep }) => {
+  const requiredChecks = [
+    { label: 'Nombre del artesano',       done: !!data.artisanName?.trim() },
+    { label: 'Nombre artístico / taller', done: !!data.artisticName?.trim() },
+    { label: 'Foto de perfil',            done: !!data.artisanPhoto },
+    { label: 'Historia del aprendizaje',  done: !!data.learnedFromDetail?.trim() },
+    { label: 'Técnicas',                  done: data.techniques.length > 0 },
+    { label: 'Materiales',                done: data.materials.length > 0 },
+    { label: 'Foto trabajando',           done: data.workingPhotos.length > 0 },
+  ];
+  const totalDone = requiredChecks.filter((c) => c.done).length;
+  const pct = Math.round((totalDone / requiredChecks.length) * 100);
+  const allDone = pct === 100;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Storytelling Header */}
-      <div className="text-center space-y-4">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center mx-auto shadow-lg"
-        >
-          <Eye className="w-10 h-10 text-success" />
-        </motion.div>
-        <div>
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">
-            Tu historia está lista
-          </h2>
-          <p className="text-lg text-muted-foreground mt-2 max-w-md mx-auto">
-            Así verán los clientes tu Perfil Artesanal
-          </p>
+    <div className="flex flex-col gap-4">
+      {isGenerating && (
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-[#ec6d13]/5 border border-[#ec6d13]/20">
+          <div className="w-4 h-4 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin shrink-0" />
+          <p className="font-['Manrope'] text-[13px] text-[#ec6d13] font-[600]">Generando narrativa con IA...</p>
+        </div>
+      )}
+
+      {/* Quality bar */}
+      <div className="p-4 rounded-xl border border-[#e2d5cf]/20" style={{ background: '#ffffff' }}>
+        <div className="flex justify-between items-center mb-2">
+          <span className={`font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest ${allDone ? 'text-[#166534]' : 'text-[#ef4444]'}`}>
+            {allDone ? 'Listo para publicar' : 'Perfil incompleto'}
+          </span>
+          <span className="font-['Manrope'] text-[14px] font-[700] text-[#ec6d13]">{pct}%</span>
+        </div>
+        <div className="h-1.5 bg-[#e2d5cf]/30 rounded-full overflow-hidden mb-3">
+          <div className="h-full bg-[#ec6d13] rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+          {requiredChecks.map((c) => (
+            <div key={c.label} className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[15px]" style={{ color: c.done ? '#166534' : '#ef4444', fontVariationSettings: c.done ? "'FILL' 1" : "'FILL' 0" }}>
+                {c.done ? 'check_circle' : 'cancel'}
+              </span>
+              <span className={`font-['Manrope'] text-[12px] font-[500] ${c.done ? 'text-[#151b2d]' : 'text-[#54433e]/40'}`}>{c.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {isGenerating ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="max-w-xl mx-auto"
-        >
-          <Card className="p-8 text-center bg-gradient-to-br from-secondary/5 to-primary/5">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="w-12 h-12 text-secondary mx-auto mb-4" />
-            </motion.div>
-            <p className="text-lg font-medium">Creando tu narrativa con IA...</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Estamos transformando tu información en una historia hermosa
-            </p>
-          </Card>
-        </motion.div>
-      ) : (
-        <div className="space-y-6 max-w-xl mx-auto">
-          {/* Hero Preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="overflow-hidden">
-              <div className="relative h-56 bg-gradient-to-br from-primary/30 via-accent/20 to-secondary/30">
-                {data.artisanPhoto && (
-                  <img 
-                    src={data.artisanPhoto} 
-                    alt={data.artisanName}
-                    className="absolute inset-0 w-full h-full object-cover opacity-40"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {generatedStory?.heroTitle || data.artisticName || data.artisanName}
-                  </h3>
-                  <p className="text-muted-foreground mt-1">
-                    {generatedStory?.heroSubtitle || `Artesano desde los ${data.startAge} años`}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {data.techniques.slice(0, 3).map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Content Cards */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card className="p-4 h-full">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-accent/10">
-                    <Heart className="w-4 h-4 text-accent" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Mi Origen</h4>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Aprendí de: {learnedFromLabel}
-                    </p>
-                    <p className="text-sm line-clamp-3">
-                      {generatedStory?.originNarrative || data.culturalMeaning}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-            >
-              <Card className="p-4 h-full">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-secondary/10">
-                    <Star className="w-4 h-4 text-secondary-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Mi Arte</h4>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {data.materials.slice(0, 3).map((m) => (
-                        <Badge key={m} variant="outline" className="text-xs">{m}</Badge>
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {data.uniqueness}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="p-4 h-full">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MapPin className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Mi Taller</h4>
-                    {data.workshopAddress && (
-                      <p className="text-xs text-muted-foreground">{data.workshopAddress}</p>
-                    )}
-                    <p className="text-sm mt-1 line-clamp-2">{data.workshopDescription}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-            >
-              <Card className="p-4 h-full">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-success/10">
-                    <Clock className="w-4 h-4 text-success" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Tiempo de Creación</h4>
-                    <p className="text-sm text-muted-foreground">{data.averageTime}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
+      {/* 1. Identidad */}
+      <SectionCard title="Identidad" step={1} onEdit={onEditStep}>
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-full shrink-0 overflow-hidden border-2 border-[#e2d5cf]/30 flex items-center justify-center bg-[#54433e]/5">
+            {data.artisanPhoto
+              ? <img src={data.artisanPhoto} className="w-full h-full object-cover" alt="" />
+              : <span className="material-symbols-outlined text-[28px] text-[#54433e]/20">account_circle</span>
+            }
           </div>
-
-          {/* Gallery Preview */}
-          {(data.workshopPhotos.length > 0 || data.workingPhotos.length > 0) && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Camera className="w-4 h-4 text-muted-foreground" />
-                  <h4 className="font-semibold">Galería</h4>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {[...data.workshopPhotos, ...data.workingPhotos].slice(0, 4).map((photo, i) => (
-                    <img 
-                      key={i} 
-                      src={photo} 
-                      alt={`Galería ${i + 1}`}
-                      className="w-full h-20 object-cover rounded-lg"
-                    />
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Message */}
-          {(generatedStory?.closingMessage || data.craftMessage) && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <Card className="p-4 bg-gradient-to-br from-accent/5 to-primary/5 border-accent/20">
-                <div className="flex items-start gap-3">
-                  <MessageSquare className="w-5 h-5 text-accent mt-0.5" />
-                  <p className="text-sm italic">
-                    "{generatedStory?.closingMessage || data.craftMessage}"
-                  </p>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Checklist */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <Card className="p-4 bg-success/5 border-success/20">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Check className="w-5 h-5 text-success" />
-                Todo listo para publicar
-              </h4>
-              <div className="grid gap-2 text-sm sm:grid-cols-2">
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.artisanName ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Identidad completa</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.culturalMeaning ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Historia de origen</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.culturalHistory ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Contexto cultural</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.workshopPhotos.length > 0 ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Fotos del taller ({data.workshopPhotos.length})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.techniques.length > 0 ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Técnicas y materiales</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className={`w-4 h-4 ${data.workingPhotos.length > 0 ? 'text-success' : 'text-muted-foreground'}`} />
-                  <span>Galería ({data.workingPhotos.length + data.communityPhotos.length + data.familyPhotos.length} fotos)</span>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
+          <div className="flex-1 min-w-0">
+            <p className="font-['Noto_Serif'] text-[20px] font-[700] text-[#151b2d] leading-tight">
+              {data.artisanName || <span className="text-[#54433e]/25">Nombre Pendiente</span>}
+            </p>
+            {data.artisticName && <p className="font-['Manrope'] text-[14px] font-[700] text-[#ec6d13] italic mt-0.5">{data.artisticName}</p>}
+            {data.shortBio && <p className="font-['Manrope'] text-[12px] text-[#54433e]/70 mt-2 leading-relaxed">{data.shortBio}</p>}
+          </div>
         </div>
-      )}
-    </motion.div>
+      </SectionCard>
+
+      {/* 2. Historia */}
+      <SectionCard title="Historia y tradición" step={2} onEdit={onEditStep}>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div>
+              <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-1">Maestro iniciador</p>
+              <Val v={data.learnedFrom} />
+            </div>
+            <div>
+              <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-1">Historia del aprendizaje</p>
+              <Val v={data.learnedFromDetail} />
+            </div>
+          </div>
+          <div className="space-y-3 border-l border-[#e2d5cf]/30 pl-4">
+            <div>
+              <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-1">Significado del oficio</p>
+              <Val v={data.culturalMeaning} />
+            </div>
+            {(data.department || data.municipality) && (
+              <div>
+                <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-1">Territorio</p>
+                <span className="font-['Manrope'] text-[13px] font-[500] text-[#151b2d]">
+                  {[data.municipality, data.department, data.country].filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* 3. Taller */}
+      <SectionCard title="Taller y proceso" step={3} onEdit={onEditStep}>
+        <div className="grid grid-cols-3 gap-2 mb-4 h-20">
+          {[data.workshopPhoto, data.workshopActionPhoto, data.workshopToolsPhoto].map((photo, i) => (
+            <div key={i} className="rounded-lg overflow-hidden border border-[#e2d5cf]/30 flex items-center justify-center bg-[#54433e]/3">
+              {photo
+                ? <img src={photo} className="w-full h-full object-cover" alt="" />
+                : <span className="material-symbols-outlined text-[22px] text-[#54433e]/15">{['factory', 'front_hand', 'construction'][i]}</span>
+              }
+            </div>
+          ))}
+        </div>
+        <Val v={data.workshopDescription} />
+        {data.workshopTools.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {data.workshopTools.map((t) => <Chip key={t} label={t} color="neutral" />)}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* 4. Arte */}
+      <SectionCard title="Arte y estilo" step={4} onEdit={onEditStep}>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-2">Técnicas</p>
+            <div className="flex flex-wrap gap-1.5">
+              {data.techniques.length > 0
+                ? data.techniques.map((t) => <Chip key={t} label={t} color="green" />)
+                : <Chip label="POR DEFINIR" color="orange" />
+              }
+            </div>
+          </div>
+          <div>
+            <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-2">Materiales</p>
+            <div className="flex flex-wrap gap-1.5">
+              {data.materials.length > 0
+                ? data.materials.map((m) => <Chip key={m} label={m} color="orange" />)
+                : <Chip label="SIN MATERIALES" color="neutral" />
+              }
+            </div>
+          </div>
+        </div>
+        {data.uniqueness && (
+          <div className="mt-3 pt-3 border-t border-[#e2d5cf]/30">
+            <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/40 mb-1">Qué lo hace especial</p>
+            <Val v={data.uniqueness} />
+          </div>
+        )}
+      </SectionCard>
+
+      {/* 5. Galería */}
+      <SectionCard title="Galería humana" step={5} onEdit={onEditStep}>
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { photos: data.workingPhotos,   label: 'Tú trabajando', icon: 'image' },
+            { photos: data.maestrosPhotos,  label: 'Maestros',      icon: 'group' },
+            { photos: data.communityPhotos, label: 'Comunidad',     icon: 'diversity_1' },
+            { photos: data.environmentPhotos, label: 'Entorno',     icon: 'foundation' },
+          ].map(({ photos, label, icon }) => (
+            <div
+              key={label}
+              className="aspect-square rounded-lg overflow-hidden border border-[#e2d5cf]/30 flex flex-col items-center justify-center gap-1 bg-[#54433e]/3 text-center p-2"
+            >
+              {photos[0]
+                ? <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+                : <>
+                    <span className="material-symbols-outlined text-[18px] text-[#54433e]/20">{icon}</span>
+                    <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/25">{label}</p>
+                  </>
+              }
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+    </div>
   );
 };

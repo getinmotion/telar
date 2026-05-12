@@ -62,7 +62,6 @@ import AdminLoginPage from './pages/AdminLoginPage';
 // ArtisanDashboardPage removed - redirects to /profile
 // CreateShopPage removed - tienda se crea automáticamente al completar el test de madurez
 import PublicShopPage from './pages/PublicShopPage';
-import PublicShopAbout from './pages/PublicShopAbout';
 import PublicShopContact from './pages/PublicShopContact';
 import { PublicProductPage } from './pages/PublicProductPage';
 import ShopConfigDashboard from './pages/ShopConfigDashboard';
@@ -75,11 +74,12 @@ import InventoryPage from './pages/InventoryPage';
 import { StockWizard } from './pages/StockWizard';
 import IntelligentBrandWizardPage from './pages/IntelligentBrandWizardPage';
 import HeroSliderWizardPage from './pages/HeroSliderWizardPage';
-import AboutWizardPage from './pages/AboutWizardPage';
 import ContactWizardPage from './pages/ContactWizardPage';
 import SocialLinksWizardPage from './pages/SocialLinksWizardPage';
 import ArtisanProfileWizardPage from './pages/ArtisanProfileWizardPage';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import PublicArtisanProfile from './pages/PublicArtisanProfile';
+import PublicShopCatalog from './pages/PublicShopCatalog';
 import DebugArtisanPage from './pages/DebugArtisanPage';
 import { CheckoutPage } from './components/checkout/CheckoutPage';
 import { ShoppingCartProvider } from './contexts/ShoppingCartContext';
@@ -174,14 +174,7 @@ function App() {
                             <Route path="/tiendas" element={<ShopDirectoryPage />} />
                             <Route path="/tienda/mas-reciente" element={<LatestShopRedirect />} />
                             <Route path="/tienda/:shopSlug" element={<PublicShopPage />} />
-                            <Route
-                              path="/tienda/:shopSlug/nosotros"
-                              element={
-                                <ShoppingCartProvider>
-                                  <PublicShopAbout />
-                                </ShoppingCartProvider>
-                              }
-                            />
+                            <Route path="/tienda/:shopSlug/catalogo" element={<PublicShopCatalog />} />
                             <Route
                               path="/tienda/:shopSlug/contacto"
                               element={
@@ -214,15 +207,7 @@ function App() {
                                 </ShoppingCartProvider>
                               }
                             />
-                            {/* Main dashboard route - Master Coordinator as entry point */}
-                            <Route
-                              path="/dashboard"
-                              element={
-                                <ProtectedRoute>
-                                  <DashboardHome />
-                                </ProtectedRoute>
-                              }
-                            />
+                            {/* Main dashboard route - inside DashboardLayout for unified sidebar */}
 
                             {/* Unified coordinator chat route */}
                             <Route
@@ -256,22 +241,6 @@ function App() {
                               }
                             />
                             <Route
-                              path="/profile"
-                              element={
-                                <ProtectedRoute>
-                                  <Profile />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/dashboard/activity"
-                              element={
-                                <ProtectedRoute>
-                                  <ActivityPage />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route
                               path="/notifications"
                               element={
                                 <ProtectedRoute>
@@ -295,45 +264,9 @@ function App() {
                                 </ProtectedRoute>
                               }
                             />
-                            <Route
-                              path="/dashboard/tasks"
-                              element={
-                                <ProtectedRoute>
-                                  <TasksDashboard />
-                                </ProtectedRoute>
-                              }
-                            />
                             <Route path="/dashboard/artisan" element={<Navigate to="/profile" replace />} />
                             <Route path="/dashboard/create-shop" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/mi-tienda" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/mi-tienda/ventas" element={<ProtectedRoute><ShopSalesPage /></ProtectedRoute>} />
-                            <Route path="/mi-tienda/configurar" element={<ProtectedRoute><ShopConfigDashboard /></ProtectedRoute>} />
-                            <Route path="/mi-cuenta/datos-bancarios" element={<ProtectedRoute><BankDataPage /></ProtectedRoute>} />
-                            <Route
-                              path="/productos/subir"
-                              element={
-                                <ProtectedRoute>
-                                  <ProductUploadPage />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/productos/editar/:productId"
-                              element={
-                                <ProtectedRoute>
-                                  <ProductEditPage />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route path="/dashboard/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
-                            <Route
-                              path="/inventario"
-                              element={
-                                <ProtectedRoute>
-                                  <InventoryPage />
-                                </ProtectedRoute>
-                              }
-                            />
                             <Route
                               path="/stock-wizard"
                               element={
@@ -369,14 +302,6 @@ function App() {
                               }
                             />
                             <Route
-                              path="/dashboard/shop-about-wizard"
-                              element={
-                                <ProtectedRoute>
-                                  <AboutWizardPage />
-                                </ProtectedRoute>
-                              }
-                            />
-                            <Route
                               path="/dashboard/shop-contact-wizard"
                               element={
                                 <ProtectedRoute>
@@ -395,13 +320,25 @@ function App() {
                               }
                             />
                             <Route
-                              path="/dashboard/artisan-profile-wizard"
                               element={
                                 <ProtectedRoute>
-                                  <ArtisanProfileWizardPage />
+                                  <DashboardLayout />
                                 </ProtectedRoute>
                               }
-                            />
+                            >
+                              <Route path="/dashboard" element={<DashboardHome />} />
+                              <Route path="/profile" element={<Profile />} />
+                              <Route path="/dashboard/tasks" element={<TasksDashboard />} />
+                              <Route path="/dashboard/activity" element={<ActivityPage />} />
+                              <Route path="/dashboard/inventory" element={<InventoryPage />} />
+                              <Route path="/inventario" element={<Navigate to="/dashboard/inventory" replace />} />
+                              <Route path="/mi-tienda/ventas" element={<ShopSalesPage />} />
+                              <Route path="/productos/subir" element={<ProductUploadPage />} />
+                              <Route path="/productos/editar/:productId" element={<ProductEditPage />} />
+                              <Route path="/mi-cuenta/datos-bancarios" element={<BankDataPage />} />
+                              <Route path="/dashboard/artisan-profile-wizard" element={<ArtisanProfileWizardPage />} />
+                              <Route path="/mi-tienda/configurar" element={<ShopConfigDashboard />} />
+                            </Route>
                             <Route
                               path="/tienda/:shopSlug/perfil-artesanal"
                               element={

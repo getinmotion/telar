@@ -1,3 +1,4 @@
+/** @deprecated Reemplazado por el diseño TELAR editorial en PublicShopPageNew.tsx */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 

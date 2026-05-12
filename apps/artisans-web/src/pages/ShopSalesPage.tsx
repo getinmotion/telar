@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  ArrowLeft,
   Package,
   DollarSign,
   TrendingUp,
@@ -203,19 +202,14 @@ export default function ShopSalesPage() {
         <title>{`Mis Ventas - ${shop.shopName} | Telar`}</title>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="flex-1 overflow-y-auto">
         {/* Header */}
         <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="container max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/mi-tienda')}>
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">Mis Ventas</h1>
-                  <p className="text-sm text-muted-foreground">{shop.shopName}</p>
-                </div>
+              <div>
+                <h1 className="text-2xl font-bold">Mis Ventas</h1>
+                <p className="text-sm text-muted-foreground">{shop.shopName}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => fetchOrders()}>
