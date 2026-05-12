@@ -68,10 +68,10 @@ export interface ProductArtisanalIdentity {
 
 export interface ProductPhysicalSpecs {
   id: string;
-  width?: number;
-  height?: number;
-  depth?: number;
-  weight?: number;
+  heightCm?: number;
+  widthCm?: number;
+  lengthOrDiameterCm?: number;
+  realWeightKg?: number;
 }
 
 export interface ProductProduction {

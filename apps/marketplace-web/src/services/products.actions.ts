@@ -43,8 +43,17 @@ function mapNewToLegacy(p: ProductNewCore): Product {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const ps = p.physicalSpecs;
-  const hasAnyDimension = !!ps && !!(ps.width || ps.height || ps.depth);
-  const hasWeight = !!ps && !!ps.weight;
+  // TypeORM serializes `decimal` columns as strings — coerce to number.
+  const toNum = (v: unknown): number | undefined => {
+    if (v == null) return undefined;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+  const psWidth = toNum(ps?.widthCm);
+  const psHeight = toNum(ps?.heightCm);
+  const psLength = toNum(ps?.lengthOrDiameterCm);
+  const psWeight = toNum(ps?.realWeightKg);
+  const hasAnyDimension = !!(psWidth || psHeight || psLength);
 
   return {
     id: p.id,
@@ -75,13 +84,9 @@ function mapNewToLegacy(p: ProductNewCore): Product {
 
     // Physical specs — only include when real values exist
     dimensions: hasAnyDimension
-      ? {
-          width: ps!.width || undefined,
-          height: ps!.height || undefined,
-          length: ps!.depth || undefined,
-        }
+      ? { width: psWidth, height: psHeight, length: psLength }
       : undefined,
-    weight: hasWeight ? String(ps!.weight) : undefined,
+    weight: psWeight !== undefined ? String(psWeight) : undefined,
     productionTime: p.artisanalIdentity?.estimatedElaborationTime ?? null,
     leadTimeDays: p.production?.productionTime
       ? parseInt(p.production.productionTime) || undefined
