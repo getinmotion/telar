@@ -9,6 +9,9 @@ import { Link } from "react-router-dom";
 import Map, { Marker, NavigationControl, type MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Footer } from "@/components/Footer";
+import { getArtisanShops } from "@/services/artisan-shops.actions";
+import { geocodeArtisan, jitter } from "@/lib/colombia-geocodes";
+import type { ArtisanShop } from "@/types/artisan-shops.types";
 
 /* ── Territory data ─────────────────────────────────── */
 interface TerritoryPoint {
