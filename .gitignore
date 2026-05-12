@@ -214,3 +214,6 @@ infra/dev/.env 2.stage
 infra/dev/docker-compose.local.yml
 .DS_Store
 apps/marketplace-web/backups/backup_telar_ia.backup
+
+# Source code in apps/ must always be tracked — overrides generic Python/data ignores above (lib/, data/, etc.)
+!apps/*/src/**
