@@ -16,7 +16,8 @@
       "Bash(git commit -m ' *)",
       "Bash(git -C /Users/mad/telar add apps/artisans-web/src/components/dashboard/CommercialDashboard.tsx)",
       "Bash(git -C /Users/mad/telar status --short)",
-      "Bash(npx --prefix apps/artisans-web tsc --noEmit)"
+      "Bash(npx --prefix apps/artisans-web tsc --noEmit)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/territorios)"
     ]
   }
 }

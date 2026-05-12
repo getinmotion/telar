@@ -35,7 +35,10 @@ const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => {
     phone: authUser.phone || undefined,
     confirmed_at: authUser.confirmedAt || undefined,
     last_sign_in_at: authUser.lastSignInAt || undefined,
-    app_metadata: authUser.rawAppMetaData || {},
+    app_metadata: {
+      ...(authUser.rawAppMetaData || {}),
+      isSuperAdmin: authUser.isSuperAdmin === true,
+    },
     user_metadata: authUser.rawUserMetaData || {},
     identities: [],
     created_at: authUser.createdAt || new Date().toISOString(),
@@ -82,8 +85,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setDebugInfo(prev => ({ ...prev, authorizationAttempts: prev.authorizationAttempts + 1 }));
 
-      // En el nuevo sistema, verificamos el rol del usuario
-      const isAdmin = user.role === 'admin' || (user.app_metadata as any)?.is_admin === true;
+      // Admin = super_admin en Postgres (columna is_super_admin) o legacy role/flag
+      const meta = (user.app_metadata as any) || {};
+      const isAdmin =
+        meta.isSuperAdmin === true ||
+        meta.is_admin === true ||
+        user.role === 'admin';
 
       setIsAuthorized(isAdmin);
       return isAdmin;
