@@ -42,11 +42,25 @@ function mapNewToLegacy(p: ProductNewCore): Product {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  const ps = p.physicalSpecs;
+  // TypeORM serializes `decimal` columns as strings — coerce to number.
+  const toNum = (v: unknown): number | undefined => {
+    if (v == null) return undefined;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+  const psWidth = toNum(ps?.widthCm);
+  const psHeight = toNum(ps?.heightCm);
+  const psLength = toNum(ps?.lengthOrDiameterCm);
+  const psWeight = toNum(ps?.realWeightKg);
+  const hasAnyDimension = !!(psWidth || psHeight || psLength);
+
   return {
     id: p.id,
     name: p.name,
-    description: p.history ?? p.shortDescription ?? '',
+    description: p.shortDescription ?? '',
     shortDescription: p.shortDescription ?? '',
+    history: p.history ?? null,
     price: price != null ? String(price) : '0',
     imageUrl,
     images,
@@ -68,15 +82,11 @@ function mapNewToLegacy(p: ProductNewCore): Product {
     craft: craft,
     material: materialNames[0] ?? null,
 
-    // Physical specs
-    dimensions: p.physicalSpecs
-      ? {
-          width: p.physicalSpecs.width ?? 0,
-          height: p.physicalSpecs.height ?? 0,
-          length: p.physicalSpecs.depth ?? 0,
-        }
+    // Physical specs — only include when real values exist
+    dimensions: hasAnyDimension
+      ? { width: psWidth, height: psHeight, length: psLength }
       : undefined,
-    weight: p.physicalSpecs?.weight != null ? String(p.physicalSpecs.weight) : undefined,
+    weight: psWeight !== undefined ? String(psWeight) : undefined,
     productionTime: p.artisanalIdentity?.estimatedElaborationTime ?? null,
     leadTimeDays: p.production?.productionTime
       ? parseInt(p.production.productionTime) || undefined

@@ -142,8 +142,26 @@ export function mapProductsResponseToLegacy(products: ProductResponse[]): Produc
 // ============= FUNCIONES GET (Operaciones de lectura) =============
 
 /**
- * Obtener un producto por ID
+ * Obtener un producto por ID (retorna ProductResponse de nueva arquitectura)
  * Endpoint: GET /products-new/:id
+ *
+ * @returns ProductResponse con todas las capas de la nueva arquitectura
+ */
+export async function getProductByIdNew(productId: string): Promise<ProductResponse | null> {
+  try {
+    const response = await telarApi.get<ProductResponse>(`/products-new/${productId}`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) return null;
+    throw error;
+  }
+}
+
+/**
+ * Obtener un producto por ID (retorna formato legacy para compatibilidad)
+ * Endpoint: GET /products-new/:id
+ *
+ * @deprecated Usar getProductByIdNew() para nueva arquitectura
  */
 export async function getProductById(productId: string): Promise<Product | null> {
   try {

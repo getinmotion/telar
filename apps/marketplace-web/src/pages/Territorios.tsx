@@ -4,11 +4,15 @@
  * Shows a real map of Colombia with artisan territory markers + editorial index.
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Map, { Marker, NavigationControl, type MapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Footer } from "@/components/Footer";
+import { getArtisanShops } from "@/services/artisan-shops.actions";
+import { geocodeArtisan, jitter } from "@/lib/colombia-geocodes";
+import type { ArtisanShop } from "@/types/artisan-shops.types";
 
 /* ── Territory data ─────────────────────────────────── */
 interface TerritoryPoint {
@@ -107,10 +111,45 @@ const TERRITORIES: TerritoryPoint[] = [
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 /* ── Component ──────────────────────────────────────── */
+interface ArtisanPoint {
+  shop: ArtisanShop;
+  lat: number;
+  lng: number;
+}
+
 const Territorios = () => {
+  const navigate = useNavigate();
   const mapRef = useRef<MapRef>(null);
   const [hoveredTerritory, setHoveredTerritory] = useState<string | null>(null);
   const [selectedTerritory, setSelectedTerritory] = useState<TerritoryPoint | null>(null);
+  const [hoveredArtisan, setHoveredArtisan] = useState<string | null>(null);
+
+  const { data: shopsResponse } = useQuery({
+    queryKey: ["artisan-shops", "territorios-map"],
+    queryFn: () =>
+      getArtisanShops({
+        active: true,
+        publishStatus: "published",
+        marketplaceApproved: true,
+        limit: 100,
+      }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const artisanPoints = useMemo<ArtisanPoint[]>(() => {
+    const shops = shopsResponse?.data ?? [];
+    return shops.flatMap((shop) => {
+      const base = geocodeArtisan(shop);
+      if (!base) return [];
+      const { dLat, dLng } = jitter(shop.id);
+      return [{ shop, lat: base.lat + dLat, lng: base.lng + dLng }];
+    });
+  }, [shopsResponse]);
+
+  const unlocatedShops = useMemo<ArtisanShop[]>(() => {
+    const shops = shopsResponse?.data ?? [];
+    return shops.filter((s) => !geocodeArtisan(s));
+  }, [shopsResponse]);
 
   // Fly to territory on click
   const flyToTerritory = useCallback((t: TerritoryPoint) => {
@@ -163,7 +202,7 @@ const Territorios = () => {
         <div className="md:col-span-4 flex flex-col justify-end items-start md:items-end text-left md:text-right space-y-4">
           {[
             { value: `+${TERRITORIES.length}`, label: "Regiones" },
-            { value: "+120", label: "Talleres" },
+            { value: artisanPoints.length > 0 ? `+${artisanPoints.length}` : "+120", label: "Talleres" },
             { value: "+24", label: "Técnicas" },
           ].map((stat) => (
             <div key={stat.label}>
@@ -201,6 +240,47 @@ const Territorios = () => {
               interactive={true}
             >
               <NavigationControl position="top-right" showCompass={false} />
+
+              {artisanPoints.map(({ shop, lat, lng }) => (
+                <Marker
+                  key={`artisan-${shop.id}`}
+                  longitude={lng}
+                  latitude={lat}
+                  anchor="center"
+                  onClick={(e) => {
+                    e.originalEvent.stopPropagation();
+                    navigate(`/artesano/${shop.shopSlug}`);
+                  }}
+                >
+                  <div
+                    className="relative cursor-pointer"
+                    onMouseEnter={() => setHoveredArtisan(shop.id)}
+                    onMouseLeave={() => setHoveredArtisan(null)}
+                  >
+                    <div
+                      className="rounded-full border transition-transform duration-200"
+                      style={{
+                        width: 8,
+                        height: 8,
+                        backgroundColor: "rgba(236, 109, 19, 0.65)",
+                        borderColor: "#fff",
+                        transform: hoveredArtisan === shop.id ? "scale(1.6)" : "scale(1)",
+                      }}
+                    />
+                    {hoveredArtisan === shop.id && (
+                      <div
+                        className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 text-[10px] tracking-widest uppercase font-bold font-sans z-20"
+                        style={{
+                          backgroundColor: "#1b1c19",
+                          color: "#f9f7f2",
+                        }}
+                      >
+                        {shop.shopName}
+                      </div>
+                    )}
+                  </div>
+                </Marker>
+              ))}
 
               {TERRITORIES.map((t) => (
                 <Marker
@@ -281,6 +361,30 @@ const Territorios = () => {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════ TIENDAS SIN UBICAR ═══════════════ */}
+      {unlocatedShops.length > 0 && (
+        <section className="max-w-[1400px] mx-auto px-8 py-12">
+          <span
+            className="text-xs tracking-widest uppercase mb-4 block font-sans font-bold"
+            style={{ color: "#584237" }}
+          >
+            Tiendas sin ubicación cartográfica
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {unlocatedShops.map((s) => (
+              <Link
+                key={s.id}
+                to={`/artesano/${s.shopSlug}`}
+                className="px-3 py-1.5 text-xs font-sans border rounded-full hover:bg-[#1b1c19] hover:text-white transition-colors"
+                style={{ borderColor: "rgba(140,114,101,0.3)", color: "#1b1c19" }}
+              >
+                {s.shopName}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════ TERRITORY SPOTLIGHT ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-8 py-24">

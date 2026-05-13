@@ -259,9 +259,11 @@ const ProductDetail = () => {
                   {product.materials.slice(0, 2).join(" · ")}
                 </span>
               )}
-              <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
-                Pieza con historia
-              </span>
+              {product.history && (
+                <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                  Pieza con historia
+                </span>
+              )}
             </div>
 
             {/* Price */}
@@ -347,52 +349,39 @@ const ProductDetail = () => {
         </div>
 
         {/* ═══════════════ NARRATIVE QUOTE ═══════════════ */}
-        <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#2c2c2c]/5">
-          <span className="text-[#ec6d13] font-serif italic text-4xl opacity-40 mb-8 block">
-            "
-          </span>
-          <blockquote className="font-serif text-2xl lg:text-3xl text-[#2c2c2c] leading-relaxed italic px-8">
-            {product.shortDescription ||
-              product.description ||
-              "Este producto artesanal ha sido elaborado con dedicación y maestría por artesanos colombianos. Cada pieza es única y refleja la riqueza cultural de nuestra tradición artesanal."}
-          </blockquote>
-        </section>
+        {product.shortDescription && (
+          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#2c2c2c]/5">
+            <span className="text-[#ec6d13] font-serif italic text-4xl opacity-40 mb-8 block">
+              "
+            </span>
+            <blockquote className="font-serif text-2xl lg:text-3xl text-[#2c2c2c] leading-relaxed italic px-8">
+              {product.shortDescription}
+            </blockquote>
+          </section>
+        )}
 
         {/* ═══════════════ STORY OF THE PIECE ═══════════════ */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24 items-center">
-          <div>
-            <h3 className="text-4xl font-serif mb-8 text-[#2c2c2c]">
-              Historia de la pieza
-            </h3>
-            <div className="space-y-6 text-[#2c2c2c]/70 leading-relaxed text-lg font-light italic">
-              <p>
-                {shop?.story ||
-                  (shop?.region
-                    ? `En ${shop.municipality || shop.region}, ${shop.department || "Colombia"}, ${product.craft ? `el ${product.craft.toLowerCase()} ha sido` : "la artesanía ha sido"} una tradición transmitida durante generaciones. Las piezas hechas a mano reflejan el conocimiento y la identidad cultural de las comunidades que mantienen vivo este oficio.`
-                    : "La tradición artesanal colombiana se transmite de generación en generación. Cada pieza nace del trabajo paciente del taller y de técnicas que han pasado durante décadas.")}
-              </p>
-              <p>
-                Cada creación nace del trabajo paciente del taller y de técnicas
-                que han pasado de madres a hijas durante décadas.
-              </p>
+        {product.history && (
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24 items-center">
+            <div>
+              <h3 className="text-4xl font-serif mb-8 text-[#2c2c2c]">
+                Historia de la pieza
+              </h3>
+              <div className="space-y-6 text-[#2c2c2c]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
+                {product.history}
+              </div>
             </div>
-          </div>
-          <div className="aspect-[4/3] bg-[#e5e1d8] rounded-2xl overflow-hidden">
-            {productImages[1] ? (
-              <img
-                src={productImages[1]}
-                alt="Detalle artesanal"
-                className="w-full h-full object-cover"
-              />
-            ) : productImages[0] ? (
-              <img
-                src={productImages[0]}
-                alt="Detalle artesanal"
-                className="w-full h-full object-cover opacity-60"
-              />
-            ) : null}
-          </div>
-        </section>
+            {productImages[1] && (
+              <div className="aspect-[4/3] bg-[#e5e1d8] rounded-2xl overflow-hidden">
+                <img
+                  src={productImages[1]}
+                  alt="Detalle artesanal"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </section>
+        )}
 
         {/* ═══════════════ PROCESS + DETAILS (3 cols) ═══════════════ */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-24 border-y border-[#2c2c2c]/10 py-16">
@@ -443,25 +432,40 @@ const ProductDetail = () => {
               Detalles técnicos
             </h5>
             <ul className="space-y-4 text-sm text-[#2c2c2c]/70">
-              {product.dimensions && (
-                <li className="flex flex-col gap-1">
-                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
-                    Dimensiones
-                  </span>
-                  <span className="italic">
-                    {typeof product.dimensions === "object" &&
-                    "width" in product.dimensions
-                      ? `${product.dimensions.width} × ${product.dimensions.height} cm`
-                      : product.dimensions}
-                  </span>
-                </li>
-              )}
-              {product.weight && (
+              {(() => {
+                const d = product.dimensions;
+                if (!d) return null;
+                if (typeof d === "string") {
+                  return (
+                    <li className="flex flex-col gap-1">
+                      <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                        Dimensiones
+                      </span>
+                      <span className="italic">{d}</span>
+                    </li>
+                  );
+                }
+                const parts = [d.length, d.width, d.height].filter(
+                  (v): v is number => typeof v === "number" && v > 0,
+                );
+                if (parts.length === 0) return null;
+                return (
+                  <li className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Dimensiones
+                    </span>
+                    <span className="italic">{parts.join(" × ")} cm</span>
+                  </li>
+                );
+              })()}
+              {product.weight && parseFloat(product.weight) > 0 && (
                 <li className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                     Peso
                   </span>
-                  <span className="italic">{product.weight} g</span>
+                  <span className="italic">
+                    {parseFloat(product.weight).toFixed(2)} kg
+                  </span>
                 </li>
               )}
               {product.careNotes && (
@@ -500,45 +504,45 @@ const ProductDetail = () => {
             </span>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            <div className="text-center space-y-6 px-4 group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                <MapPin className="w-8 h-8 text-[#ec6d13]" />
+            {product.material && (
+              <div className="text-center space-y-6 px-4 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
+                  <MapPin className="w-8 h-8 text-[#ec6d13]" />
+                </div>
+                <h5 className="text-2xl font-serif italic text-white">Origen</h5>
+                <p className="text-sm text-white/60 leading-relaxed font-light italic">
+                  {`${product.material}${product.region ? ` · ${product.region}` : ""}`}
+                </p>
               </div>
-              <h5 className="text-2xl font-serif italic text-white">Origen</h5>
-              <p className="text-sm text-white/60 leading-relaxed font-light italic">
-                {product.material
-                  ? `${product.material} ${product.region ? `recolectado y procesado en ${product.region}` : "procesado localmente"}`
-                  : "Fibras naturales recolectadas y procesadas localmente"}
-              </p>
-            </div>
-            <div className="text-center space-y-6 px-4 group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                </svg>
+            )}
+            {product.storeName && (
+              <div className="text-center space-y-6 px-4 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
+                  <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <h5 className="text-2xl font-serif italic text-white">Taller</h5>
+                <p className="text-sm text-white/60 leading-relaxed font-light italic">
+                  {product.storeName}
+                </p>
               </div>
-              <h5 className="text-2xl font-serif italic text-white">Taller</h5>
-              <p className="text-sm text-white/60 leading-relaxed font-light italic">
-                {product.storeName
-                  ? `Elaborado en el taller ${product.storeName} bajo principios de comercio justo`
-                  : "Elaborado en el taller bajo principios de comercio justo"}
-              </p>
-            </div>
-            <div className="text-center space-y-6 px-4 group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                </svg>
+            )}
+            {product.craft && (
+              <div className="text-center space-y-6 px-4 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
+                  <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                  </svg>
+                </div>
+                <h5 className="text-2xl font-serif italic text-white">
+                  Proceso
+                </h5>
+                <p className="text-sm text-white/60 leading-relaxed font-light italic">
+                  {product.craft}
+                </p>
               </div>
-              <h5 className="text-2xl font-serif italic text-white">
-                Proceso
-              </h5>
-              <p className="text-sm text-white/60 leading-relaxed font-light italic">
-                {product.craft
-                  ? `Cada etapa del ${product.craft.toLowerCase()} se realiza manualmente y forma parte del registro histórico de la pieza`
-                  : "Cada etapa del tejido se realiza manualmente y forma parte del registro histórico de la pieza"}
-              </p>
-            </div>
+            )}
           </div>
         </section>
 
@@ -553,27 +557,30 @@ const ProductDetail = () => {
                 {shop?.municipality || shop?.region}
                 {shop?.department ? `, ${shop.department}` : ""}
               </h3>
-              <p className="text-[#2c2c2c]/70 leading-relaxed mb-10 text-lg font-light italic">
-                {shop?.description ||
-                  `Ubicado en el corazón de Colombia, esta región es reconocida por su tradición artesanal. Durante generaciones, artesanos de la zona han trabajado ${product.craft || "la artesanía"} como una forma de preservar su identidad cultural.`}
-              </p>
+              {shop?.description && (
+                <p className="text-[#2c2c2c]/70 leading-relaxed mb-10 text-lg font-light italic">
+                  {shop.description}
+                </p>
+              )}
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
-                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
-                    Tradición
-                  </span>
-                  <span className="text-sm italic">
-                    {product.craft || "Artesanía tradicional"}
-                  </span>
-                </div>
-                <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
-                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
-                    Ubicación
-                  </span>
-                  <span className="text-sm italic">
-                    {shop?.department || shop?.region || "Colombia"}
-                  </span>
-                </div>
+                {product.craft && (
+                  <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Tradición
+                    </span>
+                    <span className="text-sm italic">{product.craft}</span>
+                  </div>
+                )}
+                {(shop?.department || shop?.region) && (
+                  <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Ubicación
+                    </span>
+                    <span className="text-sm italic">
+                      {shop?.department || shop?.region}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="bg-[#e5e1d8] min-h-[400px] relative flex items-center justify-center">
