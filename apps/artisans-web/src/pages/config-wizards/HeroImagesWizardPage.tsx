@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
@@ -8,6 +8,7 @@ import { WizardHeader } from '@/components/shop/new-product-wizard/components/Wi
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { ImageUploadSlot } from '@/components/ui/ImageUploadSlot';
 import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -33,6 +34,8 @@ const TOTAL_STEPS = 2;
 
 export default function HeroImagesWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [bannerUrl, setBannerUrl] = useState('');
@@ -42,13 +45,20 @@ export default function HeroImagesWizardPage() {
   const [newSlideSub, setNewSlideSub] = useState('');
   const [showAddSlide, setShowAddSlide] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [showGuard, setShowGuard] = useState(false);
+  const initRef = useRef({ slides: '[]' });
 
   useEffect(() => {
     if (!shop) return;
     const s = shop as any;
+    const slides = s.heroConfig?.slides ?? [];
     setBannerUrl(s.bannerUrl ?? '');
-    setHeroSlides(s.heroConfig?.slides ?? []);
+    setHeroSlides(slides);
+    initRef.current = { slides: JSON.stringify(slides) };
   }, [shop?.id]);
+
+  const isDirty = JSON.stringify(heroSlides) !== initRef.current.slides;
 
   const handleBannerFile = async (file: File) => {
     if (!shop) return;
@@ -68,18 +78,41 @@ export default function HeroImagesWizardPage() {
     setNewSlideTitle(''); setNewSlideSub(''); setShowAddSlide(false);
   };
 
-  const handleFinish = async () => {
+  const saveData = async () => {
     if (!shop) return;
+    await updateArtisanShop(shop.id, {
+      bannerUrl,
+      heroConfig: { slides: heroSlides, autoplay: true, duration: 5000 },
+    } as any);
+    initRef.current = { slides: JSON.stringify(heroSlides) };
+  };
+
+  const handleSaveProgress = async () => {
+    setSavingProgress(true);
+    try { await saveData(); toast.success('Progreso guardado'); }
+    catch { toast.error('Error al guardar'); }
+    finally { setSavingProgress(false); }
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
-      await updateArtisanShop(shop.id, {
-        bannerUrl,
-        heroConfig: { slides: heroSlides, autoplay: true, duration: 5000 },
-      } as any);
+      await saveData();
       toast.success('Imágenes de portada guardadas');
-      navigate('/mi-tienda/configurar');
+      navigate(returnTo);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleSaveAndExit = async () => {
+    setSaving(true);
+    try { await saveData(); toast.success('Guardado'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); setSaving(false); }
+  };
+
+  const handleBack = () => {
+    if (isDirty) { setShowGuard(true); return; }
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -90,10 +123,22 @@ export default function HeroImagesWizardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+      {showGuard && (
+        <UnsavedChangesDialog
+          onSaveAndExit={handleSaveAndExit}
+          onDiscardAndExit={() => navigate(returnTo)}
+          onStay={() => setShowGuard(false)}
+          isSaving={saving}
+        />
+      )}
+
       <WizardHeader
         step={step} totalSteps={TOTAL_STEPS}
         icon="panorama" title="Imágenes de portada"
         subtitle="Banner y slides que dan vida a tu tienda"
+        onBack={handleBack}
+        onSaveProgress={isDirty ? handleSaveProgress : undefined}
+        isSavingProgress={savingProgress}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -127,7 +172,6 @@ export default function HeroImagesWizardPage() {
                   Mensajes en rotación que aparecen sobre el banner. Agrega hasta 5 slides con título y subtítulo.
                 </p>
 
-                {/* Add slide form */}
                 {showAddSlide ? (
                   <div className="rounded-xl p-4 mb-4 flex flex-col gap-3" style={{ background: 'rgba(236,109,19,0.05)', border: '1px solid rgba(236,109,19,0.15)' }}>
                     <input value={newSlideTitle} onChange={e => setNewSlideTitle(e.target.value)} placeholder="Título del slide" style={inputStyle} />
@@ -188,6 +232,8 @@ export default function HeroImagesWizardPage() {
         onSubmit={handleFinish}
         isSubmitting={saving}
         submitLabel="Guardar imágenes"
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
         leftOffset={80}
       />
     </div>

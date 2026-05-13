@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -31,34 +32,66 @@ const TOTAL_STEPS = 2;
 
 export default function FaqWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [faqItems, setFaqItems] = useState<{ q: string; a: string }[]>([]);
   const [saving, setSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [showGuard, setShowGuard] = useState(false);
+  const initRef = useRef('');
 
   useEffect(() => {
     if (!shop) return;
     const pc = shop.policiesConfig ?? {};
-    setFaqItems(pc.faq ?? []);
+    const items = pc.faq ?? [];
+    setFaqItems(items);
+    initRef.current = JSON.stringify(items);
   }, [shop?.id]);
+
+  const isDirty = JSON.stringify(faqItems) !== initRef.current;
 
   const addFaq    = () => setFaqItems(prev => [...prev, { q: '', a: '' }]);
   const removeFaq = (i: number) => setFaqItems(prev => prev.filter((_, j) => j !== i));
   const updateFaq = (i: number, field: 'q' | 'a', val: string) =>
     setFaqItems(prev => prev.map((item, j) => j === i ? { ...item, [field]: val } : item));
 
-  const handleFinish = async () => {
+  const saveData = async () => {
     if (!shop) return;
+    const pc = shop.policiesConfig ?? {};
+    await updateArtisanShop(shop.id, {
+      policiesConfig: { ...pc, faq: faqItems },
+    });
+    initRef.current = JSON.stringify(faqItems);
+  };
+
+  const handleSaveProgress = async () => {
+    setSavingProgress(true);
+    try { await saveData(); toast.success('Progreso guardado'); }
+    catch { toast.error('Error al guardar'); }
+    finally { setSavingProgress(false); }
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
-      const pc = shop.policiesConfig ?? {};
-      await updateArtisanShop(shop.id, {
-        policiesConfig: { ...pc, faq: faqItems },
-      });
+      await saveData();
       toast.success('Preguntas frecuentes guardadas');
-      navigate('/mi-tienda/configurar');
+      navigate(returnTo);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleSaveAndExit = async () => {
+    setSaving(true);
+    try { await saveData(); toast.success('Guardado'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); setSaving(false); }
+  };
+
+  const handleBack = () => {
+    if (isDirty) { setShowGuard(true); return; }
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -69,10 +102,22 @@ export default function FaqWizardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+      {showGuard && (
+        <UnsavedChangesDialog
+          onSaveAndExit={handleSaveAndExit}
+          onDiscardAndExit={() => navigate(returnTo)}
+          onStay={() => setShowGuard(false)}
+          isSaving={saving}
+        />
+      )}
+
       <WizardHeader
         step={step} totalSteps={TOTAL_STEPS}
         icon="quiz" title="Preguntas frecuentes"
         subtitle="Resuelve las dudas más comunes de tus compradores"
+        onBack={handleBack}
+        onSaveProgress={isDirty ? handleSaveProgress : undefined}
+        isSavingProgress={savingProgress}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -152,6 +197,8 @@ export default function FaqWizardPage() {
         onSubmit={handleFinish}
         isSubmitting={saving}
         submitLabel="Guardar FAQ"
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
         leftOffset={80}
       />
     </div>

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -36,6 +37,8 @@ const TOTAL_STEPS = 2;
 
 export default function ContactLocationWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [whatsapp, setWhatsapp] = useState('');
@@ -45,6 +48,9 @@ export default function ContactLocationWizardPage() {
   const [socialTiktok, setSocialTiktok] = useState('');
   const [socialWeb, setSocialWeb] = useState('');
   const [saving, setSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [showGuard, setShowGuard] = useState(false);
+  const initRef = useRef('');
 
   useEffect(() => {
     if (!shop) return;
@@ -57,21 +63,47 @@ export default function ContactLocationWizardPage() {
     setSocialFb(sl.facebook ?? '');
     setSocialTiktok(sl.tiktok ?? '');
     setSocialWeb(sl.website ?? '');
+    initRef.current = JSON.stringify({ whatsapp: cc.whatsapp ?? '', email: cc.email ?? '', instagram: sl.instagram ?? '', facebook: sl.facebook ?? '', tiktok: sl.tiktok ?? '', website: sl.website ?? '' });
   }, [shop?.id]);
 
-  const handleFinish = async () => {
+  const isDirty = JSON.stringify({ whatsapp, email, instagram: socialInsta, facebook: socialFb, tiktok: socialTiktok, website: socialWeb }) !== initRef.current;
+
+  const saveData = async () => {
     if (!shop) return;
+    const s = shop as any;
+    await updateArtisanShop(shop.id, {
+      contactConfig: { ...(s.contactConfig ?? {}), whatsapp, email },
+      socialLinks:   { instagram: socialInsta, facebook: socialFb, tiktok: socialTiktok, website: socialWeb },
+    } as any);
+    initRef.current = JSON.stringify({ whatsapp, email, instagram: socialInsta, facebook: socialFb, tiktok: socialTiktok, website: socialWeb });
+  };
+
+  const handleSaveProgress = async () => {
+    setSavingProgress(true);
+    try { await saveData(); toast.success('Progreso guardado'); }
+    catch { toast.error('Error al guardar'); }
+    finally { setSavingProgress(false); }
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
-      const s = shop as any;
-      await updateArtisanShop(shop.id, {
-        contactConfig: { ...(s.contactConfig ?? {}), whatsapp, email },
-        socialLinks:   { instagram: socialInsta, facebook: socialFb, tiktok: socialTiktok, website: socialWeb },
-      } as any);
+      await saveData();
       toast.success('Datos de contacto guardados');
-      navigate('/mi-tienda/configurar');
+      navigate(returnTo);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleSaveAndExit = async () => {
+    setSaving(true);
+    try { await saveData(); toast.success('Guardado'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); setSaving(false); }
+  };
+
+  const handleBack = () => {
+    if (isDirty) { setShowGuard(true); return; }
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -86,10 +118,22 @@ export default function ContactLocationWizardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+      {showGuard && (
+        <UnsavedChangesDialog
+          onSaveAndExit={handleSaveAndExit}
+          onDiscardAndExit={() => navigate(returnTo)}
+          onStay={() => setShowGuard(false)}
+          isSaving={saving}
+        />
+      )}
+
       <WizardHeader
         step={step} totalSteps={TOTAL_STEPS}
         icon="contacts" title="Contacto y ubicación"
         subtitle="Cómo encontrar y contactar tu taller"
+        onBack={handleBack}
+        onSaveProgress={isDirty ? handleSaveProgress : undefined}
+        isSavingProgress={savingProgress}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -104,7 +148,6 @@ export default function ContactLocationWizardPage() {
                 ¿Cómo pueden contactarte los compradores? WhatsApp es el canal principal en la plataforma.
               </p>
 
-              {/* Location (read-only, from artisan profile) */}
               {(department || municipality) && (
                 <div className="grid grid-cols-2 gap-3 mb-6 p-4 rounded-xl" style={{ background: `${T.dark}04`, border: `1px solid ${T.dark}07` }}>
                   {[{ label: 'Departamento', value: department }, { label: 'Municipio', value: municipality }].map(({ label, value }) => (
@@ -169,6 +212,8 @@ export default function ContactLocationWizardPage() {
         onSubmit={handleFinish}
         isSubmitting={saving}
         submitLabel="Guardar contacto"
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
         leftOffset={80}
       />
     </div>

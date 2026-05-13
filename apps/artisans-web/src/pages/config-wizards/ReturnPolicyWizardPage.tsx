@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -31,20 +32,28 @@ const TOTAL_STEPS = 3;
 
 export default function ReturnPolicyWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [returnDays, setReturnDays] = useState('');
   const [acceptCustom, setAcceptCustom] = useState<boolean | null>(null);
   const [returnPolicy, setReturnPolicy] = useState('');
   const [saving, setSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [showGuard, setShowGuard] = useState(false);
+  const initRef = useRef('');
 
   useEffect(() => {
     if (!shop) return;
     const pc = shop.policiesConfig ?? {};
-    setReturnPolicy(pc.returnPolicy ?? '');
+    const policy = pc.returnPolicy ?? '';
+    setReturnPolicy(policy);
+    initRef.current = policy;
   }, [shop?.id]);
 
-  // Auto-build a base policy text from days + custom preference on step 2 → 3 transition
+  const isDirty = returnPolicy !== initRef.current;
+
   const handleNextFromStep2 = () => {
     if (acceptCustom === null) { toast.error('Elige una opción'); return; }
     if (!returnPolicy) {
@@ -59,18 +68,41 @@ export default function ReturnPolicyWizardPage() {
     setStep(3);
   };
 
-  const handleFinish = async () => {
+  const saveData = async () => {
     if (!shop) return;
+    const pc = shop.policiesConfig ?? {};
+    await updateArtisanShop(shop.id, {
+      policiesConfig: { ...pc, returnPolicy },
+    });
+    initRef.current = returnPolicy;
+  };
+
+  const handleSaveProgress = async () => {
+    setSavingProgress(true);
+    try { await saveData(); toast.success('Progreso guardado'); }
+    catch { toast.error('Error al guardar'); }
+    finally { setSavingProgress(false); }
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
-      const pc = shop.policiesConfig ?? {};
-      await updateArtisanShop(shop.id, {
-        policiesConfig: { ...pc, returnPolicy },
-      });
+      await saveData();
       toast.success('Política de devoluciones guardada');
-      navigate('/mi-tienda/configurar');
+      navigate(returnTo);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleSaveAndExit = async () => {
+    setSaving(true);
+    try { await saveData(); toast.success('Guardado'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); setSaving(false); }
+  };
+
+  const handleBack = () => {
+    if (isDirty) { setShowGuard(true); return; }
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -81,10 +113,22 @@ export default function ReturnPolicyWizardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+      {showGuard && (
+        <UnsavedChangesDialog
+          onSaveAndExit={handleSaveAndExit}
+          onDiscardAndExit={() => navigate(returnTo)}
+          onStay={() => setShowGuard(false)}
+          isSaving={saving}
+        />
+      )}
+
       <WizardHeader
         step={step} totalSteps={TOTAL_STEPS}
         icon="policy" title="Política de devoluciones"
         subtitle="Genera y personaliza tu política de devoluciones"
+        onBack={handleBack}
+        onSaveProgress={isDirty ? handleSaveProgress : undefined}
+        isSavingProgress={savingProgress}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -177,6 +221,8 @@ export default function ReturnPolicyWizardPage() {
         onSubmit={handleFinish}
         isSubmitting={saving}
         submitLabel="Guardar política"
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
         leftOffset={80}
       />
     </div>

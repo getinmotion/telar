@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
@@ -8,6 +8,7 @@ import { WizardHeader } from '@/components/shop/new-product-wizard/components/Wi
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { ImageUploadSlot } from '@/components/ui/ImageUploadSlot';
 import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -33,19 +34,28 @@ const TOTAL_STEPS = 2;
 
 export default function BrandIdentityWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [logoUrl, setLogoUrl] = useState('');
   const [brandClaim, setBrandClaim] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [showGuard, setShowGuard] = useState(false);
+  const initRef = useRef({ brandClaim: '' });
 
   useEffect(() => {
     if (!shop) return;
     const s = shop as any;
+    const claim = s.brandClaim ?? '';
     setLogoUrl(s.logoUrl ?? '');
-    setBrandClaim(s.brandClaim ?? '');
+    setBrandClaim(claim);
+    initRef.current = { brandClaim: claim };
   }, [shop?.id]);
+
+  const isDirty = brandClaim !== initRef.current.brandClaim;
 
   const handleLogoFile = async (file: File) => {
     if (!shop) return;
@@ -59,15 +69,38 @@ export default function BrandIdentityWizardPage() {
     finally { setUploadingLogo(false); }
   };
 
-  const handleFinish = async () => {
+  const saveData = async () => {
     if (!shop) return;
+    await updateArtisanShop(shop.id, { brandClaim } as any);
+    initRef.current = { brandClaim };
+  };
+
+  const handleSaveProgress = async () => {
+    setSavingProgress(true);
+    try { await saveData(); toast.success('Progreso guardado'); }
+    catch { toast.error('Error al guardar'); }
+    finally { setSavingProgress(false); }
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
-      await updateArtisanShop(shop.id, { brandClaim } as any);
+      await saveData();
       toast.success('Identidad de marca guardada');
-      navigate('/mi-tienda/configurar');
+      navigate(returnTo);
     } catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleSaveAndExit = async () => {
+    setSaving(true);
+    try { await saveData(); toast.success('Guardado'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); setSaving(false); }
+  };
+
+  const handleBack = () => {
+    if (isDirty) { setShowGuard(true); return; }
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -78,10 +111,22 @@ export default function BrandIdentityWizardPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+      {showGuard && (
+        <UnsavedChangesDialog
+          onSaveAndExit={handleSaveAndExit}
+          onDiscardAndExit={() => navigate(returnTo)}
+          onStay={() => setShowGuard(false)}
+          isSaving={saving}
+        />
+      )}
+
       <WizardHeader
         step={step} totalSteps={TOTAL_STEPS}
         icon="palette" title="Identidad de marca"
         subtitle="Logo y tagline que representan tu taller"
+        onBack={handleBack}
+        onSaveProgress={isDirty ? handleSaveProgress : undefined}
+        isSavingProgress={savingProgress}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -142,6 +187,8 @@ export default function BrandIdentityWizardPage() {
         onSubmit={handleFinish}
         isSubmitting={saving}
         submitLabel="Guardar identidad"
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
         leftOffset={80}
       />
     </div>

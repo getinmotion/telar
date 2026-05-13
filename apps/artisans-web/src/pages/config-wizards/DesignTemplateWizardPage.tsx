@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
+import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 
 const T = {
   dark:  '#151b2d',
@@ -87,28 +88,39 @@ const TOTAL_STEPS = 2;
 
 export default function DesignTemplateWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
   const [step, setStep] = useState(1);
   const [activeThemeId, setActiveThemeId] = useState('editorial');
   const [previewMode, setPreviewMode] = useState<'ecommerce' | 'marketplace'>('ecommerce');
   const [saving, setSaving] = useState(false);
+  const initRef = useRef('editorial');
 
   useEffect(() => {
     if (!shop) return;
     const s = shop as any;
-    setActiveThemeId(s.activeThemeId ?? 'editorial');
+    const theme = s.activeThemeId ?? 'editorial';
+    setActiveThemeId(theme);
+    initRef.current = theme;
   }, [shop?.id]);
+
+  const isDirty = activeThemeId !== initRef.current;
 
   const selectTheme = async (id: string) => {
     if (!shop) return;
     setActiveThemeId(id);
-    try { await updateArtisanShop(shop.id, { activeThemeId: id } as any); }
-    catch { toast.error('Error al seleccionar plantilla'); }
+    try {
+      await updateArtisanShop(shop.id, { activeThemeId: id } as any);
+      initRef.current = id;
+    } catch { toast.error('Error al seleccionar plantilla'); }
   };
+
+  const handleBack = () => navigate(returnTo);
 
   const handleFinish = async () => {
     toast.success('Plantilla guardada');
-    navigate('/mi-tienda/configurar');
+    navigate(returnTo);
   };
 
   if (loading) return (
@@ -136,6 +148,7 @@ export default function DesignTemplateWizardPage() {
         step={step} totalSteps={TOTAL_STEPS}
         icon="preview" title="Diseño y plantilla"
         subtitle="Elige el estilo visual de tu tienda"
+        onBack={handleBack}
       />
 
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
@@ -185,7 +198,6 @@ export default function DesignTemplateWizardPage() {
                 Así se verá tu tienda en cada contexto. Guarda cambios en otras secciones para actualizar la vista previa.
               </p>
 
-              {/* Mode toggle */}
               <div className="flex items-center gap-1 p-1 rounded-2xl mb-6" style={{ background: `${T.dark}06`, width: 'fit-content' }}>
                 {(['ecommerce', 'marketplace'] as const).map(mode => (
                   <button key={mode} onClick={() => setPreviewMode(mode)}

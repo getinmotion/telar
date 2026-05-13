@@ -15,6 +15,10 @@ export interface WizardFooterProps {
   isSavingDraft?: boolean;
   submitLabel?: string;
   leftOffset?: number;
+  onSaveAndExit?: () => void;
+  isSavingAndExiting?: boolean;
+  showSaveDraftOnAllSteps?: boolean;
+  saveDraftLabel?: string;
 }
 
 export const WizardFooter: React.FC<WizardFooterProps> = ({
@@ -32,6 +36,10 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   isSavingDraft,
   submitLabel,
   leftOffset,
+  onSaveAndExit,
+  isSavingAndExiting,
+  showSaveDraftOnAllSteps,
+  saveDraftLabel,
 }) => {
   const progress = Math.round((step / totalSteps) * 100);
 
@@ -75,6 +83,16 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
     </div>
   );
 
+  const SaveAndExitButton = () => onSaveAndExit ? (
+    <button
+      onClick={onSaveAndExit}
+      disabled={isSavingAndExiting || isSubmitting || isSavingDraft}
+      className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#54433e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isSavingAndExiting ? 'Guardando…' : 'Guardar y salir'}
+    </button>
+  ) : null;
+
   if (isFinalStep) {
     return (
       <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
@@ -87,7 +105,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
               disabled={isSavingDraft || isSubmitting}
               className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#54433e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {isSavingDraft ? 'Guardando...' : 'Guardar borrador'}
+              {isSavingDraft ? 'Guardando...' : (saveDraftLabel ?? 'Guardar borrador')}
             </button>
           )}
           <button
@@ -107,14 +125,15 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
       <ProgressBar />
       <div className="flex items-center justify-center gap-4 px-6 py-3">
         <BackButton />
-        {step === 1 && onSaveDraft && (
+        {(step === 1 || showSaveDraftOnAllSteps) && onSaveDraft && (
           <button
             onClick={onSaveDraft}
             className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
           >
-            Guardar borrador
+            {saveDraftLabel ?? 'Guardar borrador'}
           </button>
         )}
+        <SaveAndExitButton />
         <NextButton />
       </div>
     </footer>
