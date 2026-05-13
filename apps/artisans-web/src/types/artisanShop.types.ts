@@ -101,6 +101,12 @@ export interface ContactConfig {
   [key: string]: any;
 }
 
+export interface PoliciesConfig {
+  returnPolicy?: string;
+  faq?: { q: string; a: string }[];
+  [key: string]: any;
+}
+
 export interface ArtisanProfile {
   [key: string]: any;
 }
@@ -137,6 +143,7 @@ export interface ArtisanShop {
   heroConfig: HeroConfig;
   aboutContent: AboutContent;
   contactConfig: ContactConfig;
+  policiesConfig: PoliciesConfig;
   activeThemeId: string | null;
   publishStatus: string | null;
   marketplaceApproved: boolean | null;
@@ -179,6 +186,7 @@ export interface CreateArtisanShopPayload {
   heroConfig?: HeroConfig;
   aboutContent?: AboutContent;
   contactConfig?: ContactConfig;
+  policiesConfig?: PoliciesConfig;
   activeThemeId?: string;
   publishStatus?: string;
   idContraparty?: string;
@@ -215,6 +223,7 @@ export interface UpdateArtisanShopPayload {
   heroConfig?: HeroConfig;
   aboutContent?: AboutContent;
   contactConfig?: ContactConfig;
+  policiesConfig?: PoliciesConfig;
   activeThemeId?: string;
   publishStatus?: string;
   marketplaceApproved?: boolean;

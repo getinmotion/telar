@@ -66,6 +66,12 @@ import PublicShopContact from './pages/PublicShopContact';
 import { PublicProductPage } from './pages/PublicProductPage';
 import { ProductIdentityPage } from './pages/product-identity';
 import ShopConfigDashboard from './pages/ShopConfigDashboard';
+import BrandIdentityWizardPage from './pages/config-wizards/BrandIdentityWizardPage';
+import HeroImagesWizardPage from './pages/config-wizards/HeroImagesWizardPage';
+import ContactLocationWizardPage from './pages/config-wizards/ContactLocationWizardPage';
+import ReturnPolicyWizardPage from './pages/config-wizards/ReturnPolicyWizardPage';
+import FaqWizardPage from './pages/config-wizards/FaqWizardPage';
+import DesignTemplateWizardPage from './pages/config-wizards/DesignTemplateWizardPage';
 import { ShopDirectoryPage } from './pages/ShopDirectoryPage';
 import { ProductUploadPage } from './pages/ProductUploadPage';
 import { ProductEditPage } from './pages/ProductEditPage';
@@ -343,6 +349,12 @@ function App() {
                               <Route path="/mi-cuenta/datos-bancarios" element={<BankDataPage />} />
                               <Route path="/dashboard/artisan-profile-wizard" element={<ArtisanProfileWizardPage />} />
                               <Route path="/mi-tienda/configurar" element={<ShopConfigDashboard />} />
+                              <Route path="/mi-tienda/configurar/brand" element={<BrandIdentityWizardPage />} />
+                              <Route path="/mi-tienda/configurar/hero" element={<HeroImagesWizardPage />} />
+                              <Route path="/mi-tienda/configurar/contact" element={<ContactLocationWizardPage />} />
+                              <Route path="/mi-tienda/configurar/return-policy" element={<ReturnPolicyWizardPage />} />
+                              <Route path="/mi-tienda/configurar/faq" element={<FaqWizardPage />} />
+                              <Route path="/mi-tienda/configurar/design" element={<DesignTemplateWizardPage />} />
                             </Route>
                             <Route
                               path="/tienda/:shopSlug/perfil-artesanal"
