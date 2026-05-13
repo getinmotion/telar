@@ -532,8 +532,6 @@ export const CommercialDashboard: React.FC = () => {
             >
               <div className="max-w-[1300px] pt-8">
 
-                <AICopilotCard />
-
                 {/* 4 Metric Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <MetricCard
@@ -920,6 +918,8 @@ export const CommercialDashboard: React.FC = () => {
 
                   {/* ── Right sidebar (4) ────────────────────────────────── */}
                   <aside className="lg:col-span-4 space-y-6">
+
+                    <AICopilotCard />
 
                     {/* Faltantes / Alertas */}
                     {!isActivated ? (
