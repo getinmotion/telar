@@ -5,7 +5,6 @@ import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge, aiSelectClass } from '../components/AiBadge';
 import { getAllCrafts, getTechniquesByCraftId, type Craft, type Technique } from '@/services/crafts.actions';
 import { getAllCategories, type Category } from '@/services/categories.actions';
-import { getAllProductCategories, getProductCategoryChildren, type ProductCategory } from '@/services/product-categories.actions';
 
 interface Props {
   state: NewWizardState;
@@ -56,8 +55,6 @@ const ETHNIC_GROUPS = ['Ninguno', 'Indígena', 'Afrodescendiente', 'Campesina', 
 export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
   const [showCollaboration, setShowCollaboration] = useState(state.isCollaboration ?? false);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
-  const [allProductCategories, setAllProductCategories] = useState<ProductCategory[]>([]);
-  const [subcategories, setSubcategories] = useState<ProductCategory[]>([]);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
   const [crafts, setCrafts] = useState<Craft[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
@@ -67,41 +64,27 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
 
   const canContinue = !!state.categoryId && !!state.craftId;
 
-  // Derived: match taxonomy categories by exact name
-  const telarCategories = TELAR_CATEGORY_DEFS
-    .map(def => {
-      const match = allCategories.find(c => c.name === def.name);
-      return match ? { ...def, id: match.id } : null;
-    })
-    .filter(Boolean) as (typeof TELAR_CATEGORY_DEFS[number] & { id: string })[];
+  // Root categories (no parentId) enriched with icons
+  const telarCategories = allCategories
+    .filter(c => !c.parentId)
+    .map(c => {
+      const def = TELAR_CATEGORY_DEFS.find(
+        d => d.name === c.name || c.name.toLowerCase().includes(d.name.split(' ')[0].toLowerCase()),
+      );
+      return { ...c, icon: def?.icon ?? 'category' };
+    });
 
-  const selectedCategoryName = telarCategories.find(c => c.id === state.categoryId)?.name
-    ?? allCategories.find(c => c.id === state.categoryId)?.name;
+  const subcategories = allCategories.filter(c => c.parentId === state.categoryId);
+
+  const selectedCategoryName = allCategories.find(c => c.id === state.categoryId)?.name;
   const selectedSubcategoryName = subcategories.find(c => c.id === state.subcategoryId)?.name;
   const selectedCraftName = crafts.find(c => c.id === state.craftId)?.name;
   const selectedTechniqueName = techniques.find(t => t.id === state.primaryTechniqueId)?.name;
 
   useEffect(() => {
     getAllCategories().then(setAllCategories).catch(() => {});
-    getAllProductCategories().then(setAllProductCategories).catch(() => {});
     getAllCrafts().then(setCrafts).catch(() => {});
   }, []);
-
-  // Load subcategories: find the matching product_category root by name, then fetch its children
-  useEffect(() => {
-    if (!state.categoryId) { setSubcategories([]); return; }
-    const taxonomyName = allCategories.find(c => c.id === state.categoryId)?.name;
-    if (!taxonomyName) { setSubcategories([]); return; }
-    const rootProductCat = allProductCategories.find(
-      c => c.name.toLowerCase().includes(taxonomyName.split(' ')[0].toLowerCase()),
-    );
-    if (!rootProductCat) { setSubcategories([]); return; }
-    setLoadingSubcategories(true);
-    getProductCategoryChildren(rootProductCat.id)
-      .then(setSubcategories)
-      .catch(() => setSubcategories([]))
-      .finally(() => setLoadingSubcategories(false));
-  }, [state.categoryId, allCategories, allProductCategories]);
 
   useEffect(() => {
     if (!state.craftId) { setTechniques([]); return; }
@@ -262,7 +245,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                           className="text-[9px] font-[800] uppercase tracking-wider leading-tight"
                           style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
                         >
-                          {cat.display}
+                          {cat.name}
                         </span>
                       </button>
                     );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -11,6 +11,10 @@ import { useFixedTasksManager } from '@/hooks/useFixedTasksManager';
 import { useMasterAgent } from '@/context/MasterAgentContext';
 import { ForceCompleteProfileModal } from '@/components/profile/ForceCompleteProfileModal';
 import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { useShopPublish, type PublishRequirements } from '@/hooks/useShopPublish';
+import { updateArtisanShop } from '@/services/artisanShops.actions';
+import { AICopilotCard } from './AICopilotCard';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -117,43 +121,6 @@ const MetricCard: React.FC<{
   </div>
 );
 
-// ── NavItem ───────────────────────────────────────────────────────────────────
-const NavItem: React.FC<{
-  icon: string;
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-}> = ({ icon, label, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      'w-full flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all',
-      active
-        ? 'bg-[#151b2d] text-white'
-        : 'text-[#54433e]/50 hover:bg-white/60 hover:text-[#151b2d]',
-    )}
-  >
-    <span
-      className="material-symbols-outlined"
-      style={{ fontSize: 20, fontVariationSettings: "'FILL' 0, 'wght' 300" }}
-    >
-      {icon}
-    </span>
-    <span
-      style={{
-        fontFamily: SANS,
-        fontSize: 8,
-        fontWeight: 800,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-        lineHeight: 1,
-      }}
-    >
-      {label}
-    </span>
-  </button>
-);
-
 // ── CTA Button (orange) ───────────────────────────────────────────────────────
 const OrangeBtn: React.FC<{
   children: React.ReactNode;
@@ -229,13 +196,25 @@ export const CommercialDashboard: React.FC = () => {
     refresh: refreshProfileCompleteness,
   } = useProfileCompleteness();
 
-  const [products,        setProducts]        = useState<any[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [showProfileModal,setShowProfileModal]= useState(false);
-  const [showBioModal,    setShowBioModal]    = useState(false);
-  const [bioCopied,       setBioCopied]       = useState(false);
+  const { checkPublishRequirements, publishShop, loading: publishLoading } = useShopPublish(shop?.id);
 
-  const isPublished = shop?.publishStatus === 'published' && shop?.active;
+  const [products,          setProducts]          = useState<any[]>([]);
+  const [loadingProducts,   setLoadingProducts]   = useState(false);
+  const [showProfileModal,  setShowProfileModal]  = useState(false);
+  const [showBioModal,      setShowBioModal]      = useState(false);
+  const [bioCopied,         setBioCopied]         = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [publishReqs,       setPublishReqs]       = useState<PublishRequirements | null>(null);
+
+  const defaultBioConfig = { showShopLink: true, showProfileLink: true, featuredProductId: null as string | null };
+  const [bioConfig,  setBioConfig]  = useState<{ showShopLink: boolean; showProfileLink: boolean; featuredProductId: string | null }>(defaultBioConfig);
+  const [bioSaving,  setBioSaving]  = useState(false);
+
+  // Two-tier publish model:
+  // isActivated = artisan activated their shop (visible at personal URL)
+  // isMarketplaceLive = moderator also approved for central marketplace
+  const isActivated       = shop?.publishStatus === 'published' && !!shop?.active;
+  const isMarketplaceLive = isActivated && !!(shop as any)?.marketplaceApproved;
   const userName    =
     masterState.perfil?.nombre ||
     user?.user_metadata?.name  ||
@@ -267,6 +246,33 @@ export const CommercialDashboard: React.FC = () => {
     }
   }, [isProfileLoading, isProfileComplete, user?.id]);
 
+  useEffect(() => {
+    if (!shop?.id || isActivated) return;
+    checkPublishRequirements().then(setPublishReqs);
+  }, [shop?.id, isActivated]);
+
+  useEffect(() => {
+    if (shop) setBioConfig({ ...defaultBioConfig, ...(shop as any)?.bioConfig });
+  }, [shop?.id]);
+
+  const handleSaveBioConfig = useCallback(async () => {
+    if (!shop?.id) return;
+    setBioSaving(true);
+    try {
+      await updateArtisanShop(shop.id, { bioConfig } as any);
+    } finally {
+      setBioSaving(false);
+    }
+  }, [shop?.id, bioConfig]);
+
+  const handleConfirmPublish = useCallback(async () => {
+    const ok = await publishShop();
+    if (ok) {
+      setShowPublishDialog(false);
+      window.location.reload();
+    }
+  }, [publishShop]);
+
   // ── Metrics ───────────────────────────────────────────────────────────────
   // mapProductResponseToLegacy usa: active (bool), moderation_status (string), inventory (number), images (string[])
   const getStock = (p: any) => p.inventory ?? p.stock ?? 0;
@@ -280,22 +286,20 @@ export const CommercialDashboard: React.FC = () => {
   const lowStockProducts  = products.filter((p) => getStock(p) > 0 && getStock(p) <= 5);
 
   // ── Checklist ─────────────────────────────────────────────────────────────
-  const hasProfile   = !!masterState.perfil?.nombre;
+  const hasProfile   = !!(shop as any)?.artisanProfileCompleted;
   const hasBrand     = !!masterState.marca?.logo_url || !!(masterState as any)?.marca?.logoUrl;
   const hasProduct   = products.length > 0;
   const hasBankData  = !!bankData;
   const hasContact   = !!(shop as any)?.contactConfig?.email || !!(shop as any)?.contact_config?.email;
   const hasInventory = totalStock > 0;
-  const hasStory     = !!(shop as any)?.aboutContent?.story || !!(shop as any)?.about_content?.story;
 
   const checklistItems = [
-    { label: 'Perfil artesanal', done: hasProfile,   required: true,  route: '/profile' },
+    { label: 'Perfil artesanal', done: hasProfile,   required: true,  route: '/dashboard/artisan-profile-wizard' },
     { label: 'Primer producto',  done: hasProduct,   required: true,  route: '/productos/subir' },
     { label: 'Marca y logo',     done: hasBrand,     required: false, route: '/dashboard/brand-wizard' },
     { label: 'Datos bancarios',  done: hasBankData,  required: true,  route: '/mi-cuenta/datos-bancarios' },
     { label: 'Contacto',         done: hasContact,   required: false, route: '/dashboard/shop-contact-wizard' },
     { label: 'Inventario',       done: hasInventory, required: true,  route: '/inventario' },
-    { label: 'Historia profunda',done: hasStory,     required: false, route: '/dashboard/shop-about-wizard' },
   ];
 
   const completedSteps  = checklistItems.filter((i) => i.done).length;
@@ -330,13 +334,26 @@ export const CommercialDashboard: React.FC = () => {
   };
 
   const nextCard: CardConfig = (() => {
-    if (!isPublished) {
+    // State 2: Activated by artisan, pending marketplace moderation
+    if (isActivated && !isMarketplaceLive) return {
+      bg: 'rgba(59,130,246,0.05)',
+      accentColor: '#3b82f6',
+      title: 'Tu tienda está en revisión',
+      subtitle: 'El equipo TELAR la está evaluando',
+      body: 'Tu tienda ya está activa en tu URL personal. Nuestro equipo editorial la revisará para habilitarla en el marketplace central de TELAR. Te avisaremos cuando sea aprobada.',
+      cta: 'Ver mi tienda',
+      ctaRoute: '#',
+      ctaAction: () => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank'),
+      icon: 'hourglass_top',
+    };
+    // State 1: Not yet activated — guide artisan through requirements
+    if (!isActivated) {
       if (!hasProduct) return {
         bg: 'rgba(236,109,19,0.05)',
         accentColor: '#ec6d13',
         title: 'Tu siguiente paso',
         subtitle: 'Crea tu primer producto estructurado',
-        body: 'Para publicar tu tienda necesitas al menos un producto con nombre, descripción, fotos, precio e inventario.',
+        body: 'Para activar tu tienda necesitas al menos un producto con nombre, descripción, fotos, precio e inventario.',
         cta: 'Crear producto',
         ctaRoute: '/productos/subir',
         icon: 'inventory_2',
@@ -351,17 +368,29 @@ export const CommercialDashboard: React.FC = () => {
         ctaRoute: '/mi-cuenta/datos-bancarios',
         icon: 'account_balance',
       };
+      if (requiredPending.length === 0) return {
+        bg: 'rgba(22,101,52,0.06)',
+        accentColor: '#166534',
+        title: '¡Todo listo para activar!',
+        subtitle: 'Tu tienda está configurada',
+        body: 'Has completado todos los requisitos. Actívala para que el equipo TELAR la revise y la publique en el marketplace.',
+        cta: 'Activar y enviar a curación',
+        ctaRoute: '#',
+        ctaAction: () => setShowPublishDialog(true),
+        icon: 'rocket_launch',
+      };
       return {
         bg: 'rgba(22,101,52,0.04)',
         accentColor: '#166534',
-        title: 'Casi listo para publicar',
+        title: 'Casi listo para activar',
         subtitle: `Faltan ${requiredPending.length} requisito${requiredPending.length !== 1 ? 's' : ''} obligatorio${requiredPending.length !== 1 ? 's' : ''}`,
-        body: 'Completa los elementos requeridos para activar tu tienda en el marketplace.',
+        body: 'Completa los elementos requeridos para activar tu tienda y enviarla a revisión del equipo TELAR.',
         cta: 'Continuar configuración',
-        ctaRoute: requiredPending[0]?.route || '/dashboard',
+        ctaRoute: requiredPending[0].route,
         icon: 'rocket_launch',
       };
     }
+    // State 3: Fully live in marketplace
     if (lowStockProducts.length > 0) return {
       bg: 'rgba(59,130,246,0.05)',
       accentColor: '#3b82f6',
@@ -416,82 +445,12 @@ export const CommercialDashboard: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Page background — radial gradient tricolor fijo */}
-      <div
-        className="h-screen overflow-hidden"
-        style={{
-          backgroundColor: '#f9f7f2',
-          backgroundImage: [
-            'radial-gradient(circle at top left, rgba(223,244,232,0.95), transparent 38%)',
-            'radial-gradient(circle at bottom right, rgba(238,241,245,0.95), transparent 42%)',
-            'radial-gradient(circle at top right, rgba(255,244,223,0.75), transparent 34%)',
-          ].join(', '),
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        {/* Canvas wrapper */}
-        <div
-          className="max-w-[1400px] mx-auto flex h-full"
-          style={{
-            background: 'rgba(247,246,242,0.45)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.65)',
-            boxShadow: '0 24px 80px rgba(21,27,45,0.08)',
-          }}
-        >
-
-          {/* ── Sidebar ───────────────────────────────────────────────────── */}
-          <aside
-            className="w-20 shrink-0 flex flex-col items-center py-8 gap-8 sticky top-0 h-screen z-50"
-            style={{ borderRight: '1px solid rgba(255,255,255,0.4)' }}
-          >
-            <a
-              href="/dashboard"
-              style={{
-                fontFamily: SERIF,
-                fontSize: 10,
-                fontWeight: 900,
-                letterSpacing: '0.2em',
-                color: '#151b2d',
-                textDecoration: 'none',
-                textTransform: 'uppercase',
-              }}
-            >
-              Telar
-            </a>
-
-            <nav className="flex flex-col gap-4 items-center flex-1">
-              <NavItem icon="grid_view"     label="Inicio"        active={location.pathname === '/dashboard'} onClick={() => navigate('/dashboard')} />
-              <NavItem icon="inventory_2"   label="Productos"     onClick={() => navigate('/productos/subir')} />
-              <NavItem icon="bar_chart"     label="Inventario"    onClick={() => navigate('/inventario')} />
-              <NavItem icon="receipt_long"  label="Ventas"        onClick={() => navigate('/mi-tienda/ventas')} />
-              <NavItem icon="person"        label="Perfil"        onClick={() => navigate('/profile')} />
-              <NavItem icon="settings"      label="Configuración" onClick={() => navigate('/mi-tienda/configurar')} />
-              <NavItem icon="explore"       label="Misiones"      onClick={() => navigate('/dashboard/tasks')} />
-            </nav>
-
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{
-                background: 'white',
-                border: '1px solid rgba(21,27,45,0.06)',
-                fontFamily: SANS,
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#54433e',
-              }}
-            >
-              {userName.charAt(0).toUpperCase()}
-            </div>
-          </aside>
-
-          {/* ── Content area ─────────────────────────────────────────────── */}
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {/* ── Content area ─────────────────────────────────────────────── */}
+      <div className="h-full flex flex-col min-h-0 overflow-hidden">
 
             {/* Header sticky */}
             <header
-              className="sticky top-0 z-30 px-12 pt-10 pb-6 flex justify-between items-start"
+              className="sticky top-0 z-30 px-12 pt-4 pb-3 flex justify-between items-center"
               style={{
                 background: 'rgba(247,246,242,0.68)',
                 backdropFilter: 'blur(20px)',
@@ -499,35 +458,66 @@ export const CommercialDashboard: React.FC = () => {
                 borderBottom: '1px solid rgba(255,255,255,0.4)',
               }}
             >
-              <div>
-                <h1 style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
-                  Hola, {shopName}
-                </h1>
-                <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 6 }}>
-                  {isPublished
-                    ? 'Tu tienda está publicada y lista para recibir pedidos.'
-                    : 'Tu tienda ya está creada. Completa lo necesario para publicarla.'}
-                </p>
+              <div className="flex items-center gap-4">
+                {shop?.logoUrl && (
+                  <img
+                    src={shop.logoUrl}
+                    alt={shopName}
+                    className="h-10 w-10 rounded-full object-contain"
+                    style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }}
+                  />
+                )}
+                <div>
+                  <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                    Hola, {shopName}
+                  </h1>
+                  <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
+                    {isMarketplaceLive
+                      ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
+                      : isActivated
+                        ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
+                        : 'Tu tienda está creada. Completa lo necesario y actívala.'}
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-1">
-                {isPublished ? (
+              <div className="flex items-center gap-3">
+                <NotificationCenter />
+                {isMarketplaceLive ? (
                   <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
                     <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                    Ver tienda publicada
+                    Ver tienda
                   </OrangeBtn>
+                ) : isActivated ? (
+                  <div
+                    className="flex items-center gap-2 px-4 py-2 rounded-full"
+                    style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
+                  >
+                    <span className="material-symbols-outlined text-[14px]" style={{ color: '#3b82f6' }}>hourglass_top</span>
+                    <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>En revisión TELAR</span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-end gap-1">
                     <button
-                      disabled
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-full opacity-30 cursor-not-allowed"
-                      style={{ background: '#151b2d', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}
+                      disabled={!publishReqs?.canPublish || publishLoading}
+                      onClick={() => publishReqs?.canPublish && setShowPublishDialog(true)}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors"
+                      style={{
+                        background: publishReqs?.canPublish ? '#ec6d13' : '#151b2d',
+                        color: 'white',
+                        fontFamily: SANS,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        opacity: publishReqs?.canPublish ? 1 : 0.3,
+                        cursor: publishReqs?.canPublish ? 'pointer' : 'not-allowed',
+                      }}
                     >
-                      Publicar tienda
+                      <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+                      {publishLoading ? 'Activando…' : 'Activar y enviar a curación'}
                     </button>
-                    {requiredPending.length > 0 && (
+                    {!publishReqs?.canPublish && (
                       <span style={{ ...lc(0.5), letterSpacing: '0.08em' }}>
-                        Completa {requiredPending.length} requisito{requiredPending.length !== 1 ? 's' : ''} para publicar
+                        Necesitas al menos 1 producto aprobado
                       </span>
                     )}
                   </div>
@@ -542,40 +532,45 @@ export const CommercialDashboard: React.FC = () => {
             >
               <div className="max-w-[1300px] pt-8">
 
+                <AICopilotCard />
+
                 {/* 4 Metric Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <MetricCard
                     label="Productos"
                     value={products.length}
-                    sub={isPublished
+                    sub={isMarketplaceLive
                       ? `${publishedProducts.length} pub · ${draftProducts.length} borrador`
-                      : '1 requerido para publicar'}
+                      : '1 requerido para activar'}
                     icon="inventory_2"
                   />
                   <MetricCard
                     label="Estado Tienda"
                     value={
-                      <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: isPublished ? '#166534' : '#ec6d13' }}>
-                        {isPublished ? 'Publicada' : 'En preparación'}
+                      <span style={{
+                        fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em',
+                        color: isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13',
+                      }}>
+                        {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
                       </span>
                     }
-                    sub={isPublished ? 'Activa' : 'No publicada'}
-                    icon={isPublished ? 'check_circle' : 'pending'}
+                    sub={isMarketplaceLive ? 'Activa y visible' : isActivated ? 'Pendiente curación' : 'No activada'}
+                    icon={isMarketplaceLive ? 'check_circle' : isActivated ? 'hourglass_top' : 'pending'}
                   />
                   <MetricCard
                     label="Inventario"
                     value={totalStock}
                     sub={
-                      isPublished && lowStockProducts.length > 0
+                      isActivated && lowStockProducts.length > 0
                         ? `${lowStockProducts.length} con bajo stock`
-                        : isPublished ? 'Stock al día' : 'Sin stock cargado'
+                        : isActivated ? 'Stock al día' : 'Sin stock cargado'
                     }
                     icon="warehouse"
                   />
                   <MetricCard
                     label="Ventas"
                     value={salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
-                    sub={isPublished ? 'Ingresos totales' : 'Aparecen al publicar'}
+                    sub={isMarketplaceLive ? 'Ingresos totales' : 'Aparecen al aprobarse'}
                     icon="payments"
                   />
                 </div>
@@ -630,7 +625,7 @@ export const CommercialDashboard: React.FC = () => {
                           style={{ background: 'white', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 12px rgba(21,27,45,0.08)' }}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 20, color: nextCard.accentColor }}>
-                            {isPublished ? 'trending_up' : 'add'}
+                            {isMarketplaceLive ? 'trending_up' : 'add'}
                           </span>
                         </div>
                         <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-20 blur-xl" style={{ background: nextCard.accentColor }} />
@@ -641,12 +636,16 @@ export const CommercialDashboard: React.FC = () => {
                     <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-10">
                       <div className="flex items-start gap-4 mb-8 flex-wrap">
                         <h2 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 700, color: '#151b2d', lineHeight: 1.2, flex: 1 }}>
-                          {isPublished ? 'Tu tienda está publicada' : 'Tu tienda está en preparación'}
+                          {isMarketplaceLive
+                            ? 'Tu tienda está en el marketplace'
+                            : isActivated
+                              ? 'Tu tienda está en revisión TELAR'
+                              : 'Tu tienda está en preparación'}
                         </h2>
                         <div className="flex gap-2 flex-wrap items-center">
-                          {isPublished ? (
+                          {isMarketplaceLive ? (
                             <>
-                              <Pill variant="success">Publicada</Pill>
+                              <Pill variant="success">En marketplace</Pill>
                               <Pill variant="success">Activa</Pill>
                               <button
                                 onClick={() => setShowBioModal(true)}
@@ -654,13 +653,26 @@ export const CommercialDashboard: React.FC = () => {
                                 style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 11, fontWeight: 700, boxShadow: '0 2px 8px rgba(236,109,19,0.25)' }}
                               >
                                 <span className="material-symbols-outlined text-[14px]">share</span>
-                                Crear link de BIO
+                                Link de BIO
+                              </button>
+                            </>
+                          ) : isActivated ? (
+                            <>
+                              <Pill variant="info">En revisión</Pill>
+                              <Pill variant="draft">Pendiente curación</Pill>
+                              <button
+                                onClick={() => setShowBioModal(true)}
+                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all hover:opacity-90"
+                                style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 11, fontWeight: 700, boxShadow: '0 2px 8px rgba(236,109,19,0.25)' }}
+                              >
+                                <span className="material-symbols-outlined text-[14px]">share</span>
+                                Link de BIO
                               </button>
                             </>
                           ) : (
                             <>
                               <Pill variant="warning">En preparación</Pill>
-                              <Pill variant="draft">No publicada</Pill>
+                              <Pill variant="draft">No activada</Pill>
                             </>
                           )}
                         </div>
@@ -683,7 +695,7 @@ export const CommercialDashboard: React.FC = () => {
                         <div className="relative h-[3px] rounded-full" style={{ background: 'rgba(21,27,45,0.06)' }}>
                           <div
                             className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000"
-                            style={{ width: `${progressPct}%`, background: isPublished ? '#166534' : '#ec6d13' }}
+                            style={{ width: `${progressPct}%`, background: isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13' }}
                           />
                         </div>
                       </div>
@@ -693,14 +705,14 @@ export const CommercialDashboard: React.FC = () => {
                         {checklistItems.map((item) => (
                           <button
                             key={item.label}
-                            onClick={() => !item.done && navigate(item.route)}
-                            className={cn('flex items-center gap-3 text-left transition-opacity', !item.done && 'hover:opacity-70')}
+                            onClick={() => navigate(item.route)}
+                            className="flex items-center gap-3 text-left transition-opacity hover:opacity-70 group"
                           >
                             <span
                               className="material-symbols-outlined shrink-0"
                               style={{
                                 fontSize: 20,
-                                color: item.done ? (isPublished ? '#166534' : '#ec6d13') : 'rgba(21,27,45,0.15)',
+                                color: item.done ? (isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13') : 'rgba(21,27,45,0.15)',
                                 fontVariationSettings: item.done ? "'FILL' 1" : "'FILL' 0",
                               }}
                             >
@@ -708,6 +720,11 @@ export const CommercialDashboard: React.FC = () => {
                             </span>
                             <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: item.done ? '#151b2d' : 'rgba(21,27,45,0.35)' }}>
                               {item.label}
+                              {item.done && (
+                                <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: '#ec6d13', marginLeft: 8, opacity: 0 }} className="group-hover:opacity-100 transition-opacity">
+                                  Editar
+                                </span>
+                              )}
                               {!item.done && item.required && (
                                 <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ef4444', marginLeft: 6 }}>
                                   Obligatorio
@@ -725,7 +742,7 @@ export const CommercialDashboard: React.FC = () => {
 
                       {/* Footer actions */}
                       <div className="flex gap-3 pt-6 flex-wrap" style={{ borderTop: '1px solid rgba(21,27,45,0.04)', marginTop: 24 }}>
-                        {isPublished ? (
+                        {isMarketplaceLive ? (
                           <>
                             <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
                               <span className="material-symbols-outlined text-[16px]">storefront</span>
@@ -735,17 +752,36 @@ export const CommercialDashboard: React.FC = () => {
                               Editar configuración
                             </OutlineBtn>
                           </>
+                        ) : isActivated ? (
+                          /* Pending moderation — informational, no publish action available */
+                          <div className="flex items-center gap-3 w-full">
+                            <div
+                              className="flex items-center gap-2 px-4 py-2.5 rounded-full"
+                              style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
+                            >
+                              <span className="material-symbols-outlined text-[14px]" style={{ color: '#3b82f6' }}>hourglass_top</span>
+                              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>En revisión</span>
+                            </div>
+                            <OutlineBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
+                              Ver mi tienda
+                            </OutlineBtn>
+                          </div>
                         ) : (
                           <>
                             <button
-                              onClick={() => requiredPending[0] && navigate(requiredPending[0].route)}
+                              onClick={() => requiredPending.length === 0
+                                ? setShowPublishDialog(true)
+                                : navigate(requiredPending[0].route)
+                              }
                               className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors"
                               onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#ec6d13')}
                               onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#151b2d')}
                               style={{ background: '#151b2d', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}
                             >
-                              <span className="material-symbols-outlined text-[16px]">east</span>
-                              Continuar configuración
+                              <span className="material-symbols-outlined text-[16px]">
+                                {requiredPending.length === 0 ? 'rocket_launch' : 'east'}
+                              </span>
+                              {requiredPending.length === 0 ? 'Activar y enviar a curación' : 'Continuar configuración'}
                             </button>
                             <OutlineBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
                               Ver preview
@@ -762,7 +798,7 @@ export const CommercialDashboard: React.FC = () => {
                           Mis Productos
                         </h3>
                         <div className="flex gap-3 items-center">
-                          {isPublished && (
+                          {isActivated && (
                             <button
                               onClick={() => navigate('/inventario')}
                               className="hover:underline"
@@ -886,7 +922,7 @@ export const CommercialDashboard: React.FC = () => {
                   <aside className="lg:col-span-4 space-y-6">
 
                     {/* Faltantes / Alertas */}
-                    {!isPublished ? (
+                    {!isActivated ? (
                       <div style={{ ...glassPrimary, borderRadius: 32 }} className="overflow-hidden">
                         {/* Illustration header */}
                         <div
@@ -1043,9 +1079,11 @@ export const CommercialDashboard: React.FC = () => {
                       <h3 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d', marginBottom: 16 }}>
                         Mis ventas
                       </h3>
-                      {!isPublished && (
+                      {!isMarketplaceLive && (
                         <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.6)', lineHeight: 1.7, marginBottom: 16 }}>
-                          Las ventas aparecerán cuando publiques y recibas pedidos.
+                          {isActivated
+                            ? 'Las ventas aparecerán cuando tu tienda sea aprobada en el marketplace.'
+                            : 'Las ventas aparecerán cuando actives tu tienda y sea aprobada en el marketplace.'}
                         </p>
                       )}
                       <div className="mb-6">
@@ -1109,8 +1147,8 @@ export const CommercialDashboard: React.FC = () => {
                         ))}
                         <div className="flex justify-between items-center">
                           <span style={lc(0.4)}>Estado</span>
-                          <Pill variant={isPublished ? 'success' : 'warning'}>
-                            {isPublished ? 'Publicada' : 'En preparación'}
+                          <Pill variant={isMarketplaceLive ? 'success' : isActivated ? 'info' : 'warning'}>
+                            {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
                           </Pill>
                         </div>
                       </div>
@@ -1159,8 +1197,6 @@ export const CommercialDashboard: React.FC = () => {
                 </div>
               </div>
             </main>
-          </div>
-        </div>
       </div>
 
       {/* ForceCompleteProfileModal */}
@@ -1174,7 +1210,58 @@ export const CommercialDashboard: React.FC = () => {
         }}
       />
 
-      {/* BIO Link Modal */}
+      {/* Publish Confirmation Dialog */}
+      {showPublishDialog && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: 'rgba(21,27,45,0.45)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => setShowPublishDialog(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl p-8"
+            style={{ background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.65)', boxShadow: '0 20px 60px rgba(21,27,45,0.15)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(236,109,19,0.1)' }}>
+              <span className="material-symbols-outlined text-[28px]" style={{ color: '#ec6d13' }}>rocket_launch</span>
+            </div>
+            <h2 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 8 }}>
+              Activar tu tienda
+            </h2>
+            <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.6, marginBottom: 8 }}>
+              Tu tienda quedará activa en tu URL personal{shopSlug ? ` (telar.co/tienda/${shopSlug})` : ''}.
+            </p>
+            <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.6, marginBottom: 24 }}>
+              El equipo editorial de TELAR revisará tu información para habilitarla en el marketplace central. Te avisaremos cuando sea aprobada.
+              {!publishReqs?.hasBankData && (
+                <span style={{ display: 'block', marginTop: 12, color: '#ec6d13' }}>
+                  ⚠️ Aún no tienes datos bancarios. Configúralos para poder recibir pagos cuando lleguen los pedidos.
+                </span>
+              )}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmPublish}
+                disabled={publishLoading}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full transition-opacity hover:opacity-90"
+                style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 14, fontWeight: 700, opacity: publishLoading ? 0.6 : 1 }}
+              >
+                <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+                {publishLoading ? 'Activando…' : 'Activar tienda'}
+              </button>
+              <button
+                onClick={() => setShowPublishDialog(false)}
+                className="flex-1 py-3 rounded-full transition-colors hover:bg-black/5"
+                style={{ border: '1px solid rgba(21,27,45,0.1)', color: '#151b2d', fontFamily: SANS, fontSize: 14, fontWeight: 700 }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BIO Link Config Wizard */}
       {showBioModal && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -1182,110 +1269,179 @@ export const CommercialDashboard: React.FC = () => {
           onClick={() => setShowBioModal(false)}
         >
           <div
-            className="w-full rounded-3xl overflow-hidden"
-            style={{ ...glassPrimary, maxWidth: 420, boxShadow: '0 32px 64px rgba(21,27,45,0.2)', borderRadius: 32 }}
+            className="w-full overflow-hidden"
+            style={{ ...glassPrimary, maxWidth: 460, boxShadow: '0 32px 64px rgba(21,27,45,0.2)', borderRadius: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Preview mini */}
-            <div
-              className="px-8 pt-8 pb-6 flex flex-col items-center gap-3"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.4)', background: 'rgba(253,250,246,0.6)' }}
-            >
-              <span style={{ fontFamily: SERIF, fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: 'rgba(84,67,62,0.5)', textTransform: 'uppercase' }}>
-                TELAR
-              </span>
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(236,109,19,0.1)', border: '2px solid #ec6d13' }}
+            {/* Header */}
+            <div className="px-8 pt-7 pb-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(21,27,45,0.06)' }}>
+              <div>
+                <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', color: 'rgba(84,67,62,0.5)', textTransform: 'uppercase' }}>TELAR</p>
+                <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginTop: 2 }}>Tu link de BIO</h3>
+              </div>
+              <button
+                onClick={() => setShowBioModal(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-all"
               >
-                <span style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#ec6d13' }}>
-                  {shopName?.charAt(0)?.toUpperCase() || 'T'}
-                </span>
-              </div>
-              <div className="text-center">
-                <p style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d' }}>{shopName}</p>
-                <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.6)', marginTop: 4 }}>
-                  Tu landing de BIO lista para compartir
-                </p>
-              </div>
-              <div className="w-full space-y-2 mt-2">
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'rgba(84,67,62,0.4)' }}>close</span>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6 max-h-[75vh] overflow-y-auto">
+              {/* URL + Copy */}
+              <div className="space-y-2">
+                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(84,67,62,0.5)', textTransform: 'uppercase' }}>Tu URL</span>
                 <div
-                  className="px-4 py-3 rounded-xl flex items-center gap-3"
-                  style={{ ...glassPrimary }}
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                  style={{ background: 'rgba(21,27,45,0.03)', border: '1px solid rgba(21,27,45,0.06)' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ec6d13' }}>storefront</span>
-                  <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Mi tienda</span>
+                  <span className="flex-1 truncate" style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.6)' }}>
+                    {bioUrl}
+                  </span>
+                  <button
+                    onClick={handleCopyBioLink}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all hover:opacity-90"
+                    style={{
+                      background: bioCopied ? 'rgba(22,101,52,0.1)' : '#ec6d13',
+                      color: bioCopied ? '#166534' : 'white',
+                      fontFamily: SANS,
+                      fontSize: 11,
+                      fontWeight: 800,
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[13px]">{bioCopied ? 'check' : 'content_copy'}</span>
+                    {bioCopied ? '¡Copiado!' : 'Copiar'}
+                  </button>
                 </div>
-                <div
-                  className="px-4 py-3 rounded-xl flex items-center gap-3"
-                  style={{ ...glassSecondary }}
+              </div>
+
+              {/* Toggles */}
+              <div className="space-y-2">
+                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(84,67,62,0.5)', textTransform: 'uppercase' }}>Qué aparece en tu BIO</span>
+                <div className="space-y-2">
+                  {/* Shop link toggle */}
+                  <div
+                    className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer"
+                    style={{ ...glassSecondary }}
+                    onClick={() => setBioConfig(c => ({ ...c, showShopLink: !c.showShopLink }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: bioConfig.showShopLink ? '#ec6d13' : 'rgba(84,67,62,0.3)' }}>storefront</span>
+                      <div>
+                        <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>Mi tienda</p>
+                        <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>/tienda/{shopSlug}</p>
+                      </div>
+                    </div>
+                    <div
+                      className="w-10 h-6 rounded-full transition-all relative"
+                      style={{ background: bioConfig.showShopLink ? '#ec6d13' : 'rgba(21,27,45,0.12)' }}
+                    >
+                      <div
+                        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all"
+                        style={{ left: bioConfig.showShopLink ? 22 : 2 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Profile link toggle */}
+                  <div
+                    className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer"
+                    style={{ ...glassSecondary }}
+                    onClick={() => setBioConfig(c => ({ ...c, showProfileLink: !c.showProfileLink }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: bioConfig.showProfileLink ? '#ec6d13' : 'rgba(84,67,62,0.3)' }}>person</span>
+                      <div>
+                        <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>Mi perfil artesanal</p>
+                        <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>telar.co/artesano/{shopSlug}</p>
+                      </div>
+                    </div>
+                    <div
+                      className="w-10 h-6 rounded-full transition-all relative"
+                      style={{ background: bioConfig.showProfileLink ? '#ec6d13' : 'rgba(21,27,45,0.12)' }}
+                    >
+                      <div
+                        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all"
+                        style={{ left: bioConfig.showProfileLink ? 22 : 2 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Featured product */}
+              <div className="space-y-2">
+                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(84,67,62,0.5)', textTransform: 'uppercase' }}>Creación destacada</span>
+                <select
+                  value={bioConfig.featuredProductId ?? ''}
+                  onChange={(e) => setBioConfig(c => ({ ...c, featuredProductId: e.target.value || null }))}
+                  className="w-full px-4 py-3 rounded-xl appearance-none"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: '#151b2d',
+                    background: 'rgba(255,255,255,0.82)',
+                    border: '1px solid rgba(21,27,45,0.1)',
+                    outline: 'none',
+                  }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'rgba(84,67,62,0.5)' }}>person</span>
-                  <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: 'rgba(84,67,62,0.6)' }}>Mi perfil artesanal</span>
-                </div>
+                  <option value="">Última creación (automático)</option>
+                  {publishedProducts.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                {bioConfig.featuredProductId && (() => {
+                  const featured = publishedProducts.find((p: any) => p.id === bioConfig.featuredProductId);
+                  if (!featured) return null;
+                  const img = getImage(featured);
+                  return (
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ ...glassSecondary }}>
+                      {img ? (
+                        <img src={img} alt={featured.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(236,109,19,0.1)' }}>
+                          <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>inventory_2</span>
+                        </div>
+                      )}
+                      <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>{featured.name}</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
-            <div className="p-8 space-y-4">
-              <div className="flex justify-between items-center">
-                <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>Tu link de BIO</span>
-                <button
-                  onClick={() => setShowBioModal(false)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 transition-all"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'rgba(84,67,62,0.4)' }}>close</span>
-                </button>
-              </div>
-              <div
-                className="flex items-center gap-2 px-4 py-3 rounded-xl"
-                style={{ background: 'rgba(21,27,45,0.03)', border: '1px solid rgba(21,27,45,0.06)' }}
+            {/* Footer */}
+            <div className="px-8 pb-7 pt-2 flex gap-3" style={{ borderTop: '1px solid rgba(21,27,45,0.06)' }}>
+              <button
+                onClick={handleSaveBioConfig}
+                disabled={bioSaving}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full transition-all hover:opacity-90"
+                style={{
+                  background: '#ec6d13',
+                  color: 'white',
+                  fontFamily: SANS,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(236,109,19,0.3)',
+                  opacity: bioSaving ? 0.7 : 1,
+                }}
               >
-                <span className="flex-1 truncate" style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.6)' }}>
-                  {bioUrl}
-                </span>
-                <button
-                  onClick={handleCopyBioLink}
-                  className="shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full transition-all hover:opacity-90"
-                  style={{
-                    background: bioCopied ? 'rgba(22,101,52,0.1)' : '#ec6d13',
-                    color: bioCopied ? '#166534' : 'white',
-                    fontFamily: SANS,
-                    fontSize: 11,
-                    fontWeight: 800,
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  <span className="material-symbols-outlined text-[14px]">{bioCopied ? 'check' : 'content_copy'}</span>
-                  {bioCopied ? '¡Copiado!' : 'Copiar'}
-                </button>
-              </div>
-              <div className="flex gap-3">
-                <a
-                  href={bioUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full hover:opacity-90 transition-all"
-                  style={{
-                    background: '#ec6d13',
-                    color: 'white',
-                    fontFamily: SANS,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 12px rgba(236,109,19,0.3)',
-                  }}
-                >
-                  <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                  Ver mi BIO
-                </a>
-                <button
-                  onClick={() => setShowBioModal(false)}
-                  className="flex-1 py-2.5 rounded-full hover:bg-white/60 transition-all"
-                  style={{ border: '1px solid rgba(21,27,45,0.1)', color: '#151b2d', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}
-                >
-                  Cerrar
-                </button>
-              </div>
+                {bioSaving
+                  ? <><span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Guardando…</>
+                  : <><span className="material-symbols-outlined text-[16px]">save</span> Guardar configuración</>
+                }
+              </button>
+              <a
+                href={bioUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-4 py-3 rounded-full transition-all hover:bg-white/60"
+                style={{ border: '1px solid rgba(21,27,45,0.1)', color: '#151b2d', fontFamily: SANS, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}
+              >
+                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                Ver BIO
+              </a>
             </div>
           </div>
         </div>

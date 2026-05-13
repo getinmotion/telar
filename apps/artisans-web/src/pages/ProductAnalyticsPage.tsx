@@ -134,12 +134,12 @@ const ProductAnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {isModerationSubdomain && <ModerationHeader />}
 
       <div className={isModerationSubdomain ? 'pt-16' : ''}>
         {/* Title bar */}
-        <div className="border-b bg-card">
+        <div className="border-b border-white/50 glass-header">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

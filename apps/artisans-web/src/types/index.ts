@@ -28,7 +28,6 @@ export { ProductStatusEnum as ProductStatus } from '@telar/shared-types/products
 export type {
   StoreResponse,
   Store,
-  StoreArtisanalProfile,
   StoreContacts,
   StoreAward,
   StoreBadge,

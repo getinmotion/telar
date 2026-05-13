@@ -13,6 +13,8 @@ export interface WizardFooterProps {
   onSubmit?: () => void;
   isSubmitting?: boolean;
   isSavingDraft?: boolean;
+  submitLabel?: string;
+  leftOffset?: number;
 }
 
 export const WizardFooter: React.FC<WizardFooterProps> = ({
@@ -28,6 +30,8 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   onSubmit,
   isSubmitting,
   isSavingDraft,
+  submitLabel,
+  leftOffset,
 }) => {
   const progress = Math.round((step / totalSteps) * 100);
 
@@ -73,7 +77,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
 
   if (isFinalStep) {
     return (
-      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]">
+      <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
         <ProgressBar />
         <div className="flex items-center justify-center gap-4 px-6 py-3">
           <BackButton />
@@ -91,7 +95,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
             disabled={isSubmitting || isSavingDraft}
             className="flex items-center gap-2 bg-[#ec6d13] text-white px-6 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Enviando...' : 'Enviar a curaduría'}
+            {isSubmitting ? 'Guardando...' : (submitLabel ?? 'Enviar a curaduría')}
           </button>
         </div>
       </footer>
@@ -99,7 +103,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   }
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]">
+    <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
       <ProgressBar />
       <div className="flex items-center justify-center gap-4 px-6 py-3">
         <BackButton />

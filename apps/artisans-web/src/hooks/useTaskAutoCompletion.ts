@@ -212,12 +212,6 @@ export const useTaskAutoCompletion = () => {
       EventBus.subscribe('shop.customized', () => {
         console.log('🎨 Shop customized');
         completeTask('customize_shop');
-      }),
-
-      // Story created (about section)
-      EventBus.subscribe('shop.story.created', () => {
-        console.log('📖 Shop story created');
-        completeTask('create_story');
       })
     ];
 

@@ -97,7 +97,7 @@ export const NotificationsPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <NotificationsHeader 
         unreadCount={unreadCount} 
         onMarkAllAsRead={markAllAsRead}

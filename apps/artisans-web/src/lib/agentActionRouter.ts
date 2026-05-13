@@ -39,25 +39,25 @@ const SHOP_CONFIG_ACTIONS: Record<string, TaskAction> = {
   // About/Nosotros missions
   'sección nosotros': {
     type: 'wizard',
-    destination: '/dashboard/shop-about-wizard',
+    destination: '/dashboard/artisan-profile-wizard',
     label: 'Configurar Nosotros',
     icon: 'BookOpen'
   },
   'historia de marca': {
     type: 'wizard',
-    destination: '/dashboard/shop-about-wizard',
+    destination: '/dashboard/artisan-profile-wizard',
     label: 'Contar Historia',
     icon: 'BookOpen'
   },
   'sobre nosotros': {
     type: 'wizard',
-    destination: '/dashboard/shop-about-wizard',
+    destination: '/dashboard/artisan-profile-wizard',
     label: 'Configurar Nosotros',
     icon: 'BookOpen'
   },
   'misión y visión': {
     type: 'wizard',
-    destination: '/dashboard/shop-about-wizard',
+    destination: '/dashboard/artisan-profile-wizard',
     label: 'Definir Misión y Visión',
     icon: 'BookOpen'
   },

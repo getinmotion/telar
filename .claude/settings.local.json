@@ -17,7 +17,13 @@
       "Bash(git -C /Users/mad/telar add apps/artisans-web/src/components/dashboard/CommercialDashboard.tsx)",
       "Bash(git -C /Users/mad/telar status --short)",
       "Bash(npx --prefix apps/artisans-web tsc --noEmit)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/territorios)"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "mcp__mcp-registry__list_connectors",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(ls \"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/2bff651c-243d-43a8-af15-3449918e3ac0/8e7093cb-a520-41c1-976a-06e88038596b/skills/\")",
+      "Bash(mkdir -p \"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/2bff651c-243d-43a8-af15-3449918e3ac0/8e7093cb-a520-41c1-976a-06e88038596b/skills/telar-ui-consistency\")",
+      "Bash(grep -n \"^      </div>$\\\\|^        </div>$\\\\|^      </div>\" apps/artisans-web/src/components/dashboard/CommercialDashboard.tsx)",
+      "Bash(grep -n \"^          </div>$\\\\|^        </div>$\\\\|^      </div>$\" apps/artisans-web/src/components/dashboard/CommercialDashboard.tsx)"
     ]
   }
 }

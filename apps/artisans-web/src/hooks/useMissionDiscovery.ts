@@ -49,12 +49,11 @@ export const useMissionDiscovery = () => {
       // 2. Load shop details from database
       const { data: shopData } = await supabase
         .from('artisan_shops')
-        .select('hero_config, story, about_content')
+        .select('hero_config')
         .eq('user_id', user.id)
         .maybeSingle();
 
       const hasHeroSlider = !!(shopData?.hero_config as any)?.slides?.length;
-      const hasStory = !!(shopData?.story || (shopData?.about_content as any)?.story);
 
       // 3. Analyze user state
       const userState = {
@@ -63,7 +62,6 @@ export const useMissionDiscovery = () => {
         productCount: masterState.inventario.productos.length,
         hasRUT: !!masterState.perfil.nit && !masterState.perfil.nit_pendiente,
         hasHeroSlider,
-        hasStory
       };
 
       // 4. Find available Fixed Tasks
@@ -128,19 +126,6 @@ export const useMissionDiscovery = () => {
           type: 'dynamic',
           estimatedMinutes: 15,
           reason: 'Tienes productos excelentes que merecen destacarse en tu página principal'
-        });
-      }
-
-      if (userState.productCount >= 5 && userState.hasShop && !userState.hasStory) {
-        allSuggestions.push({
-          id: 'dynamic_story',
-          title: 'Diferénciate con tu historia',
-          description: 'Los clientes compran historias, no solo productos',
-          priority: 'high',
-          category: 'brand',
-          type: 'dynamic',
-          estimatedMinutes: 20,
-          reason: 'Tu catálogo está creciendo. Ahora diferénciate contando tu historia'
         });
       }
 

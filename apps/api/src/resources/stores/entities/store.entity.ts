@@ -8,7 +8,6 @@ import {
   OneToOne,
   OneToMany,
 } from 'typeorm';
-import { StoreArtisanalProfile } from './store-artisanal-profile.entity';
 import { StoreContacts } from './store-contacts.entity';
 import { StoreAward } from './store-award.entity';
 import { StoreBadge } from './store-badge.entity';
@@ -44,11 +43,6 @@ export class Store {
   deletedAt: Date;
 
   // Relaciones
-  @OneToOne(() => StoreArtisanalProfile, (profile) => profile.store, {
-    cascade: true,
-  })
-  artisanalProfile: StoreArtisanalProfile;
-
   @OneToOne(() => StoreContacts, (contacts) => contacts.store, {
     cascade: true,
   })

@@ -1,132 +1,101 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Camera, Users, Heart, Sparkles } from 'lucide-react';
-import { Label } from '@/components/ui/label';
 import { ImageUploader } from '@/components/shop/ai-upload/ImageUploader';
 import { UploadFolder } from '@/services/fileUpload.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 
-interface Step6HumanGalleryProps {
+interface Props {
   data: ArtisanProfileData;
-  onChange: (data: Partial<ArtisanProfileData>) => void;
+  onChange: (updates: Partial<ArtisanProfileData>) => void;
 }
 
-export const Step6HumanGallery: React.FC<Step6HumanGalleryProps> = ({ data, onChange }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Storytelling Header */}
-      <div className="text-center space-y-4">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center mx-auto shadow-lg"
-        >
-          <Camera className="w-10 h-10 text-secondary-foreground" />
-        </motion.div>
-        <div>
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">
-            El lado humano
-          </h2>
-          <p className="text-lg text-muted-foreground mt-2 max-w-md mx-auto">
-            Las fotos más auténticas son las que más conectan.
-          </p>
-        </div>
-      </div>
+type BadgeVariant = 'required' | 'recommended' | 'optional';
 
-      <div className="space-y-8 max-w-xl mx-auto">
-        {/* Working Photos */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-primary/5 to-transparent rounded-2xl p-6 border border-primary/10"
-        >
-          <Label className="flex items-center gap-2 text-base font-semibold mb-2">
-            <Camera className="w-5 h-5 text-primary" />
-            Tú trabajando
-            <span className="text-destructive">*</span>
-          </Label>
-          <p className="text-sm text-muted-foreground mb-4">
-            Imágenes que muestren tu proceso creativo, tus manos en acción
-          </p>
-          <ImageUploader
+const BADGE: Record<BadgeVariant, { cls: string; label: string }> = {
+  required:    { cls: 'bg-[#ef4444]/8 text-[#ef4444]',    label: 'OBLIGATORIO' },
+  recommended: { cls: 'bg-[#ec6d13]/10 text-[#ec6d13]',   label: 'RECOMENDADO' },
+  optional:    { cls: 'bg-[#54433e]/6 text-[#54433e]/50', label: 'OPCIONAL' },
+};
+
+interface GalleryCardProps {
+  title: string;
+  description: string;
+  badge: BadgeVariant;
+  value: string[];
+  onChange: (urls: string[]) => void;
+  maxFiles?: number;
+}
+
+const GalleryCard: React.FC<GalleryCardProps> = ({ title, description, badge, value, onChange, maxFiles = 1 }) => {
+  const b = BADGE[badge];
+  return (
+    <div className="flex flex-col gap-3 p-4 rounded-lg border border-[#e2d5cf]/20 h-full" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+      <div className="flex items-start justify-between">
+        <p className="font-['Manrope'] text-[13px] font-[700] text-[#151b2d]">{title}</p>
+        <span className={`font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest px-2 py-0.5 rounded ${b.cls}`}>{b.label}</span>
+      </div>
+      <ImageUploader
+        value={value}
+        onChange={onChange}
+        maxFiles={maxFiles}
+        uploadFolder={UploadFolder.PROFILES}
+        aspectRatio="square"
+        placeholder="Subir"
+      />
+      <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 leading-snug">{description}</p>
+    </div>
+  );
+};
+
+export const Step6HumanGallery: React.FC<Props> = ({ data, onChange }) => {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="font-['Manrope'] text-[13px] text-[#54433e]/60 leading-relaxed">
+        Suma imágenes que ayuden a contar quién sostiene el oficio: tus manos, tus maestros, tu comunidad y tu entorno.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Tú trabajando — ocupa 2 filas */}
+        <div className="row-span-2">
+          <GalleryCard
+            title="Tú trabajando"
+            description="Una imagen tuya en acción, creando, preparando materiales o trabajando una pieza."
+            badge="required"
             value={data.workingPhotos}
             onChange={(urls) => onChange({ workingPhotos: urls })}
-            maxFiles={6}
-            uploadFolder={UploadFolder.PROFILES}
-            placeholder="Creando, diseñando, terminando piezas..."
+            maxFiles={3}
           />
-          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            Las fotos en acción generan 3x más conexión emocional
-          </p>
-        </motion.div>
+        </div>
 
-        {/* Community Photos */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-accent/5 to-transparent rounded-2xl p-6 border border-accent/10"
-        >
-          <Label className="flex items-center gap-2 text-base font-semibold mb-2">
-            <Users className="w-5 h-5 text-accent" />
-            Tu comunidad
-            <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
-          </Label>
-          <p className="text-sm text-muted-foreground mb-4">
-            Tu conexión con el lugar donde creas
-          </p>
-          <ImageUploader
+        {/* Maestros */}
+        <GalleryCard
+          title="Tus maestros o referentes"
+          description="Personas que te enseñaron o inspiraron."
+          badge="recommended"
+          value={data.maestrosPhotos}
+          onChange={(urls) => onChange({ maestrosPhotos: urls })}
+          maxFiles={2}
+        />
+
+        {/* Comunidad y entorno */}
+        <div className="grid grid-cols-2 gap-4">
+          <GalleryCard
+            title="Comunidad o familia"
+            description="Quienes comparten o heredan el oficio."
+            badge="optional"
             value={data.communityPhotos}
             onChange={(urls) => onChange({ communityPhotos: urls })}
-            maxFiles={4}
-            uploadFolder={UploadFolder.PROFILES}
-            placeholder="Tu comunidad, paisajes, eventos locales..."
+            maxFiles={2}
           />
-        </motion.div>
-
-        {/* Family/Mentor Photos */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-to-br from-destructive/5 to-transparent rounded-2xl p-6 border border-destructive/10"
-        >
-          <Label className="flex items-center gap-2 text-base font-semibold mb-2">
-            <Heart className="w-5 h-5 text-destructive" />
-            Tus maestros y familia
-            <span className="text-xs text-muted-foreground font-normal ml-2">(opcional)</span>
-          </Label>
-          <p className="text-sm text-muted-foreground mb-4">
-            Honra a quienes te transmitieron el oficio
-          </p>
-          <ImageUploader
-            value={data.familyPhotos}
-            onChange={(urls) => onChange({ familyPhotos: urls })}
-            maxFiles={4}
-            uploadFolder={UploadFolder.PROFILES}
-            placeholder="Con tu maestro, familia, comunidad artesanal..."
+          <GalleryCard
+            title="Entorno cultural"
+            description="El territorio que da vida a tu trabajo."
+            badge="optional"
+            value={data.environmentPhotos}
+            onChange={(urls) => onChange({ environmentPhotos: urls })}
+            maxFiles={2}
           />
-        </motion.div>
+        </div>
       </div>
-
-      {/* Tip */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-secondary/10 via-primary/5 to-accent/10 rounded-xl p-4 text-center max-w-xl mx-auto"
-      >
-        <p className="text-sm text-muted-foreground">
-          💡 <span className="font-medium text-foreground">Consejo:</span> Las fotos naturales y espontáneas conectan más que las poses perfectas
-        </p>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 };

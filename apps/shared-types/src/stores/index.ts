@@ -6,7 +6,6 @@
 // Core types
 export type {
   Store,
-  StoreArtisanalProfile,
   StoreContacts,
   StoreAward,
   StoreBadge,

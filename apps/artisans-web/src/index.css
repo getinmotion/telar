@@ -29,8 +29,8 @@
     --accent: 17 75% 52%; /* #d15a2e Coral darkened for contrast */
     --accent-foreground: 0 0% 100%; /* White text */
     
-    /* Background & Surface Colors */
-    --background: 40 50% 98%; /* #fcf7ec Cream background */
+    /* Background & Surface Colors — TELAR Design System */
+    --background: 36 33% 97%; /* #f9f7f2 TELAR cream base */
     --foreground: 220 50% 15%; /* #142239 Navy for text */
     
     /* Card & Surface Colors */
@@ -206,8 +206,18 @@
     @apply border-border;
   }
 
+  html {
+    background-color: #f9f7f2;
+    background-image:
+      radial-gradient(circle at top left, rgba(223, 244, 232, 0.95), transparent 38%),
+      radial-gradient(circle at bottom right, rgba(238, 241, 245, 0.95), transparent 42%),
+      radial-gradient(circle at top right, rgba(255, 244, 223, 0.75), transparent 34%);
+    background-attachment: fixed;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: transparent;
   }
 }
 
@@ -360,4 +370,45 @@
   .btn-capsule {
     @apply rounded-full px-6 py-3 font-semibold;
   }
+
+  /* ─── TELAR Glass System ─────────────────────────── */
+  .telar-page {
+    background-color: #f9f7f2;
+    background-image:
+      radial-gradient(circle at top left, rgba(223, 244, 232, 0.95), transparent 38%),
+      radial-gradient(circle at bottom right, rgba(238, 241, 245, 0.95), transparent 42%),
+      radial-gradient(circle at top right, rgba(255, 244, 223, 0.75), transparent 34%);
+    background-attachment: fixed;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 4px 20px rgba(21, 27, 45, 0.03);
+  }
+
+  .glass-card-sm {
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 2px 15px rgba(21, 27, 45, 0.02);
+  }
+
+  .glass-header {
+    background: rgba(249, 247, 242, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  /* Custom scrollbar — TELAR */
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(21, 27, 45, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 }

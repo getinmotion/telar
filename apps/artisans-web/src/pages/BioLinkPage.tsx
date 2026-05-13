@@ -24,12 +24,15 @@ const BioLinkPage: React.FC = () => {
     getArtisanShopBySlug(shopSlug)
       .then(async (data) => {
         setShop(data);
-        // Cargar el último producto publicado
         if (data?.id) {
           try {
             const products = await getProductsNewByStoreId(data.id);
             const published = products.filter((p: any) => p.status === 'published' || p.active);
-            if (published.length > 0) setLatestProduct(published[0]);
+            const config = { featuredProductId: null, ...data?.bioConfig };
+            const featured = config.featuredProductId
+              ? published.find((p: any) => p.id === config.featuredProductId) ?? published[0]
+              : published[0];
+            if (featured) setLatestProduct(featured);
           } catch {
             // Sin productos, no bloquear
           }
@@ -56,6 +59,8 @@ const BioLinkPage: React.FC = () => {
   const shopName = shop?.shopName || shop?.shop_name;
   const aboutContent = shop?.aboutContent || shop?.about_content;
   const artisanProfile = shop?.artisanProfile || shop?.artisan_profile;
+
+  const bioConfig = { showShopLink: true, showProfileLink: true, featuredProductId: null as string | null, ...shop?.bioConfig };
 
   const description =
     brandClaim ||
@@ -212,53 +217,60 @@ const BioLinkPage: React.FC = () => {
           <section className="w-full px-6 flex flex-col gap-3 mb-4">
 
             {/* Link principal: Mi tienda */}
-            <Link
-              to={`/tienda/${shopSlug}`}
-              className="bio-link-btn bio-glass-card group relative flex items-center justify-between p-6 rounded-2xl shadow-sm hover:shadow-[#ec6d13]/20"
-            >
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-[#ec6d13]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  storefront
+            {bioConfig.showShopLink !== false && (
+              <Link
+                to={`/tienda/${shopSlug}`}
+                className="bio-link-btn bio-glass-card group relative flex items-center justify-between p-6 rounded-2xl shadow-sm hover:shadow-[#ec6d13]/20"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-[#ec6d13]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    storefront
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'Manrope, sans-serif',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: '#151b2d',
+                    }}
+                  >
+                    Mi tienda
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-[#ec6d13] group-hover:translate-x-1 transition-transform">
+                  arrow_forward
                 </span>
-                <span
-                  style={{
-                    fontFamily: 'Manrope, sans-serif',
-                    fontSize: 18,
-                    fontWeight: 700,
-                    color: '#151b2d',
-                  }}
-                >
-                  Mi tienda
-                </span>
-              </div>
-              <span className="material-symbols-outlined text-[#ec6d13] group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
-              <div className="absolute inset-0 bg-[#ec6d13]/5 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity" />
-            </Link>
+                <div className="absolute inset-0 bg-[#ec6d13]/5 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity" />
+              </Link>
+            )}
 
-            {/* Link secundario: Mi perfil artesanal */}
-            <Link
-              to={`/tienda/${shopSlug}/perfil-artesanal`}
-              className="bio-link-btn bio-glass-secondary group flex items-center justify-between p-6 rounded-2xl hover:bg-white/82 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-[#54433e]">person</span>
-                <span
-                  style={{
-                    fontFamily: 'Manrope, sans-serif',
-                    fontSize: 18,
-                    fontWeight: 700,
-                    color: '#54433e',
-                  }}
-                >
-                  Mi perfil artesanal
+            {/* Link secundario: Mi perfil artesanal (marketplace) */}
+            {bioConfig.showProfileLink !== false && (
+              <a
+                href={`https://telar.co/artesano/${shopSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bio-link-btn bio-glass-secondary group flex items-center justify-between p-6 rounded-2xl hover:bg-white/82 transition-colors"
+                style={{ textDecoration: 'none' }}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-[#54433e]">person</span>
+                  <span
+                    style={{
+                      fontFamily: 'Manrope, sans-serif',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: '#54433e',
+                    }}
+                  >
+                    Mi perfil artesanal
+                  </span>
+                </div>
+                <span className="material-symbols-outlined text-[#54433e] group-hover:translate-x-1 transition-transform">
+                  chevron_right
                 </span>
-              </div>
-              <span className="material-symbols-outlined text-[#54433e] group-hover:translate-x-1 transition-transform">
-                chevron_right
-              </span>
-            </Link>
+              </a>
+            )}
 
             {/* Último producto */}
             {latestProduct && (

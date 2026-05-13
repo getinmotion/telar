@@ -38,7 +38,7 @@ export const ProfileHeaderCompact: React.FC<ProfileHeaderCompactProps> = ({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
+    <div className="glass-card rounded-2xl p-4 sm:p-6">
       <div className="flex items-center sm:items-start gap-3 sm:gap-6">
         {/* Avatar Section - Smaller on mobile */}
         <div className="relative group shrink-0">

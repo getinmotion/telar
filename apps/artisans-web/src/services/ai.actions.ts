@@ -111,7 +111,6 @@ export interface GenerateHeroImageResponse {
 export type ContentContext =
   | 'product_name'
   | 'product_description'
-  | 'shop_story'
   | 'shop_mission'
   | 'shop_vision'
   | 'shop_description'
