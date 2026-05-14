@@ -64,6 +64,9 @@ import { ArtisanMediaWorkshopModule } from './resources/artisan-media-workshop/a
 import { ArtisanMediaCommunityModule } from './resources/artisan-media-community/artisan-media-community.module';
 import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisan-territorial.module';
 import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-buyer-identity.module';
+import { IdTypeUserModule } from './resources/id-type-user/id-type-user.module';
+import { CountriesModule } from './resources/countries/countries.module';
+import { AgreementsModule } from './resources/agreements/agreements.module';
 
 @Module({
   imports: [
@@ -143,7 +146,10 @@ import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-bu
     ArtisanMediaWorkshopModule,
     ArtisanMediaCommunityModule,
     ArtisanTerritorialModule,
-    InfoBuyerIdentityModule
+    InfoBuyerIdentityModule,
+    IdTypeUserModule,
+    CountriesModule,
+    AgreementsModule,
   ],
   controllers: [],
   providers: [],

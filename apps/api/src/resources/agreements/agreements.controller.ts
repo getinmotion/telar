@@ -19,16 +19,16 @@ export class AgreementsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.agreementsService.findOne(+id);
+    return this.agreementsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAgreementDto: UpdateAgreementDto) {
-    return this.agreementsService.update(+id, updateAgreementDto);
+    return this.agreementsService.update(id, updateAgreementDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.agreementsService.remove(+id);
+    return this.agreementsService.remove(id);
   }
 }

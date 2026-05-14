@@ -11,6 +11,7 @@ import {
 import { StoreContacts } from './store-contacts.entity';
 import { StoreAward } from './store-award.entity';
 import { StoreBadge } from './store-badge.entity';
+import { StoreArtisanalProfile } from './store-artisanal-profile.entity';
 import { ArtisanShop } from './artisan-shop.entity';
 
 @Entity({ schema: 'store', name: 'stores' })
@@ -47,6 +48,11 @@ export class Store {
     cascade: true,
   })
   contacts: StoreContacts;
+
+  @OneToOne(() => StoreArtisanalProfile, (profile) => profile.store, {
+    cascade: true,
+  })
+  artisanalProfile?: StoreArtisanalProfile;
 
   @OneToMany(() => StoreAward, (award) => award.store, { cascade: true })
   awards: StoreAward[];

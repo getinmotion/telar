@@ -78,7 +78,16 @@ export class InfoBuyerIdentityService {
   async update(
     id: number,
     updateData: Partial<
-      Pick<InfoBuyerIdentity, 'nombreCompleto' | 'email' | 'celular'>
+      Pick<
+        InfoBuyerIdentity,
+        | 'nombreCompleto'
+        | 'email'
+        | 'celular'
+        | 'idTypeId'
+        | 'idNumber'
+        | 'countryId'
+        | 'agreementId'
+      >
     >,
   ): Promise<InfoBuyerIdentity> {
     if (!id) {
@@ -97,6 +106,18 @@ export class InfoBuyerIdentityService {
     }
     if (updateData.celular !== undefined) {
       record.celular = updateData.celular;
+    }
+    if (updateData.idTypeId !== undefined) {
+      record.idTypeId = updateData.idTypeId;
+    }
+    if (updateData.idNumber !== undefined) {
+      record.idNumber = updateData.idNumber;
+    }
+    if (updateData.countryId !== undefined) {
+      record.countryId = updateData.countryId;
+    }
+    if (updateData.agreementId !== undefined) {
+      record.agreementId = updateData.agreementId;
     }
 
     return await this.infoBuyerIdentityRepository.save(record);

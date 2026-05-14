@@ -14,6 +14,7 @@ import { ArtisanShopsService } from '../artisan-shops/artisan-shops.service';
 import { UserMaturityActionsService } from '../user-maturity-actions/user-maturity-actions.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
+import { IdTypeUserService } from '../id-type-user/id-type-user.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly userMaturityActionsService: UserMaturityActionsService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly idTypeUserService: IdTypeUserService,
   ) {}
 
   /**
@@ -67,16 +69,26 @@ export class AuthService {
 
       createdUserId = newUser.id;
 
-      // 2. Crear el perfil en artesanos.user_profiles
+      // 2. Obtener el código del tipo de ID (CC, DNI, etc.) desde la tabla id_type_user
+      const idTypeRecord = await this.idTypeUserService.findOne(
+        registerDto.idTypeId,
+      );
+
+      // 3. Crear el perfil en artesanos.user_profiles
       try {
         await this.userProfilesService.create({
           userId: newUser.id,
           firstName: registerDto.firstName.trim(),
           lastName: registerDto.lastName.trim(),
           fullName: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
+          // idType: idTypeRecord.idTypeValue, // Guardar el código (CC, DNI, etc.)
+          idNumber: registerDto.idNumber.trim(),
           whatsappE164: registerDto.whatsapp,
           department: registerDto.department.trim(),
           city: registerDto.city.trim(),
+          daneCity: registerDto.daneCity,
+          countryId: registerDto.countryId,
+          agreementId: registerDto.agreementId,
           rut:
             registerDto.hasRUT && registerDto.rut
               ? registerDto.rut.trim()

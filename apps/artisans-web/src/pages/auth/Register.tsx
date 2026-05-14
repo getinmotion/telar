@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,9 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { MotionLogo } from '@/components/MotionLogo';
-import { Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Loader2 } from 'lucide-react';
 // import { supabase } from '@/integrations/supabase/client'; // Ya no usamos Supabase
-import { useColombiaLocations } from '@/hooks/useColombiaLocations';
 import {
   Form,
   FormControl,
@@ -28,18 +27,38 @@ import {
   REGISTER_FORM_INITIAL_VALUES,
 } from './types';
 import { register } from './actions/register.actions';
+import { getAllIdTypes, type IdTypeUser } from '@/services/idTypeUser.actions';
+import { getAllCountries, type Country } from '@/services/countries.actions';
+import { getAllAgreements, type Agreement } from '@/services/agreements.actions';
+
+interface Municipio {
+  municipio: string;
+  codigo: string;
+}
+
+interface CiudadesDane {
+  [departamento: string]: Municipio[];
+}
 
 export const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Hook para obtener departamentos y municipios de datos.gov.co
-  const { departments, getMunicipalities, isLoading: isLoadingLocations } = useColombiaLocations();
-
   // Estados para mostrar/ocultar contraseñas
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Estados para los datos de los selects
+  const [idTypes, setIdTypes] = useState<IdTypeUser[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
+  const [loadingSelects, setLoadingSelects] = useState(true);
+
+  // Estados para departamentos y municipios desde JSON local
+  const [ciudadesDane, setCiudadesDane] = useState<CiudadesDane>({});
+  const [departamentos, setDepartamentos] = useState<string[]>([]);
+  const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
   // Configuración de useForm con validaciones
   const form = useForm<RegisterFormData>({
@@ -47,12 +66,55 @@ export const Register = () => {
     mode: 'onChange', // Validar en tiempo real
   });
 
-  // Obtener ciudades disponibles según el departamento seleccionado
+  // Cargar datos de los selects al montar el componente
+  useEffect(() => {
+    const loadSelectData = async () => {
+      try {
+        setLoadingSelects(true);
+        const [idTypesData, countriesData, agreementsData] = await Promise.all([
+          getAllIdTypes(),
+          getAllCountries(),
+          getAllAgreements(),
+        ]);
+        setIdTypes(idTypesData);
+        setCountries(countriesData);
+        setAgreements(agreementsData);
+      } catch (error) {
+        console.error('Error loading select data:', error);
+        toast({
+          title: 'Error',
+          description: 'No se pudieron cargar los datos del formulario',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoadingSelects(false);
+      }
+    };
+    loadSelectData();
+  }, [toast]);
+
+  // Cargar JSON de ciudades desde archivo local
+  useEffect(() => {
+    fetch('/ciudades_dane.json')
+      .then(res => res.json())
+      .then((data: CiudadesDane) => {
+        setCiudadesDane(data);
+        setDepartamentos(Object.keys(data).sort());
+      })
+      .catch(err => console.error('Error loading ciudades_dane.json:', err));
+  }, []);
+
+  // Actualizar municipios cuando cambia el departamento
   const department = form.watch('department');
-  const availableCities = useMemo(() => {
-    if (!department) return [];
-    return getMunicipalities(department);
-  }, [department, getMunicipalities]);
+  useEffect(() => {
+    if (department && ciudadesDane[department]) {
+      setMunicipios(ciudadesDane[department].sort((a, b) =>
+        a.municipio.localeCompare(b.municipio)
+      ));
+    } else {
+      setMunicipios([]);
+    }
+  }, [department, ciudadesDane]);
 
   // Watch password para mostrar indicador de fuerza
   const password = form.watch('password');
@@ -77,8 +139,12 @@ export const Register = () => {
 
     try {
       // ⚠️ NO eliminar passwordConfirmation - el backend NestJS lo requiere para validación
-      // RegisterFormData y RegisterPayload tienen la misma estructura
-      const response: RegisterSuccessResponse = await register(data);
+      // daneCity se almacena como string en el form pero el backend requiere number
+      const payload: RegisterPayload = {
+        ...data,
+        daneCity: parseInt(data.daneCity, 10),
+      };
+      const response: RegisterSuccessResponse = await register(payload);
 
 
       // Mostrar mensaje de éxito
@@ -159,6 +225,113 @@ export const Register = () => {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Tipo de Identificación y Número */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="idTypeId"
+                      rules={{ required: 'Por favor selecciona tu tipo de identificación' }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Tipo de Identificación <span className="text-destructive">*</span>
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled={loadingSelects}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona tipo de ID" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {loadingSelects ? (
+                                <div className="flex items-center justify-center py-4">
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                  <span className="text-sm text-muted-foreground">Cargando...</span>
+                                </div>
+                              ) : (
+                                idTypes.map((idType) => (
+                                  <SelectItem key={idType.id} value={idType.id}>
+                                    {idType.typeName} ({idType.idTypeValue})
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="idNumber"
+                      rules={{
+                        required: 'Por favor escribe tu número de identificación',
+                        validate: (value) => value.trim() !== '' || 'Por favor escribe tu número de identificación'
+                      }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Número de Identificación <span className="text-destructive">*</span>
+                          </FormLabel>
+                          <div className="relative">
+                            <FormControl>
+                              <Input placeholder="1234567890" {...field} />
+                            </FormControl>
+                            {!form.formState.errors.idNumber && field.value && (
+                              <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Convenio */}
+                  <FormField
+                    control={form.control}
+                    name="agreementId"
+                    rules={{ required: 'Por favor selecciona un convenio' }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Convenio <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={loadingSelects}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona un convenio" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {loadingSelects ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                <span className="text-sm text-muted-foreground">Cargando...</span>
+                              </div>
+                            ) : (
+                              agreements.map((agreement) => (
+                                <SelectItem key={agreement.id} value={agreement.id}>
+                                  {agreement.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Nombre y Apellido */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
@@ -390,6 +563,46 @@ export const Register = () => {
                     )}
                   </div>
 
+                  {/* País */}
+                  <FormField
+                    control={form.control}
+                    name="countryId"
+                    rules={{ required: 'Por favor selecciona tu país' }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          País <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={loadingSelects}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona tu país" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {loadingSelects ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                <span className="text-sm text-muted-foreground">Cargando...</span>
+                              </div>
+                            ) : (
+                              countries.map((country) => (
+                                <SelectItem key={country.id} value={country.id}>
+                                  {country.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Departamento y Ciudad */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
@@ -402,7 +615,8 @@ export const Register = () => {
                           <Select
                             onValueChange={(value) => {
                               field.onChange(value);
-                              form.setValue('city', ''); // Limpiar ciudad al cambiar departamento
+                              form.setValue('city', '');
+                              form.setValue('daneCity', '');
                             }}
                             value={field.value}
                           >
@@ -412,13 +626,13 @@ export const Register = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-60">
-                              {isLoadingLocations ? (
+                              {departamentos.length === 0 ? (
                                 <div className="flex items-center justify-center py-4">
                                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                   <span className="text-sm text-muted-foreground">Cargando...</span>
                                 </div>
                               ) : (
-                                departments.map((dept) => (
+                                departamentos.map((dept) => (
                                   <SelectItem key={dept} value={dept}>
                                     {dept}
                                   </SelectItem>
@@ -433,15 +647,21 @@ export const Register = () => {
 
                     <FormField
                       control={form.control}
-                      name="city"
+                      name="daneCity"
                       rules={{ required: 'Por favor selecciona tu ciudad' }}
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Ciudad/Municipio *</FormLabel>
                           <Select
-                            onValueChange={field.onChange}
+                            onValueChange={(codigo) => {
+                              const mun = municipios.find(m => m.codigo === codigo);
+                              if (mun) {
+                                field.onChange(codigo);
+                                form.setValue('city', mun.municipio, { shouldValidate: true });
+                              }
+                            }}
                             value={field.value}
-                            disabled={!department || availableCities.length === 0}
+                            disabled={!department || municipios.length === 0}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -455,9 +675,9 @@ export const Register = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-60">
-                              {availableCities.map((city) => (
-                                <SelectItem key={city} value={city}>
-                                  {city}
+                              {municipios.map((mun) => (
+                                <SelectItem key={mun.codigo} value={mun.codigo}>
+                                  {mun.municipio}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -586,4 +806,3 @@ export const Register = () => {
 };
 
 export default Register;
-

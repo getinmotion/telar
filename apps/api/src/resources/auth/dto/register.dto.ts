@@ -8,10 +8,28 @@ import {
   IsBoolean,
   Matches,
   ValidateIf,
+  IsUUID,
+  IsInt,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
+  @ApiProperty({
+    description: 'ID del tipo de identificación',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsUUID('4', { message: 'El ID del tipo de identificación debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El tipo de identificación es obligatorio' })
+  idTypeId: string;
+
+  @ApiProperty({
+    description: 'Número de identificación',
+    example: '1234567890',
+  })
+  @IsString({ message: 'El número de identificación debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'El número de identificación es obligatorio' })
+  idNumber: string;
+
   @ApiProperty({
     description: 'Nombre del usuario',
     example: 'Juan',
@@ -31,6 +49,14 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'El apellido es obligatorio' })
   @MinLength(2, { message: 'El apellido debe tener al menos 2 caracteres' })
   lastName: string;
+
+  @ApiProperty({
+    description: 'ID del convenio/acuerdo',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsUUID('4', { message: 'El ID del convenio debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El convenio es obligatorio' })
+  agreementId: string;
 
   @ApiProperty({
     description: 'Email del usuario',
@@ -79,6 +105,14 @@ export class RegisterDto {
   whatsapp: string;
 
   @ApiProperty({
+    description: 'ID del país',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsUUID('4', { message: 'El ID del país debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El país es obligatorio' })
+  countryId: string;
+
+  @ApiProperty({
     description: 'Departamento del usuario',
     example: 'Cundinamarca',
   })
@@ -93,6 +127,14 @@ export class RegisterDto {
   @IsString({ message: 'La ciudad debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'La ciudad es obligatoria' })
   city: string;
+
+  @ApiProperty({
+    description: 'Código DANE de la ciudad',
+    example: 11001,
+  })
+  @IsInt({ message: 'El código DANE debe ser un número entero' })
+  @IsNotEmpty({ message: 'El código DANE de la ciudad es obligatorio' })
+  daneCity!: number;
 
   @ApiProperty({
     description: '¿El usuario tiene RUT?',

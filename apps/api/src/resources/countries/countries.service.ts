@@ -1,26 +1,86 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { CreateCountryDto } from './dto/create-country.dto';
 import { UpdateCountryDto } from './dto/update-country.dto';
+import { Country } from './entities/country.entity';
 
 @Injectable()
 export class CountriesService {
-  create(createCountryDto: CreateCountryDto) {
-    return 'This action adds a new country';
+  constructor(
+    @Inject('COUNTRIES_REPOSITORY')
+    private readonly countriesRepository: Repository<Country>,
+  ) {}
+
+  /**
+   * Crear un nuevo país
+   */
+  async create(createCountryDto: CreateCountryDto): Promise<Country> {
+    const newCountry = this.countriesRepository.create(createCountryDto);
+    return await this.countriesRepository.save(newCountry);
   }
 
-  findAll() {
-    return `This action returns all countries`;
+  /**
+   * Obtener todos los países
+   */
+  async findAll(): Promise<Country[]> {
+    return await this.countriesRepository.find({
+      order: { name: 'ASC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} country`;
+  /**
+   * Obtener un país por ID
+   */
+  async findOne(id: string): Promise<Country> {
+    if (!id) {
+      throw new BadRequestException('El ID es requerido');
+    }
+
+    const country = await this.countriesRepository.findOne({
+      where: { id },
+    });
+
+    if (!country) {
+      throw new NotFoundException(`País con ID ${id} no encontrado`);
+    }
+
+    return country;
   }
 
-  update(id: number, updateCountryDto: UpdateCountryDto) {
-    return `This action updates a #${id} country`;
+  /**
+   * Actualizar un país
+   */
+  async update(
+    id: string,
+    updateCountryDto: UpdateCountryDto,
+  ): Promise<Country> {
+    // Verificar que el país existe
+    await this.findOne(id);
+
+    // Actualizar
+    await this.countriesRepository.update(id, updateCountryDto);
+
+    // Retornar actualizado
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} country`;
+  /**
+   * Eliminar un país
+   */
+  async remove(id: string): Promise<{ message: string }> {
+    // Verificar que el país existe
+    await this.findOne(id);
+
+    // Eliminar
+    await this.countriesRepository.delete(id);
+
+    return {
+      message: `País con ID ${id} eliminado exitosamente`,
+    };
   }
 }

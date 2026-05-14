@@ -6,15 +6,20 @@
  * Datos del formulario de registro
  */
 export interface RegisterFormData {
+  idTypeId: string;
+  idNumber: string;
   firstName: string;
   lastName: string;
+  agreementId: string;
   email: string;
   password: string;
   passwordConfirmation: string;
   hasRUT: boolean;
   rut: string;
+  countryId: string;
   department: string;
   city: string;
+  daneCity: string;
   whatsapp: string;
   acceptTerms: boolean;
   newsletterOptIn: boolean;
@@ -25,15 +30,20 @@ export interface RegisterFormData {
  * ⚠️ IMPORTANTE: El backend requiere passwordConfirmation para validación
  */
 export interface RegisterPayload {
+  idTypeId: string;
+  idNumber: string;
   firstName: string;
   lastName: string;
+  agreementId: string;
   email: string;
   password: string;
   passwordConfirmation: string; // ✅ Requerido por el backend NestJS
   hasRUT: boolean;
   rut: string;
+  countryId: string;
   department: string;
   city: string;
+  daneCity: number; // Backend recibe entero (código DANE)
   whatsapp: string;
   acceptTerms: boolean;
   newsletterOptIn: boolean;
@@ -80,14 +90,19 @@ export type RegisterResponse = RegisterSuccessResponse | RegisterErrorResponse;
  * Errores de validación del formulario
  */
 export interface RegisterFormErrors {
+  idTypeId?: string;
+  idNumber?: string;
   firstName?: string;
   lastName?: string;
+  agreementId?: string;
   email?: string;
   password?: string;
   passwordConfirmation?: string;
   rut?: string;
+  countryId?: string;
   department?: string;
   city?: string;
+  daneCity?: string;
   whatsapp?: string;
   acceptTerms?: string;
   submit?: string;
@@ -97,14 +112,19 @@ export interface RegisterFormErrors {
  * Campos validados del formulario
  */
 export interface RegisterValidFields {
+  idTypeId?: boolean;
+  idNumber?: boolean;
   firstName?: boolean;
   lastName?: boolean;
+  agreementId?: boolean;
   email?: boolean;
   password?: boolean;
   passwordConfirmation?: boolean;
   rut?: boolean;
+  countryId?: boolean;
   department?: boolean;
   city?: boolean;
+  daneCity?: boolean;
   whatsapp?: boolean;
 }
 
@@ -120,15 +140,20 @@ export interface FieldValidationResult {
  * Valores iniciales del formulario
  */
 export const REGISTER_FORM_INITIAL_VALUES: RegisterFormData = {
+  idTypeId: '',
+  idNumber: '',
   firstName: '',
   lastName: '',
+  agreementId: '',
   email: '',
   password: '',
   passwordConfirmation: '',
   hasRUT: false,
   rut: '',
+  countryId: '',
   department: '',
   city: '',
+  daneCity: '',
   whatsapp: '+57',
   acceptTerms: false,
   newsletterOptIn: false,

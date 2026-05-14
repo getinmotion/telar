@@ -12,7 +12,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   UserType,
   AccountType,
-  IdType,
   Gender,
 } from '../entities/user-profile.entity';
 
@@ -96,13 +95,13 @@ export class CreateUserProfileDto {
   lastName?: string;
 
   @ApiPropertyOptional({
-    description: 'Tipo de identificación',
-    enum: IdType,
-    example: IdType.CC,
+    description: 'Código del tipo de identificación (CC, DNI, TI, etc.)',
+    example: 'CC',
   })
   @IsOptional()
-  @IsEnum(IdType, { message: 'El tipo de identificación no es válido' })
-  idType?: IdType;
+  @IsString({ message: 'El tipo de identificación debe ser una cadena de texto' })
+  @MaxLength(4, { message: 'El tipo de identificación no puede exceder 4 caracteres' })
+  idType?: string;
 
   @ApiPropertyOptional({
     description: 'Número de identificación',

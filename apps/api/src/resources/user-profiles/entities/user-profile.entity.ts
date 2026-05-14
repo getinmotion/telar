@@ -127,17 +127,11 @@ export class UserProfile extends BaseEntity {
   lastName: string | null;
 
   @ApiPropertyOptional({
-    description: 'Tipo de identificación',
-    enum: IdType,
-    example: IdType.CC,
+    description: 'Código del tipo de identificación (CC, DNI, TI, etc.)',
+    example: 'CC',
   })
-  @Column({
-    type: 'enum',
-    enum: IdType,
-    nullable: true,
-    name: 'id_type',
-  })
-  idType: IdType | null;
+  @Column({ type: 'varchar', length: 4, nullable: true, name: 'id_type' })
+  idType!: string | null;
 
   @ApiPropertyOptional({
     description: 'Número de identificación',

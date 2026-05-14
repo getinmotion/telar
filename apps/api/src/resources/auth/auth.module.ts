@@ -10,6 +10,7 @@ import { EmailVerificationsModule } from '../email-verifications/email-verificat
 import { UserMasterContextModule } from '../user-master-context/user-master-context.module';
 import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
 import { UserMaturityActionsModule } from '../user-maturity-actions/user-maturity-actions.module';
+import { IdTypeUserModule } from '../id-type-user/id-type-user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -26,6 +27,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
     forwardRef(() => UserMasterContextModule),
     forwardRef(() => ArtisanShopsModule),
     forwardRef(() => UserMaturityActionsModule),
+    IdTypeUserModule,
     ConfigModule,
     PassportModule.register({
       defaultStrategy: 'jwt',
