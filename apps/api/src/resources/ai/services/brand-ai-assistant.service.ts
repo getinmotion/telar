@@ -441,7 +441,6 @@ CRÍTICO: Usa TODA la información proporcionada para crear claims verdaderament
       'No especificado';
     const location =
       bc.ubicacion ||
-      bp.businessLocation ||
       bp.business_location ||
       'No especificada';
 

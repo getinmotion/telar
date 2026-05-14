@@ -8,7 +8,6 @@ import {
   IsPhoneNumber,
   IsBoolean,
   Matches,
-  IsUUID,
   IsDate,
 } from 'class-validator';
 
@@ -41,22 +40,8 @@ export class CreateUserDto {
   role?: string;
 
   @IsOptional()
-  @IsUUID('4', { message: 'El instance_id debe ser un UUID válido' })
-  instanceId?: string;
-
-  @IsOptional()
-  @IsBoolean({ message: 'isSsoUser debe ser un valor booleano' })
-  isSsoUser?: boolean;
-
-  @IsOptional()
-  @IsBoolean({ message: 'isAnonymous debe ser un valor booleano' })
-  isAnonymous?: boolean;
-
-  @IsOptional()
-  rawUserMetaData?: Record<string, any>;
-
-  @IsOptional()
-  rawAppMetaData?: Record<string, any>;
+  @IsBoolean({ message: 'isActive debe ser un valor booleano' })
+  isActive?: boolean;
 
   @IsOptional()
   @IsDate({ message: 'emailConfirmedAt debe ser una fecha válida' })

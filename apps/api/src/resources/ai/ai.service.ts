@@ -52,9 +52,6 @@ export class AiService {
       const userContext = {
         businessDescription: profile?.businessDescription || '',
         brandName: profile?.brandName || '',
-        businessLocation: profile?.businessLocation || '',
-        businessGoals: profile?.businessGoals || [],
-        socialMediaPresence: profile?.socialMediaPresence || {},
         businessProfile: masterContext?.businessProfile || {},
         businessContext: masterContext?.businessContext || {},
         maturityLevel: maturityScores?.totalScore || 25,

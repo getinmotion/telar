@@ -6,11 +6,15 @@ import {
   UpdateDateColumn,
   BaseEntity,
   OneToOne,
+  ManyToOne,
   JoinColumn,
   AfterLoad,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from 'src/resources/users/entities/user.entity';
+import { Country } from 'src/resources/countries/entities/country.entity';
+import { Agreement } from 'src/resources/agreements/entities/agreement.entity';
+import { ArtisanOrigin } from 'src/resources/artisan-origin/entities/artisan-origin.entity';
 import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 export enum UserType {
@@ -25,7 +29,20 @@ export enum AccountType {
   BOTH = 'both',
 }
 
-@Entity({ name: 'user_profiles', schema: 'artesanos' })
+export enum IdType {
+  CC = 'cc',
+  NIT = 'nit',
+  CE = 'ce',
+  PA = 'pa',
+}
+
+export enum Gender {
+  M = 'M',
+  F = 'F',
+  SE = 'SE',
+}
+
+@Entity({ name: 'artisan_profile', schema: 'artesanos' })
 export class UserProfile extends BaseEntity {
   @ApiProperty({ description: 'ID único del perfil de usuario' })
   @PrimaryGeneratedColumn('uuid')
@@ -74,91 +91,6 @@ export class UserProfile extends BaseEntity {
   @Column({ type: 'text', nullable: true, name: 'brand_name' })
   brandName: string | null;
 
-  @ApiPropertyOptional({ description: 'Tipo de negocio' })
-  @Column({ type: 'text', nullable: true, name: 'business_type' })
-  businessType: string | null;
-
-  @ApiPropertyOptional({ description: 'Mercado objetivo' })
-  @Column({ type: 'text', nullable: true, name: 'target_market' })
-  targetMarket: string | null;
-
-  @ApiPropertyOptional({ description: 'Etapa actual del negocio' })
-  @Column({ type: 'text', nullable: true, name: 'current_stage' })
-  currentStage: string | null;
-
-  @ApiPropertyOptional({
-    description: 'Objetivos del negocio',
-    type: [String],
-  })
-  @Column({ type: 'text', array: true, nullable: true, name: 'business_goals' })
-  businessGoals: string[] | null;
-
-  @ApiPropertyOptional({ description: 'Meta de ingresos mensuales' })
-  @Column({ type: 'integer', nullable: true, name: 'monthly_revenue_goal' })
-  monthlyRevenueGoal: number | null;
-
-  @ApiPropertyOptional({ description: 'Disponibilidad de tiempo' })
-  @Column({ type: 'text', nullable: true, name: 'time_availability' })
-  timeAvailability: string | null;
-
-  @ApiPropertyOptional({ description: 'Tamaño del equipo' })
-  @Column({ type: 'text', nullable: true, name: 'team_size' })
-  teamSize: string | null;
-
-  @ApiPropertyOptional({
-    description: 'Desafíos actuales del negocio',
-    type: [String],
-  })
-  @Column({
-    type: 'text',
-    array: true,
-    nullable: true,
-    name: 'current_challenges',
-  })
-  currentChallenges: string[] | null;
-
-  @ApiPropertyOptional({
-    description: 'Canales de venta',
-    type: [String],
-  })
-  @Column({ type: 'text', array: true, nullable: true, name: 'sales_channels' })
-  salesChannels: string[] | null;
-
-  @ApiPropertyOptional({
-    description: 'Presencia en redes sociales (JSON)',
-    example: { instagram: '@usuario', facebook: 'usuario' },
-  })
-  @Column({
-    type: 'jsonb',
-    nullable: true,
-    default: {},
-    name: 'social_media_presence',
-  })
-  socialMediaPresence: Record<string, any> | null;
-
-  @ApiPropertyOptional({ description: 'Ubicación del negocio' })
-  @Column({ type: 'text', nullable: true, name: 'business_location' })
-  businessLocation: string | null;
-
-  @ApiPropertyOptional({ description: 'Años en el negocio' })
-  @Column({ type: 'integer', nullable: true, name: 'years_in_business' })
-  yearsInBusiness: number | null;
-
-  @ApiPropertyOptional({ description: 'Rango de inversión inicial' })
-  @Column({
-    type: 'text',
-    nullable: true,
-    name: 'initial_investment_range',
-  })
-  initialInvestmentRange: string | null;
-
-  @ApiPropertyOptional({
-    description: 'Habilidades principales',
-    type: [String],
-  })
-  @Column({ type: 'text', array: true, nullable: true, name: 'primary_skills' })
-  primarySkills: string[] | null;
-
   @ApiProperty({
     description: 'Preferencia de idioma',
     default: 'es',
@@ -193,6 +125,33 @@ export class UserProfile extends BaseEntity {
   @ApiPropertyOptional({ description: 'Apellido' })
   @Column({ type: 'text', nullable: true, name: 'last_name' })
   lastName: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Código del tipo de identificación (CC, DNI, TI, etc.)',
+    example: 'CC',
+  })
+  @Column({ type: 'varchar', length: 4, nullable: true, name: 'id_type' })
+  idType!: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Número de identificación',
+    example: '1234567890',
+  })
+  @Column({ type: 'text', nullable: true, name: 'id_number' })
+  idNumber: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Género',
+    enum: Gender,
+    example: Gender.M,
+  })
+  @Column({
+    type: 'enum',
+    enum: Gender,
+    nullable: true,
+    name: 'gender',
+  })
+  gender: Gender | null;
 
   @ApiPropertyOptional({
     description: 'Número de WhatsApp en formato E.164',
@@ -254,6 +213,33 @@ export class UserProfile extends BaseEntity {
   @ApiPropertyOptional({ description: 'Código DANE de la ciudad' })
   @Column({ type: 'integer', nullable: true, name: 'dane_city' })
   daneCity: number | null;
+
+  @ApiPropertyOptional({ description: 'ID del país' })
+  @Column({ type: 'uuid', nullable: true, name: 'country_id' })
+  countryId: string | null;
+
+  @ApiPropertyOptional({ description: 'Relación con el país' })
+  @ManyToOne(() => Country, { nullable: true })
+  @JoinColumn({ name: 'country_id' })
+  country: Country | null;
+
+  @ApiPropertyOptional({ description: 'ID del acuerdo' })
+  @Column({ type: 'uuid', nullable: true, name: 'agreement_id' })
+  agreementId: string | null;
+
+  @ApiPropertyOptional({ description: 'Relación con el acuerdo' })
+  @ManyToOne(() => Agreement, { nullable: true })
+  @JoinColumn({ name: 'agreement_id' })
+  agreement: Agreement | null;
+
+  @ApiPropertyOptional({ description: 'ID del origen artesanal' })
+  @Column({ type: 'uuid', nullable: true, name: 'artisan_origin_id' })
+  artisanOriginId: string | null;
+
+  @ApiPropertyOptional({ description: 'Relación con el origen artesanal' })
+  @ManyToOne(() => ArtisanOrigin, { nullable: true })
+  @JoinColumn({ name: 'artisan_origin_id' })
+  artisanOrigin: ArtisanOrigin | null;
 
   /**
    * Transform relative image paths to full CDN URLs after loading from database

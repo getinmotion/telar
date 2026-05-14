@@ -14,6 +14,7 @@ import { ArtisanShopsService } from '../artisan-shops/artisan-shops.service';
 import { UserMaturityActionsService } from '../user-maturity-actions/user-maturity-actions.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
+import { IdTypeUserService } from '../id-type-user/id-type-user.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly userMaturityActionsService: UserMaturityActionsService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly idTypeUserService: IdTypeUserService,
   ) {}
 
   /**
@@ -63,31 +65,30 @@ export class AuthService {
         password: registerDto.password,
         phone: registerDto.whatsapp,
         role: 'user',
-        rawUserMetaData: {
-          first_name: registerDto.firstName.trim(),
-          last_name: registerDto.lastName.trim(),
-          full_name: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
-        },
       });
 
       createdUserId = newUser.id;
 
-      // 2. Crear el perfil en artesanos.user_profiles
-      const businessLocation =
-        registerDto.city && registerDto.department
-          ? `${registerDto.city.trim()}, ${registerDto.department.trim()}, Colombia`
-          : undefined;
+      // 2. Obtener el código del tipo de ID (CC, DNI, etc.) desde la tabla id_type_user
+      const idTypeRecord = await this.idTypeUserService.findOne(
+        registerDto.idTypeId,
+      );
 
+      // 3. Crear el perfil en artesanos.user_profiles
       try {
         await this.userProfilesService.create({
           userId: newUser.id,
           firstName: registerDto.firstName.trim(),
           lastName: registerDto.lastName.trim(),
           fullName: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
+          // idType: idTypeRecord.idTypeValue, // Guardar el código (CC, DNI, etc.)
+          idNumber: registerDto.idNumber.trim(),
           whatsappE164: registerDto.whatsapp,
           department: registerDto.department.trim(),
           city: registerDto.city.trim(),
-          businessLocation,
+          daneCity: registerDto.daneCity,
+          countryId: registerDto.countryId,
+          agreementId: registerDto.agreementId,
           rut:
             registerDto.hasRUT && registerDto.rut
               ? registerDto.rut.trim()
@@ -246,7 +247,6 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
-      isSuperAdmin: user.isSuperAdmin,
     };
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -290,7 +290,6 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
-      isSuperAdmin: user.isSuperAdmin,
     };
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -353,7 +352,6 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
-      isSuperAdmin: user.isSuperAdmin,
     };
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -512,20 +510,6 @@ export class AuthService {
       let user = await this.usersService.getByEmail(normalizedEmail);
 
       if (user) {
-        // Usuario existe: actualizar información de Google si es necesario
-        if (
-          googleAuthDto.profilePhoto &&
-          !user.rawUserMetaData?.profile_picture
-        ) {
-          user = await this.usersService.update(user.id, {
-            rawUserMetaData: {
-              ...user.rawUserMetaData,
-              profile_picture: googleAuthDto.profilePhoto,
-              google_id: googleAuthDto.googleId,
-            },
-          } as any);
-        }
-
         // Actualizar última fecha de inicio de sesión
         await this.usersService.update(user.id, {
           lastSignInAt: new Date(),
@@ -544,16 +528,7 @@ export class AuthService {
           phone: undefined,
           role: 'user',
           emailConfirmedAt: new Date(),
-          rawUserMetaData: {
-            first_name: googleAuthDto.firstName || '',
-            last_name: googleAuthDto.lastName || '',
-            full_name:
-              `${googleAuthDto.firstName || ''} ${googleAuthDto.lastName || ''}`.trim(),
-            profile_picture: googleAuthDto.profilePhoto,
-            google_id: googleAuthDto.googleId,
-            oauth_provider: 'google',
-          },
-        } as any);
+        });
 
         user = newUser;
 
@@ -616,7 +591,6 @@ export class AuthService {
         sub: user.id,
         email: user.email,
         role: user.role,
-        isSuperAdmin: user.isSuperAdmin,
       };
       const access_token = await this.jwtService.signAsync(payload);
 
@@ -679,21 +653,11 @@ export class AuthService {
         phone: registerDto.whatsapp,
         role: 'user',
         emailConfirmedAt: new Date(), // Activar automáticamente
-        rawUserMetaData: {
-          first_name: registerDto.firstName.trim(),
-          last_name: registerDto.lastName.trim(),
-          full_name: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
-        },
       });
 
       createdUserId = newUser.id;
 
       // 2. Crear el perfil en artesanos.user_profiles con accountType = 'buyer'
-      const businessLocation =
-        registerDto.city && registerDto.department
-          ? `${registerDto.city.trim()}, ${registerDto.department.trim()}, Colombia`
-          : undefined;
-
       try {
         await this.userProfilesService.create({
           userId: newUser.id,
@@ -703,7 +667,6 @@ export class AuthService {
           whatsappE164: registerDto.whatsapp,
           department: registerDto.department.trim(),
           city: registerDto.city.trim(),
-          businessLocation,
           accountType: AccountType.BUYER, // Tipo de cuenta para marketplace
           rut:
             registerDto.hasRUT && registerDto.rut
@@ -725,7 +688,6 @@ export class AuthService {
         sub: newUser.id,
         email: newUser.email,
         role: newUser.role,
-        isSuperAdmin: newUser.isSuperAdmin,
       };
       const access_token = await this.jwtService.signAsync(payload);
 

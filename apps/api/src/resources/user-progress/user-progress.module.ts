@@ -6,6 +6,7 @@ import { userProgressProviders } from './user-progress.providers';
 import { AuthModule } from '../auth/auth.module';
 import { UserAchievementsModule } from '../user-achievements/user-achievements.module';
 import { UserMaturityScoresModule } from '../user-maturity-scores/user-maturity-scores.module';
+import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserMaturityScoresModule } from '../user-maturity-scores/user-maturity-
     forwardRef(() => AuthModule),
     forwardRef(() => UserAchievementsModule),
     forwardRef(() => UserMaturityScoresModule),
+    forwardRef(() => UserProfilesModule),
   ],
   controllers: [UserProgressController],
   providers: [...userProgressProviders, UserProgressService],

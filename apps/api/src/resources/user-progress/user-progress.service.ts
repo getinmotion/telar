@@ -14,6 +14,7 @@ import { UpdateUserProgressDto } from './dto/update-user-progress.dto';
 import { UpdateProgressDto } from './dto/update-progress.dto';
 import { UserAchievement } from '../user-achievements/entities/user-achievement.entity';
 import { UserMaturityScore } from '../user-maturity-scores/entities/user-maturity-score.entity';
+import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 
 @Injectable()
 export class UserProgressService {
@@ -26,6 +27,8 @@ export class UserProgressService {
     private readonly userAchievementsRepository: Repository<UserAchievement>,
     @Inject('USER_MATURITY_SCORES_REPOSITORY')
     private readonly userMaturityScoresRepository: Repository<UserMaturityScore>,
+    @Inject('USER_PROFILES_REPOSITORY')
+    private readonly userProfilesRepository: Repository<UserProfile>,
     @Inject('DATA_SOURCE')
     private readonly dataSource: DataSource,
   ) {}
@@ -42,6 +45,18 @@ export class UserProgressService {
     if (existingProgress) {
       throw new ConflictException(
         'Ya existe un registro de progreso para este usuario',
+      );
+    }
+
+    // IMPORTANTE: Verificar si el usuario tiene un perfil en artisan_profile
+    // La FK de user_progress apunta a artisan_profile, no a auth.users
+    const userProfile = await this.userProfilesRepository.findOne({
+      where: { userId: createDto.userId },
+    });
+
+    if (!userProfile) {
+      throw new NotFoundException(
+        `No se puede crear el progreso: el usuario ${createDto.userId} no tiene un perfil en artisan_profile. Debe crear el perfil primero.`,
       );
     }
 
@@ -252,6 +267,17 @@ export class UserProgressService {
       });
 
       if (!currentProgress) {
+        // Verificar si el usuario tiene un perfil antes de crear el progreso
+        const userProfile = await this.userProfilesRepository.findOne({
+          where: { userId },
+        });
+
+        if (!userProfile) {
+          throw new NotFoundException(
+            `No se puede crear el progreso: el usuario ${userId} no tiene un perfil en artisan_profile. Debe crear el perfil primero.`,
+          );
+        }
+
         currentProgress = this.userProgressRepository.create({
           userId,
           experiencePoints: 0,

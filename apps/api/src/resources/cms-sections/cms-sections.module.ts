@@ -6,7 +6,12 @@ import { CmsSeedSkipsService } from './cms-seed-skips.service';
 import { cmsSectionsProviders } from './cms-sections.providers';
 
 @Module({
-  imports: [AuthModule],
+  imports: [
+    AuthModule,
+    // MongooseModule.forFeature([
+    //   { name: CmsPage.name, schema: CmsPageSchema },
+    // ]),
+  ],
   controllers: [CmsSectionsController],
   providers: [...cmsSectionsProviders, CmsSectionsService, CmsSeedSkipsService],
   exports: [
