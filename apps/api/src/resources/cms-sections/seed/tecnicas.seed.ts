@@ -4,6 +4,22 @@ import { CmsSection } from '../types/cms-section.types';
  * Initial editorial content for /tecnicas. Mirrors the hardcoded copy
  * that lived in marketplace-web/src/pages/Tecnicas.tsx so that turning
  * on the CMS does not blank the page on day one.
+ *
+ * Slot-specific types (rendered in dedicated layout positions, NOT in
+ * the editorial flow) — kept early in the position order to read like a
+ * timeline of the page top-to-bottom:
+ *  - hero                  → top of page
+ *  - featured_aside_card   → right column of the featured section
+ *  - metrics_stat          → orange data box inside the asymmetric archive
+ *  - muestra_intro         → header for the "Muestra de Técnicas" API grid
+ *  - archive_label         → centered "Exploración del Archivo" label
+ *  - editorial_footer      → bottom editorial footer ("Legado Viviente")
+ *
+ * Editorial flow types (rendered between the featured section and the
+ * archive via `editorialSections.map(...)`):
+ *  - quote
+ *  - two_column_intro
+ *  - technique_grid
  */
 export const tecnicasSeedSections: Omit<
   CmsSection,
@@ -24,6 +40,29 @@ export const tecnicasSeedSections: Omit<
   {
     pageKey: 'tecnicas',
     position: 1,
+    type: 'featured_aside_card',
+    published: true,
+    payload: {
+      title: 'Archivo Digital de Patrones',
+      body: 'Acceda a nuestra base de datos de iconografía y patrones técnicos digitalizados para investigación.',
+      ctaLabel: 'Ver Catálogo',
+      ctaHref: '',
+    },
+  },
+  {
+    pageKey: 'tecnicas',
+    position: 2,
+    type: 'metrics_stat',
+    published: true,
+    payload: {
+      kicker: 'Métricas 2024',
+      value: '24',
+      caption: 'Nuevos talleres registrados en el último trimestre.',
+    },
+  },
+  {
+    pageKey: 'tecnicas',
+    position: 3,
     type: 'quote',
     published: true,
     payload: {
@@ -34,7 +73,7 @@ export const tecnicasSeedSections: Omit<
   },
   {
     pageKey: 'tecnicas',
-    position: 2,
+    position: 4,
     type: 'two_column_intro',
     published: true,
     payload: {
@@ -57,7 +96,7 @@ export const tecnicasSeedSections: Omit<
   },
   {
     pageKey: 'tecnicas',
-    position: 3,
+    position: 5,
     type: 'technique_grid',
     published: true,
     payload: {
@@ -89,6 +128,47 @@ export const tecnicasSeedSections: Omit<
           imageKey: 'Talla',
         },
       ],
+    },
+  },
+  {
+    pageKey: 'tecnicas',
+    position: 6,
+    type: 'muestra_intro',
+    published: true,
+    payload: {
+      kicker: 'Muestra de Técnicas',
+      title: 'Técnicas con piezas disponibles ahora.',
+      body: 'Solo aparecen técnicas que tienen al menos un producto publicado en Telar. Cada tarjeta abre el detalle de la técnica.',
+    },
+  },
+  {
+    pageKey: 'tecnicas',
+    position: 7,
+    type: 'archive_label',
+    published: true,
+    payload: {
+      kicker: 'Exploración del Archivo',
+    },
+  },
+  {
+    pageKey: 'tecnicas',
+    position: 8,
+    type: 'editorial_footer',
+    published: true,
+    payload: {
+      kicker: 'Legado Viviente',
+      title: 'El archivo del saber hacer es una conversación inacabada.',
+      body: 'Buscamos no solo preservar, sino activar. Cada técnica documentada aquí es una invitación a la colaboración entre el artesano y el innovador.',
+      links: [
+        { label: 'Talleres', href: '/tiendas' },
+        { label: 'Piezas', href: '/productos' },
+        { label: 'Historias', href: '/historias' },
+      ],
+      asideTitle: 'Colabora',
+      asideBody: '¿Conoces una técnica que aún no hemos documentado? Ayúdanos a expandir el archivo maestro.',
+      asideCtaLabel: 'Postular Técnica',
+      copyright: 'TELAR © 2025 · Colombia',
+      edition: 'Edición 01: El gesto primordial',
     },
   },
 ];

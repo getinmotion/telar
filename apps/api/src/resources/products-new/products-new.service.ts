@@ -660,13 +660,32 @@ export class ProductsNewService {
       return [];
     }
 
+    // Mismas relaciones que findWithPagination para que las cards de
+    // marketplace tengan imagen, técnica, oficio, etc. al hidratarse.
     const products = await this.productCoreRepository
-      .createQueryBuilder('pc')
-      .leftJoinAndSelect('pc.artisanShop', 'shop')
-      .leftJoinAndSelect('pc.category', 'category')
-      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
-      .where('pc.id IN (:...ids)', { ids })
-      .andWhere('pc.deletedAt IS NULL')
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.artisanShop', 'artisanShop')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
+      .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
+      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
+      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('product.logistics', 'logistics')
+      .leftJoinAndSelect('product.production', 'production')
+      .leftJoinAndSelect('product.media', 'media')
+      .leftJoinAndSelect('product.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
+      .leftJoinAndSelect('product.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect(
+        'product.variants',
+        'variants',
+        'variants.isActive = true AND variants.deletedAt IS NULL',
+      )
+      .where('product.id IN (:...ids)', { ids })
+      .andWhere('product.deletedAt IS NULL')
       .getMany();
 
     return products;
@@ -1346,6 +1365,7 @@ export class ProductsNewService {
       storeId?: string;
       categoryId?: string;
       status?: string;
+      search?: string;
     },
   ): Promise<{
     data: ProductCore[];
@@ -1395,6 +1415,12 @@ export class ProductsNewService {
       // Por defecto, solo mostrar productos aprobados en el marketplace público
       queryBuilder.andWhere('product.status IN (:...publicStatuses)', {
         publicStatuses: PUBLIC_STATUSES,
+      });
+    }
+
+    if (filters?.search && filters.search.trim().length > 0) {
+      queryBuilder.andWhere('product.name ILIKE :search', {
+        search: `%${filters.search.trim()}%`,
       });
     }
 

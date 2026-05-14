@@ -13,7 +13,7 @@ const ContactWizardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Cargando...</div>
       </div>
     );
@@ -24,7 +24,7 @@ const ContactWizardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <Helmet>
         <title>{`Configurar Página de Contacto - ${shop.shopName}`}</title>
         <meta name="description" content="Configura tu página de contacto con asistencia de IA" />

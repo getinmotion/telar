@@ -1,17 +1,18 @@
 /**
  * HistoriaDetail — Editorial Story Detail
  * Route: /historia/:slug
- * Reference: telar_historia_interna_refinamiento_editorial_final
+ *
+ * Carga el post desde el CMS propio. Si la API devuelve 404 / error, intenta
+ * resolverlo desde el FALLBACK estático para no romper la página.
  */
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
-import { useCMSBlogArticle } from "@/hooks/useCMSBlogArticle";
-import { StoryblokRichText } from "@/components/StoryblokRichText";
+import ReactMarkdown from "react-markdown";
+import { useBlogPost } from "@/hooks/useBlogPosts";
 import { ArrowLeft, Clock, Share2, Map, Waypoints, Store } from "lucide-react";
-import { getStoryblokImageUrl } from "@/types/storyblok";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -25,25 +26,21 @@ import {
 import { formatCurrency } from "@/lib/currencyUtils";
 import {
   getStoryKeywords,
+  getFallbackBlogPostBySlug,
   ALCIDES_STORY_SLUG,
   ARTESOL_SHOP_SLUG,
-} from "@/datafallback/fallbackStories";
+} from "@/datafallback/fallbackBlogPosts";
 import { getArtisanShopBySlug } from "@/services/artisan-shops.actions";
+import type { BlogPost } from "@/services/blog-posts.actions";
 
 // ── helpers ────────────────────────────────────────────
-/** Normalise a string for accent/case-insensitive matching. */
 function normalize(s: string | null | undefined): string {
   return (s || "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[̀-ͯ]/g, "");
 }
 
-/**
- * Score a product against a set of keywords — higher is more relevant.
- * We check name, short description, technique, craft, materials, territory
- * so the story surfaces pieces that actually match its topic.
- */
 function productKeywordScore(
   product: ProductNewCore,
   keywords: string[],
@@ -77,14 +74,21 @@ function productKeywordScore(
 
 const HistoriaDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: article, isLoading, error } = useCMSBlogArticle(slug || "");
+  const { data: apiArticle, isLoading, error } = useBlogPost(slug || "");
+
+  // Fall back to baked-in entry when the API has nothing for this slug.
+  const article: BlogPost | null = useMemo(() => {
+    if (apiArticle) return apiArticle;
+    if (error) return getFallbackBlogPostBySlug(slug);
+    return null;
+  }, [apiArticle, error, slug]);
+
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [shopProducts, setShopProducts] = useState<ProductNewCore[]>([]);
 
   const isAlcides = slug === ALCIDES_STORY_SLUG;
 
   useEffect(() => {
-    // Pull a wider window so keyword matching has something to score against.
     getProductsNew({ page: 1, limit: 100 })
       .then((res) => {
         const d = Array.isArray(res) ? res : res.data ?? [];
@@ -111,11 +115,7 @@ const HistoriaDetail = () => {
     };
   }, [isAlcides]);
 
-  // Keyword-filtered products — story keywords first, then title/description
-  // as a fallback so even CMS articles without an explicit keywords field
-  // still get a relevant slice.
   const relatedProducts = useMemo(() => {
-    // Alcides story: use Artesol shop products exclusively.
     if (isAlcides) return shopProducts.slice(0, 8);
     if (!products.length) return [];
     const explicit = getStoryKeywords(article ?? null);
@@ -136,8 +136,6 @@ const HistoriaDetail = () => {
       .sort((a, b) => b.score - a.score)
       .map((x) => x.p);
 
-    // If nothing matched, fall back to the first few products so the
-    // "Del Relato al Objeto" grid is never empty.
     return (scored.length ? scored : products).slice(0, 4);
   }, [products, article, isAlcides, shopProducts]);
 
@@ -147,7 +145,7 @@ const HistoriaDetail = () => {
       try {
         await navigator.share({
           title: article?.title,
-          text: article?.description,
+          text: article?.excerpt ?? undefined,
           url,
         });
       } catch {
@@ -173,7 +171,7 @@ const HistoriaDetail = () => {
     );
   }
 
-  if (error || !article) {
+  if (!article) {
     return (
       <div className="min-h-screen bg-[#f9f7f2] flex flex-col items-center justify-center gap-6">
         <h1 className="font-serif text-4xl italic">Historia no encontrada</h1>
@@ -196,20 +194,16 @@ const HistoriaDetail = () => {
     isAlcides && shopProducts.length > 0
       ? getPrimaryImageUrl(shopProducts[0])
       : null;
-  const coverImageUrl =
-    artesolCoverUrl ||
-    getStoryblokImageUrl(article.cover, {
-      width: 1400,
-      height: 660,
-      quality: 85,
-    });
-  const publishDate = article.first_published_at || article.published_at;
+  const coverImageUrl = artesolCoverUrl || article.coverUrl;
+  const publishDate = article.publishedAt ?? article.createdAt;
 
   return (
     <>
       <Helmet>
         <title>{article.title} | Historias TELAR</title>
-        <meta name="description" content={article.description} />
+        {article.excerpt && (
+          <meta name="description" content={article.excerpt} />
+        )}
         {coverImageUrl && (
           <meta property="og:image" content={coverImageUrl} />
         )}
@@ -217,15 +211,11 @@ const HistoriaDetail = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
-        {/* ═══════════════ HERO — NARRATIVE ENTRY ═══════════════ */}
+        {/* HERO */}
         <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28 flex flex-col items-center text-center">
           <div className="space-y-12 max-w-5xl mx-auto">
-            {/* Breadcrumb */}
             <nav className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-[#2c2c2c]/40 font-medium">
-              <Link
-                to="/"
-                className="hover:text-[#2c2c2c] transition-colors"
-              >
+              <Link to="/" className="hover:text-[#2c2c2c] transition-colors">
                 Inicio
               </Link>
               <span>/</span>
@@ -248,14 +238,13 @@ const HistoriaDetail = () => {
               <h1 className="text-5xl md:text-7xl lg:text-8xl leading-[0.9] font-serif italic tracking-tight">
                 {article.title}
               </h1>
-              {article.description && (
+              {article.excerpt && (
                 <p className="text-xl md:text-2xl text-[#2c2c2c]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
-                  {article.description}
+                  {article.excerpt}
                 </p>
               )}
             </div>
 
-            {/* Meta */}
             <div className="flex flex-wrap justify-center items-center gap-8 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2c2c2c]/50 pt-12 border-t border-[#2c2c2c]/10">
               {publishDate && (
                 <span>
@@ -265,10 +254,10 @@ const HistoriaDetail = () => {
                 </span>
               )}
               {article.category && <span>{article.category}</span>}
-              {article.reading_time && (
+              {article.readingTimeMin && (
                 <span className="flex items-center gap-2">
                   <Clock className="w-3 h-3" />
-                  {article.reading_time} min lectura
+                  {article.readingTimeMin} min lectura
                 </span>
               )}
               <button
@@ -282,59 +271,59 @@ const HistoriaDetail = () => {
           </div>
         </header>
 
-        {/* ═══════════════ COVER IMAGE ═══════════════ */}
+        {/* COVER IMAGE */}
         {coverImageUrl && (
           <section className="max-w-[1400px] mx-auto px-6 pb-24">
             <div className="aspect-[21/9] overflow-hidden rounded-sm">
               <img
                 src={coverImageUrl}
-                alt={article.cover?.alt || article.title}
+                alt={article.coverAlt ?? article.title}
                 className="w-full h-full object-cover"
               />
             </div>
             <p className="mt-4 text-[10px] tracking-widest text-[#2c2c2c]/40 uppercase text-center">
-              {article.cover?.alt || article.title}
+              {article.coverAlt ?? article.title}
             </p>
           </section>
         )}
 
-        {/* ═══════════════ SCENIC OPENING — BLOCKQUOTE ═══════════════ */}
-        {article.description && (
+        {/* BLOCKQUOTE OPENER */}
+        {article.excerpt && (
           <section className="py-24 md:py-32 px-6 flex justify-center bg-white/50 border-y border-[#2c2c2c]/5">
             <div className="max-w-3xl text-center">
               <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
               <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
-                "{article.description}"
+                "{article.excerpt}"
               </blockquote>
               <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
             </div>
           </section>
         )}
 
-        {/* ═══════════════ MAIN CONTENT (CMS RICH TEXT) ═══════════════ */}
-        {article.content && (
+        {/* MAIN CONTENT (Markdown) */}
+        {article.body && (
           <section className="py-24 md:py-32 px-6">
             <div className="max-w-3xl mx-auto prose prose-lg prose-neutral prose-headings:font-serif prose-headings:italic prose-a:text-[#ec6d13]">
-              <StoryblokRichText content={article.content} />
+              <ReactMarkdown>{article.body}</ReactMarkdown>
             </div>
           </section>
         )}
 
-        {/* ═══════════════ AUTHOR SECTION ═══════════════ */}
-        {article.author_name && (
+        {/* AUTHOR */}
+        {article.authorName && (
           <section className="py-20 bg-[#2c2c2c] text-[#f9f7f2] px-6">
             <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center space-y-6">
               <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
                 Escrito por
               </span>
               <h3 className="font-serif text-3xl italic">
-                {article.author_name}
+                {article.authorName}
               </h3>
             </div>
           </section>
         )}
 
-        {/* ═══════════════ PRODUCTS — DEL RELATO AL OBJETO ═══════════════ */}
+        {/* PRODUCTS */}
         {relatedProducts.length > 0 && (
           <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
             <div className="mb-16 text-center">
@@ -381,7 +370,7 @@ const HistoriaDetail = () => {
           </section>
         )}
 
-        {/* ═══════════════ SYSTEM NAVIGATION ═══════════════ */}
+        {/* SYSTEM NAVIGATION */}
         <section className="py-24 bg-white border-y border-[#2c2c2c]/5">
           <div className="max-w-4xl mx-auto px-6">
             <h4 className="text-[10px] font-bold tracking-[0.4em] text-center text-[#2c2c2c]/30 mb-16 uppercase">
@@ -431,7 +420,7 @@ const HistoriaDetail = () => {
           </div>
         </section>
 
-        {/* ═══════════════ NARRATIVE CLOSING ═══════════════ */}
+        {/* CLOSING */}
         <section className="py-32 md:py-40 px-6 text-center bg-[#f9f7f2]">
           <div className="max-w-3xl mx-auto space-y-16">
             <blockquote className="text-4xl md:text-5xl font-serif italic text-[#2c2c2c] leading-[1.1]">

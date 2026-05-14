@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useCmsAdmin } from '@/hooks/useCmsAdmin';
+import { ImageUploadField } from '@/components/cms/ImageUploadField';
 import type {
   CmsSection,
   CmsSectionType,
@@ -46,6 +47,8 @@ import type {
 
 const PAGE_KEYS = [
   { key: 'tecnicas', label: 'Página /tecnicas' },
+  { key: 'home', label: 'Página / (homepage)' },
+  { key: 'colecciones', label: 'Página /colecciones (índice)' },
 ];
 
 const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
@@ -53,6 +56,17 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'quote', label: 'Cita destacada' },
   { value: 'two_column_intro', label: 'Intro a dos columnas' },
   { value: 'technique_grid', label: 'Grilla de técnicas (4 cards)' },
+  { value: 'featured_aside_card', label: 'Card lateral destacada (Archivo Digital)' },
+  { value: 'metrics_stat', label: 'Métrica destacada (caja naranja)' },
+  { value: 'muestra_intro', label: 'Intro de muestra (kicker + título + cuerpo)' },
+  { value: 'archive_label', label: 'Etiqueta de archivo (label centrado)' },
+  { value: 'editorial_footer', label: 'Footer editorial (Legado Viviente)' },
+  { value: 'home_value_props', label: 'Home — Value Props (3 cards)' },
+  { value: 'home_section_header', label: 'Home — Section Header' },
+  { value: 'home_block', label: 'Home — Block (variant: light/dark/cream/bordered)' },
+  { value: 'home_hero_carousel', label: 'Home — Hero Carousel (slides editables)' },
+  { value: 'content_pick', label: 'Content Pick (banner/card que apunta a un blog o colección)' },
+  { value: 'embedded_widget', label: 'Embedded Widget (categorías, productos destacados, taller del mes…)' },
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -81,6 +95,94 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
           { title: '', body: '', slug: '', imageKey: '' },
           { title: '', body: '', slug: '', imageKey: '' },
         ],
+      };
+    case 'featured_aside_card':
+      return { title: '', body: '', ctaLabel: '', ctaHref: '' };
+    case 'metrics_stat':
+      return { kicker: '', value: '', caption: '' };
+    case 'muestra_intro':
+      return { kicker: '', title: '', body: '' };
+    case 'archive_label':
+      return { kicker: '' };
+    case 'editorial_footer':
+      return {
+        kicker: '',
+        title: '',
+        body: '',
+        links: [
+          { label: '', href: '' },
+          { label: '', href: '' },
+          { label: '', href: '' },
+        ],
+        asideTitle: '',
+        asideBody: '',
+        asideCtaLabel: '',
+        copyright: '',
+        edition: '',
+      };
+    case 'home_value_props':
+      return {
+        cards: [
+          { title: '', body: '', imageUrl: '' },
+          { title: '', body: '', imageUrl: '' },
+          { title: '', body: '', imageUrl: '' },
+        ],
+      };
+    case 'home_section_header':
+      return {
+        slot: '',
+        kicker: '',
+        title: '',
+        subtitle: '',
+        ctaLabel: '',
+        ctaHref: '',
+        imageUrl: '',
+        imageAlt: '',
+      };
+    case 'home_block':
+      return {
+        slot: '',
+        kicker: '',
+        title: '',
+        body: '',
+        ctaLabel: '',
+        ctaHref: '',
+        imageUrl: '',
+        variant: 'light',
+      };
+    case 'home_hero_carousel':
+      return {
+        description: '',
+        tagline: '',
+        primaryCtaLabel: '',
+        primaryCtaHref: '',
+        secondaryCtaLabel: '',
+        secondaryCtaHref: '',
+        autoplaySeconds: 6,
+        slides: [
+          { title: '', subtitle: '', imageUrl: '', imageAlt: '', origin: '', quote: '' },
+        ],
+      };
+    case 'content_pick':
+      return {
+        slot: '',
+        targetType: 'collection',
+        slug: '',
+        label: '',
+        ctaLabel: '',
+        variant: 'banner',
+        overrideTitle: '',
+        overrideExcerpt: '',
+        overrideImageUrl: '',
+      };
+    case 'embedded_widget':
+      return {
+        widget: 'categories_grid',
+        kicker: '',
+        title: '',
+        subtitle: '',
+        ctaLabel: '',
+        ctaHref: '',
       };
     default:
       return {};
@@ -360,9 +462,61 @@ function SectionCard({
         {section.type === 'technique_grid' && (
           <TechniqueGridForm draft={draft} setField={setField} setNested={setNested} />
         )}
-        {!['hero', 'quote', 'two_column_intro', 'technique_grid'].includes(
-          section.type,
-        ) && (
+        {section.type === 'featured_aside_card' && (
+          <FeaturedAsideCardForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'metrics_stat' && (
+          <MetricsStatForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'muestra_intro' && (
+          <MuestraIntroForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'archive_label' && (
+          <ArchiveLabelForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'editorial_footer' && (
+          <EditorialFooterForm draft={draft} setField={setField} setNested={setNested} />
+        )}
+        {section.type === 'home_value_props' && (
+          <HomeValuePropsForm draft={draft} setNested={setNested} />
+        )}
+        {section.type === 'home_section_header' && (
+          <HomeSectionHeaderForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'home_block' && (
+          <HomeBlockForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'home_hero_carousel' && (
+          <HomeHeroCarouselForm
+            draft={draft}
+            setField={setField}
+            setNested={setNested}
+            setDraft={setDraft}
+          />
+        )}
+        {section.type === 'content_pick' && (
+          <ContentPickForm draft={draft} setField={setField} />
+        )}
+        {section.type === 'embedded_widget' && (
+          <EmbeddedWidgetForm draft={draft} setField={setField} />
+        )}
+        {![
+          'hero',
+          'quote',
+          'two_column_intro',
+          'technique_grid',
+          'featured_aside_card',
+          'metrics_stat',
+          'muestra_intro',
+          'archive_label',
+          'editorial_footer',
+          'home_value_props',
+          'home_section_header',
+          'home_block',
+          'home_hero_carousel',
+          'content_pick',
+          'embedded_widget',
+        ].includes(section.type) && (
           <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); setDirty(true); }} />
         )}
 
@@ -487,6 +641,371 @@ function TechniqueGridForm({ draft, setField, setNested }: any) {
             </CardContent>
           </Card>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function FeaturedAsideCardForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+      <FieldText label="Texto del CTA" value={draft.ctaLabel} onChange={(v) => setField('ctaLabel', v)} placeholder="Ver Catálogo" />
+      <FieldText label="Link del CTA (opcional)" value={draft.ctaHref} onChange={(v) => setField('ctaHref', v)} placeholder="/catalogo" />
+    </div>
+  );
+}
+
+function MetricsStatForm({ draft, setField }: any) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Métricas 2024" />
+      <FieldText label="Valor" value={draft.value} onChange={(v) => setField('value', v)} placeholder="24" />
+      <div className="md:col-span-3">
+        <FieldArea label="Caption" value={draft.caption} onChange={(v) => setField('caption', v)} rows={2} />
+      </div>
+    </div>
+  );
+}
+
+function MuestraIntroForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+    </div>
+  );
+}
+
+function ArchiveLabelForm({ draft, setField }: any) {
+  return (
+    <FieldText label="Etiqueta (kicker centrado)" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Exploración del Archivo" />
+  );
+}
+
+function EditorialFooterForm({ draft, setField, setNested }: any) {
+  const links = draft.links ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+      <div>
+        <Label className="text-xs uppercase tracking-widest mb-2 block">Links</Label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[0, 1, 2].map((i) => (
+            <Card key={i} className="bg-muted/30">
+              <CardContent className="pt-4 space-y-2">
+                <FieldText label={`Link ${i + 1}`} value={links[i]?.label ?? ''} onChange={(v) => setNested(['links', i, 'label'], v)} />
+                <FieldText label="href" value={links[i]?.href ?? ''} onChange={(v) => setNested(['links', i, 'href'], v)} placeholder="/historias" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Aside — Título" value={draft.asideTitle} onChange={(v) => setField('asideTitle', v)} />
+        <FieldText label="Aside — CTA" value={draft.asideCtaLabel} onChange={(v) => setField('asideCtaLabel', v)} />
+        <div className="md:col-span-2">
+          <FieldArea label="Aside — Cuerpo" value={draft.asideBody} onChange={(v) => setField('asideBody', v)} rows={3} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Copyright" value={draft.copyright} onChange={(v) => setField('copyright', v)} placeholder="TELAR © 2025 · Colombia" />
+        <FieldText label="Edición" value={draft.edition} onChange={(v) => setField('edition', v)} placeholder="Edición 01: El gesto primordial" />
+      </div>
+    </div>
+  );
+}
+
+function HomeValuePropsForm({ draft, setNested }: any) {
+  const cards = draft.cards ?? [];
+  return (
+    <div className="space-y-4">
+      <Label className="text-xs uppercase tracking-widest">Cards (3)</Label>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[0, 1, 2].map((i) => (
+          <Card key={i} className="bg-muted/30">
+            <CardContent className="pt-6 space-y-3">
+              <FieldText label={`Título ${i + 1}`} value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
+              <FieldArea label="Cuerpo" value={cards[i]?.body ?? ''} onChange={(v) => setNested(['cards', i, 'body'], v)} rows={3} />
+              <ImageUploadField
+                label="Imagen (opcional)"
+                value={cards[i]?.imageUrl ?? ''}
+                onChange={(v) => setNested(['cards', i, 'imageUrl'], v)}
+                previewAspect="1/1"
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeSectionHeaderForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Slot (categories | featured_products | colecciones_header | …)" value={draft.slot ?? ''} onChange={(v) => setField('slot', v)} placeholder="featured_products" />
+      <FieldText label="Kicker" value={draft.kicker ?? ''} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title ?? ''} onChange={(v) => setField('title', v)} />
+      <FieldText label="Subtítulo" value={draft.subtitle ?? ''} onChange={(v) => setField('subtitle', v)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="CTA texto" value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+        <FieldText label="CTA href" value={draft.ctaHref ?? ''} onChange={(v) => setField('ctaHref', v)} />
+      </div>
+      <ImageUploadField
+        label="Imagen del hero (opcional, slot 'colecciones_header')"
+        value={draft.imageUrl ?? ''}
+        onChange={(v) => setField('imageUrl', v)}
+        altValue={draft.imageAlt ?? ''}
+        onAltChange={(v) => setField('imageAlt', v)}
+      />
+    </div>
+  );
+}
+
+function EmbeddedWidgetForm({ draft, setField }: any) {
+  const widget = draft.widget ?? 'categories_grid';
+  const supportsHeader = widget === 'categories_grid' || widget === 'featured_products';
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-xs uppercase tracking-widest">Widget</Label>
+        <Select value={widget} onValueChange={(v) => setField('widget', v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="categories_grid">Grid de categorías (8 cards)</SelectItem>
+            <SelectItem value="featured_products">Productos destacados (3 cards)</SelectItem>
+            <SelectItem value="huella_digital">Huella digital (texto + imagen)</SelectItem>
+            <SelectItem value="featured_shop">Taller del mes</SelectItem>
+            <SelectItem value="regalos_con_historia">Regalos con historia</SelectItem>
+            <SelectItem value="colecciones_overview">Overview de colecciones (3 cards)</SelectItem>
+            <SelectItem value="aliados">Aliados</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Cápsula hardcoded con su propia data (productos, talleres, taxonomía). El payload solo puede pasar copy de header — la data viene de la DB.
+        </p>
+      </div>
+      {supportsHeader && (
+        <>
+          <FieldText label="Kicker (opcional)" value={draft.kicker ?? ''} onChange={(v) => setField('kicker', v)} />
+          <FieldText label="Título (opcional)" value={draft.title ?? ''} onChange={(v) => setField('title', v)} />
+          <FieldText label="Subtítulo (opcional)" value={draft.subtitle ?? ''} onChange={(v) => setField('subtitle', v)} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FieldText label="CTA texto" value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+            <FieldText label="CTA href" value={draft.ctaHref ?? ''} onChange={(v) => setField('ctaHref', v)} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ContentPickForm({ draft, setField }: any) {
+  const isBlog = draft.targetType === 'blog';
+  return (
+    <div className="space-y-4">
+      <FieldText
+        label="Slot (identificador único — ej. home_pick_1, colecciones_pick_featured)"
+        value={draft.slot ?? ''}
+        onChange={(v) => setField('slot', v)}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-widest">Tipo de destino</Label>
+          <Select
+            value={draft.targetType ?? 'collection'}
+            onValueChange={(v) => setField('targetType', v)}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="collection">Colección</SelectItem>
+              <SelectItem value="blog">Blog post</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase tracking-widest">Variante visual</Label>
+          <Select
+            value={draft.variant ?? 'banner'}
+            onValueChange={(v) => setField('variant', v)}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="banner">Banner (full-width oscuro)</SelectItem>
+              <SelectItem value="card">Card (con cover arriba)</SelectItem>
+              <SelectItem value="inline">Inline (lista compacta)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <FieldText
+        label={isBlog ? 'Slug del blog post (ej. cauca-seda-paz)' : 'Slug de la colección (ej. dia-de-la-madre)'}
+        value={draft.slug ?? ''}
+        onChange={(v) => setField('slug', v)}
+        placeholder={isBlog ? 'cauca-seda-paz' : 'dia-de-la-madre'}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="Label / pill (ej. Editorial)" value={draft.label ?? ''} onChange={(v) => setField('label', v)} />
+        <FieldText label={`CTA texto (default: ${isBlog ? 'Leer historia' : 'Ver colección'})`} value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+      </div>
+      <div className="border-t pt-3">
+        <p className="text-xs text-muted-foreground mb-3">
+          Overrides opcionales — pisan los datos del doc referenciado. Deja vacío para usar los originales.
+        </p>
+        <FieldText label="Override título" value={draft.overrideTitle ?? ''} onChange={(v) => setField('overrideTitle', v)} />
+        <FieldArea label="Override excerpt" value={draft.overrideExcerpt ?? ''} onChange={(v) => setField('overrideExcerpt', v)} rows={2} />
+        <ImageUploadField
+          label="Override imagen"
+          value={draft.overrideImageUrl ?? ''}
+          onChange={(v) => setField('overrideImageUrl', v)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HomeBlockForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Slot (marketplace_diferente | comercio_justo | …)" value={draft.slot ?? ''} onChange={(v) => setField('slot', v)} />
+      <div className="space-y-1.5">
+        <Label className="text-xs uppercase tracking-widest">Variante</Label>
+        <Select value={draft.variant ?? 'light'} onValueChange={(v) => setField('variant', v)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light">Claro</SelectItem>
+            <SelectItem value="dark">Oscuro (fondo negro)</SelectItem>
+            <SelectItem value="cream">Crema (con imagen)</SelectItem>
+            <SelectItem value="bordered">Bordeado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <FieldText label="Kicker" value={draft.kicker ?? ''} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title ?? ''} onChange={(v) => setField('title', v)} />
+      <FieldArea label="Cuerpo" value={draft.body ?? ''} onChange={(v) => setField('body', v)} rows={4} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FieldText label="CTA texto" value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
+        <FieldText label="CTA href" value={draft.ctaHref ?? ''} onChange={(v) => setField('ctaHref', v)} />
+      </div>
+      <ImageUploadField
+        label="Imagen (opcional, se muestra en variant cream/bordered)"
+        value={draft.imageUrl ?? ''}
+        onChange={(v) => setField('imageUrl', v)}
+      />
+    </div>
+  );
+}
+
+function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: any) {
+  const slides: any[] = Array.isArray(draft.slides) ? draft.slides : [];
+
+  const addSlide = () => {
+    setDraft((prev: any) => ({
+      ...prev,
+      slides: [
+        ...(prev.slides ?? []),
+        { title: '', subtitle: '', imageUrl: '', imageAlt: '', origin: '', quote: '' },
+      ],
+    }));
+  };
+
+  const removeSlide = (i: number) => {
+    setDraft((prev: any) => ({
+      ...prev,
+      slides: (prev.slides ?? []).filter((_: any, idx: number) => idx !== i),
+    }));
+  };
+
+  const moveSlide = (i: number, dir: -1 | 1) => {
+    setDraft((prev: any) => {
+      const arr = [...(prev.slides ?? [])];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return prev;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...prev, slides: arr };
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-muted/30">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Contenido compartido (todas las slides)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <FieldArea label="Descripción (párrafo)" value={draft.description ?? ''} onChange={(v) => setField('description', v)} rows={2} />
+          <FieldText label="Tagline (UPPERCASE)" value={draft.tagline ?? ''} onChange={(v) => setField('tagline', v)} placeholder="Hecho a mano por talleres..." />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <FieldText label="CTA primario — texto" value={draft.primaryCtaLabel ?? ''} onChange={(v) => setField('primaryCtaLabel', v)} placeholder="Explorar Piezas" />
+            <FieldText label="CTA primario — link" value={draft.primaryCtaHref ?? ''} onChange={(v) => setField('primaryCtaHref', v)} placeholder="/productos" />
+            <FieldText label="CTA secundario — texto" value={draft.secondaryCtaLabel ?? ''} onChange={(v) => setField('secondaryCtaLabel', v)} placeholder="Conocer Talleres" />
+            <FieldText label="CTA secundario — link" value={draft.secondaryCtaHref ?? ''} onChange={(v) => setField('secondaryCtaHref', v)} placeholder="/tiendas" />
+          </div>
+          <div className="space-y-1.5 max-w-xs">
+            <Label className="text-xs uppercase tracking-widest">Autoplay (seg)</Label>
+            <Input
+              type="number"
+              min={2}
+              max={30}
+              value={draft.autoplaySeconds ?? 6}
+              onChange={(e) =>
+                setField('autoplaySeconds', parseInt(e.target.value, 10) || 6)
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold">Slides ({slides.length})</Label>
+        <Button type="button" variant="outline" size="sm" onClick={addSlide} className="gap-2">
+          <Plus className="w-4 h-4" /> Añadir slide
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {slides.map((slide, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm">Slide #{i + 1}</CardTitle>
+              <div className="flex items-center gap-1">
+                <Button type="button" variant="ghost" size="icon" disabled={i === 0} onClick={() => moveSlide(i, -1)} title="Subir">
+                  <ArrowUp className="w-4 h-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" disabled={i === slides.length - 1} onClick={() => moveSlide(i, 1)} title="Bajar">
+                  <ArrowDown className="w-4 h-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeSlide(i)} className="text-destructive" title="Eliminar">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <FieldText label="Título" value={slide.title ?? ''} onChange={(v) => setNested(['slides', i, 'title'], v)} placeholder="HISTORIAS HECHAS" />
+                <FieldText label="Subtítulo (cursiva color primario)" value={slide.subtitle ?? ''} onChange={(v) => setNested(['slides', i, 'subtitle'], v)} placeholder="A MANO" />
+                <FieldText label="Origen" value={slide.origin ?? ''} onChange={(v) => setNested(['slides', i, 'origin'], v)} placeholder="Nariño, Colombia" />
+                <FieldText label="Quote" value={slide.quote ?? ''} onChange={(v) => setNested(['slides', i, 'quote'], v)} placeholder="Cada puntada..." />
+              </div>
+              <ImageUploadField
+                label="Imagen del slide"
+                value={slide.imageUrl ?? ''}
+                onChange={(v) => setNested(['slides', i, 'imageUrl'], v)}
+                altValue={slide.imageAlt ?? ''}
+                onAltChange={(v) => setNested(['slides', i, 'imageAlt'], v)}
+                previewAspect="4/3"
+              />
+            </CardContent>
+          </Card>
+        ))}
+        {slides.length === 0 && (
+          <p className="text-sm text-muted-foreground">No hay slides. Añade al menos uno.</p>
+        )}
       </div>
     </div>
   );

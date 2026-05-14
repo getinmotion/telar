@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Technique } from './entities/technique.entity';
 import { CreateTechniqueDto } from './dto/create-technique.dto';
 import { UpdateTechniqueDto } from './dto/update-technique.dto';
+import { ProductArtisanalIdentity } from '../products-new/entities/product-artisanal-identity.entity';
 
 @Injectable()
 export class TechniquesService {
@@ -55,7 +56,7 @@ export class TechniquesService {
     const rows = await this.techniquesRepository
       .createQueryBuilder('t')
       .leftJoin(
-        'shop.product_artisanal_identity',
+        ProductArtisanalIdentity,
         'pai',
         '(pai.primary_technique_id = t.id OR pai.secondary_technique_id = t.id) AND pai.deleted_at IS NULL',
       )

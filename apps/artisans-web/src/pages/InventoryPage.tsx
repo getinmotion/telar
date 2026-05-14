@@ -25,7 +25,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft,
   Plus,
   Search,
   Edit,
@@ -282,7 +281,7 @@ export const InventoryPage: React.FC = () => {
 
   if (!shop) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-2xl font-semibold mb-2">No tienes una tienda</h2>
@@ -298,18 +297,11 @@ export const InventoryPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 overflow-y-auto">
       {/* Header */}
-      <div className="border-b bg-card">
+      <div className="border-b border-white/50 glass-header">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/mi-tienda")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
             <div>
               <h1 className="text-2xl font-bold">Inventario de Productos</h1>
               <p className="text-sm text-muted-foreground">

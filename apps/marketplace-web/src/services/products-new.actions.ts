@@ -68,10 +68,10 @@ export interface ProductArtisanalIdentity {
 
 export interface ProductPhysicalSpecs {
   id: string;
-  width?: number;
-  height?: number;
-  depth?: number;
-  weight?: number;
+  heightCm?: number;
+  widthCm?: number;
+  lengthOrDiameterCm?: number;
+  realWeightKg?: number;
 }
 
 export interface ProductProduction {
@@ -217,6 +217,13 @@ export const getProductNewById = async (id: string): Promise<ProductNewCore> => 
 /** GET /products-new/category/:categoryId — products by category */
 export const getProductsByCategory = async (categoryId: string): Promise<ProductNewCore[]> => {
   const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/category/${categoryId}`);
+  return response.data;
+};
+
+/** POST /products-new/by-ids — hidrata productos por IDs (usado por bloques CMS) */
+export const getProductsByIds = async (ids: string[]): Promise<ProductNewCore[]> => {
+  if (!ids || ids.length === 0) return [];
+  const response = await telarApiPublic.post<ProductNewCore[]>('/products-new/by-ids', { ids });
   return response.data;
 };
 

@@ -1,254 +1,385 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/context/AuthContext';
 import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
 import { getProductsByShopId, getMarketplaceProductsByShopId } from '@/services/products.actions';
-import { ShopThemeProvider } from '@/contexts/ShopThemeContext';
-import { ShopNavbar } from '@/components/shop/ShopNavbar';
-import { ShopFooter } from '@/components/shop/ShopFooter';
 import { ShoppingCartProvider } from '@/contexts/ShoppingCartContext';
-import { Button } from '@/components/ui/button';
-import { Eye, ArrowLeft } from 'lucide-react';
-
-// Bruvi-style components
-import { PromoBanner } from '@/components/shop/bruvi/PromoBanner';
-import { BruviStyleHero } from '@/components/shop/bruvi/BruviStyleHero';
-import { CategorySelector } from '@/components/shop/bruvi/CategorySelector';
-import { BenefitsSection } from '@/components/shop/bruvi/BenefitsSection';
-import { FeaturedProductsCarousel } from '@/components/shop/bruvi/FeaturedProductsCarousel';
-import { StorytellingBlock } from '@/components/shop/bruvi/StorytellingBlock';
-import { TestimonialsSection } from '@/components/shop/bruvi/TestimonialsSection';
-import { ImpactSection } from '@/components/shop/bruvi/ImpactSection';
+import {
+  T, glassCard, glassLoom, pageBg, normShop, getHeroImage, getShopLocation,
+  getAvailabilityInfo, formatPriceCOP, getProductImage, getMaterialsLabel,
+  LabelCaps, HeadingSerif, ShopTopBar, ShopPublicFooter, TrustStrip,
+  ProductCardLarge, ProductCardCompact, GlassContainer,
+  ShopLoadingState, ShopNotFoundState,
+} from '@/components/shop/public/ShopPublicShell';
 
 export default function PublicShopPageNew() {
-  const { shopSlug } = useParams();
+  const { shopSlug } = useParams<{ shopSlug: string }>();
   const navigate = useNavigate();
   const { user: currentUser, loading: authLoading } = useAuth();
-  const [shop, setShop] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  const [rawShop,   setRawShop]   = useState<any>(null);
+  const [products,  setProducts]  = useState<any[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [isOwner,   setIsOwner]   = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
+  const [filter,    setFilter]    = useState('all');
 
   const isPreviewRequest = new URLSearchParams(window.location.search).get('preview') === 'true';
-
-  // Para modo preview esperamos que auth resuelva; en vista pública cargamos de inmediato
   const authLoaded = !isPreviewRequest || !authLoading;
 
   useEffect(() => {
     if (!authLoaded || !shopSlug) return;
-
-    const fetchShopData = async () => {
+    (async () => {
       try {
-        setIsPreviewMode(isPreviewRequest);
-
+        setIsPreview(isPreviewRequest);
         const shopData = await getArtisanShopBySlug(shopSlug);
+        if (!shopData) { setLoading(false); return; }
 
-        if (!shopData) {
-          setLoading(false);
-          return;
-        }
-
-        // Solo el dueño en modo preview tiene vista completa (todos los productos)
         const ownerCheck = isPreviewRequest && !!currentUser && shopData.userId === currentUser.id;
         setIsOwner(ownerCheck);
+        if (!ownerCheck && shopData.publishStatus !== 'published') { navigate('/tiendas'); return; }
+        setRawShop(shopData);
 
-        if (ownerCheck) {
-          setShop(shopData);
-        } else {
-          if (shopData.publishStatus !== 'published') {
-            navigate('/tiendas');
-            return;
-          }
-          setShop(shopData);
-        }
-
-        // Dueño: todos los productos | Público: solo aprobados vía marketplace
-        const productsData = ownerCheck
+        const prods = ownerCheck
           ? await getProductsByShopId(shopData.id)
           : await getMarketplaceProductsByShopId(shopData.id);
-
-        setProducts(productsData);
-      } catch (error) {
-        console.error('Error fetching shop:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchShopData();
+        setProducts(prods);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    })();
   }, [shopSlug, authLoaded, navigate]);
 
-  // Calculate categories from products
+  const shop = useMemo(() => rawShop ? normShop(rawShop) : null, [rawShop]);
+
+  const artisanProfile  = shop?.artisanProfile ?? null;
+  const profileDone     = shop?.artisanProfileCompleted === true;
+  const heroImage       = shop ? getHeroImage(shop) : null;
+  const location        = shop ? getShopLocation(shop) : '';
+
   const categories = useMemo(() => {
-    const categoryMap = new Map<string, number>();
-    products.forEach(product => {
-      const cat = product.category || shop?.craftType || 'artesanías';
-      categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
+    const s = new Set<string>();
+    products.forEach(p => { if (p.category) s.add(p.category); });
+    return Array.from(s);
+  }, [products]);
+
+  const filtered = useMemo(() => {
+    if (filter === 'all')        return products;
+    if (filter === 'disponible') return products.filter(p => {
+      const t = p.production?.availabilityType ?? p.availabilityType ?? '';
+      return t === 'en_stock' || t === '';
     });
-    return Array.from(categoryMap.entries()).map(([name, count]) => ({
-      name,
-      icon: '✨',
-      count
-    }));
-  }, [products, shop?.craftType]);
+    if (filter === 'pedido')     return products.filter(p =>
+      (p.production?.availabilityType ?? p.availabilityType) === 'bajo_pedido');
+    if (filter === 'agotado')    return products.filter(p => (p.inventory ?? 999) === 0);
+    return products.filter(p => p.category === filter);
+  }, [products, filter]);
 
-  const handleProductClick = (productId: string) => {
-    const previewParam = isPreviewMode ? '?preview=true' : '';
-    navigate(`/tienda/${shopSlug}/producto/${productId}${previewParam}`);
-  };
+  const galleryPhotos = useMemo(() => ([
+    ...(artisanProfile?.workingPhotos   ?? []),
+    ...(artisanProfile?.maestrosPhotos  ?? []),
+    ...(artisanProfile?.communityPhotos ?? []),
+    ...(artisanProfile?.environmentPhotos ?? []),
+  ] as string[]).filter(Boolean).slice(0, 4), [artisanProfile]);
 
-  const scrollToProducts = () => {
-    document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const handleProduct = (id: string) =>
+    navigate(`/tienda/${shopSlug}/producto/${id}${isPreview ? '?preview=true' : ''}`);
 
-  const scrollToStory = () => {
-    document.getElementById('historia')?.scrollIntoView({ behavior: 'smooth' });
-  };
+  if (loading) return <ShopLoadingState />;
+  if (!shop)   return <ShopNotFoundState message="Tienda no encontrada" />;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Cargando tienda...</div>
-      </div>
-    );
-  }
-
-  if (!shop) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Tienda no encontrada</h2>
-          <p className="text-muted-foreground">La tienda que buscas no existe o no está disponible</p>
-        </div>
-      </div>
-    );
-  }
-
-  const theme = {
-    palette: {
-      primary: { '500': shop.primaryColors?.[0] || '#142239' },
-      secondary: { '500': shop.secondaryColors?.[0] || '#ffc716' },
-      accent: { '500': '#f48c5f' },
-      neutral: { '500': '#78716c', '50': '#fafaf9', '900': '#1c1917' },
-      success: { '500': '#3AA76D' },
-      warning: { '500': '#E9B64F' },
-      error: { '500': '#E04F5F' },
-      info: { '500': '#4D8DE3' }
-    }
-  };
-
-  const heroImage = shop.heroConfig?.slides?.[0]?.imageUrl ||
-    shop.heroConfig?.slides?.[0]?.image ||
-    shop.bannerUrl ||
-    shop.logoUrl;
+  const FILTERS = [
+    { key: 'all',        label: 'Todos' },
+    { key: 'disponible', label: 'Disponibles' },
+    { key: 'pedido',     label: 'Bajo pedido' },
+    { key: 'agotado',    label: 'Agotados' },
+    ...categories.map(c => ({ key: c, label: c })),
+  ];
 
   return (
     <ShoppingCartProvider>
-      <ShopThemeProvider theme={theme}>
-        <div className="min-h-screen bg-background">
-          <Helmet>
-            <title>{`${shop.shopName} - Tienda Artesanal`}</title>
-            <meta name="description" content={shop.description ?? ''} />
-          </Helmet>
+      <div style={pageBg}>
+        <Helmet>
+          <title>{`${shop.shopName} · Taller Artesanal TELAR`}</title>
+          <meta name="description" content={shop.description ?? shop.brandClaim ?? ''} />
+        </Helmet>
 
-          {/* Preview Header */}
-          {isPreviewMode && isOwner && (
-            <div className="sticky top-0 z-50 bg-foreground text-background py-3 px-4">
-              <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  <span className="font-medium">Vista Previa</span>
-                  <span className="text-sm opacity-80 hidden sm:inline">- Esta tienda aún no está publicada</span>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => navigate('/mi-tienda')}
-                  className="flex items-center gap-2"
+        <ShopTopBar shop={shop} shopSlug={shopSlug!} activePage="home"
+          isPreviewMode={isPreview} isOwner={isOwner} />
+
+        <TrustStrip />
+
+        <GlassContainer>
+
+          {/* ── 1. Hero ─────────────────────────────────────────────────── */}
+          <section className="grid grid-cols-12 border-b" style={{ borderColor: 'rgba(255,255,255,0.6)' }}>
+            <div className="col-span-12 md:col-span-7 p-10 flex flex-col justify-center gap-5">
+              <div className="space-y-1">
+                {location && (
+                  <div className="flex items-center gap-1.5" style={{ color: T.orange }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>location_on</span>
+                    <LabelCaps color={T.orange}>{location}</LabelCaps>
+                  </div>
+                )}
+                <LabelCaps>Taller verificado por TELAR</LabelCaps>
+              </div>
+
+              <HeadingSerif as="h1" size={44} style={{ maxWidth: 520 }}>{shop.shopName}</HeadingSerif>
+
+              {(shop.description || shop.brandClaim) && (
+                <p style={{ fontFamily: T.sans, fontSize: 16, fontWeight: 500, color: `${T.muted}90`, maxWidth: 480, lineHeight: 1.6 }}>
+                  {shop.description || shop.brandClaim}
+                </p>
+              )}
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {shop.marketplaceApproved && (
+                  <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-[800] uppercase tracking-wider"
+                    style={{ background: `${T.green}10`, color: T.green, borderColor: `${T.green}25`, fontFamily: T.sans }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 1" }}>verified</span>
+                    Taller verificado
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-[800] uppercase tracking-wider"
+                  style={{ background: `${T.dark}06`, borderColor: 'rgba(255,255,255,0.65)', fontFamily: T.sans, color: T.dark }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 13 }}>qr_code_2</span>
+                  Pasaporte digital
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-[800] uppercase tracking-wider"
+                  style={{ background: `${T.dark}06`, borderColor: 'rgba(255,255,255,0.65)', fontFamily: T.sans, color: T.dark }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 13 }}>eco</span>
+                  Hecho en Colombia
+                </span>
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 pt-2">
+                <button
+                  onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-8 py-3.5 rounded-full text-white"
+                  style={{ background: T.orange, fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', boxShadow: `0 8px 24px ${T.orange}35` }}
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Volver al Dashboard
-                </Button>
+                  Comprar piezas
+                </button>
+                {profileDone && (
+                  <button
+                    onClick={() => document.getElementById('historia')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="px-8 py-3.5 rounded-full border transition-colors hover:bg-black/5"
+                    style={{ border: `1px solid ${T.dark}15`, color: T.dark, fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}
+                  >
+                    Conocer historia
+                  </button>
+                )}
+              </div>
+
+              {products.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: T.green }} />
+                  <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}70` }}>
+                    {products.length} {products.length === 1 ? 'pieza disponible' : 'piezas en catálogo'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Hero image */}
+            <div className="col-span-12 md:col-span-5 relative min-h-[380px] overflow-hidden">
+              {heroImage
+                ? <img src={heroImage} alt={shop.shopName} className="absolute inset-0 w-full h-full object-cover" />
+                : <div className="absolute inset-0 flex items-center justify-center" style={{ background: `${T.dark}06` }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 56, color: `${T.muted}20` }}>storefront</span>
+                  </div>
+              }
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to right, rgba(255,255,255,0.15), transparent)` }} />
+            </div>
+          </section>
+
+          {/* ── 2. Productos destacados ─────────────────────────────────── */}
+          {products.length > 0 && (
+            <section className="p-10 border-b space-y-7" style={{ borderColor: 'rgba(255,255,255,0.6)' }}>
+              <div className="flex items-end justify-between">
+                <div className="space-y-1">
+                  <LabelCaps color={T.orange}>Lanzamientos recientes</LabelCaps>
+                  <HeadingSerif size={26}>Piezas seleccionadas</HeadingSerif>
+                </div>
+                <Link to={`/tienda/${shopSlug}/catalogo`}
+                  className="flex items-center gap-1.5 border-b pb-0.5 transition-colors hover:border-orange-400"
+                  style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: `${T.muted}70`, borderColor: `${T.muted}30` }}>
+                  Ver catálogo completo
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>arrow_forward</span>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {products.slice(0, 3).map(p => (
+                  <ProductCardLarge key={p.id} product={p} onClick={() => handleProduct(p.id)} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── 3. Catálogo completo con filtros ───────────────────────── */}
+          {products.length > 0 && (
+            <section id="catalogo" className="p-10 border-b space-y-6" style={{ background: `${T.base}40`, borderColor: 'rgba(255,255,255,0.6)' }}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <HeadingSerif size={24}>Todos los productos</HeadingSerif>
+                <div className="flex flex-wrap gap-2">
+                  {FILTERS.map(({ key, label }) => (
+                    <button key={key} onClick={() => setFilter(key)}
+                      className="px-4 py-2 rounded-full transition-all"
+                      style={{
+                        fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+                        background: filter === key ? T.dark : 'white',
+                        color:      filter === key ? 'white' : `${T.muted}70`,
+                        border:     `1px solid ${filter === key ? T.dark : `${T.dark}14`}`,
+                      }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {filtered.length === 0
+                ? <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}50` }} className="py-10 text-center">
+                    No hay productos en esta categoría.
+                  </p>
+                : <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+                    {filtered.map(p => (
+                      <ProductCardCompact key={p.id} product={p} onClick={() => handleProduct(p.id)} />
+                    ))}
+                  </div>
+              }
+            </section>
+          )}
+
+          {/* ── 4. Trust signals row ────────────────────────────────────── */}
+          <section className="grid grid-cols-2 md:grid-cols-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.28)' }}>
+            {[
+              { label: 'Años de oficio',  value: artisanProfile?.startAge ? `${artisanProfile.startAge}+` : '—' },
+              { label: 'Técnica',         value: artisanProfile?.techniques?.[0] ?? shop.craftType ?? '—' },
+              { label: 'Territorio',      value: shop.municipality ?? shop.department ?? shop.region ?? '—' },
+              { label: 'Materiales',      value: artisanProfile?.materials?.[0] ?? 'Naturales' },
+              { label: 'Piezas',          value: `${products.length}` },
+              { label: 'Taller',          value: shop.marketplaceApproved ? 'Verificado' : 'Activo', color: shop.marketplaceApproved ? T.green : T.dark },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="p-5 text-center space-y-1.5 border-r last:border-r-0" style={{ borderColor: 'rgba(255,255,255,0.65)' }}>
+                <LabelCaps>{label}</LabelCaps>
+                <p style={{ fontFamily: T.serif, fontSize: 18, fontWeight: 700, color: color ?? T.dark, lineHeight: 1.2 }}>{value}</p>
+              </div>
+            ))}
+          </section>
+
+          {/* ── 5. Historia del artesano ────────────────────────────────── */}
+          {profileDone && artisanProfile && (
+            <section id="historia" className="grid grid-cols-1 md:grid-cols-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.6)' }}>
+              <div className="p-10 flex flex-col justify-center gap-6">
+                <LabelCaps color={T.orange}>La voz detrás del taller</LabelCaps>
+                <blockquote style={{ fontFamily: T.serif, fontSize: 26, fontWeight: 700, color: T.dark, lineHeight: 1.35, fontStyle: 'italic', maxWidth: 460 }}>
+                  "{artisanProfile.learnedFromDetail || artisanProfile.culturalMeaning || 'Cada pieza lleva años de tradición y dedicación.'}"
+                </blockquote>
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-8" style={{ background: `${T.muted}40` }} />
+                  <p style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 700, color: T.dark }}>
+                    {artisanProfile.artisanName || shop.shopName}
+                  </p>
+                </div>
+                <Link to={`/tienda/${shopSlug}/perfil-artesanal`}
+                  className="w-fit border-b pb-0.5"
+                  style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.dark, borderColor: `${T.dark}35` }}>
+                  Leer historia completa
+                </Link>
+              </div>
+              <div className="relative min-h-[340px] overflow-hidden">
+                {artisanProfile.artisanPhoto
+                  ? <img src={artisanProfile.artisanPhoto} alt={artisanProfile.artisanName} className="absolute inset-0 w-full h-full object-cover" />
+                  : <div className="absolute inset-0 flex items-center justify-center" style={{ background: `${T.dark}08` }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 64, color: `${T.muted}20` }}>person</span>
+                    </div>
+                }
+              </div>
+            </section>
+          )}
+
+          {/* ── 6. Autenticidad TELAR ───────────────────────────────────── */}
+          <section className="p-10" style={{ background: T.dark }}>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+              <div className="md:col-span-4 space-y-4">
+                <HeadingSerif size={24} style={{ color: 'white' }}>Autenticidad verificada por TELAR</HeadingSerif>
+                <p style={{ fontFamily: T.sans, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>
+                  Cada pieza del taller incluye un pasaporte digital que documenta su origen, técnica, materiales y trazabilidad completa.
+                </p>
+                <button className="mt-2 px-7 py-3 rounded-full text-white"
+                  style={{ background: T.orange, fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                  Saber más
+                </button>
+              </div>
+              <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
+                {[
+                  { icon: 'eco',       title: 'Materia prima',   sub: 'Trazabilidad total' },
+                  { icon: 'back_hand', title: 'Hecho a mano',    sub: 'Técnica ancestral' },
+                  { icon: 'verified',  title: 'Calidad',         sub: 'Revisión editorial' },
+                  { icon: 'qr_code_2', title: 'Pasaporte',       sub: 'Origen verificado' },
+                ].map(({ icon, title, sub }) => (
+                  <div key={title} className="space-y-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center border"
+                      style={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.12)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.orange }}>{icon}</span>
+                    </div>
+                    <div>
+                      <p style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'white' }}>{title}</p>
+                      <p style={{ fontFamily: T.sans, fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{sub}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
-
-          {/* 1. Promo Banner */}
-          <PromoBanner
-            region={shop.region?.replace(/_/g, ' ')}
-            craftType={shop.craftType?.replace(/-/g, ' ')}
-          />
-
-          {/* 2. Navbar */}
-          <ShopNavbar
-            shopName={shop.shopName}
-            logoUrl={shop.logoUrl}
-            shopSlug={shopSlug}
-            artisanProfileCompleted={shop.artisanProfileCompleted}
-          />
-
-          {/* 3. Hero Principal - Bruvi Style */}
-          <BruviStyleHero
-            shopName={shop.shopName}
-            description={shop.description || shop.brandClaim}
-            heroImage={heroImage}
-            logoUrl={shop.logoUrl}
-            onViewProducts={scrollToProducts}
-            onKnowArtisan={scrollToStory}
-          />
-
-          {/* 4. Category Selector */}
-          {categories.length > 0 && (
-            <CategorySelector
-              categories={categories}
-              onCategoryClick={(category) => {
-                scrollToProducts();
-              }}
-            />
-          )}
-
-          {/* 5. Benefits Section */}
-          <BenefitsSection />
-
-          {/* 6. Featured Products Carousel */}
-          <section id="productos">
-            <FeaturedProductsCarousel
-              products={products.slice(0, 8)}
-              onProductClick={handleProductClick}
-            />
           </section>
 
-          {/* 7. Storytelling Block */}
-          <section id="historia">
-            <StorytellingBlock
-              shopName={shop.shopName}
-              story={shop.story || shop.aboutContent?.story}
-              imageUrl={shop.bannerUrl || shop.logoUrl}
-              onKnowMore={() => {
-                const preview = isPreviewMode ? '?preview=true' : '';
-                navigate(`/tienda/${shopSlug}/${shop.artisanProfileCompleted ? 'perfil-artesanal' : 'nosotros'}${preview}`);
-              }}
-            />
+          {/* ── 7. Galería humana + CTA final ──────────────────────────── */}
+          <section>
+            {galleryPhotos.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4" style={{ height: 200 }}>
+                {galleryPhotos.map((url, i) => (
+                  <div key={i} className="relative overflow-hidden border-r last:border-r-0" style={{ borderColor: `${T.dark}10` }}>
+                    <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                ))}
+                {Array.from({ length: Math.max(0, 4 - galleryPhotos.length) }).map((_, i) => (
+                  <div key={`e${i}`} className="flex items-center justify-center border-r last:border-r-0"
+                    style={{ background: `${T.dark}04`, borderColor: `${T.dark}10` }}>
+                    <LabelCaps>Galería humana</LabelCaps>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="p-10 flex flex-col items-center text-center gap-7" style={{ paddingTop: 72, paddingBottom: 72 }}>
+              <div className="space-y-3 max-w-lg">
+                <HeadingSerif size={38}>Lleva una historia hecha a mano</HeadingSerif>
+                <p style={{ fontFamily: T.sans, fontSize: 15, fontWeight: 500, color: `${T.muted}80` }}>
+                  Apoya directamente el talento local. Cada compra va directo al taller.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-9 py-4 rounded-full text-white"
+                  style={{ background: T.orange, fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', boxShadow: `0 12px 28px ${T.orange}30` }}>
+                  Ver todas las piezas
+                </button>
+                {(shop.contactConfig?.phone ?? shop.contactInfo?.phone) && (
+                  <a href={`https://wa.me/${String(shop.contactConfig?.phone ?? shop.contactInfo?.phone).replace(/\D/g, '')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="px-9 py-4 rounded-full text-white"
+                    style={{ background: T.dark, fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                    Contactar taller
+                  </a>
+                )}
+              </div>
+            </div>
           </section>
 
-          {/* 8. Testimonials */}
-          <TestimonialsSection shopName={shop.shopName} />
+        </GlassContainer>
 
-          {/* 9. Impact Section */}
-          <ImpactSection />
-
-          {/* 10. Footer */}
-          <ShopFooter
-            shopName={shop.shopName}
-            contactEmail={shop.contactConfig?.email}
-            contactPhone={shop.contactConfig?.phone}
-            address={shop.contactConfig?.address}
-            socialLinks={shop.socialLinks}
-          />
-        </div>
-      </ShopThemeProvider>
+        <ShopPublicFooter shop={shop} shopSlug={shopSlug!} />
+      </div>
     </ShoppingCartProvider>
   );
 }

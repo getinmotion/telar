@@ -42,7 +42,6 @@ export type SystemEvent =
   | "product.created"
   | "maturity.block.completed"
   | "shop.customized"
-  | "shop.story.created"
   | "artisan.profile.completed"
   | "onboarding.completed"
   | "tasks.initialized"

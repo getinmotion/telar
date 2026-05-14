@@ -78,7 +78,6 @@ export const useFixedTasksManager = () => {
       const hasShop = !!shopData?.id;
       const hasBrand = !!(shopData?.logoUrl);
       const hasHeroSlider = !!(shopData?.heroConfig as any)?.slides?.length;
-      const hasStory = !!(shopData?.story || (shopData?.aboutContent as any)?.story);
       const hasArtisanProfile = !!(shopData as any)?.artisanProfileCompleted;
       const hasSocialLinks = !!(shopData?.socialLinks && Object.keys(shopData.socialLinks as object).length > 0);
       const contactInfo = (shopData?.contactInfo as any) || {};
@@ -193,12 +192,6 @@ export const useFixedTasksManager = () => {
         if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
       }
 
-      if (hasStory && !completed.has('create_story')) {
-        completed.add('create_story');
-        const task = FIXED_TASKS.find(t => t.id === 'create_story');
-        if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
-      }
-
       if (hasContactInfo && !completed.has('add_contact')) {
         completed.add('add_contact');
         const task = FIXED_TASKS.find(t => t.id === 'add_contact');
@@ -243,7 +236,6 @@ export const useFixedTasksManager = () => {
         productCount,
         hasRUT,
         hasHeroSlider,
-        hasStory,
         hasArtisanProfile,
         hasSocialLinks,
         hasContactInfo,
@@ -381,7 +373,6 @@ export const useFixedTasksManager = () => {
       EventBus.subscribe('brand.wizard.completed', debouncedReload),
       EventBus.subscribe('product.created', debouncedReload),
       EventBus.subscribe('shop.customized', debouncedReload),
-      EventBus.subscribe('shop.story.created', debouncedReload),
       EventBus.subscribe('shop.contact.added', debouncedReload),
       EventBus.subscribe('legal.nit.completed', debouncedReload),
       EventBus.subscribe('shop.social_links.added', debouncedReload),

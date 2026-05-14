@@ -18,6 +18,9 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { useCollections } from "@/hooks/useCollections";
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { ContentPicks } from "@/components/cms/ContentPicks";
 
 // ── Editorial metadata per curatorial collection ─────
 interface CollectionEditorial {
@@ -31,10 +34,6 @@ interface CollectionEditorial {
   heroImage?: string;
 }
 
-// S3 gallery reused for the La Chamba featured card
-const CHAMBA_HERO_IMAGE =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/vajilla_n/VAJILLA%20NEGRA%20-%201.jpg";
-
 const COLLECTION_EDITORIAL: CollectionEditorial[] = [
   {
     slug: "ceramica-de-la-chamba",
@@ -44,7 +43,6 @@ const COLLECTION_EDITORIAL: CollectionEditorial[] = [
       "La Chamba, Tolima: más de 300 años de tradición alfarera a orillas del Magdalena. Herencia Pijao, liderazgo femenino y Denominación de Origen reconocida mundialmente.",
     layout: "wide",
     ctaLabel: "Entrar en la colección",
-    heroImage: CHAMBA_HERO_IMAGE,
   },
   {
     slug: "tejeduria-de-san-jacinto",
@@ -134,6 +132,23 @@ const SEASONAL = [
 export default function Colecciones() {
   const { curatorialCategories, techniques, loading } = useTaxonomy();
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const { data: cmsCollectionsRes } = useCollections({ limit: 50 });
+  const cmsCollections = cmsCollectionsRes?.data ?? [];
+  const { data: cmsPageSections } = useCmsSections('colecciones');
+  const heroSection = (cmsPageSections ?? []).find(
+    (s) => s.payload?.slot === 'colecciones_header',
+  );
+  const hero = {
+    kicker: heroSection?.payload?.kicker ?? 'Curaduría / Colecciones',
+    title: heroSection?.payload?.title ?? 'Mundos tejidos, historias que habitan',
+    subtitle:
+      heroSection?.payload?.subtitle ??
+      'Descubre selecciones curadas que exploran la materialidad y el alma de la artesanía colombiana.',
+    ctaLabel: heroSection?.payload?.ctaLabel ?? 'Explorar todas las piezas',
+    ctaHref: heroSection?.payload?.ctaHref ?? '/productos',
+    imageUrl: (heroSection?.payload?.imageUrl as string | undefined) ?? null,
+    imageAlt: (heroSection?.payload?.imageAlt as string | undefined) ?? 'Colecciones',
+  };
 
   useEffect(() => {
     getProductsNew({ page: 1, limit: 200 })
@@ -194,38 +209,80 @@ export default function Colecciones() {
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-3">
                 <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
-                  Curaduría / Colecciones
+                  {hero.kicker}
                 </p>
                 <h1 className="text-5xl md:text-6xl font-serif leading-[0.95] italic tracking-tight">
-                  Mundos tejidos,
-                  <br />
-                  historias que habitan
+                  {hero.title}
                 </h1>
               </div>
               <p className="text-lg md:text-xl text-[#2c2c2c]/70 leading-relaxed font-light italic max-w-lg">
-                Descubre selecciones curadas que exploran la materialidad y el
-                alma de la artesanía colombiana.
+                {hero.subtitle}
               </p>
-              <div className="pt-2">
-                <Link
-                  to="/productos"
-                  className="inline-block px-8 py-4 bg-[#ec6d13] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors duration-300"
-                >
-                  Explorar todas las piezas
-                </Link>
+              {hero.ctaLabel && (
+                <div className="pt-2">
+                  <Link
+                    to={hero.ctaHref || '/productos'}
+                    className="inline-block px-8 py-4 bg-[#ec6d13] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors duration-300"
+                  >
+                    {hero.ctaLabel}
+                  </Link>
+                </div>
+              )}
+            </div>
+            {hero.imageUrl && (
+              <div className="lg:col-span-6">
+                <img
+                  src={hero.imageUrl}
+                  alt={hero.imageAlt}
+                  className="aspect-[16/10] w-full object-cover"
+                />
               </div>
-            </div>
-            <div className="lg:col-span-6">
-              <img
-                src={CHAMBA_HERO_IMAGE}
-                alt="Colecciones — La Chamba"
-                className="aspect-[16/10] w-full object-cover"
-              />
-            </div>
+            )}
           </div>
         </header>
 
-        {/* ═══════════════ FEATURED COLLECTIONS ═══════════════ */}
+        {/* ═══════════════ CONTENT PICKS (banners/cards de blog o colección) ═══════════════ */}
+        <section className="max-w-[1400px] mx-auto px-6 pb-12">
+          <ContentPicks pageKey="colecciones" />
+        </section>
+
+        {/* ═══════════════ CMS COLLECTIONS (curadas desde el admin) ═══════════════ */}
+        {cmsCollections.length > 0 && (
+          <section className="max-w-[1400px] mx-auto px-6 pb-16">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold mb-3">
+              Colecciones curadas
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {cmsCollections.map((c) => (
+                <Link
+                  key={c._id}
+                  to={`/coleccion/${c.slug}`}
+                  className="group block overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-lg"
+                >
+                  <div
+                    className="aspect-[4/3] w-full bg-muted bg-cover bg-center"
+                    style={c.heroImageUrl ? { backgroundImage: `url(${c.heroImageUrl})` } : undefined}
+                  />
+                  <div className="space-y-2 p-5">
+                    {c.region && (
+                      <p className="text-[10px] uppercase tracking-widest text-[#ec6d13]">{c.region}</p>
+                    )}
+                    <h3 className="font-serif text-2xl">{c.title}</h3>
+                    {c.excerpt && (
+                      <p className="line-clamp-3 text-sm text-[#2c2c2c]/70">{c.excerpt}</p>
+                    )}
+                    <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#ec6d13]">
+                      Ver colección <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ═══════════════ FEATURED COLLECTIONS (legacy fallback — solo si la API CMS no tiene colecciones) ═══════════════ */}
+        {cmsCollections.length === 0 && (
         <section className="space-y-24 md:space-y-40 mb-32 md:mb-48 max-w-[1400px] mx-auto px-6">
           {featured.map((col) => {
             const ed = col.editorial!;
@@ -347,6 +404,7 @@ export default function Colecciones() {
             );
           })}
         </section>
+        )}
 
         {/* ═══════════════ THE ARCHIVE NAV ═══════════════ */}
         <section className="max-w-[1400px] mx-auto px-6 py-20 md:py-24 border-y border-[#2c2c2c]/10">

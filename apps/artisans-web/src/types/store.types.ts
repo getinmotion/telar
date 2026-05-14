@@ -6,7 +6,6 @@
  *
  * Arquitectura:
  * - shop.stores (principal)
- * - shop.store_artisanal_profiles (1:1)
  * - shop.store_contacts (1:1)
  * - shop.store_awards (1:N)
  * - shop.store_badges (1:N)
@@ -28,11 +27,6 @@ export interface Store {
 }
 
 // ============= Related Entities =============
-
-export interface StoreArtisanalProfile {
-  primaryCraftId?: string;
-  isCollaborationStudio: boolean;
-}
 
 export interface StoreContacts {
   email?: string;
@@ -131,7 +125,7 @@ export interface LegacyShopData {
 /**
  * Respuesta combinada del backend que incluye:
  * - Datos de shop.stores (nuevos)
- * - Relaciones normalizadas (artisanalProfile, contacts, awards, badges)
+ * - Relaciones normalizadas (contacts, awards, badges)
  * - Datos legacy de public.artisan_shops (si existe legacyId)
  */
 export interface StoreResponse {
@@ -146,7 +140,6 @@ export interface StoreResponse {
   updatedAt?: string;
 
   // Relaciones normalizadas
-  artisanalProfile?: StoreArtisanalProfile;
   contacts?: StoreContacts;
   awards?: StoreAward[];
   badges?: StoreBadge[];

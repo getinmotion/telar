@@ -276,6 +276,14 @@ export class CreateArtisanShopDto {
   contactConfig?: object;
 
   @ApiPropertyOptional({
+    description: 'Políticas de devolución y preguntas frecuentes',
+    example: { returnPolicy: '', faq: [] },
+  })
+  @IsOptional()
+  @IsObject({ message: 'La configuración de políticas debe ser un objeto' })
+  policiesConfig?: object;
+
+  @ApiPropertyOptional({
     description: 'ID del tema activo',
     example: 'theme-ocean-blue-2024',
   })

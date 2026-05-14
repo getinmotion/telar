@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './resources/auth/auth.module';
 import { UsersModule } from './resources/users/users.module';
 import { MailModule } from './resources/mail/mail.module';
@@ -42,6 +41,8 @@ import { FileUploadModule } from './resources/file-upload/file-upload.module';
 import { S3Module } from './common/services/s3/s3.module';
 import { CmsModule } from './resources/cms/cms.module';
 import { CmsSectionsModule } from './resources/cms-sections/cms-sections.module';
+import { BlogPostsModule } from './resources/blog-posts/blog-posts.module';
+import { CollectionsModule } from './resources/collections/collections.module';
 import { PaymentsModule } from './resources/payments/payments.module';
 import { StoresModule } from './resources/stores/stores.module';
 import { ProductsNewModule } from './resources/products-new/products-new.module';
@@ -62,6 +63,7 @@ import { ArtisanMediaWorkingModule } from './resources/artisan-media-working/art
 import { ArtisanMediaWorkshopModule } from './resources/artisan-media-workshop/artisan-media-workshop.module';
 import { ArtisanMediaCommunityModule } from './resources/artisan-media-community/artisan-media-community.module';
 import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisan-territorial.module';
+import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-buyer-identity.module';
 
 @Module({
   imports: [
@@ -118,7 +120,9 @@ import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisa
     InventoryMovementsModule,
     FileUploadModule,
     CmsModule,
-    // CmsSectionsModule,
+    CmsSectionsModule,
+    BlogPostsModule,
+    CollectionsModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,
@@ -139,6 +143,7 @@ import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisa
     ArtisanMediaWorkshopModule,
     ArtisanMediaCommunityModule,
     ArtisanTerritorialModule,
+    InfoBuyerIdentityModule
   ],
   controllers: [],
   providers: [],

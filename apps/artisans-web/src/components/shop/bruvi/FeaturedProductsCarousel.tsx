@@ -1,3 +1,4 @@
+/** @deprecated Reemplazado por el diseño TELAR editorial en PublicShopPageNew.tsx */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';

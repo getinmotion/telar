@@ -95,7 +95,6 @@ export const calculateShopProgress = (masterState: MasterAgentState): Milestone 
   
   // Leer valores reales del masterState
   const hasHeroSlider = !!(masterState.tienda.hero_config?.slides?.length);
-  const hasStory = !!(masterState.tienda.story || masterState.tienda.about_content?.story);
   const contactInfo = (masterState.tienda.contact_info as any) || {};
   const hasContactInfo = !!(contactInfo?.email || contactInfo?.phone);
 
@@ -123,12 +122,6 @@ export const calculateShopProgress = (masterState: MasterAgentState): Milestone 
       label: '10 productos subidos',
       completed: hasShop && productCount >= 10,
       route: '/productos/subir'
-    },
-    {
-      id: 'shop_story',
-      label: 'Historia contada',
-      completed: hasShop && hasStory,
-      route: '/dashboard/shop-about-wizard'
     },
     {
       id: 'contact_info',

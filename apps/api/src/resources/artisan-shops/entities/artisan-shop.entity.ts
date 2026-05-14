@@ -301,6 +301,13 @@ export class ArtisanShop extends BaseEntity {
   contactConfig: object;
 
   @ApiPropertyOptional({
+    description: 'Políticas de devolución y preguntas frecuentes',
+    example: { returnPolicy: '', faq: [] },
+  })
+  @Column({ type: 'jsonb', name: 'policies_config', default: '{}' })
+  policiesConfig: object;
+
+  @ApiPropertyOptional({
     description: 'ID del tema activo',
     example: 'theme-ocean-blue-2024',
   })

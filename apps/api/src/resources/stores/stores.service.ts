@@ -4,7 +4,6 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import {
   Store,
-  StoreArtisanalProfile,
   StoreContacts,
   StoreAward,
   StoreBadge,
@@ -34,7 +33,7 @@ export class StoresService {
    */
   async findAll(): Promise<Store[]> {
     const stores = await this.storeRepository.find({
-      relations: ['artisanalProfile', 'contacts', 'awards', 'badges'],
+      relations: ['contacts', 'awards', 'badges'],
       where: { deletedAt: IsNull() },
       order: { createdAt: 'DESC' },
     });
@@ -60,7 +59,7 @@ export class StoresService {
   async findOne(id: string): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['artisanalProfile', 'contacts', 'awards', 'badges'],
+      relations: ['contacts', 'awards', 'badges'],
     });
 
     if (!store) {
@@ -86,7 +85,7 @@ export class StoresService {
   async findBySlug(slug: string): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { slug, deletedAt: IsNull() },
-      relations: ['artisanalProfile', 'contacts', 'awards', 'badges'],
+      relations: ['contacts', 'awards', 'badges'],
     });
 
     if (!store) {
@@ -112,7 +111,7 @@ export class StoresService {
   async findByUserId(userId: string): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { userId, deletedAt: IsNull() },
-      relations: ['artisanalProfile', 'contacts', 'awards', 'badges'],
+      relations: ['contacts', 'awards', 'badges'],
     });
 
     if (!store) {

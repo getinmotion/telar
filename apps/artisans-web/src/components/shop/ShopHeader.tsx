@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use DashboardLayout sidebar for in-app navigation instead.
+ * Only kept for legacy pages that have not yet been migrated.
+ */
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MotionLogo } from '@/components/MotionLogo';

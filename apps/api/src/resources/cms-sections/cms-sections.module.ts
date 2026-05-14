@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
 import { CmsSectionsController } from './cms-sections.controller';
 import { CmsSectionsService } from './cms-sections.service';
-import { CmsPage, CmsPageSchema } from './schemas/cms-page.schema';
+import { CmsSeedSkipsService } from './cms-seed-skips.service';
+import { cmsSectionsProviders } from './cms-sections.providers';
 
 @Module({
   imports: [
@@ -13,7 +13,11 @@ import { CmsPage, CmsPageSchema } from './schemas/cms-page.schema';
     // ]),
   ],
   controllers: [CmsSectionsController],
-  providers: [CmsSectionsService],
-  exports: [CmsSectionsService],
+  providers: [...cmsSectionsProviders, CmsSectionsService, CmsSeedSkipsService],
+  exports: [
+    CmsSectionsService,
+    CmsSeedSkipsService,
+    ...cmsSectionsProviders,
+  ],
 })
 export class CmsSectionsModule {}

@@ -7,6 +7,17 @@ export type CmsSectionType =
   | 'quote'
   | 'two_column_intro'
   | 'technique_grid'
+  | 'featured_aside_card'
+  | 'metrics_stat'
+  | 'muestra_intro'
+  | 'archive_label'
+  | 'editorial_footer'
+  | 'home_value_props'
+  | 'home_section_header'
+  | 'home_block'
+  | 'home_hero_carousel'
+  | 'content_pick'
+  | 'embedded_widget'
   | string;
 
 export interface CmsSection {
