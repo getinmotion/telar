@@ -67,6 +67,7 @@ import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-bu
 import { IdTypeUserModule } from './resources/id-type-user/id-type-user.module';
 import { CountriesModule } from './resources/countries/countries.module';
 import { AgreementsModule } from './resources/agreements/agreements.module';
+import { StorePoliciesConfigModule } from './resources/store-policies-config/store-policies-config.module';
 
 @Module({
   imports: [
@@ -150,6 +151,7 @@ import { AgreementsModule } from './resources/agreements/agreements.module';
     IdTypeUserModule,
     CountriesModule,
     AgreementsModule,
+    StorePoliciesConfigModule,
   ],
   controllers: [],
   providers: [],

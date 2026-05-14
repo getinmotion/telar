@@ -276,12 +276,12 @@ export class CreateArtisanShopDto {
   contactConfig?: object;
 
   @ApiPropertyOptional({
-    description: 'Políticas de devolución y preguntas frecuentes',
-    example: { returnPolicy: '', faq: [] },
+    description: 'ID de la configuración de políticas (FK a store.store_policies_config)',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
   @IsOptional()
-  @IsObject({ message: 'La configuración de políticas debe ser un objeto' })
-  policiesConfig?: object;
+  @IsUUID('4', { message: 'idPoliciesConfig debe ser un UUID válido' })
+  idPoliciesConfig?: string;
 
   @ApiPropertyOptional({
     description: 'ID del tema activo',

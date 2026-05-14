@@ -11,7 +11,8 @@
       "Bash(npx @nestjs/cli generate resource:*)",
       "Bash(npm run migration:generate:*)",
       "Bash(npm run migration:run:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node *)"
     ]
   }
 }
