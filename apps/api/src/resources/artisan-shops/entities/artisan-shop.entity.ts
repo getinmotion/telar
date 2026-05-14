@@ -301,11 +301,11 @@ export class ArtisanShop extends BaseEntity {
   contactConfig: object;
 
   @ApiPropertyOptional({
-    description: 'Políticas de devolución y preguntas frecuentes',
-    example: { returnPolicy: '', faq: [] },
+    description: 'ID de la configuración de políticas (FK a store.store_policies_config)',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
   })
-  @Column({ type: 'jsonb', name: 'policies_config', default: '{}' })
-  policiesConfig: object;
+  @Column({ type: 'uuid', name: 'id_policies_config', nullable: true })
+  idPoliciesConfig: string | null;
 
   @ApiPropertyOptional({
     description: 'ID del tema activo',
