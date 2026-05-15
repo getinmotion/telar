@@ -23,7 +23,6 @@ interface UserListItem {
   id: string;
   email: string | null;
   role: string | null;
-  isSuperAdmin: boolean | null;
   createdAt: Date;
   roles: AppRole[];
 }
@@ -82,7 +81,6 @@ export class UsersController {
       id: u.id,
       email: u.email,
       role: u.role,
-      isSuperAdmin: u.isSuperAdmin,
       createdAt: u.createdAt,
       roles: rolesByUser[u.id] ?? [],
     }));
@@ -91,32 +89,23 @@ export class UsersController {
   }
 
   /**
-   * Toggle del flag super_admin. Sólo super_admin.
+   * Asignar o revocar el rol super_admin a un usuario. Sólo super_admin.
    */
-  @Patch(':id')
+  @Patch(':id/super-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super_admin')
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Patch user (toggle isSuperAdmin) — super_admin only' })
-  async patchUser(
+  @ApiOperation({ summary: 'Assign or revoke super_admin role — super_admin only' })
+  async patchSuperAdmin(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { isSuperAdmin?: boolean },
+    @Body() body: { grant: boolean },
   ) {
-
-    const repo = (this.usersService as any).userRepository;
-    const updates: any = {};
-    if (typeof body.isSuperAdmin === 'boolean') {
-      updates.isSuperAdmin = body.isSuperAdmin;
+    if (body.grant) {
+      await this.userRolesService.assignRole({ userId: id, role: AppRole.SUPER_ADMIN });
+    } else {
+      await this.userRolesService.removeRoleByUserAndRole(id, AppRole.SUPER_ADMIN);
     }
-    if (Object.keys(updates).length === 0) {
-      return { id, updated: false };
-    }
-    await repo.update(id, updates);
-    const fresh = await repo.findOne({ where: { id } });
-    return {
-      id: fresh.id,
-      email: fresh.email,
-      isSuperAdmin: fresh.isSuperAdmin,
-    };
+    const roles = await this.userRolesService.findByUserId(id);
+    return { id, roles: roles.map((r) => r.role) };
   }
 }

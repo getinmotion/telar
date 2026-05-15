@@ -128,7 +128,7 @@ export class UserRolesController {
   ) {
     const user: any = (req as any).user ?? {};
     // Permitir si el usuario consulta sus propios roles O si es super_admin
-    if (user.sub !== userId && user.isSuperAdmin !== true) {
+    if (user.sub !== userId && !user.roles?.includes('super_admin')) {
       throw new ForbiddenException(
         'Solo puedes consultar tus propios roles o debes ser super_admin',
       );
@@ -158,7 +158,7 @@ export class UserRolesController {
     @Param('role') role: AppRole,
   ) {
     const user: any = (req as any).user ?? {};
-    if (user.sub !== userId && user.isSuperAdmin !== true) {
+    if (user.sub !== userId && !user.roles?.includes('super_admin')) {
       throw new ForbiddenException(
         'Solo puedes verificar tus propios roles o debes ser super_admin',
       );

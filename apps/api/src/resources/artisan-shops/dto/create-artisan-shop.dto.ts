@@ -1,5 +1,6 @@
 import {
   IsString,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsBoolean,
@@ -373,19 +374,38 @@ export class CreateArtisanShopDto {
   @IsString({ message: 'El municipio debe ser una cadena de texto' })
   municipality?: string;
 
-  @ApiPropertyOptional({
-    description: 'Video de presentación',
-    example: { type: 'youtube', url: 'https://youtu.be/abc123' },
-  })
+  @ApiPropertyOptional({ description: 'URL del video de presentación' })
   @IsOptional()
-  @IsObject({ message: 'presentationVideo debe ser un objeto' })
-  presentationVideo?: Record<string, any>;
+  @IsString()
+  presentationVideoUrl?: string;
 
-  @ApiPropertyOptional({
-    description: 'Configuración de la página de bio link',
-    example: { showShopLink: true, showProfileLink: true, featuredProductId: null },
-  })
+  @ApiPropertyOptional({ description: 'Proveedor del video (youtube, vimeo, cloudinary, etc.)' })
   @IsOptional()
-  @IsObject({ message: 'bioConfig debe ser un objeto' })
-  bioConfig?: Record<string, any>;
+  @IsString()
+  presentationVideoProvider?: string;
+
+  @ApiPropertyOptional({ description: 'URL de la miniatura del video' })
+  @IsOptional()
+  @IsString()
+  presentationVideoThumbnailUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Duración del video en segundos' })
+  @IsOptional()
+  @IsInt()
+  presentationVideoDurationSeconds?: number;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace a la tienda en la página bio link' })
+  @IsOptional()
+  @IsBoolean()
+  bioConfigShowShopLink?: boolean;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace al perfil en la página bio link' })
+  @IsOptional()
+  @IsBoolean()
+  bioConfigShowProfileLink?: boolean;
+
+  @ApiPropertyOptional({ description: 'ID del producto destacado en la página bio link' })
+  @IsOptional()
+  @IsUUID()
+  bioConfigFeaturedProductId?: string;
 }

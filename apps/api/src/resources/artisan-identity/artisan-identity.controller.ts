@@ -34,7 +34,7 @@ export class ArtisanIdentityController {
     type: ArtisanIdentity,
   })
   create(
-    @CurrentUser() user: { sub: string; isSuperAdmin?: boolean },
+    @CurrentUser() user: { sub: string; roles?: string[] },
     @Body() createArtisanIdentityDto: CreateArtisanIdentityDto,
   ) {
     return this.artisanIdentityService.create(createArtisanIdentityDto);
@@ -49,8 +49,8 @@ export class ArtisanIdentityController {
     description: 'Lista de registros obtenida exitosamente',
     type: [ArtisanIdentity],
   })
-  findAll(@CurrentUser() user: { sub: string; isSuperAdmin?: boolean }) {
-    if (!user.isSuperAdmin) throw new ForbiddenException();
+  findAll(@CurrentUser() user: { sub: string; roles?: string[] }) {
+    if (!user.roles?.includes('super_admin')) throw new ForbiddenException();
     return this.artisanIdentityService.findAll();
   }
 
@@ -60,10 +60,10 @@ export class ArtisanIdentityController {
    */
   @Get('user/:userId')
   findByUserId(
-    @CurrentUser() user: { sub: string; isSuperAdmin?: boolean },
+    @CurrentUser() user: { sub: string; roles?: string[] },
     @Param('userId') userId: string,
   ) {
-    if (!user.isSuperAdmin && user.sub !== userId) throw new ForbiddenException();
+    if (!user.roles?.includes('super_admin') && user.sub !== userId) throw new ForbiddenException();
     return this.artisanIdentityService.findByUserId(userId);
   }
 
@@ -73,11 +73,11 @@ export class ArtisanIdentityController {
    */
   @Patch('user/:userId')
   updateTechniquesByUserId(
-    @CurrentUser() user: { sub: string; isSuperAdmin?: boolean },
+    @CurrentUser() user: { sub: string; roles?: string[] },
     @Param('userId') userId: string,
     @Body() body: { techniquePrimaryId?: string | null; techniqueSecondaryId?: string | null },
   ) {
-    if (!user.isSuperAdmin && user.sub !== userId) throw new ForbiddenException();
+    if (!user.roles?.includes('super_admin') && user.sub !== userId) throw new ForbiddenException();
     return this.artisanIdentityService.updateTechniquesByUserId(userId, body);
   }
 
@@ -121,10 +121,10 @@ export class ArtisanIdentityController {
   })
   @ApiResponse({ status: 404, description: 'Registro no encontrado' })
   remove(
-    @CurrentUser() user: { sub: string; isSuperAdmin?: boolean },
+    @CurrentUser() user: { sub: string; roles?: string[] },
     @Param('id') id: string,
   ) {
-    if (!user.isSuperAdmin) throw new ForbiddenException();
+    if (!user.roles?.includes('super_admin')) throw new ForbiddenException();
     return this.artisanIdentityService.remove(id);
   }
 }

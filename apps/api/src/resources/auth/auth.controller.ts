@@ -156,7 +156,6 @@ export class AuthController {
           email: 'user@example.com',
           phone: '+573001234567',
           role: 'user',
-          isSuperAdmin: false,
           emailConfirmedAt: '2026-01-14T10:00:00.000Z',
           lastSignInAt: '2026-01-20T15:30:00.000Z',
           createdAt: '2026-01-14T10:00:00.000Z',
@@ -265,7 +264,7 @@ export class AuthController {
     description: 'Contexto del backoffice obtenido exitosamente',
     schema: {
       example: {
-        user: { id: 'uuid', email: 'admin@telar.co', isSuperAdmin: true },
+        user: { id: 'uuid', email: 'admin@telar.co' },
         roles: ['admin', 'moderator'],
         permissions: ['moderation', 'cms', 'users', 'orders', 'audit'],
       },
@@ -412,7 +411,6 @@ export class AuthController {
           id: '123e4567-e89b-12d3-a456-426614174000',
           email: 'user@example.com',
           role: 'admin',
-          isSuperAdmin: false,
         },
       },
     },
@@ -425,7 +423,6 @@ export class AuthController {
         id: user.sub,
         email: user.email,
         role: user.role,
-        isSuperAdmin: user.isSuperAdmin,
       },
     };
   }
@@ -470,7 +467,6 @@ export class AuthController {
           email: 'user@example.com',
           phone: null,
           role: 'user',
-          isSuperAdmin: false,
           emailConfirmedAt: '2026-02-12T10:00:00.000Z',
           lastSignInAt: '2026-02-12T15:30:00.000Z',
           createdAt: '2026-02-12T10:00:00.000Z',

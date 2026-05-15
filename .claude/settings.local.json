@@ -68,7 +68,25 @@
       "Bash(git -C /Users/mad/Proyectos/Telar diff HEAD -- apps/api/src/resources/ai/services/artisan-profile-history.service.ts)",
       "Bash(xargs ls)",
       "Bash(git -C /Users/mad/Proyectos/Telar diff HEAD -- apps/api/src/resources/ai/ai.module.ts)",
-      "Bash(grep -v \"//\\\\|^$\")"
+      "Bash(grep -v \"//\\\\|^$\")",
+      "Bash(WORKSPACE=\"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/telar-db-conventions-workspace\" *)",
+      "Bash(SKILL_CREATOR=\"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills/skill-creator\" *)",
+      "Bash(nohup python3 '/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills/skill-creator/eval-viewer/generate_review.py' '/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/telar-db-conventions-workspace/iteration-1' --skill-name telar-db-conventions)",
+      "Bash(ls /usr/local/bin/python* /opt/homebrew/bin/python* 2>/dev/null; which python3.10 python3.11 python3.12 2>/dev/null)",
+      "Bash(find /opt/homebrew -name \"python3*\" -type f 2>/dev/null | head -5; ls ~/.pyenv/versions/ 2>/dev/null | head -5)",
+      "Bash(find /usr -name \"python3.*\" -type f 2>/dev/null | grep -v config | head -10)",
+      "Bash(command -v uv)",
+      "Bash(uv python *)",
+      "Bash(command -v node)",
+      "Bash(command -v conda)",
+      "Bash(command -v mamba)",
+      "Read(//Users/mad/miniforge3/bin/**)",
+      "Read(//Users/mad/anaconda3/bin/**)",
+      "Bash(nohup python3 '/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills/skill-creator/eval-viewer/generate_review.py' '/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/telar-db-conventions-workspace/iteration-1' --skill-name telar-db-conventions --static /tmp/telar-db-conventions-review.html)",
+      "Bash(open /tmp/telar-db-conventions-review.html)",
+      "Bash(ls \"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills/telar-db-conventions/\")",
+      "Bash(find \"/Users/mad/Library/Application Support/Claude\" -name \"SKILL.md\" 2>/dev/null | grep telar)",
+      "Bash(SKILLS_DIR=\"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills\" *)"
     ]
   }
 }
