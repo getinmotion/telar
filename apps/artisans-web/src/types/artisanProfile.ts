@@ -7,7 +7,9 @@ export interface ArtisanProfileData {
   shortBio?: string;
   artisanPhoto?: string;
   artisanVideo?: string;
-  craftId?: string;          // UUID del oficio principal (FK → crafts)
+  craftId?: string;             // UUID del oficio principal (FK → crafts)
+  primaryTechniqueId?: string;  // UUID de la técnica principal (FK → techniques)
+  materialIds?: string[];       // UUIDs de materiales del perfil (artisan_materials)
 
   // Step 2: Historia y tradición
   learnedFrom: string;

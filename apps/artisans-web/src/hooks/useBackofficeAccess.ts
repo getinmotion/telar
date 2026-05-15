@@ -29,7 +29,9 @@ export type BackofficeSection =
   | 'pagos'
   | 'diseno'
   | 'auditoria'
-  | 'dashboard';
+  | 'dashboard'
+  | 'marketplace-health'
+  | 'convenios';
 
 /**
  * Mapa de secciones a roles mínimos requeridos.
@@ -56,7 +58,9 @@ const SECTION_ROLES: Record<BackofficeSection, string[]> = {
   pagos:       ['super_admin'],
   diseno:      ['super_admin'],
   auditoria:   ['super_admin'],
-  dashboard:   ['super_admin'],
+  dashboard:          ['admin', 'super_admin'],
+  'marketplace-health': ['admin', 'super_admin'],
+  convenios:            ['admin', 'super_admin'],
 };
 
 export function useBackofficeAccess() {

@@ -14,6 +14,10 @@ import { BackofficeProtectedRoute } from '@/components/auth/BackofficeProtectedR
 import { BackofficePageSkeleton } from '@/components/backoffice/BackofficePageSkeleton';
 const BackofficeLoginPage = lazy(() => import('@/pages/backoffice/BackofficeLoginPage'));
 const AdminPage           = lazy(() => import('@/pages/Admin'));
+const BackofficeDashboardPage = lazy(() => import('@/pages/backoffice/BackofficeDashboardPage'));
+const BackofficeMarketplaceHealthPage = lazy(() => import('@/pages/backoffice/BackofficeMarketplaceHealthPage'));
+const BackofficeConveniosPage = lazy(() => import('@/pages/backoffice/BackofficeConveniosPage'));
+const BackofficeTiendaDetailPage = lazy(() => import('@/pages/backoffice/BackofficeTiendaDetailPage'));
 const ModerationPage_lazy = lazy(() => import('@/pages/ModerationPage'));
 const ProductAnalyticsPage_lazy = lazy(() => import('@/pages/ProductAnalyticsPage'));
 const ProductReviewPage_lazy = lazy(() => import('@/pages/ProductReviewPage'));
@@ -495,13 +499,49 @@ function App() {
                                   }
                                 />
 
+                                {/* MARKETPLACE HEALTH (admin+) */}
+                                <Route
+                                  path="/backoffice/marketplace-health"
+                                  element={
+                                    <BackofficeProtectedRoute section="marketplace-health">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeMarketplaceHealthPage />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* TIENDA DETAIL / CRM (admin+) */}
+                                <Route
+                                  path="/backoffice/tiendas/:shopId"
+                                  element={
+                                    <BackofficeProtectedRoute section="tiendas">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeTiendaDetailPage />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* CONVENIOS (admin+) */}
+                                <Route
+                                  path="/backoffice/convenios"
+                                  element={
+                                    <BackofficeProtectedRoute section="convenios">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeConveniosPage />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
                                 {/* OPERACIONES + SISTEMA (super_admin) */}
                                 <Route
                                   path="/backoffice/dashboard"
                                   element={
                                     <BackofficeProtectedRoute section="dashboard">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <AdminPage />
+                                        <BackofficeDashboardPage />
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }

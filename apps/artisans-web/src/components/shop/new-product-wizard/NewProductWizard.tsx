@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getArtisanShopByUserId, getStoreByUserId } from '@/services/artisanShops.actions';
-import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
+import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 import { getProductNewById } from '@/services/products-new.actions';
 import { useNewWizardState } from './hooks/useNewWizardState';
 import { useWizardDraft } from './hooks/useWizardDraft';
@@ -40,7 +39,7 @@ export const NewProductWizard: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    const legacyPromise = getArtisanShopByUserId(user.id)
+    getArtisanShopByUserId(user.id)
       .then(shop => {
         setHasShop(!!shop?.id);
         if (shop?.id) {
@@ -61,29 +60,6 @@ export const NewProductWizard: React.FC = () => {
       })
       .catch(() => setHasShop(false))
       .finally(() => setIsCheckingShop(false));
-
-    // Pre-cargar oficio primario desde StoreArtisanalProfile
-    getStoreByUserId(user.id)
-      .then(store => {
-        const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
-        if (craftId && !state.craftId) update({ craftId });
-      })
-      .catch(() => {});
-
-    // Pre-cargar técnica primaria desde ArtisanIdentity
-    getArtisanIdentityByUserId(user.id)
-      .then(identity => {
-        if (!identity) return;
-        const updates: Record<string, string> = {};
-        if (identity.techniquePrimaryId && !state.primaryTechniqueId)
-          updates.primaryTechniqueId = identity.techniquePrimaryId;
-        if (identity.techniqueSecondaryId && !state.secondaryTechniqueId)
-          updates.secondaryTechniqueId = identity.techniqueSecondaryId;
-        if (Object.keys(updates).length) update(updates as any);
-      })
-      .catch(() => {});
-
-    void legacyPromise;
   }, [user]);
 
   useEffect(() => {

@@ -562,7 +562,7 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
       ),
       telarApi
         .get<ModerationShopsResponse>('/artisan-shops', {
-          params: { limit: 200, page: 1 },
+          params: { limit: 100, page: 1 },
         })
         .catch(() => ({ data: { data: [], total: 0 } })),
     ]);
@@ -574,17 +574,23 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
       productsByStatus[status] = data;
     });
 
-    // Si hay más de 200 tiendas, buscar las restantes
+    // Paginar tiendas si hay más de 100 (límite máximo de la API)
     const firstShops = firstShopsRes.data.data || [];
     const totalShops = firstShopsRes.data.total || firstShops.length;
     let shops: ModerationShopApi[] = firstShops;
     if (totalShops > firstShops.length) {
-      const extraRes = await telarApi
-        .get<ModerationShopsResponse>('/artisan-shops', {
-          params: { limit: totalShops - firstShops.length, page: 2 },
-        })
-        .catch(() => ({ data: { data: [] } }));
-      shops = [...firstShops, ...(extraRes.data.data || [])];
+      const remaining = totalShops - firstShops.length;
+      const extraPages = Math.ceil(remaining / 100);
+      const extraResults = await Promise.all(
+        Array.from({ length: extraPages }, (_, i) =>
+          telarApi
+            .get<ModerationShopsResponse>('/artisan-shops', {
+              params: { limit: 100, page: i + 2 },
+            })
+            .catch(() => ({ data: { data: [] } }))
+        )
+      );
+      shops = [...firstShops, ...extraResults.flatMap(r => r.data.data || [])];
     }
 
     const approvedShops = shops.filter((s) => s.marketplaceApproved === true).length;

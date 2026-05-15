@@ -10,15 +10,12 @@
  */
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { login } from '@/pages/auth/actions/login.actions';
 import { useBackofficeAccess } from '@/hooks/useBackofficeAccess';
 import { useAuthStore } from '@/stores/authStore';
+import { SANS, SERIF, glassPrimary, PURPLE, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
 export const BackofficeLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -68,7 +65,7 @@ export const BackofficeLoginPage: React.FC = () => {
       if (from && from !== '/backoffice/login') {
         navigate(from, { replace: true });
       } else if (isSuperAdmin || jwtRoles.includes('admin')) {
-        navigate('/backoffice/dashboard', { replace: true });
+        navigate('/backoffice/home', { replace: true });
       } else {
         navigate('/backoffice/moderacion', { replace: true });
       }
@@ -85,80 +82,239 @@ export const BackofficeLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbf7ed] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white border-border shadow-lg">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-center">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <ShieldCheck className="h-8 w-8 text-primary" />
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundColor: '#f9f7f2',
+        backgroundImage: `
+          radial-gradient(circle at top left, rgba(167,139,250,0.22) 0%, transparent 38%),
+          radial-gradient(circle at bottom right, rgba(187,247,208,0.22) 0%, transparent 42%),
+          radial-gradient(circle at top right, rgba(255,244,223,0.75) 0%, transparent 34%)
+        `,
+        backgroundAttachment: 'fixed',
+        fontFamily: SANS,
+      }}
+    >
+      <div
+        style={{
+          ...glassPrimary,
+          borderRadius: 28,
+          width: '100%',
+          maxWidth: 420,
+          padding: '40px 36px',
+          boxShadow: '0 8px 40px rgba(21,27,45,0.08)',
+        }}
+      >
+        {/* Ícono split morado/verde */}
+        <div className="flex justify-center mb-6">
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(21,128,61,0.12) 100%)`,
+              border: '1px solid rgba(124,58,237,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 26, color: PURPLE }}>
+              admin_panel_settings
+            </span>
+          </div>
+        </div>
+
+        {/* Título */}
+        <h1
+          style={{
+            fontFamily: "'League Spartan', Arial, sans-serif",
+            fontSize: 26,
+            fontWeight: 800,
+            color: '#151b2d',
+            textAlign: 'center',
+            letterSpacing: '-0.02em',
+            marginBottom: 4,
+          }}
+        >
+          Backoffice Telar
+        </h1>
+        <p
+          style={{
+            fontFamily: SERIF,
+            fontSize: 13,
+            color: 'rgba(20,34,57,0.45)',
+            fontStyle: 'italic',
+            textAlign: 'center',
+            marginBottom: 32,
+          }}
+        >
+          Administración y moderación
+        </p>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Email */}
+          <div>
+            <label
+              htmlFor="email"
+              style={{
+                fontFamily: SANS,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: 'rgba(84,67,62,0.5)',
+                display: 'block',
+                marginBottom: 8,
+              }}
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="admin@telar.co"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              autoFocus
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(21,27,45,0.08)',
+                borderRadius: 12,
+                padding: '12px 16px',
+                fontFamily: SANS,
+                fontSize: 14,
+                fontWeight: 500,
+                color: '#151b2d',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = PURPLE; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(124,58,237,0.08)`; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(21,27,45,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}
+            />
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <label
+              htmlFor="password"
+              style={{
+                fontFamily: SANS,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: 'rgba(84,67,62,0.5)',
+                display: 'block',
+                marginBottom: 8,
+              }}
+            >
+              Contraseña
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                style={{
+                  width: '100%',
+                  background: 'rgba(255,255,255,0.6)',
+                  border: '1px solid rgba(21,27,45,0.08)',
+                  borderRadius: 12,
+                  padding: '12px 44px 12px 16px',
+                  fontFamily: SANS,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: '#151b2d',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = PURPLE; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(124,58,237,0.08)`; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(21,27,45,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                style={{
+                  position: 'absolute',
+                  right: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'rgba(20,34,57,0.35)',
+                  padding: 0,
+                  display: 'flex',
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
-          <CardTitle className="text-center text-2xl text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary">
-            Backoffice Telar
-          </CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
-            Ingresa tus credenciales de administrador o moderador
-          </CardDescription>
-        </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@telar.co"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex flex-col gap-3">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || !email || !password}
-            >
-              {isLoading ? 'Verificando...' : 'Acceder al backoffice'}
-            </Button>
-            <a
-              href="/"
-              className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors"
-            >
-              ← Volver al portal
-            </a>
-          </CardFooter>
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading || !email || !password}
+            style={{
+              background: isLoading || !email || !password
+                ? 'rgba(124,58,237,0.35)'
+                : `linear-gradient(135deg, ${PURPLE} 0%, #6d28d9 100%)`,
+              color: 'white',
+              border: 'none',
+              borderRadius: 9999,
+              padding: '13px 32px',
+              fontFamily: SANS,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: isLoading || !email || !password ? 'not-allowed' : 'pointer',
+              boxShadow: isLoading || !email || !password ? 'none' : '0 4px 14px rgba(124,58,237,0.3)',
+              transition: 'all 0.2s',
+              width: '100%',
+              marginTop: 4,
+            }}
+          >
+            {isLoading ? 'Verificando...' : 'Acceder al backoffice'}
+          </button>
         </form>
-      </Card>
+
+        {/* Footer dominios */}
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontSize: 10, fontWeight: 700, color: PURPLE, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: PURPLE, display: 'inline-block' }} />
+            Negocio
+          </span>
+          <span style={{ width: 1, height: 12, background: 'rgba(20,34,57,0.12)' }} />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: SANS, fontSize: 10, fontWeight: 700, color: GREEN_MOD, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: GREEN_MOD, display: 'inline-block' }} />
+            Moderación
+          </span>
+        </div>
+
+        <a
+          href="/"
+          style={{
+            display: 'block',
+            textAlign: 'center',
+            marginTop: 16,
+            fontFamily: SANS,
+            fontSize: 12,
+            color: 'rgba(20,34,57,0.35)',
+            textDecoration: 'none',
+          }}
+        >
+          ← Volver al portal
+        </a>
+      </div>
     </div>
   );
 };
