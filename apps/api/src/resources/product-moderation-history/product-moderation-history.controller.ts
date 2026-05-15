@@ -3,20 +3,36 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { ProductModerationHistoryService } from './product-moderation-history.service';
 import { CreateProductModerationHistoryDto } from './dto/create-product-moderation-history.dto';
-import { UpdateProductModerationHistoryDto } from './dto/update-product-moderation-history.dto';
 import { ProductModerationHistory } from './entities/product-moderation-history.entity';
 
+/**
+ * Historial de moderación de productos.
+ *
+ * Este recurso es un log de AUDITORÍA — es append-only por diseño.
+ * No se exponen endpoints PATCH ni DELETE para preservar la integridad
+ * del historial. Todas las operaciones requieren autenticación.
+ */
 @ApiTags('product-moderation-history')
 @Controller('product-moderation-history')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth('access-token')
 export class ProductModerationHistoryController {
   constructor(
     private readonly productModerationHistoryService: ProductModerationHistoryService,
@@ -24,10 +40,11 @@ export class ProductModerationHistoryController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Crear un nuevo registro de historial de moderación',
     description:
-      'Crea un nuevo registro en el historial de moderación de productos',
+      'Crea un nuevo registro en el historial de moderación. Solo moderadores y admins.',
   })
   @ApiResponse({
     status: 201,
@@ -35,6 +52,8 @@ export class ProductModerationHistoryController {
     type: ProductModerationHistory,
   })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'Sin permisos de moderador' })
   async create(
     @Body() createDto: CreateProductModerationHistoryDto,
   ): Promise<ProductModerationHistory> {
@@ -43,26 +62,30 @@ export class ProductModerationHistoryController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Obtener todos los registros de historial de moderación',
     description:
-      'Retorna todos los registros de historial de moderación ordenados por fecha',
+      'Retorna todos los registros ordenados por fecha. Solo moderadores y admins.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de registros de historial',
     type: [ProductModerationHistory],
   })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'Sin permisos' })
   async findAll(): Promise<ProductModerationHistory[]> {
     return this.productModerationHistoryService.findAll();
   }
 
   @Get('product/:productId')
   @HttpCode(HttpStatus.OK)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Obtener historial de moderación de un producto',
     description:
-      'Retorna todos los registros de moderación de un producto específico',
+      'Retorna todos los registros de moderación de un producto específico.',
   })
   @ApiParam({
     name: 'productId',
@@ -74,7 +97,6 @@ export class ProductModerationHistoryController {
     description: 'Lista de registros del producto',
     type: [ProductModerationHistory],
   })
-  @ApiResponse({ status: 400, description: 'productId inválido' })
   async findByProductId(
     @Param('productId') productId: string,
   ): Promise<ProductModerationHistory[]> {
@@ -83,10 +105,11 @@ export class ProductModerationHistoryController {
 
   @Get('moderator/:moderatorId')
   @HttpCode(HttpStatus.OK)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Obtener historial de moderación por moderador',
     description:
-      'Retorna todos los registros de moderación realizados por un moderador',
+      'Retorna todos los registros de moderación realizados por un moderador.',
   })
   @ApiParam({
     name: 'moderatorId',
@@ -98,7 +121,6 @@ export class ProductModerationHistoryController {
     description: 'Lista de registros del moderador',
     type: [ProductModerationHistory],
   })
-  @ApiResponse({ status: 400, description: 'moderatorId inválido' })
   async findByModeratorId(
     @Param('moderatorId') moderatorId: string,
   ): Promise<ProductModerationHistory[]> {
@@ -107,10 +129,11 @@ export class ProductModerationHistoryController {
 
   @Get('artisan/:artisanId')
   @HttpCode(HttpStatus.OK)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Obtener historial de moderación por artesano',
     description:
-      'Retorna todos los registros de moderación de productos de un artesano',
+      'Retorna todos los registros de moderación de productos de un artesano.',
   })
   @ApiParam({
     name: 'artisanId',
@@ -122,7 +145,6 @@ export class ProductModerationHistoryController {
     description: 'Lista de registros del artesano',
     type: [ProductModerationHistory],
   })
-  @ApiResponse({ status: 400, description: 'artisanId inválido' })
   async findByArtisanId(
     @Param('artisanId') artisanId: string,
   ): Promise<ProductModerationHistory[]> {
@@ -131,9 +153,10 @@ export class ProductModerationHistoryController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @Roles('moderator', 'admin')
   @ApiOperation({
     summary: 'Obtener un registro por ID',
-    description: 'Retorna un registro específico de historial de moderación',
+    description: 'Retorna un registro específico de historial de moderación.',
   })
   @ApiParam({
     name: 'id',
@@ -150,49 +173,7 @@ export class ProductModerationHistoryController {
     return this.productModerationHistoryService.findOne(id);
   }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Actualizar un registro',
-    description:
-      'Actualiza parcialmente un registro de historial de moderación',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID del registro',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Registro actualizado exitosamente',
-    type: ProductModerationHistory,
-  })
-  @ApiResponse({ status: 404, description: 'Registro no encontrado' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateProductModerationHistoryDto,
-  ): Promise<ProductModerationHistory> {
-    return this.productModerationHistoryService.update(id, updateDto);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Eliminar un registro',
-    description:
-      'Elimina permanentemente un registro de historial de moderación',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID del registro',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiResponse({
-    status: 204,
-    description: 'Registro eliminado exitosamente',
-  })
-  @ApiResponse({ status: 404, description: 'Registro no encontrado' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.productModerationHistoryService.remove(id);
-  }
+  // NOTA: Los métodos PATCH y DELETE han sido eliminados intencionalmente.
+  // El historial de moderación es un log de auditoría append-only.
+  // Modificar o eliminar registros comprometería la integridad de la auditoría.
 }

@@ -190,30 +190,25 @@ export async function getModerationQueue(
   if (region && region !== 'all') console.warn('Region filter not yet supported in products-new');
   if (onlyNonMarketplace) console.warn('onlyNonMarketplace filter not yet supported in products-new');
 
-  try {
-    const response = await telarApi.get<{
-      data: ProductResponse[];
-      total: number;
-      page: number;
-      limit: number;
-    }>('/products-new', {
-      params: queryParams,
-    });
+  const response = await telarApi.get<{
+    data: ProductResponse[];
+    total: number;
+    page: number;
+    limit: number;
+  }>('/products-new', {
+    params: queryParams,
+  });
 
-    // Mapear ProductResponse[] a ModerationProductApi[]
-    const mappedData: ModerationProductApi[] = response.data.data.map(
-      mapProductResponseToModerationApi
-    );
+  const mappedData: ModerationProductApi[] = response.data.data.map(
+    mapProductResponseToModerationApi
+  );
 
-    return {
-      data: mappedData,
-      total: response.data.total,
-      page: response.data.page,
-      limit: response.data.limit,
-    };
-  } catch (error) {
-    throw error;
-  }
+  return {
+    data: mappedData,
+    total: response.data.total,
+    page: response.data.page,
+    limit: response.data.limit,
+  };
 }
 
 const NUMERIC_PRODUCT_FIELDS = new Set(['price', 'comparePrice', 'inventory', 'weight']);
@@ -396,20 +391,7 @@ export async function moderateProduct(
       editsMade: edits,
     });
   } catch (error) {
-    throw error;
-  }
-}
-
-export async function updateShopMarketplaceApproval(
-  shopId: string,
-  approved: boolean,
-): Promise<void> {
-  try {
-    await telarApi.patch(`/artisan-shops/${shopId}`, {
-      marketplaceApproved: approved,
-      marketplaceApprovalStatus: approved ? 'approved' : 'rejected',
-    });
-  } catch (error) {
+    console.error('[moderateProduct] Error:', error);
     throw error;
   }
 }
@@ -429,14 +411,10 @@ export interface ProductModerationHistoryApi {
 export async function getProductHistoryByProductId(
   productId: string,
 ): Promise<ProductModerationHistoryApi[]> {
-  try {
-    const response = await telarApi.get<ProductModerationHistoryApi[]>(
-      `/product-moderation-history/product/${productId}`,
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await telarApi.get<ProductModerationHistoryApi[]>(
+    `/product-moderation-history/product/${productId}`,
+  );
+  return response.data;
 }
 
 export async function createProductModerationHistory(payload: {
@@ -448,11 +426,7 @@ export async function createProductModerationHistory(payload: {
   comment?: string;
   editsMade?: Record<string, unknown>;
 }): Promise<void> {
-  try {
-    await telarApi.post('/product-moderation-history', payload);
-  } catch (error) {
-    throw error;
-  }
+  await telarApi.post('/product-moderation-history', payload);
 }
 
 // ─── Tiendas ──────────────────────────────────────────────────────────────────
@@ -485,15 +459,11 @@ export async function getModerationShops(
   if (region && region !== 'all') queryParams.region = region;
   if (craftType && craftType !== 'all') queryParams.craftType = craftType;
 
-  try {
-    const response = await telarApi.get<ModerationShopsResponse>(
-      '/artisan-shops',
-      { params: queryParams },
-    );
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await telarApi.get<ModerationShopsResponse>(
+    '/artisan-shops',
+    { params: queryParams },
+  );
+  return response.data;
 }
 
 export async function getShopProductCounts(
@@ -526,35 +496,23 @@ export async function toggleShopMarketplaceApproval(
   shopId: string,
   approved: boolean,
 ): Promise<void> {
-  try {
-    await telarApi.patch(`/artisan-shops/${shopId}`, {
-      marketplaceApproved: approved,
-      marketplaceApprovalStatus: approved ? 'approved' : 'rejected',
-    });
-  } catch (error) {
-    throw error;
-  }
+  await telarApi.patch(`/artisan-shops/${shopId}`, {
+    marketplaceApproved: approved,
+    marketplaceApprovalStatus: approved ? 'approved' : 'rejected',
+  });
 }
 
 export async function deleteShopAdmin(shopId: string): Promise<void> {
-  try {
-    await telarApi.delete(`/artisan-shops/${shopId}`);
-  } catch (error) {
-    throw error;
-  }
+  await telarApi.delete(`/artisan-shops/${shopId}`);
 }
 
 export async function publishShopAdmin(
   shopId: string,
   action: 'publish' | 'unpublish',
 ): Promise<void> {
-  try {
-    await telarApi.patch(`/artisan-shops/${shopId}`, {
-      publishStatus: action === 'publish' ? 'published' : 'pending_publish',
-    });
-  } catch (error) {
-    throw error;
-  }
+  await telarApi.patch(`/artisan-shops/${shopId}`, {
+    publishStatus: action === 'publish' ? 'published' : 'pending_publish',
+  });
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -570,6 +528,7 @@ const MODERATION_STATUSES = [
 
 export interface ModerationStatsData {
   productCounts: Record<string, number>;
+  productsByStatus: Record<string, ProductResponse[]>;
   shopCounts: { all: number; approved: number; not_approved: number };
   shopsWithBankData: number;
   shopsWithoutBankData: number;
@@ -590,44 +549,55 @@ export async function getPendingModerationCount(): Promise<number> {
 }
 
 export async function getModerationStats(): Promise<ModerationStatsData> {
-  try {
-    const [productCountsResults, shopsRes] = await Promise.all([
+  const [productResults, firstShopsRes] = await Promise.all([
       Promise.all(
         MODERATION_STATUSES.map((status) =>
           telarApi
-            .get<{ total: number }>('/products-new', {
-              params: { status, limit: 1, page: 1 },
+            .get<{ data: ProductResponse[]; total: number }>('/products-new', {
+              params: { status, limit: 50, page: 1 },
             })
-            .then((r) => ({ status, total: r.data.total || 0 }))
-            .catch(() => ({ status, total: 0 })),
+            .then((r) => ({ status, total: r.data.total || 0, data: r.data.data || [] }))
+            .catch(() => ({ status, total: 0, data: [] as ProductResponse[] })),
         ),
       ),
       telarApi
         .get<ModerationShopsResponse>('/artisan-shops', {
-          params: { limit: 100, page: 1 },
+          params: { limit: 200, page: 1 },
         })
         .catch(() => ({ data: { data: [], total: 0 } })),
     ]);
 
     const productCounts: Record<string, number> = {};
-    productCountsResults.forEach(({ status, total }) => {
+    const productsByStatus: Record<string, ProductResponse[]> = {};
+    productResults.forEach(({ status, total, data }) => {
       productCounts[status] = total;
+      productsByStatus[status] = data;
     });
 
-    const shops = shopsRes.data.data || [];
+    // Si hay más de 200 tiendas, buscar las restantes
+    const firstShops = firstShopsRes.data.data || [];
+    const totalShops = firstShopsRes.data.total || firstShops.length;
+    let shops: ModerationShopApi[] = firstShops;
+    if (totalShops > firstShops.length) {
+      const extraRes = await telarApi
+        .get<ModerationShopsResponse>('/artisan-shops', {
+          params: { limit: totalShops - firstShops.length, page: 2 },
+        })
+        .catch(() => ({ data: { data: [] } }));
+      shops = [...firstShops, ...(extraRes.data.data || [])];
+    }
 
     const approvedShops = shops.filter((s) => s.marketplaceApproved === true).length;
     const notApprovedShops = shops.filter((s) => !s.marketplaceApproved).length;
     const withBankData = shops.filter((s) => s.idContraparty != null).length;
     const publishedShops = shops.filter((s) => s.publishStatus === 'published').length;
-    const pendingPublishShops = shops.filter(
-      (s) => s.publishStatus !== 'published',
-    ).length;
+    const pendingPublishShops = shops.filter((s) => s.publishStatus !== 'published').length;
 
     return {
       productCounts,
+      productsByStatus,
       shopCounts: {
-        all: shops.length,
+        all: totalShops,
         approved: approvedShops,
         not_approved: notApprovedShops,
       },
@@ -637,7 +607,4 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
       pendingPublishShops,
       shops,
     };
-  } catch (error) {
-    throw error;
-  }
 }

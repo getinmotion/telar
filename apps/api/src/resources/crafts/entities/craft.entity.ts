@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Category } from 'src/resources/categories/entities/category.entity';
 
 export enum ApprovalStatus {
   PENDING = 'pending',
@@ -35,6 +38,13 @@ export class Craft {
 
   @Column({ type: 'uuid', nullable: true, name: 'suggested_by' })
   suggestedBy: string | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'category_id' })
+  categoryId: string | null;
+
+  @ManyToOne(() => Category, { nullable: true })
+  @JoinColumn({ name: 'category_id' })
+  category?: Category;
 
   @CreateDateColumn({
     type: 'timestamptz',

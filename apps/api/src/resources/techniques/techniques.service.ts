@@ -5,8 +5,8 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { Technique } from './entities/technique.entity';
+import { ILike, Repository } from 'typeorm';
+import { Technique, ApprovalStatus } from './entities/technique.entity';
 import { CreateTechniqueDto } from './dto/create-technique.dto';
 import { UpdateTechniqueDto } from './dto/update-technique.dto';
 import { ProductArtisanalIdentity } from '../products-new/entities/product-artisanal-identity.entity';
@@ -37,13 +37,12 @@ export class TechniquesService {
     return await this.techniquesRepository.save(newTechnique);
   }
 
-  /**
-   * Obtener todas las técnicas
-   */
-  async findAll(): Promise<Technique[]> {
-    return await this.techniquesRepository.find({
-      order: { name: 'ASC' },
-    });
+  async findAll(search?: string, status?: string, suggestedBy?: string): Promise<Technique[]> {
+    const where: any = {};
+    if (status) where.status = status;
+    if (suggestedBy) where.suggestedBy = suggestedBy;
+    if (search) where.name = ILike(`%${search}%`);
+    return this.techniquesRepository.find({ where, order: { name: 'ASC' } });
   }
 
   /**
@@ -93,34 +92,22 @@ export class TechniquesService {
     return technique;
   }
 
-  /**
-   * Obtener técnicas por craftId
-   */
-  async findByCraftId(craftId: string): Promise<Technique[]> {
-    return await this.techniquesRepository.find({
-      where: { craftId },
-      order: { name: 'ASC' },
-    });
+  async findByCraftId(craftId: string, status?: string): Promise<Technique[]> {
+    const where: any = { craftId };
+    if (status) where.status = status;
+    return this.techniquesRepository.find({ where, order: { name: 'ASC' } });
   }
 
-  /**
-   * Buscar técnicas por status
-   */
   async findByStatus(status: string): Promise<Technique[]> {
-    return await this.techniquesRepository.find({
-      where: { status: status as any },
+    return this.techniquesRepository.find({
+      where: { status: status as ApprovalStatus },
       order: { name: 'ASC' },
     });
   }
 
-  /**
-   * Actualizar una técnica
-   */
   async update(id: string, updateDto: UpdateTechniqueDto): Promise<Technique> {
-    // Verificar que la técnica existe
     await this.findOne(id);
 
-    // Si se está actualizando el nombre o craftId, verificar que no exista otra con ese nombre
     if (updateDto.name || updateDto.craftId) {
       const technique = await this.findOne(id);
       const nameToCheck = updateDto.name || technique.name;
@@ -137,25 +124,46 @@ export class TechniquesService {
       }
     }
 
-    // Actualizar
     await this.techniquesRepository.update(id, updateDto);
-
-    // Retornar actualizado
-    return await this.findOne(id);
+    return this.findOne(id);
   }
 
-  /**
-   * Eliminar una técnica
-   */
-  async remove(id: string): Promise<{ message: string }> {
-    // Verificar que la técnica existe
+  async updateStatus(
+    id: string,
+    status: ApprovalStatus,
+    mergeIntoId?: string,
+  ): Promise<Technique | { message: string }> {
     await this.findOne(id);
 
-    // Eliminar (hard delete)
-    await this.techniquesRepository.delete(id);
+    if (mergeIntoId && status === ApprovalStatus.REJECTED) {
+      await this.findOne(mergeIntoId);
+      await this.techniquesRepository.query(
+        `UPDATE artesanos.artisan_identity SET technique_primary_id = $1 WHERE technique_primary_id = $2`,
+        [mergeIntoId, id],
+      );
+      await this.techniquesRepository.query(
+        `UPDATE artesanos.artisan_identity SET technique_secondary_id = $1 WHERE technique_secondary_id = $2`,
+        [mergeIntoId, id],
+      );
+      await this.techniquesRepository.query(
+        `UPDATE shop.product_artisanal_identity SET primary_technique_id = $1 WHERE primary_technique_id = $2`,
+        [mergeIntoId, id],
+      );
+      await this.techniquesRepository.query(
+        `UPDATE shop.product_artisanal_identity SET secondary_technique_id = $1 WHERE secondary_technique_id = $2`,
+        [mergeIntoId, id],
+      );
+      await this.techniquesRepository.update(id, { status: ApprovalStatus.REJECTED });
+      return { message: `Técnica fusionada en ${mergeIntoId}` };
+    }
 
-    return {
-      message: `Técnica con ID ${id} eliminada exitosamente`,
-    };
+    await this.techniquesRepository.update(id, { status });
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<{ message: string }> {
+    await this.findOne(id);
+    await this.techniquesRepository.delete(id);
+    return { message: `Técnica con ID ${id} eliminada exitosamente` };
   }
 }

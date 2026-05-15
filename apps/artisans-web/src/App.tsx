@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,6 +7,31 @@ import './App.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+// ─── Backoffice: imports lazy (no se cargan en el bundle inicial) ─────────────
+import { BackofficeLayout } from '@/components/backoffice/BackofficeLayout';
+import { BackofficeProtectedRoute } from '@/components/auth/BackofficeProtectedRoute';
+import { BackofficePageSkeleton } from '@/components/backoffice/BackofficePageSkeleton';
+const BackofficeLoginPage = lazy(() => import('@/pages/backoffice/BackofficeLoginPage'));
+const AdminPage           = lazy(() => import('@/pages/Admin'));
+const ModerationPage_lazy = lazy(() => import('@/pages/ModerationPage'));
+const ProductAnalyticsPage_lazy = lazy(() => import('@/pages/ProductAnalyticsPage'));
+const ProductReviewPage_lazy = lazy(() => import('@/pages/ProductReviewPage'));
+const ShippingDashboardPage_lazy = lazy(() => import('@/pages/ShippingDashboardPage'));
+const CmsAdminPage_lazy = lazy(() => import('@/pages/CmsAdminPage'));
+const UserRolesAdminPage_lazy = lazy(() => import('@/pages/UserRolesAdminPage'));
+const BlogPostsAdminPage_lazy = lazy(() => import('@/pages/BlogPostsAdminPage'));
+const CollectionsAdminPage_lazy = lazy(() => import('@/pages/CollectionsAdminPage'));
+const TaxonomyModerationPage_lazy = lazy(() => import('@/pages/admin/TaxonomyModerationPage'));
+const DesignSystemEditorPage_lazy = lazy(() => import('@/pages/admin/DesignSystemEditorPage'));
+const BackofficeOrdenesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeOrdenesPage'));
+const BackofficeCuponesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeCuponesPage'));
+const BackofficeImagenesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeImagenesPage'));
+const BackofficeAuditoriaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeAuditoriaPage'));
+const BackofficeTiendasPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTiendasPage'));
+const BackofficePagosPage_lazy = lazy(() => import('@/pages/backoffice/BackofficePagosPage'));
+const BackofficeHomePage_lazy = lazy(() => import('@/pages/backoffice/BackofficeHomePage'));
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -18,15 +43,19 @@ const queryClient = new QueryClient({
   },
 });
 
-import { AuthProvider } from '@/context/AuthContext';
 import { DataCacheProvider } from '@/context/DataCacheContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { MasterAgentProvider } from '@/context/MasterAgentContext';
 import { DesignSystemProvider } from '@/contexts/DesignSystemContext';
 import { GamificationProvider } from '@/components/gamification/GamificationProvider';
 import { useTaskAutoCompletion } from '@/hooks/useTaskAutoCompletion';
-import { useSubdomain } from '@/hooks/useSubdomain';
-import { ModerationApp } from './ModerationApp';
+import { useAuthInit } from '@/hooks/useAuthInit';
+
+// Arranca la validación de JWT + auto-refresh sin envolver estado
+const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
+  useAuthInit();
+  return <>{children}</>;
+};
 
 // Global task auto-completion listener
 const TaskAutoCompletionWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -34,11 +63,10 @@ const TaskAutoCompletionWrapper = ({ children }: { children: React.ReactNode }) 
   return <>{children}</>;
 };
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { AdminProtectedRoute } from '@/components/auth/AdminProtectedRoute';
-import { ModeratorProtectedRoute } from '@/components/auth/ModeratorProtectedRoute';
 import DashboardHome from './pages/DashboardHome';
 import AgentDetails from './pages/AgentDetails';
 import MaturityCalculator from './pages/MaturityCalculator';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import UserProgress from './pages/UserProgress';
 import Login from './pages/auth/Login';
 import GrowthValidation from './pages/GrowthValidation';
@@ -48,8 +76,7 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyPending from './pages/VerifyPending';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import NotFound from './pages/NotFound';
-import Admin from './pages/Admin';
-import AdminDummyReset from './pages/AdminDummyReset';
+
 import TasksDashboard from './pages/TasksDashboard';
 import MasterCoordinatorChat from './pages/MasterCoordinatorChat';
 import OnePager from './pages/OnePager';
@@ -58,7 +85,6 @@ import ThreePager from './pages/ThreePager';
 import Profile from './pages/Profile';
 import { BiomeConfigPage } from './pages/BiomeConfigPage';
 import HelpPage from './pages/HelpPage';
-import AdminLoginPage from './pages/AdminLoginPage';
 // ArtisanDashboardPage removed - redirects to /profile
 // CreateShopPage removed - tienda se crea automáticamente al completar el test de madurez
 import PublicShopPage from './pages/PublicShopPage';
@@ -79,7 +105,6 @@ import { ProductEditPage } from './pages/ProductEditPage';
 import { LatestShopRedirect } from './components/shop/LatestShopRedirect';
 import InventoryPage from './pages/InventoryPage';
 import { StockWizard } from './pages/StockWizard';
-import IntelligentBrandWizardPage from './pages/IntelligentBrandWizardPage';
 import HeroSliderWizardPage from './pages/HeroSliderWizardPage';
 import ContactWizardPage from './pages/ContactWizardPage';
 import SocialLinksWizardPage from './pages/SocialLinksWizardPage';
@@ -92,17 +117,8 @@ import { CheckoutPage } from './components/checkout/CheckoutPage';
 import { ShoppingCartProvider } from './contexts/ShoppingCartContext';
 import DesignSystemPage from './pages/DesignSystemPage';
 import DesignShowcasePage from './pages/DesignShowcasePage';
-import DesignSystemEditorPage from './pages/admin/DesignSystemEditorPage';
 import { MilestoneProgressPage } from './pages/MilestoneProgressPage';
 import { AdminDesignSystemFAB } from './components/admin/design-system/AdminDesignSystemFAB';
-import ModerationPage from './pages/ModerationPage';
-import ProductAnalyticsPage from './pages/ProductAnalyticsPage';
-import { ProductReviewPage } from './pages/ProductReviewPage';
-import ShippingDashboardPage from './pages/ShippingDashboardPage';
-import CmsAdminPage from './pages/CmsAdminPage';
-import UserRolesAdminPage from './pages/UserRolesAdminPage';
-import BlogPostsAdminPage from './pages/BlogPostsAdminPage';
-import CollectionsAdminPage from './pages/CollectionsAdminPage';
 import BankDataPage from './pages/BankDataPage';
 import ActivityPage from './pages/ActivityPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -115,39 +131,13 @@ import PrivacidadPage from './pages/legal/PrivacidadPage';
 import PublicidadPage from './pages/legal/PublicidadPage';
 
 function App() {
-  const { isModerationSubdomain } = useSubdomain();
-
-  // Si estamos en el subdominio de moderación, usar ModerationApp
-  if (isModerationSubdomain) {
-    return (
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <HelmetProvider>
-            <BrowserRouter>
-              <DesignSystemProvider>
-                <AuthProvider>
-                  <DataCacheProvider>
-                    <LanguageProvider>
-                      <ModerationApp />
-                    </LanguageProvider>
-                  </DataCacheProvider>
-                </AuthProvider>
-              </DesignSystemProvider>
-            </BrowserRouter>
-          </HelmetProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    );
-  }
-
-  // App principal normal
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
           <BrowserRouter>
             <DesignSystemProvider>
-              <AuthProvider>
+              <AuthInitializer>
                 <DataCacheProvider>
                   <LanguageProvider>
                     <MasterAgentProvider>
@@ -164,7 +154,6 @@ function App() {
                             <Route path="/forgot-password" element={<ForgotPassword />} />
                             <Route path="/reset-password" element={<ResetPassword />} />
                             <Route path="/auth/verify-pending" element={<VerifyPending />} />
-                            <Route path="/auth/verify" element={<VerifyEmail />} />
                             <Route path="/verify-email" element={<VerifyEmail />} />
 
                             {/* Legal pages */}
@@ -244,6 +233,14 @@ function App() {
                 Todo pasa por el Coordinador Maestro en /dashboard
               */}
                             <Route
+                              path="/onboarding"
+                              element={
+                                <ProtectedRoute>
+                                  <OnboardingFlow />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
                               path="/maturity-calculator"
                               element={
                                 <ProtectedRoute>
@@ -287,14 +284,10 @@ function App() {
                               }
                             />
 
-                            {/* Brand Wizard Route */}
+                            {/* Brand Wizard Route — deprecated, redirects to store config */}
                             <Route
                               path="/dashboard/brand-wizard"
-                              element={
-                                <ProtectedRoute>
-                                  <IntelligentBrandWizardPage />
-                                </ProtectedRoute>
-                              }
+                              element={<Navigate to="/mi-tienda/configurar" replace />}
                             />
                             {/* Redirect old diagnosis results page to unified wizard */}
                             <Route
@@ -374,101 +367,248 @@ function App() {
                             <Route path="/crear-tienda" element={<Navigate to="/dashboard/create-shop" replace />} />
                             <Route path="/perfil" element={<Navigate to="/profile" replace />} />
 
-                            <Route path="/admin/login" element={<AdminLoginPage />} />
-                            <Route
-                              path="/admin"
-                              element={
-                                <AdminProtectedRoute>
-                                  <Admin />
-                                </AdminProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/admin/dummy-reset"
-                              element={
-                                <AdminProtectedRoute>
-                                  <AdminDummyReset />
-                                </AdminProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/admin/design-system"
-                              element={
-                                <AdminProtectedRoute>
-                                  <DesignSystemEditorPage />
-                                </AdminProtectedRoute>
-                              }
-                            />
-                            <Route path="/admin/desing-system" element={<Navigate to="/admin/design-system" replace />} />
-
-                            {/* Moderation routes - independent from admin */}
-                            <Route
-                              path="/moderacion"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <ModerationPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/analytics"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <ProductAnalyticsPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            {/* --- AGREGA ESTE NUEVO BLOQUE --- */}
-                            <Route
-                              path="/moderacion/revisor-productos"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <ProductReviewPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/envios-dashboard"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <ShippingDashboardPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/cms"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <CmsAdminPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/usuarios"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <UserRolesAdminPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/historias-cms"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <BlogPostsAdminPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
-                            <Route
-                              path="/moderacion/colecciones-cms"
-                              element={
-                                <ModeratorProtectedRoute>
-                                  <CollectionsAdminPage />
-                                </ModeratorProtectedRoute>
-                              }
-                            />
+                            {/* Admin legacy typo redirect */}
+                            <Route path="/admin/desing-system" element={<Navigate to="/backoffice/diseno" replace />} />
                             {/* Redirect old admin moderation route to new independent route */}
-                            <Route path="/admin/moderation" element={<Navigate to="/moderacion" replace />} />
+                            <Route path="/admin/moderation" element={<Navigate to="/backoffice/moderacion" replace />} />
+
+                            {/* ═══════════════════════════════════════════════════════════
+                                BACKOFFICE UNIFICADO — /backoffice/*
+                                Panel único para administración y moderación.
+                                Reemplaza /admin/* y /moderacion/* con navegación unificada.
+                            ════════════════════════════════════════════════════════════ */}
+
+                            {/* Login público del backoffice */}
+                            <Route
+                              path="/backoffice/login"
+                              element={
+                                <Suspense fallback={<BackofficePageSkeleton />}>
+                                  <BackofficeLoginPage />
+                                </Suspense>
+                              }
+                            />
+
+                            {/* Rutas protegidas del backoffice con layout unificado */}
+                            <Route element={<BackofficeProtectedRoute />}>
+                              <Route element={<BackofficeLayout />}>
+
+                                {/* Redirect /backoffice → /backoffice/home */}
+                                <Route
+                                  index
+                                  path="/backoffice"
+                                  element={<Navigate to="/backoffice/home" replace />}
+                                />
+
+                                {/* HOME — Panel de Operaciones (todos los roles) */}
+                                <Route
+                                  path="/backoffice/home"
+                                  element={
+                                    <BackofficeProtectedRoute section="home">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeHomePage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* MODERACIÓN (todos los roles de backoffice) */}
+                                <Route
+                                  path="/backoffice/moderacion"
+                                  element={
+                                    <BackofficeProtectedRoute section="moderation">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <ModerationPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/revisor"
+                                  element={
+                                    <BackofficeProtectedRoute section="revisor">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <ProductReviewPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/analytics"
+                                  element={
+                                    <BackofficeProtectedRoute section="analytics">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <ProductAnalyticsPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/envios"
+                                  element={
+                                    <BackofficeProtectedRoute section="envios">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <ShippingDashboardPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* CONTENIDO (admin+) */}
+                                <Route
+                                  path="/backoffice/cms"
+                                  element={
+                                    <BackofficeProtectedRoute section="cms">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <CmsAdminPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/historias"
+                                  element={
+                                    <BackofficeProtectedRoute section="historias">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BlogPostsAdminPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/colecciones"
+                                  element={
+                                    <BackofficeProtectedRoute section="colecciones">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <CollectionsAdminPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/taxonomia"
+                                  element={
+                                    <BackofficeProtectedRoute section="taxonomia">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <TaxonomyModerationPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* OPERACIONES + SISTEMA (super_admin) */}
+                                <Route
+                                  path="/backoffice/dashboard"
+                                  element={
+                                    <BackofficeProtectedRoute section="dashboard">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <AdminPage />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/usuarios"
+                                  element={
+                                    <BackofficeProtectedRoute section="usuarios">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <UserRolesAdminPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/diseno"
+                                  element={
+                                    <BackofficeProtectedRoute section="diseno">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <DesignSystemEditorPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/ordenes"
+                                  element={
+                                    <BackofficeProtectedRoute section="ordenes">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeOrdenesPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/cupones"
+                                  element={
+                                    <BackofficeProtectedRoute section="cupones">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeCuponesPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/imagenes"
+                                  element={
+                                    <BackofficeProtectedRoute section="imagenes">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeImagenesPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/tiendas"
+                                  element={
+                                    <BackofficeProtectedRoute section="tiendas">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeTiendasPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/pagos"
+                                  element={
+                                    <BackofficeProtectedRoute section="pagos">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficePagosPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/auditoria"
+                                  element={
+                                    <BackofficeProtectedRoute section="auditoria">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeAuditoriaPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                              </Route>
+                            </Route>
+
+                            {/* ═══════════════════════════════════════════════════════════
+                                REDIRECTS DE COMPATIBILIDAD
+                                Las rutas antiguas /admin y /moderacion redirigen al nuevo
+                                /backoffice. Los bookmarks existentes siguen funcionando.
+                            ════════════════════════════════════════════════════════════ */}
+                            <Route path="/admin/login" element={<Navigate to="/backoffice/login" replace />} />
+                            <Route path="/admin" element={<Navigate to="/backoffice/dashboard" replace />} />
+                            <Route path="/admin/design-system" element={<Navigate to="/backoffice/diseno" replace />} />
+                            <Route path="/admin/taxonomy-moderation" element={<Navigate to="/backoffice/taxonomia" replace />} />
+                            <Route path="/admin/dummy-reset" element={<Navigate to="/backoffice/dashboard" replace />} />
+                            <Route path="/moderacion" element={<Navigate to="/backoffice/moderacion" replace />} />
+                            <Route path="/moderacion/analytics" element={<Navigate to="/backoffice/analytics" replace />} />
+                            <Route path="/moderacion/revisor-productos" element={<Navigate to="/backoffice/revisor" replace />} />
+                            <Route path="/moderacion/envios-dashboard" element={<Navigate to="/backoffice/envios" replace />} />
+                            <Route path="/moderacion/cms" element={<Navigate to="/backoffice/cms" replace />} />
+                            <Route path="/moderacion/usuarios" element={<Navigate to="/backoffice/usuarios" replace />} />
+                            <Route path="/moderacion/historias-cms" element={<Navigate to="/backoffice/historias" replace />} />
+                            <Route path="/moderacion/colecciones-cms" element={<Navigate to="/backoffice/colecciones" replace />} />
+
                             <Route path="/help" element={<HelpPage />} />
                             <Route path="/design-system" element={<DesignSystemPage />} />
                             <Route path="/design-showcase" element={<DesignShowcasePage />} />
@@ -506,7 +646,7 @@ function App() {
                     </MasterAgentProvider>
                   </LanguageProvider>
                 </DataCacheProvider>
-              </AuthProvider>
+              </AuthInitializer>
             </DesignSystemProvider>
           </BrowserRouter>
         </HelmetProvider>

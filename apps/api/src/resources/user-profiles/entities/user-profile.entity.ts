@@ -15,6 +15,7 @@ import { User } from 'src/resources/users/entities/user.entity';
 import { Country } from 'src/resources/countries/entities/country.entity';
 import { Agreement } from 'src/resources/agreements/entities/agreement.entity';
 import { ArtisanOrigin } from 'src/resources/artisan-origin/entities/artisan-origin.entity';
+import { ArtisanIdentity } from 'src/resources/artisan-identity/entities/artisan-identity.entity';
 import { ImageUrlBuilder } from '../../../common/utils/image-url-builder.util';
 
 export enum UserType {
@@ -240,6 +241,15 @@ export class UserProfile extends BaseEntity {
   @ManyToOne(() => ArtisanOrigin, { nullable: true })
   @JoinColumn({ name: 'artisan_origin_id' })
   artisanOrigin: ArtisanOrigin | null;
+
+  @ApiPropertyOptional({ description: 'ID de la identidad artesanal (técnica, diferenciador)' })
+  @Column({ type: 'uuid', nullable: true, name: 'artisan_identity_id' })
+  artisanIdentityId: string | null;
+
+  @ApiPropertyOptional({ description: 'Relación con la identidad artesanal' })
+  @ManyToOne(() => ArtisanIdentity, { nullable: true })
+  @JoinColumn({ name: 'artisan_identity_id' })
+  artisanIdentity: ArtisanIdentity | null;
 
   /**
    * Transform relative image paths to full CDN URLs after loading from database

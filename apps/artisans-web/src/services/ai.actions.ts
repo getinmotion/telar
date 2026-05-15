@@ -32,6 +32,7 @@ export interface ArtisanProfileHistoryResponse {
 }
 
 export interface GenerateArtisanProfileHistoryRequest {
+  artisanId?: string;
   profile: ArtisanProfileData;
   shopName: string;
   craftType: string;

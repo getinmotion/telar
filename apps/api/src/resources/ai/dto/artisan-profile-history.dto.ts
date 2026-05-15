@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  IsUUID,
   Min,
 } from 'class-validator';
 
@@ -114,20 +115,6 @@ export class ArtisanProfileDataDto {
   @IsNotEmpty()
   craftMessage: string;
 
-  @ApiProperty({ description: 'Fotos trabajando', type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  workingPhotos: string[];
-
-  @ApiProperty({ description: 'Fotos de la comunidad', type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  communityPhotos: string[];
-
-  @ApiProperty({ description: 'Fotos de la familia', type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  familyPhotos: string[];
 }
 
 export class GenerateArtisanProfileHistoryDto {
@@ -149,6 +136,11 @@ export class GenerateArtisanProfileHistoryDto {
   @IsString()
   @IsNotEmpty()
   region: string;
+
+  @ApiPropertyOptional({ description: 'ID del artesano para guardar la historia generada' })
+  @IsUUID()
+  @IsOptional()
+  artisanId?: string;
 }
 
 export interface TimelineEvent {

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getModerationStats, ModerationShopApi } from '@/services/moderation.actions';
+import type { ProductResponse } from '@telar/shared-types';
 
 interface ProductCounts {
   pending_moderation: number;
@@ -30,6 +31,17 @@ export interface ShopSummary {
   region: string | null;
 }
 
+export interface ProductSummary {
+  id: string;
+  name: string;
+  shopId: string;
+  shopName: string | null;
+  status: string;
+  price: number;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
 export interface ModerationStats {
   products: ProductCounts;
   shops: ShopCounts;
@@ -45,6 +57,14 @@ export interface ModerationStats {
     pendingPublish: ShopSummary[];
     withBankData: ShopSummary[];
     withoutBankData: ShopSummary[];
+  };
+  productDetails: {
+    pending_moderation: ProductSummary[];
+    approved: ProductSummary[];
+    approved_with_edits: ProductSummary[];
+    changes_requested: ProductSummary[];
+    rejected: ProductSummary[];
+    draft: ProductSummary[];
   };
 }
 
@@ -71,6 +91,14 @@ const defaultStats: ModerationStats = {
     withBankData: [],
     withoutBankData: [],
   },
+  productDetails: {
+    pending_moderation: [],
+    approved: [],
+    approved_with_edits: [],
+    changes_requested: [],
+    rejected: [],
+    draft: [],
+  },
 };
 
 function mapShopSummary(s: ModerationShopApi): ShopSummary {
@@ -85,6 +113,27 @@ function mapShopSummary(s: ModerationShopApi): ShopSummary {
     createdAt: s.createdAt,
     logoUrl: s.logoUrl,
     region: s.region,
+  };
+}
+
+function mapProductSummary(p: ProductResponse): ProductSummary {
+  const firstVariant = p.variants?.[0];
+  const priceInPesos = firstVariant?.basePriceMinor
+    ? Math.round(parseInt(firstVariant.basePriceMinor) / 100)
+    : 0;
+  const imageUrl = p.media
+    ?.filter((m) => m.mediaType === 'image')
+    .sort((a, b) => a.displayOrder - b.displayOrder)[0]?.mediaUrl ?? null;
+
+  return {
+    id: p.id,
+    name: p.name,
+    shopId: p.storeId,
+    shopName: p.artisanShop?.shopName ?? null,
+    status: p.status,
+    price: priceInPesos,
+    imageUrl,
+    createdAt: p.createdAt,
   };
 }
 
@@ -118,6 +167,16 @@ export const useModerationStats = () => {
         withoutBankData: shopSummaries.filter((s) => !s.hasBankData),
       };
 
+      const ps = data.productsByStatus ?? {};
+      const productDetails: ModerationStats['productDetails'] = {
+        pending_moderation: (ps.pending_moderation ?? []).map(mapProductSummary),
+        approved: (ps.approved ?? []).map(mapProductSummary),
+        approved_with_edits: (ps.approved_with_edits ?? []).map(mapProductSummary),
+        changes_requested: (ps.changes_requested ?? []).map(mapProductSummary),
+        rejected: (ps.rejected ?? []).map(mapProductSummary),
+        draft: (ps.draft ?? []).map(mapProductSummary),
+      };
+
       setStats({
         products: productCounts,
         shops: data.shopCounts,
@@ -126,6 +185,7 @@ export const useModerationStats = () => {
         publishedShops: data.publishedShops,
         pendingPublishShops: data.pendingPublishShops,
         shopDetails,
+        productDetails,
       });
     } catch {
       toast.error('Error al cargar estadísticas');

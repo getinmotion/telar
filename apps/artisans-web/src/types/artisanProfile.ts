@@ -7,6 +7,7 @@ export interface ArtisanProfileData {
   shortBio?: string;
   artisanPhoto?: string;
   artisanVideo?: string;
+  craftId?: string;          // UUID del oficio principal (FK → crafts)
 
   // Step 2: Historia y tradición
   learnedFrom: string;
@@ -38,18 +39,11 @@ export interface ArtisanProfileData {
   uniqueness: string;
   craftStyle: string[];
 
-  // Step 5: Galería humana
-  workingPhotos: string[];
-  maestrosPhotos: string[];
-  communityPhotos: string[];
-  environmentPhotos: string[];
-
   // Legacy fields — kept for backwards compatibility
   workshopPhotos?: string[];
   workshopAddress?: string;
   workshopVideo?: string;
   averageTime?: string;
-  familyPhotos?: string[];
   culturalHistory?: string;
   ancestralKnowledge?: string;
   territorialImportance?: string;
@@ -129,9 +123,4 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   materials: [],
   uniqueness: '',
   craftStyle: [],
-  workingPhotos: [],
-  maestrosPhotos: [],
-  communityPhotos: [],
-  environmentPhotos: [],
-  familyPhotos: [],
 };

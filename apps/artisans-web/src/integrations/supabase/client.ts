@@ -3,13 +3,21 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Prefer environment variables so deployed builds don't accidentally point at local Supabase.
-// Fallbacks keep the app working if env vars are missing.
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ylooqmqmoufqtxvetxuj.supabase.co";
+// Las credenciales se leen desde variables de entorno.
+// Configura VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY en tu .env.local
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? '';
 const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb29xbXFtb3VmcXR4dmV0eHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Nzc1ODIsImV4cCI6MjA2MzI1MzU4Mn0.F_FtGBwpHKBpog6Ad4zUjmogRZMLNVgk18rsbMv7JYs";
+  '';
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.warn(
+    '[Supabase] Faltan variables de entorno VITE_SUPABASE_URL y/o VITE_SUPABASE_PUBLISHABLE_KEY. ' +
+    'Configúralas en .env.local para que el storage de archivos funcione.',
+  );
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

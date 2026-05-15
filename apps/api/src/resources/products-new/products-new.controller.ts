@@ -20,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { ProductsNewService } from './products-new.service';
 import { ProductsNewAnalyticsService } from './products-new-analytics.service';
+import { SkuGeneratorService } from './sku-generator.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
@@ -31,6 +32,7 @@ export class ProductsNewController {
   constructor(
     private readonly productsNewService: ProductsNewService,
     private readonly analyticsService: ProductsNewAnalyticsService,
+    private readonly skuGeneratorService: SkuGeneratorService,
   ) {}
 
   /**
@@ -284,6 +286,34 @@ export class ProductsNewController {
   }
 
   /**
+   * GET /products-new/:id/sku
+   * Retorna el SKU del primer variant del producto y su desglose semántico.
+   * Útil para mostrarle al artesano cómo se compone su código TELAR.
+   */
+  @Get(':id/sku')
+  @ApiOperation({ summary: 'Obtener SKU y desglose semántico del producto' })
+  @ApiParam({ name: 'id', description: 'ID del producto' })
+  @ApiResponse({
+    status: 200,
+    description: 'SKU y desglose obtenidos exitosamente',
+    schema: {
+      example: {
+        sku: 'TXT-ANT-TEL-UNI-000412',
+        breakdown: {
+          category: { code: 'TXT', name: 'Textiles y Moda' },
+          territory: { code: 'ANT', name: 'Antioquia' },
+          technique: { code: 'TEL', name: 'Telar' },
+          production: { code: 'UNI', name: 'Pieza única' },
+          consecutive: '000412',
+        },
+      },
+    },
+  })
+  async getSkuPreview(@Param('id') id: string) {
+    return this.skuGeneratorService.generateForProduct(id);
+  }
+
+  /**
    * GET /products-new/:id
    * Obtener un producto por ID con todas sus capas y relaciones
    */
@@ -314,6 +344,19 @@ export class ProductsNewController {
     @Body('status') status: string,
   ) {
     return this.productsNewService.updateStatus(id, status);
+  }
+
+  /**
+   * DELETE /products-new/bulk
+   * Soft delete masivo de productos
+   */
+  @Delete('bulk')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Eliminar varios productos en bloque' })
+  bulkDelete(@Body() body: { ids: string[] }) {
+    return this.productsNewService.bulkDelete(body.ids);
   }
 
   /**

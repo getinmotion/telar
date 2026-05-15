@@ -421,6 +421,20 @@ export class ArtisanShop extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   municipality: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Video de presentación de la tienda/artesano',
+    example: { type: 'youtube', url: 'https://youtu.be/abc123' },
+  })
+  @Column({ type: 'jsonb', name: 'presentation_video', nullable: true })
+  presentationVideo: Record<string, any> | null;
+
+  @ApiPropertyOptional({
+    description: 'Configuración de la página de bio link',
+    example: { showShopLink: true, showProfileLink: true, featuredProductId: null },
+  })
+  @Column({ type: 'jsonb', name: 'bio_config', nullable: true })
+  bioConfig: Record<string, any> | null;
+
   // Relación 1:1 con User
   @ApiProperty({ description: 'Usuario propietario de la tienda' })
   @ManyToOne(() => User, { onDelete: 'CASCADE' })

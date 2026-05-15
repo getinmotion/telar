@@ -35,18 +35,9 @@ export const ArtisanStepShell: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex-1 overflow-y-auto flex flex-col pb-24 box-border">
-      <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} />
+      <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} onBack={onBack} />
 
-      <main className="w-full flex-1 flex min-h-0 max-w-[1200px] mx-auto px-4 py-4">
-        <div
-          className="p-8 w-full flex min-h-0 rounded-xl"
-          style={{
-            background: 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.65)',
-            boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)',
-          }}
-        >
+      <main className="w-full max-w-[1200px] mx-auto px-4 py-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
 
             {/* Form content */}
@@ -55,7 +46,7 @@ export const ArtisanStepShell: React.FC<Props> = ({
             </div>
 
             {/* AI observation panel */}
-            <div className="lg:col-span-5 h-full">
+            <div className="lg:col-span-5">
               <section
                 className="h-full text-white flex flex-col relative overflow-hidden border border-white/10 shadow-lg rounded-xl p-5 min-h-[480px]"
                 style={{ background: '#151b2d' }}
@@ -100,7 +91,6 @@ export const ArtisanStepShell: React.FC<Props> = ({
             </div>
 
           </div>
-        </div>
       </main>
 
       <WizardFooter

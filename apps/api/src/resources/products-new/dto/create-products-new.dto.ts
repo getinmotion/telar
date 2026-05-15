@@ -47,6 +47,7 @@ export enum AvailabilityType {
   EN_STOCK = 'en_stock',
   BAJO_PEDIDO = 'bajo_pedido',
   EDICION_LIMITADA = 'edicion_limitada',
+  PIEZA_UNICA = 'pieza_unica',
 }
 
 export enum FragilityLevel {

@@ -14,7 +14,7 @@ export class StoreArtisanalProfile {
   storeId: string;
 
   @Column({ name: 'primary_craft_id', type: 'uuid', nullable: true })
-  primaryCraftId: string;
+  primaryCraftId: string | null;
 
   @Column({ name: 'is_collaboration_studio', type: 'boolean', default: false })
   isCollaborationStudio: boolean;

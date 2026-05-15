@@ -12,18 +12,6 @@ import {
 } from '@/components/shop/public/ShopPublicShell';
 import { ShoppingCartProvider } from '@/contexts/ShoppingCartContext';
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-function galleryPhotos(p: ArtisanProfileData): string[] {
-  return [
-    ...(p.workingPhotos     ?? []),
-    ...(p.maestrosPhotos    ?? []),
-    ...(p.communityPhotos   ?? []),
-    ...(p.environmentPhotos ?? []),
-    ...(p.familyPhotos      ?? []),
-    ...(p.workshopPhotos    ?? []),
-  ].filter(Boolean);
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 const PublicArtisanProfile: React.FC = () => {
   const { shopSlug }  = useParams<{ shopSlug: string }>();
@@ -52,7 +40,6 @@ const PublicArtisanProfile: React.FC = () => {
   const learnedFromLabel = LEARNED_FROM_OPTIONS.find(o => o.value === profile.learnedFrom)?.label ?? profile.learnedFrom;
   const ethnicLabel      = ETHNIC_RELATION_OPTIONS.find(o => o.value === profile.ethnicRelation)?.label ?? null;
   const location_str     = [profile.municipality, profile.department, profile.country].filter(Boolean).join(', ');
-  const photos           = galleryPhotos(profile);
   const heroImage        = profile.artisanPhoto ?? getHeroImage(shop);
   const quote            = profile.craftMessage || profile.culturalMeaning;
 
@@ -296,25 +283,7 @@ const PublicArtisanProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* ── 5. GALERÍA HUMANA ──────────────────────────────────────────── */}
-        {photos.length > 0 && (
-          <div className="max-w-[1400px] mx-auto px-10 pb-6">
-            <div className="mb-6">
-              <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 4 }}>Galería humana</LabelCaps>
-              <HeadingSerif size={28}>El oficio en imágenes</HeadingSerif>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {photos.slice(0, 8).map((src, i) => (
-                <div key={i} className="overflow-hidden rounded-xl group" style={{ aspectRatio: i % 5 === 0 ? '3/4' : '1/1' }}>
-                  <img src={src} alt={`Galería ${i + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── 6. QUOTE FINAL ─────────────────────────────────────────────── */}
+        {/* ── 5. QUOTE FINAL ─────────────────────────────────────────────── */}
         {profile.craftMessage && (
           <div className="max-w-[1400px] mx-auto px-10 pb-10">
             <div className="p-12 rounded-2xl text-center" style={{ background: T.dark }}>

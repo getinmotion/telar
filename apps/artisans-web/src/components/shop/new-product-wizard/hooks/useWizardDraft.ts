@@ -40,7 +40,8 @@ export const mapNewStateToDto = (
     })),
   };
 
-  if (state.craftId || state.primaryTechniqueId || state.style || state.elaborationTime) {
+  const firstStyle = (state.styles ?? [])[0] ?? state.style;
+  if (state.craftId || state.primaryTechniqueId || firstStyle || state.elaborationTime) {
     dto.artisanalIdentity = {
       ...(isUUID(state.craftId) && { primaryCraftId: state.craftId }),
       ...(isUUID(state.primaryTechniqueId) && { primaryTechniqueId: state.primaryTechniqueId }),
@@ -48,9 +49,9 @@ export const mapNewStateToDto = (
       pieceType: state.purpose === 'funcional' ? 'funcional'
         : state.purpose === 'decorativa' ? 'decorativa'
         : undefined,
-      style: state.style === 'tradicional' ? 'tradicional'
-        : state.style === 'contemporaneo' ? 'contemporaneo'
-        : state.style === 'fusion' ? 'fusion'
+      style: firstStyle === 'tradicional' ? 'tradicional'
+        : firstStyle === 'contemporaneo' ? 'contemporaneo'
+        : firstStyle === 'fusion' ? 'fusion'
         : undefined,
       isCollaboration: state.isCollaboration ?? false,
       estimatedElaborationTime: state.elaborationTime || undefined,
@@ -96,7 +97,7 @@ export const mapNewStateToDto = (
     dto.variants = [
       {
         stockQuantity: state.inventory ?? 1,
-        basePriceMinor: priceToMinor(state.price),
+        basePriceMinor: priceToMinor(Math.round(state.price * 1.05)),
         currency: 'COP',
         sku: state.sku,
         isActive: true,
