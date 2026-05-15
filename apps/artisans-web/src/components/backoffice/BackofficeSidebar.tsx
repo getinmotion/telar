@@ -44,15 +44,16 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'CMS', to: '/backoffice/cms', section: 'cms', icon: '🗂️' },
       { label: 'Historias', to: '/backoffice/historias', section: 'historias', icon: '📝' },
       { label: 'Colecciones', to: '/backoffice/colecciones', section: 'colecciones', icon: '🎨' },
-      { label: 'Imágenes', to: '/backoffice/imagenes', section: 'imagenes', icon: '🖼️' },
       { label: 'Tiendas', to: '/backoffice/tiendas', section: 'tiendas', icon: '🏪' },
       { label: 'Taxonomía', to: '/backoffice/taxonomia', section: 'taxonomia', icon: '🏷️' },
+      { label: 'Curaduría', to: '/backoffice/curation', section: 'curation', icon: '✨' },
     ],
   },
   {
     title: 'OPERACIONES',
     items: [
       { label: 'Dashboard', to: '/backoffice/dashboard', section: 'dashboard', icon: '📈' },
+      { label: 'Comercial', to: '/backoffice/comercial', section: 'comercial', icon: '💰' },
       { label: 'Órdenes', to: '/backoffice/ordenes', section: 'ordenes', icon: '🛒' },
       { label: 'Usuarios y Roles', to: '/backoffice/usuarios', section: 'usuarios', icon: '👥' },
       { label: 'Cupones', to: '/backoffice/cupones', section: 'cupones', icon: '🎟️' },

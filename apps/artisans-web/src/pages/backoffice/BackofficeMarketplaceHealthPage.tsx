@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
+} from 'recharts';
 import { useModerationStats, ShopSummary } from '@/hooks/useModerationStats';
 import { SANS, SERIF, lc } from '@/components/dashboard/dashboardStyles';
 
@@ -115,6 +118,43 @@ const ScoreBar: React.FC<ScoreBarProps> = ({ score }) => (
   </div>
 );
 
+// ─── Dimensional scoring ──────────────────────────────────────────────────────
+interface DimScores { branding: number; storytelling: number; operacion: number }
+
+function calcDimScores(shop: ShopSummary): DimScores {
+  // Branding: logo (50) + banner (30) + region (20)
+  const branding =
+    (shop.logoUrl ? 50 : 0) +
+    (shop.bannerUrl ? 30 : 0) +
+    (shop.region ? 20 : 0);
+
+  // Storytelling: description (60) + craftType (40)
+  const storytelling =
+    (shop.description && shop.description.trim().length > 30 ? 60 : shop.description ? 30 : 0) +
+    (shop.craftType ? 40 : 0);
+
+  // Operación: bankData (40) + published (35) + marketplaceApproved (25)
+  const operacion =
+    (shop.hasBankData ? 40 : 0) +
+    (shop.publishStatus === 'published' ? 35 : 0) +
+    (shop.marketplaceApproved ? 25 : 0);
+
+  return { branding, storytelling, operacion };
+}
+
+interface DimBarProps { label: string; value: number; color: string }
+const DimBar: React.FC<DimBarProps> = ({ label, value, color }) => (
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+      <span style={{ ...lc(0.4), fontSize: 8 }}>{label}</span>
+      <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color }}>{value}</span>
+    </div>
+    <div style={{ height: 5, background: 'rgba(20,34,57,0.08)', borderRadius: 999 }}>
+      <div style={{ height: '100%', width: `${value}%`, background: color, borderRadius: 999, transition: 'width 0.5s ease' }} />
+    </div>
+  </div>
+);
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const BackofficeMarketplaceHealthPage: React.FC = () => {
   const { stats, loading, fetchStats } = useModerationStats();
@@ -124,6 +164,23 @@ const BackofficeMarketplaceHealthPage: React.FC = () => {
 
   const shopHealths = useMemo<ShopHealth[]>(() => {
     return stats.shopDetails.all.map(calcShopScore).sort((a, b) => a.score - b.score);
+  }, [stats.shopDetails.all]);
+
+  const dimAverages = useMemo(() => {
+    const shops = stats.shopDetails.all;
+    if (shops.length === 0) return { branding: 0, storytelling: 0, operacion: 0 };
+    const sums = shops.reduce(
+      (acc, s) => {
+        const d = calcDimScores(s);
+        return { branding: acc.branding + d.branding, storytelling: acc.storytelling + d.storytelling, operacion: acc.operacion + d.operacion };
+      },
+      { branding: 0, storytelling: 0, operacion: 0 },
+    );
+    return {
+      branding: Math.round(sums.branding / shops.length),
+      storytelling: Math.round(sums.storytelling / shops.length),
+      operacion: Math.round(sums.operacion / shops.length),
+    };
   }, [stats.shopDetails.all]);
 
   // Alertas operativas
@@ -399,6 +456,87 @@ const BackofficeMarketplaceHealthPage: React.FC = () => {
                     <p style={{ ...lc(0.35), fontSize: 8, marginTop: 4 }}>{label}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Salud dimensional del ecosistema ────────────────────────── */}
+        {!loading && total > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <span style={{ ...lc(0.45), fontSize: 10 }}>Salud dimensional del ecosistema</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(20,34,57,0.08)' }} />
+              <span style={{ ...lc(0.3), fontSize: 9 }}>Promedio de todos los talleres</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {/* Radar visual */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.82)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.65)',
+                  borderRadius: 20,
+                  padding: '20px 24px',
+                }}
+              >
+                <p style={{ ...lc(0.4), fontSize: 8, marginBottom: 12 }}>Radar de madurez</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <RadarChart
+                    data={[
+                      { dim: 'Branding', score: dimAverages.branding },
+                      { dim: 'Storytelling', score: dimAverages.storytelling },
+                      { dim: 'Operación', score: dimAverages.operacion },
+                    ]}
+                  >
+                    <PolarGrid stroke="rgba(20,34,57,0.08)" />
+                    <PolarAngleAxis
+                      dataKey="dim"
+                      tick={{ fontFamily: SANS, fontSize: 11, fill: 'rgba(20,34,57,0.5)', fontWeight: 700 }}
+                    />
+                    <Radar
+                      dataKey="score"
+                      stroke="#7c3aed"
+                      fill="#7c3aed"
+                      fillOpacity={0.15}
+                      strokeWidth={2}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Barras por dimensión */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.82)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.65)',
+                  borderRadius: 20,
+                  padding: '20px 24px',
+                }}
+              >
+                <p style={{ ...lc(0.4), fontSize: 8, marginBottom: 20 }}>Detalle por dimensión</p>
+                <DimBar label="Branding — logo, banner, región" value={dimAverages.branding} color="#7c3aed" />
+                <DimBar label="Storytelling — descripción, tipo de artesanía" value={dimAverages.storytelling} color="#0d9488" />
+                <DimBar label="Operación — cobro, publicación, aprobación MKT" value={dimAverages.operacion} color="#166534" />
+
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(20,34,57,0.07)' }}>
+                  {[
+                    { label: 'Branding < 50', count: stats.shopDetails.all.filter(s => calcDimScores(s).branding < 50).length, color: '#7c3aed' },
+                    { label: 'Storytelling < 50', count: stats.shopDetails.all.filter(s => calcDimScores(s).storytelling < 50).length, color: '#0d9488' },
+                    { label: 'Operación < 75', count: stats.shopDetails.all.filter(s => calcDimScores(s).operacion < 75).length, color: ORANGE },
+                  ].map(({ label, count, color }) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ ...lc(0.35), fontSize: 8 }}>{label}</span>
+                      <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color }}>
+                        {count} <span style={{ fontSize: 9, fontWeight: 500 }}>talleres</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

@@ -5,8 +5,12 @@
  * Lee directamente del authStore (Zustand) — los roles vienen en el JWT
  * desde la Fase 0.2, por lo que NO necesita llamadas adicionales a la API.
  *
- * Reemplaza: useIsModerator, checkAuthorization() de AuthContext,
- * y la lógica dispersa en AdminProtectedRoute y ModeratorProtectedRoute.
+ * Roles granulares (Fase 3E):
+ *   moderator_product     → cola de productos + reviewer workspace
+ *   moderator_taxonomy    → cola taxonómica + merge/alias
+ *   curator_marketplace   → curaduría marketplace + colecciones
+ *   supervisor            → todo lo anterior + override de decisiones
+ *   admin_global          → acceso total incluyendo gestión de moderadores
  */
 
 import { useAuthStore } from '@/stores/authStore';
@@ -20,7 +24,6 @@ export type BackofficeSection =
   | 'cms'
   | 'historias'
   | 'colecciones'
-  | 'imagenes'
   | 'tiendas'
   | 'taxonomia'
   | 'usuarios'
@@ -31,48 +34,73 @@ export type BackofficeSection =
   | 'auditoria'
   | 'dashboard'
   | 'marketplace-health'
-  | 'convenios';
+  | 'convenios'
+  | 'comercial'
+  | 'curation';
 
 /**
  * Mapa de secciones a roles mínimos requeridos.
- * 'super_admin' significa que solo isSuperAdmin=true puede acceder.
+ * Los roles granulares de Fase 3E se añaden en paralelo a los legacy.
  */
 const SECTION_ROLES: Record<BackofficeSection, string[]> = {
-  // Todos los roles de backoffice
-  home:        ['moderator', 'admin', 'super_admin'],
-  moderation:  ['moderator', 'admin', 'super_admin'],
-  revisor:     ['moderator', 'admin', 'super_admin'],
-  analytics:   ['moderator', 'admin', 'super_admin'],
-  envios:      ['moderator', 'admin', 'super_admin'],
-  cms:         ['moderator', 'admin', 'super_admin'],
-  // Admin y super_admin
-  historias:   ['admin', 'super_admin'],
-  colecciones: ['admin', 'super_admin'],
-  imagenes:    ['admin', 'super_admin'],
-  tiendas:     ['admin', 'super_admin'],
-  taxonomia:   ['admin', 'super_admin'],
-  // Solo super_admin
-  usuarios:    ['super_admin'],
-  ordenes:     ['super_admin'],
-  cupones:     ['super_admin'],
-  pagos:       ['super_admin'],
-  diseno:      ['super_admin'],
-  auditoria:   ['super_admin'],
-  dashboard:          ['admin', 'super_admin'],
-  'marketplace-health': ['admin', 'super_admin'],
-  convenios:            ['admin', 'super_admin'],
+  home:        ['moderator', 'admin', 'super_admin', 'moderator_product', 'moderator_taxonomy', 'curator_marketplace', 'supervisor', 'admin_global'],
+  moderation:  ['moderator', 'admin', 'super_admin', 'moderator_product', 'supervisor', 'admin_global'],
+  revisor:     ['moderator', 'admin', 'super_admin', 'moderator_product', 'supervisor', 'admin_global'],
+  analytics:   ['moderator', 'admin', 'super_admin', 'supervisor', 'admin_global'],
+  envios:      ['moderator', 'admin', 'super_admin', 'supervisor', 'admin_global'],
+  cms:         ['moderator', 'admin', 'super_admin', 'supervisor', 'admin_global'],
+  historias:   ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  colecciones: ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  tiendas:     ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  taxonomia:   ['admin', 'super_admin', 'moderator_taxonomy', 'supervisor', 'admin_global'],
+  curation:    ['admin', 'super_admin', 'curator_marketplace', 'supervisor', 'admin_global'],
+  // Solo super_admin / admin_global
+  usuarios:    ['super_admin', 'admin_global'],
+  ordenes:     ['super_admin', 'admin_global'],
+  cupones:     ['super_admin', 'admin_global'],
+  pagos:       ['super_admin', 'admin_global'],
+  diseno:      ['super_admin', 'admin_global'],
+  auditoria:   ['super_admin', 'admin_global'],
+  dashboard:          ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  'marketplace-health': ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  convenios:            ['admin', 'super_admin', 'supervisor', 'admin_global'],
+  comercial:            ['admin', 'super_admin', 'supervisor', 'admin_global'],
 };
+
+// Roles granulares de Fase 3E
+const GRANULAR_ROLES = [
+  'moderator_product',
+  'moderator_taxonomy',
+  'curator_marketplace',
+  'supervisor',
+  'admin_global',
+] as const;
+
+export type GranularRole = typeof GRANULAR_ROLES[number];
 
 export function useBackofficeAccess() {
   const { user, isAuthenticated } = useAuthStore();
 
-  // Los roles vienen del JWT (incluidos desde Fase 0.2)
-  // El store los persiste después del login
   const jwtRoles: string[] = (user as any)?.roles ?? [];
   const isSuperAdmin = user?.isSuperAdmin === true;
-  const isAdmin = isSuperAdmin || jwtRoles.includes('admin');
+  const isAdmin = isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('admin_global');
   const isModerator =
-    isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('moderator');
+    isSuperAdmin ||
+    jwtRoles.includes('admin') ||
+    jwtRoles.includes('admin_global') ||
+    jwtRoles.includes('moderator') ||
+    jwtRoles.includes('supervisor') ||
+    GRANULAR_ROLES.some((r) => jwtRoles.includes(r));
+
+  function hasRole(role: string): boolean {
+    if (isSuperAdmin) return true;
+    if (role === 'super_admin') return isSuperAdmin;
+    if (role === 'admin_global') return jwtRoles.includes('admin_global') || isSuperAdmin;
+    if (role === 'admin') return isAdmin;
+    if (role === 'moderator') return isModerator;
+    if (role === 'supervisor') return jwtRoles.includes('supervisor') || isAdmin;
+    return jwtRoles.includes(role);
+  }
 
   /**
    * Verifica si el usuario actual puede acceder a una sección del backoffice.
@@ -80,19 +108,12 @@ export function useBackofficeAccess() {
   function canAccess(section: BackofficeSection): boolean {
     if (!isAuthenticated || !user) return false;
     if (isSuperAdmin) return true;
-
     const required = SECTION_ROLES[section] ?? [];
-    return required.some((role) => {
-      if (role === 'super_admin') return isSuperAdmin;
-      if (role === 'admin') return isAdmin;
-      if (role === 'moderator') return isModerator;
-      return jwtRoles.includes(role);
-    });
+    return required.some(hasRole);
   }
 
   /**
    * Verifica si el usuario tiene acceso a cualquier sección del backoffice.
-   * Usado por BackofficeProtectedRoute.
    */
   const hasAnyBackofficeRole = isModerator;
 
@@ -102,6 +123,7 @@ export function useBackofficeAccess() {
     isModerator,
     hasAnyBackofficeRole,
     canAccess,
+    hasRole,
     roles: jwtRoles,
     user,
   };

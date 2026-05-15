@@ -495,10 +495,19 @@ export async function getShopProductCounts(
 export async function toggleShopMarketplaceApproval(
   shopId: string,
   approved: boolean,
+  options?: { previousStatus?: string; moderatorId?: string; comment?: string },
 ): Promise<void> {
   await telarApi.patch(`/artisan-shops/${shopId}`, {
     marketplaceApproved: approved,
     marketplaceApprovalStatus: approved ? 'approved' : 'rejected',
+  });
+  await createShopModerationHistory({
+    shopId,
+    previousStatus: options?.previousStatus,
+    newStatus: approved ? 'marketplace_approved' : 'marketplace_rejected',
+    actionType: 'marketplace_approval',
+    moderatorId: options?.moderatorId,
+    comment: options?.comment,
   });
 }
 
@@ -509,10 +518,93 @@ export async function deleteShopAdmin(shopId: string): Promise<void> {
 export async function publishShopAdmin(
   shopId: string,
   action: 'publish' | 'unpublish',
+  options?: { previousStatus?: string; moderatorId?: string; comment?: string },
 ): Promise<void> {
   await telarApi.patch(`/artisan-shops/${shopId}`, {
     publishStatus: action === 'publish' ? 'published' : 'pending_publish',
   });
+  await createShopModerationHistory({
+    shopId,
+    previousStatus: options?.previousStatus,
+    newStatus: action === 'publish' ? 'published' : 'unpublished',
+    actionType: 'publish',
+    moderatorId: options?.moderatorId,
+    comment: options?.comment,
+  });
+}
+
+// ─── Shop Moderation History ──────────────────────────────────────────────────
+
+export interface ShopModerationHistoryApi {
+  id: string;
+  shopId: string;
+  previousStatus: string | null;
+  newStatus: string;
+  actionType: string;
+  moderatorId: string | null;
+  comment: string | null;
+  editsMade: Record<string, unknown>;
+  createdAt: string;
+}
+
+export async function getShopHistoryByShopId(
+  shopId: string,
+): Promise<ShopModerationHistoryApi[]> {
+  const response = await telarApi.get<ShopModerationHistoryApi[]>(
+    `/shop-moderation-history/shop/${shopId}`,
+  );
+  return response.data;
+}
+
+export async function createShopModerationHistory(payload: {
+  shopId: string;
+  previousStatus?: string;
+  newStatus: string;
+  actionType: 'marketplace_approval' | 'publish' | 'delete' | 'edit';
+  moderatorId?: string;
+  comment?: string;
+  editsMade?: Record<string, unknown>;
+}): Promise<void> {
+  await telarApi.post('/shop-moderation-history', payload);
+}
+
+// ─── Queue Scores ─────────────────────────────────────────────────────────────
+
+export interface QueueScoreApi {
+  itemId: string;
+  itemType: string;
+  priorityScore: number;
+  riskScore: number;
+  commercialScore: number;
+  scoreReasons: Record<string, string[]>;
+  computedAt: string;
+}
+
+export async function getQueueScore(itemId: string): Promise<QueueScoreApi | null> {
+  try {
+    const response = await telarApi.get<QueueScoreApi>(
+      `/moderation-queue/scores/${itemId}`,
+    );
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function getQueueScoresBatch(
+  itemIds: string[],
+): Promise<Record<string, QueueScoreApi>> {
+  if (itemIds.length === 0) return {};
+  const results = await Promise.allSettled(
+    itemIds.map((id) => getQueueScore(id)),
+  );
+  const map: Record<string, QueueScoreApi> = {};
+  results.forEach((result, i) => {
+    if (result.status === 'fulfilled' && result.value) {
+      map[itemIds[i]] = result.value;
+    }
+  });
+  return map;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────

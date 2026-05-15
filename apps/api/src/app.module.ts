@@ -72,6 +72,13 @@ import { TaxonomyStylesModule } from './resources/taxonomy-styles/taxonomy-style
 import { TaxonomyHerramientasModule } from './resources/taxonomy-herramientas/taxonomy-herramientas.module';
 import { StoryLibraryModule } from './resources/story-library/story-library.module';
 import { ArtisanProfileHistoryModule } from './resources/artisan-profile-history/artisan-profile-history.module';
+import { AdminStatsModule } from './resources/admin-stats/admin-stats.module';
+import { ShopModerationHistoryModule } from './resources/shop-moderation-history/shop-moderation-history.module';
+import { ModerationQueueModule } from './resources/moderation-queue/moderation-queue.module';
+import { TaxonomyAliasesModule } from './resources/taxonomy-aliases/taxonomy-aliases.module';
+import { MarketplaceAssignmentsModule } from './resources/marketplace-assignments/marketplace-assignments.module';
+import { FeaturedCollectionsModule } from './resources/featured-collections/featured-collections.module';
+import { StoreHealthScoresModule } from './resources/store-health-scores/store-health-scores.module';
 
 @Module({
   imports: [
@@ -189,6 +196,13 @@ import { ArtisanProfileHistoryModule } from './resources/artisan-profile-history
     TaxonomyHerramientasModule,
     StoryLibraryModule,
     ArtisanProfileHistoryModule,
+    AdminStatsModule,
+    ShopModerationHistoryModule,
+    ModerationQueueModule,
+    TaxonomyAliasesModule,
+    MarketplaceAssignmentsModule,
+    FeaturedCollectionsModule,
+    StoreHealthScoresModule,
   ],
   controllers: [],
   providers: [],

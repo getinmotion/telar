@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ import { ModerationBankDataCard } from './ModerationBankDataCard';
 import { ModerationLogoEditCard } from './ModerationLogoEditCard';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { getStoreHealthScore, type StoreHealthScore } from '@/services/curation.actions';
 
 interface ModerationShopDetailViewProps {
   shop: ModerationShop;
@@ -68,6 +69,11 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
   const [deleteReason, setDeleteReason] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [healthScore, setHealthScore] = useState<StoreHealthScore | null>(null);
+
+  useEffect(() => {
+    getStoreHealthScore(shop.id).then(setHealthScore);
+  }, [shop.id]);
 
   const handleApprove = async () => {
     setIsApproving(true);
@@ -239,6 +245,42 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
           </CardContent>
         </Card>
       </div>
+
+      {/* Health Score */}
+      {healthScore && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-[#151b2d]">Health Score de la tienda</p>
+              <div className={`text-2xl font-bold ${healthScore.scoreTotal >= 70 ? 'text-green-600' : healthScore.scoreTotal >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
+                {healthScore.scoreTotal}
+                <span className="text-sm font-normal text-gray-400">/100</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-xs">
+              {[
+                { label: 'Branding', value: healthScore.scoreBranding, max: 25 },
+                { label: 'Catálogo', value: healthScore.scoreCatalog, max: 25 },
+                { label: 'Narrativa', value: healthScore.scoreNarrative, max: 25 },
+                { label: 'Consistencia', value: healthScore.scoreConsistency, max: 25 },
+              ].map(({ label, value, max }) => (
+                <div key={label} className="space-y-1">
+                  <div className="flex justify-between text-gray-500">
+                    <span>{label}</span>
+                    <span>{value}/{max}</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${value / max >= 0.7 ? 'bg-green-500' : value / max >= 0.4 ? 'bg-amber-500' : 'bg-red-400'}`}
+                      style={{ width: `${(value / max) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Información de Contacto */}
       <Card>

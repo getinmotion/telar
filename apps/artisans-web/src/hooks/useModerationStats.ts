@@ -28,6 +28,8 @@ export interface ShopSummary {
   publishStatus: string | null;
   createdAt: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
+  description: string | null;
   region: string | null;
 }
 
@@ -112,6 +114,8 @@ function mapShopSummary(s: ModerationShopApi): ShopSummary {
     publishStatus: s.publishStatus,
     createdAt: s.createdAt,
     logoUrl: s.logoUrl,
+    bannerUrl: s.bannerUrl,
+    description: s.description,
     region: s.region,
   };
 }

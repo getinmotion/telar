@@ -27,14 +27,16 @@ const UserRolesAdminPage_lazy = lazy(() => import('@/pages/UserRolesAdminPage'))
 const BlogPostsAdminPage_lazy = lazy(() => import('@/pages/BlogPostsAdminPage'));
 const CollectionsAdminPage_lazy = lazy(() => import('@/pages/CollectionsAdminPage'));
 const TaxonomyModerationPage_lazy = lazy(() => import('@/pages/admin/TaxonomyModerationPage'));
+const ModerationOSPage_lazy = lazy(() => import('@/pages/admin/ModerationOSPage'));
+const MarketplaceCurationPage_lazy = lazy(() => import('@/pages/admin/MarketplaceCurationPage'));
 const DesignSystemEditorPage_lazy = lazy(() => import('@/pages/admin/DesignSystemEditorPage'));
 const BackofficeOrdenesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeOrdenesPage'));
 const BackofficeCuponesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeCuponesPage'));
-const BackofficeImagenesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeImagenesPage'));
 const BackofficeAuditoriaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeAuditoriaPage'));
 const BackofficeTiendasPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTiendasPage'));
 const BackofficePagosPage_lazy = lazy(() => import('@/pages/backoffice/BackofficePagosPage'));
 const BackofficeHomePage_lazy = lazy(() => import('@/pages/backoffice/BackofficeHomePage'));
+const BackofficeComercialPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeComercialPage'));
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -426,6 +428,17 @@ function App() {
                                     </BackofficeProtectedRoute>
                                   }
                                 />
+                                {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
+                                <Route
+                                  path="/backoffice/moderacion-os"
+                                  element={
+                                    <BackofficeProtectedRoute section="moderation">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <ModerationOSPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
                                 <Route
                                   path="/backoffice/revisor"
                                   element={
@@ -499,6 +512,17 @@ function App() {
                                   }
                                 />
 
+                                <Route
+                                  path="/backoffice/curation"
+                                  element={
+                                    <BackofficeProtectedRoute section="curation">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <MarketplaceCurationPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
                                 {/* MARKETPLACE HEALTH (admin+) */}
                                 <Route
                                   path="/backoffice/marketplace-health"
@@ -530,6 +554,18 @@ function App() {
                                     <BackofficeProtectedRoute section="convenios">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
                                         <BackofficeConveniosPage />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+
+                                {/* COMERCIAL (admin+) */}
+                                <Route
+                                  path="/backoffice/comercial"
+                                  element={
+                                    <BackofficeProtectedRoute section="comercial">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeComercialPage_lazy />
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
@@ -582,16 +618,6 @@ function App() {
                                     <BackofficeProtectedRoute section="cupones">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
                                         <BackofficeCuponesPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/backoffice/imagenes"
-                                  element={
-                                    <BackofficeProtectedRoute section="imagenes">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <BackofficeImagenesPage_lazy />
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }

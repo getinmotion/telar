@@ -35,6 +35,15 @@ export interface VolumetricAnomaly {
   packWeightKg: number;
 }
 
+export interface CatalogQuality {
+  withoutImages: number;
+  withoutDescription: number;
+  withoutArtisanalIdentity: number;
+  withoutMaterials: number;
+  withoutCategory: number;
+  rejectionReasons: { reason: string; count: number }[];
+}
+
 export interface ProductAnalyticsData {
   topMetrics: {
     totalProducts: number;
@@ -79,6 +88,7 @@ export interface ProductAnalyticsData {
     anomalyPercentage: number;
     anomalyProducts: VolumetricAnomaly[];
   };
+  catalogQuality: CatalogQuality;
 }
 
 // ─── API Call ─────────────────────────────────────────────────
