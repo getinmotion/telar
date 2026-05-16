@@ -1,10 +1,13 @@
 import React from 'react';
-import { ArtisanProfileData, LEARNED_FROM_OPTIONS, ETHNIC_RELATION_OPTIONS } from '@/types/artisanProfile';
+import { ArtisanProfileData, ETHNIC_RELATION_OPTIONS } from '@/types/artisanProfile';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
+import { MaestroPicker } from '@/components/shop/new-product-wizard/components/TaxonomyPicker';
+import { removeArtisanMaestro } from '@/services/artisan-maestros.actions';
 
 interface Props {
   data: ArtisanProfileData;
   onChange: (updates: Partial<ArtisanProfileData>) => void;
+  artisanId?: string;
 }
 
 const inputClass = "w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#e2d5cf]/40 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 placeholder:text-[#151b2d]/20 transition-all hover:border-[#e2d5cf]/70";
@@ -13,38 +16,67 @@ const textareaClass = "w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['
 const labelClass = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2";
 const sectionTitle = "font-['Manrope'] text-[11px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-4";
 
-export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
+export const Step2Origin: React.FC<Props> = ({ data, onChange, artisanId = '' }) => {
+  const handleNoMaestroToggle = async () => {
+    const next = !data.noMaestro;
+    if (next && data.maestros.length > 0) {
+      // Remove all saved maestros from DB before toggling off
+      await Promise.allSettled(data.maestros.filter(m => m.id).map(m => removeArtisanMaestro(m.id!)));
+      onChange({ noMaestro: true, maestros: [] });
+    } else {
+      onChange({ noMaestro: next });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Módulo 1: El aprendizaje */}
+      {/* Módulo 1: La cadena de transmisión */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <p className={sectionTitle}>El aprendizaje</p>
-        <div className="flex flex-col gap-4">
-          {/* ¿De quién aprendiste? — chips */}
-          <div>
-            <label className={labelClass}>¿De quién aprendiste? <span className="text-[#ef4444]">*</span></label>
-            <div className="flex flex-wrap gap-2">
-              {LEARNED_FROM_OPTIONS.map((o) => {
-                const active = data.learnedFrom === o.value;
-                return (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => onChange({ learnedFrom: active ? '' : o.value })}
-                    className={`px-3 py-1.5 rounded-full text-[12px] font-[600] border transition-all ${
-                      active
-                        ? 'bg-[#ec6d13] border-[#ec6d13] text-white'
-                        : 'bg-[#ec6d13]/5 border-[#ec6d13]/20 text-[#ec6d13] hover:bg-[#ec6d13]/10'
-                    }`}
-                  >
-                    {o.label}
-                  </button>
-                );
-              })}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <p className={sectionTitle} style={{ marginBottom: 0 }}>La cadena de transmisión</p>
+          <button
+            type="button"
+            onClick={handleNoMaestroToggle}
+            className="flex items-center gap-1.5 shrink-0 transition-colors"
+            style={{ color: data.noMaestro ? '#ec6d13' : 'rgba(84,67,62,0.35)' }}
+          >
+            <span
+              className="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors shrink-0"
+              style={{
+                borderColor: data.noMaestro ? '#ec6d13' : 'rgba(84,67,62,0.25)',
+                background: data.noMaestro ? '#ec6d13' : 'transparent',
+              }}
+            >
+              {data.noMaestro && <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>check</span>}
+            </span>
+            <span className="font-['Manrope'] text-[10px] font-[700] uppercase tracking-widest whitespace-nowrap">
+              No tuve maestro
+            </span>
+          </button>
+        </div>
+
+        {data.noMaestro ? (
+          <p className="font-['Manrope'] text-[12px] text-[#54433e]/45 italic leading-relaxed">
+            Esta sección no se mostrará en tu perfil público. Puedes desactivar esta opción si deseas agregar maestros más adelante.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-5">
+            <div>
+              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+                ¿Quiénes te transmitieron este saber? Abuelas, maestros artesanos, comunidades, o el camino mismo.
+                Cada nombre que registres da autenticidad a cada pieza que creas.
+              </p>
+              <MaestroPicker
+                artisanId={artisanId}
+                localMaestros={data.maestros ?? []}
+                onChange={maestros => onChange({ maestros })}
+              />
             </div>
           </div>
+        )}
 
+        <div className="mt-5 pt-5 border-t border-[#e2d5cf]/20 flex flex-col gap-5">
           <div>
             <label className={labelClass}>¿A qué edad empezaste? <span className="text-[#ef4444]">*</span></label>
             <input
@@ -53,20 +85,6 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
               onChange={(e) => onChange({ startAge: parseInt(e.target.value) || 0 })}
               placeholder="Ej. 12"
               className={inputClass} style={inputBg}
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>
-              Historia del aprendizaje
-              <span className="ml-2 text-[#54433e]/30 normal-case tracking-normal font-[500] text-[11px]">— Opcional</span>
-            </label>
-            <SpeechTextarea
-              rows={2}
-              value={data.learnedFromDetail}
-              onChange={(v) => onChange({ learnedFromDetail: v })}
-              placeholder="Cuéntanos cómo fue ese aprendizaje. ¿Quién te enseñó? ¿Dónde? ¿Qué recuerdas de esos primeros momentos?"
-              className={textareaClass} style={inputBg}
             />
           </div>
 
@@ -83,7 +101,7 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
         </div>
       </section>
 
-      {/* Módulo 3: Territorio */}
+      {/* Módulo 2: Territorio */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <p className={sectionTitle}>Territorio de origen</p>
         <div className="flex flex-col gap-4">

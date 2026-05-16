@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { StoryLibrary } from './entities/story-library.entity';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
+import { resolveArtisanProfileId } from '../../utils/resolve-artisan-profile-id.util';
 
 @Injectable()
 export class StoryLibraryService {
@@ -18,8 +19,9 @@ export class StoryLibraryService {
   ) {}
 
   async create(dto: CreateStoryDto): Promise<StoryLibrary> {
+    const artisanId = await resolveArtisanProfileId(this.storyRepo, dto.artisanId);
     const story = this.storyRepo.create({
-      artisanId: dto.artisanId,
+      artisanId,
       title: dto.title,
       type: dto.type ?? 'process',
       content: dto.content,
@@ -30,8 +32,9 @@ export class StoryLibraryService {
 
   async clone(id: string, artisanId: string): Promise<StoryLibrary> {
     const original = await this.findOne(id);
+    const resolvedId = await resolveArtisanProfileId(this.storyRepo, artisanId);
     const copy = this.storyRepo.create({
-      artisanId,
+      artisanId: resolvedId,
       title: `[Copia] ${original.title}`,
       type: original.type,
       content: original.content,
@@ -42,8 +45,9 @@ export class StoryLibraryService {
 
   async findByArtisan(artisanId: string): Promise<StoryLibrary[]> {
     if (!artisanId) throw new BadRequestException('artisan_id es requerido');
+    const resolvedId = await resolveArtisanProfileId(this.storyRepo, artisanId);
     return this.storyRepo.find({
-      where: { artisanId },
+      where: { artisanId: resolvedId },
       order: { createdAt: 'DESC' },
     });
   }

@@ -60,7 +60,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
     return typeof img === 'string' ? img : URL.createObjectURL(img);
   };
 
-  const origin = [state.municipality, state.department].filter(Boolean).join(', ') || 'Colombia';
+  const origin = [state.municipality, state.department, state.country].filter(Boolean).join(', ') || '—';
 
   const dimensions =
     state.heightCm && state.widthCm

@@ -1,5 +1,16 @@
 import React, { useState, KeyboardEvent } from 'react';
-import { ArtisanProfileData, CRAFT_STYLE_OPTIONS } from '@/types/artisanProfile';
+import { ArtisanProfileData } from '@/types/artisanProfile';
+
+const CRAFT_STYLES: { id: string; label: string; desc: string }[] = [
+  { id: 'Tradicional',    label: 'Tradicional',    desc: 'Sigue métodos y estéticas ancestrales fieles a su origen' },
+  { id: 'Contemporáneo',  label: 'Contemporáneo',  desc: 'Incorpora lenguajes actuales sin abandonar la técnica artesanal' },
+  { id: 'Fusión',         label: 'Fusión',         desc: 'Mezcla tradición con influencias modernas o de otras culturas' },
+  { id: 'Minimalista',    label: 'Minimalista',    desc: 'Formas simples, materiales puros y ausencia de decoración superflua' },
+  { id: 'Colorido',       label: 'Colorido',       desc: 'Paletas vivas que celebran la identidad visual de la comunidad' },
+  { id: 'Experimental',   label: 'Experimental',   desc: 'Explora materiales o procesos no convencionales en el oficio' },
+  { id: 'Funcional',      label: 'Funcional',      desc: 'Diseño orientado al uso cotidiano sin renunciar a la calidad artesanal' },
+  { id: 'Decorativo',     label: 'Decorativo',     desc: 'Primacía de la belleza y el detalle como fin en sí mismo' },
+];
 
 const TIME_OPTIONS = [
   { value: 'Horas',      icon: 'bolt',                 label: 'Horas' },
@@ -251,21 +262,36 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           Estilo artesanal
           <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
         </label>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mb-3">Puedes elegir más de uno si tu trabajo mezcla lenguajes.</p>
-        <div className="flex flex-wrap gap-2">
-          {CRAFT_STYLE_OPTIONS.map((s) => {
-            const active = data.craftStyle.includes(s);
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mb-4">Puedes elegir más de uno si tu trabajo mezcla lenguajes.</p>
+        <div className="flex flex-col gap-2">
+          {CRAFT_STYLES.map((s) => {
+            const active = data.craftStyle.includes(s.id);
             return (
               <button
-                key={s}
-                onClick={() => toggleItem('craftStyle', s)}
-                className={`px-4 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
-                  active
-                    ? 'bg-[#ec6d13] border-[#ec6d13] text-white shadow-sm'
-                    : 'bg-white border-[#e2d5cf]/40 text-[#151b2d] hover:border-[#ec6d13]/30'
-                }`}
+                key={s.id}
+                type="button"
+                onClick={() => toggleItem('craftStyle', s.id)}
+                style={{
+                  background: active ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
+                  border: active ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:border-[#ec6d13]/30"
               >
-                {s}
+                <div
+                  className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+                  style={{ borderColor: active ? '#ec6d13' : 'rgba(84,67,62,0.25)' }}
+                >
+                  {active && <div className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span
+                    className="font-['Manrope'] text-[13px] font-[700] block"
+                    style={{ color: active ? '#ec6d13' : '#54433e' }}
+                  >
+                    {s.label}
+                  </span>
+                  <span className="text-[10px] font-['Manrope'] text-[#54433e]/50 leading-snug">{s.desc}</span>
+                </div>
               </button>
             );
           })}

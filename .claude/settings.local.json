@@ -69,7 +69,9 @@
       "Bash(xargs ls)",
       "Bash(git -C /Users/mad/Proyectos/Telar diff HEAD -- apps/api/src/resources/ai/ai.module.ts)",
       "Bash(grep -v \"//\\\\|^$\")",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(xargs kill -9)",
+      "Bash(grep -r \"telarApi\\\\|artisan-profile\" /Users/mad/Proyectos/Telar/apps/artisans-web/src/integrations -type f -name \"*.ts\")"
     ]
   }
 }

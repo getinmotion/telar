@@ -17,6 +17,12 @@ import {
 } from '@/services/artisan-materials.actions';
 import { getApprovedMaterials, type Material } from '@/services/materials.actions';
 import { searchTaxonomy, suggestTaxonomyItem, type TaxonomyItem } from '@/services/taxonomy.actions';
+import {
+  getArtisanMaestros,
+  addArtisanMaestro,
+  removeArtisanMaestro,
+  type ArtisanMaestroItem,
+} from '@/services/artisan-maestros.actions';
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
 
@@ -654,6 +660,143 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MaestroPicker
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface MaestroPickerProps {
+  artisanId: string;
+  localMaestros: { id?: string; name: string; description?: string }[];
+  onChange: (maestros: { id?: string; name: string; description?: string }[]) => void;
+}
+
+export const MaestroPicker: React.FC<MaestroPickerProps> = ({ artisanId, localMaestros, onChange }) => {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!artisanId) return;
+    getArtisanMaestros(artisanId)
+      .then(items => {
+        if (items.length > 0) {
+          onChange(items.map(i => ({ id: i.id, name: i.name, description: i.description ?? undefined })));
+        }
+      })
+      .catch(() => {});
+  }, [artisanId]);
+
+  const handleAdd = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setIsAdding(true);
+    try {
+      const local = { name: trimmed, description: description.trim() || undefined };
+      onChange([...localMaestros, local]);
+      setName('');
+      setDescription('');
+      if (artisanId) {
+        const saved = await addArtisanMaestro(artisanId, local.name, local.description);
+        onChange([
+          ...localMaestros.filter(m => m.id),
+          { id: saved.id, name: saved.name, description: saved.description ?? undefined },
+        ]);
+      }
+    } catch { /* toast shown by interceptor */ } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleRemove = async (index: number, id?: string) => {
+    if (id) setRemovingId(id);
+    onChange(localMaestros.filter((_, i) => i !== index));
+    if (id) {
+      try { await removeArtisanMaestro(id); } catch { /* toast shown */ } finally { setRemovingId(null); }
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {localMaestros.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {localMaestros.map((m, i) => (
+            <div
+              key={m.id ?? i}
+              className="flex items-start justify-between gap-3 px-4 py-3 rounded-xl"
+              style={{ background: 'rgba(236,109,19,0.05)', border: '1px solid rgba(236,109,19,0.15)' }}
+            >
+              <div className="flex items-start gap-2.5 min-w-0">
+                <span className="material-symbols-outlined text-[#ec6d13] text-[18px] mt-0.5 shrink-0">
+                  person_celebrate
+                </span>
+                <div className="min-w-0">
+                  <p className="font-['Manrope'] text-[13px] font-[700] text-[#151b2d] leading-snug">
+                    {m.name}
+                  </p>
+                  {m.description && (
+                    <p className="font-['Manrope'] text-[11px] text-[#54433e]/55 mt-0.5 leading-snug">
+                      {m.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => handleRemove(i, m.id)}
+                disabled={removingId === m.id}
+                className="shrink-0 text-[#54433e]/25 hover:text-[#ef4444]/60 transition-colors mt-0.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {removingId === m.id ? 'progress_activity' : 'close'}
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAdd()}
+            placeholder="Nombre del maestro o mentora..."
+            className="flex-1 rounded-xl border border-[#e2d5cf]/50 px-4 py-2.5 text-[13px] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+            style={{ background: 'rgba(247,244,239,0.4)' }}
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!name.trim() || isAdding}
+            className="px-4 py-2.5 rounded-xl text-[12px] font-[800] uppercase tracking-widest transition-all disabled:opacity-40"
+            style={{ background: name.trim() ? '#ec6d13' : 'rgba(84,67,62,0.08)', color: name.trim() ? 'white' : '#54433e80' }}
+          >
+            {isAdding
+              ? <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+              : 'Agregar'}
+          </button>
+        </div>
+
+        <textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="¿Cómo te enseñó? ¿Qué recuerdas de ese aprendizaje? ¿Qué te enseñaron que no está en ningún libro?"
+          rows={2}
+          className="w-full rounded-xl border border-[#e2d5cf]/50 px-4 py-2.5 text-[12px] text-[#54433e] resize-none focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+          style={{ background: 'rgba(247,244,239,0.4)' }}
+        />
+      </div>
+
+      {localMaestros.length === 0 && (
+        <p className="text-[11px] text-[#54433e]/35 italic">
+          Cada nombre que registres traza la cadena viva de transmisión de tu oficio.
+        </p>
+      )}
     </div>
   );
 };

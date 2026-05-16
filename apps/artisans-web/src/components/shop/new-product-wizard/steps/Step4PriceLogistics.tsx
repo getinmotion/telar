@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import type { AvailabilityType } from '@/services/products-new.types';
 import { WizardFooter } from '../components/WizardFooter';
@@ -31,8 +31,74 @@ const cardStyle = {
 const inputClass =
   'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all';
 
+type WeightUnit = 'kg' | 'g';
+
+const GRAMS_KEYWORDS = ['oro', 'plata', 'cobre', 'bronce', 'hilo', 'seda', 'alambre', 'bisutería', 'joyería', 'filigrana', 'metal precioso', 'plata fina'];
+
+function suggestWeightUnit(materials: string[]): WeightUnit {
+  const text = materials.join(' ').toLowerCase();
+  return GRAMS_KEYWORDS.some(kw => text.includes(kw)) ? 'g' : 'kg';
+}
+
+const toKg = (val: number, unit: WeightUnit) => unit === 'g' ? val / 1000 : val;
+const fromKg = (kgVal: number | undefined, unit: WeightUnit) =>
+  kgVal !== undefined ? (unit === 'g' ? +(kgVal * 1000).toFixed(2) : kgVal) : undefined;
+
+interface WeightFieldProps {
+  label: string;
+  valueKg: number | undefined;
+  unit: WeightUnit;
+  onUnitChange: (u: WeightUnit) => void;
+  onChange: (kgVal: number | undefined) => void;
+  className?: string;
+}
+
+const WeightField: React.FC<WeightFieldProps> = ({ label, valueKg, unit, onUnitChange, onChange, className }) => (
+  <div className={className}>
+    <div className="flex items-center justify-between mb-1.5">
+      <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider">
+        {label}
+      </label>
+      <div className="flex rounded-md overflow-hidden border border-[#e2d5cf]/40" style={{ background: 'rgba(247,244,239,0.3)' }}>
+        {(['kg', 'g'] as WeightUnit[]).map(u => (
+          <button
+            key={u}
+            type="button"
+            onClick={() => onUnitChange(u)}
+            className="px-2 py-0.5 text-[9px] font-[800] uppercase tracking-widest transition-all"
+            style={{
+              background: unit === u ? '#ec6d13' : 'transparent',
+              color: unit === u ? 'white' : '#54433e80',
+            }}
+          >
+            {u}
+          </button>
+        ))}
+      </div>
+    </div>
+    <input
+      type="number"
+      min={0}
+      value={fromKg(valueKg, unit) ?? ''}
+      onChange={e => onChange(e.target.value ? toKg(Number(e.target.value), unit) : undefined)}
+      placeholder="—"
+      className="w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all text-center"
+      style={{ background: 'rgba(247,244,239,0.4)' }}
+    />
+  </div>
+);
+
 export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
   const canContinue = !!state.price && !!state.availabilityType;
+
+  const suggestedUnit = useMemo(() => suggestWeightUnit(state.materials), [state.materials]);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
+  const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
+
+  useEffect(() => {
+    setWeightUnit(suggestedUnit);
+    setPkgWeightUnit(suggestedUnit);
+  }, [suggestedUnit]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
@@ -264,8 +330,16 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   </label>
                   <input
                     type="number"
+                    min={0}
                     value={state.inventory ?? ''}
-                    onChange={e => update({ inventory: Number(e.target.value) })}
+                    onChange={e => {
+                      const val = Math.max(0, Number(e.target.value) || 0);
+                      const updates: Partial<NewWizardState> = { inventory: val };
+                      if (state.minimumStockAlert !== undefined && state.minimumStockAlert > val) {
+                        updates.minimumStockAlert = val;
+                      }
+                      update(updates);
+                    }}
                     placeholder={state.productionType === 'unica' ? '1' : '0'}
                     disabled={state.productionType === 'unica'}
                     className={`${inputClass} ${state.productionType === 'unica' ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -281,12 +355,21 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   </label>
                   <input
                     type="number"
+                    min={0}
+                    max={state.inventory ?? undefined}
                     value={state.minimumStockAlert ?? ''}
-                    onChange={e => update({ minimumStockAlert: Number(e.target.value) })}
+                    onChange={e => {
+                      const raw = Math.max(0, Number(e.target.value) || 0);
+                      const max = state.inventory ?? Infinity;
+                      update({ minimumStockAlert: Math.min(raw, max) });
+                    }}
                     placeholder="5"
                     className={inputClass}
                     style={{ background: 'rgba(247,244,239,0.4)' }}
                   />
+                  {state.inventory !== undefined && state.minimumStockAlert !== undefined && state.minimumStockAlert > state.inventory && (
+                    <p className="text-[10px] text-red-500 mt-1.5 font-[600]">La alerta no puede superar el stock disponible.</p>
+                  )}
                 </div>
               </div>
 
@@ -328,7 +411,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   { label: 'Alto (cm)', key: 'heightCm' as const },
                   { label: 'Ancho (cm)', key: 'widthCm' as const },
                   { label: 'Largo (cm)', key: 'lengthCm' as const },
-                  { label: 'Peso (kg)', key: 'weightKg' as const },
                 ].map(({ label, key }) => (
                   <div key={key}>
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
@@ -344,6 +426,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                     />
                   </div>
                 ))}
+                <WeightField
+                  label="Peso"
+                  valueKg={state.weightKg}
+                  unit={weightUnit}
+                  onUnitChange={setWeightUnit}
+                  onChange={v => update({ weightKg: v })}
+                />
               </div>
             </section>
 
@@ -363,7 +452,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   { label: 'Ancho (cm)', key: 'packagedWidthCm' as const },
                   { label: 'Alto (cm)', key: 'packagedHeightCm' as const },
                   { label: 'Largo (cm)', key: 'packagedLengthCm' as const },
-                  { label: 'Peso (kg)', key: 'packagedWeightKg' as const },
                 ].map(({ label, key }) => (
                   <div key={key}>
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
@@ -379,6 +467,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                     />
                   </div>
                 ))}
+                <WeightField
+                  label="Peso"
+                  valueKg={state.packagedWeightKg}
+                  unit={pkgWeightUnit}
+                  onUnitChange={setPkgWeightUnit}
+                  onChange={v => update({ packagedWeightKg: v })}
+                />
               </div>
 
               {/* Special handling */}

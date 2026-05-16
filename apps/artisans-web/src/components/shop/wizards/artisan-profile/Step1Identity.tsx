@@ -4,9 +4,7 @@ import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanSh
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
-import { CraftPicker, TechniquePicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
-import { MaterialPicker } from '@/components/shop/new-product-wizard/components/TaxonomyPicker';
-import { updateArtisanIdentityTechniques } from '@/services/artisan-identity.actions';
+import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 
 interface Props {
   data: ArtisanProfileData;
@@ -593,52 +591,6 @@ export const Step1Identity: React.FC<Props> = ({
           }}
         />
 
-        {data.craftId && (
-          <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
-            <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/50 mb-1">
-              Técnica
-              <span className="ml-2 normal-case font-[500] tracking-normal text-[#54433e]/30 text-[11px]">— Opcional</span>
-            </p>
-            <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-3">
-              La técnica específica que practicas dentro de este oficio.
-            </p>
-            <TechniquePicker
-              craftId={data.craftId}
-              selectedTechniqueId={data.primaryTechniqueId}
-              onChange={techniqueId => {
-                onChange({ primaryTechniqueId: techniqueId });
-                if (userId) {
-                  updateArtisanIdentityTechniques(userId, {
-                    techniquePrimaryId: techniqueId ?? null,
-                  }).catch(() => {});
-                }
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ── Módulo 4: Materiales ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <div className="flex justify-between items-center mb-1">
-          <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/50">
-            Materiales que usas
-          </p>
-          {(data.materialIds ?? []).length > 0 && (
-            <span className="text-[10px] font-[600] text-[#ec6d13]">
-              {(data.materialIds ?? []).length} seleccionado{(data.materialIds ?? []).length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-          Los materiales con los que trabajas. Se guardan en tu perfil y se sincronizan con tus productos.
-        </p>
-        <MaterialPicker
-          artisanId={userId ?? ''}
-          userId={userId ?? ''}
-          selectedIds={data.materialIds ?? []}
-          onChange={ids => onChange({ materialIds: ids })}
-        />
       </div>
 
       {/* ── Módulo 4: Bio ── */}
