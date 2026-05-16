@@ -1,6 +1,14 @@
 import React, { useState, KeyboardEvent } from 'react';
 import { ArtisanProfileData, CRAFT_STYLE_OPTIONS } from '@/types/artisanProfile';
 
+const TIME_OPTIONS = [
+  { value: 'Horas',      icon: 'bolt',                 label: 'Horas' },
+  { value: '1 a 3 días', icon: 'hourglass_top',        label: '1 a 3 días' },
+  { value: '1 semana',   icon: 'calendar_view_week',   label: '1 semana' },
+  { value: '2 semanas',  icon: 'date_range',           label: '2 semanas' },
+  { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
+] as const;
+
 interface Props {
   data: ArtisanProfileData;
   onChange: (updates: Partial<ArtisanProfileData>) => void;
@@ -87,6 +95,22 @@ const ChipGroup: React.FC<ChipGroupProps> = ({ label, required, selected, preset
 };
 
 export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
+  const isPreset = TIME_OPTIONS.some(o => o.value === data.averageTime);
+  const [customTime, setCustomTime] = useState(
+    data.averageTime && !isPreset ? data.averageTime : '',
+  );
+  const [showCustom, setShowCustom] = useState(data.averageTime !== undefined && !isPreset);
+
+  const selectTime = (value: string) => {
+    setShowCustom(false);
+    onChange({ averageTime: value });
+  };
+
+  const openCustom = () => {
+    setShowCustom(true);
+    onChange({ averageTime: customTime || undefined });
+  };
+
   const toggleItem = (field: 'techniques' | 'materials' | 'craftStyle', value: string) => {
     const arr = data[field] as string[];
     onChange({ [field]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] });
@@ -122,6 +146,88 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           onToggle={(v) => toggleItem('materials', v)}
           onAdd={(v) => addItem('materials', v)}
         />
+      </section>
+
+      {/* Tiempo de elaboración */}
+      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-4">
+          Tiempo promedio de elaboración
+          <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {TIME_OPTIONS.map(opt => {
+            const active = data.averageTime === opt.value && !showCustom;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => selectTime(opt.value)}
+                className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
+                  active
+                    ? 'border-[#ec6d13] shadow-sm'
+                    : 'border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm'
+                }`}
+                style={active ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 22, color: active ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
+                >
+                  {opt.icon}
+                </span>
+                <span
+                  className="text-center font-[700] leading-tight px-1"
+                  style={{ fontSize: 10, color: active ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
+                >
+                  {opt.label}
+                </span>
+                {active && (
+                  <div className="absolute" style={{ display: 'none' }} />
+                )}
+              </button>
+            );
+          })}
+
+          {/* Personalizado */}
+          <button
+            type="button"
+            onClick={openCustom}
+            className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
+              showCustom
+                ? 'border-[#ec6d13] shadow-sm'
+                : 'border-dashed border-[#e2d5cf]/60 bg-white hover:border-[#ec6d13]/35'
+            }`}
+            style={showCustom ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 22, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
+            >
+              edit_note
+            </span>
+            <span
+              className="text-center font-[700] leading-tight px-1"
+              style={{ fontSize: 10, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
+            >
+              Personalizado
+            </span>
+          </button>
+        </div>
+
+        {showCustom && (
+          <input
+            type="text"
+            autoFocus
+            value={customTime}
+            onChange={e => {
+              setCustomTime(e.target.value);
+              onChange({ averageTime: e.target.value || undefined });
+            }}
+            placeholder="Ej. 3 a 4 semanas, 6 meses..."
+            className="mt-3 w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#ec6d13]/30 focus:outline-none focus:border-[#ec6d13]/60 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+            style={{ background: 'rgba(247,244,239,0.4)' }}
+          />
+        )}
       </section>
 
       {/* Diferenciación */}

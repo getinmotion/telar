@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
+import { getArtisanShopByUserId, getStoreByUserId } from '@/services/artisanShops.actions';
+import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
 import { getProductNewById } from '@/services/products-new.actions';
 import { useNewWizardState } from './hooks/useNewWizardState';
 import { useWizardDraft } from './hooks/useWizardDraft';
@@ -38,18 +39,51 @@ export const NewProductWizard: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    getArtisanShopByUserId(user.id)
+
+    const legacyPromise = getArtisanShopByUserId(user.id)
       .then(shop => {
         setHasShop(!!shop?.id);
         if (shop?.id) {
           setShopId(shop.id);
-          // Pre-populate location from artisan profile so shipping origin is auto-inferred
-          if (shop.department && !state.department) update({ department: shop.department });
+          const dept = shop.department || shop.region || null;
+          if (dept && !state.department) update({ department: dept });
           if (shop.municipality && !state.municipality) update({ municipality: shop.municipality });
+
+          // Pre-fill process and tools from artisan profile when not already set
+          const profile = (shop as any).artisanProfile as Record<string, any> | undefined;
+          if (profile?.creationProcess && !state.processDescription) {
+            update({ processDescription: profile.creationProcess });
+          }
+          if (profile?.workshopTools?.length && !state.tools?.length) {
+            update({ tools: profile.workshopTools });
+          }
         }
       })
       .catch(() => setHasShop(false))
       .finally(() => setIsCheckingShop(false));
+
+    // Pre-cargar oficio primario desde StoreArtisanalProfile
+    getStoreByUserId(user.id)
+      .then(store => {
+        const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
+        if (craftId && !state.craftId) update({ craftId });
+      })
+      .catch(() => {});
+
+    // Pre-cargar técnica primaria desde ArtisanIdentity
+    getArtisanIdentityByUserId(user.id)
+      .then(identity => {
+        if (!identity) return;
+        const updates: Record<string, string> = {};
+        if (identity.techniquePrimaryId && !state.primaryTechniqueId)
+          updates.primaryTechniqueId = identity.techniquePrimaryId;
+        if (identity.techniqueSecondaryId && !state.secondaryTechniqueId)
+          updates.secondaryTechniqueId = identity.techniqueSecondaryId;
+        if (Object.keys(updates).length) update(updates as any);
+      })
+      .catch(() => {});
+
+    void legacyPromise;
   }, [user]);
 
   useEffect(() => {
@@ -83,7 +117,7 @@ export const NewProductWizard: React.FC = () => {
           elaborationTime: product.artisanalIdentity?.estimatedElaborationTime || undefined,
           isCollaboration: product.artisanalIdentity?.isCollaboration ?? false,
           purpose: product.artisanalIdentity?.pieceType as any,
-          style: product.artisanalIdentity?.style as any,
+          styles: product.artisanalIdentity?.style ? [product.artisanalIdentity.style as any] : undefined,
           // physical specs
           heightCm: product.physicalSpecs?.heightCm || undefined,
           widthCm: product.physicalSpecs?.widthCm || undefined,
@@ -101,7 +135,7 @@ export const NewProductWizard: React.FC = () => {
           monthlyCapacity: product.production?.monthlyCapacity || undefined,
           // pricing
           price: primaryVariant?.basePriceMinor
-            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100)
+            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100 / 1.05)
             : undefined,
           sku: primaryVariant?.sku || undefined,
           inventory: primaryVariant?.stockQuantity || undefined,
@@ -120,7 +154,13 @@ export const NewProductWizard: React.FC = () => {
     void autoSave();
   };
 
-  const goBack = () => setCurrentStep(s => Math.max(s - 1, 1));
+  const goBack = () => {
+    if (currentStep === 1) {
+      navigate(-1);
+    } else {
+      setCurrentStep(s => s - 1);
+    }
+  };
   const goToStep = (n: number) => setCurrentStep(n);
 
   const handlePublished = () => {
@@ -254,6 +294,8 @@ export const NewProductWizard: React.FC = () => {
     step: currentStep,
     totalSteps: TOTAL_STEPS,
     isEditMode,
+    artisanId: user?.id ?? '',
+    userId: user?.id ?? '',
   };
 
   return (
@@ -264,7 +306,7 @@ export const NewProductWizard: React.FC = () => {
       {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
       {currentStep === 3 && <Step3ProcessTime {...stepProps} />}
       {currentStep === 4 && <Step4PriceLogistics {...stepProps} />}
-      {currentStep === 5 && <Step5DigitalPassport {...stepProps} />}
+      {currentStep === 5 && <Step5DigitalPassport {...stepProps} onGoToStep={goToStep} />}
       {currentStep === 6 && (
         <Step6FinalReview
           {...stepProps}

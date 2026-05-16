@@ -14,6 +14,7 @@ interface Props {
   isSavingDraft?: boolean;
   step: number;
   totalSteps: number;
+  onGoToStep?: (step: number) => void;
 }
 
 const softGlass = {
@@ -22,7 +23,7 @@ const softGlass = {
   border: '0.5px solid rgba(0,0,0,0.08)',
 };
 
-export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
+export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, onGoToStep }) => {
   const [craftName, setCraftName] = useState<string | null>(null);
   const [techniqueName, setTechniqueName] = useState<string | null>(null);
   const [materialNames, setMaterialNames] = useState<string[]>([]);
@@ -59,9 +60,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
     return typeof img === 'string' ? img : URL.createObjectURL(img);
   };
 
-  const origin = [state.municipality, state.department, state.country ?? 'Colombia']
-    .filter(Boolean)
-    .join(', ');
+  const origin = [state.municipality, state.department].filter(Boolean).join(', ') || 'Colombia';
 
   const dimensions =
     state.heightCm && state.widthCm
@@ -83,6 +82,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
         <WizardHeader
           step={step}
           totalSteps={totalSteps}
+          onBack={onBack}
           icon="verified"
           title="Pasaporte digital"
           subtitle="Vista previa del pasaporte de trazabilidad"
@@ -126,9 +126,9 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
                 {
                   icon: 'location_on',
                   label: 'ORIGEN Y AUTORÍA',
-                  title: origin || 'Completar ubicación en Paso 2',
-                  sub: state.workshopName ?? 'Sin taller registrado',
-                  editStep: 2,
+                  title: origin,
+                  sub: state.workshopName ?? null,
+                  editStep: 1,
                 },
                 {
                   icon: 'straighten',
@@ -137,7 +137,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
                   sub: state.weightKg ? `Peso: ${state.weightKg} kg` : 'Peso no registrado',
                   editStep: 4,
                 },
-              ].map(({ icon, label, title, sub }) => (
+              ].map(({ icon, label, title, sub, editStep }) => (
                 <div
                   key={label}
                   className="rounded-xl overflow-hidden"
@@ -161,8 +161,18 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
                     <span className="material-symbols-outlined text-[#151b2d]/30">expand_more</span>
                   </div>
                   <div className="px-6 pb-6 flex justify-between items-end">
-                    <p className="font-['Manrope'] text-[14px] font-[500] text-[#54433e]/80 italic">{sub}</p>
-                    <button className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] cursor-pointer uppercase hover:underline">
+                    {sub !== null ? (
+                      <p className="font-['Manrope'] text-[14px] font-[500] text-[#54433e]/80 italic">{sub}</p>
+                    ) : (
+                      <p className="font-['Manrope'] text-[12px] font-[500] text-[#54433e]/40 italic flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[14px] shrink-0">info</span>
+                        Completa el perfil artesanal y esta información aparecerá aquí automáticamente.
+                      </p>
+                    )}
+                    <button
+                      onClick={() => onGoToStep?.(editStep)}
+                      className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] cursor-pointer uppercase hover:underline"
+                    >
                       Editar
                     </button>
                   </div>
@@ -184,7 +194,10 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
                     Resumen del proceso
                   </h3>
                 </div>
-                <button className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] uppercase hover:underline opacity-60">
+                <button
+                  onClick={() => onGoToStep?.(1)}
+                  className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] uppercase hover:underline opacity-60"
+                >
                   Editar
                 </button>
               </div>
@@ -227,7 +240,10 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
                 <span className="font-['Manrope'] text-[10px] font-[800] text-[#54433e]/70 tracking-[0.15em] uppercase">
                   EVIDENCIA DE TRAZABILIDAD
                 </span>
-                <button className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] uppercase hover:underline opacity-60">
+                <button
+                  onClick={() => onGoToStep?.(3)}
+                  className="font-['Manrope'] text-[11px] font-[800] text-[#ec6d13] uppercase hover:underline opacity-60"
+                >
                   Gestionar Archivos
                 </button>
               </div>
@@ -324,6 +340,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextLabel="Continuar a revisión final"
+        leftOffset={80}
       />
     </div>
   );

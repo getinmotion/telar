@@ -7,17 +7,16 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { FIXED_TASKS } from '@/config/fixedTasks';
 import { FixedTask, FixedTaskId, UserTaskState } from '@/types/fixedTask';
 import { EventBus } from '@/utils/eventBus';
 import { NotificationTemplates } from '@/services/notificationService';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
-import { getUserMasterContextByUserId } from '@/services/userMasterContext.actions';
 import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 import { getUserProgressByUserId } from '@/services/userProgress.actions';
 import { getAgentTasksByUserId, createAgentTask, updateAgentTask } from '@/services/agentTasks.actions';
 import { getProductsByUserId } from '@/services/products.actions';
+import { getUserMasterContextByUserId } from '@/services/userMasterContext.actions';
 
 export interface CompletedFixedTask extends FixedTask {
   completedAt: string;
@@ -36,34 +35,30 @@ export const useFixedTasksManager = () => {
   const isLoadingRef = useRef(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load all data in parallel - OPTIMIZED
+  // Load all data in parallel
   const loadAllData = useCallback(async () => {
     if (!user || isLoadingRef.current) return;
 
     isLoadingRef.current = true;
 
     try {
-      // Execute ALL queries in parallel
-      // Execute ALL queries in parallel - now checking id_contraparty from artisan_shops
-      const [shopData, profileData, progressData, allTasks, masterContextResult] = await Promise.all([
+      const [shopData, profileData, progressData, allTasks, masterContext] = await Promise.all([
         getArtisanShopByUserId(user.id).catch(() => null),
         getUserProfileByUserId(user.id).catch(() => null),
         getUserProgressByUserId(user.id).catch(() => null),
         getAgentTasksByUserId(user.id).catch(() => []),
-        getUserMasterContextByUserId(user.id).catch(() => null)
+        getUserMasterContextByUserId(user.id).catch(() => null),
       ]);
 
-      // Filtrar solo tareas completadas y ordenar por fecha de completado
-      const completedTasks = (allTasks || [])
+      // Filtrar solo tareas completadas y ordenar por fecha
+      const completedAgentTasks = (allTasks || [])
         .filter(task => task.status === 'completed')
         .sort((a, b) => {
           const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
           const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-          return dateB - dateA; // Orden descendente (más reciente primero)
+          return dateB - dateA;
         });
-      const masterContext = masterContextResult;
 
-      // ✅ Migrado a NestJS - GET /products/user/{user_id}
       let productCount = 0;
       if (shopData?.id) {
         try {
@@ -74,33 +69,15 @@ export const useFixedTasksManager = () => {
         }
       }
 
-      // Process user state
       const hasShop = !!shopData?.id;
-      const hasBrand = !!(shopData?.logoUrl);
-      const hasHeroSlider = !!(shopData?.heroConfig as any)?.slides?.length;
+      const brandEval = (masterContext?.businessContext as Record<string, unknown> | undefined)
+        ?.brand_evaluation as Record<string, unknown> | undefined;
+      const hasBrand = !!(brandEval?.logo_url || shopData?.logoUrl || profileData?.avatarUrl);
       const hasArtisanProfile = !!(shopData as any)?.artisanProfileCompleted;
-      const hasSocialLinks = !!(shopData?.socialLinks && Object.keys(shopData.socialLinks as object).length > 0);
-      const contactInfo = (shopData?.contactInfo as any) || {};
-      const hasContactInfo = !!(contactInfo?.email || contactInfo?.phone);
-      const hasRUT = !!(profileData?.rut && !profileData?.rutPendiente);
-      // Check id_contraparty from artisan_shops instead of artisan_bank_data
-      const hasBankData = !!(shopData?.idContraparty);
-
-      // Process maturity blocks from master context
-      const completedBlocks: number[] = [];
-      const taskGenContext = (masterContext?.taskGenerationContext as any) || {};
-      const maturityProgress = taskGenContext.maturity_test_progress || {};
-      const totalAnswered = maturityProgress.total_answered || 0;
-
-      // Cada 5 preguntas = 1 bloque completado
-      const completedBlockCount = Math.floor(totalAnswered / 5);
-      for (let i = 1; i <= Math.min(completedBlockCount, 6); i++) {
-        completedBlocks.push(i);
-      }
 
       // Process completed tasks with deduplication
       const taskMap = new Map<string, any>();
-      completedTasks.forEach(task => {
+      completedAgentTasks.forEach(task => {
         const existing = taskMap.get(task.agent_id);
         if (!existing || new Date(task.completed_at || task.created_at) > new Date(existing.completed_at || existing.created_at)) {
           taskMap.set(task.agent_id, task);
@@ -118,19 +95,8 @@ export const useFixedTasksManager = () => {
         else if (task.agent_id === 'first_product' || task.title?.includes('primer producto')) taskId = 'first_product';
         else if (task.agent_id === 'five_products' || task.title?.includes('5 productos')) taskId = 'five_products';
         else if (task.agent_id === 'ten_products' || task.title?.includes('10 productos')) taskId = 'ten_products';
-        else if (task.agent_id === 'customize_shop' || task.title?.includes('Personaliza')) taskId = 'customize_shop';
-        else if (task.agent_id === 'create_story' || task.title?.includes('historia') || task.title?.includes('About')) taskId = 'create_story';
         else if (task.agent_id === 'create_artisan_profile' || task.title?.includes('Perfil Artesanal')) taskId = 'create_artisan_profile';
-        else if (task.agent_id === 'complete_rut' || task.title?.includes('RUT')) taskId = 'complete_rut';
-        else if (task.agent_id === 'add_contact') taskId = 'add_contact';
-        else if (task.agent_id === 'add_social_links') taskId = 'add_social_links';
-        else if (task.agent_id === 'complete_bank_data' || task.title?.includes('datos bancarios')) taskId = 'complete_bank_data';
-        else if (task.agent_id === 'maturity_block_1' || task.title?.includes('Bloque 1')) taskId = 'maturity_block_1';
-        else if (task.agent_id === 'maturity_block_2' || task.title?.includes('Bloque 2')) taskId = 'maturity_block_2';
-        else if (task.agent_id === 'maturity_block_3' || task.title?.includes('Bloque 3')) taskId = 'maturity_block_3';
-        else if (task.agent_id === 'maturity_block_4' || task.title?.includes('Bloque 4')) taskId = 'maturity_block_4';
-        else if (task.agent_id === 'maturity_block_5' || task.title?.includes('Bloque 5')) taskId = 'maturity_block_5';
-        else if (task.agent_id === 'maturity_block_6' || task.title?.includes('Bloque 6')) taskId = 'maturity_block_6';
+        else if (task.agent_id === 'review_brand' || task.title?.includes('diagnóstico de marca')) taskId = 'review_brand';
 
         if (taskId) {
           completed.add(taskId);
@@ -145,26 +111,11 @@ export const useFixedTasksManager = () => {
       });
 
       // Auto-detect completed tasks based on real user state
-      // This ensures tasks reflect actual data even if agent_tasks is out of sync
-      if (hasRUT && !completed.has('complete_rut')) {
-        completed.add('complete_rut');
-        const rutTask = FIXED_TASKS.find(t => t.id === 'complete_rut');
-        if (rutTask) {
-          completedWithData.push({
-            ...rutTask,
-            completedAt: new Date().toISOString()
-          });
-        }
-      }
-
       if (hasShop && !completed.has('create_shop')) {
         completed.add('create_shop');
         const shopTask = FIXED_TASKS.find(t => t.id === 'create_shop');
         if (shopTask) {
-          completedWithData.push({
-            ...shopTask,
-            completedAt: new Date().toISOString()
-          });
+          completedWithData.push({ ...shopTask, completedAt: new Date().toISOString() });
         }
       }
 
@@ -186,73 +137,36 @@ export const useFixedTasksManager = () => {
         if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
       }
 
-      if (hasHeroSlider && !completed.has('customize_shop')) {
-        completed.add('customize_shop');
-        const task = FIXED_TASKS.find(t => t.id === 'customize_shop');
+      if (hasBrand && !completed.has('create_brand')) {
+        completed.add('create_brand');
+        const task = FIXED_TASKS.find(t => t.id === 'create_brand');
         if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
       }
 
-      if (hasContactInfo && !completed.has('add_contact')) {
-        completed.add('add_contact');
-        const task = FIXED_TASKS.find(t => t.id === 'add_contact');
-        if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
-      }
-
-      if (hasSocialLinks && !completed.has('add_social_links')) {
-        completed.add('add_social_links');
-        const task = FIXED_TASKS.find(t => t.id === 'add_social_links');
-        if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
-      }
-
-      if (hasBankData && !completed.has('complete_bank_data')) {
-        completed.add('complete_bank_data');
-        const task = FIXED_TASKS.find(t => t.id === 'complete_bank_data');
-        if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
-      }
-
-      // Auto-detect artisan profile completed
       if (hasArtisanProfile && !completed.has('create_artisan_profile')) {
         completed.add('create_artisan_profile');
         const task = FIXED_TASKS.find(t => t.id === 'create_artisan_profile');
         if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
       }
 
-      // Auto-detect maturity blocks
-      for (let i = 1; i <= 6; i++) {
-        const blockId = `maturity_block_${i}` as FixedTaskId;
-        if (completedBlocks.includes(i) && !completed.has(blockId)) {
-          completed.add(blockId);
-          const task = FIXED_TASKS.find(t => t.id === blockId);
-          if (task) completedWithData.push({ ...task, completedAt: new Date().toISOString() });
-        }
-      }
-
-      // Update state
       setCompletedTaskIds(completed);
       setCompletedTasksData(completedWithData);
       setUserState({
         hasShop,
         hasBrand,
         productCount,
-        hasRUT,
-        hasHeroSlider,
         hasArtisanProfile,
-        hasSocialLinks,
-        hasContactInfo,
-        hasBankData,
-        completedMaturityBlocks: completedBlocks,
         completedTaskIds: Array.from(completed)
       });
 
     } catch {
-      // silent fail — datos se mantienen del estado previo
+      // silent fail
     } finally {
       isLoadingRef.current = false;
       setLoading(false);
     }
   }, [user]);
 
-  // Complete a task
   const completeTask = useCallback(async (taskId: FixedTaskId) => {
     if (!user || completedTaskIds.has(taskId)) return;
 
@@ -260,10 +174,8 @@ export const useFixedTasksManager = () => {
       const task = FIXED_TASKS.find(t => t.id === taskId);
       if (!task) return;
 
-      // ✅ Migrado a NestJS - GET /agent-tasks/user/{user_id}
       const allUserTasks = await getAgentTasksByUserId(user.id);
 
-      // Buscar si existe una tarea con este agent_id
       const existingTasks = allUserTasks
         .filter(t => t.agentId === taskId)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -296,10 +208,8 @@ export const useFixedTasksManager = () => {
 
       setCompletedTaskIds(prev => new Set([...prev, taskId]));
 
-      // 🔔 Crear notificación de milestone completado (solo para tareas importantes)
       const milestoneTaskIds: FixedTaskId[] = [
-        'create_shop', 'create_brand', 'first_product', 'five_products',
-        'customize_shop', 'complete_rut', 'complete_bank_data'
+        'create_shop', 'create_brand', 'first_product', 'five_products', 'create_artisan_profile'
       ];
 
       if (milestoneTaskIds.includes(taskId)) {
@@ -311,7 +221,6 @@ export const useFixedTasksManager = () => {
     }
   }, [user, completedTaskIds]);
 
-  // Calculate available tasks - memoized
   const availableTasks = useMemo(() => {
     if (!userState) return [];
 
@@ -327,12 +236,10 @@ export const useFixedTasksManager = () => {
         }
 
         if (task.requirements.mustHave) {
-          const { shop, brand, products, rut, maturityBlock } = task.requirements.mustHave;
+          const { shop, brand, products } = task.requirements.mustHave;
           if (shop && !userState.hasShop) return false;
           if (brand && !userState.hasBrand) return false;
           if (products && userState.productCount < products.min) return false;
-          if (rut && !userState.hasRUT) return false;
-          if (maturityBlock && !userState.completedMaturityBlocks.includes(maturityBlock)) return false;
         }
       }
 
@@ -340,7 +247,6 @@ export const useFixedTasksManager = () => {
     });
   }, [userState, completedTaskIds]);
 
-  // Debounced reload for EventBus
   const debouncedReload = useCallback(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -350,7 +256,6 @@ export const useFixedTasksManager = () => {
     }, 500);
   }, [loadAllData]);
 
-  // Initialize on mount - SINGLE useEffect
   useEffect(() => {
     if (!user || isInitializedRef.current) return;
 
@@ -364,7 +269,6 @@ export const useFixedTasksManager = () => {
     };
   }, [user, loadAllData]);
 
-  // EventBus subscriptions
   useEffect(() => {
     if (!user) return;
 
@@ -372,13 +276,7 @@ export const useFixedTasksManager = () => {
       EventBus.subscribe('shop.created', debouncedReload),
       EventBus.subscribe('brand.wizard.completed', debouncedReload),
       EventBus.subscribe('product.created', debouncedReload),
-      EventBus.subscribe('shop.customized', debouncedReload),
-      EventBus.subscribe('shop.contact.added', debouncedReload),
-      EventBus.subscribe('legal.nit.completed', debouncedReload),
-      EventBus.subscribe('shop.social_links.added', debouncedReload),
       EventBus.subscribe('task.updated', debouncedReload),
-      EventBus.subscribe('bank.data.completed', debouncedReload),
-      EventBus.subscribe('maturity.block.completed', debouncedReload),
       EventBus.subscribe('artisan.profile.completed', debouncedReload),
     ];
 

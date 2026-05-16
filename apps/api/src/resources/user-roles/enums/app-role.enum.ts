@@ -6,4 +6,5 @@ export enum AppRole {
   USER = 'user',
   ARTISAN = 'artisan',
   MODERATOR = 'moderator',
+  SUPER_ADMIN = 'super_admin',
 }

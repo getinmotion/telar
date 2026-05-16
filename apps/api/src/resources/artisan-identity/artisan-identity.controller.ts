@@ -6,14 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { ArtisanIdentityService } from './artisan-identity.service';
 import { CreateArtisanIdentityDto } from './dto/create-artisan-identity.dto';
 import { UpdateArtisanIdentityDto } from './dto/update-artisan-identity.dto';
 import { ArtisanIdentity } from './entities/artisan-identity.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Artisan Identity')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
 @Controller('artisan-identity')
 export class ArtisanIdentityController {
   constructor(
@@ -27,7 +33,10 @@ export class ArtisanIdentityController {
     description: 'Registro creado exitosamente',
     type: ArtisanIdentity,
   })
-  create(@Body() createArtisanIdentityDto: CreateArtisanIdentityDto) {
+  create(
+    @CurrentUser() user: { sub: string; roles?: string[] },
+    @Body() createArtisanIdentityDto: CreateArtisanIdentityDto,
+  ) {
     return this.artisanIdentityService.create(createArtisanIdentityDto);
   }
 
@@ -40,8 +49,36 @@ export class ArtisanIdentityController {
     description: 'Lista de registros obtenida exitosamente',
     type: [ArtisanIdentity],
   })
-  findAll() {
+  findAll(@CurrentUser() user: { sub: string; roles?: string[] }) {
+    if (!user.roles?.includes('super_admin')) throw new ForbiddenException();
     return this.artisanIdentityService.findAll();
+  }
+
+  /**
+   * GET /artisan-identity/user/:userId
+   * Obtener artisan identity del usuario (para pre-cargar en wizard de productos)
+   */
+  @Get('user/:userId')
+  findByUserId(
+    @CurrentUser() user: { sub: string; roles?: string[] },
+    @Param('userId') userId: string,
+  ) {
+    if (!user.roles?.includes('super_admin') && user.sub !== userId) throw new ForbiddenException();
+    return this.artisanIdentityService.findByUserId(userId);
+  }
+
+  /**
+   * PATCH /artisan-identity/user/:userId
+   * Actualizar técnicas primaria y/o secundaria del artesano
+   */
+  @Patch('user/:userId')
+  updateTechniquesByUserId(
+    @CurrentUser() user: { sub: string; roles?: string[] },
+    @Param('userId') userId: string,
+    @Body() body: { techniquePrimaryId?: string | null; techniqueSecondaryId?: string | null },
+  ) {
+    if (!user.roles?.includes('super_admin') && user.sub !== userId) throw new ForbiddenException();
+    return this.artisanIdentityService.updateTechniquesByUserId(userId, body);
   }
 
   @Get(':id')
@@ -83,7 +120,11 @@ export class ArtisanIdentityController {
     description: 'Registro eliminado exitosamente',
   })
   @ApiResponse({ status: 404, description: 'Registro no encontrado' })
-  remove(@Param('id') id: string) {
+  remove(
+    @CurrentUser() user: { sub: string; roles?: string[] },
+    @Param('id') id: string,
+  ) {
+    if (!user.roles?.includes('super_admin')) throw new ForbiddenException();
     return this.artisanIdentityService.remove(id);
   }
 }

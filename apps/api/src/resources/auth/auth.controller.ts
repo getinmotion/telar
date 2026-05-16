@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Res,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiOperation,
@@ -37,6 +38,8 @@ export class AuthController {
    * Registrar un nuevo usuario con perfil, progreso y verificación de email
    */
   @Post('register')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary:
@@ -83,6 +86,8 @@ export class AuthController {
    * Registrar un nuevo comprador para marketplace (sin verificación de email)
    */
   @Post('register-marketplace')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary:
@@ -132,6 +137,8 @@ export class AuthController {
    * Iniciar sesión
    */
   @Post('login')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Iniciar sesión',
@@ -149,7 +156,6 @@ export class AuthController {
           email: 'user@example.com',
           phone: '+573001234567',
           role: 'user',
-          isSuperAdmin: false,
           emailConfirmedAt: '2026-01-14T10:00:00.000Z',
           lastSignInAt: '2026-01-20T15:30:00.000Z',
           createdAt: '2026-01-14T10:00:00.000Z',
@@ -239,6 +245,38 @@ export class AuthController {
   }
 
   /**
+   * GET /auth/backoffice-context
+   * Retorna el contexto del backoffice: usuario, roles y permisos calculados.
+   * Usado por el frontend para inicializar el panel de administración/moderación.
+   * Requiere token JWT con rol admin, moderator o super_admin.
+   */
+  @Get('backoffice-context')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Obtener contexto del backoffice unificado',
+    description:
+      'Retorna usuario, roles y permisos calculados para inicializar el panel de administración y moderación.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contexto del backoffice obtenido exitosamente',
+    schema: {
+      example: {
+        user: { id: 'uuid', email: 'admin@telar.co' },
+        roles: ['admin', 'moderator'],
+        permissions: ['moderation', 'cms', 'users', 'orders', 'audit'],
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'Sin rol de backoffice (admin, moderator o super_admin)' })
+  async getBackofficeContext(@CurrentUser() user: any) {
+    return await this.authService.getBackofficeContext(user.sub);
+  }
+
+  /**
    * POST /auth/refresh
    * Refrescar token JWT
    * Requiere token JWT
@@ -303,6 +341,8 @@ export class AuthController {
    * Público (no requiere autenticación)
    */
   @Post('request-password-recovery')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Solicitar recuperación de contraseña' })
   @ApiResponse({
@@ -371,7 +411,6 @@ export class AuthController {
           id: '123e4567-e89b-12d3-a456-426614174000',
           email: 'user@example.com',
           role: 'admin',
-          isSuperAdmin: false,
         },
       },
     },
@@ -384,7 +423,6 @@ export class AuthController {
         id: user.sub,
         email: user.email,
         role: user.role,
-        isSuperAdmin: user.isSuperAdmin,
       },
     };
   }
@@ -429,7 +467,6 @@ export class AuthController {
           email: 'user@example.com',
           phone: null,
           role: 'user',
-          isSuperAdmin: false,
           emailConfirmedAt: '2026-02-12T10:00:00.000Z',
           lastSignInAt: '2026-02-12T15:30:00.000Z',
           createdAt: '2026-02-12T10:00:00.000Z',

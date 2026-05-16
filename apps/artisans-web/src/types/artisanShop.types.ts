@@ -50,7 +50,7 @@ export enum MarketplaceApprovalStatus {
 export interface ContactInfo {
   email?: string;
   phone?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface SocialLinks {
@@ -58,28 +58,28 @@ export interface SocialLinks {
   instagram?: string;
   twitter?: string;
   youtube?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface SeoData {
   title?: string;
   description?: string;
   keywords?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface DataClassification {
   contact?: string;
   analytics?: string;
   strategies?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface HeroConfig {
   slides?: any[];
   autoplay?: boolean;
   duration?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AboutContent {
@@ -88,7 +88,7 @@ export interface AboutContent {
   values?: string[];
   vision?: string;
   mission?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ContactConfig {
@@ -98,17 +98,17 @@ export interface ContactConfig {
   address?: string;
   whatsapp?: string;
   map_embed?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PoliciesConfig {
   returnPolicy?: string;
   faq?: { q: string; a: string }[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ArtisanProfile {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============= Main Entity =============
@@ -156,6 +156,8 @@ export interface ArtisanShop {
   marketplaceApprovalStatus: string | null;
   department: string | null;
   municipality: string | null;
+  presentationVideo: Record<string, any> | null;
+  bioConfig: Record<string, any> | null;
 }
 
 // ============= Request Payloads =============
@@ -195,6 +197,8 @@ export interface CreateArtisanShopPayload {
   marketplaceApprovalStatus?: string;
   department?: string;
   municipality?: string;
+  presentationVideo?: Record<string, any>;
+  bioConfig?: Record<string, any>;
 }
 
 export interface UpdateArtisanShopPayload {
@@ -236,6 +240,8 @@ export interface UpdateArtisanShopPayload {
   marketplaceApprovalStatus?: string;
   department?: string;
   municipality?: string;
+  presentationVideo?: Record<string, any>;
+  bioConfig?: Record<string, any>;
 }
 
 // ============= Response Types =============

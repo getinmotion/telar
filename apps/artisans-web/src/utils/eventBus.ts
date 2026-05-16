@@ -45,7 +45,8 @@ export type SystemEvent =
   | "artisan.profile.completed"
   | "onboarding.completed"
   | "tasks.initialized"
-  | "bank.data.completed";
+  | "bank.data.completed"
+  | "telardata.field.updated";
 
 type EventCallback = (data: any) => void;
 

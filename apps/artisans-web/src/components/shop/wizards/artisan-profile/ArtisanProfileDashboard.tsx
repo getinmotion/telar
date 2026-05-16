@@ -21,6 +21,7 @@ interface ArtisanProfileDashboardProps {
   shopName: string;
   craftType: string;
   region: string;
+  artisanId?: string;
   onEdit: (section: string) => void;
   onRefresh: () => void;
 }
@@ -93,6 +94,7 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
   shopName,
   craftType,
   region,
+  artisanId,
   onEdit,
   onRefresh,
 }) => {
@@ -109,6 +111,7 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
     try {
       // Generate new story with AI
       const storyData = await generateArtisanProfileHistory({
+        artisanId,
         profile: data,
         shopName,
         craftType,

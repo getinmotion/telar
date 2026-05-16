@@ -1,5 +1,6 @@
 import {
   IsString,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsBoolean,
@@ -372,4 +373,39 @@ export class CreateArtisanShopDto {
   @IsOptional()
   @IsString({ message: 'El municipio debe ser una cadena de texto' })
   municipality?: string;
+
+  @ApiPropertyOptional({ description: 'URL del video de presentación' })
+  @IsOptional()
+  @IsString()
+  presentationVideoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Proveedor del video (youtube, vimeo, cloudinary, etc.)' })
+  @IsOptional()
+  @IsString()
+  presentationVideoProvider?: string;
+
+  @ApiPropertyOptional({ description: 'URL de la miniatura del video' })
+  @IsOptional()
+  @IsString()
+  presentationVideoThumbnailUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Duración del video en segundos' })
+  @IsOptional()
+  @IsInt()
+  presentationVideoDurationSeconds?: number;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace a la tienda en la página bio link' })
+  @IsOptional()
+  @IsBoolean()
+  bioConfigShowShopLink?: boolean;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace al perfil en la página bio link' })
+  @IsOptional()
+  @IsBoolean()
+  bioConfigShowProfileLink?: boolean;
+
+  @ApiPropertyOptional({ description: 'ID del producto destacado en la página bio link' })
+  @IsOptional()
+  @IsUUID()
+  bioConfigFeaturedProductId?: string;
 }

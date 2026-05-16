@@ -61,26 +61,21 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
         <span className="material-symbols-outlined text-[16px] group-hover:-translate-x-0.5 transition-transform">
           arrow_back
         </span>
-        <span className="text-[10px] font-[700] uppercase tracking-widest">Volver</span>
+        <span className="text-[10px] font-[700] uppercase tracking-widest">Atrás</span>
       </button>
     ) : (
       <div />
     );
 
   const NextButton = () => (
-    <div className="flex items-center gap-2">
-      {disabledReason && (
-        <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">{disabledReason}</span>
-      )}
-      <button
-        onClick={nextDisabled ? undefined : onNext}
-        disabled={nextDisabled}
-        className="flex items-center gap-1.5 bg-[#151b2d] text-white px-5 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:bg-[#ec6d13] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
-      >
-        <span>{nextLabel ?? 'Continuar'}</span>
-        <span className="material-symbols-outlined text-[14px]">east</span>
-      </button>
-    </div>
+    <button
+      onClick={nextDisabled ? undefined : onNext}
+      disabled={nextDisabled}
+      className="flex items-center gap-1.5 bg-[#151b2d] text-white px-5 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:bg-[#ec6d13] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+    >
+      <span>{nextLabel ?? 'Continuar'}</span>
+      <span className="material-symbols-outlined text-[14px]">east</span>
+    </button>
   );
 
   const SaveAndExitButton = () => onSaveAndExit ? (
@@ -93,48 +88,57 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
     </button>
   ) : null;
 
+  const innerClass = "max-w-[1200px] mx-auto px-6 py-3 flex items-center justify-between w-full";
+
   if (isFinalStep) {
     return (
-      <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
+      <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
         <ProgressBar />
-        <div className="flex items-center justify-center gap-4 px-6 py-3">
+        <div className={innerClass}>
           <BackButton />
-          {onSaveDraft && (
+          <div className="flex items-center gap-4">
+            {onSaveDraft && (
+              <button
+                onClick={onSaveDraft}
+                disabled={isSavingDraft || isSubmitting}
+                className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#54433e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isSavingDraft ? 'Guardando...' : (saveDraftLabel ?? 'Guardar borrador')}
+              </button>
+            )}
             <button
-              onClick={onSaveDraft}
-              disabled={isSavingDraft || isSubmitting}
-              className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#54433e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={onSubmit}
+              disabled={isSubmitting || isSavingDraft}
+              className="flex items-center gap-2 bg-[#ec6d13] text-white px-6 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSavingDraft ? 'Guardando...' : (saveDraftLabel ?? 'Guardar borrador')}
+              {isSubmitting ? 'Guardando...' : (submitLabel ?? 'Enviar a curaduría')}
             </button>
-          )}
-          <button
-            onClick={onSubmit}
-            disabled={isSubmitting || isSavingDraft}
-            className="flex items-center gap-2 bg-[#ec6d13] text-white px-6 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Guardando...' : (submitLabel ?? 'Enviar a curaduría')}
-          </button>
+          </div>
         </div>
       </footer>
     );
   }
 
   return (
-    <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
+    <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
       <ProgressBar />
-      <div className="flex items-center justify-center gap-4 px-6 py-3">
+      <div className={innerClass}>
         <BackButton />
-        {(step === 1 || showSaveDraftOnAllSteps) && onSaveDraft && (
-          <button
-            onClick={onSaveDraft}
-            className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
-          >
-            {saveDraftLabel ?? 'Guardar borrador'}
-          </button>
-        )}
-        <SaveAndExitButton />
-        <NextButton />
+        <div className="flex items-center gap-4">
+          {(step === 1 || showSaveDraftOnAllSteps) && onSaveDraft && (
+            <button
+              onClick={onSaveDraft}
+              className="text-[10px] font-[700] text-[#54433e]/50 uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+            >
+              {saveDraftLabel ?? 'Guardar borrador'}
+            </button>
+          )}
+          <SaveAndExitButton />
+          {disabledReason && (
+            <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">{disabledReason}</span>
+          )}
+          <NextButton />
+        </div>
       </div>
     </footer>
   );

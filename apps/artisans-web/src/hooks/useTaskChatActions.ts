@@ -45,7 +45,7 @@ export const useTaskChatActions = (agentId: string) => {
           });
           break;
 
-        case 'add_subtask':
+        case 'add_subtask': {
           const newSubtask = {
             id: Date.now().toString(),
             title: 'Nueva subtarea',
@@ -58,8 +58,9 @@ export const useTaskChatActions = (agentId: string) => {
             description: 'Se ha añadido una nueva subtarea',
           });
           break;
+        }
 
-        case 'add_resource':
+        case 'add_resource': {
           const newResource = {
             id: Date.now().toString(),
             title: 'Nuevo recurso',
@@ -72,6 +73,7 @@ export const useTaskChatActions = (agentId: string) => {
             description: 'Se ha añadido un nuevo recurso',
           });
           break;
+        }
 
         case 'create_checklist':
           toast({

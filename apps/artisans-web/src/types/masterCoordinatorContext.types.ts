@@ -45,7 +45,7 @@ export interface ContextSnapshot {
   };
   aiPersonality?: string;
   communicationStyle?: string;
-  [key: string]: any; // Para flexibilidad con otros campos
+  [key: string]: unknown; // Para flexibilidad con otros campos
 }
 
 // ============= Main Types =============

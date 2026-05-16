@@ -26,7 +26,8 @@ const ADMIN_ROLES = new Set(['admin', 'moderator', 'super_admin']);
 function ensureAdmin(req: Request) {
   const user: any = (req as any).user ?? {};
   const role = (user.role || '').toString().toLowerCase();
-  if (ADMIN_ROLES.has(role) || user.isSuperAdmin === true) return;
+  const userRoles: string[] = Array.isArray(user.roles) ? user.roles : [];
+  if (ADMIN_ROLES.has(role) || userRoles.some((r) => ADMIN_ROLES.has(r))) return;
   throw new ForbiddenException('Admin or moderator role required');
 }
 

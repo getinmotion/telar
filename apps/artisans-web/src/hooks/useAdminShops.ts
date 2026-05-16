@@ -175,10 +175,11 @@ export const useAdminShops = () => {
       case 'no_cobre':
         result = result.filter(s => !s.id_contraparty);
         break;
-      case 'new':
+      case 'new': {
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         result = result.filter(s => new Date(s.created_at) > oneWeekAgo);
         break;
+      }
     }
 
     // Apply search

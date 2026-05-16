@@ -3,77 +3,100 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
-import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
-import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
-import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import {
+  getStorePoliciesConfig,
+  createStorePoliciesConfig,
+  updateStorePoliciesConfig,
+} from '@/services/storePoliciesConfig.actions';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
+import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
+import { T, inputStyle } from '@/lib/telar-design';
+import { SpeechTextarea } from '@/components/ui/speech-textarea';
 
-const T = {
-  dark:  '#151b2d',
-  orange:'#ec6d13',
-  muted: '#54433e',
-  sans:  "'Manrope', sans-serif",
-  serif: "'Noto Serif', serif",
-};
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.82)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-};
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 16px', borderRadius: 12,
-  border: '1px solid rgba(84,67,62,0.14)', outline: 'none',
-  fontFamily: T.sans, fontSize: 14, color: T.dark,
-  background: 'rgba(247,244,239,0.5)',
-};
+// ── Helpers de UI ─────────────────────────────────────────────────────────────
+const SectionLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <p style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}65`, margin: '0 0 6px' }}>
+    {children}
+  </p>
+);
 
-const TOTAL_STEPS = 3;
+// ── Datos del panel de IA ─────────────────────────────────────────────────────
+const AI_CARDS = [
+  {
+    label: 'Plazo estándar',
+    text: 'En artesanías el plazo habitual es de 10 a 15 días. Un plazo más generoso genera más confianza, uno más corto protege mejor tu inventario.',
+  },
+  {
+    label: 'Piezas personalizadas',
+    text: 'Los compradores valoran la claridad: si una pieza es hecha a pedido y no admite devolución, comunicarlo desde el inicio evita conflictos y construye reputación.',
+  },
+  {
+    label: 'Texto de la política',
+    text: 'Una política clara y específica reduce disputas. Incluye cómo contactarse, en qué estado debe estar el producto y qué documentación se necesita.',
+  },
+];
 
+const AI_NEXT = 'Con la política publicada, los compradores sabrán exactamente qué esperar antes de comprar — eso aumenta la conversión y reduce las consultas repetitivas.';
+
+// ── Generador automático de política ─────────────────────────────────────────
+function buildPolicy(days: string, acceptCustom: boolean | null): string {
+  const d = days || '15';
+  const customLine = acceptCustom === true
+    ? 'Las piezas personalizadas o hechas a pedido pueden devolverse únicamente por defecto de fabricación o acuerdo previo con el artesano.'
+    : acceptCustom === false
+    ? 'Las piezas personalizadas o hechas a pedido no admiten devolución, dado que se producen exclusivamente para cada comprador.'
+    : 'Las condiciones para piezas personalizadas se acordarán caso a caso.';
+  return `Aceptamos devoluciones dentro de los ${d} días posteriores a la recepción del pedido, siempre que el producto esté en su estado original sin señales de uso.\n\n${customLine}\n\nPara iniciar una devolución, contáctanos por WhatsApp con tu número de pedido y fotografías del producto.`;
+}
+
+// ── Página ────────────────────────────────────────────────────────────────────
 export default function ReturnPolicyWizardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
-  const [step, setStep] = useState(1);
-  const [returnDays, setReturnDays] = useState('');
+
+  const [returnDays,   setReturnDays]   = useState('');
   const [acceptCustom, setAcceptCustom] = useState<boolean | null>(null);
   const [returnPolicy, setReturnPolicy] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [policyEdited, setPolicyEdited] = useState(false);
+
+  const [saving,         setSaving]         = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
-  const [showGuard, setShowGuard] = useState(false);
+  const [showGuard,      setShowGuard]      = useState(false);
   const initRef = useRef('');
 
   useEffect(() => {
     if (!shop) return;
-    const pc = shop.policiesConfig ?? {};
-    const policy = pc.returnPolicy ?? '';
-    setReturnPolicy(policy);
-    initRef.current = policy;
+    const policiesId = (shop as any).idPoliciesConfig as string | null;
+    if (!policiesId) { initRef.current = ''; return; }
+    getStorePoliciesConfig(policiesId)
+      .then(pc => {
+        const policy = pc.returnPolicy ?? '';
+        setReturnPolicy(policy);
+        if (policy) setPolicyEdited(true);
+        initRef.current = policy;
+      })
+      .catch(() => {});
   }, [shop?.id]);
+
+  useEffect(() => {
+    if (policyEdited) return;
+    if (!returnDays && acceptCustom === null) return;
+    setReturnPolicy(buildPolicy(returnDays, acceptCustom));
+  }, [returnDays, acceptCustom, policyEdited]);
 
   const isDirty = returnPolicy !== initRef.current;
 
-  const handleNextFromStep2 = () => {
-    if (acceptCustom === null) { toast.error('Elige una opción'); return; }
-    if (!returnPolicy) {
-      const days = returnDays || '15';
-      const custom = acceptCustom
-        ? 'Las piezas personalizadas pueden ser devueltas con condiciones especiales acordadas previamente.'
-        : 'No aceptamos devoluciones en piezas personalizadas o hechas a pedido.';
-      setReturnPolicy(
-        `Aceptamos devoluciones dentro de los ${days} días posteriores a la recepción del pedido, siempre que el producto esté en su estado original.\n\n${custom}\n\nPara solicitar una devolución, contáctanos por WhatsApp con tu número de pedido.`
-      );
-    }
-    setStep(3);
-  };
-
   const saveData = async () => {
     if (!shop) return;
-    const pc = shop.policiesConfig ?? {};
-    await updateArtisanShop(shop.id, {
-      policiesConfig: { ...pc, returnPolicy },
-    });
+    const policiesId = (shop as any).idPoliciesConfig as string | null;
+    if (policiesId) {
+      await updateStorePoliciesConfig(policiesId, { returnPolicy });
+    } else {
+      const created = await createStorePoliciesConfig({ returnPolicy });
+      await updateArtisanShop(shop.id, { idPoliciesConfig: created.id } as any);
+    }
     initRef.current = returnPolicy;
   };
 
@@ -86,11 +109,8 @@ export default function ReturnPolicyWizardPage() {
 
   const handleFinish = async () => {
     setSaving(true);
-    try {
-      await saveData();
-      toast.success('Política de devoluciones guardada');
-      navigate(returnTo);
-    } catch { toast.error('Error al guardar'); }
+    try { await saveData(); toast.success('Política de devoluciones guardada'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
   };
 
@@ -112,7 +132,7 @@ export default function ReturnPolicyWizardPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+    <>
       {showGuard && (
         <UnsavedChangesDialog
           onSaveAndExit={handleSaveAndExit}
@@ -122,109 +142,108 @@ export default function ReturnPolicyWizardPage() {
         />
       )}
 
-      <WizardHeader
-        step={step} totalSteps={TOTAL_STEPS}
-        icon="policy" title="Política de devoluciones"
-        subtitle="Genera y personaliza tu política de devoluciones"
+      <ConfigWizardShell
+        icon="policy"
+        title="Política de devoluciones"
+        subtitle="Configura y personaliza la política de tu tienda"
         onBack={handleBack}
         onSaveProgress={isDirty ? handleSaveProgress : undefined}
         isSavingProgress={savingProgress}
-      />
-
-      <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
-        <div className="max-w-xl mx-auto">
-
-          {step === 1 && (
-            <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-              <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                Plazo de devoluciones
-              </p>
-              <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                ¿Cuántos días tiene el comprador para solicitar una devolución después de recibir su pedido?
-              </p>
-              <label style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: `${T.muted}80`, display: 'block', marginBottom: 6 }}>
-                Días para devolución
-              </label>
-              <input
-                type="number" min="1" max="60"
-                value={returnDays}
-                onChange={e => setReturnDays(e.target.value)}
-                placeholder="Ej. 15"
-                style={{ ...inputStyle, maxWidth: 160 }}
-              />
-              <p style={{ fontFamily: T.sans, fontSize: 11, color: `${T.muted}45`, marginTop: 8 }}>
-                El promedio en artesanías es 10–15 días.
-              </p>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-              <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                Piezas personalizadas
-              </p>
-              <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                ¿Aceptas devoluciones en piezas hechas a pedido o personalizadas?
-              </p>
-              <div className="flex flex-col gap-3">
-                {[
-                  { label: 'Sí, con condiciones', sub: 'Con acuerdo previo o defecto de fabricación', value: true },
-                  { label: 'No se aceptan', sub: 'Las piezas personalizadas son finales', value: false },
-                ].map(opt => (
-                  <button key={String(opt.value)}
-                    onClick={() => setAcceptCustom(opt.value)}
-                    className="text-left p-4 rounded-xl transition-all"
-                    style={{
-                      border: `2px solid ${acceptCustom === opt.value ? T.orange : `${T.dark}10`}`,
-                      background: acceptCustom === opt.value ? 'rgba(236,109,19,0.05)' : 'white',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <p style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 700, color: T.dark }}>{opt.label}</p>
-                    <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, marginTop: 2 }}>{opt.sub}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="flex flex-col gap-6">
-              <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-                <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                  Revisa y ajusta
-                </p>
-                <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                  Edita la política para que suene a tu voz. Será visible en la página de tu tienda.
-                </p>
-                <textarea
-                  value={returnPolicy}
-                  onChange={e => setReturnPolicy(e.target.value)}
-                  rows={8}
-                  placeholder="Aceptamos devoluciones dentro de los 15 días posteriores a la recepción…"
-                  style={{ ...inputStyle, resize: 'vertical' }}
-                />
-              </div>
-              <AgentPlaceholder context="policy" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <WizardFooter
-        step={step} totalSteps={TOTAL_STEPS}
-        onBack={step > 1 ? () => setStep(s => s - 1) : undefined}
-        onNext={step === 1 ? () => setStep(2) : step === 2 ? handleNextFromStep2 : undefined}
-        nextDisabled={step === 1 && !returnDays}
-        disabledReason={step === 1 && !returnDays ? 'Ingresa los días de devolución' : undefined}
-        isFinalStep={step === TOTAL_STEPS}
+        aiCards={AI_CARDS}
+        aiNext={AI_NEXT}
+        submitLabel="Guardar política"
         onSubmit={handleFinish}
         isSubmitting={saving}
-        submitLabel="Guardar política"
         onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
         isSavingAndExiting={saving}
-        leftOffset={80}
-      />
-    </div>
+      >
+
+        {/* ── Plazo de devolución ──────────────────────────────────────── */}
+        <div>
+          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, margin: '0 0 4px' }}>
+            Plazo de devolución
+          </p>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, margin: '0 0 16px' }}>
+            ¿Cuántos días tiene el comprador para solicitar una devolución después de recibir su pedido?
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="number" min="1" max="60"
+              value={returnDays}
+              onChange={e => setReturnDays(e.target.value)}
+              placeholder="15"
+              style={{ ...inputStyle, maxWidth: 100, textAlign: 'center' }}
+            />
+            <span style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70` }}>días hábiles</span>
+          </div>
+          <p style={{ fontFamily: T.sans, fontSize: 11, color: `${T.muted}40`, margin: '6px 0 0' }}>
+            El promedio en artesanías es 10–15 días.
+          </p>
+        </div>
+
+        <div style={{ height: 1, background: 'rgba(84,67,62,0.08)' }} />
+
+        {/* ── Piezas personalizadas ────────────────────────────────────── */}
+        <div>
+          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, margin: '0 0 4px' }}>
+            Piezas personalizadas
+          </p>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, margin: '0 0 16px' }}>
+            ¿Aceptas devoluciones en piezas hechas a pedido o personalizadas?
+          </p>
+          <div className="flex flex-col gap-3">
+            {([
+              { label: 'Sí, con condiciones', sub: 'Con acuerdo previo o defecto de fabricación', value: true },
+              { label: 'No se aceptan',       sub: 'Las piezas personalizadas son finales',       value: false },
+            ] as { label: string; sub: string; value: boolean }[]).map(opt => (
+              <button
+                key={String(opt.value)}
+                onClick={() => setAcceptCustom(opt.value)}
+                className="text-left p-4 rounded-xl transition-all"
+                style={{
+                  border: `2px solid ${acceptCustom === opt.value ? T.orange : `${T.dark}10`}`,
+                  background: acceptCustom === opt.value ? 'rgba(236,109,19,0.05)' : 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                <p style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 700, color: T.dark, margin: 0 }}>{opt.label}</p>
+                <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, margin: '2px 0 0' }}>{opt.sub}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: 'rgba(84,67,62,0.08)' }} />
+
+        {/* ── Texto de la política ─────────────────────────────────────── */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+            <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, margin: 0 }}>
+              Texto de la política
+            </p>
+            {policyEdited && (
+              <button
+                onClick={() => { setPolicyEdited(false); setReturnPolicy(buildPolicy(returnDays, acceptCustom)); }}
+                style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 700, color: `${T.muted}50`, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Regenerar automático
+              </button>
+            )}
+          </div>
+          <SectionLabel>Vista previa pública</SectionLabel>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, margin: '0 0 12px' }}>
+            Se genera automáticamente con tus respuestas. Edítala para que suene a tu voz.
+          </p>
+          <SpeechTextarea
+            value={returnPolicy}
+            onChange={(v) => { setReturnPolicy(v); setPolicyEdited(true); }}
+            rows={9}
+            placeholder="Completa el plazo y la opción de piezas personalizadas para generar la política automáticamente…"
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+
+      </ConfigWizardShell>
+    </>
   );
 }

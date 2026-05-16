@@ -6,6 +6,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { getOnboardingAnswers } from '@/services/onboarding.actions';
+import { OnboardingApiResponse } from '@/types/telarData.types';
+import { useTelarDataStore } from './telarDataStore';
+import { parseJwtPayload } from '@/utils/jwt.utils';
 
 // Tipos
 interface RawUserMetaData {
@@ -24,6 +28,8 @@ interface User {
   confirmedAt?: string;
   rawUserMetaData?: RawUserMetaData;
   isSuperAdmin?: boolean | null;
+  /** Array de roles del usuario, extraído del JWT (e.g. ['admin', 'moderator']) */
+  roles?: string[];
   createdAt?: string | null;
   updatedAt?: string;
 }
@@ -93,6 +99,8 @@ interface AuthState {
 
   // Estados derivados
   isAuthenticated: boolean;
+  /** true después de que onRehydrateStorage completa — usado por el shim de useAuth() para el flag `loading` */
+  isInitialized: boolean;
   hasCompletedMaturityTest: boolean;
   hasShop: boolean;
   isShopComplete: boolean;
@@ -125,7 +133,8 @@ export const useAuthStore = create<AuthState>()(
       artisanShop: null,
       userMaturityActions: [],
       access_token: null,
-      isAuthenticated: false, // ✅ Ahora es un estado derivado reactivo
+      isAuthenticated: false,
+      isInitialized: false,
 
       get hasCompletedMaturityTest() {
         const context = get().userMasterContext;
@@ -160,6 +169,14 @@ export const useAuthStore = create<AuthState>()(
         // También guardar en localStorage para compatibilidad
         localStorage.setItem('telar_token', data.access_token);
         localStorage.setItem('telar_user', JSON.stringify(data.user));
+
+        // Hydrate connected data store in background (non-blocking)
+        const telarStore = useTelarDataStore.getState();
+        if (!telarStore.hydrated) {
+          getOnboardingAnswers(data.user.id)
+            .then((resp) => useTelarDataStore.getState().hydrateFromDB(resp))
+            .catch(() => useTelarDataStore.setState({ hydrated: true }));
+        }
       },
 
       updateUserMasterContext: (context) => {
@@ -183,6 +200,10 @@ export const useAuthStore = create<AuthState>()(
         // Limpiar localStorage
         localStorage.removeItem('telar_token');
         localStorage.removeItem('telar_user');
+
+        // Reset connected data store
+        useTelarDataStore.getState().hydrateFromDB({} as OnboardingApiResponse);
+        useTelarDataStore.setState({ hydrated: false });
       },
 
       // Helper para calcular ruta de redirección
@@ -224,10 +245,25 @@ export const useAuthStore = create<AuthState>()(
         userMaturityActions: state.userMaturityActions,
         access_token: state.access_token,
       }),
-      // ✅ Recalcular isAuthenticated después de hidratar desde localStorage
+      // ✅ Recalcular isAuthenticated y enriquecer roles desde el JWT al rehidratar
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.isAuthenticated = !!state.user && !!state.access_token;
+
+          // Si el user no tiene roles[], intentar extraerlos del JWT guardado
+          if (state.user && state.access_token && !state.user.roles?.length) {
+            const jwtPayload = parseJwtPayload(state.access_token);
+            if (jwtPayload) {
+              state.user = {
+                ...state.user,
+                isSuperAdmin: jwtPayload.isSuperAdmin ?? state.user.isSuperAdmin ?? false,
+                roles: jwtPayload.roles ?? [],
+              };
+            }
+          }
+
+          // Marcar como inicializado — permite que useAuth().loading sea false
+          state.isInitialized = true;
         }
       },
     }

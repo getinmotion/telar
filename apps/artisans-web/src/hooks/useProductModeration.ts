@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   getModerationQueue,
   moderateProduct as moderateProductApi,
-  updateShopMarketplaceApproval,
+  toggleShopMarketplaceApproval as updateShopMarketplaceApproval,
   getProductHistoryByProductId,
   ModerationProductApi,
   ProductModerationHistoryApi,

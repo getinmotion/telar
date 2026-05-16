@@ -15,6 +15,7 @@ import { UserMaturityActionsService } from '../user-maturity-actions/user-maturi
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
 import { IdTypeUserService } from '../id-type-user/id-type-user.service';
+import { UserRolesService } from '../user-roles/user-roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
@@ -32,7 +33,34 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly idTypeUserService: IdTypeUserService,
+    private readonly userRolesService: UserRolesService,
   ) {}
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  /**
+   * Construye el payload JWT con los roles del usuario.
+   * Centraliza la lógica para que todos los flujos de autenticación
+   * emitan tokens con la misma estructura.
+   */
+  private async buildJwtPayload(user: User): Promise<{
+    sub: string;
+    email: string | null;
+    role: string | null;
+    roles: string[];
+  }> {
+    const userRoles = await this.userRolesService
+      .findByUserId(user.id)
+      .catch(() => []);
+    return {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      roles: userRoles.map((r) => r.role),
+    };
+  }
+
+  // ─── Endpoints públicos ──────────────────────────────────────────────────────
 
   /**
    * Registrar un nuevo usuario con perfil, progreso y verificación de email
@@ -242,12 +270,8 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
-    // Generar el token JWT
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    // Generar el token JWT con roles[]
+    const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
     // Retornar usuario sin datos sensibles
@@ -285,15 +309,92 @@ export class AuthService {
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
-    // Generar nuevo token
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    // Generar nuevo token con roles[]
+    const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
     return { access_token };
+  }
+
+  /**
+   * Obtener contexto del backoffice: usuario, roles y permisos calculados.
+   * Usado por el panel unificado de administración y moderación.
+   */
+  async getBackofficeContext(userId: string): Promise<{
+    user: { id: string; email: string | null };
+    roles: string[];
+    permissions: string[];
+  }> {
+    const user = await this.usersService.getById(userId);
+
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Esta cuenta ha sido desactivada');
+    }
+
+    const userRoles = await this.userRolesService
+      .findByUserId(userId)
+      .catch(() => []);
+    const roles = userRoles.map((r) => r.role);
+    const permissions = this.calculateBackofficePermissions(roles);
+
+    return {
+      user: { id: user.id, email: user.email },
+      roles,
+      permissions,
+    };
+  }
+
+  /**
+   * Calcula la lista de secciones del backoffice accesibles según roles.
+   * Centraliza la lógica de permisos para que sea consistente entre
+   * backend (validación real) y frontend (navegación).
+   */
+  private calculateBackofficePermissions(roles: string[]): string[] {
+    const isSuperAdmin = roles.includes('super_admin');
+    const isAdmin = isSuperAdmin || roles.includes('admin');
+    const isModerator =
+      isSuperAdmin || roles.includes('admin') || roles.includes('moderator');
+
+    if (!isModerator) return [];
+
+    const permissions: string[] = [];
+
+    // Todos los roles de backoffice
+    if (isModerator) {
+      permissions.push(
+        'moderation',      // Cola de moderación de productos
+        'revisor',         // Revisor de productos
+        'analytics',       // Analytics
+        'envios',          // Envíos
+        'cms',             // CMS secciones
+      );
+    }
+
+    // Admin y super_admin
+    if (isAdmin) {
+      permissions.push(
+        'historias',       // Blog / historias
+        'colecciones',     // Colecciones
+        'imagenes',        // Imágenes del sitio
+        'tiendas',         // Moderación de tiendas
+        'taxonomia',       // Taxonomía
+      );
+    }
+
+    // Solo super_admin
+    if (isSuperAdmin) {
+      permissions.push(
+        'usuarios',        // Gestión de usuarios/roles
+        'ordenes',         // Órdenes admin
+        'cupones',         // Cupones / Gift Cards
+        'pagos',           // Pagos / Cobre
+        'diseno',          // Sistema de diseño
+        'auditoria',       // Log de auditoría
+        'dashboard',       // Dashboard general
+      );
+    }
+
+    return permissions;
   }
 
   /**
@@ -347,12 +448,8 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
-    // Generar nuevo token JWT (refresh)
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    // Generar nuevo token JWT con roles[]
+    const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
     // Retornar usuario sin datos sensibles
@@ -586,12 +683,8 @@ export class AuthService {
         .getByUserId(user.id)
         .catch(() => []);
 
-      // Generar token JWT
-      const payload = {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-      };
+      // Generar token JWT con roles[]
+      const payload = await this.buildJwtPayload(user);
       const access_token = await this.jwtService.signAsync(payload);
 
       // Retornar usuario sin datos sensibles
@@ -683,12 +776,8 @@ export class AuthService {
         );
       }
 
-      // 3. Generar token JWT automáticamente
-      const payload = {
-        sub: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-      };
+      // 3. Generar token JWT con roles[]
+      const payload = await this.buildJwtPayload(newUser);
       const access_token = await this.jwtService.signAsync(payload);
 
       // Actualizar última fecha de inicio de sesión

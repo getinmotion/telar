@@ -9,6 +9,7 @@ import {
   OneToMany,
   JoinColumn,
   AfterLoad,
+  Index,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ArtisanShop } from '../../artisan-shops/entities/artisan-shop.entity';
@@ -120,6 +121,7 @@ export class Product extends BaseEntity {
     description: 'SKU (código del producto)',
     example: 'CER-VAS-001',
   })
+  @Index()
   @Column({ type: 'text', nullable: true })
   sku: string | null;
 

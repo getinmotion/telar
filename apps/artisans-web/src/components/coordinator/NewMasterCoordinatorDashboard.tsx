@@ -43,7 +43,7 @@ import { useFixedTasksManager } from "@/hooks/useFixedTasksManager";
 import { useMissionDiscovery } from "@/hooks/useMissionDiscovery";
 import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
 import { CoordinatorChatSidebar } from "./CoordinatorChatSidebar";
-import { SimpleMissionCard } from "../dashboard/artisan/SimpleMissionCard";
+import { MissionsSection } from "@/components/coordinator/sections/MissionsSection";
 import { RewardsPanel } from "./RewardsPanel";
 import { DeliverableCard } from "./DeliverableCard";
 import { FloatingMasterAgent } from "@/components/dashboard/FloatingMasterAgent";
@@ -176,6 +176,7 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   // 🎯 Fixed Tasks Manager & Mission Discovery
   const {
     tasks: fixedTasks,
+    completedTasks,
     completedTaskIds: completedFixedTasks,
     loading: loadingFixed,
   } = useFixedTasksManager();
@@ -442,23 +443,6 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
   const activeTasks = useMemo(
     () => generatedTasks.slice(0, 3),
     [generatedTasks],
-  );
-
-  // Transform tasks to match SimpleMissionCard format - MEMOIZED
-  const transformFixedTask = useMemo(
-    () => (task: any) => ({
-      id: task.id,
-      title: task.title,
-      description: task.description || "",
-      milestone: task.milestone || "general",
-      ctaLabel: task.action?.type === "wizard" ? "Iniciar" : "Ver",
-      ctaRoute: task.action?.destination || "#",
-      isCompleted: completedFixedTasks.includes(task.id),
-      isLocked: false,
-      icon: task.icon || "Package",
-      estimatedMinutes: task.estimatedMinutes,
-    }),
-    [completedFixedTasks],
   );
 
   // Get deliverables from completed tasks
@@ -1204,167 +1188,18 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Fixed Tasks Section - Priority Missions */}
-            {!loadingFixed && fixedTasks.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold flex items-center gap-2 text-foreground">
-                    <Target className="w-6 h-6 text-primary" />
-                    🎯 Misiones Progresivas
-                  </h2>
-                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold shadow-sm">
-                    {fixedTasks.length} disponibles
-                  </Badge>
-                </div>
-
-                <div className="space-y-4">
-                  {fixedTasks.slice(0, 3).map((task: any) => {
-                    const transformedTask = transformFixedTask(task);
-                    return (
-                      <SimpleMissionCard key={task.id} {...transformedTask} />
-                    );
-                  })}
-                  {fixedTasks.length > 3 && (
-                    <Card className="neumorphic p-4 text-center">
-                      <p className="text-sm text-muted-foreground">
-                        +{fixedTasks.length - 3} misiones progresivas más
-                      </p>
-                    </Card>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Discover Missions Button */}
-            {!loadingFixed &&
-              fixedTasks.length === 0 &&
-              generatedTasks.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Card className="neumorphic p-8 text-center">
-                    <Compass className="w-16 h-16 text-primary mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-foreground mb-2">
-                      ¡Descubre tus próximos pasos!
-                    </h3>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      Analiza tu estado actual y recibe misiones personalizadas
-                      para hacer crecer tu negocio artesanal
-                    </p>
-                    <Button
-                      onClick={discoverMissions}
-                      disabled={isDiscovering}
-                      size="lg"
-                      className="bg-gradient-primary hover:opacity-90"
-                    >
-                      {isDiscovering ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                          Analizando...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-5 h-5 mr-2" />
-                          Descubrir Misiones
-                        </>
-                      )}
-                    </Button>
-                  </Card>
-                </motion.div>
-              )}
-
-            {/* Active Missions (Generated Tasks) */}
+            {/* Missions Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2 }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2 text-foreground">
-                  <Lightbulb className="w-6 h-6 text-accent" />
-                  💡 Sugerencias IA
-                </h2>
-                <Badge className="bg-accent/10 text-accent-foreground border-accent/30 font-semibold shadow-sm">
-                  {activeTasks.length} activas
-                </Badge>
-              </div>
-
-              <div className="space-y-4">
-                {activeTasks.length > 0 ? (
-                  <>
-                    {activeTasks.slice(0, 3).map((task: any, index: number) => (
-                      <Card key={task.id} className="p-4">
-                        <h4 className="font-semibold mb-2">{task.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {task.description}
-                        </p>
-                        <Button
-                          onClick={() =>
-                            navigate("/dashboard/tasks", {
-                              state: { selectedTaskId: task.id },
-                            })
-                          }
-                          size="sm"
-                        >
-                          Ver Tarea
-                        </Button>
-                      </Card>
-                    ))}
-                    {activeTasks.length > 3 && (
-                      <Card className="p-4 text-center bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40 transition-all">
-                        <Button
-                          onClick={() => navigate("/dashboard/tasks")}
-                          variant="ghost"
-                          className="w-full text-primary hover:text-primary hover:bg-primary/10"
-                        >
-                          <Target className="w-4 h-4 mr-2" />
-                          Ver todas las {activeTasks.length} misiones
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <Card className="p-8 text-center bg-card rounded-2xl shadow-float hover:shadow-hover transition-all duration-300">
-                    {hasCompletedOnboarding ? (
-                      <>
-                        <Target className="w-12 h-12 text-primary mx-auto mb-4" />
-                        <p className="text-foreground font-semibold mb-2">
-                          ¡Estás listo para comenzar!
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {hasCompleted
-                            ? "Tus misiones se generarán pronto basadas en tu evaluación completa"
-                            : "Continúa el Test de Madurez para recibir tareas personalizadas"}
-                        </p>
-                        {!hasCompleted && (
-                          <Button
-                            onClick={() =>
-                              navigate("/maturity-calculator?mode=continue")
-                            }
-                            className="bg-gradient-primary hover:opacity-90"
-                          >
-                            Continuar Test de Madurez
-                          </Button>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
-                        <p className="text-muted-foreground font-medium">
-                          {t.noMissions}
-                        </p>
-                      </>
-                    )}
-                  </Card>
-                )}
-              </div>
+              <MissionsSection
+                pendingTasks={fixedTasks}
+                completedTasks={completedTasks}
+                completedTaskIds={completedFixedTasks}
+                loading={loadingFixed}
+              />
             </motion.div>
 
             {/* Deliverables */}

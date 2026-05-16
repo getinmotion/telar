@@ -12,7 +12,6 @@ export class CompleteProfileResponseDto {
       email: 'user@example.com',
       phone: '+573001234567',
       role: 'user',
-      isSuperAdmin: false,
       emailConfirmedAt: '2026-01-14T10:00:00.000Z',
       lastSignInAt: '2026-02-14T15:30:00.000Z',
       createdAt: '2026-01-14T10:00:00.000Z',

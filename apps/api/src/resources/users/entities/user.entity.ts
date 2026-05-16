@@ -130,4 +130,5 @@ export class User extends BaseEntity {
     name: 'is_active',
   })
   isActive!: boolean;
+
 }

@@ -171,12 +171,9 @@ export interface ArtisanProfile {
   artisanPhoto: string;
   artisticName: string;
   craftMessage: string;
-  familyPhotos: string[];
-  workingPhotos: string[];
   ethnicRelation: string;
   generatedStory: Record<string, any>;
   workshopPhotos: string[];
-  communityPhotos: string[];
   culturalHistory: string;
   culturalMeaning: string;
   workshopAddress: string;

@@ -5,8 +5,8 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { Material } from './entities/material.entity';
+import { ILike, Repository } from 'typeorm';
+import { Material, ApprovalStatus } from './entities/material.entity';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 
@@ -34,13 +34,12 @@ export class MaterialsService {
     return await this.materialsRepository.save(newMaterial);
   }
 
-  /**
-   * Obtener todos los materiales
-   */
-  async findAll(): Promise<Material[]> {
-    return await this.materialsRepository.find({
-      order: { name: 'ASC' },
-    });
+  async findAll(search?: string, status?: string, suggestedBy?: string): Promise<Material[]> {
+    const where: any = {};
+    if (status) where.status = status;
+    if (suggestedBy) where.suggestedBy = suggestedBy;
+    if (search) where.name = ILike(`%${search}%`);
+    return this.materialsRepository.find({ where, order: { name: 'ASC' } });
   }
 
   /**
@@ -62,44 +61,30 @@ export class MaterialsService {
     return material;
   }
 
-  /**
-   * Obtener materiales orgánicos
-   */
   async findOrganic(): Promise<Material[]> {
-    return await this.materialsRepository.find({
-      where: { isOrganic: true },
+    return this.materialsRepository.find({
+      where: { isOrganic: true, status: ApprovalStatus.APPROVED },
       order: { name: 'ASC' },
     });
   }
 
-  /**
-   * Obtener materiales sostenibles
-   */
   async findSustainable(): Promise<Material[]> {
-    return await this.materialsRepository.find({
-      where: { isSustainable: true },
+    return this.materialsRepository.find({
+      where: { isSustainable: true, status: ApprovalStatus.APPROVED },
       order: { name: 'ASC' },
     });
   }
 
-  /**
-   * Buscar materiales por status
-   */
   async findByStatus(status: string): Promise<Material[]> {
-    return await this.materialsRepository.find({
-      where: { status: status as any },
+    return this.materialsRepository.find({
+      where: { status: status as ApprovalStatus },
       order: { name: 'ASC' },
     });
   }
 
-  /**
-   * Actualizar un material
-   */
   async update(id: string, updateDto: UpdateMaterialDto): Promise<Material> {
-    // Verificar que el material existe
     await this.findOne(id);
 
-    // Si se está actualizando el nombre, verificar que no exista otro con ese nombre
     if (updateDto.name) {
       const existingMaterial = await this.materialsRepository.findOne({
         where: { name: updateDto.name },
@@ -110,25 +95,34 @@ export class MaterialsService {
       }
     }
 
-    // Actualizar
     await this.materialsRepository.update(id, updateDto);
-
-    // Retornar actualizado
-    return await this.findOne(id);
+    return this.findOne(id);
   }
 
-  /**
-   * Eliminar un material
-   */
-  async remove(id: string): Promise<{ message: string }> {
-    // Verificar que el material existe
+  async updateStatus(
+    id: string,
+    status: ApprovalStatus,
+    mergeIntoId?: string,
+  ): Promise<Material | { message: string }> {
     await this.findOne(id);
 
-    // Eliminar (hard delete)
-    await this.materialsRepository.delete(id);
+    if (mergeIntoId && status === ApprovalStatus.REJECTED) {
+      await this.findOne(mergeIntoId);
+      await this.materialsRepository.query(
+        `UPDATE artesanos.artisan_materials SET material_id = $1 WHERE material_id = $2`,
+        [mergeIntoId, id],
+      );
+      await this.materialsRepository.update(id, { status: ApprovalStatus.REJECTED });
+      return { message: `Material fusionado en ${mergeIntoId}` };
+    }
 
-    return {
-      message: `Material con ID ${id} eliminado exitosamente`,
-    };
+    await this.materialsRepository.update(id, { status });
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<{ message: string }> {
+    await this.findOne(id);
+    await this.materialsRepository.delete(id);
+    return { message: `Material con ID ${id} eliminado exitosamente` };
   }
 }
