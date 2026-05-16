@@ -55,13 +55,7 @@ import { MasterAgentProvider } from '@/context/MasterAgentContext';
 import { DesignSystemProvider } from '@/contexts/DesignSystemContext';
 import { GamificationProvider } from '@/components/gamification/GamificationProvider';
 import { useTaskAutoCompletion } from '@/hooks/useTaskAutoCompletion';
-import { useAuthInit } from '@/hooks/useAuthInit';
-
-// Arranca la validación de JWT + auto-refresh sin envolver estado
-const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
-  useAuthInit();
-  return <>{children}</>;
-};
+import { AuthProvider } from '@/context/AuthContext';
 
 // Global task auto-completion listener
 const TaskAutoCompletionWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -143,7 +137,7 @@ function App() {
         <HelmetProvider>
           <BrowserRouter>
             <DesignSystemProvider>
-              <AuthInitializer>
+              <AuthProvider>
                 <DataCacheProvider>
                   <LanguageProvider>
                     <MasterAgentProvider>
@@ -712,7 +706,7 @@ function App() {
                     </MasterAgentProvider>
                   </LanguageProvider>
                 </DataCacheProvider>
-              </AuthInitializer>
+              </AuthProvider>
             </DesignSystemProvider>
           </BrowserRouter>
         </HelmetProvider>

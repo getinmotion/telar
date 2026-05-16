@@ -13,7 +13,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { login } from '@/pages/auth/actions/login.actions';
-import { useBackofficeAccess } from '@/hooks/useBackofficeAccess';
 import { useAuthStore } from '@/stores/authStore';
 import { SANS, SERIF, glassPrimary, PURPLE, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
@@ -37,20 +36,25 @@ export const BackofficeLoginPage: React.FC = () => {
       await login({ email: email.trim().toLowerCase(), password });
 
       // Leer acceso después del login (el store ya fue hidratado por login())
-      const { user, isAuthenticated } = useAuthStore.getState();
+      const { user } = useAuthStore.getState();
       const jwtRoles: string[] = (user as any)?.roles ?? [];
       const isSuperAdmin = user?.isSuperAdmin === true;
+      const isAdmin = isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('admin_global');
+
+      // Roles granulares de Fase 3E — mismo criterio que useBackofficeAccess.isModerator
+      const GRANULAR_ROLES = ['moderator_product', 'moderator_taxonomy', 'curator_marketplace', 'supervisor', 'admin_global'];
       const hasBackofficeRole =
         isSuperAdmin ||
-        jwtRoles.includes('admin') ||
-        jwtRoles.includes('moderator');
+        isAdmin ||
+        jwtRoles.includes('moderator') ||
+        jwtRoles.includes('supervisor') ||
+        GRANULAR_ROLES.some((r) => jwtRoles.includes(r));
 
       if (!hasBackofficeRole) {
-        // Usuario sin rol de backoffice
         useAuthStore.getState().clearAuth();
         toast({
           title: 'Acceso denegado',
-          description: 'Tu usuario no tiene permisos de administrador o moderador.',
+          description: 'Tu usuario no tiene permisos de backoffice.',
           variant: 'destructive',
         });
         return;
@@ -64,7 +68,7 @@ export const BackofficeLoginPage: React.FC = () => {
       // Redirigir según el rol o al destino guardado
       if (from && from !== '/backoffice/login') {
         navigate(from, { replace: true });
-      } else if (isSuperAdmin || jwtRoles.includes('admin')) {
+      } else if (isAdmin) {
         navigate('/backoffice/home', { replace: true });
       } else {
         navigate('/backoffice/moderacion', { replace: true });
