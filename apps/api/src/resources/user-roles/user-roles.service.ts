@@ -189,4 +189,12 @@ export class UserRolesService {
   async removeAllUserRoles(userId: string): Promise<void> {
     await this.userRoleRepository.delete({ userId });
   }
+
+  async assignRole(dto: { userId: string; role: AppRole }): Promise<UserRole> {
+    return this.create(dto as CreateUserRoleDto);
+  }
+
+  async removeRoleByUserAndRole(userId: string, role: AppRole): Promise<void> {
+    return this.removeUserRole(userId, role);
+  }
 }
