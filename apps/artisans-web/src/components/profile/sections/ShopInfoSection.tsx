@@ -1,22 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
+import { ArtisanOriginDisplay, type ArtisanOriginData } from '@/components/profile/ArtisanOriginDisplay';
 import type { ArtisanShop } from '@/types/artisanShop.types';
 
 interface ShopInfoSectionProps {
   shop: ArtisanShop | null;
   isLoading?: boolean;
+  userId?: string;
 }
 
 export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
   shop,
   isLoading,
+  userId,
 }) => {
   const navigate = useNavigate();
+  const [originData, setOriginData] = useState<ArtisanOriginData | null>(null);
 
   if (isLoading) {
     return (
@@ -59,6 +63,18 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
       </Card>
     );
   }
+
+  const shopOrigin: ArtisanOriginData = originData ?? {
+    department: shop?.department ?? null,
+    municipality: shop?.municipality ?? null,
+    city: shop?.municipality ?? null,
+    country: (shop?.artisanProfile as any)?.country ?? null,
+    communityVillage: (shop?.artisanProfile as any)?.communityVillage ?? null,
+    ethnicRelation: (shop?.artisanProfile as any)?.ethnicRelation ?? null,
+    regionalHistory: (shop?.artisanProfile as any)?.regionalHistory ?? null,
+    culturalMeaning: (shop?.artisanProfile as any)?.culturalMeaning ?? null,
+    mainStory: (shop?.artisanProfile as any)?.mainStory ?? null,
+  };
 
   const getStatusBadge = () => {
     if (shop.publishStatus === 'published') {
@@ -160,6 +176,18 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
             <ArtisanProfileCards
               craftType={shop.craftType}
               language="es"
+            />
+          </div>
+        )}
+
+        {/* Origen artesanal */}
+        {userId && (
+          <div className="pt-6 border-t border-border mt-4">
+            <ArtisanOriginDisplay
+              userId={userId}
+              origin={shopOrigin}
+              artisanProfileRaw={(shop.artisanProfile as Record<string, any>) ?? undefined}
+              onUpdated={setOriginData}
             />
           </div>
         )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -14,7 +15,12 @@ import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useShopPublish, type PublishRequirements } from '@/hooks/useShopPublish';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
+import { getUserProfileByUserId } from '@/services/userProfiles.actions';
+import { getAgreementById } from '@/services/agreements.actions';
 import { AICopilotCard } from './AICopilotCard';
+import { ProductsTable } from './sections/ProductsTable';
+import { InventoryAlerts } from './sections/InventoryAlerts';
+import { OrdersSummarySection } from './sections/OrdersSummarySection';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -198,9 +204,11 @@ export const CommercialDashboard: React.FC = () => {
 
   const { checkPublishRequirements, publishShop, loading: publishLoading } = useShopPublish(shop?.id);
 
+  const [agreementName,     setAgreementName]     = useState<string | null>(null);
   const [products,          setProducts]          = useState<any[]>([]);
   const [loadingProducts,   setLoadingProducts]   = useState(false);
   const [showProfileModal,  setShowProfileModal]  = useState(false);
+  const [reviewSlide,       setReviewSlide]       = useState(0);
   const [showBioModal,      setShowBioModal]      = useState(false);
   const [bioCopied,         setBioCopied]         = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
@@ -232,6 +240,20 @@ export const CommercialDashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user?.id) return;
+    getUserProfileByUserId(user.id)
+      .then((profile) => {
+        if (profile.agreementId) {
+          return getAgreementById(profile.agreementId);
+        }
+      })
+      .then((agreement) => {
+        if (agreement) setAgreementName(agreement.name);
+      })
+      .catch(() => {});
+  }, [user?.id]);
+
+  useEffect(() => {
     if (!shop?.id) return;
     setLoadingProducts(true);
     fetchProducts(shop.id)
@@ -255,11 +277,22 @@ export const CommercialDashboard: React.FC = () => {
     if (shop) setBioConfig({ ...defaultBioConfig, ...(shop as any)?.bioConfig });
   }, [shop?.id]);
 
+  // Auto-advance the "en revisión" slider every 5 s
+  useEffect(() => {
+    if (!isActivated || isMarketplaceLive) return;
+    const TOTAL_REVIEW_SLIDES = 4;
+    const t = setInterval(() => setReviewSlide(s => (s + 1) % TOTAL_REVIEW_SLIDES), 5000);
+    return () => clearInterval(t);
+  }, [isActivated, isMarketplaceLive]);
+
   const handleSaveBioConfig = useCallback(async () => {
     if (!shop?.id) return;
     setBioSaving(true);
     try {
-      await updateArtisanShop(shop.id, { bioConfig } as any);
+      await updateArtisanShop(shop.id, { bioConfig });
+      toast.success('Configuración guardada');
+    } catch {
+      // El toast de error lo muestra el interceptor global de telarApi
     } finally {
       setBioSaving(false);
     }
@@ -287,7 +320,7 @@ export const CommercialDashboard: React.FC = () => {
 
   // ── Checklist ─────────────────────────────────────────────────────────────
   const hasProfile   = !!(shop as any)?.artisanProfileCompleted;
-  const hasBrand     = !!masterState.marca?.logo_url || !!(masterState as any)?.marca?.logoUrl;
+  const hasBrand     = !!masterState.marca?.logo;
   const hasProduct   = products.length > 0;
   const hasBankData  = !!bankData;
   const hasContact   = !!(shop as any)?.contactConfig?.email || !!(shop as any)?.contact_config?.email;
@@ -296,7 +329,7 @@ export const CommercialDashboard: React.FC = () => {
   const checklistItems = [
     { label: 'Perfil artesanal', done: hasProfile,   required: true,  route: '/dashboard/artisan-profile-wizard' },
     { label: 'Primer producto',  done: hasProduct,   required: true,  route: '/productos/subir' },
-    { label: 'Marca y logo',     done: hasBrand,     required: false, route: '/dashboard/brand-wizard' },
+    { label: 'Marca y logo',     done: hasBrand,     required: false, route: '/mi-tienda/configurar' },
     { label: 'Datos bancarios',  done: hasBankData,  required: true,  route: '/mi-cuenta/datos-bancarios' },
     { label: 'Contacto',         done: hasContact,   required: false, route: '/dashboard/shop-contact-wizard' },
     { label: 'Inventario',       done: hasInventory, required: true,  route: '/inventario' },
@@ -442,6 +475,15 @@ export const CommercialDashboard: React.FC = () => {
     };
   })();
 
+  // ── "En revisión" slider slides ───────────────────────────────────────────
+  const REVIEW_SLIDES = [
+    { icon: 'share',       label: 'Comparte tu tienda ahora',           body: 'Tu tienda ya tiene URL propia y está visible. Comparte tu link de BIO en Instagram, WhatsApp y con tus clientes habituales mientras esperas la curación.',          cta: 'Compartir link de BIO',     action: () => setShowBioModal(true) },
+    { icon: 'add_circle',  label: 'Sube más productos',                  body: 'Aprovecha este tiempo para completar tu catálogo. Más productos publicados aumentan tus posibilidades en el marketplace central.',                                     cta: 'Crear producto',            action: () => navigate('/productos/subir') },
+    { icon: 'person_pin',  label: 'Completa tu perfil artesanal',        body: 'Los curadores de TELAR valoran el perfil completo. Tu historia, técnicas y fotos de taller son los criterios más importantes para la aprobación.',                    cta: 'Editar perfil',             action: () => navigate('/dashboard/artisan-profile-wizard') },
+    { icon: 'quiz',        label: 'Prepara tus preguntas frecuentes',    body: 'Cuando lleguen los primeros compradores ya tendrás las respuestas listas. Las FAQs reducen el tiempo de soporte y generan más confianza.',                             cta: 'Configurar FAQs',           action: () => navigate('/mi-tienda/configurar') },
+  ];
+  const reviewSl = REVIEW_SLIDES[reviewSlide];
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <>
@@ -450,15 +492,10 @@ export const CommercialDashboard: React.FC = () => {
 
             {/* Header sticky */}
             <header
-              className="sticky top-0 z-30 px-12 pt-4 pb-3 flex justify-between items-center"
-              style={{
-                background: 'rgba(247,246,242,0.68)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(255,255,255,0.4)',
-              }}
+              className="sticky top-0 z-30 px-12 pt-4 pb-3 grid items-center"
+              style={{ gridTemplateColumns: '1fr auto 1fr' }}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {shop?.logoUrl && (
                   <img
                     src={shop.logoUrl}
@@ -467,21 +504,36 @@ export const CommercialDashboard: React.FC = () => {
                     style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }}
                   />
                 )}
-                <div>
-                  <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
-                    Hola, {shopName}
-                  </h1>
-                  <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
-                    {isMarketplaceLive
-                      ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
-                      : isActivated
-                        ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
-                        : 'Tu tienda está creada. Completa lo necesario y actívala.'}
-                  </p>
-                </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center text-center">
+                <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                  Hola, {shopName}
+                </h1>
+                <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
+                  {isMarketplaceLive
+                    ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
+                    : isActivated
+                      ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
+                      : 'Tu tienda está creada. Completa lo necesario y actívala.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 justify-end">
+                {agreementName && (
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                    style={{
+                      background: 'rgba(21,27,45,0.05)',
+                      border: '1px solid rgba(21,27,45,0.08)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(84,67,62,0.6)' }}>handshake</span>
+                    <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.7)', whiteSpace: 'nowrap' }}>
+                      {agreementName}
+                    </span>
+                  </div>
+                )}
                 <NotificationCenter />
                 {isMarketplaceLive ? (
                   <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
@@ -530,7 +582,7 @@ export const CommercialDashboard: React.FC = () => {
               className="flex-1 overflow-y-auto px-12 pb-20"
               style={{ overscrollBehavior: 'contain' }}
             >
-              <div className="max-w-[1300px] pt-8">
+              <div className="max-w-[1300px] mx-auto pt-8">
 
                 {/* 4 Metric Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -579,56 +631,119 @@ export const CommercialDashboard: React.FC = () => {
                   {/* ── Left col (8) ─────────────────────────────────────── */}
                   <div className="lg:col-span-8 space-y-8">
 
-                    {/* Card contextual */}
-                    <section
-                      className="p-10 rounded-3xl flex flex-col md:flex-row gap-10 items-center relative overflow-hidden"
-                      style={{ background: nextCard.bg, border: `1px solid ${nextCard.accentColor}20` }}
-                    >
-                      <div className="flex-1 relative z-10">
-                        <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 12, lineHeight: 1.3 }}>
-                          {nextCard.title}
-                        </h3>
-                        <p style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: nextCard.accentColor, marginBottom: 16 }}>
-                          {nextCard.subtitle}
-                        </p>
-                        <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.7, marginBottom: 32, maxWidth: 380 }}>
-                          {nextCard.body}
-                        </p>
-                        <div className="flex gap-3 flex-wrap">
-                          <OrangeBtn onClick={() => nextCard.ctaAction ? nextCard.ctaAction() : navigate(nextCard.ctaRoute)}>
-                            {nextCard.cta}
-                            <span className="material-symbols-outlined text-[16px]">east</span>
-                          </OrangeBtn>
-                          {nextCard.secondaryCta && (
-                            <OutlineBtn onClick={() => navigate(nextCard.secondaryRoute!)}>
-                              {nextCard.secondaryCta}
-                            </OutlineBtn>
-                          )}
+                    {/* Card contextual — static for all states except "en revisión" (slider) */}
+                    {isActivated && !isMarketplaceLive ? (
+                      /* ── "En revisión" slider ── same shell as the nextCard section */
+                      <section
+                        className="p-10 rounded-3xl flex flex-col md:flex-row gap-10 items-center relative overflow-hidden"
+                        style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
+                      >
+                        <div className="flex-1 relative z-10">
+                          <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 12, lineHeight: 1.3 }}>
+                            {reviewSl.label}
+                          </h3>
+                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.7, marginBottom: 28, maxWidth: 380 }}>
+                            {reviewSl.body}
+                          </p>
+                          <div className="flex gap-3 flex-wrap items-center">
+                            <button
+                              onClick={reviewSl.action}
+                              className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-opacity hover:opacity-80"
+                              style={{ background: '#3b82f6', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                            >
+                              {reviewSl.cta}
+                              <span className="material-symbols-outlined text-[16px]">east</span>
+                            </button>
+                          </div>
+                          {/* Dot navigation */}
+                          <div className="flex items-center gap-2 mt-6">
+                            {REVIEW_SLIDES.map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={() => setReviewSlide(i)}
+                                style={{
+                                  width: i === reviewSlide ? 20 : 6, height: 6, borderRadius: 3,
+                                  background: i === reviewSlide ? '#3b82f6' : 'rgba(21,27,45,0.12)',
+                                  border: 'none', cursor: 'pointer', padding: 0,
+                                  transition: 'width 0.3s ease, background 0.2s',
+                                }}
+                              />
+                            ))}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Illustration */}
-                      <div className="shrink-0 relative w-44 h-44">
-                        <div className="absolute inset-0 rounded-3xl rotate-6 opacity-40" style={{ background: `${nextCard.accentColor}18` }} />
-                        <div
-                          className="absolute inset-4 rounded-2xl -rotate-3 flex items-center justify-center"
-                          style={{ ...glassPrimary, borderRadius: 20 }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 64, color: `${nextCard.accentColor}30` }}>
-                            {nextCard.icon}
-                          </span>
+                        {/* Illustration */}
+                        <div className="shrink-0 relative w-44 h-44">
+                          <div className="absolute inset-0 rounded-3xl rotate-6 opacity-40" style={{ background: 'rgba(59,130,246,0.18)' }} />
+                          <div
+                            className="absolute inset-4 rounded-2xl -rotate-3 flex items-center justify-center"
+                            style={{ ...glassPrimary, borderRadius: 20 }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 64, color: 'rgba(59,130,246,0.25)' }}>
+                              {reviewSl.icon}
+                            </span>
+                          </div>
+                          <div
+                            className="absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center"
+                            style={{ background: 'white', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 12px rgba(21,27,45,0.08)' }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#3b82f6' }}>hourglass_top</span>
+                          </div>
+                          <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-20 blur-xl" style={{ background: '#3b82f6' }} />
                         </div>
-                        <div
-                          className="absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center"
-                          style={{ background: 'white', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 12px rgba(21,27,45,0.08)' }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 20, color: nextCard.accentColor }}>
-                            {isMarketplaceLive ? 'trending_up' : 'add'}
-                          </span>
+                      </section>
+                    ) : (
+                      /* ── Static nextCard for all other states ── */
+                      <section
+                        className="p-10 rounded-3xl flex flex-col md:flex-row gap-10 items-center relative overflow-hidden"
+                        style={{ background: nextCard.bg, border: `1px solid ${nextCard.accentColor}20` }}
+                      >
+                        <div className="flex-1 relative z-10">
+                          <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 12, lineHeight: 1.3 }}>
+                            {nextCard.title}
+                          </h3>
+                          <p style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: nextCard.accentColor, marginBottom: 16 }}>
+                            {nextCard.subtitle}
+                          </p>
+                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.7, marginBottom: 32, maxWidth: 380 }}>
+                            {nextCard.body}
+                          </p>
+                          <div className="flex gap-3 flex-wrap">
+                            <OrangeBtn onClick={() => nextCard.ctaAction ? nextCard.ctaAction() : navigate(nextCard.ctaRoute)}>
+                              {nextCard.cta}
+                              <span className="material-symbols-outlined text-[16px]">east</span>
+                            </OrangeBtn>
+                            {nextCard.secondaryCta && (
+                              <OutlineBtn onClick={() => navigate(nextCard.secondaryRoute!)}>
+                                {nextCard.secondaryCta}
+                              </OutlineBtn>
+                            )}
+                          </div>
                         </div>
-                        <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-20 blur-xl" style={{ background: nextCard.accentColor }} />
-                      </div>
-                    </section>
+
+                        {/* Illustration */}
+                        <div className="shrink-0 relative w-44 h-44">
+                          <div className="absolute inset-0 rounded-3xl rotate-6 opacity-40" style={{ background: `${nextCard.accentColor}18` }} />
+                          <div
+                            className="absolute inset-4 rounded-2xl -rotate-3 flex items-center justify-center"
+                            style={{ ...glassPrimary, borderRadius: 20 }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 64, color: `${nextCard.accentColor}30` }}>
+                              {nextCard.icon}
+                            </span>
+                          </div>
+                          <div
+                            className="absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center"
+                            style={{ background: 'white', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 12px rgba(21,27,45,0.08)' }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20, color: nextCard.accentColor }}>
+                              {isMarketplaceLive ? 'trending_up' : 'add'}
+                            </span>
+                          </div>
+                          <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-20 blur-xl" style={{ background: nextCard.accentColor }} />
+                        </div>
+                      </section>
+                    )}
 
                     {/* Checklist card */}
                     <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-10">
@@ -738,181 +853,114 @@ export const CommercialDashboard: React.FC = () => {
                         ))}
                       </div>
 
-                      {/* Footer actions */}
-                      <div className="flex gap-3 pt-6 flex-wrap" style={{ borderTop: '1px solid rgba(21,27,45,0.04)', marginTop: 24 }}>
-                        {isMarketplaceLive ? (
-                          <>
-                            <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
-                              <span className="material-symbols-outlined text-[16px]">storefront</span>
-                              Ver tienda
-                            </OrangeBtn>
-                            <OutlineBtn onClick={() => navigate('/mi-tienda/configurar')}>
-                              Editar configuración
-                            </OutlineBtn>
-                          </>
-                        ) : isActivated ? (
-                          /* Pending moderation — informational, no publish action available */
-                          <div className="flex items-center gap-3 w-full">
-                            <div
-                              className="flex items-center gap-2 px-4 py-2.5 rounded-full"
-                              style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
-                            >
-                              <span className="material-symbols-outlined text-[14px]" style={{ color: '#3b82f6' }}>hourglass_top</span>
-                              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>En revisión</span>
-                            </div>
-                            <OutlineBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
-                              Ver mi tienda
-                            </OutlineBtn>
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => requiredPending.length === 0
-                                ? setShowPublishDialog(true)
-                                : navigate(requiredPending[0].route)
-                              }
-                              className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors"
-                              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#ec6d13')}
-                              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#151b2d')}
-                              style={{ background: '#151b2d', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}
-                            >
-                              <span className="material-symbols-outlined text-[16px]">
-                                {requiredPending.length === 0 ? 'rocket_launch' : 'east'}
-                              </span>
-                              {requiredPending.length === 0 ? 'Activar y enviar a curación' : 'Continuar configuración'}
-                            </button>
-                            <OutlineBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
-                              Ver preview
-                            </OutlineBtn>
-                          </>
+                      {/* Footer actions — dos canales bien diferenciados */}
+                      <div className="pt-6 flex flex-col gap-4" style={{ borderTop: '1px solid rgba(21,27,45,0.04)', marginTop: 24 }}>
+
+                        {/* Acción principal contextual (publicar / activar) */}
+                        {!isActivated && (
+                          <button
+                            onClick={() => requiredPending.length === 0
+                              ? setShowPublishDialog(true)
+                              : navigate(requiredPending[0].route)
+                            }
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors self-start"
+                            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#ec6d13')}
+                            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#151b2d')}
+                            style={{ background: '#151b2d', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {requiredPending.length === 0 ? 'rocket_launch' : 'east'}
+                            </span>
+                            {requiredPending.length === 0 ? 'Activar y enviar a curación' : 'Continuar configuración'}
+                          </button>
                         )}
+
+                        {/* Dos CTAs de canal — siempre visibles */}
+                        <div className="grid grid-cols-2 gap-3">
+
+                          {/* Canal 1: eCommerce personal */}
+                          <button
+                            onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                            disabled={!shopSlug}
+                            className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01]"
+                            style={{
+                              background: 'linear-gradient(135deg, #ec6d13 0%, #f59944 100%)',
+                              boxShadow: '0 6px 20px rgba(236,109,19,0.25)',
+                              opacity: shopSlug ? 1 : 0.4,
+                            }}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'rgba(255,255,255,0.9)' }}>shopping_bag</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)' }}>open_in_new</span>
+                            </div>
+                            <div>
+                              <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 900, color: 'white', letterSpacing: '0.02em' }}>
+                                Mi eCommerce
+                              </p>
+                              <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: 1 }}>
+                                {shopSlug ? `telar.co/tienda/${shopSlug}` : 'Sin URL aún'}
+                              </p>
+                            </div>
+                          </button>
+
+                          {/* Canal 2: TELAR marketplace */}
+                          <button
+                            onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                            disabled={!shopSlug}
+                            className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01] relative overflow-hidden"
+                            style={{
+                              background: '#151b2d',
+                              boxShadow: '0 6px 20px rgba(21,27,45,0.18)',
+                              opacity: shopSlug ? 1 : 0.4,
+                            }}
+                          >
+                            {/* Badge de estado */}
+                            <div
+                              className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full"
+                              style={{
+                                background: isMarketplaceLive
+                                  ? 'rgba(22,101,52,0.9)'
+                                  : isActivated
+                                    ? 'rgba(59,130,246,0.9)'
+                                    : 'rgba(255,255,255,0.12)',
+                              }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 10, color: 'white' }}>
+                                {isMarketplaceLive ? 'check_circle' : isActivated ? 'hourglass_top' : 'visibility'}
+                              </span>
+                              <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 900, color: 'white', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                {isMarketplaceLive ? 'Live' : isActivated ? 'Revisión' : 'Preview'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <img src="/iso.svg" alt="Telar" className="w-4 h-4 object-contain opacity-80" />
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'rgba(255,255,255,0.35)' }}>open_in_new</span>
+                            </div>
+                            <div>
+                              <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 900, color: 'white', letterSpacing: '0.02em' }}>
+                                {isMarketplaceLive ? 'Tienda en TELAR' : 'Preview en TELAR'}
+                              </p>
+                              <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>
+                                {isMarketplaceLive
+                                  ? 'Visible en el marketplace'
+                                  : isActivated
+                                    ? 'En revisión editorial'
+                                    : 'Así se verá tu tienda'}
+                              </p>
+                            </div>
+                          </button>
+
+                        </div>
                       </div>
                     </div>
 
                     {/* Products table */}
-                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-10">
-                      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-                        <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d' }}>
-                          Mis Productos
-                        </h3>
-                        <div className="flex gap-3 items-center">
-                          {isActivated && (
-                            <button
-                              onClick={() => navigate('/inventario')}
-                              className="hover:underline"
-                              style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                            >
-                              Gestionar catálogo
-                            </button>
-                          )}
-                          <OrangeBtn onClick={() => navigate('/productos/subir')}>
-                            <span className="material-symbols-outlined text-[16px]">add</span>
-                            Crear producto
-                          </OrangeBtn>
-                        </div>
-                      </div>
-
-                      {loadingProducts ? (
-                        <div className="py-12 text-center" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                          Cargando productos...
-                        </div>
-                      ) : products.length === 0 ? (
-                        <div className="py-20 flex flex-col items-center text-center">
-                          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(21,27,45,0.03)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'rgba(21,27,45,0.15)' }}>inventory_2</span>
-                          </div>
-                          <h4 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 8 }}>
-                            Aún no tienes productos
-                          </h4>
-                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.6)', maxWidth: 280, marginBottom: 24, lineHeight: 1.6 }}>
-                            Crea tu primer producto para activar tu catálogo de tienda.
-                          </p>
-                          <OrangeBtn onClick={() => navigate('/productos/subir')}>
-                            <span className="material-symbols-outlined text-[16px]">add</span>
-                            Crear producto
-                          </OrangeBtn>
-                        </div>
-                      ) : (
-                        <>
-                          <table className="w-full text-left">
-                            <thead style={{ borderBottom: '1px solid rgba(21,27,45,0.04)' }}>
-                              <tr>
-                                {['', 'Nombre', 'Estado', 'Precio', 'Stock', 'Acción'].map((h, i) => (
-                                  <th
-                                    key={h || i}
-                                    className={cn('pb-4', i > 2 ? 'text-right' : '', i === 0 ? 'w-16' : '')}
-                                    style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, color: 'rgba(84,67,62,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em' }}
-                                  >
-                                    {h}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {products.slice(0, 8).map((product) => {
-                                const stock  = getStock(product);
-                                const active = isProductActive(product);
-                                const draft  = isProductDraft(product);
-                                const isLow  = active && stock > 0 && stock <= 5;
-                                const isOut  = active && stock === 0;
-                                const imgSrc = getImage(product);
-                                return (
-                                  <tr
-                                    key={product.id}
-                                    style={{ borderBottom: '1px solid rgba(21,27,45,0.03)' }}
-                                    className="hover:bg-black/[0.015] transition-colors"
-                                  >
-                                    <td className="py-4">
-                                      <div className="w-10 h-10 rounded-lg overflow-hidden" style={{ background: 'rgba(21,27,45,0.04)' }}>
-                                        {imgSrc && (
-                                          <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" />
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="py-4 max-w-[160px] truncate" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {product.name}
-                                    </td>
-                                    <td className="py-4">
-                                      {active && !isLow && <Pill variant="success">Publicado</Pill>}
-                                      {active && isLow  && <Pill variant="warning">Bajo stock</Pill>}
-                                      {draft            && <Pill variant="draft">Borrador</Pill>}
-                                      {!active && !draft && <Pill variant="info">En revisión</Pill>}
-                                    </td>
-                                    <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {product.price ? `$${product.price.toLocaleString('es-CO')}` : '—'}
-                                    </td>
-                                    <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {stock ?? '—'}
-                                    </td>
-                                    <td className="py-4 text-right">
-                                      <button
-                                        onClick={() => navigate(`/productos/editar/${product.id}`)}
-                                        className="hover:underline"
-                                        style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                      >
-                                        {isOut || isLow ? 'Reponer' : draft ? 'Completar' : 'Editar'}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                          {products.length > 8 && (
-                            <div className="pt-6 text-center">
-                              <button
-                                onClick={() => navigate('/inventario')}
-                                className="inline-flex items-center gap-1 hover:underline"
-                                style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                              >
-                                Ver todos los {products.length} productos
-                                <span className="material-symbols-outlined text-[16px]">east</span>
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                    <ProductsTable
+                      products={products}
+                      loadingProducts={loadingProducts}
+                      isActivated={isActivated}
+                    />
 
                   </div>
 
@@ -922,244 +970,21 @@ export const CommercialDashboard: React.FC = () => {
                     <AICopilotCard />
 
                     {/* Faltantes / Alertas */}
-                    {!isActivated ? (
-                      <div style={{ ...glassPrimary, borderRadius: 32 }} className="overflow-hidden">
-                        {/* Illustration header */}
-                        <div
-                          className="h-36 flex items-center justify-center relative overflow-hidden"
-                          style={{ borderBottom: '1px solid rgba(236,109,19,0.08)', background: 'rgba(236,109,19,0.04)' }}
-                        >
-                          <div className="absolute w-24 h-24 rounded-full -rotate-12 translate-x-8 opacity-40" style={{ background: 'rgba(236,109,19,0.15)' }} />
-                          <div
-                            className="absolute w-20 h-20 rounded-2xl rotate-12 -translate-x-6 flex items-center justify-center"
-                            style={{ ...glassSecondary, borderRadius: 16 }}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'rgba(236,109,19,0.3)' }}>inventory_2</span>
-                          </div>
-                          <div
-                            className="absolute w-14 h-14 rounded-full -translate-y-8 translate-x-4 flex items-center justify-center"
-                            style={{ ...glassPrimary, borderRadius: '50%', boxShadow: '0 4px 12px rgba(21,27,45,0.06)' }}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'rgba(236,109,19,0.5)' }}>palette</span>
-                          </div>
-                        </div>
-
-                        <div className="p-8">
-                          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 24 }}>
-                            Faltantes para publicar
-                          </h3>
-                          <div className="space-y-4">
-                            {checklistItems.filter((i) => !i.done && i.required).map((item) => (
-                              <div key={item.label} className="flex flex-col gap-1 pb-4" style={{ borderBottom: '1px solid rgba(21,27,45,0.03)' }}>
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>{item.label}</span>
-                                    <Pill variant="error">Requerido</Pill>
-                                  </div>
-                                  <button
-                                    onClick={() => navigate(item.route)}
-                                    className="hover:underline shrink-0 ml-2"
-                                    style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                  >
-                                    Ir
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            {checklistItems.filter((i) => !i.done && !i.required).map((item) => (
-                              <div key={item.label} className="flex justify-between items-center">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: 'rgba(84,67,62,0.7)' }}>{item.label}</span>
-                                  <Pill variant="success">Recomendado</Pill>
-                                </div>
-                                <button
-                                  onClick={() => navigate(item.route)}
-                                  className="hover:underline shrink-0 ml-2"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Agregar
-                                </button>
-                              </div>
-                            ))}
-                            {checklistItems.filter((i) => !i.done).length === 0 && (
-                              <p className="py-4 text-center" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#166534' }}>
-                                ¡Todo completo! Puedes publicar tu tienda.
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Alertas (published) */
-                      <div style={{ ...glassPrimary, borderRadius: 32 }} className="overflow-hidden">
-                        <div
-                          className="h-32 flex items-center justify-center relative overflow-hidden"
-                          style={{ borderBottom: '1px solid rgba(21,27,45,0.04)', background: 'rgba(59,130,246,0.04)' }}
-                        >
-                          <div className="absolute w-20 h-20 rounded-full -top-8 -right-8 blur-xl opacity-40" style={{ background: 'rgba(59,130,246,0.3)' }} />
-                          <div className="relative">
-                            <div
-                              className="w-14 h-14 rounded-2xl flex items-center justify-center rotate-6"
-                              style={{ ...glassSecondary, borderRadius: 16, boxShadow: '0 4px 12px rgba(21,27,45,0.06)' }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'rgba(59,130,246,0.4)' }}>notifications</span>
-                            </div>
-                            {(lowStockProducts.length > 0 || draftProducts.length > 0) && (
-                              <div
-                                className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center"
-                                style={{ background: '#ec6d13', boxShadow: '0 2px 8px rgba(236,109,19,0.4)' }}
-                              >
-                                <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'white' }}>priority_high</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-8">
-                          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 24 }}>
-                            Alertas de tienda
-                          </h3>
-                          <div className="space-y-5">
-                            {lowStockProducts.length > 0 && (
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Bajo stock</span>
-                                    <Pill variant="warning">{lowStockProducts.length} items</Pill>
-                                  </div>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                                    Reponer para no pausar ventas.
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => navigate('/inventario')}
-                                  className="hover:underline shrink-0 ml-3"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Revisar
-                                </button>
-                              </div>
-                            )}
-                            {draftProducts.length > 0 && (
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Borradores</span>
-                                    <Pill variant="draft">{draftProducts.length} items</Pill>
-                                  </div>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                                    Completa para publicar.
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => navigate('/inventario')}
-                                  className="hover:underline shrink-0 ml-3"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Completar
-                                </button>
-                              </div>
-                            )}
-                            {lowStockProducts.length === 0 && draftProducts.length === 0 && (
-                              <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#166534', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                <div>
-                                  <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Todo en orden</span>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>¡Tu catálogo está al día!</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <InventoryAlerts
+                      isActivated={isActivated}
+                      checklistItems={checklistItems}
+                      lowStockProducts={lowStockProducts}
+                      draftProducts={draftProducts}
+                      onNavigate={(route) => navigate(route)}
+                    />
 
                     {/* Ventas */}
-                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-8">
-                      <h3 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d', marginBottom: 16 }}>
-                        Mis ventas
-                      </h3>
-                      {!isMarketplaceLive && (
-                        <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.6)', lineHeight: 1.7, marginBottom: 16 }}>
-                          {isActivated
-                            ? 'Las ventas aparecerán cuando tu tienda sea aprobada en el marketplace.'
-                            : 'Las ventas aparecerán cuando actives tu tienda y sea aprobada en el marketplace.'}
-                        </p>
-                      )}
-                      <div className="mb-6">
-                        <span style={lc(0.4)}>Ingresos totales</span>
-                        <span style={{ fontFamily: SANS, fontSize: 44, fontWeight: 700, color: '#151b2d', lineHeight: 1, letterSpacing: '-0.04em', display: 'block', marginTop: 4 }}>
-                          {salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 pt-5" style={{ borderTop: '1px solid rgba(21,27,45,0.04)' }}>
-                        {[
-                          { label: 'Órdenes',     val: salesStats.total },
-                          { label: 'Pendientes',   val: salesStats.pending, right: true },
-                          { label: 'Despachados',  val: salesStats.shipped ?? 0 },
-                        ].map((row) => (
-                          <div key={row.label} className={row.right ? 'text-right' : ''}>
-                            <span style={lc(0.4)}>{row.label}</span>
-                            <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 700, color: '#151b2d', display: 'block', marginTop: 2 }}>{row.val}</span>
-                          </div>
-                        ))}
-                        <div className="flex items-end justify-end">
-                          <button
-                            onClick={() => navigate('/mi-tienda/ventas')}
-                            className="hover:underline"
-                            style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                          >
-                            Ver ventas →
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Perfil */}
-                    <div style={{ ...glassSecondary, borderRadius: 32 }} className="p-6">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                          style={{ background: 'rgba(236,109,19,0.06)', border: '1px solid rgba(236,109,19,0.1)' }}
-                        >
-                          <span style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#ec6d13' }}>
-                            {userName.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d' }} className="truncate">
-                            {shopName}
-                          </h4>
-                          <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#ec6d13' }}>
-                            {hasBrand ? 'Marca completa' : 'Marca incompleta'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-y-3 mb-6">
-                        {[
-                          { label: 'Tipo',   val: (shop as any)?.craftType || (shop as any)?.craft_type || 'Artesanía' },
-                          { label: 'Región', val: (shop as any)?.region || '—' },
-                        ].map((row) => (
-                          <div key={row.label} className="flex justify-between">
-                            <span style={lc(0.4)}>{row.label}</span>
-                            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: '#151b2d' }}>{row.val}</span>
-                          </div>
-                        ))}
-                        <div className="flex justify-between items-center">
-                          <span style={lc(0.4)}>Estado</span>
-                          <Pill variant={isMarketplaceLive ? 'success' : isActivated ? 'info' : 'warning'}>
-                            {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
-                          </Pill>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => navigate('/profile')}
-                        className="w-full py-2.5 rounded-xl hover:bg-white/60 transition-all"
-                        style={{ border: '1px solid rgba(21,27,45,0.1)', color: '#151b2d', fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}
-                      >
-                        Editar perfil
-                      </button>
-                    </div>
+                    <OrdersSummarySection
+                      salesStats={salesStats}
+                      isMarketplaceLive={isMarketplaceLive}
+                      isActivated={isActivated}
+                      onNavigate={(route) => navigate(route)}
+                    />
 
                     {/* Crecimiento */}
                     <div
@@ -1193,8 +1018,96 @@ export const CommercialDashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Perfil */}
+                    {(() => {
+                      const logoUrl = shop?.logoUrl || masterState.marca?.logo;
+                      const craftType = (shop as any)?.craftType || (shop as any)?.craft_type;
+                      const region    = (shop as any)?.region;
+                      const city      = (shop as any)?.city || (currentData as any)?.city;
+                      const deptLabel = region || city || '—';
+
+                      const dataItems: { icon: string; label: string; value: string }[] = [
+                        ...(craftType ? [{ icon: 'palette', label: 'Técnica', value: craftType }] : []),
+                        { icon: 'location_on', label: 'Región', value: deptLabel },
+                        { icon: 'inventory_2', label: 'Productos', value: `${products.length}` },
+                        ...(hasBrand ? [{ icon: 'verified', label: 'Marca', value: 'Completa' }] : [{ icon: 'edit', label: 'Marca', value: 'Incompleta' }]),
+                      ];
+
+                      return (
+                        <div style={{ ...glassSecondary, borderRadius: 32 }} className="p-6">
+                          {/* Header */}
+                          <div className="flex items-center gap-3 mb-5">
+                            {/* Logo */}
+                            <div
+                              className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
+                              style={{ background: 'rgba(236,109,19,0.06)', border: '1px solid rgba(236,109,19,0.1)' }}
+                            >
+                              {logoUrl ? (
+                                <img src={logoUrl} alt={shopName} className="w-full h-full object-contain p-1" />
+                              ) : (
+                                <span style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#ec6d13' }}>
+                                  {shopName.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Name */}
+                            <div className="flex-1 min-w-0">
+                              <h4 style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }} className="truncate">
+                                {shopName}
+                              </h4>
+                              <Pill variant={isMarketplaceLive ? 'success' : isActivated ? 'info' : 'warning'}>
+                                {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
+                              </Pill>
+                            </div>
+
+                            {/* Settings */}
+                            <button
+                              onClick={() => navigate('/mi-tienda/configurar')}
+                              className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-black/5"
+                              style={{ border: '1px solid rgba(21,27,45,0.08)' }}
+                              title="Editar perfil"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'rgba(84,67,62,0.5)' }}>settings</span>
+                            </button>
+                          </div>
+
+                          {/* Data chips */}
+                          <div className="flex flex-wrap gap-2">
+                            {dataItems.map((item) => (
+                              <div
+                                key={item.label}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                                style={{ background: 'rgba(21,27,45,0.04)', border: '1px solid rgba(21,27,45,0.06)' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(84,67,62,0.45)' }}>{item.icon}</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(21,27,45,0.65)' }}>{item.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                   </aside>
                 </div>
+
+                {/* Mini footer */}
+                <footer
+                  className="flex items-center justify-between py-6 mt-8"
+                  style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
+                >
+                  <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                    © {new Date().getFullYear()} TELAR
+                  </span>
+                  <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                    Hecho con <span style={{ color: '#e05252' }}>♥</span> en Latinoamérica
+                  </span>
+                  <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                    Orgullosamente desarrollado en Colombia 🇨🇴
+                  </span>
+                </footer>
+
               </div>
             </main>
       </div>

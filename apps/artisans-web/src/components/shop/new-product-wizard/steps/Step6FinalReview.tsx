@@ -245,6 +245,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         <WizardHeader
           step={step}
           totalSteps={totalSteps}
+          onBack={onBack}
           icon="fact_check"
           title="Revisión final"
           subtitle="Verifica la información antes de enviar a curaduría"
@@ -399,10 +400,15 @@ export const Step6FinalReview: React.FC<Props> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-4">
                 <div>
-                  <p className="font-['Manrope'] text-[10px] font-[800] text-[#54433e] mb-1 uppercase tracking-widest">Precio de venta</p>
+                  <p className="font-['Manrope'] text-[10px] font-[800] text-[#54433e] mb-1 uppercase tracking-widest">Precio publicado</p>
                   <p className="font-['Manrope'] text-[18px] font-bold">
-                    {state.price ? `$${state.price.toLocaleString('es-CO')} COP` : '—'}
+                    {state.price ? `$${Math.round(state.price * 1.05).toLocaleString('es-CO')} COP` : '—'}
                   </p>
+                  {state.price && (
+                    <p className="text-[10px] text-[#54433e]/50 mt-0.5">
+                      Base ${state.price.toLocaleString('es-CO')} + 5% TELAR
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="font-['Manrope'] text-[10px] font-[800] text-[#54433e] mb-1 uppercase tracking-widest">Disponibilidad</p>
@@ -478,6 +484,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         isSubmitting={isSubmitting}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
+        leftOffset={80}
       />
     </div>
   );

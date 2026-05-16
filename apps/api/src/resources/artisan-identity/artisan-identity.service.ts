@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ArtisanIdentity } from './entities/artisan-identity.entity';
+import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 import { CreateArtisanIdentityDto } from './dto/create-artisan-identity.dto';
 import { UpdateArtisanIdentityDto } from './dto/update-artisan-identity.dto';
 
@@ -14,6 +15,8 @@ export class ArtisanIdentityService {
   constructor(
     @Inject('ARTISAN_IDENTITY_REPOSITORY')
     private readonly artisanIdentityRepository: Repository<ArtisanIdentity>,
+    @Inject('USER_PROFILES_REPOSITORY_FOR_IDENTITY')
+    private readonly userProfileRepository: Repository<UserProfile>,
   ) {}
 
   /**
@@ -73,6 +76,39 @@ export class ArtisanIdentityService {
 
     // Retornar actualizado
     return await this.findOne(id);
+  }
+
+  /**
+   * Obtener artisan identity por userId (a través de UserProfile).
+   * Retorna null si el usuario no tiene perfil o no tiene identity asignada.
+   */
+  async findByUserId(userId: string): Promise<ArtisanIdentity | null> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+      select: ['artisanIdentityId'],
+    });
+    if (!profile?.artisanIdentityId) return null;
+    return this.artisanIdentityRepository.findOne({
+      where: { id: profile.artisanIdentityId },
+      relations: ['techniquePrimary', 'techniqueSecondary'],
+    });
+  }
+
+  /**
+   * Actualiza las técnicas (primary / secondary) del artisan identity de un usuario.
+   * Si el usuario no tiene identity aún, no hace nada (retorna null).
+   */
+  async updateTechniquesByUserId(
+    userId: string,
+    dto: { techniquePrimaryId?: string | null; techniqueSecondaryId?: string | null },
+  ): Promise<ArtisanIdentity | null> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { userId },
+      select: ['artisanIdentityId'],
+    });
+    if (!profile?.artisanIdentityId) return null;
+    await this.artisanIdentityRepository.update(profile.artisanIdentityId, dto);
+    return this.findOne(profile.artisanIdentityId);
   }
 
   /**

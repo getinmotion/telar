@@ -4,46 +4,42 @@ import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
-import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
-import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { ImageUploadSlot } from '@/components/ui/ImageUploadSlot';
-import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
+import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
+import { T, inputStyle } from '@/lib/telar-design';
 
-const T = {
-  dark:  '#151b2d',
-  orange:'#ec6d13',
-  muted: '#54433e',
-  sans:  "'Manrope', sans-serif",
-  serif: "'Noto Serif', serif",
-};
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.82)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-};
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 16px', borderRadius: 12,
-  border: '1px solid rgba(84,67,62,0.14)', outline: 'none',
-  fontFamily: T.sans, fontSize: 14, color: T.dark,
-  background: 'rgba(247,244,239,0.5)',
-};
+// ── Datos del panel de IA ─────────────────────────────────────────────────────
+const AI_CARDS = [
+  {
+    label: 'Identidad visual',
+    text: 'El logo es el ancla visual de tu marca. Una imagen cuadrada con fondo neutro garantiza coherencia en todos los puntos de contacto.',
+  },
+  {
+    label: 'Tagline efectivo',
+    text: 'Un buen tagline captura la esencia en menos de 10 palabras. Evita generalismos — cuanto más específico, más memorable.',
+  },
+  {
+    label: 'Coherencia de marca',
+    text: 'Logo y tagline trabajan juntos. TELAR los usará para construir automáticamente el hero y la presentación pública de tu tienda.',
+  },
+];
 
-const TOTAL_STEPS = 2;
+const AI_NEXT = 'Con la identidad definida podrás configurar la paleta de colores y el hero visual de tu tienda.';
 
+// ── Página ────────────────────────────────────────────────────────────────────
 export default function BrandIdentityWizardPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
+  const navigate    = useNavigate();
+  const location    = useLocation();
+  const returnTo    = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
-  const [step, setStep] = useState(1);
-  const [logoUrl, setLogoUrl] = useState('');
-  const [brandClaim, setBrandClaim] = useState('');
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [savingProgress, setSavingProgress] = useState(false);
-  const [showGuard, setShowGuard] = useState(false);
+
+  const [logoUrl,         setLogoUrl]         = useState('');
+  const [brandClaim,      setBrandClaim]      = useState('');
+  const [uploadingLogo,   setUploadingLogo]   = useState(false);
+  const [saving,          setSaving]          = useState(false);
+  const [savingProgress,  setSavingProgress]  = useState(false);
+  const [showGuard,       setShowGuard]       = useState(false);
   const initRef = useRef({ brandClaim: '' });
 
   useEffect(() => {
@@ -110,7 +106,7 @@ export default function BrandIdentityWizardPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+    <>
       {showGuard && (
         <UnsavedChangesDialog
           onSaveAndExit={handleSaveAndExit}
@@ -120,77 +116,67 @@ export default function BrandIdentityWizardPage() {
         />
       )}
 
-      <WizardHeader
-        step={step} totalSteps={TOTAL_STEPS}
-        icon="palette" title="Identidad de marca"
+      <ConfigWizardShell
+        icon="palette"
+        title="Identidad de marca"
         subtitle="Logo y tagline que representan tu taller"
         onBack={handleBack}
         onSaveProgress={isDirty ? handleSaveProgress : undefined}
         isSavingProgress={savingProgress}
-      />
-
-      <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
-        <div className="max-w-xl mx-auto">
-
-          {step === 1 && (
-            <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-              <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                El logo de tu tienda
-              </p>
-              <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                Tu logo es la primera imagen que verán los compradores. Sube una imagen cuadrada, en fondo transparente o blanco.
-              </p>
-              <ImageUploadSlot
-                label="Logo de la tienda" hint="Imagen cuadrada recomendada"
-                url={logoUrl} uploading={uploadingLogo}
-                onFile={handleLogoFile}
-                onRemove={() => { setLogoUrl(''); updateArtisanShop(shop!.id, { logoUrl: '' } as any); }}
-                aspect="aspect-square" icon="storefront"
-              />
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="flex flex-col gap-6">
-              <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-                <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                  El tagline de tu marca
-                </p>
-                <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                  Una frase corta que capture la esencia de tu taller. Aparece en tu tienda y en el marketplace.
-                </p>
-                <label style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: `${T.muted}80`, display: 'block', marginBottom: 6 }}>
-                  Tagline / Claim
-                </label>
-                <input
-                  value={brandClaim}
-                  onChange={e => setBrandClaim(e.target.value)}
-                  placeholder="Ej. Tejidos que cuentan historias ancestrales"
-                  style={inputStyle}
-                  maxLength={120}
-                />
-                <p style={{ fontFamily: T.sans, fontSize: 10, color: `${T.muted}40`, marginTop: 6, textAlign: 'right' }}>
-                  {brandClaim.length}/120
-                </p>
-              </div>
-              <AgentPlaceholder context="brand" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <WizardFooter
-        step={step} totalSteps={TOTAL_STEPS}
-        onBack={step > 1 ? () => setStep(s => s - 1) : undefined}
-        onNext={step < TOTAL_STEPS ? () => setStep(s => s + 1) : undefined}
-        isFinalStep={step === TOTAL_STEPS}
+        aiCards={AI_CARDS}
+        aiNext={AI_NEXT}
+        submitLabel="Guardar identidad"
         onSubmit={handleFinish}
         isSubmitting={saving}
-        submitLabel="Guardar identidad"
         onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
         isSavingAndExiting={saving}
-        leftOffset={80}
-      />
-    </div>
+      >
+
+        {/* ── Logo ────────────────────────────────────────────────────── */}
+        <div>
+          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
+            Logo de tu tienda
+          </p>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 20 }}>
+            Primera imagen que ven los compradores. Imagen cuadrada en fondo transparente o blanco.
+          </p>
+          <div className="w-1/4">
+            <ImageUploadSlot
+              label="Logo de la tienda" hint="Imagen cuadrada recomendada"
+              url={logoUrl} uploading={uploadingLogo}
+              onFile={handleLogoFile}
+              onRemove={() => { setLogoUrl(''); updateArtisanShop(shop!.id, { logoUrl: '' } as any); }}
+              aspect="aspect-square" icon="storefront"
+            />
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: 'rgba(84,67,62,0.08)' }} />
+
+        {/* ── Tagline ─────────────────────────────────────────────────── */}
+        <div>
+          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
+            Tagline de tu marca
+          </p>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 16 }}>
+            Una frase corta que capture la esencia de tu taller. Aparece en tu tienda y en el marketplace.
+          </p>
+          <label style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}65`, display: 'block', marginBottom: 6 }}>
+            Tagline / Claim
+          </label>
+          <input
+            value={brandClaim}
+            onChange={e => setBrandClaim(e.target.value)}
+            placeholder="Ej. Tejidos que cuentan historias ancestrales"
+            style={inputStyle}
+            maxLength={120}
+          />
+          <p style={{ fontFamily: T.sans, fontSize: 10, color: `${T.muted}40`, marginTop: 6, textAlign: 'right' }}>
+            {brandClaim.length}/120
+          </p>
+        </div>
+
+      </ConfigWizardShell>
+    </>
   );
 }

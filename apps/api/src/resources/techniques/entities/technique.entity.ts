@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Craft } from '../../crafts/entities/craft.entity';
 
@@ -39,6 +40,10 @@ export class Technique {
     default: ApprovalStatus.APPROVED,
   })
   status: ApprovalStatus;
+
+  @Index()
+  @Column({ type: 'varchar', length: 5, nullable: true, name: 'sku_code' })
+  skuCode: string | null;
 
   @Column({ type: 'uuid', nullable: true, name: 'suggested_by' })
   suggestedBy: string | null;

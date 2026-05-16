@@ -3,19 +3,15 @@ import { AdminLogin } from '@/components/admin/AdminLogin';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { DataManagementPanel } from '@/components/admin/DataManagementPanel';
 import { UserManagement } from '@/components/admin/UserManagement';
-import { ImageManager } from '@/components/admin/ImageManager';
-import { CompanyDocuments } from '@/components/admin/CompanyDocuments';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
-import { SiteImageManager } from '@/components/admin/SiteImageManager';
 import { ModeratorManagement } from '@/components/admin/ModeratorManagement';
 import { CouponManagement } from '@/components/admin/CouponManagement';
 import { GiftCardManagement } from '@/components/admin/GiftCardManagement';
 import { AdminAuditLogViewer } from '@/components/admin/AdminAuditLogViewer';
 import { AdminOrdersPanel } from '@/components/admin/AdminOrdersPanel';
 import { AdminShopsPanel } from '@/components/admin/shops';
-import { AdminImageOptimization } from '@/components/admin/AdminImageOptimization';
 
 const Admin = () => {
   const { user, signOut, loading, isAuthorized } = useAuth();
@@ -61,7 +57,7 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-8 bg-white/80 backdrop-blur-sm border border-border">
+            <TabsList className="grid w-full grid-cols-7 bg-white/80 backdrop-blur-sm border border-border">
               <TabsTrigger 
                 value="dashboard"
                 className="data-[state=active]:bg-accent data-[state=active]:text-white"
@@ -103,12 +99,6 @@ const Admin = () => {
                 className="data-[state=active]:bg-accent data-[state=active]:text-white"
               >
                 Auditoría
-              </TabsTrigger>
-              <TabsTrigger 
-                value="media"
-                className="data-[state=active]:bg-accent data-[state=active]:text-white"
-              >
-                Medios
               </TabsTrigger>
             </TabsList>
             
@@ -170,23 +160,6 @@ const Admin = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="media" className="mt-6">
-              <div className="space-y-6">
-                <AdminImageOptimization />
-                <div className="bg-white rounded-xl border border-border shadow-sm p-6">
-                  <h3 className="text-lg font-semibold mb-4">Editor de Design System</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Ajusta colores y tokens en tiempo real</p>
-                  <a href="/admin/design-system" className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                    Abrir Editor
-                  </a>
-                </div>
-                <ImageManager />
-                <SiteImageManager />
-                <div className="bg-white rounded-xl border border-border shadow-sm p-6">
-                  <CompanyDocuments />
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
       </div>

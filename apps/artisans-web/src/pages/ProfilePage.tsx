@@ -9,15 +9,12 @@ import { useEmailPreferences } from '@/hooks/useEmailPreferences';
 import { useMasterAgent } from '@/context/MasterAgentContext';
 import { useIsModerator } from '@/hooks/useIsModerator';
 import { supabase } from '@/integrations/supabase/client';
-import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 
 import { ProfileNavigation, ProfileSection } from '@/components/profile/ProfileNavigation';
 import { ProfileHeaderCompact } from '@/components/profile/ProfileHeaderCompact';
 import { PersonalInfoSection } from '@/components/profile/sections/PersonalInfoSection';
 import { ShopInfoSection } from '@/components/profile/sections/ShopInfoSection';
 import { PreferencesSection } from '@/components/profile/sections/PreferencesSection';
-import { PaymentSection } from '@/components/profile/sections/PaymentSection';
-import { RutSection } from '@/components/profile/sections/RutSection';
 import { NotificationsSection } from '@/components/profile/sections/NotificationsSection';
 import { SecuritySection } from '@/components/profile/sections/SecuritySection';
 import { SupportSection } from '@/components/profile/sections/SupportSection';
@@ -44,9 +41,6 @@ const ProfilePage: React.FC = () => {
 
   const [activeSection, setActiveSection] = useState<ProfileSection>('personal');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [hasBankData, setHasBankData] = useState(false);
-  const [bankStatus, setBankStatus] = useState<'incomplete' | 'complete' | 'pending_review' | 'rejected'>('incomplete');
-
   // Calculate maturity level
   const maturityLevel = useMemo(() => {
     const nivel = masterState?.growth?.nivel_madurez;
@@ -55,26 +49,6 @@ const ProfilePage: React.FC = () => {
     }
     return 0;
   }, [masterState]);
-
-  // Check bank data status
-  useEffect(() => {
-    const checkBankData = async () => {
-      if (!user?.id) return;
-
-      try {
-        const data = await getArtisanShopByUserId(user.id);
-
-        if (data?.idContraparty) {
-          setHasBankData(true);
-          setBankStatus('complete');
-        }
-      } catch (error) {
-        console.error('Error checking bank data:', error);
-      }
-    };
-
-    checkBankData();
-  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -117,24 +91,11 @@ const ProfilePage: React.FC = () => {
           <ShopInfoSection
             shop={shop}
             isLoading={shopLoading}
+            userId={user?.id}
           />
         );
       case 'preferences':
         return <PreferencesSection />;
-      case 'payment':
-        return (
-          <PaymentSection
-            hasBankData={hasBankData}
-            bankStatus={bankStatus}
-          />
-        );
-      case 'fiscal':
-        return (
-          <RutSection
-            rut={profile?.rut}
-            rutPending={profile?.rutPendiente}
-          />
-        );
       case 'notifications':
         return (
           <NotificationsSection

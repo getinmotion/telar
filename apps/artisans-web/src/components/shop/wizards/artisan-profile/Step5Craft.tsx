@@ -1,5 +1,24 @@
 import React, { useState, KeyboardEvent } from 'react';
-import { ArtisanProfileData, CRAFT_STYLE_OPTIONS } from '@/types/artisanProfile';
+import { ArtisanProfileData } from '@/types/artisanProfile';
+
+const CRAFT_STYLES: { id: string; label: string; desc: string }[] = [
+  { id: 'Tradicional',    label: 'Tradicional',    desc: 'Sigue métodos y estéticas ancestrales fieles a su origen' },
+  { id: 'Contemporáneo',  label: 'Contemporáneo',  desc: 'Incorpora lenguajes actuales sin abandonar la técnica artesanal' },
+  { id: 'Fusión',         label: 'Fusión',         desc: 'Mezcla tradición con influencias modernas o de otras culturas' },
+  { id: 'Minimalista',    label: 'Minimalista',    desc: 'Formas simples, materiales puros y ausencia de decoración superflua' },
+  { id: 'Colorido',       label: 'Colorido',       desc: 'Paletas vivas que celebran la identidad visual de la comunidad' },
+  { id: 'Experimental',   label: 'Experimental',   desc: 'Explora materiales o procesos no convencionales en el oficio' },
+  { id: 'Funcional',      label: 'Funcional',      desc: 'Diseño orientado al uso cotidiano sin renunciar a la calidad artesanal' },
+  { id: 'Decorativo',     label: 'Decorativo',     desc: 'Primacía de la belleza y el detalle como fin en sí mismo' },
+];
+
+const TIME_OPTIONS = [
+  { value: 'Horas',      icon: 'bolt',                 label: 'Horas' },
+  { value: '1 a 3 días', icon: 'hourglass_top',        label: '1 a 3 días' },
+  { value: '1 semana',   icon: 'calendar_view_week',   label: '1 semana' },
+  { value: '2 semanas',  icon: 'date_range',           label: '2 semanas' },
+  { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
+] as const;
 
 interface Props {
   data: ArtisanProfileData;
@@ -87,6 +106,22 @@ const ChipGroup: React.FC<ChipGroupProps> = ({ label, required, selected, preset
 };
 
 export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
+  const isPreset = TIME_OPTIONS.some(o => o.value === data.averageTime);
+  const [customTime, setCustomTime] = useState(
+    data.averageTime && !isPreset ? data.averageTime : '',
+  );
+  const [showCustom, setShowCustom] = useState(data.averageTime !== undefined && !isPreset);
+
+  const selectTime = (value: string) => {
+    setShowCustom(false);
+    onChange({ averageTime: value });
+  };
+
+  const openCustom = () => {
+    setShowCustom(true);
+    onChange({ averageTime: customTime || undefined });
+  };
+
   const toggleItem = (field: 'techniques' | 'materials' | 'craftStyle', value: string) => {
     const arr = data[field] as string[];
     onChange({ [field]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] });
@@ -124,6 +159,88 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
         />
       </section>
 
+      {/* Tiempo de elaboración */}
+      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-4">
+          Tiempo promedio de elaboración
+          <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {TIME_OPTIONS.map(opt => {
+            const active = data.averageTime === opt.value && !showCustom;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => selectTime(opt.value)}
+                className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
+                  active
+                    ? 'border-[#ec6d13] shadow-sm'
+                    : 'border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm'
+                }`}
+                style={active ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 22, color: active ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
+                >
+                  {opt.icon}
+                </span>
+                <span
+                  className="text-center font-[700] leading-tight px-1"
+                  style={{ fontSize: 10, color: active ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
+                >
+                  {opt.label}
+                </span>
+                {active && (
+                  <div className="absolute" style={{ display: 'none' }} />
+                )}
+              </button>
+            );
+          })}
+
+          {/* Personalizado */}
+          <button
+            type="button"
+            onClick={openCustom}
+            className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
+              showCustom
+                ? 'border-[#ec6d13] shadow-sm'
+                : 'border-dashed border-[#e2d5cf]/60 bg-white hover:border-[#ec6d13]/35'
+            }`}
+            style={showCustom ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 22, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
+            >
+              edit_note
+            </span>
+            <span
+              className="text-center font-[700] leading-tight px-1"
+              style={{ fontSize: 10, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
+            >
+              Personalizado
+            </span>
+          </button>
+        </div>
+
+        {showCustom && (
+          <input
+            type="text"
+            autoFocus
+            value={customTime}
+            onChange={e => {
+              setCustomTime(e.target.value);
+              onChange({ averageTime: e.target.value || undefined });
+            }}
+            placeholder="Ej. 3 a 4 semanas, 6 meses..."
+            className="mt-3 w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#ec6d13]/30 focus:outline-none focus:border-[#ec6d13]/60 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+            style={{ background: 'rgba(247,244,239,0.4)' }}
+          />
+        )}
+      </section>
+
       {/* Diferenciación */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
@@ -145,21 +262,36 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           Estilo artesanal
           <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
         </label>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mb-3">Puedes elegir más de uno si tu trabajo mezcla lenguajes.</p>
-        <div className="flex flex-wrap gap-2">
-          {CRAFT_STYLE_OPTIONS.map((s) => {
-            const active = data.craftStyle.includes(s);
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mb-4">Puedes elegir más de uno si tu trabajo mezcla lenguajes.</p>
+        <div className="flex flex-col gap-2">
+          {CRAFT_STYLES.map((s) => {
+            const active = data.craftStyle.includes(s.id);
             return (
               <button
-                key={s}
-                onClick={() => toggleItem('craftStyle', s)}
-                className={`px-4 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
-                  active
-                    ? 'bg-[#ec6d13] border-[#ec6d13] text-white shadow-sm'
-                    : 'bg-white border-[#e2d5cf]/40 text-[#151b2d] hover:border-[#ec6d13]/30'
-                }`}
+                key={s.id}
+                type="button"
+                onClick={() => toggleItem('craftStyle', s.id)}
+                style={{
+                  background: active ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
+                  border: active ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:border-[#ec6d13]/30"
               >
-                {s}
+                <div
+                  className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+                  style={{ borderColor: active ? '#ec6d13' : 'rgba(84,67,62,0.25)' }}
+                >
+                  {active && <div className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span
+                    className="font-['Manrope'] text-[13px] font-[700] block"
+                    style={{ color: active ? '#ec6d13' : '#54433e' }}
+                  >
+                    {s.label}
+                  </span>
+                  <span className="text-[10px] font-['Manrope'] text-[#54433e]/50 leading-snug">{s.desc}</span>
+                </div>
               </button>
             );
           })}

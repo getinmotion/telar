@@ -3,30 +3,36 @@ import { ConfigService } from '@nestjs/config';
 import { UploadFolder } from './dto/create-file-upload.dto';
 import { S3Service, UploadResult } from 'src/common/services/s3/s3.service';
 
+const IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+];
+
+const VIDEO_MIME_TYPES = [
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/x-msvideo',
+];
+
+const VIDEO_MAX_SIZE = 100 * 1024 * 1024; // 100MB
+
 @Injectable()
 export class FileUploadService {
   private readonly maxFileSize: number;
-  private readonly allowedMimeTypes: string[];
 
   constructor(
     private readonly s3Service: S3Service,
     private readonly configService: ConfigService,
   ) {
-    // Obtener configuración
     const maxFileSizeStr = this.configService.get<string>('MAX_FILE_SIZE');
     this.maxFileSize = maxFileSizeStr
       ? parseInt(maxFileSizeStr)
       : 5 * 1024 * 1024; // Default: 5MB
-
-    // Tipos MIME permitidos para imágenes
-    this.allowedMimeTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/svg+xml',
-    ];
   }
 
   /**
@@ -36,17 +42,21 @@ export class FileUploadService {
     file: Express.Multer.File,
     folder: UploadFolder,
   ): Promise<UploadResult> {
+    const isVideoFolder = folder === UploadFolder.PRESENTATION_VIDEOS;
+    const allowedTypes = isVideoFolder ? VIDEO_MIME_TYPES : IMAGE_MIME_TYPES;
+    const maxSize = isVideoFolder ? VIDEO_MAX_SIZE : this.maxFileSize;
+
     // Validar tamaño
-    if (file.size > this.maxFileSize) {
+    if (file.size > maxSize) {
       throw new BadRequestException(
-        `El archivo es demasiado grande. Máximo permitido: ${this.maxFileSize / 1024 / 1024}MB`,
+        `El archivo es demasiado grande. Máximo permitido: ${maxSize / 1024 / 1024}MB`,
       );
     }
 
     // Validar tipo MIME
-    if (!this.allowedMimeTypes.includes(file.mimetype)) {
+    if (!allowedTypes.includes(file.mimetype)) {
       throw new BadRequestException(
-        `Tipo de archivo no permitido. Permitidos: ${this.allowedMimeTypes.join(', ')}`,
+        `Tipo de archivo no permitido. Permitidos: ${allowedTypes.join(', ')}`,
       );
     }
 

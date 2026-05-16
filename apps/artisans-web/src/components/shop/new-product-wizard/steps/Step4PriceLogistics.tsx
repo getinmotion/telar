@@ -31,23 +31,77 @@ const cardStyle = {
 const inputClass =
   'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all';
 
+type WeightUnit = 'kg' | 'g';
+
+const GRAMS_KEYWORDS = ['oro', 'plata', 'cobre', 'bronce', 'hilo', 'seda', 'alambre', 'bisutería', 'joyería', 'filigrana', 'metal precioso', 'plata fina'];
+
+function suggestWeightUnit(materials: string[]): WeightUnit {
+  const text = materials.join(' ').toLowerCase();
+  return GRAMS_KEYWORDS.some(kw => text.includes(kw)) ? 'g' : 'kg';
+}
+
+const toKg = (val: number, unit: WeightUnit) => unit === 'g' ? val / 1000 : val;
+const fromKg = (kgVal: number | undefined, unit: WeightUnit) =>
+  kgVal !== undefined ? (unit === 'g' ? +(kgVal * 1000).toFixed(2) : kgVal) : undefined;
+
+interface WeightFieldProps {
+  label: string;
+  valueKg: number | undefined;
+  unit: WeightUnit;
+  onUnitChange: (u: WeightUnit) => void;
+  onChange: (kgVal: number | undefined) => void;
+  className?: string;
+}
+
+const WeightField: React.FC<WeightFieldProps> = ({ label, valueKg, unit, onUnitChange, onChange, className }) => (
+  <div className={className}>
+    <div className="flex items-center justify-between mb-1.5">
+      <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider">
+        {label}
+      </label>
+      <div className="flex rounded-md overflow-hidden border border-[#e2d5cf]/40" style={{ background: 'rgba(247,244,239,0.3)' }}>
+        {(['kg', 'g'] as WeightUnit[]).map(u => (
+          <button
+            key={u}
+            type="button"
+            onClick={() => onUnitChange(u)}
+            className="px-2 py-0.5 text-[9px] font-[800] uppercase tracking-widest transition-all"
+            style={{
+              background: unit === u ? '#ec6d13' : 'transparent',
+              color: unit === u ? 'white' : '#54433e80',
+            }}
+          >
+            {u}
+          </button>
+        ))}
+      </div>
+    </div>
+    <input
+      type="number"
+      min={0}
+      value={fromKg(valueKg, unit) ?? ''}
+      onChange={e => onChange(e.target.value ? toKg(Number(e.target.value), unit) : undefined)}
+      placeholder="—"
+      className="w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all text-center"
+      style={{ background: 'rgba(247,244,239,0.4)' }}
+    />
+  </div>
+);
+
 export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
   const canContinue = !!state.price && !!state.availabilityType;
-  const [editingOrigin, setEditingOrigin] = useState(false);
+
+  const suggestedUnit = useMemo(() => suggestWeightUnit(state.materials), [state.materials]);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
+  const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
+
+  useEffect(() => {
+    setWeightUnit(suggestedUnit);
+    setPkgWeightUnit(suggestedUnit);
+  }, [suggestedUnit]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
-
-  // Auto-generate SKU
-  const autoSku = useMemo(() => {
-    const prefix = 'TEL';
-    const cat = state.categoryId ? state.categoryId.substring(0, 4).toUpperCase() : 'XXXX';
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${cat}-${rand}`;
-  }, [state.categoryId]);
-
-  // Infer shipping origin from artisan profile
-  const inferredOrigin = [state.municipality, state.department].filter(Boolean).join(', ') || null;
 
   // Smart stock logic based on production type
   const stockHint = state.productionType === 'unica'
@@ -65,12 +119,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     }
   }, [state.productionType, state.inventory, update]);
 
-  // Persist auto-generated SKU if not already set
+  // Clear any previously stored fake client-side SKU so the server generates the real one
   useEffect(() => {
-    if (!state.sku) {
-      update({ sku: autoSku });
-    }
-  }, [autoSku, state.sku, update]);
+    if (state.sku) update({ sku: undefined });
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
@@ -78,6 +130,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         <WizardHeader
           step={step}
           totalSteps={totalSteps}
+          onBack={onBack}
           icon="payments"
           title="Precio y logística"
           subtitle="Define cómo se comercializa y despacha esta pieza"
@@ -211,20 +264,18 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                 )}
               </div>
 
-              {/* Auto SKU */}
+              {/* SKU info */}
               <div className="mt-4 pt-4 border-t border-[#e2d5cf]/30">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider">
                     Código SKU
                   </label>
                   <AiBadge />
-                  <span className="text-[9px] text-[#54433e]/30 font-[600]">Generado automáticamente</span>
                 </div>
-                <div className="mt-1 px-3 py-2 rounded-lg border border-[#151b2d]/30 text-[13px] font-mono font-[600] text-[#54433e]/60"
-                  style={{ background: 'rgba(247,244,239,0.3)' }}
-                >
-                  {state.sku || autoSku}
-                </div>
+                <p className="flex items-center gap-1.5 text-[11px] text-[#54433e]/40 font-[500]">
+                  <span className="material-symbols-outlined text-[14px] shrink-0">info</span>
+                  TELAR genera el SKU automáticamente al guardar, usando categoría, territorio y técnica de la pieza.
+                </p>
               </div>
             </section>
 
@@ -279,8 +330,16 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   </label>
                   <input
                     type="number"
+                    min={0}
                     value={state.inventory ?? ''}
-                    onChange={e => update({ inventory: Number(e.target.value) })}
+                    onChange={e => {
+                      const val = Math.max(0, Number(e.target.value) || 0);
+                      const updates: Partial<NewWizardState> = { inventory: val };
+                      if (state.minimumStockAlert !== undefined && state.minimumStockAlert > val) {
+                        updates.minimumStockAlert = val;
+                      }
+                      update(updates);
+                    }}
                     placeholder={state.productionType === 'unica' ? '1' : '0'}
                     disabled={state.productionType === 'unica'}
                     className={`${inputClass} ${state.productionType === 'unica' ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -296,12 +355,21 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   </label>
                   <input
                     type="number"
+                    min={0}
+                    max={state.inventory ?? undefined}
                     value={state.minimumStockAlert ?? ''}
-                    onChange={e => update({ minimumStockAlert: Number(e.target.value) })}
+                    onChange={e => {
+                      const raw = Math.max(0, Number(e.target.value) || 0);
+                      const max = state.inventory ?? Infinity;
+                      update({ minimumStockAlert: Math.min(raw, max) });
+                    }}
                     placeholder="5"
                     className={inputClass}
                     style={{ background: 'rgba(247,244,239,0.4)' }}
                   />
+                  {state.inventory !== undefined && state.minimumStockAlert !== undefined && state.minimumStockAlert > state.inventory && (
+                    <p className="text-[10px] text-red-500 mt-1.5 font-[600]">La alerta no puede superar el stock disponible.</p>
+                  )}
                 </div>
               </div>
 
@@ -343,7 +411,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   { label: 'Alto (cm)', key: 'heightCm' as const },
                   { label: 'Ancho (cm)', key: 'widthCm' as const },
                   { label: 'Largo (cm)', key: 'lengthCm' as const },
-                  { label: 'Peso (kg)', key: 'weightKg' as const },
                 ].map(({ label, key }) => (
                   <div key={key}>
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
@@ -359,6 +426,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                     />
                   </div>
                 ))}
+                <WeightField
+                  label="Peso"
+                  valueKg={state.weightKg}
+                  unit={weightUnit}
+                  onUnitChange={setWeightUnit}
+                  onChange={v => update({ weightKg: v })}
+                />
               </div>
             </section>
 
@@ -378,7 +452,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   { label: 'Ancho (cm)', key: 'packagedWidthCm' as const },
                   { label: 'Alto (cm)', key: 'packagedHeightCm' as const },
                   { label: 'Largo (cm)', key: 'packagedLengthCm' as const },
-                  { label: 'Peso (kg)', key: 'packagedWeightKg' as const },
                 ].map(({ label, key }) => (
                   <div key={key}>
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
@@ -394,6 +467,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                     />
                   </div>
                 ))}
+                <WeightField
+                  label="Peso"
+                  valueKg={state.packagedWeightKg}
+                  unit={pkgWeightUnit}
+                  onUnitChange={setPkgWeightUnit}
+                  onChange={v => update({ packagedWeightKg: v })}
+                />
               </div>
 
               {/* Special handling */}
@@ -435,84 +515,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               )}
             </section>
 
-            {/* 5. Shipping origin — auto-inferred */}
-            <section className="p-6 rounded-2xl" style={cardStyle}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="material-symbols-outlined text-[#54433e]/40 text-xl">pin_drop</span>
-                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Origen de despacho
-                </label>
-                <AiBadge />
-              </div>
-
-              {inferredOrigin && !editingOrigin ? (
-                state.shippingOrigin === inferredOrigin ? (
-                  /* ── Confirmed state ── */
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ec6d13]/8 border border-[#ec6d13]/20">
-                      <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">check_circle</span>
-                      <span className="text-[12px] font-[700] text-[#151b2d]">{inferredOrigin}</span>
-                    </div>
-                    <button
-                      onClick={() => { setEditingOrigin(true); update({ shippingOrigin: '' }); }}
-                      className="text-[10px] font-[800] text-[#54433e]/50 uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
-                    >
-                      Cambiar
-                    </button>
-                  </div>
-                ) : (
-                  /* ── Suggestion state ── */
-                  <>
-                    <p className="text-[11px] text-[#54433e]/60 mb-3">
-                      Detectamos que despachas desde <span className="font-[700] text-[#151b2d]">{inferredOrigin}</span> según tu perfil.
-                    </p>
-                    <div className="flex items-center gap-3 mb-2">
-                      <button
-                        onClick={() => { update({ shippingOrigin: inferredOrigin }); setEditingOrigin(false); }}
-                        className="px-4 py-2 rounded-lg text-[10px] font-[800] uppercase tracking-widest border border-[#ec6d13]/30 text-[#ec6d13] hover:bg-[#ec6d13]/5 transition-all"
-                      >
-                        Confirmar
-                      </button>
-                      <button
-                        onClick={() => setEditingOrigin(true)}
-                        className="text-[10px] font-[800] text-[#54433e]/40 uppercase tracking-widest hover:text-[#54433e]/70 transition-colors"
-                      >
-                        Escribir otra dirección
-                      </button>
-                    </div>
-                  </>
-                )
-              ) : (
-                /* ── Manual input state ── */
-                <>
-                  {inferredOrigin && (
-                    <p className="text-[11px] text-[#54433e]/60 mb-2">
-                      Escribe la dirección de despacho o{' '}
-                      <button
-                        onClick={() => { setEditingOrigin(false); update({ shippingOrigin: inferredOrigin }); }}
-                        className="font-[700] text-[#ec6d13] hover:underline"
-                      >
-                        usar {inferredOrigin}
-                      </button>
-                    </p>
-                  )}
-                  {!inferredOrigin && (
-                    <p className="text-[11px] text-[#54433e]/60 mb-2">
-                      Indica desde dónde despachas esta pieza.
-                    </p>
-                  )}
-                  <input
-                    type="text"
-                    value={state.shippingOrigin ?? ''}
-                    onChange={e => update({ shippingOrigin: e.target.value })}
-                    placeholder="Ej: Ráquira, Boyacá"
-                    autoFocus
-                    className="w-full rounded-lg border border-[#151b2d]/30 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#151b2d] focus:ring-2 focus:ring-[#151b2d]/8 hover:border-[#151b2d]/50 transition-all placeholder:text-[#54433e]/40"
-                    style={{ background: 'rgba(247,244,239,0.4)' }}
-                  />
-                </>
-              )}
-            </section>
           </div>
         </div>
       </main>
@@ -525,6 +527,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
+        leftOffset={80}
       />
     </div>
   );

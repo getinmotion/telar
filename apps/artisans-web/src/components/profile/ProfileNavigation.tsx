@@ -1,26 +1,22 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { 
-  User, 
-  Store, 
-  Settings, 
-  CreditCard, 
-  Bell, 
-  Shield, 
+import {
+  User,
+  Store,
+  Settings,
+  Bell,
+  Shield,
   HelpCircle,
   LogOut,
-  FileText
 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-export type ProfileSection = 
-  | 'personal' 
-  | 'shop' 
-  | 'preferences' 
-  | 'payment' 
-  | 'fiscal'
-  | 'notifications' 
-  | 'security' 
+export type ProfileSection =
+  | 'personal'
+  | 'shop'
+  | 'preferences'
+  | 'notifications'
+  | 'security'
   | 'support';
 
 interface NavItem {
@@ -34,8 +30,6 @@ const navItems: NavItem[] = [
   { id: 'personal', label: 'Información Personal', shortLabel: 'Personal', icon: User },
   { id: 'shop', label: 'Mi Taller', shortLabel: 'Taller', icon: Store },
   { id: 'preferences', label: 'Preferencias', shortLabel: 'Ajustes', icon: Settings },
-  { id: 'payment', label: 'Métodos de Pago', shortLabel: 'Pagos', icon: CreditCard },
-  { id: 'fiscal', label: 'Información Fiscal', shortLabel: 'Fiscal', icon: FileText },
   { id: 'notifications', label: 'Notificaciones', shortLabel: 'Alertas', icon: Bell },
   { id: 'security', label: 'Seguridad', shortLabel: 'Seguridad', icon: Shield },
   { id: 'support', label: 'Soporte', shortLabel: 'Ayuda', icon: HelpCircle },

@@ -75,13 +75,6 @@ export default function PublicShopPageNew() {
     return products.filter(p => p.category === filter);
   }, [products, filter]);
 
-  const galleryPhotos = useMemo(() => ([
-    ...(artisanProfile?.workingPhotos   ?? []),
-    ...(artisanProfile?.maestrosPhotos  ?? []),
-    ...(artisanProfile?.communityPhotos ?? []),
-    ...(artisanProfile?.environmentPhotos ?? []),
-  ] as string[]).filter(Boolean).slice(0, 4), [artisanProfile]);
-
   const handleProduct = (id: string) =>
     navigate(`/tienda/${shopSlug}/producto/${id}${isPreview ? '?preview=true' : ''}`);
 
@@ -334,23 +327,8 @@ export default function PublicShopPageNew() {
             </div>
           </section>
 
-          {/* ── 7. Galería humana + CTA final ──────────────────────────── */}
+          {/* ── 7. CTA final ───────────────────────────────────────────── */}
           <section>
-            {galleryPhotos.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4" style={{ height: 200 }}>
-                {galleryPhotos.map((url, i) => (
-                  <div key={i} className="relative overflow-hidden border-r last:border-r-0" style={{ borderColor: `${T.dark}10` }}>
-                    <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  </div>
-                ))}
-                {Array.from({ length: Math.max(0, 4 - galleryPhotos.length) }).map((_, i) => (
-                  <div key={`e${i}`} className="flex items-center justify-center border-r last:border-r-0"
-                    style={{ background: `${T.dark}04`, borderColor: `${T.dark}10` }}>
-                    <LabelCaps>Galería humana</LabelCaps>
-                  </div>
-                ))}
-              </div>
-            )}
             <div className="p-10 flex flex-col items-center text-center gap-7" style={{ paddingTop: 72, paddingBottom: 72 }}>
               <div className="space-y-3 max-w-lg">
                 <HeadingSerif size={38}>Lleva una historia hecha a mano</HeadingSerif>
