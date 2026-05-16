@@ -7,8 +7,6 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -43,6 +41,26 @@ export const SECTION_TYPE_META: Record<string, { icon: string; label: string; de
   embedded_widget:     { icon: 'widgets',            label: 'Widget',             description: 'Widget embebido (categ., productos…)' },
 };
 
+// ─── Sub-card helpers (wizard glass-morphism style) ───────────────────────────
+function SubCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={`rounded-2xl p-4 space-y-3 ${className ?? ''}`}
+      style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.65)' }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SubCardLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[9px] font-[800] uppercase tracking-widest mb-1.5" style={{ color: ORANGE_MID }}>
+      {children}
+    </p>
+  );
+}
+
 // ─── Icon button helper (used internally by HomeHeroCarouselForm) ─────────────
 function IconBtn({ onClick, disabled, title, danger, children }: {
   onClick: () => void;
@@ -56,15 +74,13 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
       onClick={onClick}
       disabled={disabled}
       title={title}
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 28, height: 28, borderRadius: 8, border: 'none',
-        background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-        color: disabled ? 'rgba(84,67,62,0.2)' : danger ? '#dc2626' : 'rgba(84,67,62,0.5)',
-        transition: 'background 0.1s, color 0.1s',
-      }}
-      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLButtonElement).style.background = danger ? 'rgba(220,38,38,0.06)' : 'rgba(84,67,62,0.06)'; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+      className={[
+        'flex items-center justify-center w-7 h-7 rounded-lg bg-transparent border-none transition-colors',
+        disabled ? 'cursor-not-allowed opacity-20' : 'cursor-pointer',
+        danger
+          ? 'text-red-600 hover:bg-red-50'
+          : 'text-[#54433e]/50 hover:bg-[#54433e]/[0.06]',
+      ].join(' ')}
     >
       {children}
     </button>
@@ -72,13 +88,29 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
 }
 
 // ─── Shared field components ──────────────────────────────────────────────────
+const fieldInput = [
+  'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5',
+  'text-[13px] font-[500] text-[#151b2d] placeholder:text-[#151b2d]/30',
+  'focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10',
+  'hover:border-[#e2d5cf]/70 transition-all',
+].join(' ');
+
+const fieldLabel = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1.5";
+
 export function FieldText({ label, value, onChange, placeholder }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-widest">{label}</Label>
-      <Input value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    <div>
+      <label className={fieldLabel}>{label}</label>
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={fieldInput}
+        style={{ background: 'rgba(247,244,239,0.4)' }}
+      />
     </div>
   );
 }
@@ -87,9 +119,15 @@ export function FieldArea({ label, value, onChange, rows = 3 }: {
   label: string; value: string; onChange: (v: string) => void; rows?: number;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-widest">{label}</Label>
-      <Textarea rows={rows} value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+    <div>
+      <label className={fieldLabel}>{label}</label>
+      <textarea
+        rows={rows}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        className={[fieldInput, 'resize-none leading-relaxed'].join(' ')}
+        style={{ background: 'rgba(247,244,239,0.4)' }}
+      />
     </div>
   );
 }
@@ -128,12 +166,12 @@ export function TwoColumnIntroForm({ draft, setField, setNested }: any) {
       <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[0, 1].map((i) => (
-          <div key={i} style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 16 }} className="space-y-3">
-            <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: ORANGE_MID, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Columna {i + 1}</p>
+          <SubCard key={i}>
+            <SubCardLabel>Columna {i + 1}</SubCardLabel>
             <FieldText label="Kicker" value={cols[i]?.kicker ?? ''} onChange={(v) => setNested(['columns', i, 'kicker'], v)} />
             <FieldText label="Título" value={cols[i]?.title ?? ''} onChange={(v) => setNested(['columns', i, 'title'], v)} />
             <FieldArea label="Cuerpo" value={cols[i]?.body ?? ''} onChange={(v) => setNested(['columns', i, 'body'], v)} />
-          </div>
+          </SubCard>
         ))}
       </div>
     </div>
@@ -148,13 +186,13 @@ export function TechniqueGridForm({ draft, setField, setNested }: any) {
       <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cards.map((card: any, i: number) => (
-          <div key={i} style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 16 }} className="space-y-3">
-            <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: ORANGE_MID, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Card {i + 1}</p>
+          <SubCard key={i}>
+            <SubCardLabel>Card {i + 1}</SubCardLabel>
             <FieldText label="Título" value={card.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
             <FieldArea label="Cuerpo" value={card.body ?? ''} onChange={(v) => setNested(['cards', i, 'body'], v)} />
             <FieldText label="Slug (opcional)" value={card.slug ?? ''} onChange={(v) => setNested(['cards', i, 'slug'], v)} placeholder="tallado, calado…" />
             <FieldText label="Image key (técnica)" value={card.imageKey ?? ''} onChange={(v) => setNested(['cards', i, 'imageKey'], v)} placeholder="Tallado" />
-          </div>
+          </SubCard>
         ))}
       </div>
     </div>
@@ -208,13 +246,13 @@ export function EditorialFooterForm({ draft, setField, setNested }: any) {
       <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
       <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
       <div>
-        <Label className="text-xs uppercase tracking-widest mb-2 block">Links</Label>
+        <label className={fieldLabel}>Links</label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 12 }} className="space-y-2">
+            <SubCard key={i} className="!p-3 !space-y-2">
               <FieldText label={`Link ${i + 1}`} value={links[i]?.label ?? ''} onChange={(v) => setNested(['links', i, 'label'], v)} />
               <FieldText label="href" value={links[i]?.href ?? ''} onChange={(v) => setNested(['links', i, 'href'], v)} placeholder="/historias" />
-            </div>
+            </SubCard>
           ))}
         </div>
       </div>
@@ -237,11 +275,12 @@ export function HomeValuePropsForm({ draft, setNested }: any) {
   const cards = draft.cards ?? [];
   return (
     <div className="space-y-4">
-      <Label className="text-xs uppercase tracking-widest">Cards (3)</Label>
+      <label className={fieldLabel}>Cards (3)</label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[0, 1, 2].map((i) => (
-          <div key={i} style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 16 }} className="space-y-3">
-            <FieldText label={`Título ${i + 1}`} value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
+          <SubCard key={i}>
+            <SubCardLabel>Card {i + 1}</SubCardLabel>
+            <FieldText label="Título" value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
             <FieldArea label="Cuerpo" value={cards[i]?.body ?? ''} onChange={(v) => setNested(['cards', i, 'body'], v)} rows={3} />
             <ImageUploadField
               label="Imagen (opcional)"
@@ -249,7 +288,7 @@ export function HomeValuePropsForm({ draft, setNested }: any) {
               onChange={(v) => setNested(['cards', i, 'imageUrl'], v)}
               previewAspect="1/1"
             />
-          </div>
+          </SubCard>
         ))}
       </div>
     </div>
@@ -284,7 +323,7 @@ export function EmbeddedWidgetForm({ draft, setField }: any) {
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label className="text-xs uppercase tracking-widest">Widget</Label>
+        <label className={fieldLabel}>Widget</label>
         <Select value={widget} onValueChange={(v) => setField('widget', v)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -327,7 +366,7 @@ export function ContentPickForm({ draft, setField }: any) {
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-xs uppercase tracking-widest">Tipo de destino</Label>
+          <label className={fieldLabel}>Tipo de destino</label>
           <Select value={draft.targetType ?? 'collection'} onValueChange={(v) => setField('targetType', v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -337,7 +376,7 @@ export function ContentPickForm({ draft, setField }: any) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs uppercase tracking-widest">Variante visual</Label>
+          <label className={fieldLabel}>Variante visual</label>
           <Select value={draft.variant ?? 'banner'} onValueChange={(v) => setField('variant', v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -358,7 +397,7 @@ export function ContentPickForm({ draft, setField }: any) {
         <FieldText label="Label / pill (ej. Editorial)" value={draft.label ?? ''} onChange={(v) => setField('label', v)} />
         <FieldText label={`CTA texto (default: ${isBlog ? 'Leer historia' : 'Ver colección'})`} value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
       </div>
-      <div style={{ borderTop: '1px solid rgba(236,109,19,0.08)', paddingTop: 12 }}>
+      <div className="border-t border-[#ec6d13]/[0.08] pt-3">
         <p className="text-xs text-muted-foreground mb-3">
           Overrides opcionales — pisan los datos del doc referenciado.
         </p>
@@ -379,7 +418,7 @@ export function HomeBlockForm({ draft, setField }: any) {
     <div className="space-y-4">
       <FieldText label="Slot (marketplace_diferente | comercio_justo | …)" value={draft.slot ?? ''} onChange={(v) => setField('slot', v)} />
       <div className="space-y-1.5">
-        <Label className="text-xs uppercase tracking-widest">Variante</Label>
+        <label className={fieldLabel}>Variante</label>
         <Select value={draft.variant ?? 'light'} onValueChange={(v) => setField('variant', v)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -432,10 +471,8 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
 
   return (
     <div className="space-y-6">
-      <div style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 16 }} className="space-y-3">
-        <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: ORANGE_MID, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
-          Contenido compartido (todas las slides)
-        </p>
+      <SubCard>
+        <SubCardLabel>Contenido compartido (todas las slides)</SubCardLabel>
         <FieldArea label="Descripción (párrafo)" value={draft.description ?? ''} onChange={(v) => setField('description', v)} rows={2} />
         <FieldText label="Tagline (UPPERCASE)" value={draft.tagline ?? ''} onChange={(v) => setField('tagline', v)} placeholder="Hecho a mano por talleres..." />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -444,42 +481,38 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
           <FieldText label="CTA secundario — texto" value={draft.secondaryCtaLabel ?? ''} onChange={(v) => setField('secondaryCtaLabel', v)} placeholder="Conocer Talleres" />
           <FieldText label="CTA secundario — link" value={draft.secondaryCtaHref ?? ''} onChange={(v) => setField('secondaryCtaHref', v)} placeholder="/tiendas" />
         </div>
-        <div className="space-y-1.5 max-w-xs">
-          <Label className="text-xs uppercase tracking-widest">Autoplay (seg)</Label>
-          <Input
+        <div className="max-w-xs">
+          <label className={fieldLabel}>Autoplay (seg)</label>
+          <input
             type="number" min={2} max={30}
             value={draft.autoplaySeconds ?? 6}
             onChange={(e) => setField('autoplaySeconds', parseInt(e.target.value, 10) || 6)}
+            className={fieldInput}
+            style={{ background: 'rgba(247,244,239,0.4)' }}
           />
         </div>
-      </div>
+      </SubCard>
 
       <div className="flex items-center justify-between">
-        <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#151b2d' }}>Slides ({slides.length})</p>
+        <p className="text-[12px] font-bold text-[#151b2d]">Slides ({slides.length})</p>
         <button
           type="button"
           onClick={addSlide}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '4px 12px', borderRadius: 16,
-            background: 'rgba(236,109,19,0.08)', color: ORANGE_MID,
-            border: '1px solid rgba(236,109,19,0.2)', cursor: 'pointer',
-            fontFamily: SANS, fontSize: 11, fontWeight: 700,
-          }}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border bg-[#ec6d13]/[0.08] text-[#c45a0a] border-[#ec6d13]/20 hover:bg-[#ec6d13]/[0.15] transition-colors"
         >
-          <Plus style={{ width: 12, height: 12 }} /> Añadir slide
+          <Plus className="w-3 h-3" /> Añadir slide
         </button>
       </div>
 
       <div className="space-y-3">
         {slides.map((slide, i) => (
-          <div key={i} style={{ background: 'rgba(236,109,19,0.04)', border: '1px solid rgba(236,109,19,0.1)', borderRadius: 12, padding: 16 }}>
-            <div className="flex items-center justify-between mb-3">
-              <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: ORANGE_MID }}>Slide #{i + 1}</p>
+          <SubCard key={i}>
+            <div className="flex items-center justify-between">
+              <SubCardLabel>Slide #{i + 1}</SubCardLabel>
               <div className="flex items-center gap-1">
-                <IconBtn disabled={i === 0} onClick={() => moveSlide(i, -1)} title="Subir"><ArrowUp style={{ width: 12, height: 12 }} /></IconBtn>
-                <IconBtn disabled={i === slides.length - 1} onClick={() => moveSlide(i, 1)} title="Bajar"><ArrowDown style={{ width: 12, height: 12 }} /></IconBtn>
-                <IconBtn onClick={() => removeSlide(i)} danger title="Eliminar"><Trash2 style={{ width: 12, height: 12 }} /></IconBtn>
+                <IconBtn disabled={i === 0} onClick={() => moveSlide(i, -1)} title="Subir"><ArrowUp className="w-3 h-3" /></IconBtn>
+                <IconBtn disabled={i === slides.length - 1} onClick={() => moveSlide(i, 1)} title="Bajar"><ArrowDown className="w-3 h-3" /></IconBtn>
+                <IconBtn onClick={() => removeSlide(i)} danger title="Eliminar"><Trash2 className="w-3 h-3" /></IconBtn>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -488,20 +521,18 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
               <FieldText label="Origen" value={slide.origin ?? ''} onChange={(v) => setNested(['slides', i, 'origin'], v)} placeholder="Nariño, Colombia" />
               <FieldText label="Quote" value={slide.quote ?? ''} onChange={(v) => setNested(['slides', i, 'quote'], v)} placeholder="Cada puntada..." />
             </div>
-            <div className="mt-3">
-              <ImageUploadField
-                label="Imagen del slide"
-                value={slide.imageUrl ?? ''}
-                onChange={(v) => setNested(['slides', i, 'imageUrl'], v)}
-                altValue={slide.imageAlt ?? ''}
-                onAltChange={(v) => setNested(['slides', i, 'imageAlt'], v)}
-                previewAspect="4/3"
-              />
-            </div>
-          </div>
+            <ImageUploadField
+              label="Imagen del slide"
+              value={slide.imageUrl ?? ''}
+              onChange={(v) => setNested(['slides', i, 'imageUrl'], v)}
+              altValue={slide.imageAlt ?? ''}
+              onAltChange={(v) => setNested(['slides', i, 'imageAlt'], v)}
+              previewAspect="4/3"
+            />
+          </SubCard>
         ))}
         {slides.length === 0 && (
-          <p style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.4)' }}>
+          <p className="text-[12px] text-[#54433e]/40">
             No hay slides. Añade al menos uno.
           </p>
         )}
@@ -523,7 +554,7 @@ export function RawJsonForm({
 
   return (
     <div className="space-y-2">
-      <Label className="text-xs uppercase tracking-widest">Payload JSON (tipo desconocido)</Label>
+      <label className={fieldLabel}>Payload JSON (tipo desconocido)</label>
       <Textarea
         rows={12}
         value={text}

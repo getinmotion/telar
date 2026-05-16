@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { XCircle, Loader2, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { SANS, SERIF } from '@/components/dashboard/dashboardStyles';
+
+const C = '#dc2626';
+const rgba = (a: number) => `rgba(239,68,68,${a})`;
 
 export type RejectionReasonType =
   | 'quality_insufficient'
@@ -24,47 +25,18 @@ const REJECTION_REASONS: {
   hint: string;
   severity: 'high' | 'medium';
 }[] = [
-  {
-    value: 'quality_insufficient',
-    label: 'Calidad insuficiente',
-    hint: 'Imágenes borrosas, descripción muy incompleta o pieza no lista para el marketplace.',
-    severity: 'medium',
-  },
-  {
-    value: 'inconsistent_info',
-    label: 'Información inconsistente',
-    hint: 'El nombre, categoría o materiales no corresponden al producto real.',
-    severity: 'medium',
-  },
-  {
-    value: 'policy_violation',
-    label: 'No cumple políticas',
-    hint: 'Viola los términos del marketplace (producto prohibido, derechos, etc.).',
-    severity: 'high',
-  },
-  {
-    value: 'fraud',
-    label: 'Posible fraude',
-    hint: 'Producto falso, copiado o de dudosa procedencia.',
-    severity: 'high',
-  },
-  {
-    value: 'duplicate',
-    label: 'Duplicado grave',
-    hint: 'Ya existe esta pieza publicada con información idéntica.',
-    severity: 'medium',
-  },
-  {
-    value: 'invalid_content',
-    label: 'Contenido inválido',
-    hint: 'Producto vacío, incompleto o sin relación con artesanías.',
-    severity: 'medium',
-  },
+  { value: 'quality_insufficient', label: 'Calidad insuficiente', hint: 'Imágenes borrosas, descripción muy incompleta o pieza no lista para el marketplace.', severity: 'medium' },
+  { value: 'inconsistent_info',    label: 'Información inconsistente', hint: 'El nombre, categoría o materiales no corresponden al producto real.', severity: 'medium' },
+  { value: 'policy_violation',     label: 'No cumple políticas', hint: 'Viola los términos del marketplace (producto prohibido, derechos, etc.).', severity: 'high' },
+  { value: 'fraud',                label: 'Posible fraude', hint: 'Producto falso, copiado o de dudosa procedencia.', severity: 'high' },
+  { value: 'duplicate',            label: 'Duplicado grave', hint: 'Ya existe esta pieza publicada con información idéntica.', severity: 'medium' },
+  { value: 'invalid_content',      label: 'Contenido inválido', hint: 'Producto vacío, incompleto o sin relación con artesanías.', severity: 'medium' },
 ];
 
 export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderating }) => {
   const [selectedReason, setSelectedReason] = useState<RejectionReasonType | null>(null);
   const [comment, setComment] = useState('');
+  const [hoveredReason, setHoveredReason] = useState<string | null>(null);
 
   const canSubmit = selectedReason && comment.trim().length >= 20;
 
@@ -74,63 +46,56 @@ export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderati
   };
 
   return (
-    <div className="flex flex-col min-h-full">
-      {/* Header de advertencia */}
-      <div className="flex items-start gap-3 border-b border-red-200 bg-red-700 px-5 py-4">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/20">
-          <AlertTriangle className="h-5 w-5 text-white" strokeWidth={1.8} />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: '#b91c1c', padding: '16px 20px', borderBottom: `1px solid rgba(239,68,68,0.4)` }}>
+        <div style={{ width: 36, height: 36, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, background: 'rgba(255,255,255,0.2)' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'white' }}>warning</span>
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">No disponible para el marketplace</p>
-          <p className="text-xs text-red-100 mt-0.5">
+          <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: 'white', margin: 0 }}>No disponible para el marketplace</p>
+          <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
             Acción permanente. El artesano recibirá tu retroalimentación por correo.
           </p>
         </div>
       </div>
 
-      {/* Motivos */}
-      <div className="flex-1 space-y-4 p-4">
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold text-red-900 uppercase tracking-wide">
+      {/* Content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: 16 }}>
+        {/* Motivos */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: C }}>
             Motivo principal
-          </Label>
-          <div className="grid grid-cols-1 gap-2">
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {REJECTION_REASONS.map(({ value, label, hint, severity }) => {
               const isSelected = selectedReason === value;
+              const isHovered = hoveredReason === value;
               return (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setSelectedReason(value)}
-                  className={cn(
-                    'rounded-xl border-2 px-4 py-3 text-left transition-all',
-                    isSelected
-                      ? severity === 'high'
-                        ? 'border-red-500 bg-red-50 ring-2 ring-red-200'
-                        : 'border-red-400 bg-red-50 ring-2 ring-red-100'
-                      : 'border-gray-200 bg-white hover:border-red-200 hover:bg-red-50/40',
-                  )}
+                  onMouseEnter={() => setHoveredReason(value)}
+                  onMouseLeave={() => setHoveredReason(null)}
+                  style={{
+                    borderRadius: 10, padding: '10px 14px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.12s',
+                    border: isSelected ? `2px solid ${C}` : `1.5px solid ${isHovered ? rgba(0.25) : rgba(0.12)}`,
+                    background: isSelected ? rgba(0.05) : isHovered ? rgba(0.03) : 'rgba(255,255,255,0.8)',
+                    ...(isSelected ? { boxShadow: `0 0 0 3px ${rgba(0.12)}` } : {}),
+                  }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className={cn(
-                      'text-sm font-semibold',
-                      isSelected ? 'text-red-800' : 'text-gray-700',
-                    )}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: isSelected ? C : '#151b2d' }}>
                       {label}
                     </span>
                     {severity === 'high' && (
-                      <span className={cn(
-                        'rounded-full px-2 py-0.5 text-[10px] font-bold',
-                        isSelected ? 'bg-red-200 text-red-800' : 'bg-gray-100 text-gray-500',
-                      )}>
+                      <span style={{ borderRadius: 9999, padding: '1px 7px', fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: isSelected ? rgba(0.12) : 'rgba(84,67,62,0.06)', color: isSelected ? C : 'rgba(84,67,62,0.5)' }}>
                         GRAVE
                       </span>
                     )}
                   </div>
-                  <p className={cn(
-                    'text-xs mt-0.5 leading-relaxed',
-                    isSelected ? 'text-red-600' : 'text-gray-500',
-                  )}>
+                  <p style={{ fontFamily: SANS, fontSize: 11, marginTop: 2, lineHeight: 1.45, color: isSelected ? rgba(0.8) : 'rgba(84,67,62,0.55)', margin: '3px 0 0' }}>
                     {hint}
                   </p>
                 </button>
@@ -140,15 +105,12 @@ export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderati
         </div>
 
         {/* Retroalimentación */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-semibold text-red-900 uppercase tracking-wide">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: C }}>
               Retroalimentación al artesano
-            </Label>
-            <span className={cn(
-              'text-[10px] font-medium',
-              comment.trim().length >= 20 ? 'text-red-500' : 'text-gray-400',
-            )}>
+            </label>
+            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: comment.trim().length >= 20 ? C : 'rgba(84,67,62,0.35)' }}>
               {comment.trim().length}/20 mín.
             </span>
           </div>
@@ -157,32 +119,36 @@ export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderati
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            className="text-sm bg-white border-red-200 focus-visible:ring-red-400 resize-none"
+            className="text-sm bg-white resize-none"
           />
         </div>
       </div>
 
-      {/* CTA con peso visual fuerte */}
-      <div className="border-t-2 border-red-200 bg-red-50 p-5 space-y-2">
+      {/* CTA */}
+      <div style={{ borderTop: `2px solid ${rgba(0.15)}`, background: rgba(0.04), padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {selectedReason && (
-          <p className="text-center text-xs text-red-600 font-medium">
-            Motivo seleccionado: <span className="font-bold">
-              {REJECTION_REASONS.find(r => r.value === selectedReason)?.label}
-            </span>
+          <p style={{ fontFamily: SANS, fontSize: 11, color: C, fontWeight: 600, textAlign: 'center', margin: 0 }}>
+            Motivo: <span style={{ fontWeight: 800 }}>{REJECTION_REASONS.find(r => r.value === selectedReason)?.label}</span>
           </p>
         )}
-        <Button
+        <button
           onClick={handleReject}
           disabled={moderating || !canSubmit}
-          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-40"
+          style={{
+            width: '100%', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            borderRadius: 10, border: 'none', cursor: (moderating || !canSubmit) ? 'not-allowed' : 'pointer',
+            background: C, color: 'white',
+            fontFamily: SANS, fontSize: 14, fontWeight: 800,
+            opacity: (moderating || !canSubmit) ? 0.4 : 1, transition: 'all 0.15s',
+          }}
         >
           {moderating ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
           ) : (
-            <XCircle className="h-4 w-4 mr-2" />
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>cancel</span>
           )}
           Confirmar — no publicar esta pieza
-        </Button>
+        </button>
       </div>
     </div>
   );

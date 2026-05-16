@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ImageOff, MapPin, Palette, Package, ChevronLeft, ChevronRight, Tag, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ImageOff, MapPin, Palette, Package, ChevronLeft, ChevronRight, Tag, ExternalLink } from 'lucide-react';
 import { ModerationStatusBadge } from '../ModerationStatusBadge';
 import { formatCurrency } from '@/utils/currency';
+import { SANS, SERIF } from '@/components/dashboard/dashboardStyles';
 import type { ModerationProduct } from '@/hooks/useProductModeration';
 
 interface WorkspaceLeftProps {
@@ -14,22 +15,22 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
   const hasShop = !!product.artisan_shops;
 
   return (
-    <div className="flex flex-col overflow-y-auto bg-white">
+    <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', background: 'white' }}>
       {/* ── Hero image gallery ─────────────────────────────── */}
-      <div className="relative bg-gray-100">
-        <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">
+      <div style={{ position: 'relative', background: '#f3f4f6' }}>
+        <div style={{ aspectRatio: '4/3', width: '100%', overflow: 'hidden', background: '#f3f4f6' }}>
           {images.length > 0 ? (
             <img
               key={activeImg}
               src={images[activeImg]}
               alt={product.name}
-              className="h-full w-full object-cover"
+              style={{ height: '100%', width: '100%', objectFit: 'cover' }}
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-300">
-              <ImageOff className="h-12 w-12" />
-              <span className="text-sm">Sin fotos</span>
+            <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#d1d5db' }}>
+              <ImageOff style={{ width: 48, height: 48 }} />
+              <span style={{ fontFamily: SANS, fontSize: 13 }}>Sin fotos</span>
             </div>
           )}
         </div>
@@ -39,30 +40,35 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
           <>
             <button
               onClick={() => setActiveImg((p) => (p - 1 + images.length) % images.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-1.5 shadow-md hover:bg-white transition-colors"
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', borderRadius: 9999, background: 'rgba(255,255,255,0.92)', padding: 6, boxShadow: '0 1px 4px rgba(21,27,45,0.12)', border: 'none', cursor: 'pointer', display: 'flex' }}
             >
-              <ChevronLeft className="h-4 w-4 text-gray-700" />
+              <ChevronLeft style={{ width: 16, height: 16, color: '#374151' }} />
             </button>
             <button
               onClick={() => setActiveImg((p) => (p + 1) % images.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-1.5 shadow-md hover:bg-white transition-colors"
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', borderRadius: 9999, background: 'rgba(255,255,255,0.92)', padding: 6, boxShadow: '0 1px 4px rgba(21,27,45,0.12)', border: 'none', cursor: 'pointer', display: 'flex' }}
             >
-              <ChevronRight className="h-4 w-4 text-gray-700" />
+              <ChevronRight style={{ width: 16, height: 16, color: '#374151' }} />
             </button>
           </>
         )}
 
         {/* Image counter */}
         {images.length > 1 && (
-          <div className="absolute bottom-3 right-3 rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white">
+          <div style={{ position: 'absolute', bottom: 12, right: 12, borderRadius: 9999, background: 'rgba(21,27,45,0.55)', padding: '2px 8px', fontFamily: SANS, fontSize: 10, color: 'white' }}>
             {activeImg + 1} / {images.length}
           </div>
         )}
 
         {/* Low-image warning */}
         {images.length < 3 && images.length > 0 && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-medium text-white">
-            <AlertTriangle className="h-3 w-3" />
+          <div style={{
+            position: 'absolute', bottom: 12, left: 12,
+            display: 'flex', alignItems: 'center', gap: 4,
+            borderRadius: 9999, background: 'rgba(245,158,11,0.9)', padding: '4px 10px',
+            fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'white',
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>warning</span>
             Pocas fotos ({images.length}/3)
           </div>
         )}
@@ -70,109 +76,107 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
 
       {/* Thumbnail strip */}
       {images.length > 1 && (
-        <div className="flex gap-1.5 overflow-x-auto bg-gray-50 px-3 py-2 border-b border-gray-100">
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', background: '#f9f9f9', padding: '8px 12px', borderBottom: '1px solid #f0f0f0' }}>
           {images.map((img, i) => (
             <button
               key={i}
               onClick={() => setActiveImg(i)}
-              className={`h-12 w-12 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
-                i === activeImg ? 'border-[#151b2d] opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
-              }`}
+              style={{
+                width: 48, height: 48, flexShrink: 0, borderRadius: 4, overflow: 'hidden',
+                border: `2px solid ${i === activeImg ? '#151b2d' : 'transparent'}`,
+                opacity: i === activeImg ? 1 : 0.55,
+                transition: 'all 0.12s', padding: 0, cursor: 'pointer',
+              }}
             >
-              <img src={img} alt="" className="h-full w-full object-cover" />
+              <img src={img} alt="" style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
             </button>
           ))}
         </div>
       )}
 
       {/* ── Product info ───────────────────────────────────── */}
-      <div className="flex flex-col gap-0">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         {/* Title block */}
-        <div className="px-4 pt-4 pb-3">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h2 className="text-lg font-bold leading-snug text-[#151b2d] flex-1">{product.name}</h2>
+        <div style={{ padding: '16px 16px 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+            <h2 style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 700, lineHeight: 1.3, color: '#151b2d', flex: 1, margin: 0 }}>{product.name}</h2>
             <ModerationStatusBadge status={product.moderation_status} size="sm" />
           </div>
 
           {/* Price + meta row */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-2xl font-bold text-[#151b2d]">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d' }}>
               {formatCurrency(product.price)}
             </span>
             {product.category && (
-              <span className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600">
-                <Tag className="h-3 w-3" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, borderRadius: 9999, border: '1px solid rgba(84,67,62,0.15)', background: 'rgba(84,67,62,0.04)', padding: '2px 8px', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.65)' }}>
+                <Tag style={{ width: 11, height: 11 }} />
                 {product.category}
               </span>
             )}
-            <span className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600">
-              <Package className="h-3 w-3" />
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, borderRadius: 9999, border: '1px solid rgba(84,67,62,0.15)', background: 'rgba(84,67,62,0.04)', padding: '2px 8px', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.65)' }}>
+              <Package style={{ width: 11, height: 11 }} />
               {product.inventory} en stock
             </span>
           </div>
 
           {/* Short description */}
           {product.short_description && (
-            <p className="mt-2 text-sm text-gray-500 leading-relaxed">{product.short_description}</p>
+            <p style={{ marginTop: 8, fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.6)', lineHeight: 1.5, margin: '8px 0 0' }}>{product.short_description}</p>
           )}
         </div>
 
-        {/* ── Divider ── */}
-        <div className="h-px bg-gray-100 mx-4" />
+        <div style={{ height: 1, background: 'rgba(84,67,62,0.06)', margin: '0 16px' }} />
 
         {/* ── Shop card ─────────────────────────────────────── */}
         {hasShop && (
-          <div className="px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Taller artesano</p>
-            <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+          <div style={{ padding: '12px 16px' }}>
+            <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(84,67,62,0.4)', marginBottom: 8 }}>Taller artesano</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderRadius: 12, border: '1px solid rgba(84,67,62,0.08)', background: 'rgba(84,67,62,0.03)', padding: 12 }}>
               {product.artisan_shops!.logo_url ? (
                 <img
                   src={product.artisan_shops!.logo_url}
                   alt={product.artisan_shops!.shop_name}
-                  className="h-11 w-11 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
+                  style={{ width: 44, height: 44, borderRadius: 9999, objectFit: 'cover', border: '2px solid white', boxShadow: '0 1px 4px rgba(21,27,45,0.08)', flexShrink: 0 }}
                 />
               ) : (
-                <div className="h-11 w-11 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-gray-500">
+                <div style={{ width: 44, height: 44, borderRadius: 9999, background: 'linear-gradient(135deg, #e5e7eb, #d1d5db)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#6b7280' }}>
                     {product.artisan_shops!.shop_name?.[0]?.toUpperCase()}
                   </span>
                 </div>
               )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#151b2d] leading-tight">{product.artisan_shops!.shop_name}</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', lineHeight: 1.2, margin: 0 }}>{product.artisan_shops!.shop_name}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 12px', marginTop: 2 }}>
                   {product.artisan_shops!.region && (
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                      <MapPin className="h-3 w-3 text-gray-400" />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)' }}>
+                      <MapPin style={{ width: 11, height: 11 }} />
                       {product.artisan_shops!.region}
                     </span>
                   )}
                   {product.artisan_shops!.craft_type && (
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                      <Palette className="h-3 w-3 text-gray-400" />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)' }}>
+                      <Palette style={{ width: 11, height: 11 }} />
                       {product.artisan_shops!.craft_type}
                     </span>
                   )}
                 </div>
               </div>
-              <ExternalLink className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />
+              <ExternalLink style={{ width: 13, height: 13, color: 'rgba(84,67,62,0.25)', flexShrink: 0 }} />
             </div>
           </div>
         )}
 
-        {/* ── Divider ── */}
-        {hasShop && <div className="h-px bg-gray-100 mx-4" />}
+        {hasShop && <div style={{ height: 1, background: 'rgba(84,67,62,0.06)', margin: '0 16px' }} />}
 
         {/* ── Materials ─────────────────────────────────────── */}
         {product.materials && product.materials.length > 0 && (
-          <div className="px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Materiales</p>
-            <div className="flex flex-wrap gap-1.5">
+          <div style={{ padding: '12px 16px' }}>
+            <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(84,67,62,0.4)', marginBottom: 8 }}>Materiales</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {product.materials.map((m, i) => (
-                <span
-                  key={i}
-                  className="rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs text-gray-700 shadow-sm"
-                >
+                <span key={i} style={{ borderRadius: 9999, border: '1px solid rgba(84,67,62,0.12)', background: 'white', padding: '2px 10px', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.7)', boxShadow: '0 1px 2px rgba(21,27,45,0.04)' }}>
                   {m}
                 </span>
               ))}
@@ -180,17 +184,20 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
           </div>
         )}
 
-        {/* ── Divider ── */}
-        {product.materials && product.materials.length > 0 && <div className="h-px bg-gray-100 mx-4" />}
+        {product.materials && product.materials.length > 0 && <div style={{ height: 1, background: 'rgba(84,67,62,0.06)', margin: '0 16px' }} />}
 
         {/* ── Historia ──────────────────────────────────────── */}
         {product.description && (
-          <div className="px-4 py-3 pb-6">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Historia del producto</p>
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
+          <div style={{ padding: '12px 16px 24px' }}>
+            <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(84,67,62,0.4)', marginBottom: 8 }}>Historia del producto</p>
+            <p style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.7)', lineHeight: 1.6, whiteSpace: 'pre-line', margin: 0 }}>{product.description}</p>
             {product.description.length < 80 && (
-              <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+              <div style={{
+                marginTop: 8, display: 'flex', alignItems: 'center', gap: 6,
+                borderRadius: 8, border: '1px solid rgba(245,158,11,0.2)', background: 'rgba(245,158,11,0.06)',
+                padding: '6px 12px', fontFamily: SANS, fontSize: 11, color: '#b45309',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 13, flexShrink: 0 }}>warning</span>
                 Historia muy corta — se recomienda mínimo 80 caracteres
               </div>
             )}

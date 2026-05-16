@@ -1,21 +1,5 @@
-/**
- * ImageUploadField — input reutilizable para imágenes del CMS.
- *
- * Combina:
- *  - Botón "Subir imagen" (S3 vía /file-upload/image, optimización + validación)
- *  - Preview con botón "Quitar"
- *  - Input de URL manual (para pegar links existentes)
- *  - Input opcional de alt text para accesibilidad
- *
- * El valor se persiste como un string URL público (cdn / s3). Reusa
- * `useImageUpload` cuando la carpeta es PRODUCTS; para cualquier otra carpeta
- * usa `uploadImage` directamente.
- */
 import { useRef, useState } from 'react';
-import { Loader2, Upload, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   uploadImage,
@@ -24,30 +8,28 @@ import {
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
 
 interface ImageUploadFieldProps {
-  /** Current URL value. Empty string when nothing is set. */
   value: string;
-  /** Called whenever the URL changes (upload, paste, or clear). */
   onChange: (url: string) => void;
-  /** S3 folder. Defaults to CMS. */
   folder?: UploadFolder;
-  /** Optional alt-text value (for accessibility) — pass through if you also persist alt. */
   altValue?: string;
-  /** Called whenever alt changes. Omit to hide the alt input. */
   onAltChange?: (alt: string) => void;
-  /** Visible label above the field. */
   label?: string;
-  /** Aspect ratio for the preview thumb. Default '16/9'. */
   previewAspect?: string;
-  /** Max file size in bytes. Default 10MB. */
   maxSizeBytes?: number;
-  /** Accept attribute on the file input. */
   accept?: string;
-  /** Disable when parent is saving. */
   disabled?: boolean;
 }
 
-const DEFAULT_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
 const VALID_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+const fieldLabel = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1.5";
+const fieldInput = [
+  'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2',
+  'text-[12px] font-[500] text-[#151b2d]/60 placeholder:text-[#151b2d]/25 font-mono',
+  'focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10',
+  'hover:border-[#e2d5cf]/70 transition-all',
+].join(' ');
 
 export function ImageUploadField({
   value,
@@ -65,7 +47,6 @@ export function ImageUploadField({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    // Client-side validation
     if (file.size > maxSizeBytes) {
       toast.error(`Imagen muy grande (máx ${Math.round(maxSizeBytes / 1024 / 1024)}MB)`);
       return;
@@ -74,10 +55,8 @@ export function ImageUploadField({
       toast.error('Formato no válido. Usa JPG, PNG o WEBP.');
       return;
     }
-
     setUploading(true);
     try {
-      // Optimize on client to reduce payload
       let toUpload: File;
       try {
         toUpload = await optimizeImage(file, ImageOptimizePresets.product);
@@ -88,9 +67,7 @@ export function ImageUploadField({
       onChange(result.url);
       toast.success('Imagen subida');
     } catch (err: any) {
-      console.error('[ImageUploadField] upload error', err);
-      const msg =
-        err?.response?.data?.message ?? err?.message ?? 'Error subiendo imagen';
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Error subiendo imagen';
       toast.error(typeof msg === 'string' ? msg : 'Error subiendo imagen');
     } finally {
       setUploading(false);
@@ -98,89 +75,99 @@ export function ImageUploadField({
     }
   };
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
+
   return (
     <div className="space-y-2">
-      {label && (
-        <Label className="text-xs uppercase tracking-widest">{label}</Label>
-      )}
-
-      {value ? (
-        <div className="relative">
-          <img
-            src={value}
-            alt={altValue ?? ''}
-            className="w-full object-cover rounded-md border bg-muted"
-            style={{ aspectRatio: previewAspect }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.opacity = '0.3';
-            }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            disabled={disabled}
-            onClick={() => onChange('')}
-            className="absolute top-2 right-2 gap-1"
-          >
-            <X className="w-3 h-3" /> Quitar
-          </Button>
-        </div>
-      ) : (
-        <div
-          className="flex items-center justify-center border border-dashed rounded-md text-muted-foreground text-xs bg-muted/30"
-          style={{ aspectRatio: previewAspect }}
-        >
-          Sin imagen
-        </div>
-      )}
+      {label && <label className={fieldLabel}>{label}</label>}
 
       <input
         ref={fileInputRef}
         type="file"
         accept={accept}
         className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) handleFile(f);
-        }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
       />
 
-      <div className="flex items-center gap-2">
-        <Button
+      {/* Preview / upload zone */}
+      {value ? (
+        <div className="relative group rounded-xl overflow-hidden border border-[#e2d5cf]/40" style={{ aspectRatio: previewAspect }}>
+          <img
+            src={value}
+            alt={altValue ?? ''}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
+          />
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-[#151b2d]/0 group-hover:bg-[#151b2d]/30 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+            <button
+              type="button"
+              disabled={disabled || uploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-[700] bg-white/90 text-[#151b2d] hover:bg-white transition-all"
+            >
+              {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+              Reemplazar
+            </button>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange('')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-[700] bg-red-500/90 text-white hover:bg-red-500 transition-all"
+            >
+              <X className="w-3 h-3" /> Quitar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
           type="button"
-          variant="outline"
-          size="sm"
-          disabled={uploading || disabled}
+          disabled={disabled || uploading}
           onClick={() => fileInputRef.current?.click()}
-          className="gap-2"
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          className="w-full rounded-xl border border-dashed border-[#e2d5cf]/60 hover:border-[#ec6d13]/40 hover:bg-[#ec6d13]/[0.02] transition-all cursor-pointer flex flex-col items-center justify-center gap-2 py-6"
+          style={{ aspectRatio: previewAspect, maxHeight: 180 }}
         >
           {uploading ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-5 h-5 text-[#ec6d13] animate-spin" />
           ) : (
-            <Upload className="w-3 h-3" />
+            <ImageIcon className="w-5 h-5 text-[#54433e]/25" />
           )}
-          {value ? 'Reemplazar' : 'Subir imagen'}
-        </Button>
-        <span className="text-[10px] text-muted-foreground">
-          o pega URL pública abajo
-        </span>
-      </div>
+          <span className="text-[11px] font-[600] text-[#54433e]/40">
+            {uploading ? 'Subiendo…' : 'Subir imagen'}
+          </span>
+          {!uploading && (
+            <span className="text-[10px] text-[#54433e]/25">JPG, PNG, WEBP · máx 10MB</span>
+          )}
+        </button>
+      )}
 
-      <Input
-        placeholder="https://..."
+      {/* URL manual */}
+      <input
+        type="text"
+        placeholder="o pega URL pública…"
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="font-mono text-xs"
+        className={fieldInput}
+        style={{ background: 'rgba(247,244,239,0.4)' }}
       />
 
+      {/* Alt text */}
       {onAltChange && (
-        <Input
-          placeholder="Alt text (accesibilidad)"
+        <input
+          type="text"
+          placeholder="Texto alternativo (accesibilidad)"
           value={altValue ?? ''}
           disabled={disabled}
           onChange={(e) => onAltChange(e.target.value)}
+          className={fieldInput}
+          style={{ background: 'rgba(247,244,239,0.4)' }}
         />
       )}
     </div>
