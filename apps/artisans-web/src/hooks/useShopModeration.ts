@@ -86,12 +86,13 @@ export const useShopModeration = () => {
   const [availableRegions, setAvailableRegions] = useState<string[]>([]);
   const [availableCraftTypes, setAvailableCraftTypes] = useState<string[]>([]);
 
-  const fetchShops = useCallback(async (
-    filter: string = 'all',
-    advancedFilters?: ShopAdvancedFilters,
-    page: number = 1,
-    pageSize: number = 20,
-  ) => {
+  const fetchShops = useCallback(async (params: {
+    filter?: string;
+    page?: number;
+    pageSize?: number;
+    advancedFilters?: ShopAdvancedFilters;
+  } = {}) => {
+    const { filter = 'all', page = 1, pageSize = 20, advancedFilters } = params;
     setLoading(true);
     try {
       const result = await getModerationShops({
@@ -162,10 +163,9 @@ export const useShopModeration = () => {
 
   const toggleMarketplaceApproval: (shopId: string, approved: boolean, comment?: string) => Promise<boolean> =
     useCallback(async (shopId: string, approved: boolean, comment?: string) => {
-      void comment;
       setUpdating(true);
       try {
-        await toggleShopMarketplaceApproval(shopId, approved);
+        await toggleShopMarketplaceApproval(shopId, approved, { comment });
         toast.success(
           approved
             ? 'Tienda aprobada para marketplace'
@@ -243,10 +243,9 @@ export const useShopModeration = () => {
     action: 'publish' | 'unpublish',
     comment?: string,
   ): Promise<boolean> => {
-    void comment;
     setUpdating(true);
     try {
-      await publishShopAdminApi(shopId, action);
+      await publishShopAdminApi(shopId, action, { comment });
       toast.success(action === 'publish' ? 'Tienda publicada' : 'Tienda despublicada');
       return true;
     } catch {

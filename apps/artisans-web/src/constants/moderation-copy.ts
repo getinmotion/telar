@@ -30,7 +30,6 @@ export const QUEUE_SECTION_LABELS = {
     subsections: {
       pending: 'Pendientes de revisión',
       incomplete: 'Incompletos',
-      recently_edited: 'Editados recientemente',
       changes_requested: 'Esperando ajustes',
       rejected: 'No disponibles',
     },

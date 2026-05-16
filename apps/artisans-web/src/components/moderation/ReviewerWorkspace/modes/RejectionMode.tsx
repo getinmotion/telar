@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { XCircle, Loader2 } from 'lucide-react';
+import { XCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -18,36 +18,47 @@ interface RejectionModeProps {
   moderating: boolean;
 }
 
-const REJECTION_REASONS: { value: RejectionReasonType; label: string; hint: string }[] = [
+const REJECTION_REASONS: {
+  value: RejectionReasonType;
+  label: string;
+  hint: string;
+  severity: 'high' | 'medium';
+}[] = [
   {
     value: 'quality_insufficient',
     label: 'Calidad insuficiente',
     hint: 'Imágenes borrosas, descripción muy incompleta o pieza no lista para el marketplace.',
+    severity: 'medium',
   },
   {
     value: 'inconsistent_info',
     label: 'Información inconsistente',
     hint: 'El nombre, categoría o materiales no corresponden al producto real.',
+    severity: 'medium',
   },
   {
     value: 'policy_violation',
     label: 'No cumple políticas',
     hint: 'Viola los términos del marketplace (producto prohibido, derechos, etc.).',
+    severity: 'high',
   },
   {
     value: 'fraud',
     label: 'Posible fraude',
     hint: 'Producto falso, copiado o de dudosa procedencia.',
+    severity: 'high',
   },
   {
     value: 'duplicate',
     label: 'Duplicado grave',
     hint: 'Ya existe esta pieza publicada con información idéntica.',
+    severity: 'medium',
   },
   {
     value: 'invalid_content',
     label: 'Contenido inválido',
     hint: 'Producto vacío, incompleto o sin relación con artesanías.',
+    severity: 'medium',
   },
 ];
 
@@ -63,64 +74,116 @@ export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderati
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-        <p className="text-sm font-medium text-red-800">No disponible para marketplace</p>
-        <p className="text-xs text-red-700 mt-0.5">
-          Esta pieza necesita ajustes importantes antes de aparecer en el marketplace.
-          El artesano recibirá retroalimentación detallada.
-        </p>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label className="text-xs font-semibold">Motivo principal</Label>
-        <div className="grid grid-cols-1 gap-1.5">
-          {REJECTION_REASONS.map(({ value, label, hint }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setSelectedReason(value)}
-              className={cn(
-                'rounded-md border px-3 py-2 text-left text-xs transition-colors',
-                selectedReason === value
-                  ? 'border-red-300 bg-red-50 ring-1 ring-red-300 text-red-800'
-                  : 'border-input bg-card hover:bg-muted/50 text-foreground',
-              )}
-            >
-              <span className="font-medium">{label}</span>
-              <span className="block text-[10px] text-muted-foreground mt-0.5">{hint}</span>
-            </button>
-          ))}
+    <div className="flex flex-col min-h-full">
+      {/* Header de advertencia */}
+      <div className="flex items-start gap-3 border-b border-red-200 bg-red-700 px-5 py-4">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/20">
+          <AlertTriangle className="h-5 w-5 text-white" strokeWidth={1.8} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">No disponible para el marketplace</p>
+          <p className="text-xs text-red-100 mt-0.5">
+            Acción permanente. El artesano recibirá tu retroalimentación por correo.
+          </p>
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label className="text-xs font-semibold">Retroalimentación para el artesano</Label>
-        <Textarea
-          placeholder="Explica de forma clara y constructiva qué necesita mejorar esta pieza para estar en el marketplace. Mínimo 20 caracteres."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={4}
-          className="text-sm"
-        />
-        <p className="text-[10px] text-muted-foreground">
-          {comment.trim().length}/20 caracteres mínimos
-        </p>
+      {/* Motivos */}
+      <div className="flex-1 space-y-4 p-4">
+        <div className="space-y-2">
+          <Label className="text-xs font-semibold text-red-900 uppercase tracking-wide">
+            Motivo principal
+          </Label>
+          <div className="grid grid-cols-1 gap-2">
+            {REJECTION_REASONS.map(({ value, label, hint, severity }) => {
+              const isSelected = selectedReason === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setSelectedReason(value)}
+                  className={cn(
+                    'rounded-xl border-2 px-4 py-3 text-left transition-all',
+                    isSelected
+                      ? severity === 'high'
+                        ? 'border-red-500 bg-red-50 ring-2 ring-red-200'
+                        : 'border-red-400 bg-red-50 ring-2 ring-red-100'
+                      : 'border-gray-200 bg-white hover:border-red-200 hover:bg-red-50/40',
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={cn(
+                      'text-sm font-semibold',
+                      isSelected ? 'text-red-800' : 'text-gray-700',
+                    )}>
+                      {label}
+                    </span>
+                    {severity === 'high' && (
+                      <span className={cn(
+                        'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                        isSelected ? 'bg-red-200 text-red-800' : 'bg-gray-100 text-gray-500',
+                      )}>
+                        GRAVE
+                      </span>
+                    )}
+                  </div>
+                  <p className={cn(
+                    'text-xs mt-0.5 leading-relaxed',
+                    isSelected ? 'text-red-600' : 'text-gray-500',
+                  )}>
+                    {hint}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Retroalimentación */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-semibold text-red-900 uppercase tracking-wide">
+              Retroalimentación al artesano
+            </Label>
+            <span className={cn(
+              'text-[10px] font-medium',
+              comment.trim().length >= 20 ? 'text-red-500' : 'text-gray-400',
+            )}>
+              {comment.trim().length}/20 mín.
+            </span>
+          </div>
+          <Textarea
+            placeholder="Explica de forma clara y constructiva qué necesita mejorar esta pieza para estar en el marketplace."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={4}
+            className="text-sm bg-white border-red-200 focus-visible:ring-red-400 resize-none"
+          />
+        </div>
       </div>
 
-      <Button
-        variant="destructive"
-        onClick={handleReject}
-        disabled={moderating || !canSubmit}
-        className="w-full"
-      >
-        {moderating ? (
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        ) : (
-          <XCircle className="h-4 w-4 mr-2" />
+      {/* CTA con peso visual fuerte */}
+      <div className="border-t-2 border-red-200 bg-red-50 p-5 space-y-2">
+        {selectedReason && (
+          <p className="text-center text-xs text-red-600 font-medium">
+            Motivo seleccionado: <span className="font-bold">
+              {REJECTION_REASONS.find(r => r.value === selectedReason)?.label}
+            </span>
+          </p>
         )}
-        Confirmar — no disponible para marketplace
-      </Button>
+        <Button
+          onClick={handleReject}
+          disabled={moderating || !canSubmit}
+          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-40"
+        >
+          {moderating ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <XCircle className="h-4 w-4 mr-2" />
+          )}
+          Confirmar — no publicar esta pieza
+        </Button>
+      </div>
     </div>
   );
 };

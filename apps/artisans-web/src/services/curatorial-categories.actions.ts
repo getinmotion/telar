@@ -41,3 +41,23 @@ export async function getCuratorialCategoryById(id: string): Promise<CuratorialC
     throw error;
   }
 }
+
+export async function createCuratorialCategory(data: {
+  name: string;
+  description?: string;
+}): Promise<CuratorialCategory> {
+  const response = await telarApi.post<CuratorialCategory>('/curatorial-categories', data);
+  return response.data;
+}
+
+export async function updateCuratorialCategory(
+  id: string,
+  data: Partial<{ name: string; description: string; isActive: boolean }>,
+): Promise<CuratorialCategory> {
+  const response = await telarApi.patch<CuratorialCategory>(`/curatorial-categories/${id}`, data);
+  return response.data;
+}
+
+export async function deleteCuratorialCategory(id: string): Promise<void> {
+  await telarApi.delete(`/curatorial-categories/${id}`);
+}

@@ -71,7 +71,7 @@ export const BackofficeLoginPage: React.FC = () => {
       } else if (isAdmin) {
         navigate('/backoffice/home', { replace: true });
       } else {
-        navigate('/backoffice/moderacion', { replace: true });
+        navigate('/backoffice/moderacion-os', { replace: true });
       }
     } catch (error: any) {
       toast({

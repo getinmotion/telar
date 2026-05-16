@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, Clock, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useBackofficeAccess } from '@/hooks/useBackofficeAccess';
 import { useModerationStats } from '@/hooks/useModerationStats';
 import { SANS, SERIF, lc, PURPLE, PURPLE_DARK, PURPLE_MID, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
-const NAVY   = '#142239';
-const ORANGE = '#ec6d13';
+const ORANGE     = '#ec6d13';
+const ORANGE_MID = '#c45a0a';
+const ORANGE_DARK = '#9c3f00';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -41,7 +42,7 @@ const BackofficeHomePage: React.FC = () => {
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   if (isModerator && !isAdmin) {
-    return <Navigate to="/backoffice/moderacion" replace />;
+    return <Navigate to="/backoffice/moderacion-os" replace />;
   }
 
   const name     = getFirstName(user?.email ?? '');
@@ -50,25 +51,31 @@ const BackofficeHomePage: React.FC = () => {
   const noBankData = stats.shopsWithoutBankData;
 
   // ── Negocio sub-cards — visibles para admin y super_admin ─────────────────
-  // El card principal "Ver el negocio" siempre se muestra a admins.
-  // Los sub-cards respetan los permisos granulares.
   const showNegocio = isAdmin;
   const negocioCards: SubCard[] = [
-    { icon: 'package_2',    label: 'Órdenes y pagos',   href: '/backoffice/ordenes',    section: 'ordenes'   },
-    { icon: 'people',       label: 'Artesanos y roles',  href: '/backoffice/usuarios',   section: 'usuarios'  },
-    { icon: 'handshake',    label: 'Convenios',           href: '/backoffice/convenios',  section: 'convenios' },
-    { icon: 'receipt_long', label: 'Auditoría',           href: '/backoffice/auditoria',  section: 'auditoria' },
+    { icon: 'trending_up',   label: 'Comercial',          href: '/backoffice/comercial',   section: 'comercial'  },
+    { icon: 'package_2',     label: 'Órdenes',             href: '/backoffice/ordenes',     section: 'ordenes'    },
+    { icon: 'local_offer',   label: 'Cupones',             href: '/backoffice/cupones',     section: 'cupones'    },
+    { icon: 'credit_card',   label: 'Pagos (Cobre)',       href: '/backoffice/pagos',       section: 'pagos'      },
+    { icon: 'people',        label: 'Artesanos y roles',   href: '/backoffice/usuarios',    section: 'usuarios'   },
+    { icon: 'handshake',     label: 'Convenios',            href: '/backoffice/convenios',   section: 'convenios'  },
+    { icon: 'receipt_long',  label: 'Auditoría',            href: '/backoffice/auditoria',   section: 'auditoria'  },
   ].filter(c => canAccess(c.section as any));
 
-  // ── Moderación sub-cards (admin + super_admin) ───────────────────────────
+  // ── Moderación sub-cards — revisión + gestión de catálogo ───────────────
   const moderacionCards: SubCard[] = [
-    { icon: 'shield_person',  label: 'Cola de moderación',    href: '/backoffice/moderacion',        section: 'moderation',         badge: pending || undefined },
-    { icon: 'health_metrics', label: 'Salud del marketplace', href: '/backoffice/marketplace-health', section: 'marketplace-health' },
-    { icon: 'store',          label: 'Gestionar talleres',    href: '/backoffice/tiendas',            section: 'tiendas',            badge: noBankData || undefined },
-    { icon: 'category',       label: 'Taxonomías',             href: '/backoffice/taxonomia',          section: 'taxonomia'  },
-    { icon: 'auto_stories',   label: 'Historias',              href: '/backoffice/historias',          section: 'historias'  },
-    { icon: 'collections',    label: 'Colecciones',            href: '/backoffice/colecciones',        section: 'colecciones'},
-    { icon: 'bar_chart',      label: 'Analytics',              href: '/backoffice/analytics',          section: 'analytics'  },
+    { icon: 'shield_person', label: 'Cola de moderación', href: '/backoffice/moderacion-os', section: 'moderation', badge: pending || undefined },
+    { icon: 'auto_fix_high', label: 'Product Studio',      href: '/backoffice/studio',        section: 'revisor'                                 },
+    { icon: 'store',         label: 'Tiendas',              href: '/backoffice/tiendas',       section: 'tiendas',    badge: noBankData || undefined },
+    { icon: 'category',      label: 'Taxonomía',            href: '/backoffice/taxonomia',     section: 'taxonomia'                               },
+  ].filter(c => canAccess(c.section as any));
+
+  // ── Contenido sub-cards — editorial ─────────────────────────────────────
+  const showContenido = isAdmin;
+  const contenidoCards: SubCard[] = [
+    { icon: 'auto_stories', label: 'Historias',   href: '/backoffice/historias',   section: 'historias'   },
+    { icon: 'collections',  label: 'Colecciones', href: '/backoffice/colecciones', section: 'colecciones' },
+    { icon: 'database',     label: 'CMS',          href: '/backoffice/cms',          section: 'cms'         },
   ].filter(c => canAccess(c.section as any));
 
   const v = (n: number) => loading ? '—' : String(n);
@@ -121,6 +128,10 @@ const BackofficeHomePage: React.FC = () => {
             <span style={{ width:1, height:12, background:'rgba(84,67,62,0.15)' }} />
             <span style={{ display:'flex', alignItems:'center', gap:5, fontFamily:SANS, fontSize:10, fontWeight:700, color:GREEN_MOD, letterSpacing:'0.1em', textTransform:'uppercase' }}>
               <span style={{ width:6, height:6, borderRadius:'50%', background:GREEN_MOD, display:'inline-block' }} /> Moderación
+            </span>
+            <span style={{ width:1, height:12, background:'rgba(84,67,62,0.15)' }} />
+            <span style={{ display:'flex', alignItems:'center', gap:5, fontFamily:SANS, fontSize:10, fontWeight:700, color:ORANGE, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', background:ORANGE, display:'inline-block' }} /> Contenido
             </span>
           </div>
         </div>
@@ -295,6 +306,85 @@ const BackofficeHomePage: React.FC = () => {
                       style={{ color:GREEN_MOD, width:13, height:13 }} />
                   </button>
                 ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── SECCIÓN CONTENIDO ────────────────────────────────────────── */}
+        {showContenido && contenidoCards.length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-5">
+              <span style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ width:7, height:7, borderRadius:'50%', background:ORANGE, display:'inline-block', flexShrink:0 }} />
+                <span style={{ ...lc(0.45), fontSize:10 }}>Contenido editorial</span>
+              </span>
+              <div style={{ flex:1, height:1, background:'rgba(236,109,19,0.1)' }} />
+            </div>
+
+            <div style={{
+              background: 'rgba(255,255,255,0.82)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(236,109,19,0.12)',
+              borderRadius: 32,
+              boxShadow: '0 4px 20px rgba(236,109,19,0.04)',
+              padding: 32,
+            }}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* Hero — Editorial */}
+                <button
+                  onClick={() => navigate('/backoffice/historias')}
+                  className="lg:col-span-2 group text-left rounded-2xl p-7 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
+                  style={{
+                    background: `linear-gradient(135deg, ${ORANGE_DARK} 0%, ${ORANGE_MID} 60%, ${ORANGE_DARK} 100%)`,
+                    boxShadow: '0 6px 24px rgba(196,90,10,0.25)',
+                  }}
+                >
+                  <div style={{ position:'absolute', top:-30, right:-30, width:200, height:200, background:'radial-gradient(circle, rgba(253,186,116,0.22) 0%, transparent 70%)', pointerEvents:'none' }} />
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+                      style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.15)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize:20, color:'rgba(253,186,116,1)' }}>auto_stories</span>
+                    </div>
+                    <h2 style={{ fontFamily:SERIF, fontSize:20, fontWeight:700, color:'white', lineHeight:1.3, marginBottom:6 }}>
+                      Contenido editorial
+                    </h2>
+                    <p style={{ fontFamily:SANS, fontSize:12, color:'rgba(255,255,255,0.55)', lineHeight:1.6, marginBottom:20 }}>
+                      Historias · colecciones · CMS
+                    </p>
+                    <div className="flex gap-6">
+                      {[
+                        { n: v(stats.products.approved), label:'piezas publicadas' },
+                        { n: v(stats.publishedShops),    label:'talleres en mkt'   },
+                      ].map(({ n, label }) => (
+                        <div key={label}>
+                          <p style={{ fontFamily:SANS, fontSize:22, fontWeight:800, color:'white', lineHeight:1 }}>{n}</p>
+                          <p style={{ ...lc(1), color:'rgba(255,255,255,0.35)', fontSize:8 }}>{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <ArrowRight className="absolute right-5 bottom-5 opacity-0 group-hover:opacity-60 transition-opacity" style={{ color:'white', width:16, height:16 }} />
+                </button>
+
+                {/* Sub-cards columna derecha */}
+                <div className="flex flex-col gap-3">
+                  {contenidoCards.map(c => (
+                    <button key={c.href} onClick={() => navigate(c.href)}
+                      className="group text-left rounded-2xl p-4 flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5"
+                      style={{ background:'rgba(236,109,19,0.04)', border:'1px solid rgba(236,109,19,0.1)', boxShadow:'0 2px 8px rgba(236,109,19,0.04)' }}
+                    >
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background:'rgba(236,109,19,0.09)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize:17, color:ORANGE }}>{c.icon}</span>
+                      </div>
+                      <span style={{ fontFamily:SANS, fontSize:13, fontWeight:700, color:'#151b2d' }}>{c.label}</span>
+                      <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" style={{ color:ORANGE, width:14, height:14 }} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

@@ -64,6 +64,7 @@ export interface NewWizardState {
   monthlyCapacity?: number;
   tools?: string[];
   processEvidenceUrls?: string[];
+  careNotes?: string;
 
   // ── STEP 4: Precio, Disponibilidad y Logística ────────────
   price?: number;

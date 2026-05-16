@@ -644,6 +644,27 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                 />
               </section>
             </div>
+            {/* 6. Cuidados del producto */}
+            <section className="p-6 rounded-2xl" style={cardStyle}>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="material-symbols-outlined text-[#54433e]/40">spa</span>
+                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
+                  Cuidados del producto
+                </label>
+                <span className="ml-auto text-[9px] font-[600] text-[#54433e]/40 uppercase tracking-wider">Opcional</span>
+              </div>
+              <p className="text-[11px] text-[#54433e]/50 mb-3">
+                Instrucciones para mantener la pieza en buen estado: limpieza, almacenamiento, materiales a evitar.
+              </p>
+              <textarea
+                rows={3}
+                value={state.careNotes ?? ''}
+                onChange={e => update({ careNotes: e.target.value })}
+                placeholder="Ej: Limpiar con paño suave, evitar humedad, no exponer al sol directo..."
+                className={`${inputClass} resize-none`}
+                style={{ background: 'rgba(247,244,239,0.4)' }}
+              />
+            </section>
           </div>
         </div>
       </main>

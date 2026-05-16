@@ -700,7 +700,157 @@ Aplicar en áreas de scroll interno (content area del dashboard, step content en
 
 ---
 
-## 26. Reglas que no se rompen
+## 26. Backoffice — Sistema de diseño administrativo
+
+El backoffice tiene su propio subsistema de diseño que extiende las bases del DESIGN.md general. Comparte tokens de tipografía, spacing y glass, pero añade **color coding por dominio** y patrones propios de herramientas de gestión.
+
+### 26.1 Dominios y colores
+
+Cada dominio del backoffice tiene un color de identidad que se aplica consistentemente en el sidebar, en el header de cada sección y en todos los cards de esa sección.
+
+| Dominio | Color | Hex | Uso |
+|---|---|---|---|
+| **Moderación** | Verde | `#15803d` | Cola OS, Product Studio, Tiendas, Taxonomía |
+| **Contenido** | Naranja | `#ec6d13` | CMS, Historias, Colecciones |
+| **Negocio** | Morado | `#7c3aed` | Dashboard, Comercial, Salud, Órdenes |
+
+Los colores de dominio se aplican en:
+- Títulos de grupo del sidebar (`titleColor`)
+- Estado activo del NavLink (`activeBg`, `activeColor`)
+- Dot indicador de sección (`border-dot`)
+- Separador de sección (`background: rgba(color,0.1)`)
+- Hero card de cada sección (gradiente oscuro del color del dominio)
+- Glass card de contenedor (`border: rgba(color,0.12)`)
+
+### 26.2 Background del backoffice
+
+Cada dominio tiene su propio gradiente de fondo adaptado a su color:
+
+```css
+/* Moderación (verde) */
+background-image:
+  radial-gradient(circle at top left,  rgba(21,128,61,0.12) 0%, transparent 40%),
+  radial-gradient(circle at bottom right, rgba(187,247,208,0.15) 0%, transparent 44%);
+
+/* Contenido (naranja) */
+background-image:
+  radial-gradient(circle at top left,  rgba(236,109,19,0.10) 0%, transparent 40%),
+  radial-gradient(circle at bottom right, rgba(253,186,116,0.12) 0%, transparent 44%);
+
+/* Negocio (morado) */
+background-image:
+  radial-gradient(circle at top left,  rgba(167,139,250,0.2) 0%, transparent 40%),
+  radial-gradient(circle at bottom right, rgba(187,247,208,0.2) 0%, transparent 44%);
+```
+
+Siempre `background-attachment: fixed` y `background-color: #f9f7f2`.
+
+### 26.3 Glass cards de dominio
+
+Las glass cards del backoffice siguen el mismo patrón base pero con el color de su dominio:
+
+```ts
+// Base
+background: 'rgba(255,255,255,0.82)'
+backdropFilter: 'blur(12px)'
+borderRadius: 24–32px   // 24 para rows, 32 para secciones
+boxShadow: `0 4px 20px rgba(color, 0.04)`
+
+// Border según dominio
+border: '1px solid rgba(236,109,19,0.12)'   // contenido (naranja)
+border: '1px solid rgba(21,128,61,0.10)'    // moderación (verde)
+border: '1px solid rgba(124,58,237,0.12)'   // negocio (morado)
+```
+
+### 26.4 Header sticky del backoffice
+
+Cada página del backoffice tiene un header sticky con estructura estándar:
+
+```
+[ícono circular del dominio] [título Playfair 16px] [subtítulo Manrope 10px caps]   ····   [chips de dominio]
+```
+
+- Background: `rgba(249,247,242,0.92)` con `backdropFilter: blur(16px)`
+- Borde inferior: `1px solid rgba(84,67,62,0.08)`
+- Ícono circular: gradiente del color del dominio, 36–40px, border sutil
+- Chips: punto de color + label en UPPERCASE, 10px, 700 weight
+
+### 26.5 Section label (separador de sección)
+
+```tsx
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:16px">
+  <span style="width:7px; height:7px; border-radius:50%; background:[color]" />
+  <span style="font:10px/1 Manrope 800; letter-spacing:0.45em; text-transform:uppercase; color:rgba(84,67,62,0.7)">
+    Etiqueta de sección
+  </span>
+  <div style="flex:1; height:1px; background:rgba(color,0.1)" />
+</div>
+```
+
+### 26.6 Sidebar
+
+El sidebar tiene tres zonas:
+1. **Logo/toggle** (h-14, border-bottom)
+2. **Inicio** — fuera de grupos, siempre visible arriba
+3. **Grupos de dominio** (Moderación, Contenido, Negocio) — color-coded
+4. **Spacer** (`flex:1`) que empuja lo siguiente hacia abajo
+5. **MÁS** — secciones secundarias al fondo, separadas por border-top
+
+Especificaciones:
+- `w-56` expandido / `w-14` colapsado, transición `200ms`
+- NavLink activo: `backgroundColor: activeBg, color: activeColor`
+- Título de grupo: `font: 10px Manrope 700, letter-spacing: widest, color: titleColor del dominio`
+
+### 26.7 Hero cards de sección (home dashboard)
+
+Cada sección principal tiene un "hero card" que ocupa `lg:col-span-2` de una grid 3 cols:
+
+```ts
+background: `linear-gradient(135deg, COLOR_DARK 0%, COLOR_MID 60%, COLOR_DARK 100%)`
+boxShadow: `0 6px 24px rgba(color,0.25)`
+borderRadius: 16px
+padding: 28px
+```
+
+Con un radial-gradient decorativo en la esquina superior derecha (`rgba(color_light,0.22)`).
+
+Métricas internas: font 22px/800 blanco, label 8px/800 blanco/35%.
+
+### 26.8 Wizard multi-paso
+
+El wizard del CMS sigue este patrón estándar:
+
+```
+[Overlay: rgba(21,27,45,0.45) + blur(6px)]
+  [Panel: 640px max, border-radius 28px, max-height 88vh, flex-col]
+    [Header: título Playfair + subtítulo + step indicator]
+    [Body: scroll, flex:1]
+    [Footer: nav buttons, border-top]
+```
+
+**Step indicator:**
+- Círculo 26px: naranja activo, verde completado, gris pendiente
+- Check icon en pasos completados
+- Línea divisoria entre pasos: verde si completado, gris si pendiente
+
+**Patrón de navegación:** `Cancelar / ← Atrás` | `Siguiente → / Crear sección`
+
+### 26.9 Collapsible section rows
+
+Las filas colapsables del editor CMS siguen este patrón:
+
+```
+[#pos] [TYPE chip] [resumen truncado] [dirty dot?] · [StatusPill] [↑] [↓] [👁] [🗑] [⌄]
+```
+
+- Dot naranja (`width:6px`) = hay cambios sin guardar
+- Click en la fila (excepto botones) expande el formulario
+- Formulario expandido tiene footer con Switch de publicación y botón Guardar
+- Botón Guardar: naranja activo cuando dirty, gris deshabilitado
+
+---
+
+## 27. Reglas que no se rompen
 
 1. **No usar librerías de componentes genéricos** (ShadCN, MUI, Chakra) para elementos visibles al usuario. Solo para utilidades internas (toasts, comandos de teclado).
 2. **No usar borders oscuros** en cards glass. Solo borders blancos o muy sutiles.
@@ -722,7 +872,11 @@ Aplicar en áreas de scroll interno (content area del dashboard, step content en
 | `design-reference/dashboard-tienda-publicada.html` | Dashboard con tienda activa y alertas |
 | `design-reference/dashboard-tienda-en-preparacion.html` | Dashboard en estado de configuración |
 | `src/components/shop/new-product-wizard/` | Wizard de creación de producto (6 pasos) — fuente viva del sistema |
+| `src/pages/backoffice/BackofficeCmsPage.tsx` | Dashboard CMS con wizard multi-paso — referencia de patrón wizard |
+| `src/pages/backoffice/BackofficeHomePage.tsx` | Hub del backoffice — referencia de hero cards y section cards |
+| `src/components/backoffice/BackofficeSidebar.tsx` | Sidebar con domain color coding — referencia de nav pattern |
+| `src/components/cms/SectionFormFields.tsx` | Form components compartidos del CMS + SECTION_TYPE_META |
 
 ---
 
-*Última actualización: Mayo 2026 — basado en diseños aprobados del wizard de producto y dashboard TELAR.*
+*Última actualización: Mayo 2026 — basado en diseños aprobados del wizard de producto, dashboard TELAR, y backoffice CMS.*

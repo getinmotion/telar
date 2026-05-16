@@ -70,7 +70,14 @@
       "Bash(git -C /Users/mad/Proyectos/Telar diff HEAD -- apps/api/src/resources/ai/ai.module.ts)",
       "Bash(grep -v \"//\\\\|^$\")",
       "Bash(npx vite *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(curl -s -X POST http://localhost:1010/telar/server/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"wrongpassword\"}' --max-time 5)",
+      "Bash(curl -s http://localhost:1010/telar/server/auth/login --max-time 3)",
+      "Bash(curl -s -X POST http://localhost:1010/telar/server/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"x@x.com\",\"password\":\"x\"}' --max-time 5)",
+      "Bash(grep -n \"activeStep === 'precio'\\\\|activeStep === 'legado'\\\\|<\\\\/div>\\\\s*$\" /Users/mad/Proyectos/Telar/apps/artisans-web/src/components/studio/StudioProductEditor.tsx)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(pnpm --filter artisans-web exec tsc --noEmit)",
+      "Bash(pnpm --filter artisans-web tsc --noEmit)"
     ]
   }
 }

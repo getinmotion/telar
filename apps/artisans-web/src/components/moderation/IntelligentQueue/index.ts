@@ -1,7 +1,10 @@
 export { QueueSidebar } from './QueueSidebar';
 export type { QueueSection, QueueSubsection } from './QueueSidebar';
-export { QueueCard } from './QueueCard';
-export type { QueueCardItem } from './QueueCard';
+export { QueueCard, STATUS_ACCENT_COLOR } from './QueueCard';
+export type { QueueCardItem, QueueViewMode } from './QueueCard';
 export { QueueCardSkeleton } from './QueueCardSkeleton';
 export { QueueEmptyState } from './QueueEmptyState';
 export { ScoreBadge } from './ScoreBadge';
+export { QueueToolbar } from './QueueToolbar';
+export type { QueueFilterState, SortBy } from './QueueToolbar';
+export { QueueKanban } from './QueueKanban';

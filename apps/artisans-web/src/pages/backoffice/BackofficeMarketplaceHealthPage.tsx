@@ -285,7 +285,7 @@ const BackofficeMarketplaceHealthPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <AlertChip count={loading ? 0 : pendingProducts}      label="piezas en cola"           icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span>} urgent onClick={() => navigate('/backoffice/moderacion')} />
+            <AlertChip count={loading ? 0 : pendingProducts}      label="piezas en cola"           icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span>} urgent onClick={() => navigate('/backoffice/moderacion-os')} />
             <AlertChip count={loading ? 0 : shopsWithoutBankData} label="talleres sin cobro"        icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>payments</span>} urgent onClick={() => navigate('/backoffice/tiendas')} />
             <AlertChip count={loading ? 0 : shopsWithoutLogo}     label="talleres sin logo"         icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>hide_image</span>} urgent />
             <AlertChip count={loading ? 0 : shopsNotPublished}    label="talleres sin publicar"     icon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>visibility_off</span>} />

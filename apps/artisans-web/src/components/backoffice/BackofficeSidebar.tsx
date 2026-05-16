@@ -1,72 +1,80 @@
-/**
- * BackofficeSidebar
- *
- * Navegación lateral del backoffice unificado.
- * Filtra las secciones según los roles del usuario autenticado —
- * solo muestra lo que el usuario puede ver.
- *
- * Grupos:
- *   MODERACIÓN   → moderator / admin / super_admin
- *   CONTENIDO    → admin / super_admin
- *   OPERACIONES  → super_admin
- *   SISTEMA      → super_admin
- */
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  Home, Wand2, Shield, BarChart2, Package,
+  Database, BookOpen, Grid2X2, Store, Tags, Sparkles,
+  LayoutDashboard, TrendingUp, ShoppingCart, Users, Ticket, CreditCard,
+  Palette, FileSearch, Layers, ChevronLeft, ChevronRight, ArrowLeft,
+  HeartPulse, Handshake,
+  type LucideIcon,
+} from 'lucide-react';
 import { useBackofficeAccess, BackofficeSection } from '@/hooks/useBackofficeAccess';
 
 interface NavItem {
   label: string;
   to: string;
   section: BackofficeSection;
-  icon: string;
+  icon: LucideIcon;
 }
 
 interface NavGroup {
   title: string;
   items: NavItem[];
+  titleColor?: string;
+  activeBg?: string;
+  activeColor?: string;
 }
 
-const NAV_GROUPS: NavGroup[] = [
+// ─── Grupos principales ───────────────────────────────────────────────────────
+const MAIN_GROUPS: NavGroup[] = [
   {
     title: 'MODERACIÓN',
+    titleColor: '#15803d',
+    activeBg: 'rgba(21,128,61,0.08)',
+    activeColor: '#166534',
     items: [
-      { label: 'Inicio', to: '/backoffice/home', section: 'home', icon: '🏠' },
-      { label: 'Cola de moderación', to: '/backoffice/moderacion', section: 'moderation', icon: '🛡️' },
-      { label: 'Revisor de productos', to: '/backoffice/revisor', section: 'revisor', icon: '🔍' },
-      { label: 'Analytics', to: '/backoffice/analytics', section: 'analytics', icon: '📊' },
-      { label: 'Envíos', to: '/backoffice/envios', section: 'envios', icon: '📦' },
+      { label: 'Lista de aprobación', to: '/backoffice/moderacion-os', section: 'moderation', icon: Shield   },
+      { label: 'Product Studio', to: '/backoffice/studio',        section: 'revisor',    icon: Wand2    },
+      { label: 'Tiendas',        to: '/backoffice/tiendas',       section: 'tiendas',    icon: Store    },
+      { label: 'Taxonomía',      to: '/backoffice/taxonomia',     section: 'taxonomia',  icon: Tags     },
     ],
   },
   {
     title: 'CONTENIDO',
+    titleColor: '#c45a0a',
+    activeBg: 'rgba(236,109,19,0.08)',
+    activeColor: '#9c3f00',
     items: [
-      { label: 'CMS', to: '/backoffice/cms', section: 'cms', icon: '🗂️' },
-      { label: 'Historias', to: '/backoffice/historias', section: 'historias', icon: '📝' },
-      { label: 'Colecciones', to: '/backoffice/colecciones', section: 'colecciones', icon: '🎨' },
-      { label: 'Tiendas', to: '/backoffice/tiendas', section: 'tiendas', icon: '🏪' },
-      { label: 'Taxonomía', to: '/backoffice/taxonomia', section: 'taxonomia', icon: '🏷️' },
-      { label: 'Curaduría', to: '/backoffice/curation', section: 'curation', icon: '✨' },
+      { label: 'Historias',   to: '/backoffice/historias',   section: 'historias',   icon: BookOpen },
+      { label: 'Colecciones', to: '/backoffice/colecciones', section: 'colecciones', icon: Grid2X2  },
+      { label: 'CMS',         to: '/backoffice/cms',         section: 'cms',         icon: Database },
     ],
   },
   {
-    title: 'OPERACIONES',
+    title: 'NEGOCIO',
+    titleColor: '#7c3aed',
+    activeBg: 'rgba(124,58,237,0.08)',
+    activeColor: '#5b21b6',
     items: [
-      { label: 'Dashboard', to: '/backoffice/dashboard', section: 'dashboard', icon: '📈' },
-      { label: 'Comercial', to: '/backoffice/comercial', section: 'comercial', icon: '💰' },
-      { label: 'Órdenes', to: '/backoffice/ordenes', section: 'ordenes', icon: '🛒' },
-      { label: 'Usuarios y Roles', to: '/backoffice/usuarios', section: 'usuarios', icon: '👥' },
-      { label: 'Cupones', to: '/backoffice/cupones', section: 'cupones', icon: '🎟️' },
-      { label: 'Pagos (Cobre)', to: '/backoffice/pagos', section: 'pagos', icon: '💳' },
+      { label: 'Dashboard',  to: '/backoffice/dashboard',          section: 'dashboard',          icon: LayoutDashboard },
+      { label: 'Salud mkt.', to: '/backoffice/marketplace-health', section: 'marketplace-health', icon: HeartPulse      },
+      { label: 'Comercial',  to: '/backoffice/comercial',          section: 'comercial',          icon: TrendingUp      },
     ],
   },
-  {
-    title: 'SISTEMA',
-    items: [
-      { label: 'Sistema de diseño', to: '/backoffice/diseno', section: 'diseno', icon: '🎨' },
-      { label: 'Auditoría', to: '/backoffice/auditoria', section: 'auditoria', icon: '📋' },
-    ],
-  },
+];
+
+// ─── Resto de secciones (abajo) ───────────────────────────────────────────────
+const EXTRA_ITEMS: NavItem[] = [
+  { label: 'Órdenes',          to: '/backoffice/ordenes',            section: 'ordenes',            icon: ShoppingCart    },
+  { label: 'Usuarios y Roles', to: '/backoffice/usuarios',           section: 'usuarios',           icon: Users           },
+  { label: 'Cupones',          to: '/backoffice/cupones',            section: 'cupones',            icon: Ticket          },
+  { label: 'Pagos (Cobre)',    to: '/backoffice/pagos',              section: 'pagos',              icon: CreditCard      },
+  { label: 'Convenios',        to: '/backoffice/convenios',          section: 'convenios',          icon: Handshake       },
+  { label: 'Curaduría',        to: '/backoffice/curation',           section: 'curation',           icon: Sparkles        },
+  { label: 'Analytics',        to: '/backoffice/analytics',          section: 'analytics',          icon: BarChart2       },
+  { label: 'Envíos',           to: '/backoffice/envios',             section: 'envios',             icon: Package         },
+  { label: 'Sistema diseño',   to: '/backoffice/diseno',             section: 'diseno',             icon: Palette         },
+  { label: 'Auditoría',        to: '/backoffice/auditoria',          section: 'auditoria',          icon: FileSearch      },
 ];
 
 interface BackofficeSidebarProps {
@@ -81,6 +89,15 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
   const { canAccess } = useBackofficeAccess();
   const navigate = useNavigate();
 
+  const visibleExtra = EXTRA_ITEMS.filter(i => canAccess(i.section));
+
+  const navLinkClass = (isActive: boolean, activeBg?: string) =>
+    `flex items-center gap-2 px-3 py-2 mx-1 rounded-md text-sm transition-colors
+    ${isActive
+      ? `font-medium${!activeBg ? ' bg-primary/10 text-primary' : ''}`
+      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+    }`;
+
   return (
     <aside
       className={`
@@ -93,60 +110,106 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
         {!collapsed && (
           <button
             onClick={() => navigate('/backoffice/home')}
-            className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors"
           >
-            🧵 Telar Backoffice
+            <Layers size={18} className="text-primary shrink-0" />
+            Telar Backoffice
+          </button>
+        )}
+        {collapsed && (
+          <button
+            onClick={() => navigate('/backoffice/home')}
+            className="mx-auto text-primary hover:text-primary/80 transition-colors"
+            title="Telar Backoffice"
+          >
+            <Layers size={18} />
           </button>
         )}
         {onCollapse && (
           <button
             onClick={() => onCollapse(!collapsed)}
-            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
+            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded shrink-0"
             title={collapsed ? 'Expandir' : 'Colapsar'}
           >
-            {collapsed ? '→' : '←'}
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         )}
       </div>
 
-      {/* Navegación */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        {NAV_GROUPS.map((group) => {
-          const visibleItems = group.items.filter((item) =>
-            canAccess(item.section),
-          );
-          if (visibleItems.length === 0) return null;
+      <nav className="flex-1 overflow-y-auto py-2 flex flex-col">
 
+        {/* ── Home — fuera de grupos ──────────────────────────────────────── */}
+        <div className="mb-3">
+          <NavLink
+            to="/backoffice/home"
+            title={collapsed ? 'Inicio' : undefined}
+            className={({ isActive }) => navLinkClass(isActive)}
+            style={({ isActive }) => isActive ? { backgroundColor: 'rgba(124,58,237,0.08)', color: '#5b21b6' } : {}}
+          >
+            <Home size={16} className="shrink-0" />
+            {!collapsed && <span className="truncate">Inicio</span>}
+          </NavLink>
+        </div>
+
+        {/* ── Grupos principales (moderación + contenido) ─────────────────── */}
+        {MAIN_GROUPS.map(group => {
+          const visible = group.items.filter(i => canAccess(i.section));
+          if (visible.length === 0) return null;
           return (
             <div key={group.title} className="mb-4">
               {!collapsed && (
-                <p className="px-3 py-1 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+                <p
+                  className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase"
+                  style={{ color: group.titleColor }}
+                >
                   {group.title}
                 </p>
               )}
-              {visibleItems.map((item) => (
+              {visible.map(item => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 mx-1 rounded-md text-sm transition-colors
-                    ${
-                      isActive
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`
-                  }
                   title={collapsed ? item.label : undefined}
+                  style={({ isActive }) =>
+                    isActive && group.activeBg
+                      ? { backgroundColor: group.activeBg, color: group.activeColor }
+                      : {}
+                  }
+                  className={({ isActive }) => navLinkClass(isActive, group.activeBg)}
                 >
-                  <span className="text-base shrink-0">{item.icon}</span>
-                  {!collapsed && (
-                    <span className="truncate">{item.label}</span>
-                  )}
+                  <item.icon size={16} className="shrink-0" />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
                 </NavLink>
               ))}
             </div>
           );
         })}
+
+        {/* ── Spacer ────────────────────────────────────────────────────────── */}
+        <div className="flex-1" />
+
+        {/* ── Resto de secciones (abajo) ────────────────────────────────────── */}
+        {visibleExtra.length > 0 && (
+          <div className="mt-2 border-t border-border pt-2">
+            {!collapsed && (
+              <p className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                MÁS
+              </p>
+            )}
+            {visibleExtra.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                title={collapsed ? item.label : undefined}
+                className={({ isActive }) => navLinkClass(isActive)}
+                style={({ isActive }) => isActive ? { backgroundColor: 'rgba(124,58,237,0.08)', color: '#5b21b6' } : {}}
+              >
+                <item.icon size={16} className="shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </NavLink>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Link al portal del artesano */}
@@ -156,7 +219,7 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
             href="/dashboard"
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            <span>↩</span>
+            <ArrowLeft size={14} className="shrink-0" />
             <span>Portal artesano</span>
           </a>
         </div>

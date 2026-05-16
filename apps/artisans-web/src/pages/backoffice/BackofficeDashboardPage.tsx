@@ -415,7 +415,7 @@ const BackofficeDashboardPage: React.FC = () => {
           <SL dot={PURPLE} text="Acciones rápidas" />
           <div className="flex flex-wrap gap-3">
             {[
-              { label: 'Revisar cola',       href: '/backoffice/moderacion', badge: pendingProducts,            icon: 'shield_person' },
+              { label: 'Revisar cola',       href: '/backoffice/moderacion-os', badge: pendingProducts,            icon: 'shield_person' },
               { label: 'Gestionar talleres', href: '/backoffice/tiendas',    badge: stats.shopsWithoutBankData, icon: 'store' },
               { label: 'Artesanos y roles',  href: '/backoffice/usuarios',   icon: 'people' },
               { label: 'Órdenes y pagos',    href: '/backoffice/ordenes',    icon: 'package_2' },

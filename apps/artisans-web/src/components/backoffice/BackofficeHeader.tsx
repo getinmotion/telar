@@ -42,11 +42,11 @@ export const BackofficeHeader: React.FC = () => {
   }));
 
   const roleBadge = isSuperAdmin
-    ? { label: 'Super Admin', color: 'bg-red-100 text-red-700' }
+    ? { label: 'Super Admin', color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', border: 'rgba(124,58,237,0.2)' }
     : isAdmin
-    ? { label: 'Admin', color: 'bg-orange-100 text-orange-700' }
+    ? { label: 'Admin', color: '#c2410c', bg: 'rgba(236,109,19,0.08)', border: 'rgba(236,109,19,0.2)' }
     : isModerator
-    ? { label: 'Moderador', color: 'bg-blue-100 text-blue-700' }
+    ? { label: 'Moderador', color: '#15803d', bg: 'rgba(21,128,61,0.08)', border: 'rgba(21,128,61,0.2)' }
     : null;
 
   const handleLogout = () => {
@@ -78,9 +78,15 @@ export const BackofficeHeader: React.FC = () => {
       {/* Usuario y logout */}
       <div className="flex items-center gap-3">
         {roleBadge && (
-          <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${roleBadge.color}`}
-          >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center',
+            padding: '2px 8px', borderRadius: 9999,
+            background: roleBadge.bg, border: `1px solid ${roleBadge.border}`,
+            color: roleBadge.color,
+            fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.05em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}>
             {roleBadge.label}
           </span>
         )}

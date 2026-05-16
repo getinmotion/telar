@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { telarApi } from '@/integrations/api/telarApi';
 import { useToast } from '@/components/ui/use-toast';
-import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 
 export type ShopFilter = 'all' | 'marketplace' | 'pending' | 'inactive' | 'no_cobre' | 'new';
 
@@ -57,49 +57,44 @@ export const useAdminShops = () => {
   const fetchShops = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch shops with product counts
-      const { data: shopsData, error: shopsError } = await supabase
-        .from('artisan_shops')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const PAGE_SIZE = 100;
+      let page = 1;
+      let all: any[] = [];
+      let total = 0;
 
-      if (shopsError) throw shopsError;
+      do {
+        const res = await telarApi.get<{ data: any[]; total: number }>('/artisan-shops', {
+          params: { page: String(page), limit: String(PAGE_SIZE), order: 'DESC' },
+        });
+        const batch = res.data.data ?? [];
+        total = res.data.total ?? 0;
+        all = [...all, ...batch];
+        page++;
+      } while (all.length < total);
 
-      // Fetch product counts per shop
-      const { data: productCounts, error: productsError } = await supabase
-        .from('products')
-        .select('shop_id, moderation_status');
-
-      if (productsError) throw productsError;
-
-      // Fetch user names (email not available in user_profiles)
-      // TODO: Crear endpoint NestJS para obtener múltiples perfiles: POST /user-profiles/batch
-      const userIds = [...new Set(shopsData?.map(s => s.user_id) || [])];
-      const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('user_id, full_name')
-        .in('user_id', userIds);
-
-      if (profilesError) console.error('[useAdminShops] Error fetching profiles:', profilesError);
-
-      const nameMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
-
-      // Aggregate product counts
-      const productCountsMap = new Map<string, { total: number; approved: number; pending: number }>();
-      productCounts?.forEach(product => {
-        const current = productCountsMap.get(product.shop_id) || { total: 0, approved: 0, pending: 0 };
-        current.total++;
-        if (product.moderation_status === 'approved') current.approved++;
-        else if (product.moderation_status === 'pending') current.pending++;
-        productCountsMap.set(product.shop_id, current);
-      });
-
-      const shopsWithMetrics: ShopWithMetrics[] = (shopsData || []).map(shop => ({
-        ...shop,
-        total_products: productCountsMap.get(shop.id)?.total || 0,
-        approved_products: productCountsMap.get(shop.id)?.approved || 0,
-        pending_products: productCountsMap.get(shop.id)?.pending || 0,
-        owner_name: nameMap.get(shop.user_id) || undefined,
+      const shopsWithMetrics: ShopWithMetrics[] = all.map(s => ({
+        id: s.id,
+        shop_name: s.shopName,
+        shop_slug: s.shopSlug,
+        user_id: s.userId,
+        logo_url: s.logoUrl ?? null,
+        banner_url: s.bannerUrl ?? null,
+        craft_type: s.craftType ?? null,
+        region: s.region ?? null,
+        department: s.department ?? null,
+        municipality: s.municipality ?? null,
+        active: s.active ?? false,
+        featured: s.featured ?? false,
+        publish_status: s.publishStatus ?? null,
+        marketplace_approved: s.marketplaceApproved ?? null,
+        marketplace_approval_status: s.marketplaceApprovalStatus ?? null,
+        id_contraparty: s.idContraparty ?? null,
+        created_at: s.createdAt,
+        updated_at: s.updatedAt,
+        description: s.description ?? null,
+        total_products: 0,
+        approved_products: 0,
+        pending_products: 0,
       }));
 
       setShops(shopsWithMetrics);
@@ -243,20 +238,14 @@ export const useAdminShops = () => {
   const togglePublish = useCallback(async (shopId: string, publish: boolean) => {
     setActionLoading(shopId);
     try {
-      const { error } = await supabase
-        .from('artisan_shops')
-        .update({ 
-          publish_status: publish ? 'published' : 'draft',
-          active: publish,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', shopId);
+      await telarApi.patch(`/artisan-shops/${shopId}`, {
+        publishStatus: publish ? 'published' : 'draft',
+        active: publish,
+      });
 
-      if (error) throw error;
-
-      toast({ 
+      toast({
         title: publish ? 'Tienda publicada' : 'Tienda despublicada',
-        description: publish ? 'La tienda ahora está activa' : 'La tienda ha sido ocultada'
+        description: publish ? 'La tienda ahora está activa' : 'La tienda ha sido ocultada',
       });
       await fetchShops();
     } catch (error: any) {
