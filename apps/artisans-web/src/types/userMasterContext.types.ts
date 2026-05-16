@@ -8,44 +8,44 @@ export interface BusinessContext {
   industry?: string;
   businessSize?: string;
   yearsInBusiness?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Preferences {
   theme?: string;
   notifications?: boolean;
   emailFrequency?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ConversationInsights {
   commonTopics?: string[];
   sentiment?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface TechnicalDetails {
   hasWebsite?: boolean;
   usesSocialMedia?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface GoalsAndObjectives {
   shortTerm?: string;
   longTerm?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BusinessProfile {
   targetMarket?: string;
   productCategories?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface TaskGenerationContext {
   priorityAreas?: string[];
   currentChallenges?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============= Main Entity =============

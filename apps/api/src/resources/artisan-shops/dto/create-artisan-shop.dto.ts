@@ -372,4 +372,20 @@ export class CreateArtisanShopDto {
   @IsOptional()
   @IsString({ message: 'El municipio debe ser una cadena de texto' })
   municipality?: string;
+
+  @ApiPropertyOptional({
+    description: 'Video de presentación',
+    example: { type: 'youtube', url: 'https://youtu.be/abc123' },
+  })
+  @IsOptional()
+  @IsObject({ message: 'presentationVideo debe ser un objeto' })
+  presentationVideo?: Record<string, any>;
+
+  @ApiPropertyOptional({
+    description: 'Configuración de la página de bio link',
+    example: { showShopLink: true, showProfileLink: true, featuredProductId: null },
+  })
+  @IsOptional()
+  @IsObject({ message: 'bioConfig debe ser un objeto' })
+  bioConfig?: Record<string, any>;
 }

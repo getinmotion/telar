@@ -21,14 +21,9 @@ import {
 export const logAnalyticsEvent = async (
   payload: LogAnalyticsEventRequest
 ): Promise<AnalyticsEvent> => {
-  try {
-    const response = await telarApi.post<LogAnalyticsEventResponse>(
-      '/analytics-events/log',
-      payload
-    );
-
-    return response.data.data;
-  } catch (error: any) {
-    throw error;
-  }
+  const response = await telarApi.post<LogAnalyticsEventResponse>(
+    '/analytics-events/log',
+    payload
+  );
+  return response.data.data;
 };

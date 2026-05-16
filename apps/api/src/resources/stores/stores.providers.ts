@@ -5,6 +5,7 @@ import {
   StoreAward,
   StoreBadge,
   ArtisanShop,
+  StoreArtisanalProfile,
 } from './entities';
 
 export const storesProviders = [
@@ -35,6 +36,12 @@ export const storesProviders = [
     provide: 'ARTISAN_SHOPS_REPOSITORY',
     useFactory: (dataSource: DataSource) =>
       dataSource.getRepository(ArtisanShop),
+    inject: ['DATA_SOURCE'],
+  },
+  {
+    provide: 'STORE_ARTISANAL_PROFILE_REPOSITORY',
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(StoreArtisanalProfile),
     inject: ['DATA_SOURCE'],
   },
 ];

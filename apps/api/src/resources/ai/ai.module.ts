@@ -22,6 +22,7 @@ import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
 import { AgentTasksModule } from '../agent-tasks/agent-tasks.module';
 import { TaskStepsModule } from '../task-steps/task-steps.module';
 import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverables.module';
+import { ArtisanProfileHistoryModule } from '../artisan-profile-history/artisan-profile-history.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AgentDeliverablesModule } from '../agent-deliverables/agent-deliverable
     forwardRef(() => AgentTasksModule),
     forwardRef(() => TaskStepsModule),
     forwardRef(() => AgentDeliverablesModule),
+    forwardRef(() => ArtisanProfileHistoryModule),
   ],
   controllers: [AiController],
   providers: [

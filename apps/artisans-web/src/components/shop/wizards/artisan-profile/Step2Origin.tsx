@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArtisanProfileData, LEARNED_FROM_OPTIONS, ETHNIC_RELATION_OPTIONS } from '@/types/artisanProfile';
+import { SpeechTextarea } from '@/components/ui/speech-textarea';
 
 interface Props {
   data: ArtisanProfileData;
@@ -20,59 +21,64 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <p className={sectionTitle}>El aprendizaje</p>
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>¿De quién aprendiste? <span className="text-[#ef4444]">*</span></label>
-              <select value={data.learnedFrom} onChange={(e) => onChange({ learnedFrom: e.target.value })} className={inputClass} style={inputBg}>
-                <option value="">Selecciona...</option>
-                {LEARNED_FROM_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>¿A qué edad empezaste? <span className="text-[#ef4444]">*</span></label>
-              <input
-                type="number" min={1} max={99}
-                value={data.startAge || ''}
-                onChange={(e) => onChange({ startAge: parseInt(e.target.value) || 0 })}
-                placeholder="Ej. 12"
-                className={inputClass} style={inputBg}
-              />
+          {/* ¿De quién aprendiste? — chips */}
+          <div>
+            <label className={labelClass}>¿De quién aprendiste? <span className="text-[#ef4444]">*</span></label>
+            <div className="flex flex-wrap gap-2">
+              {LEARNED_FROM_OPTIONS.map((o) => {
+                const active = data.learnedFrom === o.value;
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => onChange({ learnedFrom: active ? '' : o.value })}
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-[600] border transition-all ${
+                      active
+                        ? 'bg-[#ec6d13] border-[#ec6d13] text-white'
+                        : 'bg-[#ec6d13]/5 border-[#ec6d13]/20 text-[#ec6d13] hover:bg-[#ec6d13]/10'
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
+
           <div>
-            <label className={labelClass}>Historia del aprendizaje <span className="text-[#ef4444]">*</span></label>
-            <textarea
-              rows={4}
+            <label className={labelClass}>¿A qué edad empezaste? <span className="text-[#ef4444]">*</span></label>
+            <input
+              type="number" min={1} max={99}
+              value={data.startAge || ''}
+              onChange={(e) => onChange({ startAge: parseInt(e.target.value) || 0 })}
+              placeholder="Ej. 12"
+              className={inputClass} style={inputBg}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Historia del aprendizaje
+              <span className="ml-2 text-[#54433e]/30 normal-case tracking-normal font-[500] text-[11px]">— Opcional</span>
+            </label>
+            <SpeechTextarea
+              rows={2}
               value={data.learnedFromDetail}
-              onChange={(e) => onChange({ learnedFromDetail: e.target.value })}
+              onChange={(v) => onChange({ learnedFromDetail: v })}
               placeholder="Cuéntanos cómo fue ese aprendizaje. ¿Quién te enseñó? ¿Dónde? ¿Qué recuerdas de esos primeros momentos?"
               className={textareaClass} style={inputBg}
             />
           </div>
-        </div>
-      </section>
 
-      {/* Módulo 2: Significado y motivación */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <p className={sectionTitle}>Significado y motivación</p>
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className={labelClass}>¿Qué significa este oficio para ti? <span className="text-[#ef4444]">*</span></label>
-            <textarea rows={3} value={data.culturalMeaning} onChange={(e) => onChange({ culturalMeaning: e.target.value })}
-              placeholder="Más allá del trabajo, ¿qué representa este oficio en tu vida y tu identidad?"
-              className={textareaClass} style={inputBg} />
-          </div>
-          <div>
-            <label className={labelClass}>¿Qué te motiva a seguir? <span className="text-[#ef4444]">*</span></label>
-            <textarea rows={3} value={data.motivation} onChange={(e) => onChange({ motivation: e.target.value })}
-              placeholder="¿Qué te hace levantarte a trabajar cada día en este oficio?"
-              className={textareaClass} style={inputBg} />
-          </div>
           <div>
             <label className={labelClass}>Mensaje o filosofía del taller</label>
-            <textarea rows={2} value={data.craftMessage || ''} onChange={(e) => onChange({ craftMessage: e.target.value })}
+            <SpeechTextarea
+              rows={2}
+              value={data.craftMessage || ''}
+              onChange={(v) => onChange({ craftMessage: v })}
               placeholder="Si tuvieras que resumir la esencia de tu trabajo en una frase, ¿cuál sería?"
-              className={textareaClass} style={inputBg} />
+              className={textareaClass} style={inputBg}
+            />
           </div>
         </div>
       </section>
@@ -110,9 +116,13 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
           </div>
           <div>
             <label className={labelClass}>Historia regional del oficio</label>
-            <textarea rows={3} value={data.regionalHistory || ''} onChange={(e) => onChange({ regionalHistory: e.target.value })}
+            <SpeechTextarea
+              rows={3}
+              value={data.regionalHistory || ''}
+              onChange={(v) => onChange({ regionalHistory: v })}
               placeholder="¿Tiene tu región una tradición en este oficio? ¿Cómo se relaciona tu trabajo con esa historia?"
-              className={textareaClass} style={inputBg} />
+              className={textareaClass} style={inputBg}
+            />
           </div>
         </div>
       </section>

@@ -318,6 +318,18 @@ export const deleteProductNew = async (productId: string): Promise<void> => {
   }
 };
 
+export const deleteProductsNewBulk = async (ids: string[]): Promise<{ deleted: number }> => {
+  try {
+    const response = await telarApi.delete<{ deleted: number }>('/products-new/bulk', {
+      data: { ids },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Error eliminando productos en bloque:', error);
+    throw error;
+  }
+};
+
 /**
  * Convierte un precio de minor units (centavos) a pesos
  * @param priceMinor Precio en centavos como string (ej: "5000000")

@@ -32,7 +32,8 @@ export interface NewWizardState {
   categoryId?: string;
   subcategoryId?: string;
   purpose?: PiecePurpose;
-  style?: PieceStyle;
+  style?: PieceStyle; // kept for backward-compat with localStorage; UI uses `styles`
+  styles?: PieceStyle[];
   culturalDenomination?: string;
   collectionName?: string;
   // Origin

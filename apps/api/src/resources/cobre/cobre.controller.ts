@@ -1,5 +1,15 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { CobreService } from './cobre.service';
 import { GetCounterpartyDto } from './dto/get-counterparty.dto';
 import { CobreCounterpartyResponse } from './dto/cobre-auth-response.dto';
@@ -41,16 +51,21 @@ export class CobreController {
 
   @Post('counterparty-admin')
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
+  @ApiBearerAuth('access-token')
   @ApiOperation({
-    summary: 'Crear contraparte para una tienda (admin)',
+    summary: 'Crear contraparte para una tienda (super_admin)',
     description:
-      'Crea una contraparte en Cobre y la vincula a la tienda actualizando id_contraparty',
+      'Crea una contraparte en Cobre y la vincula a la tienda actualizando id_contraparty. Solo super_admin.',
   })
   @ApiResponse({
     status: 201,
     description: 'Contraparte creada y vinculada a la tienda',
   })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
+  @ApiResponse({ status: 403, description: 'Se requiere rol super_admin' })
   @ApiResponse({ status: 500, description: 'Error interno o de Cobre API' })
   async createCounterpartyAdmin(
     @Body() dto: CreateCounterpartyAdminDto,

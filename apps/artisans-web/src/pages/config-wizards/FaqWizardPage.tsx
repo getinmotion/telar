@@ -3,51 +3,58 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
-import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
-import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
-import { AgentPlaceholder } from '@/components/ui/AgentPlaceholder';
+import {
+  getStorePoliciesConfig,
+  createStorePoliciesConfig,
+  updateStorePoliciesConfig,
+} from '@/services/storePoliciesConfig.actions';
+import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
+import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
+import { T, inputStyle } from '@/lib/telar-design';
 
-const T = {
-  dark:  '#151b2d',
-  orange:'#ec6d13',
-  muted: '#54433e',
-  sans:  "'Manrope', sans-serif",
-  serif: "'Noto Serif', serif",
-};
-const glass: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.82)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-};
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px', borderRadius: 10,
-  border: '1px solid rgba(84,67,62,0.14)', outline: 'none',
-  fontFamily: T.sans, fontSize: 13, color: T.dark,
-  background: 'rgba(247,244,239,0.5)',
-};
+// ── Datos del panel de IA ─────────────────────────────────────────────────────
+const AI_CARDS = [
+  {
+    label: 'Por qué importa el FAQ',
+    text: 'Los compradores que encuentran respuestas antes de comprar tienen 2× más probabilidad de completar su pedido. Un FAQ bien hecho reemplaza conversaciones repetitivas.',
+  },
+  {
+    label: 'Preguntas más frecuentes en artesanías',
+    text: '¿Cuánto tarda el envío? ¿Haces piezas personalizadas? ¿Cómo cuido el producto? Son las tres preguntas que más reducen la fricción de compra.',
+  },
+  {
+    label: 'Agente IA — próximamente',
+    text: 'Pronto el agente generará preguntas frecuentes automáticamente basándose en tu perfil artesanal, productos y ubicación.',
+  },
+];
 
-const TOTAL_STEPS = 2;
+const AI_NEXT = 'Con el FAQ completo, los compradores tendrán menos dudas y más confianza para finalizar su pedido.';
 
+// ── Página ────────────────────────────────────────────────────────────────────
 export default function FaqWizardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as any)?.returnTo ?? '/mi-tienda/configurar';
   const { shop, loading } = useArtisanShop();
-  const [step, setStep] = useState(1);
+
   const [faqItems, setFaqItems] = useState<{ q: string; a: string }[]>([]);
-  const [saving, setSaving] = useState(false);
+  const [saving,         setSaving]         = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
-  const [showGuard, setShowGuard] = useState(false);
+  const [showGuard,      setShowGuard]      = useState(false);
   const initRef = useRef('');
 
   useEffect(() => {
     if (!shop) return;
-    const pc = shop.policiesConfig ?? {};
-    const items = pc.faq ?? [];
-    setFaqItems(items);
-    initRef.current = JSON.stringify(items);
+    const policiesId = (shop as any).idPoliciesConfig as string | null;
+    if (!policiesId) { initRef.current = JSON.stringify([]); return; }
+    getStorePoliciesConfig(policiesId)
+      .then(pc => {
+        const items = pc.faq ?? [];
+        setFaqItems(items);
+        initRef.current = JSON.stringify(items);
+      })
+      .catch(() => {});
   }, [shop?.id]);
 
   const isDirty = JSON.stringify(faqItems) !== initRef.current;
@@ -59,10 +66,13 @@ export default function FaqWizardPage() {
 
   const saveData = async () => {
     if (!shop) return;
-    const pc = shop.policiesConfig ?? {};
-    await updateArtisanShop(shop.id, {
-      policiesConfig: { ...pc, faq: faqItems },
-    });
+    const policiesId = (shop as any).idPoliciesConfig as string | null;
+    if (policiesId) {
+      await updateStorePoliciesConfig(policiesId, { faq: faqItems });
+    } else {
+      const created = await createStorePoliciesConfig({ faq: faqItems });
+      await updateArtisanShop(shop.id, { idPoliciesConfig: created.id } as any);
+    }
     initRef.current = JSON.stringify(faqItems);
   };
 
@@ -75,11 +85,8 @@ export default function FaqWizardPage() {
 
   const handleFinish = async () => {
     setSaving(true);
-    try {
-      await saveData();
-      toast.success('Preguntas frecuentes guardadas');
-      navigate(returnTo);
-    } catch { toast.error('Error al guardar'); }
+    try { await saveData(); toast.success('Preguntas frecuentes guardadas'); navigate(returnTo); }
+    catch { toast.error('Error al guardar'); }
     finally { setSaving(false); }
   };
 
@@ -101,7 +108,7 @@ export default function FaqWizardPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#f9f7f2' }}>
+    <>
       {showGuard && (
         <UnsavedChangesDialog
           onSaveAndExit={handleSaveAndExit}
@@ -111,96 +118,94 @@ export default function FaqWizardPage() {
         />
       )}
 
-      <WizardHeader
-        step={step} totalSteps={TOTAL_STEPS}
-        icon="quiz" title="Preguntas frecuentes"
+      <ConfigWizardShell
+        icon="quiz"
+        title="Preguntas frecuentes"
         subtitle="Resuelve las dudas más comunes de tus compradores"
         onBack={handleBack}
         onSaveProgress={isDirty ? handleSaveProgress : undefined}
         isSavingProgress={savingProgress}
-      />
+        aiCards={AI_CARDS}
+        aiNext={AI_NEXT}
+        submitLabel="Guardar FAQ"
+        onSubmit={handleFinish}
+        isSubmitting={saving}
+        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
+        isSavingAndExiting={saving}
+      >
 
-      <div className="flex-1 overflow-y-auto px-6 py-8 pb-28">
-        <div className="max-w-xl mx-auto">
+        {/* ── Editor de FAQs ──────────────────────────────────────────── */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, margin: 0 }}>
+              Preguntas y respuestas
+            </p>
+            <button
+              onClick={addFaq}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: 'none', border: `1px solid rgba(236,109,19,0.3)`,
+                borderRadius: 100, padding: '6px 14px', cursor: 'pointer',
+                color: T.orange, fontFamily: T.sans, fontSize: 11, fontWeight: 800,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
+              Agregar pregunta
+            </button>
+          </div>
+          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, margin: '4px 0 20px' }}>
+            Agrega las preguntas que más te hacen los compradores. Aparecen en la página pública de tu tienda.
+          </p>
 
-          {step === 1 && (
-            <div className="flex flex-col gap-6">
-              <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-                <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark, marginBottom: 8 }}>
-                  Asistente de FAQ
-                </p>
-                <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}70`, lineHeight: 1.6, marginBottom: 24 }}>
-                  Próximamente, el agente IA generará preguntas frecuentes basadas en tu perfil artesanal. Por ahora, agrega las tuyas manualmente en el siguiente paso.
-                </p>
-                <button
-                  onClick={() => setStep(2)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 100, background: T.dark, color: 'white', border: 'none', cursor: 'pointer', fontFamily: T.sans, fontSize: 12, fontWeight: 800, letterSpacing: '0.06em' }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit_note</span>
-                  Agregar preguntas manualmente
-                </button>
-              </div>
-              <AgentPlaceholder context="faq" />
+          {faqItems.length === 0 ? (
+            <div
+              className="py-12 flex flex-col items-center gap-3"
+              style={{ borderRadius: 16, background: `${T.dark}03`, border: `1px dashed ${T.dark}10` }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: `${T.muted}20` }}>quiz</span>
+              <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}45`, textAlign: 'center' }}>
+                Sin preguntas aún — presiona "Agregar pregunta" para empezar
+              </p>
             </div>
-          )}
-
-          {step === 2 && (
-            <div style={{ ...glass, borderRadius: 24, padding: 32 }}>
-              <div className="flex items-center justify-between mb-6">
-                <p style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 700, color: T.dark }}>
-                  Tus preguntas frecuentes
-                </p>
-                <button onClick={addFaq}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: `1px solid rgba(236,109,19,0.3)`, borderRadius: 100, padding: '6px 14px', cursor: 'pointer', color: T.orange, fontFamily: T.sans, fontSize: 11, fontWeight: 800 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>Agregar
-                </button>
-              </div>
-
-              {faqItems.length === 0 ? (
-                <div className="py-12 flex flex-col items-center gap-3" style={{ borderRadius: 16, background: `${T.dark}03`, border: `1px dashed ${T.dark}10` }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 32, color: `${T.muted}20` }}>quiz</span>
-                  <p style={{ fontFamily: T.sans, fontSize: 13, color: `${T.muted}45`, textAlign: 'center' }}>
-                    Sin preguntas aún — presiona "Agregar" para empezar
-                  </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {faqItems.map((item, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl p-4"
+                  style={{ background: `${T.dark}04`, border: `1px solid ${T.dark}07` }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}50` }}>
+                      Pregunta {i + 1}
+                    </span>
+                    <button
+                      onClick={() => removeFaq(i)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: `${T.muted}35`, display: 'flex', padding: 2 }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                    </button>
+                  </div>
+                  <input
+                    value={item.q}
+                    onChange={e => updateFaq(i, 'q', e.target.value)}
+                    placeholder="¿Cuánto tarda en llegar mi pedido?"
+                    style={{ ...inputStyle, marginBottom: 8 }}
+                  />
+                  <SpeechTextarea
+                    value={item.a}
+                    onChange={(v) => updateFaq(i, 'a', v)}
+                    placeholder="Los pedidos tardan entre 3 y 7 días hábiles…"
+                    rows={3}
+                    style={{ ...inputStyle, resize: 'vertical' as const }}
+                  />
                 </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {faqItems.map((item, i) => (
-                    <div key={i} className="rounded-xl p-4" style={{ background: `${T.dark}04`, border: `1px solid ${T.dark}07` }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}50` }}>
-                          Pregunta {i + 1}
-                        </span>
-                        <button onClick={() => removeFaq(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: `${T.muted}35`, display: 'flex', padding: 2 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
-                        </button>
-                      </div>
-                      <input value={item.q} onChange={e => updateFaq(i, 'q', e.target.value)}
-                        placeholder="¿Cuánto tarda en llegar mi pedido?" style={{ ...inputStyle, marginBottom: 8 }} />
-                      <textarea value={item.a} onChange={e => updateFaq(i, 'a', e.target.value)}
-                        placeholder="Los pedidos tardan entre 3 y 7 días hábiles…" rows={3}
-                        style={{ ...inputStyle, resize: 'vertical' as const }} />
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           )}
         </div>
-      </div>
 
-      <WizardFooter
-        step={step} totalSteps={TOTAL_STEPS}
-        onBack={step > 1 ? () => setStep(s => s - 1) : undefined}
-        onNext={step < TOTAL_STEPS ? () => setStep(s => s + 1) : undefined}
-        isFinalStep={step === TOTAL_STEPS}
-        onSubmit={handleFinish}
-        isSubmitting={saving}
-        submitLabel="Guardar FAQ"
-        onSaveAndExit={isDirty ? handleSaveAndExit : undefined}
-        isSavingAndExiting={saving}
-        leftOffset={80}
-      />
-    </div>
+      </ConfigWizardShell>
+    </>
   );
 }

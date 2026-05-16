@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { getCurrentUser, refreshToken as refreshTokenAction, logout as logoutAction } from '@/pages/auth/actions/login.actions';
 import { AuthUser } from '@/pages/auth/types/login.types';
-import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { useAuthStore } from '@/stores/authStore';
 
 interface AuthContextType {
@@ -22,43 +21,33 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Convierte AuthUser del backend NestJS a User de Supabase para mantener compatibilidad
- */
-const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => {
-  return {
-    id: authUser.id,
-    email: authUser.email,
-    aud: authUser.aud || 'authenticated',
-    role: authUser.role as any,
-    email_confirmed_at: authUser.emailConfirmedAt || undefined,
-    phone: authUser.phone || undefined,
-    confirmed_at: authUser.confirmedAt || undefined,
-    last_sign_in_at: authUser.lastSignInAt || undefined,
-    app_metadata: {
-      ...(authUser.rawAppMetaData || {}),
-      isSuperAdmin: authUser.isSuperAdmin === true,
-    },
-    user_metadata: authUser.rawUserMetaData || {},
-    identities: [],
-    created_at: authUser.createdAt || new Date().toISOString(),
-    updated_at: authUser.updatedAt || new Date().toISOString(),
-  } as User;
-};
+const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => ({
+  id: authUser.id,
+  email: authUser.email,
+  aud: authUser.aud || 'authenticated',
+  role: authUser.role as any,
+  email_confirmed_at: authUser.emailConfirmedAt || undefined,
+  phone: authUser.phone || undefined,
+  confirmed_at: authUser.confirmedAt || undefined,
+  last_sign_in_at: authUser.lastSignInAt || undefined,
+  app_metadata: {
+    ...(authUser.rawAppMetaData || {}),
+    isSuperAdmin: authUser.isSuperAdmin === true,
+  },
+  user_metadata: authUser.rawUserMetaData || {},
+  identities: [],
+  created_at: authUser.createdAt || new Date().toISOString(),
+  updated_at: authUser.updatedAt || new Date().toISOString(),
+} as User);
 
-/**
- * Crea una sesión mock compatible con Supabase para mantener compatibilidad
- */
-const createMockSession = (user: User, token: string): Session => {
-  return {
-    access_token: token,
-    token_type: 'bearer',
-    expires_in: 14400, // 4 horas (asumiendo)
-    expires_at: Math.floor(Date.now() / 1000) + 14400,
-    refresh_token: '',
-    user: user,
-  } as Session;
-};
+const createMockSession = (user: User, token: string): Session => ({
+  access_token: token,
+  token_type: 'bearer',
+  expires_in: 14400,
+  expires_at: Math.floor(Date.now() / 1000) + 14400,
+  refresh_token: '',
+  user,
+} as Session);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -68,276 +57,139 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [debugInfo, setDebugInfo] = useState({
     authStateChangeCount: 0,
     lastAuthEvent: null as string | null,
-    authorizationAttempts: 0
+    authorizationAttempts: 0,
   });
 
-  const { recordFailedAttempt, recordSuccessfulLogin, checkRateLimit } = useSecurityMonitoring();
-
-  /**
-   * Verificar si el usuario es administrador basándose en el rol
-   */
   const checkAuthorization = async (): Promise<boolean> => {
-    if (!user?.email) {
-      setIsAuthorized(false);
-      return false;
-    }
-
-    try {
-      setDebugInfo(prev => ({ ...prev, authorizationAttempts: prev.authorizationAttempts + 1 }));
-
-      // Admin = super_admin en Postgres (columna is_super_admin) o legacy role/flag
-      const meta = (user.app_metadata as any) || {};
-      const isAdmin =
-        meta.isSuperAdmin === true ||
-        meta.is_admin === true ||
-        user.role === 'admin';
-
-      setIsAuthorized(isAdmin);
-      return isAdmin;
-    } catch (error) {
-      console.error('Authorization check failed:', error);
-      return isAuthorized;
-    }
+    if (!user?.email) { setIsAuthorized(false); return false; }
+    const meta = (user.app_metadata as any) || {};
+    const isAdmin = meta.isSuperAdmin === true || meta.is_admin === true || user.role === 'admin';
+    setIsAuthorized(isAdmin);
+    return isAdmin;
   };
 
   /**
-   * Sincronizar usuario desde localStorage
+   * Lee localStorage SIN llamadas a la API → loading = false inmediatamente.
+   * La validación real ocurre en background en initializeAuth.
    */
   const syncUserFromLocalStorage = React.useCallback((mounted: boolean = true) => {
     const token = localStorage.getItem('telar_token');
-    const localUserString = localStorage.getItem('telar_user');
+    const localUserStr = localStorage.getItem('telar_user');
 
     if (!token) {
-      if (mounted) {
-        setUser(null);
-        setSession(null);
-        setLoading(false);
-      }
+      if (mounted) { setUser(null); setSession(null); setLoading(false); }
       return;
     }
-
-    if (localUserString) {
+    if (localUserStr) {
       try {
-        const localUser = JSON.parse(localUserString);
+        const localUser = JSON.parse(localUserStr);
         const supabaseUser = convertAuthUserToSupabaseUser(localUser);
-        const mockSession = createMockSession(supabaseUser, token);
-
         if (mounted) {
           setUser(supabaseUser);
-          setSession(mockSession);
+          setSession(createMockSession(supabaseUser, token));
           setLoading(false);
-
-          setDebugInfo(prev => ({
-            ...prev,
-            authStateChangeCount: prev.authStateChangeCount + 1,
-            lastAuthEvent: 'SIGNED_IN_FROM_LOCALSTORAGE'
-          }));
+          setDebugInfo((p) => ({ ...p, authStateChangeCount: p.authStateChangeCount + 1, lastAuthEvent: 'SIGNED_IN_FROM_LOCALSTORAGE' }));
         }
-      } catch (parseError) {
-        console.error('Error parsing localStorage user:', parseError);
+      } catch {
+        if (mounted) setLoading(false);
       }
+    } else {
+      if (mounted) setLoading(false);
     }
   }, []);
 
-  /**
-   * Inicializar autenticación al cargar la aplicación
-   */
   useEffect(() => {
     let mounted = true;
-    let refreshInterval: NodeJS.Timeout | null = null;
+    let refreshInterval: ReturnType<typeof setInterval> | null = null;
 
     const initializeAuth = async () => {
+      // ① Leer localStorage de inmediato — no bloquea UI
+      syncUserFromLocalStorage(mounted);
+
+      const token = localStorage.getItem('telar_token');
+      if (!token) return;
+
+      // ② Validar token en background
       try {
-        syncUserFromLocalStorage(mounted);
-
-        const token = localStorage.getItem('telar_token');
-        if (!token) {
-          return;
+        const authUser = await getCurrentUser();
+        if (mounted) {
+          const su = convertAuthUserToSupabaseUser(authUser);
+          setUser(su);
+          setSession(createMockSession(su, token));
+          localStorage.setItem('telar_user', JSON.stringify(authUser));
+          setDebugInfo((p) => ({ ...p, authStateChangeCount: p.authStateChangeCount + 1, lastAuthEvent: 'TOKEN_VALIDATED' }));
         }
-
-        // Validar el token con el backend (en background)
+      } catch {
         try {
-          const authUser = await getCurrentUser();
-
-          if (mounted) {
-            const supabaseUser = convertAuthUserToSupabaseUser(authUser);
-            const mockSession = createMockSession(supabaseUser, token);
-
-            setUser(supabaseUser);
-            setSession(mockSession);
-            localStorage.setItem('telar_user', JSON.stringify(authUser));
-
-            setDebugInfo(prev => ({
-              ...prev,
-              authStateChangeCount: prev.authStateChangeCount + 1,
-              lastAuthEvent: 'TOKEN_VALIDATED'
-            }));
-          }
-        } catch (error: any) {
-          // Intentar refrescar el token
-          try {
-            const refreshResponse = await refreshTokenAction();
-
-            if (refreshResponse.access_token) {
-              const authUser = await getCurrentUser();
-
-              if (mounted) {
-                const supabaseUser = convertAuthUserToSupabaseUser(authUser);
-                const mockSession = createMockSession(supabaseUser, refreshResponse.access_token);
-
-                setUser(supabaseUser);
-                setSession(mockSession);
-                localStorage.setItem('telar_user', JSON.stringify(authUser));
-              }
-            }
-          } catch (refreshError) {
+          const r = await refreshTokenAction();
+          if (r.access_token) {
+            const authUser = await getCurrentUser();
             if (mounted) {
-              localStorage.removeItem('telar_token');
-              localStorage.removeItem('telar_user');
-              useAuthStore.getState().clearAuth();
-              setUser(null);
-              setSession(null);
-
-              setDebugInfo(prev => ({
-                ...prev,
-                authStateChangeCount: prev.authStateChangeCount + 1,
-                lastAuthEvent: 'SIGNED_OUT'
-              }));
+              const su = convertAuthUserToSupabaseUser(authUser);
+              setUser(su);
+              setSession(createMockSession(su, r.access_token));
+              localStorage.setItem('telar_user', JSON.stringify(authUser));
             }
           }
-        }
-
-        if (mounted) {
-          setLoading(false);
-        }
-
-        // Configurar refresh automático del token cada 3.5 horas
-        refreshInterval = setInterval(async () => {
-          try {
-            await refreshTokenAction();
-          } catch (error) {
-            console.error('Auto token refresh failed:', error);
+        } catch {
+          if (mounted) {
+            localStorage.removeItem('telar_token');
+            localStorage.removeItem('telar_user');
+            useAuthStore.getState().clearAuth();
+            setUser(null);
+            setSession(null);
+            setDebugInfo((p) => ({ ...p, authStateChangeCount: p.authStateChangeCount + 1, lastAuthEvent: 'SIGNED_OUT' }));
           }
-        }, 3.5 * 60 * 60 * 1000);
-
-      } catch (error) {
-        console.error('Failed to initialize auth:', error);
-        if (mounted) {
-          setIsAuthorized(false);
-          setLoading(false);
         }
       }
+
+      // Auto-refresh cada 3.5 horas
+      refreshInterval = setInterval(async () => {
+        try { await refreshTokenAction(); } catch { /* silencioso */ }
+      }, 3.5 * 60 * 60 * 1000);
     };
 
     initializeAuth();
-
-    return () => {
-      mounted = false;
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
+    return () => { mounted = false; if (refreshInterval) clearInterval(refreshInterval); };
   }, [syncUserFromLocalStorage]);
 
-  /**
-   * Escuchar cambios en localStorage (cuando se hace login desde otra pestaña o después del login)
-   */
+  // Sincronización multi-pestaña
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'telar_token' || e.key === 'telar_user') {
-        syncUserFromLocalStorage(true);
-      }
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'telar_token' || e.key === 'telar_user') syncUserFromLocalStorage(true);
     };
-
-    // Escuchar custom event para login en la misma pestaña
-    const handleLoginSuccess = () => {
-      syncUserFromLocalStorage(true);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('auth:login', handleLoginSuccess);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('auth:login', handleLoginSuccess);
-    };
+    const onLogin = () => syncUserFromLocalStorage(true);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('auth:login', onLogin);
+    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('auth:login', onLogin); };
   }, [syncUserFromLocalStorage]);
 
-  // Verificar autorización cuando cambia el usuario
   useEffect(() => {
-    if (user?.email) {
-      const timeoutId = setTimeout(() => {
-        checkAuthorization();
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      setIsAuthorized(false);
-    }
+    if (user?.email) { const t = setTimeout(() => checkAuthorization(), 100); return () => clearTimeout(t); }
+    else setIsAuthorized(false);
   }, [user?.email]);
 
-  /**
-   * Función de login - MANTIENE LA MISMA INTERFAZ pero ya no se usa aquí
-   * El login real se hace en Login.tsx
-   */
-  const signIn = async (email: string, password: string) => {
-    // Esta función se mantiene por compatibilidad pero ya no se usa
-    return { error: { message: 'Use login action from Login.tsx instead' } };
-  };
+  const signIn = async (_e: string, _p: string) => ({ error: { message: 'Use login action from Login.tsx instead' } });
 
-  /**
-   * Cerrar sesión
-   */
   const signOut = async () => {
-    setLoading(true);
-
-    // Limpiar user-specific localStorage
     if (user?.id) {
       const prefix = `user_${user.id}_`;
-      const keysToRemove: string[] = [];
-
-      const preservedKeys = [
-        `${prefix}fused_maturity_calculator_progress`,
-        `${prefix}maturityScores`,
-      ];
-
+      const preserved = [`${prefix}fused_maturity_calculator_progress`, `${prefix}maturityScores`];
+      const toRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key?.startsWith(prefix) && !preservedKeys.includes(key)) {
-          keysToRemove.push(key);
-        }
+        if (key?.startsWith(prefix) && !preserved.includes(key)) toRemove.push(key);
       }
-
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      toRemove.forEach((k) => localStorage.removeItem(k));
     }
-
-    // Limpiar tokens y datos del usuario
     logoutAction();
     useAuthStore.getState().clearAuth();
-
-    setUser(null);
-    setSession(null);
-    setIsAuthorized(false);
-    setLoading(false);
-
-    setDebugInfo(prev => ({
-      ...prev,
-      authStateChangeCount: prev.authStateChangeCount + 1,
-      lastAuthEvent: 'SIGNED_OUT'
-    }));
+    setUser(null); setSession(null); setIsAuthorized(false);
+    setDebugInfo((p) => ({ ...p, authStateChangeCount: p.authStateChangeCount + 1, lastAuthEvent: 'SIGNED_OUT' }));
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      loading,
-      isAuthorized,
-      signIn,
-      signOut,
-      checkAuthorization,
-      debugInfo
-    }}>
+    <AuthContext.Provider value={{ user, session, loading, isAuthorized, signIn, signOut, checkAuthorization, debugInfo }}>
       {children}
     </AuthContext.Provider>
   );
@@ -345,8 +197,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

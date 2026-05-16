@@ -8,12 +8,16 @@ import {
   GenerateArtisanProfileHistoryDto,
   ArtisanProfileHistoryResponse,
 } from '../dto/artisan-profile-history.dto';
+import { ArtisanProfileHistoryDbService } from 'src/resources/artisan-profile-history/artisan-profile-history.service';
 
 @Injectable()
 export class ArtisanProfileHistoryService {
   private readonly logger = new Logger(ArtisanProfileHistoryService.name);
 
-  constructor(private readonly openaiService: OpenAIService) {}
+  constructor(
+    private readonly openaiService: OpenAIService,
+    private readonly historyDbService: ArtisanProfileHistoryDbService,
+  ) {}
 
   /**
    * Genera la narrativa del perfil de un artesano usando OpenAI
@@ -45,6 +49,10 @@ export class ArtisanProfileHistoryService {
       this.logger.log(
         `Historia generada exitosamente para: ${dto.shopName}`,
       );
+
+      if (dto.artisanId) {
+        await this.historyDbService.save(dto.artisanId, dto, storyData);
+      }
 
       return storyData;
     } catch (error) {

@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
+import * as Joi from 'joi';
 import { AuthModule } from './resources/auth/auth.module';
 import { UsersModule } from './resources/users/users.module';
 import { MailModule } from './resources/mail/mail.module';
@@ -58,22 +61,62 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
 import { ArtisanOriginModule } from './resources/artisan-origin/artisan-origin.module';
 import { ArtisanIdentityModule } from './resources/artisan-identity/artisan-identity.module';
 import { ArtisanMaterialsModule } from './resources/artisan-materials/artisan-materials.module';
-import { ArtisanMediaFamilyModule } from './resources/artisan-media-family/artisan-media-family.module';
-import { ArtisanMediaWorkingModule } from './resources/artisan-media-working/artisan-media-working.module';
-import { ArtisanMediaWorkshopModule } from './resources/artisan-media-workshop/artisan-media-workshop.module';
-import { ArtisanMediaCommunityModule } from './resources/artisan-media-community/artisan-media-community.module';
 import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisan-territorial.module';
 import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-buyer-identity.module';
 import { IdTypeUserModule } from './resources/id-type-user/id-type-user.module';
 import { CountriesModule } from './resources/countries/countries.module';
 import { AgreementsModule } from './resources/agreements/agreements.module';
 import { StorePoliciesConfigModule } from './resources/store-policies-config/store-policies-config.module';
+import { ArtisanOnboardingModule } from './resources/artisan-onboarding/artisan-onboarding.module';
+import { TaxonomyStylesModule } from './resources/taxonomy-styles/taxonomy-styles.module';
+import { TaxonomyHerramientasModule } from './resources/taxonomy-herramientas/taxonomy-herramientas.module';
+import { StoryLibraryModule } from './resources/story-library/story-library.module';
+import { ArtisanProfileHistoryModule } from './resources/artisan-profile-history/artisan-profile-history.module';
+import { AdminStatsModule } from './resources/admin-stats/admin-stats.module';
+import { ShopModerationHistoryModule } from './resources/shop-moderation-history/shop-moderation-history.module';
+import { ModerationQueueModule } from './resources/moderation-queue/moderation-queue.module';
+import { TaxonomyAliasesModule } from './resources/taxonomy-aliases/taxonomy-aliases.module';
+import { MarketplaceAssignmentsModule } from './resources/marketplace-assignments/marketplace-assignments.module';
+import { FeaturedCollectionsModule } from './resources/featured-collections/featured-collections.module';
+import { StoreHealthScoresModule } from './resources/store-health-scores/store-health-scores.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        PASSWORD_SECRET: Joi.string().required(),
+        SESSION_SECRET: Joi.string().required(),
+        DATABASE_URL: Joi.string().optional(),
+        DB_HOST: Joi.string().optional(),
+        DB_PORT: Joi.number().optional(),
+        DB_USERNAME: Joi.string().optional(),
+        DB_PASSWORD: Joi.string().optional(),
+        DB_DATABASE: Joi.string().optional(),
+        OPENAI_API_KEY: Joi.string().required(),
+        AWS_ACCESS_KEY_ID: Joi.string().optional(),
+        AWS_SECRET_ACCESS_KEY: Joi.string().optional(),
+      }),
+      validationOptions: { abortEarly: false },
+    }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+          : undefined,
+        serializers: {
+          req(req) {
+            return { method: req.method, url: req.url, userId: req.headers['x-user-id'] };
+          },
+          res(res) {
+            return { statusCode: res.statusCode };
+          },
+        },
+      },
     }),
     // MongooseModule.forRootAsync({
     //   imports: [ConfigModule],
@@ -142,16 +185,24 @@ import { StorePoliciesConfigModule } from './resources/store-policies-config/sto
     ArtisanOriginModule,
     ArtisanIdentityModule,
     ArtisanMaterialsModule,
-    ArtisanMediaFamilyModule,
-    ArtisanMediaWorkingModule,
-    ArtisanMediaWorkshopModule,
-    ArtisanMediaCommunityModule,
     ArtisanTerritorialModule,
     InfoBuyerIdentityModule,
     IdTypeUserModule,
     CountriesModule,
     AgreementsModule,
     StorePoliciesConfigModule,
+    ArtisanOnboardingModule,
+    TaxonomyStylesModule,
+    TaxonomyHerramientasModule,
+    StoryLibraryModule,
+    ArtisanProfileHistoryModule,
+    AdminStatsModule,
+    ShopModerationHistoryModule,
+    ModerationQueueModule,
+    TaxonomyAliasesModule,
+    MarketplaceAssignmentsModule,
+    FeaturedCollectionsModule,
+    StoreHealthScoresModule,
   ],
   controllers: [],
   providers: [],

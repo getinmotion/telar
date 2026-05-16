@@ -160,7 +160,12 @@ CRÍTICO: Usa TODA la información proporcionada para crear claims verdaderament
       );
     }
 
-    const claims: ClaimItem[] = JSON.parse(toolCall.function.arguments).claims;
+    let claims: ClaimItem[];
+    try {
+      claims = JSON.parse(toolCall.function.arguments).claims;
+    } catch {
+      throw new InternalServerErrorException('IA devolvió claims con formato inválido');
+    }
     this.logger.log(`[BrandAiAssistant] Claims generados: ${claims.length}`);
 
     return { claims };
@@ -227,7 +232,12 @@ CRÍTICO: Usa TODA la información proporcionada para crear claims verdaderament
       );
     }
 
-    const colors: string[] = JSON.parse(toolCall.function.arguments).colors;
+    let colors: string[];
+    try {
+      colors = JSON.parse(toolCall.function.arguments).colors;
+    } catch {
+      throw new InternalServerErrorException('IA devolvió colores con formato inválido');
+    }
     this.logger.log(
       `[BrandAiAssistant] Colores extraídos: ${colors.length} → ${colors.join(', ')}`,
     );
@@ -301,7 +311,12 @@ CRÍTICO: Usa TODA la información proporcionada para crear claims verdaderament
       );
     }
 
-    const result = JSON.parse(toolCall.function.arguments);
+    let result: { secondary_colors: string[]; reasoning: string };
+    try {
+      result = JSON.parse(toolCall.function.arguments);
+    } catch {
+      throw new InternalServerErrorException('IA devolvió paleta con formato inválido');
+    }
     this.logger.log(
       `[BrandAiAssistant] Colores secundarios generados: ${result.secondary_colors.length}`,
     );
@@ -407,7 +422,12 @@ CRÍTICO: Usa TODA la información proporcionada para crear claims verdaderament
       );
     }
 
-    const diagnosis: BrandDiagnosis = JSON.parse(toolCall.function.arguments);
+    let diagnosis: BrandDiagnosis;
+    try {
+      diagnosis = JSON.parse(toolCall.function.arguments);
+    } catch {
+      throw new InternalServerErrorException('IA devolvió diagnóstico con formato inválido');
+    }
     this.logger.log(
       `[BrandAiAssistant] Diagnóstico completo. Score promedio: ${diagnosis.average_score}`,
     );

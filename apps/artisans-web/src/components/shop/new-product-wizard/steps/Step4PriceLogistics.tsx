@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import type { AvailabilityType } from '@/services/products-new.types';
 import { WizardFooter } from '../components/WizardFooter';
@@ -33,21 +33,9 @@ const inputClass =
 
 export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
   const canContinue = !!state.price && !!state.availabilityType;
-  const [editingOrigin, setEditingOrigin] = useState(false);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
-
-  // Auto-generate SKU
-  const autoSku = useMemo(() => {
-    const prefix = 'TEL';
-    const cat = state.categoryId ? state.categoryId.substring(0, 4).toUpperCase() : 'XXXX';
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${cat}-${rand}`;
-  }, [state.categoryId]);
-
-  // Infer shipping origin from artisan profile
-  const inferredOrigin = [state.municipality, state.department].filter(Boolean).join(', ') || null;
 
   // Smart stock logic based on production type
   const stockHint = state.productionType === 'unica'
@@ -65,12 +53,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     }
   }, [state.productionType, state.inventory, update]);
 
-  // Persist auto-generated SKU if not already set
+  // Clear any previously stored fake client-side SKU so the server generates the real one
   useEffect(() => {
-    if (!state.sku) {
-      update({ sku: autoSku });
-    }
-  }, [autoSku, state.sku, update]);
+    if (state.sku) update({ sku: undefined });
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
@@ -78,6 +64,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         <WizardHeader
           step={step}
           totalSteps={totalSteps}
+          onBack={onBack}
           icon="payments"
           title="Precio y logística"
           subtitle="Define cómo se comercializa y despacha esta pieza"
@@ -211,20 +198,18 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                 )}
               </div>
 
-              {/* Auto SKU */}
+              {/* SKU info */}
               <div className="mt-4 pt-4 border-t border-[#e2d5cf]/30">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider">
                     Código SKU
                   </label>
                   <AiBadge />
-                  <span className="text-[9px] text-[#54433e]/30 font-[600]">Generado automáticamente</span>
                 </div>
-                <div className="mt-1 px-3 py-2 rounded-lg border border-[#151b2d]/30 text-[13px] font-mono font-[600] text-[#54433e]/60"
-                  style={{ background: 'rgba(247,244,239,0.3)' }}
-                >
-                  {state.sku || autoSku}
-                </div>
+                <p className="flex items-center gap-1.5 text-[11px] text-[#54433e]/40 font-[500]">
+                  <span className="material-symbols-outlined text-[14px] shrink-0">info</span>
+                  TELAR genera el SKU automáticamente al guardar, usando categoría, territorio y técnica de la pieza.
+                </p>
               </div>
             </section>
 
@@ -435,84 +420,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               )}
             </section>
 
-            {/* 5. Shipping origin — auto-inferred */}
-            <section className="p-6 rounded-2xl" style={cardStyle}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="material-symbols-outlined text-[#54433e]/40 text-xl">pin_drop</span>
-                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Origen de despacho
-                </label>
-                <AiBadge />
-              </div>
-
-              {inferredOrigin && !editingOrigin ? (
-                state.shippingOrigin === inferredOrigin ? (
-                  /* ── Confirmed state ── */
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ec6d13]/8 border border-[#ec6d13]/20">
-                      <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">check_circle</span>
-                      <span className="text-[12px] font-[700] text-[#151b2d]">{inferredOrigin}</span>
-                    </div>
-                    <button
-                      onClick={() => { setEditingOrigin(true); update({ shippingOrigin: '' }); }}
-                      className="text-[10px] font-[800] text-[#54433e]/50 uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
-                    >
-                      Cambiar
-                    </button>
-                  </div>
-                ) : (
-                  /* ── Suggestion state ── */
-                  <>
-                    <p className="text-[11px] text-[#54433e]/60 mb-3">
-                      Detectamos que despachas desde <span className="font-[700] text-[#151b2d]">{inferredOrigin}</span> según tu perfil.
-                    </p>
-                    <div className="flex items-center gap-3 mb-2">
-                      <button
-                        onClick={() => { update({ shippingOrigin: inferredOrigin }); setEditingOrigin(false); }}
-                        className="px-4 py-2 rounded-lg text-[10px] font-[800] uppercase tracking-widest border border-[#ec6d13]/30 text-[#ec6d13] hover:bg-[#ec6d13]/5 transition-all"
-                      >
-                        Confirmar
-                      </button>
-                      <button
-                        onClick={() => setEditingOrigin(true)}
-                        className="text-[10px] font-[800] text-[#54433e]/40 uppercase tracking-widest hover:text-[#54433e]/70 transition-colors"
-                      >
-                        Escribir otra dirección
-                      </button>
-                    </div>
-                  </>
-                )
-              ) : (
-                /* ── Manual input state ── */
-                <>
-                  {inferredOrigin && (
-                    <p className="text-[11px] text-[#54433e]/60 mb-2">
-                      Escribe la dirección de despacho o{' '}
-                      <button
-                        onClick={() => { setEditingOrigin(false); update({ shippingOrigin: inferredOrigin }); }}
-                        className="font-[700] text-[#ec6d13] hover:underline"
-                      >
-                        usar {inferredOrigin}
-                      </button>
-                    </p>
-                  )}
-                  {!inferredOrigin && (
-                    <p className="text-[11px] text-[#54433e]/60 mb-2">
-                      Indica desde dónde despachas esta pieza.
-                    </p>
-                  )}
-                  <input
-                    type="text"
-                    value={state.shippingOrigin ?? ''}
-                    onChange={e => update({ shippingOrigin: e.target.value })}
-                    placeholder="Ej: Ráquira, Boyacá"
-                    autoFocus
-                    className="w-full rounded-lg border border-[#151b2d]/30 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#151b2d] focus:ring-2 focus:ring-[#151b2d]/8 hover:border-[#151b2d]/50 transition-all placeholder:text-[#54433e]/40"
-                    style={{ background: 'rgba(247,244,239,0.4)' }}
-                  />
-                </>
-              )}
-            </section>
           </div>
         </div>
       </main>
@@ -525,6 +432,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
+        leftOffset={80}
       />
     </div>
   );

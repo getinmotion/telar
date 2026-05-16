@@ -22,6 +22,7 @@ import {
   ProductMaterialLink,
   ProductVariant,
 } from './entities';
+import { SkuGeneratorService } from './sku-generator.service';
 
 /** Statuses visibles en el marketplace público */
 const PUBLIC_STATUSES = ['approved', 'approved_with_edits'];
@@ -53,6 +54,7 @@ export class ProductsNewService {
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly skuGeneratorService: SkuGeneratorService,
   ) {}
 
   /**
@@ -366,6 +368,7 @@ export class ProductsNewService {
 
   /**
    * Replace Variants (OneToMany)
+   * Variantes sin SKU reciben uno generado automáticamente.
    */
   private async replaceVariants(
     productId: string,
@@ -379,12 +382,21 @@ export class ProductsNewService {
       await this.variantsRepository.remove(existingVariants);
     }
 
-    const newVariants = variantsList.map((variantDto) => {
-      return this.variantsRepository.create({
-        ...variantDto,
-        productId,
-      } as any);
-    });
+    const newVariants: any[] = [];
+    for (const variantDto of variantsList) {
+      let sku = variantDto.sku;
+      if (!sku) {
+        try {
+          const generated = await this.skuGeneratorService.generateForProduct(productId);
+          sku = generated.sku;
+        } catch (err) {
+          this.logger.warn(`SKU generation failed for product ${productId}: ${err.message}`);
+        }
+      }
+      newVariants.push(
+        this.variantsRepository.create({ ...variantDto, sku, productId } as any),
+      );
+    }
 
     if (newVariants.length > 0) {
       await this.variantsRepository.save(newVariants as any);
@@ -1443,5 +1455,11 @@ export class ProductsNewService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async bulkDelete(ids: string[]): Promise<{ deleted: number }> {
+    if (!ids?.length) return { deleted: 0 };
+    await Promise.all(ids.map((id) => this.remove(id)));
+    return { deleted: ids.length };
   }
 }

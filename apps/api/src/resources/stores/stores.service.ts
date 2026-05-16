@@ -8,6 +8,7 @@ import {
   StoreAward,
   StoreBadge,
   ArtisanShop,
+  StoreArtisanalProfile,
 } from './entities';
 
 @Injectable()
@@ -17,6 +18,8 @@ export class StoresService {
     private readonly storeRepository: Repository<Store>,
     @Inject('ARTISAN_SHOPS_REPOSITORY')
     private readonly artisanShopRepository: Repository<ArtisanShop>,
+    @Inject('STORE_ARTISANAL_PROFILE_REPOSITORY')
+    private readonly artisanalProfileRepo: Repository<StoreArtisanalProfile>,
   ) {}
 
   /**
@@ -111,7 +114,7 @@ export class StoresService {
   async findByUserId(userId: string): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { userId, deletedAt: IsNull() },
-      relations: ['contacts', 'awards', 'badges'],
+      relations: ['contacts', 'awards', 'badges', 'artisanalProfile'],
     });
 
     if (!store) {
@@ -149,6 +152,21 @@ export class StoresService {
     const store = await this.findOne(id);
     store.deletedAt = new Date();
     await this.storeRepository.save(store);
+  }
+
+  /**
+   * Upsert del perfil artesanal de una tienda por userId.
+   * Usado para guardar el oficio primario desde el wizard de productos.
+   */
+  async upsertArtisanalProfileByUserId(
+    userId: string,
+    primaryCraftId: string | null,
+  ): Promise<void> {
+    const store = await this.findByUserId(userId);
+    await this.artisanalProfileRepo.upsert(
+      { storeId: store.id, primaryCraftId },
+      ['storeId'],
+    );
   }
 
   /**

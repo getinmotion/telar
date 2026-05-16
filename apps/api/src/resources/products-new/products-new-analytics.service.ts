@@ -46,6 +46,7 @@ export class ProductsNewAnalyticsService {
       storeQuality,
       priceDistribution,
       volumetricAnalysis,
+      catalogQuality,
     ] = await Promise.all([
       this.getTopMetrics(),
       this.getTaxonomyDistribution(),
@@ -54,6 +55,7 @@ export class ProductsNewAnalyticsService {
       this.getStoreQuality(),
       this.getPriceDistribution(),
       this.getVolumetricAnalysis(),
+      this.getCatalogQuality(),
     ]);
 
     return {
@@ -64,6 +66,7 @@ export class ProductsNewAnalyticsService {
       storeQuality,
       priceDistribution,
       volumetricAnalysis,
+      catalogQuality,
     };
   }
 
@@ -509,6 +512,85 @@ export class ProductsNewAnalyticsService {
       name: r[nameKey] || 'Sin asignar',
       count: parseInt(r.count),
     }));
+  }
+
+  // ─── CATALOG QUALITY ────────────────────────────────────────
+  async getCatalogQuality() {
+    const [
+      withoutImages,
+      withoutDescription,
+      withoutArtisanalIdentity,
+      withoutMaterials,
+      withoutCategory,
+      rejectionReasons,
+    ] = await Promise.all([
+      // Products without any media
+      this.dataSource.query<any[]>(`
+        SELECT COUNT(pc.id)::int AS count
+        FROM shop.products_core pc
+        WHERE pc.deleted_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM shop.product_media pm WHERE pm.product_id = pc.id
+          )
+      `),
+      // Products without description (null or empty)
+      this.dataSource.query<any[]>(`
+        SELECT COUNT(id)::int AS count
+        FROM shop.products_core
+        WHERE deleted_at IS NULL
+          AND (description IS NULL OR TRIM(description) = '')
+      `),
+      // Products without artisanal identity row
+      this.dataSource.query<any[]>(`
+        SELECT COUNT(pc.id)::int AS count
+        FROM shop.products_core pc
+        WHERE pc.deleted_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM shop.product_artisanal_identity pai
+            WHERE pai.product_id = pc.id AND pai.deleted_at IS NULL
+          )
+      `),
+      // Products without any material links
+      this.dataSource.query<any[]>(`
+        SELECT COUNT(pc.id)::int AS count
+        FROM shop.products_core pc
+        WHERE pc.deleted_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM shop.product_materials_link pml
+            WHERE pml.product_id = pc.id AND pml.deleted_at IS NULL
+          )
+      `),
+      // Products without category
+      this.dataSource.query<any[]>(`
+        SELECT COUNT(id)::int AS count
+        FROM shop.products_core
+        WHERE deleted_at IS NULL AND category_id IS NULL
+      `),
+      // Top rejection reasons from moderation history
+      this.dataSource.query<any[]>(`
+        SELECT
+          COALESCE(NULLIF(TRIM(comment), ''), 'Sin comentario') AS reason,
+          COUNT(*)::int AS count
+        FROM shop.product_moderation_history
+        WHERE new_status = 'rejected'
+          AND created_at >= NOW() - INTERVAL '90 days'
+        GROUP BY reason
+        ORDER BY count DESC
+        LIMIT 10
+      `),
+    ]);
+
+    return {
+      withoutImages: Number(withoutImages[0]?.count) || 0,
+      withoutDescription: Number(withoutDescription[0]?.count) || 0,
+      withoutArtisanalIdentity: Number(withoutArtisanalIdentity[0]?.count) || 0,
+      withoutMaterials: Number(withoutMaterials[0]?.count) || 0,
+      withoutCategory: Number(withoutCategory[0]?.count) || 0,
+      rejectionReasons: rejectionReasons.map((r) => ({
+        reason: r.reason as string,
+        count: r.count as number,
+      })),
+    };
   }
 
   private completenessRow(layer: string, total: number, complete: number) {

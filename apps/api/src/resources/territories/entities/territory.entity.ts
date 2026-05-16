@@ -34,6 +34,10 @@ export class Territory extends BaseEntity {
   @Column({ type: 'text', nullable: true, name: 'region_name' })
   regionName: string | null;
 
+  @ApiPropertyOptional({ description: 'Código SKU del territorio (ej: ANT, GUA)' })
+  @Column({ type: 'varchar', length: 5, nullable: true, name: 'sku_code' })
+  skuCode: string | null;
+
   @ApiProperty({ description: 'Fecha de creación' })
   @CreateDateColumn({
     type: 'timestamp with time zone',

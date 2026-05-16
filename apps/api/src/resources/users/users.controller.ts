@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -9,22 +8,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
 import { ILike, IsNull } from 'typeorm';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { UsersService } from './users.service';
 import { UserRolesService } from '../user-roles/user-roles.service';
 import { AppRole } from '../user-roles/enums/app-role.enum';
-
-function ensureSuperAdmin(req: Request) {
-  const user: any = (req as any).user ?? {};
-  if (user.isSuperAdmin === true) return;
-  throw new ForbiddenException('Super-admin role required');
-}
 
 interface UserListItem {
   id: string;
@@ -48,16 +41,15 @@ export class UsersController {
    * Sólo super_admin.
    */
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'List users for admin (super_admin only)' })
   async findAllAdmin(
-    @Req() req: Request,
     @Query('search') search?: string,
     @Query('limit') limitStr?: string,
     @Query('offset') offsetStr?: string,
   ) {
-    ensureSuperAdmin(req);
 
     const limit = Math.max(1, Math.min(parseInt(limitStr ?? '50', 10) || 50, 200));
     const offset = Math.max(0, parseInt(offsetStr ?? '0', 10) || 0);
@@ -102,15 +94,14 @@ export class UsersController {
    * Toggle del flag super_admin. Sólo super_admin.
    */
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Patch user (toggle isSuperAdmin) — super_admin only' })
   async patchUser(
-    @Req() req: Request,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isSuperAdmin?: boolean },
   ) {
-    ensureSuperAdmin(req);
 
     const repo = (this.usersService as any).userRepository;
     const updates: any = {};

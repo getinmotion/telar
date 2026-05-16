@@ -8,6 +8,7 @@ import {
 } from '@/services/products.actions';
 import {
   deleteProductNew,
+  deleteProductsNewBulk,
   getProductsNewByStoreId,
   mapProductResponseToLegacy,
   getProductNewById,
@@ -158,7 +159,6 @@ export function useInventory() {
 
   const deleteProduct = async (productId: string): Promise<boolean> => {
     try {
-      setLoading(true);
       await deleteProductNew(productId);
       toast.success('Producto eliminado correctamente');
       return true;
@@ -166,8 +166,18 @@ export function useInventory() {
       toast.error('Error al eliminar el producto');
       console.error('Error eliminando producto:', error);
       return false;
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const bulkDeleteProducts = async (ids: string[]): Promise<boolean> => {
+    try {
+      await deleteProductsNewBulk(ids);
+      toast.success(`${ids.length} productos eliminados correctamente`);
+      return true;
+    } catch (error) {
+      toast.error('Error al eliminar los productos');
+      console.error('Error eliminando productos en bloque:', error);
+      return false;
     }
   };
 
@@ -334,6 +344,7 @@ export function useInventory() {
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkDeleteProducts,
     duplicateProduct,
     adjustProductStock,
     // Variants (NestJS)

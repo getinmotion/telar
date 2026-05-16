@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useMasterAgent } from '@/context/MasterAgentContext';
+import { useTelarSync } from '@/hooks/useTelarSync';
 
 const SANS = "'Manrope', sans-serif";
 
@@ -51,6 +52,8 @@ export const DashboardLayout: React.FC = () => {
   const { user, signOut } = useAuth();
   const { masterState } = useMasterAgent();
 
+  useTelarSync();
+
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'A';
   const handleSignOut = async () => { try { await signOut(); navigate('/login'); } catch {} };
 
@@ -73,7 +76,7 @@ export const DashboardLayout: React.FC = () => {
     >
       {/* Sidebar */}
       <aside
-        className="w-20 shrink-0 flex flex-col items-center py-8 gap-8 sticky top-0 h-screen z-50"
+        className="w-20 shrink-0 flex flex-col items-center py-8 gap-8 sticky top-0 h-screen z-[60]"
         style={{
           background: 'rgba(247,246,242,0.45)',
           backdropFilter: 'blur(24px)',
@@ -88,8 +91,7 @@ export const DashboardLayout: React.FC = () => {
         <nav className="flex flex-col gap-4 items-center flex-1">
           <NavItem icon="grid_view"    label="Inicio"     active={activeNav(['/dashboard'])}               onClick={() => navigate('/dashboard')} />
           <NavItem icon="storefront"   label="Tienda"     active={activeNav(['/mi-tienda/configurar'])}    onClick={() => navigate('/mi-tienda/configurar')} />
-          <NavItem icon="inventory_2"  label="Productos"  active={activeNav(['/productos/subir', '/productos/editar/*'])} onClick={() => navigate('/productos/subir')} />
-          <NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])} onClick={() => navigate('/dashboard/inventory')} />
+<NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])} onClick={() => navigate('/dashboard/inventory')} />
           <NavItem icon="receipt_long" label="Ventas"     active={activeNav(['/mi-tienda/ventas'])}        onClick={() => navigate('/mi-tienda/ventas')} />
           <NavItem icon="explore"      label="Misiones"   active={activeNav(['/dashboard/tasks'])}         onClick={() => navigate('/dashboard/tasks')} />
         </nav>

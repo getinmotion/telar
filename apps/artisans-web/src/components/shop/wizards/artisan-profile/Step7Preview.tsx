@@ -59,7 +59,6 @@ export const Step7Preview: React.FC<Props> = ({ data, isGenerating, onEditStep }
     { label: 'Historia del aprendizaje',  done: !!data.learnedFromDetail?.trim() },
     { label: 'Técnicas',                  done: data.techniques.length > 0 },
     { label: 'Materiales',                done: data.materials.length > 0 },
-    { label: 'Foto trabajando',           done: data.workingPhotos.length > 0 },
   ];
   const totalDone = requiredChecks.filter((c) => c.done).length;
   const pct = Math.round((totalDone / requiredChecks.length) * 100);
@@ -196,30 +195,6 @@ export const Step7Preview: React.FC<Props> = ({ data, isGenerating, onEditStep }
         )}
       </SectionCard>
 
-      {/* 5. Galería */}
-      <SectionCard title="Galería humana" step={5} onEdit={onEditStep}>
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { photos: data.workingPhotos,   label: 'Tú trabajando', icon: 'image' },
-            { photos: data.maestrosPhotos,  label: 'Maestros',      icon: 'group' },
-            { photos: data.communityPhotos, label: 'Comunidad',     icon: 'diversity_1' },
-            { photos: data.environmentPhotos, label: 'Entorno',     icon: 'foundation' },
-          ].map(({ photos, label, icon }) => (
-            <div
-              key={label}
-              className="aspect-square rounded-lg overflow-hidden border border-[#e2d5cf]/30 flex flex-col items-center justify-center gap-1 bg-[#54433e]/3 text-center p-2"
-            >
-              {photos[0]
-                ? <img src={photos[0]} className="w-full h-full object-cover" alt="" />
-                : <>
-                    <span className="material-symbols-outlined text-[18px] text-[#54433e]/20">{icon}</span>
-                    <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#54433e]/25">{label}</p>
-                  </>
-              }
-            </div>
-          ))}
-        </div>
-      </SectionCard>
     </div>
   );
 };
