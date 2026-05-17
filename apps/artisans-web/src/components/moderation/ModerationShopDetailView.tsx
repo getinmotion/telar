@@ -10,6 +10,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Store,
   CheckCircle,
@@ -291,62 +293,43 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
             <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.4)', marginBottom: 6 }}>
               Comentario (opcional)
             </p>
-            <textarea
+            <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Razón de la decisión..."
               rows={2}
-              style={{
-                width: '100%', resize: 'vertical', padding: '10px 12px', borderRadius: 10,
-                border: '1px solid rgba(21,128,61,0.18)', background: 'rgba(255,255,255,0.8)',
-                fontFamily: SANS, fontSize: 12, color: '#151b2d', outline: 'none',
-                boxSizing: 'border-box',
-              }}
+              className="resize-y text-xs bg-white/80 border-green-700/20 focus-visible:ring-green-700/30"
             />
           </div>
 
           {/* CTA */}
           {!isApproved ? (
-            <button
+            <Button
               onClick={handleApprove}
               disabled={updating || isApproving}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 12, border: 'none',
-                background: updating || isApproving ? 'rgba(21,128,61,0.4)' : GREEN_MOD,
-                color: 'white', fontFamily: SANS, fontSize: 14, fontWeight: 800,
-                cursor: updating || isApproving ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'all 0.15s',
-              }}
+              className="w-full h-12 bg-green-700 hover:bg-green-800 text-white font-bold text-sm gap-2"
             >
               {isApproving ? (
-                <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <CheckCircle style={{ width: 16, height: 16 }} />
+                <CheckCircle className="w-4 h-4" />
               )}
               {isApproving ? 'Aprobando...' : 'Aprobar para el marketplace'}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={handleRemove}
               disabled={updating || isRemoving}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 12,
-                border: '1px solid rgba(217,119,6,0.3)',
-                background: 'rgba(217,119,6,0.08)',
-                color: '#92400e', fontFamily: SANS, fontSize: 14, fontWeight: 800,
-                cursor: updating || isRemoving ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'all 0.15s',
-              }}
+              variant="outline"
+              className="w-full h-12 border-amber-600/30 bg-amber-50 text-amber-800 hover:bg-amber-100 font-bold text-sm gap-2"
             >
               {isRemoving ? (
-                <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <XCircle style={{ width: 16, height: 16 }} />
+                <XCircle className="w-4 h-4" />
               )}
               {isRemoving ? 'Retirando...' : 'Retirar del marketplace'}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -383,20 +366,14 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
           <div style={{ borderRadius: 14, border: '1px solid rgba(239,68,68,0.2)', overflow: 'hidden' }}>
             <button
               onClick={() => setIsAdminOpen((prev) => !prev)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                padding: '12px 16px', background: 'rgba(239,68,68,0.04)',
-                border: 'none', cursor: 'pointer', textAlign: 'left',
-              }}
+              className="w-full flex items-center gap-2 px-4 py-3 bg-red-50/60 border-none cursor-pointer text-left hover:bg-red-50 transition-colors"
             >
-              <ShieldAlert style={{ width: 14, height: 14, color: '#ef4444', flexShrink: 0 }} />
-              <span style={{ flex: 1, fontFamily: SANS, fontSize: 11, fontWeight: 700, color: '#b91c1c' }}>
-                Zona de administrador
-              </span>
+              <ShieldAlert className="w-3.5 h-3.5 text-red-500 shrink-0" />
+              <span className="flex-1 text-[11px] font-bold text-red-700">Zona de administrador</span>
               {isAdminOpen ? (
-                <ChevronDown style={{ width: 13, height: 13, color: 'rgba(239,68,68,0.5)' }} />
+                <ChevronDown className="w-3 h-3 text-red-400/50" />
               ) : (
-                <ChevronRight style={{ width: 13, height: 13, color: 'rgba(239,68,68,0.5)' }} />
+                <ChevronRight className="w-3 h-3 text-red-400/50" />
               )}
             </button>
 
@@ -408,15 +385,10 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
 
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                   <AlertDialogTrigger asChild>
-                    <button style={{
-                      width: '100%', padding: '10px', borderRadius: 10,
-                      background: '#ef4444', border: 'none', color: 'white',
-                      fontFamily: SANS, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    }}>
-                      <Trash2 style={{ width: 13, height: 13 }} />
+                    <Button variant="destructive" className="w-full gap-1.5 text-xs font-bold">
+                      <Trash2 className="w-3.5 h-3.5" />
                       Eliminar tienda permanentemente
-                    </button>
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -440,17 +412,13 @@ export const ModerationShopDetailView: React.FC<ModerationShopDetailViewProps> =
                       <label htmlFor="delete-reason" className="font-medium text-sm block">
                         Razón de eliminación (obligatorio, mín. 10 caracteres)
                       </label>
-                      <textarea
+                      <Textarea
                         id="delete-reason"
                         placeholder="Explica por qué eliminas esta tienda..."
                         value={deleteReason}
                         onChange={(e) => setDeleteReason(e.target.value)}
                         rows={3}
-                        style={{
-                          width: '100%', resize: 'none', padding: '8px 12px', borderRadius: 8,
-                          border: '1px solid rgba(239,68,68,0.3)', fontFamily: SANS, fontSize: 12,
-                          outline: 'none', boxSizing: 'border-box',
-                        }}
+                        className="resize-none text-xs border-red-400/30 focus-visible:ring-red-400/30"
                       />
                       {deleteReason.length > 0 && deleteReason.length < 10 && (
                         <p className="text-xs text-destructive">

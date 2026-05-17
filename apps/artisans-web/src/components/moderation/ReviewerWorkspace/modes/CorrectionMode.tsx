@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { SANS, SERIF } from '@/components/dashboard/dashboardStyles';
 import { CorrectionTypeSelector, type CorrectionType, type FieldCorrection } from '../CorrectionTypeSelector';
 import { CorrectionSummaryCard } from '../CorrectionSummaryCard';
@@ -178,38 +179,33 @@ export const CorrectionMode: React.FC<CorrectionModeProps> = ({ product, onAppro
         {hasChanges && showSummary && <CorrectionSummaryCard corrections={corrections} />}
 
         {hasChanges && (
-          <button
+          <Button
             type="button"
+            variant="link"
             onClick={() => setShowSummary((v) => !v)}
-            style={{ fontFamily: SANS, fontSize: 11, color: C, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2, padding: 0, textAlign: 'left' }}
+            className="p-0 h-auto text-[11px] text-blue-600 font-normal underline-offset-2"
           >
             {showSummary ? 'Ocultar resumen' : 'Ver resumen de cambios'}
-          </button>
+          </Button>
         )}
       </div>
 
       {/* CTA */}
       <div style={{ borderTop: `1px solid ${rgba(0.15)}`, background: rgba(0.04), padding: 20 }}>
-        <button
+        <Button
           onClick={handleConfirm}
           disabled={moderating || !hasChanges}
-          style={{
-            width: '100%', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            borderRadius: 10, border: 'none', cursor: (moderating || !hasChanges) ? 'not-allowed' : 'pointer',
-            background: C, color: 'white',
-            fontFamily: SANS, fontSize: 14, fontWeight: 700,
-            opacity: (moderating || !hasChanges) ? 0.4 : 1, transition: 'all 0.15s',
-          }}
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm gap-2"
         >
           {moderating ? (
-            <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check_circle</span>
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
           )}
           {hasChanges
             ? `Aprobar con ${corrections.length} ajuste${corrections.length !== 1 ? 's' : ''}`
             : 'Edita al menos un campo para continuar'}
-        </button>
+        </Button>
       </div>
     </div>
   );

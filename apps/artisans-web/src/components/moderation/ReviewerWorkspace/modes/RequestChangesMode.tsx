@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, ChevronRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { SANS } from '@/components/dashboard/dashboardStyles';
 
 const C = '#d97706';
@@ -104,24 +105,18 @@ export const RequestChangesMode: React.FC<RequestChangesModeProps> = ({ onReques
 
       {/* CTA */}
       <div style={{ borderTop: `1px solid ${rgba(0.18)}`, background: rgba(0.05), padding: 20 }}>
-        <button
+        <Button
           onClick={handleSubmit}
           disabled={moderating || !canSubmit}
-          style={{
-            width: '100%', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            borderRadius: 10, border: 'none', cursor: (moderating || !canSubmit) ? 'not-allowed' : 'pointer',
-            background: '#f59e0b', color: 'white',
-            fontFamily: SANS, fontSize: 14, fontWeight: 700,
-            opacity: (moderating || !canSubmit) ? 0.4 : 1, transition: 'all 0.15s',
-          }}
+          className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm gap-2"
         >
           {moderating ? (
-            <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chat</span>
+            <span className="material-symbols-outlined text-[18px]">chat</span>
           )}
           Enviar solicitud de ajustes
-        </button>
+        </Button>
       </div>
     </div>
   );
