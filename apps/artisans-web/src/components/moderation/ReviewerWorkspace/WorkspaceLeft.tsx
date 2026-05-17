@@ -40,15 +40,15 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
           <>
             <button
               onClick={() => setActiveImg((p) => (p - 1 + images.length) % images.length)}
-              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', borderRadius: 9999, background: 'rgba(255,255,255,0.92)', padding: 6, boxShadow: '0 1px 4px rgba(21,27,45,0.12)', border: 'none', cursor: 'pointer', display: 'flex' }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/92 p-1.5 shadow-sm border-none cursor-pointer flex"
             >
-              <ChevronLeft style={{ width: 16, height: 16, color: '#374151' }} />
+              <ChevronLeft className="w-4 h-4 text-gray-700" />
             </button>
             <button
               onClick={() => setActiveImg((p) => (p + 1) % images.length)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', borderRadius: 9999, background: 'rgba(255,255,255,0.92)', padding: 6, boxShadow: '0 1px 4px rgba(21,27,45,0.12)', border: 'none', cursor: 'pointer', display: 'flex' }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/92 p-1.5 shadow-sm border-none cursor-pointer flex"
             >
-              <ChevronRight style={{ width: 16, height: 16, color: '#374151' }} />
+              <ChevronRight className="w-4 h-4 text-gray-700" />
             </button>
           </>
         )}
@@ -81,14 +81,10 @@ export const WorkspaceLeft: React.FC<WorkspaceLeftProps> = ({ product }) => {
             <button
               key={i}
               onClick={() => setActiveImg(i)}
-              style={{
-                width: 48, height: 48, flexShrink: 0, borderRadius: 4, overflow: 'hidden',
-                border: `2px solid ${i === activeImg ? '#151b2d' : 'transparent'}`,
-                opacity: i === activeImg ? 1 : 0.55,
-                transition: 'all 0.12s', padding: 0, cursor: 'pointer',
-              }}
+              className="w-12 h-12 shrink-0 rounded overflow-hidden p-0 cursor-pointer transition-all border-2"
+              style={{ borderColor: i === activeImg ? '#151b2d' : 'transparent', opacity: i === activeImg ? 1 : 0.55 }}
             >
-              <img src={img} alt="" style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
+              <img src={img} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>
