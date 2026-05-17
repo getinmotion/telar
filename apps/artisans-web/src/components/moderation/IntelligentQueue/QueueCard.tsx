@@ -5,6 +5,8 @@ import type { QueueScoreApi } from '@/services/moderation.actions';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { SANS, SERIF, glassPrimary, glassGreen, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export interface QueueCardItem {
   id: string;
@@ -51,12 +53,12 @@ function Checkbox({ checked, onChange }: { checked?: boolean; onChange: () => vo
   return (
     <div
       onClick={e => { e.stopPropagation(); onChange(); }}
-      style={{
-        width: 16, height: 16, borderRadius: 4, flexShrink: 0, cursor: 'pointer',
-        border: `1.5px solid ${checked ? GREEN_MOD : 'rgba(84,67,62,0.25)'}`,
-        background: checked ? GREEN_MOD : 'transparent',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className={cn(
+        'w-4 h-4 rounded shrink-0 cursor-pointer flex items-center justify-center transition-colors',
+        checked
+          ? 'bg-green-700 border-green-700 border-[1.5px]'
+          : 'bg-transparent border-[1.5px] border-stone-400/40',
+      )}
     >
       {checked && (
         <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -71,13 +73,8 @@ function Checkbox({ checked, onChange }: { checked?: boolean; onChange: () => vo
 
 function IssuesBadge({ count }: { count: number }) {
   return (
-    <span style={{
-      display: 'flex', alignItems: 'center', gap: 3,
-      padding: '2px 7px', borderRadius: 9999,
-      background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-      fontFamily: SANS, fontSize: 10, fontWeight: 700, color: '#b45309', flexShrink: 0,
-    }}>
-      <AlertTriangle style={{ width: 10, height: 10 }} />
+    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-700 shrink-0">
+      <AlertTriangle className="w-2.5 h-2.5" />
       {count}
     </span>
   );
@@ -147,24 +144,17 @@ function ListCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <ModerationStatusBadge status={item.status} size="sm" />
         {(item.issues?.length ?? 0) > 0 && <IssuesBadge count={item.issues!.length} />}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div className="flex items-center gap-1">
           {onQuickApprove && item.status === 'pending_moderation' && (
-            <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '4px 10px', borderRadius: 7,
-              border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
-              fontFamily: SANS, fontSize: 11, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer',
-            }}>
-              <CheckCircle style={{ width: 11, height: 11 }} /> Aprobar
-            </button>
+            <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
+              className="h-7 text-[11px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15 gap-1">
+              <CheckCircle className="w-3 h-3" /> Aprobar
+            </Button>
           )}
-          <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
-            padding: '4px 10px', borderRadius: 7,
-            border: '1px solid rgba(21,27,45,0.1)', background: 'rgba(21,27,45,0.04)',
-            fontFamily: SANS, fontSize: 11, fontWeight: 600, color: 'rgba(84,67,62,0.7)', cursor: 'pointer',
-          }}>
+          <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
+            className="h-7 text-[11px] border-stone-900/10 bg-stone-900/4 text-stone-500 hover:bg-stone-100">
             Ver
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -230,23 +220,17 @@ function GridCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
             {timeAgo}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+        <div className="flex items-center gap-1 shrink-0">
           {onQuickApprove && item.status === 'pending_moderation' && (
-            <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
-              display: 'flex', alignItems: 'center', padding: '3px 8px', borderRadius: 6,
-              border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
-              fontFamily: SANS, fontSize: 10, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer', gap: 3,
-            }}>
-              <CheckCircle style={{ width: 10, height: 10 }} /> Ok
-            </button>
+            <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
+              className="h-6 px-2 text-[10px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15 gap-1">
+              <CheckCircle className="w-2.5 h-2.5" /> Ok
+            </Button>
           )}
-          <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
-            padding: '3px 8px', borderRadius: 6,
-            border: '1px solid rgba(21,27,45,0.1)', background: 'rgba(21,27,45,0.04)',
-            fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.7)', cursor: 'pointer',
-          }}>
+          <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
+            className="h-6 px-2 text-[10px] border-stone-900/10 bg-stone-900/4 text-stone-500 hover:bg-stone-100">
             Ver
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -317,23 +301,17 @@ function TableRow({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
       </span>
 
       {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+      <div className="flex items-center gap-1 shrink-0">
         {onQuickApprove && item.status === 'pending_moderation' && (
-          <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
-            display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 5,
-            border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
-            fontFamily: SANS, fontSize: 10, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer',
-          }}>
-            <CheckCircle style={{ width: 10, height: 10 }} />
-          </button>
+          <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
+            className="h-6 px-2 text-[10px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15">
+            <CheckCircle className="w-2.5 h-2.5" />
+          </Button>
         )}
-        <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
-          padding: '3px 8px', borderRadius: 5,
-          border: '1px solid rgba(21,27,45,0.1)', background: 'transparent',
-          fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.6)', cursor: 'pointer',
-        }}>
+        <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
+          className="h-6 px-2 text-[10px] border-stone-900/10 bg-transparent text-stone-500 hover:bg-stone-100">
           Ver
-        </button>
+        </Button>
       </div>
     </div>
   );
