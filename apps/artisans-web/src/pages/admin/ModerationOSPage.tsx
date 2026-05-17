@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, ArrowLeft, CheckCircle, AlertCircle, XCircle, Store, Package, Shield, Tag, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useProductModeration } from '@/hooks/useProductModeration';
 import { useShopModeration } from '@/hooks/useShopModeration';
@@ -134,33 +135,19 @@ const SubTab: React.FC<SubTabProps> = ({ label, count, active, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 5,
-      borderRadius: 8,
-      padding: '5px 12px',
-      fontFamily: SANS,
-      fontSize: 11,
-      fontWeight: active ? 700 : 500,
-      color: active ? GREEN_MOD : 'rgba(84,67,62,0.6)',
-      background: active ? 'rgba(21,128,61,0.1)' : 'transparent',
-      border: active ? `1px solid rgba(21,128,61,0.2)` : '1px solid transparent',
-      cursor: 'pointer',
-      transition: 'all 0.12s',
-      whiteSpace: 'nowrap',
-    }}
+    className={cn(
+      'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] transition-all whitespace-nowrap border',
+      active
+        ? 'bg-green-700/10 border-green-700/20 text-green-700 font-bold'
+        : 'border-transparent text-stone-500 font-medium hover:bg-stone-100/80',
+    )}
   >
     {label}
     {count !== undefined && count > 0 && (
-      <span style={{
-        borderRadius: 999,
-        padding: '0px 5px',
-        fontSize: 9,
-        fontWeight: 800,
-        background: active ? `rgba(21,128,61,0.15)` : 'rgba(21,27,45,0.07)',
-        color: active ? GREEN_MOD : 'rgba(84,67,62,0.55)',
-      }}>
+      <span className={cn(
+        'rounded-full px-1.5 text-[9px] font-bold',
+        active ? 'bg-green-700/15 text-green-700' : 'bg-stone-900/7 text-stone-500',
+      )}>
         {count > 99 ? '99+' : count}
       </span>
     )}
@@ -211,41 +198,29 @@ const TaxonomyRow: React.FC<TaxonomyRowProps> = ({ item, type, acting, onApprove
         {new Date(item.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
       </p>
     )}
-    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-      <button
+    <div className="flex gap-1.5 shrink-0">
+      <Button
         type="button"
+        size="sm"
         disabled={acting}
         onClick={onApprove}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 4,
-          padding: '5px 12px', borderRadius: 7,
-          border: '1px solid rgba(21,128,61,0.25)',
-          background: 'rgba(21,128,61,0.08)',
-          fontFamily: SANS, fontSize: 11, fontWeight: 700,
-          color: GREEN_MOD, cursor: acting ? 'not-allowed' : 'pointer',
-          opacity: acting ? 0.5 : 1,
-        }}
+        variant="outline"
+        className="h-7 text-[11px] border-green-700/25 bg-green-700/8 text-green-700 hover:bg-green-700/15 gap-1"
       >
-        <CheckCircle style={{ width: 12, height: 12 }} />
+        <CheckCircle className="w-3 h-3" />
         Aprobar
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        size="sm"
         disabled={acting}
         onClick={onReject}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 4,
-          padding: '5px 12px', borderRadius: 7,
-          border: '1px solid rgba(239,68,68,0.2)',
-          background: 'rgba(239,68,68,0.06)',
-          fontFamily: SANS, fontSize: 11, fontWeight: 700,
-          color: '#dc2626', cursor: acting ? 'not-allowed' : 'pointer',
-          opacity: acting ? 0.5 : 1,
-        }}
+        variant="outline"
+        className="h-7 text-[11px] border-red-500/20 bg-red-500/6 text-red-600 hover:bg-red-500/10 gap-1"
       >
-        <XCircle style={{ width: 12, height: 12 }} />
+        <XCircle className="w-3 h-3" />
         Rechazar
-      </button>
+      </Button>
     </div>
   </div>
 );
@@ -613,27 +588,16 @@ const ModerationOSPage: React.FC = () => {
       >
         <div className="flex items-center gap-3 flex-shrink-0">
           {showDetail ? (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={handleBackToQueue}
-              style={{
-                ...glassPrimary,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                borderRadius: 8,
-                padding: '6px 10px',
-                border: '1px solid rgba(21,128,61,0.15)',
-                cursor: 'pointer',
-                fontFamily: SANS,
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#151b2d',
-              }}
+              className="gap-1.5 text-xs font-bold border-green-700/15 bg-white/80"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Lista
-            </button>
+            </Button>
           ) : (
             <>
               <div style={{
@@ -660,26 +624,17 @@ const ModerationOSPage: React.FC = () => {
               {selectedProduct?.name ?? selectedShop?.shopName}
             </p>
           )}
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={handleRefresh}
-            style={{
-              ...glassPrimary,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8,
-              padding: 7,
-              border: '1px solid rgba(21,128,61,0.15)',
-              cursor: isRefreshing ? 'not-allowed' : 'pointer',
-              opacity: isRefreshing ? 0.6 : 1,
-              pointerEvents: isRefreshing ? 'none' : undefined,
-            }}
             disabled={isRefreshing}
             title="Actualizar"
+            className="h-8 w-8 border-green-700/15 bg-white/80"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', isRefreshing && 'animate-spin')} style={{ color: GREEN_MOD }} />
-          </button>
+            <RefreshCw className={cn('h-3.5 w-3.5 text-green-700', isRefreshing && 'animate-spin')} />
+          </Button>
         </div>
       </header>
 
@@ -876,27 +831,27 @@ const ModerationOSPage: React.FC = () => {
                     {checkedIds.size} seleccionado{checkedIds.size !== 1 ? 's' : ''}
                   </p>
                   {(activeSection === 'products' || activeSection === 'shops') && (
-                    <button type="button" disabled={bulkInProgress} onClick={() => handleBulkAction('approve')}
-                      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 7, border: '1px solid rgba(21,128,61,0.25)', background: 'rgba(21,128,61,0.1)', fontFamily: SANS, fontSize: 11, fontWeight: 700, color: GREEN_MOD, cursor: bulkInProgress ? 'not-allowed' : 'pointer', opacity: bulkInProgress ? 0.6 : 1 }}>
-                      <CheckCircle style={{ width: 11, height: 11 }} /> Aprobar
-                    </button>
+                    <Button type="button" size="sm" variant="outline" disabled={bulkInProgress} onClick={() => handleBulkAction('approve')}
+                      className="h-7 text-[11px] border-green-700/25 bg-green-700/10 text-green-700 hover:bg-green-700/15 gap-1">
+                      <CheckCircle className="w-3 h-3" /> Aprobar
+                    </Button>
                   )}
                   {activeSection === 'products' && (
                     <>
-                      <button type="button" disabled={bulkInProgress} onClick={() => handleBulkAction('request_changes')}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 7, border: '1px solid rgba(249,115,22,0.25)', background: 'rgba(249,115,22,0.08)', fontFamily: SANS, fontSize: 11, fontWeight: 700, color: '#c2410c', cursor: bulkInProgress ? 'not-allowed' : 'pointer', opacity: bulkInProgress ? 0.6 : 1 }}>
-                        <AlertCircle style={{ width: 11, height: 11 }} /> Cambios
-                      </button>
-                      <button type="button" disabled={bulkInProgress} onClick={() => handleBulkAction('reject')}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 7, border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.08)', fontFamily: SANS, fontSize: 11, fontWeight: 700, color: '#dc2626', cursor: bulkInProgress ? 'not-allowed' : 'pointer', opacity: bulkInProgress ? 0.6 : 1 }}>
-                        <XCircle style={{ width: 11, height: 11 }} /> Rechazar
-                      </button>
+                      <Button type="button" size="sm" variant="outline" disabled={bulkInProgress} onClick={() => handleBulkAction('request_changes')}
+                        className="h-7 text-[11px] border-orange-500/25 bg-orange-500/8 text-orange-700 hover:bg-orange-500/15 gap-1">
+                        <AlertCircle className="w-3 h-3" /> Cambios
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" disabled={bulkInProgress} onClick={() => handleBulkAction('reject')}
+                        className="h-7 text-[11px] border-red-500/25 bg-red-500/8 text-red-600 hover:bg-red-500/15 gap-1">
+                        <XCircle className="w-3 h-3" /> Rechazar
+                      </Button>
                     </>
                   )}
-                  <button type="button" onClick={clearSelection}
-                    style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: '1px solid rgba(21,27,45,0.1)', background: 'transparent', fontFamily: SANS, fontSize: 11, fontWeight: 600, color: 'rgba(84,67,62,0.5)', cursor: 'pointer' }}>
-                    <XCircle style={{ width: 11, height: 11 }} /> Cancelar
-                  </button>
+                  <Button type="button" size="sm" variant="ghost" onClick={clearSelection}
+                    className="ml-auto h-7 text-[11px] text-stone-400 hover:text-stone-600 gap-1">
+                    <XCircle className="w-3 h-3" /> Cancelar
+                  </Button>
                 </div>
               )}
 
