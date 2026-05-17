@@ -4,7 +4,6 @@ import { ModerationStatusBadge } from '../ModerationStatusBadge';
 import type { QueueScoreApi } from '@/services/moderation.actions';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { SANS, SERIF, glassPrimary, glassGreen, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -57,7 +56,7 @@ function Checkbox({ checked, onChange }: { checked?: boolean; onChange: () => vo
         'w-4 h-4 rounded shrink-0 cursor-pointer flex items-center justify-center transition-colors',
         checked
           ? 'bg-green-700 border-green-700 border-[1.5px]'
-          : 'bg-transparent border-[1.5px] border-stone-400/40',
+          : 'bg-transparent border-[1.5px] border-slate-300',
       )}
     >
       {checked && (
@@ -73,7 +72,7 @@ function Checkbox({ checked, onChange }: { checked?: boolean; onChange: () => vo
 
 function IssuesBadge({ count }: { count: number }) {
   return (
-    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-700 shrink-0">
+    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-700 shrink-0">
       <AlertTriangle className="w-2.5 h-2.5" />
       {count}
     </span>
@@ -89,70 +88,66 @@ function ListCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
   return (
     <div
       onClick={() => onSelect(item.id)}
-      style={{
-        ...(isChecked ? glassGreen : glassPrimary),
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '9px 12px', borderRadius: 10,
-        borderLeft: `3px solid ${accentColor}`, cursor: 'pointer',
-        transition: 'all 0.12s',
-        outline: isSelected ? `2px solid ${GREEN_MOD}` : 'none', outlineOffset: 1,
-      }}
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all group',
+        isSelected
+          ? 'bg-green-50 border-green-200 shadow-sm ring-1 ring-green-700/20'
+          : isChecked
+          ? 'bg-green-50/60 border-green-200/60'
+          : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm',
+      )}
+      style={{ borderLeftWidth: 3, borderLeftColor: accentColor }}
     >
       {onCheckChange && (
         <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
       )}
 
       {/* Thumbnail */}
-      <div style={{
-        width: 72, height: 72, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
-        background: 'rgba(21,27,45,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-100 flex items-center justify-center">
         {item.imageUrl
-          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-          : <ImageOff style={{ width: 20, height: 20, color: 'rgba(84,67,62,0.3)' }} />
+          ? <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+          : <ImageOff className="w-5 h-5 text-slate-300" />
         }
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-800 truncate leading-snug">
           {item.title}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {item.type === 'shop' && (
-            <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Store style={{ width: 10, height: 10 }} /> Taller
+            <span className="flex items-center gap-1 text-[10px] text-slate-400">
+              <Store className="w-2.5 h-2.5" /> Taller
             </span>
           )}
           {item.subtitle && (
-            <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+            <span className="text-[11px] text-slate-500 truncate max-w-[160px]">
               {item.subtitle}
             </span>
           )}
           {item.region && (
-            <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0 }}>
-              {item.region}
-            </span>
+            <span className="text-[10px] text-slate-400 shrink-0">{item.region}</span>
           )}
-          <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-            <Clock style={{ width: 10, height: 10 }} /> {timeAgo}
+          <span className="flex items-center gap-1 text-[10px] text-slate-400 shrink-0">
+            <Clock className="w-2.5 h-2.5" /> {timeAgo}
           </span>
         </div>
       </div>
 
       {/* Right side */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+      <div className="flex items-center gap-2 shrink-0">
         <ModerationStatusBadge status={item.status} size="sm" />
         {(item.issues?.length ?? 0) > 0 && <IssuesBadge count={item.issues!.length} />}
         <div className="flex items-center gap-1">
           {onQuickApprove && item.status === 'pending_moderation' && (
             <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
-              className="h-7 text-[11px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15 gap-1">
+              className="h-7 text-[11px] border-green-200 bg-green-50 text-green-700 hover:bg-green-100 gap-1">
               <CheckCircle className="w-3 h-3" /> Aprobar
             </Button>
           )}
           <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
-            className="h-7 text-[11px] border-stone-900/10 bg-stone-900/4 text-stone-500 hover:bg-stone-100">
+            className="h-7 text-[11px] border-slate-200 text-slate-500 hover:bg-slate-50">
             Ver
           </Button>
         </div>
@@ -170,65 +165,57 @@ function GridCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
   return (
     <div
       onClick={() => onSelect(item.id)}
-      style={{
-        ...(isChecked ? glassGreen : glassPrimary),
-        borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
-        transition: 'all 0.15s', display: 'flex', flexDirection: 'column',
-        outline: isSelected ? `2px solid ${GREEN_MOD}` : 'none', outlineOffset: 1,
-        borderTop: `3px solid ${accentColor}`,
-      }}
+      className={cn(
+        'rounded-2xl overflow-hidden cursor-pointer transition-all flex flex-col group',
+        isSelected
+          ? 'ring-2 ring-green-700 shadow-md'
+          : 'shadow-sm hover:shadow-md',
+        isChecked ? 'bg-green-50' : 'bg-white',
+      )}
+      style={{ borderTop: `3px solid ${accentColor}` }}
     >
       {/* Photo */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', background: 'rgba(21,27,45,0.05)', overflow: 'hidden' }}>
+      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
         {item.imageUrl
-          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ImageOff style={{ width: 28, height: 28, color: 'rgba(84,67,62,0.25)' }} />
+          ? <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          : <div className="w-full h-full flex items-center justify-center">
+              <ImageOff className="w-7 h-7 text-slate-300" />
             </div>
         }
-        {/* Checkbox overlay */}
         {onCheckChange && (
-          <div style={{ position: 'absolute', top: 8, left: 8 }}>
+          <div className="absolute top-2 left-2">
             <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
           </div>
         )}
-        {/* Issues badge */}
         {(item.issues?.length ?? 0) > 0 && (
-          <div style={{ position: 'absolute', top: 8, right: 8 }}>
+          <div className="absolute top-2 right-2">
             <IssuesBadge count={item.issues!.length} />
           </div>
         )}
-        {/* Gradient + title overlay */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(21,27,45,0.65) 0%, transparent 50%)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 8px' }}>
-          <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {item.title}
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-2.5">
+          <p className="text-xs font-bold text-white truncate leading-snug">{item.title}</p>
           {item.subtitle && (
-            <p style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {item.subtitle}
-            </p>
+            <p className="text-[10px] text-white/70 mt-0.5 truncate">{item.subtitle}</p>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <div className="px-2.5 py-2 flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
           <ModerationStatusBadge status={item.status} size="sm" />
-          <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0 }}>
-            {timeAgo}
-          </span>
+          <span className="text-[10px] text-slate-400 shrink-0">{timeAgo}</span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {onQuickApprove && item.status === 'pending_moderation' && (
             <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
-              className="h-6 px-2 text-[10px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15 gap-1">
+              className="h-6 px-2 text-[10px] border-green-200 bg-green-50 text-green-700 hover:bg-green-100 gap-1">
               <CheckCircle className="w-2.5 h-2.5" /> Ok
             </Button>
           )}
           <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
-            className="h-6 px-2 text-[10px] border-stone-900/10 bg-stone-900/4 text-stone-500 hover:bg-stone-100">
+            className="h-6 px-2 text-[10px] border-slate-200 text-slate-500 hover:bg-slate-50">
             Ver
           </Button>
         </div>
@@ -246,70 +233,48 @@ function TableRow({ item, isSelected, isChecked, onSelect, onCheckChange, onQuic
   return (
     <div
       onClick={() => onSelect(item.id)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '6px 12px', cursor: 'pointer',
-        borderBottom: '1px solid rgba(21,27,45,0.04)',
-        background: isChecked ? 'rgba(21,128,61,0.05)' : isSelected ? 'rgba(21,128,61,0.03)' : 'transparent',
-        borderLeft: `2px solid ${isSelected || isChecked ? accentColor : 'transparent'}`,
-        transition: 'background 0.1s',
-      }}
+      className={cn(
+        'flex items-center gap-2.5 px-3 py-1.5 cursor-pointer border-b border-slate-50 transition-colors',
+        isChecked ? 'bg-green-50' : isSelected ? 'bg-green-50/50' : 'hover:bg-slate-50',
+      )}
+      style={{ borderLeft: `2px solid ${isSelected || isChecked ? accentColor : 'transparent'}` }}
     >
       {onCheckChange && (
         <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
       )}
 
       {/* 32x32 thumb */}
-      <div style={{ width: 32, height: 32, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: 'rgba(21,27,45,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="w-8 h-8 rounded-md overflow-hidden shrink-0 bg-slate-100 flex items-center justify-center">
         {item.imageUrl
-          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-          : <ImageOff style={{ width: 12, height: 12, color: 'rgba(84,67,62,0.3)' }} />
+          ? <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+          : <ImageOff className="w-3 h-3 text-slate-300" />
         }
       </div>
 
-      {/* Name — flex 2 */}
-      <p style={{ flex: '2 1 0', fontFamily: SANS, fontSize: 12, fontWeight: 600, color: '#151b2d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-        {item.title}
-      </p>
+      <p className="flex-[2_1_0] text-xs font-semibold text-slate-800 truncate min-w-0">{item.title}</p>
+      <p className="flex-[1.5_1_0] text-[11px] text-slate-500 truncate min-w-0">{item.subtitle ?? '—'}</p>
+      <p className="flex-[1_1_0] text-[11px] text-slate-400 truncate min-w-0">{item.region ?? '—'}</p>
 
-      {/* Shop — flex 1.5 */}
-      <p style={{ flex: '1.5 1 0', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-        {item.subtitle ?? '—'}
-      </p>
+      <div className="shrink-0"><ModerationStatusBadge status={item.status} size="sm" /></div>
 
-      {/* Region — flex 1 */}
-      <p style={{ flex: '1 1 0', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
-        {item.region ?? '—'}
-      </p>
-
-      {/* Status */}
-      <div style={{ flexShrink: 0 }}>
-        <ModerationStatusBadge status={item.status} size="sm" />
-      </div>
-
-      {/* Issues */}
-      <div style={{ width: 40, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+      <div className="w-10 flex justify-center shrink-0">
         {(item.issues?.length ?? 0) > 0
           ? <IssuesBadge count={item.issues!.length} />
-          : <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.3)' }}>—</span>
+          : <span className="text-[10px] text-slate-300">—</span>
         }
       </div>
 
-      {/* Date */}
-      <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0, width: 90, textAlign: 'right' }}>
-        {timeAgo}
-      </span>
+      <span className="text-[10px] text-slate-400 shrink-0 w-24 text-right">{timeAgo}</span>
 
-      {/* Actions */}
       <div className="flex items-center gap-1 shrink-0">
         {onQuickApprove && item.status === 'pending_moderation' && (
           <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }}
-            className="h-6 px-2 text-[10px] border-green-700/20 bg-green-700/7 text-green-700 hover:bg-green-700/15">
+            className="h-6 px-2 text-[10px] border-green-200 bg-green-50 text-green-700 hover:bg-green-100">
             <CheckCircle className="w-2.5 h-2.5" />
           </Button>
         )}
         <Button type="button" size="sm" variant="outline" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }}
-          className="h-6 px-2 text-[10px] border-stone-900/10 bg-transparent text-stone-500 hover:bg-stone-100">
+          className="h-6 px-2 text-[10px] border-slate-200 text-slate-500 hover:bg-slate-50">
           Ver
         </Button>
       </div>
