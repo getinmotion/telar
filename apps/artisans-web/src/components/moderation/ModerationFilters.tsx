@@ -1,8 +1,7 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ModerationCounts } from '@/hooks/useProductModeration';
+import { MODERATION_STATUS_LABELS } from '@/constants/moderation-copy';
 
 interface ModerationFiltersProps {
   activeFilter: string;
@@ -10,13 +9,23 @@ interface ModerationFiltersProps {
   counts: ModerationCounts;
 }
 
+// Etiquetas cortas para los botones de filtro (espacio limitado)
+const FILTER_SHORT_LABELS: Record<string, string> = {
+  pending_moderation: 'Pendientes',
+  approved: 'En marketplace',
+  approved_with_edits: 'Ajustados',
+  changes_requested: 'Esperando artesano',
+  rejected: 'No disponibles',
+  all: 'Todos',
+};
+
 const filters = [
-  { key: 'pending_moderation', label: 'Pendientes', color: 'bg-amber-500' },
-  { key: 'approved', label: 'Aprobados', color: 'bg-emerald-500' },
-  { key: 'approved_with_edits', label: 'Con ediciones', color: 'bg-teal-500' },
-  { key: 'changes_requested', label: 'Cambios', color: 'bg-orange-500' },
-  { key: 'rejected', label: 'Rechazados', color: 'bg-red-500' },
-  { key: 'all', label: 'Todos', color: 'bg-gray-500' },
+  { key: 'pending_moderation', color: 'bg-amber-500' },
+  { key: 'approved',           color: 'bg-emerald-500' },
+  { key: 'approved_with_edits',color: 'bg-teal-500' },
+  { key: 'changes_requested',  color: 'bg-orange-500' },
+  { key: 'rejected',           color: 'bg-red-500' },
+  { key: 'all',                color: 'bg-gray-500' },
 ];
 
 export const ModerationFilters: React.FC<ModerationFiltersProps> = ({
@@ -43,7 +52,7 @@ export const ModerationFilters: React.FC<ModerationFiltersProps> = ({
                 : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
             )}
           >
-            {filter.label}
+            {FILTER_SHORT_LABELS[filter.key] ?? MODERATION_STATUS_LABELS[filter.key] ?? filter.key}
             {count > 0 && (
               <span className={cn(
                 'inline-flex items-center justify-center rounded px-1 min-w-[16px] text-[10px] font-semibold',

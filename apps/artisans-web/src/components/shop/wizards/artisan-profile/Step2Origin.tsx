@@ -5,6 +5,7 @@ import { SpeechTextarea } from '@/components/ui/speech-textarea';
 interface Props {
   data: ArtisanProfileData;
   onChange: (updates: Partial<ArtisanProfileData>) => void;
+  artisanId?: string;
 }
 
 const inputClass = "w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#e2d5cf]/40 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 placeholder:text-[#151b2d]/20 transition-all hover:border-[#e2d5cf]/70";
@@ -13,11 +14,22 @@ const textareaClass = "w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['
 const labelClass = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2";
 const sectionTitle = "font-['Manrope'] text-[11px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-4";
 
-export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
+export const Step2Origin: React.FC<Props> = ({ data, onChange, artisanId = '' }) => {
+  const handleNoMaestroToggle = async () => {
+    const next = !data.noMaestro;
+    if (next && data.maestros.length > 0) {
+      // Remove all saved maestros from DB before toggling off
+      await Promise.allSettled(data.maestros.filter(m => m.id).map(m => removeArtisanMaestro(m.id!)));
+      onChange({ noMaestro: true, maestros: [] });
+    } else {
+      onChange({ noMaestro: next });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Módulo 1: El aprendizaje */}
+      {/* Módulo 1: La cadena de transmisión */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <p className={sectionTitle}>El aprendizaje</p>
         <div className="flex flex-col gap-4">

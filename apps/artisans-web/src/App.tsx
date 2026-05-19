@@ -26,7 +26,6 @@ const BlogPostsAdminPage_lazy = lazy(() => import('@/pages/BlogPostsAdminPage'))
 const CollectionsAdminPage_lazy = lazy(() => import('@/pages/CollectionsAdminPage'));
 const TaxonomyModerationPage_lazy = lazy(() => import('@/pages/admin/TaxonomyModerationPage'));
 const BackofficeTaxonomiaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTaxonomiaPage'));
-const ModerationOSPage_lazy = lazy(() => import('@/pages/admin/ModerationOSPage'));
 const ProductStudioPage_lazy = lazy(() => import('@/pages/admin/ProductStudioPage'));
 const MarketplaceCurationPage_lazy = lazy(() => import('@/pages/admin/MarketplaceCurationPage'));
 const DesignSystemEditorPage_lazy = lazy(() => import('@/pages/admin/DesignSystemEditorPage'));
@@ -35,7 +34,6 @@ const BackofficeCuponesPage_lazy = lazy(() => import('@/pages/backoffice/Backoff
 const BackofficeAuditoriaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeAuditoriaPage'));
 const BackofficeTiendasPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTiendasPage'));
 const BackofficePagosPage_lazy = lazy(() => import('@/pages/backoffice/BackofficePagosPage'));
-const BackofficeComercialPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeComercialPage'));
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -410,7 +408,7 @@ function App() {
                                 /> */}
 
                                 {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/moderacion-os"
                                   element={
                                     <BackofficeProtectedRoute section="moderation">
@@ -419,7 +417,7 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
                                 <Route
                                   path="/backoffice/revisor"
                                   element={<Navigate to="/backoffice/studio" replace />}
@@ -555,7 +553,7 @@ function App() {
                                 />
 
                                 {/* COMERCIAL (admin+) */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/comercial"
                                   element={
                                     <BackofficeProtectedRoute section="comercial">
@@ -564,7 +562,7 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
 
                                 {/* OPERACIONES + SISTEMA (super_admin) */}
                                 <Route
