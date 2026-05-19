@@ -3,8 +3,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { getCurrentUser, refreshToken as refreshTokenAction, logout as logoutAction } from '@/pages/auth/actions/login.actions';
 import { AuthUser } from '@/pages/auth/types/login.types';
 import { useAuthStore } from '@/stores/authStore';
-import { convertAuthUserToSupabaseUser } from '@/utils/authUser.utils';
-import { logout as logoutAction } from '@/pages/auth/actions/login.actions';
 
 interface AuthContextType {
   user: User | null;
@@ -21,15 +19,9 @@ interface AuthContextType {
   };
 }
 
-const DEBUG_INFO = { authStateChangeCount: 0, lastAuthEvent: null, authorizationAttempts: 0 };
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = (): AuthContextType => {
-  const { user, clearAuth, isInitialized } = useAuthStore();
-
-  const supabaseUser = user
-    ? convertAuthUserToSupabaseUser(user as Parameters<typeof convertAuthUserToSupabaseUser>[0])
-    : null;
-
+// Helper function to convert AuthUser to Supabase User format
 const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => ({
   id: authUser.id,
   email: authUser.email,
@@ -49,6 +41,7 @@ const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => ({
   updated_at: authUser.updatedAt || new Date().toISOString(),
 } as User);
 
+// Helper function to create a mock session
 const createMockSession = (user: User, token: string): Session => ({
   access_token: token,
   token_type: 'bearer',
@@ -204,8 +197,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-export const useAuth = () => {
+// Custom hook to use the Auth context
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 };
