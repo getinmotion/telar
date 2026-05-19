@@ -40,7 +40,7 @@ export const NewProductWizard: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    const legacyPromise = getArtisanShopByUserId(user.id)
+    getArtisanShopByUserId(user.id)
       .then(shop => {
         setHasShop(!!shop?.id);
         if (shop?.id) {
@@ -107,6 +107,7 @@ export const NewProductWizard: React.FC = () => {
           name: product.name,
           shortDescription: product.shortDescription,
           artisanalHistory: product.history || undefined,
+          careNotes: product.careNotes || undefined,
           images,
           categoryId: product.categoryId || undefined,
           materials: product.materials?.map(m => m.materialId) || [],

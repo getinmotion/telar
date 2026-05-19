@@ -18,6 +18,9 @@ import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { getAgreementById } from '@/services/agreements.actions';
 import { AICopilotCard } from './AICopilotCard';
+import { ProductsTable } from './sections/ProductsTable';
+import { InventoryAlerts } from './sections/InventoryAlerts';
+import { OrdersSummarySection } from './sections/OrdersSummarySection';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -953,129 +956,11 @@ export const CommercialDashboard: React.FC = () => {
                     </div>
 
                     {/* Products table */}
-                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-10">
-                      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-                        <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d' }}>
-                          Mis Productos
-                        </h3>
-                        <div className="flex gap-3 items-center">
-                          {isActivated && (
-                            <button
-                              onClick={() => navigate('/inventario')}
-                              className="hover:underline"
-                              style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                            >
-                              Gestionar catálogo
-                            </button>
-                          )}
-                          <OrangeBtn onClick={() => navigate('/productos/subir')}>
-                            <span className="material-symbols-outlined text-[16px]">add</span>
-                            Crear producto
-                          </OrangeBtn>
-                        </div>
-                      </div>
-
-                      {loadingProducts ? (
-                        <div className="py-12 text-center" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                          Cargando productos...
-                        </div>
-                      ) : products.length === 0 ? (
-                        <div className="py-20 flex flex-col items-center text-center">
-                          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(21,27,45,0.03)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'rgba(21,27,45,0.15)' }}>inventory_2</span>
-                          </div>
-                          <h4 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 8 }}>
-                            Aún no tienes productos
-                          </h4>
-                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.6)', maxWidth: 280, marginBottom: 24, lineHeight: 1.6 }}>
-                            Crea tu primer producto para activar tu catálogo de tienda.
-                          </p>
-                          <OrangeBtn onClick={() => navigate('/productos/subir')}>
-                            <span className="material-symbols-outlined text-[16px]">add</span>
-                            Crear producto
-                          </OrangeBtn>
-                        </div>
-                      ) : (
-                        <>
-                          <table className="w-full text-left">
-                            <thead style={{ borderBottom: '1px solid rgba(21,27,45,0.04)' }}>
-                              <tr>
-                                {['', 'Nombre', 'Estado', 'Precio', 'Stock', 'Acción'].map((h, i) => (
-                                  <th
-                                    key={h || i}
-                                    className={cn('pb-4', i > 2 ? 'text-right' : '', i === 0 ? 'w-16' : '')}
-                                    style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, color: 'rgba(84,67,62,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em' }}
-                                  >
-                                    {h}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {products.slice(0, 8).map((product) => {
-                                const stock  = getStock(product);
-                                const active = isProductActive(product);
-                                const draft  = isProductDraft(product);
-                                const isLow  = active && stock > 0 && stock <= 5;
-                                const isOut  = active && stock === 0;
-                                const imgSrc = getImage(product);
-                                return (
-                                  <tr
-                                    key={product.id}
-                                    style={{ borderBottom: '1px solid rgba(21,27,45,0.03)' }}
-                                    className="hover:bg-black/[0.015] transition-colors"
-                                  >
-                                    <td className="py-4">
-                                      <div className="w-10 h-10 rounded-lg overflow-hidden" style={{ background: 'rgba(21,27,45,0.04)' }}>
-                                        {imgSrc && (
-                                          <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" />
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="py-4 max-w-[160px] truncate" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {product.name}
-                                    </td>
-                                    <td className="py-4">
-                                      {active && !isLow && <Pill variant="success">Publicado</Pill>}
-                                      {active && isLow  && <Pill variant="warning">Bajo stock</Pill>}
-                                      {draft            && <Pill variant="draft">Borrador</Pill>}
-                                      {!active && !draft && <Pill variant="info">En revisión</Pill>}
-                                    </td>
-                                    <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {product.price ? `$${product.price.toLocaleString('es-CO')}` : '—'}
-                                    </td>
-                                    <td className="py-4 text-right" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>
-                                      {stock ?? '—'}
-                                    </td>
-                                    <td className="py-4 text-right">
-                                      <button
-                                        onClick={() => navigate(`/productos/editar/${product.id}`)}
-                                        className="hover:underline"
-                                        style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                      >
-                                        {isOut || isLow ? 'Reponer' : draft ? 'Completar' : 'Editar'}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                          {products.length > 8 && (
-                            <div className="pt-6 text-center">
-                              <button
-                                onClick={() => navigate('/inventario')}
-                                className="inline-flex items-center gap-1 hover:underline"
-                                style={{ fontFamily: SANS, fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#ec6d13' }}
-                              >
-                                Ver todos los {products.length} productos
-                                <span className="material-symbols-outlined text-[16px]">east</span>
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                    <ProductsTable
+                      products={products}
+                      loadingProducts={loadingProducts}
+                      isActivated={isActivated}
+                    />
 
                   </div>
 
@@ -1085,198 +970,21 @@ export const CommercialDashboard: React.FC = () => {
                     <AICopilotCard />
 
                     {/* Faltantes / Alertas */}
-                    {!isActivated ? (
-                      <div style={{ ...glassPrimary, borderRadius: 32 }} className="overflow-hidden">
-                        {/* Illustration header */}
-                        <div
-                          className="h-36 flex items-center justify-center relative overflow-hidden"
-                          style={{ borderBottom: '1px solid rgba(236,109,19,0.08)', background: 'rgba(236,109,19,0.04)' }}
-                        >
-                          <div className="absolute w-24 h-24 rounded-full -rotate-12 translate-x-8 opacity-40" style={{ background: 'rgba(236,109,19,0.15)' }} />
-                          <div
-                            className="absolute w-20 h-20 rounded-2xl rotate-12 -translate-x-6 flex items-center justify-center"
-                            style={{ ...glassSecondary, borderRadius: 16 }}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'rgba(236,109,19,0.3)' }}>inventory_2</span>
-                          </div>
-                          <div
-                            className="absolute w-14 h-14 rounded-full -translate-y-8 translate-x-4 flex items-center justify-center"
-                            style={{ ...glassPrimary, borderRadius: '50%', boxShadow: '0 4px 12px rgba(21,27,45,0.06)' }}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'rgba(236,109,19,0.5)' }}>palette</span>
-                          </div>
-                        </div>
-
-                        <div className="p-8">
-                          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 24 }}>
-                            Faltantes para publicar
-                          </h3>
-                          <div className="space-y-4">
-                            {checklistItems.filter((i) => !i.done && i.required).map((item) => (
-                              <div key={item.label} className="flex flex-col gap-1 pb-4" style={{ borderBottom: '1px solid rgba(21,27,45,0.03)' }}>
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>{item.label}</span>
-                                    <Pill variant="error">Requerido</Pill>
-                                  </div>
-                                  <button
-                                    onClick={() => navigate(item.route)}
-                                    className="hover:underline shrink-0 ml-2"
-                                    style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                  >
-                                    Ir
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            {checklistItems.filter((i) => !i.done && !i.required).map((item) => (
-                              <div key={item.label} className="flex justify-between items-center">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: 'rgba(84,67,62,0.7)' }}>{item.label}</span>
-                                  <Pill variant="success">Recomendado</Pill>
-                                </div>
-                                <button
-                                  onClick={() => navigate(item.route)}
-                                  className="hover:underline shrink-0 ml-2"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Agregar
-                                </button>
-                              </div>
-                            ))}
-                            {checklistItems.filter((i) => !i.done).length === 0 && (
-                              <p className="py-4 text-center" style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#166534' }}>
-                                ¡Todo completo! Puedes publicar tu tienda.
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Alertas (published) */
-                      <div style={{ ...glassPrimary, borderRadius: 32 }} className="overflow-hidden">
-                        <div
-                          className="h-32 flex items-center justify-center relative overflow-hidden"
-                          style={{ borderBottom: '1px solid rgba(21,27,45,0.04)', background: 'rgba(59,130,246,0.04)' }}
-                        >
-                          <div className="absolute w-20 h-20 rounded-full -top-8 -right-8 blur-xl opacity-40" style={{ background: 'rgba(59,130,246,0.3)' }} />
-                          <div className="relative">
-                            <div
-                              className="w-14 h-14 rounded-2xl flex items-center justify-center rotate-6"
-                              style={{ ...glassSecondary, borderRadius: 16, boxShadow: '0 4px 12px rgba(21,27,45,0.06)' }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'rgba(59,130,246,0.4)' }}>notifications</span>
-                            </div>
-                            {(lowStockProducts.length > 0 || draftProducts.length > 0) && (
-                              <div
-                                className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center"
-                                style={{ background: '#ec6d13', boxShadow: '0 2px 8px rgba(236,109,19,0.4)' }}
-                              >
-                                <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'white' }}>priority_high</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-8">
-                          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', marginBottom: 24 }}>
-                            Alertas de tienda
-                          </h3>
-                          <div className="space-y-5">
-                            {lowStockProducts.length > 0 && (
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Bajo stock</span>
-                                    <Pill variant="warning">{lowStockProducts.length} items</Pill>
-                                  </div>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                                    Reponer para no pausar ventas.
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => navigate('/inventario')}
-                                  className="hover:underline shrink-0 ml-3"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Revisar
-                                </button>
-                              </div>
-                            )}
-                            {draftProducts.length > 0 && (
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Borradores</span>
-                                    <Pill variant="draft">{draftProducts.length} items</Pill>
-                                  </div>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>
-                                    Completa para publicar.
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => navigate('/inventario')}
-                                  className="hover:underline shrink-0 ml-3"
-                                  style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                                >
-                                  Completar
-                                </button>
-                              </div>
-                            )}
-                            {lowStockProducts.length === 0 && draftProducts.length === 0 && (
-                              <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#166534', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                <div>
-                                  <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d' }}>Todo en orden</span>
-                                  <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(84,67,62,0.5)' }}>¡Tu catálogo está al día!</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <InventoryAlerts
+                      isActivated={isActivated}
+                      checklistItems={checklistItems}
+                      lowStockProducts={lowStockProducts}
+                      draftProducts={draftProducts}
+                      onNavigate={(route) => navigate(route)}
+                    />
 
                     {/* Ventas */}
-                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-8">
-                      <h3 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d', marginBottom: 16 }}>
-                        Mis ventas
-                      </h3>
-                      {!isMarketplaceLive && (
-                        <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.6)', lineHeight: 1.7, marginBottom: 16 }}>
-                          {isActivated
-                            ? 'Las ventas aparecerán cuando tu tienda sea aprobada en el marketplace.'
-                            : 'Las ventas aparecerán cuando actives tu tienda y sea aprobada en el marketplace.'}
-                        </p>
-                      )}
-                      <div className="mb-6">
-                        <span style={lc(0.4)}>Ingresos totales</span>
-                        <span style={{ fontFamily: SANS, fontSize: 44, fontWeight: 700, color: '#151b2d', lineHeight: 1, letterSpacing: '-0.04em', display: 'block', marginTop: 4 }}>
-                          {salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 pt-5" style={{ borderTop: '1px solid rgba(21,27,45,0.04)' }}>
-                        {[
-                          { label: 'Órdenes',     val: salesStats.total },
-                          { label: 'Pendientes',   val: salesStats.pending, right: true },
-                          { label: 'Despachados',  val: salesStats.shipped ?? 0 },
-                        ].map((row) => (
-                          <div key={row.label} className={row.right ? 'text-right' : ''}>
-                            <span style={lc(0.4)}>{row.label}</span>
-                            <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 700, color: '#151b2d', display: 'block', marginTop: 2 }}>{row.val}</span>
-                          </div>
-                        ))}
-                        <div className="flex items-end justify-end">
-                          <button
-                            onClick={() => navigate('/mi-tienda/ventas')}
-                            className="hover:underline"
-                            style={{ fontFamily: SANS, fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#ec6d13' }}
-                          >
-                            Ver ventas →
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <OrdersSummarySection
+                      salesStats={salesStats}
+                      isMarketplaceLive={isMarketplaceLive}
+                      isActivated={isActivated}
+                      onNavigate={(route) => navigate(route)}
+                    />
 
                     {/* Crecimiento */}
                     <div

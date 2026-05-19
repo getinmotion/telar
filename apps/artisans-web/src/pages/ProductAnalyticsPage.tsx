@@ -749,6 +749,50 @@ const ProductAnalyticsPage: React.FC = () => {
                 </Tabs>
               </section>
 
+              {/* ─── 7. CATALOG QUALITY ──────────────────────── */}
+              {data.catalogQuality && (
+                <section>
+                  <h2 className="text-lg font-semibold mb-1">7. Calidad del Catálogo</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Productos con información incompleta que necesitan atención.
+                  </p>
+
+                  {/* Alert cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                    {[
+                      { label: 'Sin fotos', value: data.catalogQuality.withoutImages, icon: <Image className="w-4 h-4" /> },
+                      { label: 'Sin descripción', value: data.catalogQuality.withoutDescription, icon: <Tag className="w-4 h-4" /> },
+                      { label: 'Sin identidad artesanal', value: data.catalogQuality.withoutArtisanalIdentity, icon: <Layers className="w-4 h-4" /> },
+                      { label: 'Sin materiales', value: data.catalogQuality.withoutMaterials, icon: <Package className="w-4 h-4" /> },
+                      { label: 'Sin categoría', value: data.catalogQuality.withoutCategory, icon: <AlertTriangle className="w-4 h-4" /> },
+                    ].map((item) => (
+                      <Card key={item.label} className={item.value > 0 ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+                            {item.icon}
+                            <span className="text-xs font-medium">{item.label}</span>
+                          </div>
+                          <p className={`text-2xl font-bold ${item.value > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                            {item.value}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Rejection reasons */}
+                  {data.catalogQuality.rejectionReasons.length > 0 && (
+                    <>
+                      <h3 className="text-sm font-semibold mb-3">Razones de rechazo más frecuentes (últimos 90 días)</h3>
+                      <DistributionChart
+                        data={data.catalogQuality.rejectionReasons.map((r) => ({ name: r.reason, count: r.count }))}
+                        label="Rechazos"
+                      />
+                    </>
+                  )}
+                </section>
+              )}
+
               {/* ─── 6. VOLUMETRIC ANALYSIS ──────────────────── */}
               <section>
                 <h2 className="text-lg font-semibold mb-3">

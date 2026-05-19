@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 from uuid import UUID
 from datetime import datetime
 import sys
+import json
 from pathlib import Path
 import time
 
@@ -568,6 +569,129 @@ async def analyze_product_photo(
     )
 
     return await process_agent_request(request)
+
+
+class ModerationAnalyzeRequest(BaseModel):
+    """Request for AI moderation analysis of a product."""
+    product_id: str = Field(..., description="Product UUID")
+    name: str = Field(..., description="Product name")
+    short_description: Optional[str] = Field(None, description="Short description / historia")
+    category_id: Optional[str] = Field(None, description="Current category ID")
+    category_name: Optional[str] = Field(None, description="Current category name (human readable)")
+    materials: Optional[List[str]] = Field(None, description="Assigned material names")
+    craft_name: Optional[str] = Field(None, description="Primary craft / oficio name")
+    technique_name: Optional[str] = Field(None, description="Primary technique name")
+    image_urls: Optional[List[str]] = Field(None, description="Product image URLs")
+    price: Optional[float] = Field(None, description="Price in COP")
+    shop_name: Optional[str] = Field(None, description="Artisan shop name")
+    shop_region: Optional[str] = Field(None, description="Region of the artisan")
+
+
+class ModerationInsight(BaseModel):
+    type: str  # category_mismatch | incomplete_description | missing_materials | visual_quality | duplicate_risk | general
+    severity: str  # warning | suggestion | info
+    message: str
+    suggested_value: Optional[str] = None
+
+
+class ModerationAnalyzeResponse(BaseModel):
+    product_id: str
+    quality_score: int = Field(..., ge=0, le=100)
+    insights: List[ModerationInsight]
+    suggested_category: Optional[str] = None
+    summary: str
+
+
+@router.post("/moderation/analyze", response_model=ModerationAnalyzeResponse, status_code=status.HTTP_200_OK)
+async def analyze_product_for_moderation(request: ModerationAnalyzeRequest):
+    """
+    Analyze a product for moderation quality using AI.
+
+    Returns:
+    - quality_score: 0-100 based on completeness and coherence
+    - insights: list of detected issues and suggestions
+    - suggested_category: AI-suggested category if current seems off
+    - summary: one-line curator-facing summary
+    """
+    from openai import AsyncOpenAI
+    from src.api.config import settings
+
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+
+    product_context = f"""
+Producto: {request.name}
+Descripción corta: {request.short_description or '(vacía)'}
+Categoría actual: {request.category_name or '(sin categoría)'}
+Materiales: {', '.join(request.materials) if request.materials else '(ninguno)'}
+Oficio: {request.craft_name or '(no asignado)'}
+Técnica: {request.technique_name or '(no asignada)'}
+Precio: {f'COP {request.price:,.0f}' if request.price else '(no establecido)'}
+Taller: {request.shop_name or '(desconocido)'}
+Región: {request.shop_region or '(no especificada)'}
+Imágenes: {len(request.image_urls) if request.image_urls else 0} foto(s)
+"""
+
+    system_prompt = """Eres un curador experto de un marketplace de artesanías colombianas llamado TELAR.
+Tu tarea es analizar la información de un producto para dar recomendaciones al equipo de moderación.
+
+Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
+{
+  "quality_score": <int 0-100>,
+  "insights": [
+    {"type": "<tipo>", "severity": "<warning|suggestion|info>", "message": "<mensaje en español>", "suggested_value": "<valor sugerido o null>"}
+  ],
+  "suggested_category": "<categoría sugerida o null>",
+  "summary": "<una línea resumiendo el estado del producto para el moderador>"
+}
+
+Tipos válidos: category_mismatch, incomplete_description, missing_materials, visual_quality, duplicate_risk, pricing_outlier, general
+
+Reglas de quality_score:
+- Empieza en 60 (base para producto existente)
+- +15 si tiene descripción de más de 80 caracteres
+- +10 si tiene materiales asignados
+- +10 si tiene oficio/técnica asignados
+- +5 si tiene más de 2 imágenes
+- -20 si descripción vacía o menor a 20 chars
+- -15 si sin categoría
+- -10 si sin materiales
+- -10 si sin oficio
+
+Sé pedagógico y colaborativo. Máximo 4 insights. Sin "rechazado" ni "inválido"."""
+
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Analiza este producto:\n{product_context}"},
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=600,
+            temperature=0.3,
+        )
+
+        raw = response.choices[0].message.content or "{}"
+        data = json.loads(raw)
+
+        insights = [
+            ModerationInsight(**ins)
+            for ins in data.get("insights", [])
+        ]
+
+        return ModerationAnalyzeResponse(
+            product_id=request.product_id,
+            quality_score=max(0, min(100, int(data.get("quality_score", 50)))),
+            insights=insights,
+            suggested_category=data.get("suggested_category"),
+            summary=data.get("summary", "Análisis completado."),
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al analizar el producto: {str(e)}",
+        )
 
 
 @router.get("/info", status_code=status.HTTP_200_OK)

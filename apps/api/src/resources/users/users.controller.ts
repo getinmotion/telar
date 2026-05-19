@@ -91,19 +91,20 @@ export class UsersController {
   /**
    * Asignar o revocar el rol super_admin a un usuario. Sólo super_admin.
    */
-  @Patch(':id/super-admin')
+  @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super_admin')
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Assign or revoke super_admin role — super_admin only' })
-  async patchSuperAdmin(
+  @ApiOperation({ summary: 'Patch user (toggle isSuperAdmin) — super_admin only' })
+  async patchUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { grant: boolean },
   ) {
-    if (body.grant) {
-      await this.userRolesService.assignRole({ userId: id, role: AppRole.SUPER_ADMIN });
-    } else {
-      await this.userRolesService.removeRoleByUserAndRole(id, AppRole.SUPER_ADMIN);
+
+    const repo = (this.usersService as any).userRepository;
+    const updates: any = {};
+    if (typeof body.isSuperAdmin === 'boolean') {
+      updates.isSuperAdmin = body.isSuperAdmin;
     }
     const roles = await this.userRolesService.findByUserId(id);
     return { id, roles: roles.map((r) => r.role) };

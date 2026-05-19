@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useAuth } from '@/context/AuthContext';
 import { updateArtisanShop, getStoreByUserId } from '@/services/artisanShops.actions';
+import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
 import { generateArtisanProfileHistory } from '@/services/ai.actions';
 import { ArtisanProfileData, DEFAULT_ARTISAN_PROFILE } from '@/types/artisanProfile';
 import { ArtisanStepShell } from './artisan-profile/ArtisanStepShell';
@@ -117,14 +118,24 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
       if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
       if (shopAny.artisanProfileCompleted) setStep(5);
 
-      // Pre-cargar craftId desde StoreArtisanalProfile si el perfil aún no lo tiene
-      if (!profile.craftId && user?.id) {
-        getStoreByUserId(user.id)
-          .then(store => {
-            const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
-            if (craftId) setData(prev => ({ ...prev, craftId }));
-          })
-          .catch(() => {});
+      // Pre-cargar craftId y primaryTechniqueId si el perfil aún no los tiene
+      if (user?.id && (!profile.craftId || !profile.primaryTechniqueId)) {
+        if (!profile.craftId) {
+          getStoreByUserId(user.id)
+            .then(store => {
+              const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
+              if (craftId) setData(prev => ({ ...prev, craftId: prev.craftId ?? craftId }));
+            })
+            .catch(() => {});
+        }
+        if (!profile.primaryTechniqueId) {
+          getArtisanIdentityByUserId(user.id)
+            .then(identity => {
+              if (identity?.techniquePrimaryId)
+                setData(prev => ({ ...prev, primaryTechniqueId: prev.primaryTechniqueId ?? identity.techniquePrimaryId! }));
+            })
+            .catch(() => {});
+        }
       }
     } else if (telarData.hydrated) {
       const meta = user?.user_metadata as Record<string, string> | undefined;

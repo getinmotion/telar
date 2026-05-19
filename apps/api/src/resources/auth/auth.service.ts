@@ -39,7 +39,7 @@ export class AuthService {
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   /**
-   * Construye el payload JWT con los roles del usuario.
+   * Construye el payload JWT incluyendo isSuperAdmin y roles[].
    * Centraliza la lógica para que todos los flujos de autenticación
    * emitan tokens con la misma estructura.
    */
@@ -47,6 +47,7 @@ export class AuthService {
     sub: string;
     email: string | null;
     role: string | null;
+    isSuperAdmin: boolean;
     roles: string[];
   }> {
     const userRoles = await this.userRolesService
@@ -56,6 +57,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      isSuperAdmin: user.isSuperAdmin === true,
       roles: userRoles.map((r) => r.role),
     };
   }
@@ -270,7 +272,7 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
-    // Generar el token JWT con roles[]
+    // Generar el token JWT con isSuperAdmin y roles[]
     const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -309,7 +311,7 @@ export class AuthService {
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
-    // Generar nuevo token con roles[]
+    // Generar nuevo token con isSuperAdmin y roles[]
     const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -321,7 +323,7 @@ export class AuthService {
    * Usado por el panel unificado de administración y moderación.
    */
   async getBackofficeContext(userId: string): Promise<{
-    user: { id: string; email: string | null };
+    user: { id: string; email: string | null; isSuperAdmin: boolean };
     roles: string[];
     permissions: string[];
   }> {
@@ -335,10 +337,13 @@ export class AuthService {
       .findByUserId(userId)
       .catch(() => []);
     const roles = userRoles.map((r) => r.role);
-    const permissions = this.calculateBackofficePermissions(roles);
+    const isSuperAdmin = user.isSuperAdmin === true;
+
+    // Calcular permisos disponibles según rol
+    const permissions = this.calculateBackofficePermissions(isSuperAdmin, roles);
 
     return {
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, isSuperAdmin },
       roles,
       permissions,
     };
@@ -349,8 +354,10 @@ export class AuthService {
    * Centraliza la lógica de permisos para que sea consistente entre
    * backend (validación real) y frontend (navegación).
    */
-  private calculateBackofficePermissions(roles: string[]): string[] {
-    const isSuperAdmin = roles.includes('super_admin');
+  private calculateBackofficePermissions(
+    isSuperAdmin: boolean,
+    roles: string[],
+  ): string[] {
     const isAdmin = isSuperAdmin || roles.includes('admin');
     const isModerator =
       isSuperAdmin || roles.includes('admin') || roles.includes('moderator');
@@ -448,7 +455,7 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
-    // Generar nuevo token JWT con roles[]
+    // Generar nuevo token JWT con isSuperAdmin y roles[]
     const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
 
@@ -683,7 +690,7 @@ export class AuthService {
         .getByUserId(user.id)
         .catch(() => []);
 
-      // Generar token JWT con roles[]
+      // Generar token JWT con isSuperAdmin y roles[]
       const payload = await this.buildJwtPayload(user);
       const access_token = await this.jwtService.signAsync(payload);
 
@@ -776,7 +783,7 @@ export class AuthService {
         );
       }
 
-      // 3. Generar token JWT con roles[]
+      // 3. Generar token JWT con isSuperAdmin y roles[]
       const payload = await this.buildJwtPayload(newUser);
       const access_token = await this.jwtService.signAsync(payload);
 
