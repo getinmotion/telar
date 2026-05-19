@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
+import { getArtisanShopByUserId, getStoreByUserId } from '@/services/artisanShops.actions';
+import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
 import { getProductNewById } from '@/services/products-new.actions';
 import { useNewWizardState } from './hooks/useNewWizardState';
 import { useWizardDraft } from './hooks/useWizardDraft';
@@ -60,6 +61,29 @@ export const NewProductWizard: React.FC = () => {
       })
       .catch(() => setHasShop(false))
       .finally(() => setIsCheckingShop(false));
+
+    // Pre-cargar oficio primario desde StoreArtisanalProfile
+    getStoreByUserId(user.id)
+      .then(store => {
+        const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
+        if (craftId && !state.craftId) update({ craftId });
+      })
+      .catch(() => {});
+
+    // Pre-cargar técnica primaria desde ArtisanIdentity
+    getArtisanIdentityByUserId(user.id)
+      .then(identity => {
+        if (!identity) return;
+        const updates: Record<string, string> = {};
+        if (identity.techniquePrimaryId && !state.primaryTechniqueId)
+          updates.primaryTechniqueId = identity.techniquePrimaryId;
+        if (identity.techniqueSecondaryId && !state.secondaryTechniqueId)
+          updates.secondaryTechniqueId = identity.techniqueSecondaryId;
+        if (Object.keys(updates).length) update(updates as any);
+      })
+      .catch(() => {});
+
+    void legacyPromise;
   }, [user]);
 
   useEffect(() => {
@@ -83,6 +107,7 @@ export const NewProductWizard: React.FC = () => {
           name: product.name,
           shortDescription: product.shortDescription,
           artisanalHistory: product.history || undefined,
+          careNotes: product.careNotes || undefined,
           images,
           categoryId: product.categoryId || undefined,
           materials: product.materials?.map(m => m.materialId) || [],

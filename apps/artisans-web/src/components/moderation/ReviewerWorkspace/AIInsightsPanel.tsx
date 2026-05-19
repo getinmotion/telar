@@ -1,9 +1,12 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Sparkles, AlertTriangle, Lightbulb, Info, Loader2, WifiOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { analyzeModerationProduct, type ModerationAnalyzeRequest, type ModerationInsight } from '@/services/agents.actions';
-import { HealthScoreRing } from './HealthScoreRing';
+import { Loader2, WifiOff } from 'lucide-react';
+import { SANS } from '@/components/dashboard/dashboardStyles';
+import {
+  analyzeModerationProduct,
+  type ModerationAnalyzeRequest,
+  type ModerationInsight,
+} from '@/services/agents.actions';
 
 interface AIInsightsPanelProps {
   productId: string;
@@ -11,48 +14,37 @@ interface AIInsightsPanelProps {
   className?: string;
 }
 
-const SEVERITY_CONFIG = {
-  warning: {
-    Icon: AlertTriangle,
-    colors: 'border-amber-200 bg-amber-50 text-amber-700',
-    iconColor: 'text-amber-500',
-  },
-  suggestion: {
-    Icon: Lightbulb,
-    colors: 'border-blue-200 bg-blue-50 text-blue-700',
-    iconColor: 'text-blue-500',
-  },
-  info: {
-    Icon: Info,
-    colors: 'border-muted bg-muted/30 text-muted-foreground',
-    iconColor: 'text-muted-foreground',
-  },
-} as const;
+type Severity = 'warning' | 'suggestion' | 'info';
+
+const SEVERITY_STYLES: Record<Severity, { color: string; bg: string; border: string; icon: string }> = {
+  warning:    { color: '#b45309', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.18)', icon: 'warning' },
+  suggestion: { color: '#1d4ed8', bg: 'rgba(37,99,235,0.07)',  border: 'rgba(37,99,235,0.18)',  icon: 'lightbulb' },
+  info:       { color: 'rgba(84,67,62,0.55)', bg: 'rgba(84,67,62,0.04)', border: 'rgba(84,67,62,0.1)', icon: 'info' },
+};
 
 function InsightItem({ insight }: { insight: ModerationInsight }) {
-  const cfg = SEVERITY_CONFIG[insight.severity] ?? SEVERITY_CONFIG.info;
-  const { Icon } = cfg;
+  const s = SEVERITY_STYLES[insight.severity] ?? SEVERITY_STYLES.info;
 
   return (
-    <div className={cn('rounded-md border px-2.5 py-2 space-y-0.5', cfg.colors)}>
-      <div className="flex items-start gap-1.5">
-        <Icon className={cn('h-3.5 w-3.5 mt-0.5 flex-shrink-0', cfg.iconColor)} />
-        <p className="text-xs leading-snug">{insight.message}</p>
+    <div style={{ borderRadius: 10, border: `1px solid ${s.border}`, background: s.bg, padding: '8px 12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 14, color: s.color, flexShrink: 0, marginTop: 1 }}>
+          {s.icon}
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <p style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.45, fontWeight: 500, color: s.color, margin: 0 }}>{insight.message}</p>
+          {insight.suggested_value && (
+            <p style={{ fontFamily: SANS, fontSize: 10, marginTop: 3, opacity: 0.75, color: s.color }}>
+              → {insight.suggested_value}
+            </p>
+          )}
+        </div>
       </div>
-      {insight.suggested_value && (
-        <p className="text-[10px] pl-5 font-medium opacity-80">
-          Sugerido: {insight.suggested_value}
-        </p>
-      )}
     </div>
   );
 }
 
-export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
-  productId,
-  analysisData,
-  className,
-}) => {
+export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ productId, analysisData, className }) => {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['ai-moderation-analysis', productId],
     queryFn: () => analyzeModerationProduct(analysisData),
@@ -61,65 +53,91 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   });
 
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-        <Sparkles className="h-3.5 w-3.5 text-violet-500" />
-        Análisis IA
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className={className}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, background: 'rgba(124,58,237,0.1)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#7c3aed' }}>auto_awesome</span>
+          </div>
+          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.8)' }}>Análisis IA</span>
+        </div>
+        {isLoading && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, borderRadius: 9999, background: 'rgba(124,58,237,0.06)', padding: '2px 8px', fontFamily: SANS, fontSize: 10, color: '#7c3aed' }}>
+            <Loader2 style={{ width: 10, height: 10 }} className="animate-spin" />
+            Analizando…
+          </span>
+        )}
+        {data && (
+          <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)' }}>
+            {data.insights.length} hallazgo{data.insights.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
+      {/* Loading skeleton */}
       {isLoading && (
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-4 text-xs text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-          <span>Analizando calidad y coherencia...</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ height: 48, borderRadius: 10, background: 'rgba(84,67,62,0.06)' }} className="animate-pulse" />
+          ))}
         </div>
       )}
 
+      {/* Error */}
       {isError && (
-        <div className="rounded-lg border border-dashed px-3 py-4 text-center">
-          <WifiOff className="mx-auto h-5 w-5 text-muted-foreground/50 mb-1.5" />
-          <p className="text-xs text-muted-foreground">No se pudo conectar con el agente.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px dashed rgba(84,67,62,0.15)', background: 'rgba(84,67,62,0.03)', padding: '20px 16px', textAlign: 'center' }}>
+          <WifiOff style={{ width: 24, height: 24, color: 'rgba(84,67,62,0.25)' }} />
+          <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', margin: 0 }}>No se pudo conectar con el agente IA.</p>
           <button
             onClick={() => refetch()}
-            className="mt-1.5 text-[10px] text-primary underline underline-offset-2"
+            style={{ borderRadius: 9999, border: '1px solid rgba(84,67,62,0.15)', background: 'white', padding: '4px 12px', fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.6)', cursor: 'pointer' }}
           >
             Reintentar
           </button>
         </div>
       )}
 
+      {/* AI result */}
       {data && (
         <>
-          {/* Score ring */}
-          <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
-            <HealthScoreRing score={data.quality_score} size="sm" />
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                Calidad IA
-              </p>
-              <p className="text-xs text-foreground leading-snug mt-0.5">{data.summary}</p>
+          {/* Quality score + summary */}
+          <div style={{ borderRadius: 10, border: '1px solid rgba(124,58,237,0.15)', background: 'linear-gradient(135deg, rgba(124,58,237,0.05) 0%, rgba(109,40,217,0.04) 100%)', padding: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 48, height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9999, background: 'white', boxShadow: '0 1px 4px rgba(21,27,45,0.08)', border: '1px solid rgba(124,58,237,0.12)' }}>
+                <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 800, color: '#7c3aed' }}>{data.quality_score}</span>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(124,58,237,0.6)', marginBottom: 2 }}>Calidad IA</p>
+                <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(124,58,237,0.9)', lineHeight: 1.4, margin: 0 }}>{data.summary}</p>
+              </div>
             </div>
           </div>
 
           {/* Suggested category */}
           {data.suggested_category && (
-            <div className="rounded-md border border-violet-200 bg-violet-50 px-2.5 py-2 text-xs text-violet-700">
-              <p className="font-medium">Categoría sugerida</p>
-              <p className="mt-0.5">{data.suggested_category}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(124,58,237,0.18)', background: 'rgba(124,58,237,0.05)', padding: '8px 12px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#7c3aed', flexShrink: 0 }}>sell</span>
+              <div>
+                <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(124,58,237,0.6)' }}>Categoría sugerida</span>
+                <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: '#7c3aed', margin: 0 }}>{data.suggested_category}</p>
+              </div>
             </div>
           )}
 
-          {/* Insights */}
-          {data.insights.length > 0 && (
-            <div className="space-y-1.5">
+          {/* Insights list */}
+          {data.insights.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {data.insights.map((insight, i) => (
                 <InsightItem key={i} insight={insight} />
               ))}
             </div>
-          )}
-
-          {data.insights.length === 0 && (
-            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs text-emerald-700">
-              Sin inconsistencias detectadas por la IA.
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 10, border: '1px solid rgba(21,128,61,0.18)', background: 'rgba(21,128,61,0.06)', padding: '8px 12px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#15803d', flexShrink: 0 }}>check_circle</span>
+              <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: '#15803d', margin: 0 }}>
+                Sin inconsistencias detectadas. Producto listo para revisión.
+              </p>
             </div>
           )}
         </>

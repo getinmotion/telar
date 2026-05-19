@@ -10,6 +10,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { QUEUE_SECTION_LABELS } from '@/constants/moderation-copy';
+import { SANS, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
 export type QueueSection =
   | 'products'
@@ -68,10 +69,22 @@ const SECTION_ICONS: Record<QueueSection, React.ComponentType<any>> = {
   marketplace: Star,
 };
 
-function CountBadge({ count }: { count?: number }) {
+function CountBadge({ count, active }: { count?: number; active?: boolean }) {
   if (!count) return null;
   return (
-    <span className="ml-auto flex-shrink-0 rounded-full bg-foreground/8 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+    <span
+      style={{
+        marginLeft: 'auto',
+        flexShrink: 0,
+        borderRadius: 9999,
+        padding: '1px 7px',
+        fontSize: 9,
+        fontFamily: SANS,
+        fontWeight: 800,
+        background: active ? `rgba(21,128,61,0.12)` : 'rgba(21,27,45,0.06)',
+        color: active ? GREEN_MOD : 'rgba(84,67,62,0.5)',
+      }}
+    >
       {count > 99 ? '99+' : count}
     </span>
   );
@@ -107,7 +120,7 @@ export const QueueSidebar: React.FC<QueueSidebarProps> = ({
   ][];
 
   return (
-    <nav className={cn('flex flex-col gap-0.5 py-2', className)}>
+    <nav className={cn('flex flex-col gap-0.5 py-2 px-2', className)}>
       {sections.map(([sectionKey, sectionConfig]) => {
         const Icon = SECTION_ICONS[sectionKey];
         const isActive = activeSection === sectionKey;
@@ -123,26 +136,60 @@ export const QueueSidebar: React.FC<QueueSidebarProps> = ({
 
         return (
           <div key={sectionKey}>
+            {sectionKey === 'shops' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px 4px', marginTop: 4 }}>
+                <div style={{ flex: 1, height: 1, background: 'rgba(21,128,61,0.1)' }} />
+                <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.35)', whiteSpace: 'nowrap' }}>
+                  Tiendas
+                </span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(21,128,61,0.1)' }} />
+              </div>
+            )}
             <button
               onClick={() => toggleSection(sectionKey)}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                'hover:bg-accent hover:text-accent-foreground',
-                isActive && 'bg-accent text-accent-foreground font-medium',
-              )}
+              style={{
+                display: 'flex',
+                width: '100%',
+                alignItems: 'center',
+                gap: 8,
+                borderRadius: 8,
+                padding: '7px 10px',
+                fontFamily: SANS,
+                fontSize: 12,
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? GREEN_MOD : 'rgba(84,67,62,0.65)',
+                background: isActive ? 'rgba(21,128,61,0.08)' : 'transparent',
+                border: isActive ? '1px solid rgba(21,128,61,0.15)' : '1px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                textAlign: 'left',
+              }}
+              onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(21,128,61,0.04)'; }}
+              onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-              <span className="flex-1 text-left">{sectionConfig.label}</span>
-              <CountBadge count={sectionTotal} />
+              <Icon className="h-4 w-4 flex-shrink-0" style={{ color: isActive ? GREEN_MOD : 'rgba(84,67,62,0.4)' }} />
+              <span style={{ flex: 1 }}>{sectionConfig.label}</span>
+              <CountBadge count={sectionTotal} active={isActive} />
               {isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown className="h-3.5 w-3.5" style={{ color: 'rgba(84,67,62,0.35)' }} />
               ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronRight className="h-3.5 w-3.5" style={{ color: 'rgba(84,67,62,0.35)' }} />
               )}
             </button>
 
             {isExpanded && (
-              <div className="mt-0.5 ml-4 border-l pl-3 flex flex-col gap-0.5 pb-1">
+              <div
+                style={{
+                  marginTop: 2,
+                  marginLeft: 16,
+                  paddingLeft: 12,
+                  borderLeft: `1px solid rgba(21,128,61,0.15)`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  paddingBottom: 4,
+                }}
+              >
                 {subsections.map(([subKey, subLabel]) => {
                   const subCount = counts[sectionKey]?.[subKey as keyof (typeof counts)[typeof sectionKey]];
                   const isSubActive = isActive && activeSubsection === subKey;
@@ -151,14 +198,28 @@ export const QueueSidebar: React.FC<QueueSidebarProps> = ({
                     <button
                       key={subKey}
                       onClick={() => onSectionChange(sectionKey, subKey)}
-                      className={cn(
-                        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors',
-                        'hover:bg-accent hover:text-accent-foreground',
-                        isSubActive && 'bg-accent/60 text-accent-foreground font-medium',
-                      )}
+                      style={{
+                        display: 'flex',
+                        width: '100%',
+                        alignItems: 'center',
+                        gap: 6,
+                        borderRadius: 6,
+                        padding: '5px 8px',
+                        fontFamily: SANS,
+                        fontSize: 11,
+                        fontWeight: isSubActive ? 700 : 400,
+                        color: isSubActive ? GREEN_MOD : 'rgba(84,67,62,0.55)',
+                        background: isSubActive ? 'rgba(21,128,61,0.06)' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.12s',
+                        textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => { if (!isSubActive) (e.currentTarget as HTMLElement).style.background = 'rgba(21,128,61,0.04)'; }}
+                      onMouseLeave={(e) => { if (!isSubActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                     >
-                      <span className="flex-1 text-left text-muted-foreground">{subLabel}</span>
-                      <CountBadge count={subCount as number | undefined} />
+                      <span style={{ flex: 1 }}>{subLabel}</span>
+                      <CountBadge count={subCount as number | undefined} active={isSubActive} />
                     </button>
                   );
                 })}

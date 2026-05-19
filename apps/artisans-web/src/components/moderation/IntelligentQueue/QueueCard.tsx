@@ -1,11 +1,10 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { AlertTriangle, ImageOff, Store, Clock, CheckCircle, Zap, TrendingUp, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, ImageOff, Store, Clock, CheckCircle } from 'lucide-react';
 import { ModerationStatusBadge } from '../ModerationStatusBadge';
-import { ScoreBadge } from './ScoreBadge';
 import type { QueueScoreApi } from '@/services/moderation.actions';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { SANS, SERIF, glassPrimary, glassGreen, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
 export interface QueueCardItem {
   id: string;
@@ -16,217 +15,335 @@ export interface QueueCardItem {
   status: string;
   createdAt: string;
   issues?: string[];
+  region?: string;
+  category?: string;
+  sku?: string | null;
+  email?: string | null;
 }
+
+export type QueueViewMode = 'list' | 'grid' | 'table';
 
 interface QueueCardProps {
   item: QueueCardItem;
   score?: QueueScoreApi | null;
+  viewMode?: QueueViewMode;
   isSelected?: boolean;
+  isChecked?: boolean;
   onSelect: (id: string) => void;
+  onCheckChange?: (id: string, checked: boolean) => void;
   onQuickApprove?: (id: string) => void;
   onQuickReview?: (id: string) => void;
   className?: string;
 }
 
-const STATUS_ACCENT: Record<string, string> = {
-  pending_moderation: 'border-l-amber-400',
-  changes_requested:  'border-l-orange-400',
-  rejected:           'border-l-red-400',
-  approved:           'border-l-emerald-400',
-  approved_with_edits:'border-l-teal-400',
-  draft:              'border-l-gray-300',
+export const STATUS_ACCENT_COLOR: Record<string, string> = {
+  pending_moderation: '#f59e0b',
+  changes_requested:  '#f97316',
+  rejected:           '#ef4444',
+  approved:           '#10b981',
+  approved_with_edits:'#14b8a6',
+  draft:              '#9ca3af',
 };
 
-export const QueueCard: React.FC<QueueCardProps> = ({
-  item,
-  score,
-  isSelected,
-  onSelect,
-  onQuickApprove,
-  onQuickReview,
-  className,
-}) => {
-  const timeAgo = formatDistanceToNow(new Date(item.createdAt), {
-    addSuffix: true,
-    locale: es,
-  });
+// ─── Checkbox ────────────────────────────────────────────────────────────────
 
-  const accentClass = STATUS_ACCENT[item.status] ?? 'border-l-gray-200';
-  const hasScore = score && (score.priorityScore > 0 || score.riskScore > 0 || score.commercialScore > 0);
+function Checkbox({ checked, onChange }: { checked?: boolean; onChange: () => void }) {
+  return (
+    <div
+      onClick={e => { e.stopPropagation(); onChange(); }}
+      style={{
+        width: 16, height: 16, borderRadius: 4, flexShrink: 0, cursor: 'pointer',
+        border: `1.5px solid ${checked ? GREEN_MOD : 'rgba(84,67,62,0.25)'}`,
+        background: checked ? GREEN_MOD : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      {checked && (
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </div>
+  );
+}
+
+// ─── Issues badge ────────────────────────────────────────────────────────────
+
+function IssuesBadge({ count }: { count: number }) {
+  return (
+    <span style={{
+      display: 'flex', alignItems: 'center', gap: 3,
+      padding: '2px 7px', borderRadius: 9999,
+      background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
+      fontFamily: SANS, fontSize: 10, fontWeight: 700, color: '#b45309', flexShrink: 0,
+    }}>
+      <AlertTriangle style={{ width: 10, height: 10 }} />
+      {count}
+    </span>
+  );
+}
+
+// ─── List view ───────────────────────────────────────────────────────────────
+
+function ListCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuickApprove, onQuickReview }: QueueCardProps) {
+  const timeAgo = formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: es });
+  const accentColor = STATUS_ACCENT_COLOR[item.status] ?? '#9ca3af';
 
   return (
     <div
       onClick={() => onSelect(item.id)}
-      className={cn(
-        'group relative flex flex-col rounded-xl border-l-4 border border-gray-100 bg-white cursor-pointer',
-        'transition-all duration-150 hover:shadow-md hover:border-gray-200',
-        isSelected && 'ring-2 ring-[#151b2d]/20 border-[#151b2d]/30 shadow-md',
-        accentClass,
-        className,
-      )}
+      style={{
+        ...(isChecked ? glassGreen : glassPrimary),
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '9px 12px', borderRadius: 10,
+        borderLeft: `3px solid ${accentColor}`, cursor: 'pointer',
+        transition: 'all 0.12s',
+        outline: isSelected ? `2px solid ${GREEN_MOD}` : 'none', outlineOffset: 1,
+      }}
     >
-      {/* Image hero */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-lg bg-gray-50">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-gray-300">
-            <ImageOff className="h-8 w-8" />
-            <span className="text-xs">Sin imagen</span>
-          </div>
-        )}
+      {onCheckChange && (
+        <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
+      )}
 
-        {/* Type badge */}
-        {item.type === 'shop' && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
-            <Store className="h-2.5 w-2.5" />
-            Taller
-          </div>
-        )}
-
-        {/* Issues overlay — top right */}
-        {item.issues && item.issues.length > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
-            <AlertTriangle className="h-2.5 w-2.5" />
-            {item.issues.length} {item.issues.length === 1 ? 'alerta' : 'alertas'}
-          </div>
-        )}
-
-        {/* Gradient at bottom */}
-        {item.imageUrl && (
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />
-        )}
-
-        {/* Title overlay on image */}
-        {item.imageUrl && (
-          <div className="absolute bottom-0 inset-x-0 px-3 pb-2.5">
-            <p className="text-white text-sm font-semibold leading-tight line-clamp-1 drop-shadow">
-              {item.title}
-            </p>
-            {item.subtitle && (
-              <p className="text-white/75 text-[10px] mt-0.5 line-clamp-1">{item.subtitle}</p>
-            )}
-          </div>
-        )}
+      {/* Thumbnail */}
+      <div style={{
+        width: 72, height: 72, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+        background: 'rgba(21,27,45,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {item.imageUrl
+          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+          : <ImageOff style={{ width: 20, height: 20, color: 'rgba(84,67,62,0.3)' }} />
+        }
       </div>
 
-      {/* Content area */}
-      <div className="flex flex-col gap-2.5 p-3">
-        {/* Title when no image */}
-        {!item.imageUrl && (
-          <div>
-            <p className="text-sm font-semibold text-[#151b2d] leading-tight line-clamp-2">{item.title}</p>
-            {item.subtitle && (
-              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.subtitle}</p>
-            )}
-          </div>
-        )}
-
-        {/* Status + time */}
-        <div className="flex items-center justify-between gap-2">
-          <ModerationStatusBadge status={item.status} size="sm" />
-          <span className="flex items-center gap-1 text-[10px] text-gray-400 shrink-0">
-            <Clock className="h-2.5 w-2.5" />
-            {timeAgo}
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {item.title}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+          {item.type === 'shop' && (
+            <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Store style={{ width: 10, height: 10 }} /> Taller
+            </span>
+          )}
+          {item.subtitle && (
+            <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+              {item.subtitle}
+            </span>
+          )}
+          {item.region && (
+            <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0 }}>
+              {item.region}
+            </span>
+          )}
+          <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+            <Clock style={{ width: 10, height: 10 }} /> {timeAgo}
           </span>
         </div>
+      </div>
 
-        {/* Issues detail */}
-        {item.issues && item.issues.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {item.issues.slice(0, 3).map((issue) => (
-              <span
-                key={issue}
-                className="inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] text-amber-700 font-medium"
-              >
-                {issue}
-              </span>
-            ))}
-            {item.issues.length > 3 && (
-              <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] text-gray-500">
-                +{item.issues.length - 3}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Score bars */}
-        {hasScore && (
-          <div className="grid grid-cols-3 gap-1.5 pt-0.5">
-            {score!.priorityScore > 0 && (
-              <div className="flex flex-col gap-0.5">
-                <span className="flex items-center gap-0.5 text-[9px] font-medium text-gray-500 uppercase tracking-wide">
-                  <Zap className="h-2.5 w-2.5 text-amber-500" />
-                  Prio
-                </span>
-                <div className="h-1 rounded-full bg-gray-100">
-                  <div
-                    className={cn('h-full rounded-full', score!.priorityScore >= 60 ? 'bg-red-400' : score!.priorityScore >= 30 ? 'bg-amber-400' : 'bg-green-400')}
-                    style={{ width: `${score!.priorityScore}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-gray-500 tabular-nums">{score!.priorityScore}</span>
-              </div>
-            )}
-            {score!.riskScore > 0 && (
-              <div className="flex flex-col gap-0.5">
-                <span className="flex items-center gap-0.5 text-[9px] font-medium text-gray-500 uppercase tracking-wide">
-                  <ShieldAlert className="h-2.5 w-2.5 text-red-400" />
-                  Riesgo
-                </span>
-                <div className="h-1 rounded-full bg-gray-100">
-                  <div
-                    className={cn('h-full rounded-full', score!.riskScore >= 60 ? 'bg-red-400' : score!.riskScore >= 30 ? 'bg-amber-400' : 'bg-green-400')}
-                    style={{ width: `${score!.riskScore}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-gray-500 tabular-nums">{score!.riskScore}</span>
-              </div>
-            )}
-            {score!.commercialScore > 0 && (
-              <div className="flex flex-col gap-0.5">
-                <span className="flex items-center gap-0.5 text-[9px] font-medium text-gray-500 uppercase tracking-wide">
-                  <TrendingUp className="h-2.5 w-2.5 text-emerald-500" />
-                  Pot.
-                </span>
-                <div className="h-1 rounded-full bg-gray-100">
-                  <div
-                    className={cn('h-full rounded-full bg-emerald-400')}
-                    style={{ width: `${score!.commercialScore}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-gray-500 tabular-nums">{score!.commercialScore}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Actions — always visible */}
-        <div className="flex gap-2 pt-1 border-t border-gray-50">
+      {/* Right side */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <ModerationStatusBadge status={item.status} size="sm" />
+        {(item.issues?.length ?? 0) > 0 && <IssuesBadge count={item.issues!.length} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {onQuickApprove && item.status === 'pending_moderation' && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onQuickApprove(item.id); }}
-              className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
-            >
-              <CheckCircle className="h-3 w-3" />
-              Aprobar
+            <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '4px 10px', borderRadius: 7,
+              border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
+              fontFamily: SANS, fontSize: 11, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer',
+            }}>
+              <CheckCircle style={{ width: 11, height: 11 }} /> Aprobar
             </button>
           )}
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onQuickReview?.(item.id); }}
-            className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-gray-50 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
-          >
-            Revisar
+          <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
+            padding: '4px 10px', borderRadius: 7,
+            border: '1px solid rgba(21,27,45,0.1)', background: 'rgba(21,27,45,0.04)',
+            fontFamily: SANS, fontSize: 11, fontWeight: 600, color: 'rgba(84,67,62,0.7)', cursor: 'pointer',
+          }}>
+            Ver
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+// ─── Grid view ───────────────────────────────────────────────────────────────
+
+function GridCard({ item, isSelected, isChecked, onSelect, onCheckChange, onQuickApprove, onQuickReview }: QueueCardProps) {
+  const accentColor = STATUS_ACCENT_COLOR[item.status] ?? '#9ca3af';
+  const timeAgo = formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: es });
+
+  return (
+    <div
+      onClick={() => onSelect(item.id)}
+      style={{
+        ...(isChecked ? glassGreen : glassPrimary),
+        borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
+        transition: 'all 0.15s', display: 'flex', flexDirection: 'column',
+        outline: isSelected ? `2px solid ${GREEN_MOD}` : 'none', outlineOffset: 1,
+        borderTop: `3px solid ${accentColor}`,
+      }}
+    >
+      {/* Photo */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', background: 'rgba(21,27,45,0.05)', overflow: 'hidden' }}>
+        {item.imageUrl
+          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ImageOff style={{ width: 28, height: 28, color: 'rgba(84,67,62,0.25)' }} />
+            </div>
+        }
+        {/* Checkbox overlay */}
+        {onCheckChange && (
+          <div style={{ position: 'absolute', top: 8, left: 8 }}>
+            <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
+          </div>
+        )}
+        {/* Issues badge */}
+        {(item.issues?.length ?? 0) > 0 && (
+          <div style={{ position: 'absolute', top: 8, right: 8 }}>
+            <IssuesBadge count={item.issues!.length} />
+          </div>
+        )}
+        {/* Gradient + title overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(21,27,45,0.65) 0%, transparent 50%)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 8px' }}>
+          <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {item.title}
+          </p>
+          {item.subtitle && (
+            <p style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {item.subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+          <ModerationStatusBadge status={item.status} size="sm" />
+          <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0 }}>
+            {timeAgo}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+          {onQuickApprove && item.status === 'pending_moderation' && (
+            <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
+              display: 'flex', alignItems: 'center', padding: '3px 8px', borderRadius: 6,
+              border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
+              fontFamily: SANS, fontSize: 10, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer', gap: 3,
+            }}>
+              <CheckCircle style={{ width: 10, height: 10 }} /> Ok
+            </button>
+          )}
+          <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
+            padding: '3px 8px', borderRadius: 6,
+            border: '1px solid rgba(21,27,45,0.1)', background: 'rgba(21,27,45,0.04)',
+            fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.7)', cursor: 'pointer',
+          }}>
+            Ver
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Table view ──────────────────────────────────────────────────────────────
+
+function TableRow({ item, isSelected, isChecked, onSelect, onCheckChange, onQuickApprove, onQuickReview }: QueueCardProps) {
+  const timeAgo = formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: es });
+  const accentColor = STATUS_ACCENT_COLOR[item.status] ?? '#9ca3af';
+
+  return (
+    <div
+      onClick={() => onSelect(item.id)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '6px 12px', cursor: 'pointer',
+        borderBottom: '1px solid rgba(21,27,45,0.04)',
+        background: isChecked ? 'rgba(21,128,61,0.05)' : isSelected ? 'rgba(21,128,61,0.03)' : 'transparent',
+        borderLeft: `2px solid ${isSelected || isChecked ? accentColor : 'transparent'}`,
+        transition: 'background 0.1s',
+      }}
+    >
+      {onCheckChange && (
+        <Checkbox checked={isChecked} onChange={() => onCheckChange(item.id, !isChecked)} />
+      )}
+
+      {/* 32x32 thumb */}
+      <div style={{ width: 32, height: 32, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: 'rgba(21,27,45,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {item.imageUrl
+          ? <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+          : <ImageOff style={{ width: 12, height: 12, color: 'rgba(84,67,62,0.3)' }} />
+        }
+      </div>
+
+      {/* Name — flex 2 */}
+      <p style={{ flex: '2 1 0', fontFamily: SANS, fontSize: 12, fontWeight: 600, color: '#151b2d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+        {item.title}
+      </p>
+
+      {/* Shop — flex 1.5 */}
+      <p style={{ flex: '1.5 1 0', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+        {item.subtitle ?? '—'}
+      </p>
+
+      {/* Region — flex 1 */}
+      <p style={{ flex: '1 1 0', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+        {item.region ?? '—'}
+      </p>
+
+      {/* Status */}
+      <div style={{ flexShrink: 0 }}>
+        <ModerationStatusBadge status={item.status} size="sm" />
+      </div>
+
+      {/* Issues */}
+      <div style={{ width: 40, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+        {(item.issues?.length ?? 0) > 0
+          ? <IssuesBadge count={item.issues!.length} />
+          : <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.3)' }}>—</span>
+        }
+      </div>
+
+      {/* Date */}
+      <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', flexShrink: 0, width: 90, textAlign: 'right' }}>
+        {timeAgo}
+      </span>
+
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        {onQuickApprove && item.status === 'pending_moderation' && (
+          <button type="button" onClick={e => { e.stopPropagation(); onQuickApprove(item.id); }} style={{
+            display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 5,
+            border: `1px solid rgba(21,128,61,0.2)`, background: 'rgba(21,128,61,0.07)',
+            fontFamily: SANS, fontSize: 10, fontWeight: 700, color: GREEN_MOD, cursor: 'pointer',
+          }}>
+            <CheckCircle style={{ width: 10, height: 10 }} />
+          </button>
+        )}
+        <button type="button" onClick={e => { e.stopPropagation(); onQuickReview?.(item.id); }} style={{
+          padding: '3px 8px', borderRadius: 5,
+          border: '1px solid rgba(21,27,45,0.1)', background: 'transparent',
+          fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.6)', cursor: 'pointer',
+        }}>
+          Ver
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Public component ─────────────────────────────────────────────────────────
+
+export const QueueCard: React.FC<QueueCardProps> = (props) => {
+  const { viewMode = 'list' } = props;
+  if (viewMode === 'grid') return <GridCard {...props} />;
+  if (viewMode === 'table') return <TableRow {...props} />;
+  return <ListCard {...props} />;
 };

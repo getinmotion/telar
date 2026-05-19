@@ -12,22 +12,21 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BackofficeLayout } from '@/components/backoffice/BackofficeLayout';
 import { BackofficeProtectedRoute } from '@/components/auth/BackofficeProtectedRoute';
 import { BackofficePageSkeleton } from '@/components/backoffice/BackofficePageSkeleton';
-const BackofficeLoginPage = lazy(() => import('@/pages/backoffice/BackofficeLoginPage'));
 const AdminPage           = lazy(() => import('@/pages/Admin'));
 const BackofficeDashboardPage = lazy(() => import('@/pages/backoffice/BackofficeDashboardPage'));
 const BackofficeMarketplaceHealthPage = lazy(() => import('@/pages/backoffice/BackofficeMarketplaceHealthPage'));
 const BackofficeConveniosPage = lazy(() => import('@/pages/backoffice/BackofficeConveniosPage'));
 const BackofficeTiendaDetailPage = lazy(() => import('@/pages/backoffice/BackofficeTiendaDetailPage'));
-const ModerationPage_lazy = lazy(() => import('@/pages/ModerationPage'));
 const ProductAnalyticsPage_lazy = lazy(() => import('@/pages/ProductAnalyticsPage'));
-const ProductReviewPage_lazy = lazy(() => import('@/pages/ProductReviewPage'));
+// ProductReviewPage eliminado — reemplazado por ProductStudioPage
 const ShippingDashboardPage_lazy = lazy(() => import('@/pages/ShippingDashboardPage'));
-const CmsAdminPage_lazy = lazy(() => import('@/pages/CmsAdminPage'));
+const BackofficeCmsPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeCmsPage'));
 const UserRolesAdminPage_lazy = lazy(() => import('@/pages/UserRolesAdminPage'));
 const BlogPostsAdminPage_lazy = lazy(() => import('@/pages/BlogPostsAdminPage'));
 const CollectionsAdminPage_lazy = lazy(() => import('@/pages/CollectionsAdminPage'));
 const TaxonomyModerationPage_lazy = lazy(() => import('@/pages/admin/TaxonomyModerationPage'));
-const ModerationOSPage_lazy = lazy(() => import('@/pages/admin/ModerationOSPage'));
+const BackofficeTaxonomiaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTaxonomiaPage'));
+const ProductStudioPage_lazy = lazy(() => import('@/pages/admin/ProductStudioPage'));
 const MarketplaceCurationPage_lazy = lazy(() => import('@/pages/admin/MarketplaceCurationPage'));
 const DesignSystemEditorPage_lazy = lazy(() => import('@/pages/admin/DesignSystemEditorPage'));
 const BackofficeOrdenesPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeOrdenesPage'));
@@ -35,8 +34,6 @@ const BackofficeCuponesPage_lazy = lazy(() => import('@/pages/backoffice/Backoff
 const BackofficeAuditoriaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeAuditoriaPage'));
 const BackofficeTiendasPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTiendasPage'));
 const BackofficePagosPage_lazy = lazy(() => import('@/pages/backoffice/BackofficePagosPage'));
-const BackofficeHomePage_lazy = lazy(() => import('@/pages/backoffice/BackofficeHomePage'));
-const BackofficeComercialPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeComercialPage'));
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -55,13 +52,6 @@ import { MasterAgentProvider } from '@/context/MasterAgentContext';
 import { DesignSystemProvider } from '@/contexts/DesignSystemContext';
 import { GamificationProvider } from '@/components/gamification/GamificationProvider';
 import { useTaskAutoCompletion } from '@/hooks/useTaskAutoCompletion';
-import { useAuthInit } from '@/hooks/useAuthInit';
-
-// Arranca la validación de JWT + auto-refresh sin envolver estado
-const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
-  useAuthInit();
-  return <>{children}</>;
-};
 
 // Global task auto-completion listener
 const TaskAutoCompletionWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -135,6 +125,7 @@ import BioLinkPage from './pages/BioLinkPage';
 import TerminosPage from './pages/legal/TerminosPage';
 import PrivacidadPage from './pages/legal/PrivacidadPage';
 import PublicidadPage from './pages/legal/PublicidadPage';
+import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage';
 
 function App() {
   return (
@@ -143,7 +134,6 @@ function App() {
         <HelmetProvider>
           <BrowserRouter>
             <DesignSystemProvider>
-              <AuthInitializer>
                 <DataCacheProvider>
                   <LanguageProvider>
                     <MasterAgentProvider>
@@ -376,7 +366,7 @@ function App() {
                             {/* Admin legacy typo redirect */}
                             <Route path="/admin/desing-system" element={<Navigate to="/backoffice/diseno" replace />} />
                             {/* Redirect old admin moderation route to new independent route */}
-                            <Route path="/admin/moderation" element={<Navigate to="/backoffice/moderacion" replace />} />
+                            <Route path="/admin/moderation" element={<Navigate to="/backoffice/moderacion-os" replace />} />
 
                             {/* ═══════════════════════════════════════════════════════════
                                 BACKOFFICE UNIFICADO — /backoffice/*
@@ -406,7 +396,7 @@ function App() {
                                 />
 
                                 {/* HOME — Panel de Operaciones (todos los roles) */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/home"
                                   element={
                                     <BackofficeProtectedRoute section="home">
@@ -415,21 +405,10 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
 
-                                {/* MODERACIÓN (todos los roles de backoffice) */}
-                                <Route
-                                  path="/backoffice/moderacion"
-                                  element={
-                                    <BackofficeProtectedRoute section="moderation">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <ModerationPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                />
                                 {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/moderacion-os"
                                   element={
                                     <BackofficeProtectedRoute section="moderation">
@@ -438,13 +417,17 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
                                 <Route
                                   path="/backoffice/revisor"
+                                  element={<Navigate to="/backoffice/studio" replace />}
+                                />
+                                <Route
+                                  path="/backoffice/studio"
                                   element={
                                     <BackofficeProtectedRoute section="revisor">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <ProductReviewPage_lazy />
+                                        <ProductStudioPage_lazy />
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
@@ -476,7 +459,7 @@ function App() {
                                   element={
                                     <BackofficeProtectedRoute section="cms">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <CmsAdminPage_lazy />
+                                        <BackofficeCmsPage_lazy />
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
@@ -503,6 +486,16 @@ function App() {
                                 />
                                 <Route
                                   path="/backoffice/taxonomia"
+                                  element={
+                                    <BackofficeProtectedRoute section="taxonomia">
+                                      <Suspense fallback={<BackofficePageSkeleton />}>
+                                        <BackofficeTaxonomiaPage_lazy />
+                                      </Suspense>
+                                    </BackofficeProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/backoffice/taxonomia/moderacion"
                                   element={
                                     <BackofficeProtectedRoute section="taxonomia">
                                       <Suspense fallback={<BackofficePageSkeleton />}>
@@ -560,7 +553,7 @@ function App() {
                                 />
 
                                 {/* COMERCIAL (admin+) */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/comercial"
                                   element={
                                     <BackofficeProtectedRoute section="comercial">
@@ -569,7 +562,7 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
 
                                 {/* OPERACIONES + SISTEMA (super_admin) */}
                                 <Route
@@ -666,7 +659,7 @@ function App() {
                             <Route path="/admin/design-system" element={<Navigate to="/backoffice/diseno" replace />} />
                             <Route path="/admin/taxonomy-moderation" element={<Navigate to="/backoffice/taxonomia" replace />} />
                             <Route path="/admin/dummy-reset" element={<Navigate to="/backoffice/dashboard" replace />} />
-                            <Route path="/moderacion" element={<Navigate to="/backoffice/moderacion" replace />} />
+                            <Route path="/moderacion" element={<Navigate to="/backoffice/moderacion-os" replace />} />
                             <Route path="/moderacion/analytics" element={<Navigate to="/backoffice/analytics" replace />} />
                             <Route path="/moderacion/revisor-productos" element={<Navigate to="/backoffice/revisor" replace />} />
                             <Route path="/moderacion/envios-dashboard" element={<Navigate to="/backoffice/envios" replace />} />
@@ -712,7 +705,6 @@ function App() {
                     </MasterAgentProvider>
                   </LanguageProvider>
                 </DataCacheProvider>
-              </AuthInitializer>
             </DesignSystemProvider>
           </BrowserRouter>
         </HelmetProvider>

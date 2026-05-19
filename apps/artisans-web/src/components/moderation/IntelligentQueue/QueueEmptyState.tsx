@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { SANS, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 import { EMPTY_STATE_COPY } from '@/constants/moderation-copy';
 
 interface QueueEmptyStateProps {
@@ -12,12 +12,17 @@ export const QueueEmptyState: React.FC<QueueEmptyStateProps> = ({
   const copy = EMPTY_STATE_COPY[type] ?? EMPTY_STATE_COPY.default;
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-      <div className="rounded-full bg-emerald-50 p-4 mb-4">
-        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 16px', textAlign: 'center' }}>
+      <div style={{
+        borderRadius: 9999, background: 'rgba(21,128,61,0.08)', padding: 16, marginBottom: 16,
+        border: '1px solid rgba(21,128,61,0.15)',
+      }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 32, color: GREEN_MOD, display: 'block' }}>
+          check_circle
+        </span>
       </div>
-      <p className="text-sm font-medium text-foreground">{copy.title}</p>
-      <p className="text-xs text-muted-foreground mt-1 max-w-xs">{copy.description}</p>
+      <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', margin: 0 }}>{copy.title}</p>
+      <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)', marginTop: 4, maxWidth: 280, lineHeight: 1.5 }}>{copy.description}</p>
     </div>
   );
 };

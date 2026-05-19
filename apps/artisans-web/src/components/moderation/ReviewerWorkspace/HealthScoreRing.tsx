@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 interface HealthScoreRingProps {
   score: number;
   size?: 'sm' | 'md' | 'lg';
+  /** Set true when rendered on a dark background — uses white text */
+  dark?: boolean;
   className?: string;
 }
 
@@ -23,14 +25,15 @@ function getScoreLabel(score: number): string {
 }
 
 const SIZE_CONFIG = {
-  sm: { dim: 72, inner: 22, textSize: 'text-base', labelSize: 'text-[9px]' },
-  md: { dim: 96, inner: 30, textSize: 'text-lg', labelSize: 'text-[10px]' },
-  lg: { dim: 120, inner: 38, textSize: 'text-2xl', labelSize: 'text-xs' },
+  sm: { dim: 72,  inner: 22, textSize: 'text-base', labelSize: 'text-[9px]' },
+  md: { dim: 96,  inner: 30, textSize: 'text-lg',   labelSize: 'text-[10px]' },
+  lg: { dim: 128, inner: 40, textSize: 'text-2xl',  labelSize: 'text-[10px]' },
 };
 
 export const HealthScoreRing: React.FC<HealthScoreRingProps> = ({
   score,
   size = 'md',
+  dark = false,
   className,
 }) => {
   const clamped = Math.max(0, Math.min(100, score));
@@ -62,15 +65,24 @@ export const HealthScoreRing: React.FC<HealthScoreRingProps> = ({
             strokeWidth={0}
           >
             <Cell fill={color} />
-            <Cell fill="#e5e7eb" />
+            <Cell fill={dark ? '#ffffff18' : '#e5e7eb'} />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={cn('font-bold tabular-nums leading-none', cfg.textSize)} style={{ color }}>
+        <span
+          className={cn('font-bold tabular-nums leading-none', cfg.textSize)}
+          style={{ color: dark ? '#ffffff' : color }}
+        >
           {clamped}
         </span>
-        <span className={cn('text-muted-foreground font-medium', cfg.labelSize)}>{label}</span>
+        <span
+          className={cn('font-medium', cfg.labelSize)}
+          style={{ color: dark ? 'rgba(255,255,255,0.5)' : undefined }}
+        >
+          {!dark && <span className="text-muted-foreground">{label}</span>}
+          {dark && label}
+        </span>
       </div>
     </div>
   );

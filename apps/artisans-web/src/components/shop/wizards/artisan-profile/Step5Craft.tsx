@@ -20,6 +20,14 @@ const TIME_OPTIONS = [
   { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
 ] as const;
 
+const TIME_OPTIONS = [
+  { value: 'Horas',      icon: 'bolt',                 label: 'Horas' },
+  { value: '1 a 3 días', icon: 'hourglass_top',        label: '1 a 3 días' },
+  { value: '1 semana',   icon: 'calendar_view_week',   label: '1 semana' },
+  { value: '2 semanas',  icon: 'date_range',           label: '2 semanas' },
+  { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
+] as const;
+
 interface Props {
   data: ArtisanProfileData;
   onChange: (updates: Partial<ArtisanProfileData>) => void;

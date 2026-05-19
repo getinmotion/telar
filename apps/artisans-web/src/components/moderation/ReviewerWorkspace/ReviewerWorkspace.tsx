@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { CheckCircle, Edit3, XCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WorkspaceLeft } from './WorkspaceLeft';
 import { WorkspaceRight } from './WorkspaceRight';
 import { ApprovalMode } from './modes/ApprovalMode';
 import { CorrectionMode } from './modes/CorrectionMode';
 import { RejectionMode, type RejectionReasonType } from './modes/RejectionMode';
+import { RequestChangesMode } from './modes/RequestChangesMode';
+import { SANS } from '@/components/dashboard/dashboardStyles';
 import type { ModerationProduct, ModerationHistory as ModerationHistoryType } from '@/hooks/useProductModeration';
 import type { FieldCorrection } from './CorrectionTypeSelector';
 
-type WorkspaceMode = 'approval' | 'correction' | 'rejection';
+type WorkspaceMode = 'approval' | 'correction' | 'request_changes' | 'rejection';
 
 interface ReviewerWorkspaceProps {
   product: ModerationProduct;
@@ -25,26 +25,21 @@ interface ReviewerWorkspaceProps {
   moderating: boolean;
 }
 
-const MODES: { value: WorkspaceMode; label: string; Icon: React.ComponentType<any>; colors: string }[] = [
-  {
-    value: 'approval',
-    label: 'Aprobar',
-    Icon: CheckCircle,
-    colors: 'data-[active=true]:border-emerald-400 data-[active=true]:bg-emerald-50 data-[active=true]:text-emerald-700',
-  },
-  {
-    value: 'correction',
-    label: 'Corregir',
-    Icon: Edit3,
-    colors: 'data-[active=true]:border-teal-400 data-[active=true]:bg-teal-50 data-[active=true]:text-teal-700',
-  },
-  {
-    value: 'rejection',
-    label: 'No publicar',
-    Icon: XCircle,
-    colors: 'data-[active=true]:border-red-400 data-[active=true]:bg-red-50 data-[active=true]:text-red-700',
-  },
-];
+type ModeConfig = {
+  label: string;
+  icon: string;
+  color: string;
+  rgba: (a: number) => string;
+};
+
+const MODE_CONFIG: Record<WorkspaceMode, ModeConfig> = {
+  approval:        { label: 'Aprobar',      icon: 'check_circle',  color: '#15803d', rgba: (a) => `rgba(21,128,61,${a})` },
+  correction:      { label: 'Corregir',     icon: 'edit',          color: '#2563eb', rgba: (a) => `rgba(37,99,235,${a})` },
+  request_changes: { label: 'Pedir cambios',icon: 'chat',          color: '#d97706', rgba: (a) => `rgba(245,158,11,${a})` },
+  rejection:       { label: 'No publicar',  icon: 'cancel',        color: '#dc2626', rgba: (a) => `rgba(239,68,68,${a})` },
+};
+
+const MODE_ORDER: WorkspaceMode[] = ['approval', 'correction', 'request_changes', 'rejection'];
 
 export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
   product,
@@ -53,17 +48,19 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
   moderating,
 }) => {
   const [mode, setMode] = useState<WorkspaceMode>('approval');
+  const [hoveredMode, setHoveredMode] = useState<WorkspaceMode | null>(null);
+  const cfg = MODE_CONFIG[mode];
 
   const handleApprove = async (comment?: string) => {
     await onModerate('approve', comment);
   };
 
-  const handleApproveWithEdits = async (
-    edits: Record<string, unknown>,
-    corrections: FieldCorrection[],
-    comment?: string,
-  ) => {
+  const handleApproveWithEdits = async (edits: Record<string, unknown>, corrections: FieldCorrection[], comment?: string) => {
     await onModerate('approve_with_edits', comment, edits, undefined, corrections);
+  };
+
+  const handleRequestChanges = async (comment: string) => {
+    await onModerate('request_changes', comment);
   };
 
   const handleReject = async (reason: RejectionReasonType, comment: string) => {
@@ -71,45 +68,58 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div style={{ display: 'flex', height: '100%', minHeight: 0, flexDirection: 'column' }}>
       {/* Mode tabs */}
-      <div className="flex gap-1.5 border-b px-4 py-2 flex-shrink-0">
-        {MODES.map(({ value, label, Icon, colors }) => (
-          <button
-            key={value}
-            data-active={mode === value}
-            onClick={() => setMode(value)}
-            className={cn(
-              'flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
-              'border-input bg-card text-muted-foreground hover:bg-muted/50',
-              colors,
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-            {label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(84,67,62,0.1)', background: 'rgba(249,247,242,0.95)', padding: '8px 12px', flexShrink: 0 }}>
+        {MODE_ORDER.map((value) => {
+          const { label, icon, color, rgba } = MODE_CONFIG[value];
+          const isActive = mode === value;
+          const isHovered = hoveredMode === value;
+          return (
+            <button
+              key={value}
+              onClick={() => setMode(value)}
+              onMouseEnter={() => setHoveredMode(value)}
+              onMouseLeave={() => setHoveredMode(null)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                borderRadius: 8, padding: '6px 12px',
+                background: isActive ? color : isHovered ? rgba(0.06) : 'transparent',
+                color: isActive ? 'white' : isHovered ? color : 'rgba(84,67,62,0.45)',
+                border: 'none', cursor: 'pointer',
+                fontFamily: SANS, fontSize: 12, fontWeight: 600,
+                transition: 'all 0.12s',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{icon}</span>
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* 3-column layout */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {/* LEFT — producto vivo */}
-        <div className="w-[280px] flex-shrink-0 border-r overflow-y-auto">
+        <div style={{ width: 280, flexShrink: 0, borderRight: '1px solid rgba(84,67,62,0.08)', overflowY: 'auto', background: 'white' }}>
           <WorkspaceLeft product={product} />
         </div>
 
-        {/* CENTER — modo activo */}
-        <div className="flex-1 min-w-0 border-r overflow-y-auto">
+        {/* CENTER — panel del modo activo */}
+        <div style={{
+          flex: 1, minWidth: 0, borderRight: '1px solid rgba(84,67,62,0.08)', overflowY: 'auto',
+          background: cfg.rgba(0.03),
+          borderTop: `3px solid ${cfg.color}`,
+        }}>
           <ScrollArea className="h-full">
             {mode === 'approval' && (
               <ApprovalMode onApprove={handleApprove} moderating={moderating} />
             )}
             {mode === 'correction' && (
-              <CorrectionMode
-                product={product}
-                onApproveWithEdits={handleApproveWithEdits}
-                moderating={moderating}
-              />
+              <CorrectionMode product={product} onApproveWithEdits={handleApproveWithEdits} moderating={moderating} />
+            )}
+            {mode === 'request_changes' && (
+              <RequestChangesMode onRequestChanges={handleRequestChanges} moderating={moderating} />
             )}
             {mode === 'rejection' && (
               <RejectionMode onReject={handleReject} moderating={moderating} />
@@ -118,7 +128,7 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
         </div>
 
         {/* RIGHT — IA + score + historial */}
-        <div className="w-[260px] flex-shrink-0 overflow-hidden">
+        <div style={{ width: 260, flexShrink: 0, overflow: 'hidden', background: 'white' }}>
           <WorkspaceRight product={product} history={history} />
         </div>
       </div>

@@ -17,6 +17,7 @@ const ROUTE_LABELS: Record<string, string> = {
   cms: 'CMS',
   historias: 'Historias',
   colecciones: 'Colecciones',
+  imagenes: 'Imágenes',
   tiendas: 'Tiendas',
   taxonomia: 'Taxonomía',
   usuarios: 'Usuarios y Roles',

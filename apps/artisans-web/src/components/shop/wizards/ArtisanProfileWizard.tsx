@@ -72,7 +72,7 @@ const AI_PANEL: Record<number, { cards: Array<{ label: string; text: string }>; 
 function validate(step: number, data: ArtisanProfileData): boolean {
   switch (step) {
     case 1: return !!data.artisanName && !!data.artisticName;
-    case 2: return (data.noMaestro === true || data.maestros?.length > 0 || !!data.learnedFrom) && data.startAge > 0;
+    case 2: return !!data.learnedFrom && data.startAge > 0;
     case 3: return (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) && !!data.workshopDescription;
     case 4: return data.techniques.length > 0 && data.materials.length > 0 && !!data.uniqueness;
     case 5: return true;
@@ -82,8 +82,8 @@ function validate(step: number, data: ArtisanProfileData): boolean {
 
 function isPublishReady(data: ArtisanProfileData): boolean {
   return !!data.artisanName && !!data.artisticName && !!data.artisanPhoto
-    && (data.noMaestro === true || data.maestros.length > 0 || !!data.learnedFrom)
-    && data.techniques.length > 0 && data.materials.length > 0;
+    && !!data.learnedFromDetail && data.techniques.length > 0
+    && data.materials.length > 0;
 }
 
 interface Props {
@@ -292,7 +292,7 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
           }}
         />
       )}
-      {step === 2 && <Step2Origin data={data} onChange={updateData} artisanId={user?.id} />}
+      {step === 2 && <Step2Origin       data={data} onChange={updateData} />}
       {step === 3 && <Step4Workshop     data={data} onChange={updateData} userId={user?.id} />}
       {step === 4 && <Step5Craft        data={data} onChange={updateData} />}
     </ArtisanStepShell>

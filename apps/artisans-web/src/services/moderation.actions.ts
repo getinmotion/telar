@@ -654,7 +654,7 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
       ),
       telarApi
         .get<ModerationShopsResponse>('/artisan-shops', {
-          params: { limit: 100, page: 1 },
+          params: { limit: 200, page: 1 },
         })
         .catch(() => ({ data: { data: [], total: 0 } })),
     ]);

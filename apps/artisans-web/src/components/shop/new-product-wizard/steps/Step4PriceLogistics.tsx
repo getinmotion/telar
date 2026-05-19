@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import type { AvailabilityType } from '@/services/products-new.types';
 import { WizardFooter } from '../components/WizardFooter';
@@ -90,15 +90,6 @@ const WeightField: React.FC<WeightFieldProps> = ({ label, valueKg, unit, onUnitC
 
 export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
   const canContinue = !!state.price && !!state.availabilityType;
-
-  const suggestedUnit = useMemo(() => suggestWeightUnit(state.materials), [state.materials]);
-  const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
-  const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials));
-
-  useEffect(() => {
-    setWeightUnit(suggestedUnit);
-    setPkgWeightUnit(suggestedUnit);
-  }, [suggestedUnit]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';

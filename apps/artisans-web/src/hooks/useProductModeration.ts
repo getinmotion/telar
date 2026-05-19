@@ -155,12 +155,13 @@ export const useProductModeration = () => {
   const [loading, setLoading] = useState(false);
   const [moderating, setModerating] = useState(false);
 
-  const fetchModerationQueue = useCallback(async (
-    status: string = 'pending_moderation',
-    advancedFilters?: AdvancedFilters,
-    page: number = 1,
-    pageSize: number = 20,
-  ) => {
+  const fetchModerationQueue = useCallback(async (params: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+    advancedFilters?: AdvancedFilters;
+  } = {}) => {
+    const { status = 'pending_moderation', page = 1, pageSize = 20, advancedFilters } = params;
     setLoading(true);
     try {
       const result = await getModerationQueue({
@@ -184,6 +185,26 @@ export const useProductModeration = () => {
       toast.error('Error al cargar la cola de moderación');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const statuses = ['pending_moderation', 'approved', 'approved_with_edits', 'changes_requested', 'rejected', 'draft'] as const;
+      const results = await Promise.all(
+        statuses.map((s) =>
+          getModerationQueue({ status: s, page: 1, pageSize: 1 })
+            .then((r) => ({ status: s, total: r.total }))
+            .catch(() => ({ status: s, total: 0 }))
+        )
+      );
+      const newCounts = results.reduce((acc, { status: s, total }) => {
+        acc[s] = total;
+        return acc;
+      }, {} as ModerationCounts);
+      setCounts(newCounts);
+    } catch {
+      // counts are non-critical, fail silently
     }
   }, []);
 
@@ -251,6 +272,30 @@ export const useProductModeration = () => {
       }
     }, []);
 
+  const bulkModerateProducts = useCallback(async (
+    productIds: string[],
+    action: 'approve' | 'approve_with_edits' | 'request_changes' | 'reject',
+    comment?: string,
+    onProgress?: (current: number, total: number) => void,
+  ): Promise<{ success: number; failed: number }> => {
+    let success = 0;
+    let failed = 0;
+    for (let i = 0; i < productIds.length; i++) {
+      try {
+        const product = products.find(p => p.id === productIds[i]);
+        await moderateProductApi(productIds[i], action, comment, undefined, user?.id, product?.moderation_status);
+        setProducts(prev => prev.filter(p => p.id !== productIds[i]));
+        success++;
+      } catch {
+        failed++;
+      }
+      onProgress?.(i + 1, productIds.length);
+    }
+    if (success > 0) toast.success(`${success} producto${success > 1 ? 's' : ''} procesado${success > 1 ? 's' : ''}`);
+    if (failed > 0) toast.error(`${failed} producto${failed > 1 ? 's' : ''} fallaron`);
+    return { success, failed };
+  }, [products, user?.id]);
+
   return {
     products,
     counts,
@@ -258,7 +303,9 @@ export const useProductModeration = () => {
     loading,
     moderating,
     fetchModerationQueue,
+    fetchCounts,
     moderateProduct,
+    bulkModerateProducts,
     updateShopMarketplaceApproval: updateShopMarketplaceApprovalFn,
     fetchProductHistory,
   };

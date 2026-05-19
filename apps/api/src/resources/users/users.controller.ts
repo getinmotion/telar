@@ -23,7 +23,6 @@ interface UserListItem {
   id: string;
   email: string | null;
   role: string | null;
-  isSuperAdmin: boolean | null;
   createdAt: Date;
   roles: AppRole[];
 }
@@ -82,7 +81,6 @@ export class UsersController {
       id: u.id,
       email: u.email,
       role: u.role,
-      isSuperAdmin: u.isSuperAdmin,
       createdAt: u.createdAt,
       roles: rolesByUser[u.id] ?? [],
     }));
@@ -91,7 +89,7 @@ export class UsersController {
   }
 
   /**
-   * Toggle del flag super_admin. Sólo super_admin.
+   * Asignar o revocar el rol super_admin a un usuario. Sólo super_admin.
    */
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -100,23 +98,15 @@ export class UsersController {
   @ApiOperation({ summary: 'Patch user (toggle isSuperAdmin) — super_admin only' })
   async patchUser(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { isSuperAdmin?: boolean },
+    @Body() body: { grant: boolean },
   ) {
 
     const repo = (this.usersService as any).userRepository;
     const updates: any = {};
-    if (typeof body.isSuperAdmin === 'boolean') {
-      updates.isSuperAdmin = body.isSuperAdmin;
-    }
-    if (Object.keys(updates).length === 0) {
-      return { id, updated: false };
-    }
-    await repo.update(id, updates);
-    const fresh = await repo.findOne({ where: { id } });
-    return {
-      id: fresh.id,
-      email: fresh.email,
-      isSuperAdmin: fresh.isSuperAdmin,
-    };
+    // if (typeof body.isSuperAdmin === 'boolean') {
+    //   updates.isSuperAdmin = body.isSuperAdmin;
+    // }
+    const roles = await this.userRolesService.findByUserId(id);
+    return { id, roles: roles.map((r) => r.role) };
   }
 }
