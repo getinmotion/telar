@@ -9,7 +9,7 @@ export class CreateIdTypeUserTable1778729229422 implements MigrationInterface {
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 id_type_value VARCHAR(4) NOT NULL UNIQUE,
                 type_name TEXT NOT NULL,
-                countries_id UUID NOT NULL,
+                countries_id UUID NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                 updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
 
@@ -27,7 +27,7 @@ export class CreateIdTypeUserTable1778729229422 implements MigrationInterface {
         `);
 
         // Insert initial records for Colombia
-        const countryId = 'cc009419-7cf8-4bea-ba7b-5bbb0ab311c6';
+        // const countryId = 'cc009419-7cf8-4bea-ba7b-5bbb0ab311c6';
 
         const idTypes = [
             { value: 'RC', name: 'Registro civil' },
@@ -44,7 +44,7 @@ export class CreateIdTypeUserTable1778729229422 implements MigrationInterface {
             await queryRunner.query(`
                 INSERT INTO taxonomy.id_type_user (id_type_value, type_name, countries_id)
                 VALUES ($1, $2, $3);
-            `, [idType.value, idType.name, countryId]);
+            `, [idType.value, idType.name, null /* countryId */]);
         }
 
         console.log('✅ Created id_type_user table with 8 initial records');
