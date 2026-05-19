@@ -103,9 +103,9 @@ export class UsersController {
 
     const repo = (this.usersService as any).userRepository;
     const updates: any = {};
-    if (typeof body.isSuperAdmin === 'boolean') {
-      updates.isSuperAdmin = body.isSuperAdmin;
-    }
+    // if (typeof body.isSuperAdmin === 'boolean') {
+    //   updates.isSuperAdmin = body.isSuperAdmin;
+    // }
     const roles = await this.userRolesService.findByUserId(id);
     return { id, roles: roles.map((r) => r.role) };
   }
