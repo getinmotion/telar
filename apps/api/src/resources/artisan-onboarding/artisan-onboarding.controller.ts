@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 function ensureSelfOrAdmin(req: Request, userId: string): void {
   const caller = (req as any).user ?? {};
   const isSelf = caller.sub === userId || caller.id === userId;
-  const isAdmin = caller.isSuperAdmin === true;
+  const isAdmin = caller.roles?.includes('super_admin') === true;
   if (!isSelf && !isAdmin) {
     throw new ForbiddenException('You can only access your own onboarding data');
   }

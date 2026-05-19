@@ -3,13 +3,15 @@ import { User, Session } from '@supabase/supabase-js';
 import { getCurrentUser, refreshToken as refreshTokenAction, logout as logoutAction } from '@/pages/auth/actions/login.actions';
 import { AuthUser } from '@/pages/auth/types/login.types';
 import { useAuthStore } from '@/stores/authStore';
+import { convertAuthUserToSupabaseUser } from '@/utils/authUser.utils';
+import { logout as logoutAction } from '@/pages/auth/actions/login.actions';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAuthorized: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signIn: (email: string, password: string) => Promise<{ error?: { message: string } }>;
   signOut: () => Promise<void>;
   checkAuthorization: () => Promise<boolean>;
   debugInfo: {
@@ -19,7 +21,14 @@ interface AuthContextType {
   };
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const DEBUG_INFO = { authStateChangeCount: 0, lastAuthEvent: null, authorizationAttempts: 0 };
+
+export const useAuth = (): AuthContextType => {
+  const { user, clearAuth, isInitialized } = useAuthStore();
+
+  const supabaseUser = user
+    ? convertAuthUserToSupabaseUser(user as Parameters<typeof convertAuthUserToSupabaseUser>[0])
+    : null;
 
 const convertAuthUserToSupabaseUser = (authUser: AuthUser): User => ({
   id: authUser.id,

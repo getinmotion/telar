@@ -421,19 +421,33 @@ export class ArtisanShop extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   municipality: string | null;
 
-  @ApiPropertyOptional({
-    description: 'Video de presentación de la tienda/artesano',
-    example: { type: 'youtube', url: 'https://youtu.be/abc123' },
-  })
-  @Column({ type: 'jsonb', name: 'presentation_video', nullable: true })
-  presentationVideo: Record<string, any> | null;
+  @ApiPropertyOptional({ description: 'URL del video de presentación' })
+  @Column({ name: 'presentation_video_url', type: 'text', nullable: true })
+  presentationVideoUrl: string | null;
 
-  @ApiPropertyOptional({
-    description: 'Configuración de la página de bio link',
-    example: { showShopLink: true, showProfileLink: true, featuredProductId: null },
-  })
-  @Column({ type: 'jsonb', name: 'bio_config', nullable: true })
-  bioConfig: Record<string, any> | null;
+  @ApiPropertyOptional({ description: 'Proveedor del video (youtube, vimeo, cloudinary, etc.)' })
+  @Column({ name: 'presentation_video_provider', type: 'text', nullable: true })
+  presentationVideoProvider: string | null;
+
+  @ApiPropertyOptional({ description: 'URL de la miniatura del video' })
+  @Column({ name: 'presentation_video_thumbnail_url', type: 'text', nullable: true })
+  presentationVideoThumbnailUrl: string | null;
+
+  @ApiPropertyOptional({ description: 'Duración del video en segundos' })
+  @Column({ name: 'presentation_video_duration_seconds', type: 'int', nullable: true })
+  presentationVideoDurationSeconds: number | null;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace a la tienda en la página bio link' })
+  @Column({ name: 'bio_config_show_shop_link', type: 'boolean', default: true })
+  bioConfigShowShopLink: boolean;
+
+  @ApiPropertyOptional({ description: 'Mostrar enlace al perfil en la página bio link' })
+  @Column({ name: 'bio_config_show_profile_link', type: 'boolean', default: true })
+  bioConfigShowProfileLink: boolean;
+
+  @ApiPropertyOptional({ description: 'ID del producto destacado en la página bio link' })
+  @Column({ name: 'bio_config_featured_product_id', type: 'uuid', nullable: true })
+  bioConfigFeaturedProductId: string | null;
 
   // Relación 1:1 con User
   @ApiProperty({ description: 'Usuario propietario de la tienda' })

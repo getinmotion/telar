@@ -12,7 +12,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BackofficeLayout } from '@/components/backoffice/BackofficeLayout';
 import { BackofficeProtectedRoute } from '@/components/auth/BackofficeProtectedRoute';
 import { BackofficePageSkeleton } from '@/components/backoffice/BackofficePageSkeleton';
-const BackofficeLoginPage = lazy(() => import('@/pages/backoffice/BackofficeLoginPage'));
 const AdminPage           = lazy(() => import('@/pages/Admin'));
 const BackofficeDashboardPage = lazy(() => import('@/pages/backoffice/BackofficeDashboardPage'));
 const BackofficeMarketplaceHealthPage = lazy(() => import('@/pages/backoffice/BackofficeMarketplaceHealthPage'));
@@ -36,7 +35,6 @@ const BackofficeCuponesPage_lazy = lazy(() => import('@/pages/backoffice/Backoff
 const BackofficeAuditoriaPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeAuditoriaPage'));
 const BackofficeTiendasPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeTiendasPage'));
 const BackofficePagosPage_lazy = lazy(() => import('@/pages/backoffice/BackofficePagosPage'));
-const BackofficeHomePage_lazy = lazy(() => import('@/pages/backoffice/BackofficeHomePage'));
 const BackofficeComercialPage_lazy = lazy(() => import('@/pages/backoffice/BackofficeComercialPage'));
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -56,7 +54,6 @@ import { MasterAgentProvider } from '@/context/MasterAgentContext';
 import { DesignSystemProvider } from '@/contexts/DesignSystemContext';
 import { GamificationProvider } from '@/components/gamification/GamificationProvider';
 import { useTaskAutoCompletion } from '@/hooks/useTaskAutoCompletion';
-import { AuthProvider } from '@/context/AuthContext';
 
 // Global task auto-completion listener
 const TaskAutoCompletionWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -130,6 +127,7 @@ import BioLinkPage from './pages/BioLinkPage';
 import TerminosPage from './pages/legal/TerminosPage';
 import PrivacidadPage from './pages/legal/PrivacidadPage';
 import PublicidadPage from './pages/legal/PublicidadPage';
+import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage';
 
 function App() {
   return (
@@ -138,7 +136,6 @@ function App() {
         <HelmetProvider>
           <BrowserRouter>
             <DesignSystemProvider>
-              <AuthProvider>
                 <DataCacheProvider>
                   <LanguageProvider>
                     <MasterAgentProvider>
@@ -401,7 +398,7 @@ function App() {
                                 />
 
                                 {/* HOME — Panel de Operaciones (todos los roles) */}
-                                <Route
+                                {/* <Route
                                   path="/backoffice/home"
                                   element={
                                     <BackofficeProtectedRoute section="home">
@@ -410,7 +407,7 @@ function App() {
                                       </Suspense>
                                     </BackofficeProtectedRoute>
                                   }
-                                />
+                                /> */}
 
                                 {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
                                 <Route
@@ -710,7 +707,6 @@ function App() {
                     </MasterAgentProvider>
                   </LanguageProvider>
                 </DataCacheProvider>
-              </AuthProvider>
             </DesignSystemProvider>
           </BrowserRouter>
         </HelmetProvider>
