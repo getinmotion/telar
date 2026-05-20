@@ -86,7 +86,22 @@
       "Bash(open /tmp/telar-db-conventions-review.html)",
       "Bash(ls \"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills/telar-db-conventions/\")",
       "Bash(find \"/Users/mad/Library/Application Support/Claude\" -name \"SKILL.md\" 2>/dev/null | grep telar)",
-      "Bash(SKILLS_DIR=\"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills\" *)"
+      "Bash(SKILLS_DIR=\"/Users/mad/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/28808ed8-f9c5-4ebe-b9bd-43d5f57dac2c/44e43657-ee92-4322-905c-9c026cb0a3c3/skills\" *)",
+      "Bash(npx vite *)",
+      "Bash(git log *)",
+      "Bash(curl -s -X POST http://localhost:1010/telar/server/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"wrongpassword\"}' --max-time 5)",
+      "Bash(curl -s http://localhost:1010/telar/server/auth/login --max-time 3)",
+      "Bash(curl -s -X POST http://localhost:1010/telar/server/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"x@x.com\",\"password\":\"x\"}' --max-time 5)",
+      "Bash(grep -n \"activeStep === 'precio'\\\\|activeStep === 'legado'\\\\|<\\\\/div>\\\\s*$\" /Users/mad/Proyectos/Telar/apps/artisans-web/src/components/studio/StudioProductEditor.tsx)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(pnpm --filter artisans-web exec tsc --noEmit)",
+      "Bash(pnpm --filter artisans-web tsc --noEmit)",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"Directory does not exist\")",
+      "Bash(mkdir -p ~/.claude/skills/typeorm-create-migration)",
+      "Bash(grep -v \"^2026$\")",
+      "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"no existe\")"
     ]
   }
 }
