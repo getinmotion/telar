@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { ArtisanMaterial } from './entities/artisan-material.entity';
 import { CreateArtisanMaterialDto } from './dto/create-artisan-material.dto';
 import { UpdateArtisanMaterialDto } from './dto/update-artisan-material.dto';
+import { resolveArtisanProfileId } from '../../utils/resolve-artisan-profile-id.util';
 
 @Injectable()
 export class ArtisanMaterialsService {
@@ -23,10 +24,12 @@ export class ArtisanMaterialsService {
   async create(
     createDto: CreateArtisanMaterialDto,
   ): Promise<ArtisanMaterial> {
+    const artisanId = await resolveArtisanProfileId(this.artisanMaterialsRepository, createDto.artisanId);
+
     // Verificar si ya existe la relación
     const existing = await this.artisanMaterialsRepository.findOne({
       where: {
-        artisanId: createDto.artisanId,
+        artisanId,
         materialId: createDto.materialId,
       },
     });
@@ -37,7 +40,7 @@ export class ArtisanMaterialsService {
       );
     }
 
-    const newRelation = this.artisanMaterialsRepository.create(createDto);
+    const newRelation = this.artisanMaterialsRepository.create({ ...createDto, artisanId });
     return await this.artisanMaterialsRepository.save(newRelation);
   }
 
@@ -77,8 +80,9 @@ export class ArtisanMaterialsService {
    * Obtener todos los materiales de un artesano
    */
   async findByArtisan(artisanId: string): Promise<ArtisanMaterial[]> {
+    const resolvedId = await resolveArtisanProfileId(this.artisanMaterialsRepository, artisanId);
     return await this.artisanMaterialsRepository.find({
-      where: { artisanId },
+      where: { artisanId: resolvedId },
       relations: ['material'],
       order: { isPrimary: 'DESC', createdAt: 'DESC' },
     });

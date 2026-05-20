@@ -114,7 +114,19 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   useEffect(() => {
     if (shopAny?.artisanProfile) {
       const profile = shopAny.artisanProfile as ArtisanProfileData;
-      setData({ ...DEFAULT_ARTISAN_PROFILE, ...profile });
+      const meta = user?.user_metadata as Record<string, string> | undefined;
+      const learningOrigin = (telarData.learning_origin?.value as string) || '';
+      setData({
+        ...DEFAULT_ARTISAN_PROFILE,
+        ...profile,
+        // Fallback to registration/shop data for fields that may be empty in saved profile
+        artisanName:       profile.artisanName       || (telarData.name?.value as string) || meta?.full_name || '',
+        learnedFrom:       profile.learnedFrom       || LEARNING_ORIGIN_MAP[learningOrigin] || '',
+        learnedFromDetail: profile.learnedFromDetail || (telarData.story?.value as string) || '',
+        department:        profile.department        || (shopAny?.department as string) || '',
+        municipality:      profile.municipality      || (shopAny?.municipality as string) || '',
+        country:           profile.country           || 'Colombia',
+      });
       if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
       if (shopAny.artisanProfileCompleted) setStep(5);
 

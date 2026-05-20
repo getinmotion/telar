@@ -61,6 +61,7 @@ import { PaymentIntentsModule } from './resources/payment-intents/payment-intent
 import { ArtisanOriginModule } from './resources/artisan-origin/artisan-origin.module';
 import { ArtisanIdentityModule } from './resources/artisan-identity/artisan-identity.module';
 import { ArtisanMaterialsModule } from './resources/artisan-materials/artisan-materials.module';
+import { ArtisanMaestrosModule } from './resources/artisan-maestros/artisan-maestros.module';
 import { ArtisanTerritorialModule } from './resources/artisan-territorial/artisan-territorial.module';
 import { InfoBuyerIdentityModule } from './resources/info-buyer-identity/info-buyer-identity.module';
 import { IdTypeUserModule } from './resources/id-type-user/id-type-user.module';
@@ -185,6 +186,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
     ArtisanOriginModule,
     ArtisanIdentityModule,
     ArtisanMaterialsModule,
+    ArtisanMaestrosModule,
     ArtisanTerritorialModule,
     InfoBuyerIdentityModule,
     IdTypeUserModule,

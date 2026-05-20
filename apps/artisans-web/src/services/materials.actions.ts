@@ -10,27 +10,14 @@ export interface Material {
   name: string;
   category?: string;
   description?: string;
-  isActive: boolean;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt?: string;
   updatedAt?: string;
 }
 
-/**
- * Obtener todos los materiales aprobados
- * Endpoint: GET /materials?isActive=true
- */
 export async function getApprovedMaterials(): Promise<Material[]> {
-  try {
-    const response = await telarApi.get<Material[]>('/materials', {
-      params: {
-        isActive: true,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching approved materials:', error);
-    throw error;
-  }
+  const response = await telarApi.get<Material[]>('/materials', { params: { status: 'approved' } });
+  return response.data;
 }
 
 /**

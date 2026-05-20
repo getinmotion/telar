@@ -91,6 +91,7 @@ const ProfilePage: React.FC = () => {
           <ShopInfoSection
             shop={shop}
             isLoading={shopLoading}
+            userId={user?.id}
           />
         );
       case 'preferences':

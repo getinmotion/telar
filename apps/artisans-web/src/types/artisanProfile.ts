@@ -8,11 +8,14 @@ export interface ArtisanProfileData {
   artisanPhoto?: string;
   artisanVideo?: string;
   craftId?: string;             // UUID del oficio principal (FK → crafts)
-  primaryTechniqueId?: string;  // UUID de la técnica principal (FK → techniques)
+  primaryTechniqueId?: string;   // UUID de la técnica principal (FK → techniques)
+  secondaryTechniqueId?: string; // UUID de la técnica secundaria (FK → techniques)
   materialIds?: string[];       // UUIDs de materiales del perfil (artisan_materials)
 
   // Step 2: Historia y tradición
-  learnedFrom: string;
+  maestros: { id?: string; name: string; description?: string }[];
+  noMaestro?: boolean;
+  learnedFrom: string; // legacy, kept for backwards compat
   startAge: number;
   learnedFromDetail: string;
   culturalMeaning: string;
@@ -102,6 +105,8 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   artisanName: '',
   artisticName: '',
   shortBio: '',
+  maestros: [],
+  noMaestro: false,
   learnedFrom: '',
   startAge: 0,
   learnedFromDetail: '',
