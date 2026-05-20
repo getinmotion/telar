@@ -97,6 +97,7 @@ services:
       MONGO_AUTH_SOURCE: ${MONGO_AUTH_SOURCE}
       CORS_ORIGINS: ${CORS_ORIGINS}
       SESSION_SECRET: ${SESSION_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     ports:
       - "${API_PORT}:${API_PORT}"
     depends_on:
