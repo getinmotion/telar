@@ -4,19 +4,21 @@ export class AddBioConfigToArtisanShops1779400100000 implements MigrationInterfa
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        ADD COLUMN IF NOT EXISTS bio_config_show_shop_link BOOLEAN NOT NULL DEFAULT true,
-        ADD COLUMN IF NOT EXISTS bio_config_show_profile_link BOOLEAN NOT NULL DEFAULT true,
-        ADD COLUMN IF NOT EXISTS bio_config_featured_product_id UUID NULL;
+      CREATE TABLE IF NOT EXISTS artesanos.artisan_bio_config (
+        artisan_identity_id   UUID      PRIMARY KEY
+          REFERENCES artesanos.artisan_identity(id) ON DELETE CASCADE,
+        show_shop_link        BOOLEAN   NOT NULL DEFAULT true,
+        show_profile_link     BOOLEAN   NOT NULL DEFAULT true,
+        featured_product_id   UUID      NULL,
+        created_at            TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at            TIMESTAMP NOT NULL DEFAULT NOW()
+      );
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        DROP COLUMN IF EXISTS bio_config_show_shop_link,
-        DROP COLUMN IF EXISTS bio_config_show_profile_link,
-        DROP COLUMN IF EXISTS bio_config_featured_product_id;
+      DROP TABLE IF EXISTS artesanos.artisan_bio_config;
     `);
   }
 }

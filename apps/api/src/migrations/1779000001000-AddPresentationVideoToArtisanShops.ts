@@ -4,21 +4,22 @@ export class AddPresentationVideoToArtisanShops1779000001000 implements Migratio
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        ADD COLUMN IF NOT EXISTS presentation_video_url TEXT NULL,
-        ADD COLUMN IF NOT EXISTS presentation_video_provider TEXT NULL,
-        ADD COLUMN IF NOT EXISTS presentation_video_thumbnail_url TEXT NULL,
-        ADD COLUMN IF NOT EXISTS presentation_video_duration_seconds INTEGER NULL;
+      CREATE TABLE IF NOT EXISTS artesanos.artisan_presentation_video (
+        artisan_identity_id UUID        PRIMARY KEY
+          REFERENCES artesanos.artisan_identity(id) ON DELETE CASCADE,
+        url                 TEXT        NULL,
+        provider            TEXT        NULL,
+        thumbnail_url       TEXT        NULL,
+        duration_seconds    INTEGER     NULL,
+        created_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+        updated_at          TIMESTAMP   NOT NULL DEFAULT NOW()
+      );
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        DROP COLUMN IF EXISTS presentation_video_url,
-        DROP COLUMN IF EXISTS presentation_video_provider,
-        DROP COLUMN IF EXISTS presentation_video_thumbnail_url,
-        DROP COLUMN IF EXISTS presentation_video_duration_seconds;
+      DROP TABLE IF EXISTS artesanos.artisan_presentation_video;
     `);
   }
 }
