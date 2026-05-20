@@ -101,7 +101,10 @@
       "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"Directory does not exist\")",
       "Bash(mkdir -p ~/.claude/skills/typeorm-create-migration)",
       "Bash(grep -v \"^2026$\")",
-      "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"no existe\")"
+      "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"no existe\")",
+      "Skill(typeorm-create-migration)",
+      "Skill(typeorm-create-migration:*)",
+      "Bash(npx typeorm-ts-node-commonjs *)"
     ]
   }
 }
