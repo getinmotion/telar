@@ -126,8 +126,12 @@ import TerminosPage from './pages/legal/TerminosPage';
 import PrivacidadPage from './pages/legal/PrivacidadPage';
 import PublicidadPage from './pages/legal/PublicidadPage';
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage';
+import { useAuthInit } from '@/hooks/useAuthInit';
 
 function App() {
+  // ✅ Validate token at app level, before any route rendering
+  useAuthInit();
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

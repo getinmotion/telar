@@ -133,9 +133,9 @@ export class User extends BaseEntity {
 
   @Column({
     type: 'boolean',
-    nullable: true,
+    nullable: false,
     default: false,
     name: 'is_super_admin',
   })
-  isSuperAdmin: boolean | null;
+  isSuperAdmin: boolean;
 }

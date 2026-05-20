@@ -40,6 +40,8 @@ export const useAuth = (): AuthContextType => {
   return {
     user: supabaseUser,
     session: null,
+    // loading is true until Zustand finishes rehydrating from localStorage
+    // This ensures components wait for persisted auth state to be restored
     loading: !isInitialized,
     isAuthorized: user?.isSuperAdmin === true,
     signIn: async () => ({ error: { message: 'Use login action directly from Login.tsx' } }),

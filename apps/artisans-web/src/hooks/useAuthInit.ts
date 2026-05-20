@@ -31,20 +31,31 @@ export function useAuthInit(): void {
       return;
     }
 
-    const validateAndInit = async () => {
+    const validateAndInit = async (attempt = 1) => {
+      const maxAttempts = 2; // Try validation twice before giving up
+
       try {
-        // Intentar validar el token con el backend
+        // Attempt to validate the token with the backend
         await getCurrentUser();
-      } catch {
-        // Token inválido — intentar refrescar
+      } catch (validationError) {
+        // Token validation failed - try to refresh it
         try {
           const refreshResponse = await refreshTokenAction();
           if (!refreshResponse?.access_token) {
             throw new Error('Refresh failed');
           }
-        } catch {
-          // Refresh también falló → limpiar sesión
+          // Refresh succeeded - validation complete ✓
+        } catch (refreshError) {
+          // Both validation and refresh failed
+          if (attempt < maxAttempts) {
+            // Retry after a short delay (network might be temporarily down)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return validateAndInit(attempt + 1);
+          }
+
+          // Multiple attempts failed - clear session
           if (mounted) {
+            console.error('[useAuthInit] Token validation failed after retries, clearing auth');
             logoutAction();
             useAuthStore.getState().clearAuth();
           }
