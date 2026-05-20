@@ -91,7 +91,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ productId, ana
           <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', margin: 0 }}>No se pudo conectar con el agente IA.</p>
           <button
             onClick={() => refetch()}
-            style={{ borderRadius: 9999, border: '1px solid rgba(84,67,62,0.15)', background: 'white', padding: '4px 12px', fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.6)', cursor: 'pointer' }}
+            className="rounded-full border border-stone-900/15 bg-white px-3 py-1 text-[10px] font-semibold text-stone-500 cursor-pointer hover:bg-stone-50 transition-colors"
           >
             Reintentar
           </button>

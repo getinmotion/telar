@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { SANS, SERIF, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
 const rgba = (a: number) => `rgba(21,128,61,${a})`;
@@ -83,24 +84,18 @@ export const ApprovalMode: React.FC<ApprovalModeProps> = ({ onApprove, moderatin
 
       {/* CTA */}
       <div style={{ borderTop: `1px solid ${rgba(0.1)}`, background: rgba(0.04), padding: 20 }}>
-        <button
+        <Button
           onClick={handleApprove}
           disabled={moderating}
-          style={{
-            width: '100%', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            borderRadius: 10, border: 'none', cursor: moderating ? 'not-allowed' : 'pointer',
-            background: GREEN_MOD, color: 'white',
-            fontFamily: SANS, fontSize: 14, fontWeight: 700,
-            opacity: moderating ? 0.55 : 1, transition: 'all 0.15s',
-          }}
+          className="w-full h-11 bg-green-700 hover:bg-green-800 text-white font-bold text-sm gap-2"
         >
           {moderating ? (
-            <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check_circle</span>
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
           )}
           {withNote ? 'Aprobar con observación' : 'Aprobar y publicar'}
-        </button>
+        </Button>
       </div>
     </div>
   );

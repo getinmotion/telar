@@ -14,6 +14,9 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useProductStudio, type StudioShop } from '@/hooks/useProductStudio';
 import { StudioProductEditor } from '@/components/studio/StudioProductEditor';
 import type { ModerationAction } from '@/hooks/useProductStudio';
@@ -113,26 +116,22 @@ function DecisionBar({ status, moderating, onAction }: {
 
       {!showComment && (
         <div className="flex flex-wrap gap-2">
-          <button type="button" disabled={moderating} onClick={() => handleAction('approve')}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            style={{ background: GREEN }}>
+          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('approve')}
+            className="gap-1.5 text-xs bg-green-700 hover:bg-green-800 text-white">
             <CheckCheck className="h-3.5 w-3.5" /> Aprobar
-          </button>
-          <button type="button" disabled={moderating} onClick={() => handleAction('request_changes')}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            style={{ background: GOLDEN }}>
+          </Button>
+          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('request_changes')}
+            className="gap-1.5 text-xs bg-amber-600 hover:bg-amber-700 text-white">
             <MessageCircle className="h-3.5 w-3.5" /> Pedir cambios
-          </button>
-          <button type="button" disabled={moderating} onClick={() => handleAction('approve_with_edits')}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            style={{ background: '#2563eb' }}>
+          </Button>
+          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('approve_with_edits')}
+            className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white">
             <Edit3 className="h-3.5 w-3.5" /> Aprobar con ajustes
-          </button>
-          <button type="button" disabled={moderating} onClick={() => handleAction('reject')}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            style={{ background: '#dc2626' }}>
+          </Button>
+          <Button type="button" size="sm" variant="destructive" disabled={moderating} onClick={() => handleAction('reject')}
+            className="gap-1.5 text-xs">
             <XCircle className="h-3.5 w-3.5" /> No publicar
-          </button>
+          </Button>
         </div>
       )}
 
@@ -142,17 +141,20 @@ function DecisionBar({ status, moderating, onAction }: {
             <p className="text-xs font-semibold text-slate-700">
               {showComment === 'request_changes' ? 'Mensaje al artesano' : 'Motivo de rechazo'}
             </p>
-            <button type="button" onClick={() => setShowComment(null)}
-              className="text-[10px] text-slate-400 hover:text-slate-600">Cancelar</button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowComment(null)}
+              className="h-auto py-0 text-[10px] text-slate-400 hover:text-slate-600">Cancelar</Button>
           </div>
-          <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2}
+          <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2}
             placeholder="Mín. 10 caracteres…"
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          <button type="button" disabled={comment.trim().length < 10 || moderating} onClick={handleConfirm}
-            className="w-full rounded-lg py-2 text-xs font-semibold text-white disabled:opacity-40"
-            style={{ background: showComment === 'request_changes' ? GOLDEN : '#dc2626' }}>
+            className="text-xs resize-none border-slate-200 bg-white" />
+          <Button type="button" size="sm" disabled={comment.trim().length < 10 || moderating} onClick={handleConfirm}
+            className={cn('w-full text-xs font-semibold text-white',
+              showComment === 'request_changes'
+                ? 'bg-amber-600 hover:bg-amber-700'
+                : 'bg-red-600 hover:bg-red-700',
+            )}>
             Confirmar
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -313,11 +315,11 @@ export default function ProductStudioPage() {
         <header className="flex-shrink-0 flex items-center gap-3 px-5 py-3 border-b border-slate-200 bg-white">
           {selectedProduct ? (
             <>
-              <button type="button" onClick={clearProduct}
-                className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition-colors">
+              <Button type="button" variant="ghost" size="sm" onClick={clearProduct}
+                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2">
                 <ArrowLeft className="h-4 w-4" />
                 {selectedShop?.shopName ?? 'Tienda'}
-              </button>
+              </Button>
               <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
               <span className="text-sm font-semibold text-slate-800 truncate max-w-xs">{selectedProduct.name}</span>
               <StatusBadge status={selectedProduct.status} />
@@ -359,10 +361,10 @@ export default function ProductStudioPage() {
               {/* Filtros */}
               <div className="flex-shrink-0 px-5 py-3 border-b border-slate-100 bg-white flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[180px]">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <input type="text" placeholder="Buscar producto…" value={productSearch}
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <Input type="text" placeholder="Buscar producto…" value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="pl-8 h-8 text-xs border-slate-200 focus-visible:ring-blue-400" />
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
                   {([
@@ -372,20 +374,21 @@ export default function ProductStudioPage() {
                     ['changes_requested', 'Con cambios', productCounts.changes_requested],
                     ['rejected', 'Rechazados', productCounts.rejected],
                   ] as [string, string, number][]).map(([val, label, count]) => (
-                    <button key={val} type="button" onClick={() => setProductStatusFilter(val)}
+                    <Button key={val} type="button" size="sm" onClick={() => setProductStatusFilter(val)}
                       className={cn(
-                        'rounded-full px-3 py-1 text-[11px] font-semibold transition-colors',
-                        productStatusFilter === val ? 'text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                      )}
-                      style={productStatusFilter === val ? { background: NAVY } : undefined}>
+                        'rounded-full h-7 px-3 text-[11px] font-semibold transition-colors',
+                        productStatusFilter === val
+                          ? 'bg-[#142239] text-white hover:bg-[#1a2d4a]'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                      )}>
                       {label}
                       {count > 0 && (
                         <span className={cn('ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold',
-                          productStatusFilter === val ? 'bg-white/20' : 'bg-white')}>
+                          productStatusFilter === val ? 'bg-white/20' : 'bg-slate-200')}>
                           {count}
                         </span>
                       )}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

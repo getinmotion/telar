@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { SANS, SERIF } from '@/components/dashboard/dashboardStyles';
 
 const C = '#dc2626';
@@ -131,24 +132,19 @@ export const RejectionMode: React.FC<RejectionModeProps> = ({ onReject, moderati
             Motivo: <span style={{ fontWeight: 800 }}>{REJECTION_REASONS.find(r => r.value === selectedReason)?.label}</span>
           </p>
         )}
-        <button
+        <Button
           onClick={handleReject}
           disabled={moderating || !canSubmit}
-          style={{
-            width: '100%', height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            borderRadius: 10, border: 'none', cursor: (moderating || !canSubmit) ? 'not-allowed' : 'pointer',
-            background: C, color: 'white',
-            fontFamily: SANS, fontSize: 14, fontWeight: 800,
-            opacity: (moderating || !canSubmit) ? 0.4 : 1, transition: 'all 0.15s',
-          }}
+          variant="destructive"
+          className="w-full h-11 font-bold text-sm gap-2"
         >
           {moderating ? (
-            <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>cancel</span>
+            <span className="material-symbols-outlined text-[18px]">cancel</span>
           )}
           Confirmar — no publicar esta pieza
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { CorrectionMode } from './modes/CorrectionMode';
 import { RejectionMode, type RejectionReasonType } from './modes/RejectionMode';
 import { RequestChangesMode } from './modes/RequestChangesMode';
 import { SANS } from '@/components/dashboard/dashboardStyles';
+import { cn } from '@/lib/utils';
 import type { ModerationProduct, ModerationHistory as ModerationHistoryType } from '@/hooks/useProductModeration';
 import type { FieldCorrection } from './CorrectionTypeSelector';
 
@@ -70,28 +71,23 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
   return (
     <div style={{ display: 'flex', height: '100%', minHeight: 0, flexDirection: 'column' }}>
       {/* Mode tabs */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(84,67,62,0.1)', background: 'rgba(249,247,242,0.95)', padding: '8px 12px', flexShrink: 0 }}>
+      <div className="flex gap-1 border-b border-stone-900/10 bg-stone-50/95 px-3 py-2 shrink-0">
         {MODE_ORDER.map((value) => {
           const { label, icon, color, rgba } = MODE_CONFIG[value];
           const isActive = mode === value;
-          const isHovered = hoveredMode === value;
           return (
             <button
               key={value}
               onClick={() => setMode(value)}
-              onMouseEnter={() => setHoveredMode(value)}
-              onMouseLeave={() => setHoveredMode(null)}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all border-none cursor-pointer"
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                borderRadius: 8, padding: '6px 12px',
-                background: isActive ? color : isHovered ? rgba(0.06) : 'transparent',
-                color: isActive ? 'white' : isHovered ? color : 'rgba(84,67,62,0.45)',
-                border: 'none', cursor: 'pointer',
-                fontFamily: SANS, fontSize: 12, fontWeight: 600,
-                transition: 'all 0.12s',
+                background: isActive ? color : 'transparent',
+                color: isActive ? 'white' : 'rgba(84,67,62,0.5)',
               }}
+              onMouseEnter={(e) => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = rgba(0.07); (e.currentTarget as HTMLElement).style.color = color; } }}
+              onMouseLeave={(e) => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(84,67,62,0.5)'; } }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{icon}</span>
+              <span className="material-symbols-outlined text-[14px]">{icon}</span>
               {label}
             </button>
           );

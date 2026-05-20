@@ -3,6 +3,7 @@ import {
   Search, X, List, LayoutGrid, Table2, Columns,
   ChevronDown, ArrowUpDown, Check,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { SANS, SERIF, lc, glassPrimary, glassGreen, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 import type { QueueSection } from './QueueSidebar';
 import type { QueueViewMode } from './QueueCard';
@@ -253,12 +254,9 @@ export const QueueToolbar: React.FC<QueueToolbarProps> = ({
     }}>
 
       {/* Row 1: search */}
-      <div style={{ padding: '10px 12px 6px', position: 'relative' }}>
-        <Search style={{
-          position: 'absolute', left: 22, top: '50%', transform: 'translateY(-20%)',
-          width: 13, height: 13, color: 'rgba(84,67,62,0.4)',
-        }} />
-        <input
+      <div className="px-3 pt-2.5 pb-1.5 relative">
+        <Search className="absolute left-5 top-1/2 -translate-y-1/4 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+        <Input
           ref={searchRef}
           type="text"
           value={searchQuery}
@@ -268,25 +266,15 @@ export const QueueToolbar: React.FC<QueueToolbarProps> = ({
               ? 'Buscar por taller, región, mail de contacto…'
               : 'Buscar por nombre, taller, región, SKU…'
           }
-          style={{
-            width: '100%', paddingLeft: 32, paddingRight: searchQuery ? 32 : 12,
-            paddingTop: 8, paddingBottom: 8, borderRadius: 10,
-            border: '1px solid rgba(21,128,61,0.15)',
-            background: 'rgba(255,255,255,0.7)',
-            fontFamily: SANS, fontSize: 13, color: '#151b2d', outline: 'none',
-            boxSizing: 'border-box',
-          }}
+          className="pl-8 pr-8 h-9 text-[13px] bg-white/70 border-green-700/15 focus-visible:ring-green-700/20"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => onSearchChange('')}
-            style={{
-              position: 'absolute', right: 22, top: '50%', transform: 'translateY(-20%)',
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex',
-            }}
+            className="absolute right-5 top-1/2 -translate-y-1/4 flex items-center p-0 bg-transparent border-none cursor-pointer"
           >
-            <X style={{ width: 13, height: 13, color: 'rgba(84,67,62,0.4)' }} />
+            <X className="w-3.5 h-3.5 text-stone-400" />
           </button>
         )}
       </div>

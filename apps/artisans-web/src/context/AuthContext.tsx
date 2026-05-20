@@ -10,8 +10,6 @@
 import React, { ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { useAuthStore } from '@/stores/authStore';
-import { convertAuthUserToSupabaseUser } from '@/utils/authUser.utils';
-import { logout as logoutAction } from '@/pages/auth/actions/login.actions';
 
 interface AuthContextType {
   user: User | null;
@@ -28,14 +26,7 @@ interface AuthContextType {
   };
 }
 
-const DEBUG_INFO = { authStateChangeCount: 0, lastAuthEvent: null, authorizationAttempts: 0 };
-
-export const useAuth = (): AuthContextType => {
-  const { user, clearAuth, isInitialized } = useAuthStore();
-
-  const supabaseUser = user
-    ? convertAuthUserToSupabaseUser(user as Parameters<typeof convertAuthUserToSupabaseUser>[0])
-    : null;
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
   return {
     user: supabaseUser,
