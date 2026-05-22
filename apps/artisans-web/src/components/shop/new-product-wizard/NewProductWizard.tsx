@@ -82,8 +82,6 @@ export const NewProductWizard: React.FC = () => {
         if (Object.keys(updates).length) update(updates as any);
       })
       .catch(() => {});
-
-    void legacyPromise;
   }, [user]);
 
   useEffect(() => {
