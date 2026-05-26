@@ -361,7 +361,7 @@ export const InventoryPage: React.FC = () => {
     <div className="h-full flex flex-col min-h-0 overflow-hidden">
       {/* Header */}
       <header
-        className="sticky top-0 z-30 px-12 pt-4 pb-3 grid items-center"
+        className="sticky top-0 z-30 px-4 md:px-12 pt-4 pb-3 flex flex-col md:grid md:items-center gap-2 md:gap-0"
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         <div className="flex items-center gap-3">
@@ -400,7 +400,7 @@ export const InventoryPage: React.FC = () => {
       </header>
 
       {/* Filters */}
-      <div className="px-12 pb-3 flex flex-col sm:flex-row gap-3">
+      <div className="px-4 md:px-12 pb-3 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input

@@ -11,6 +11,7 @@ import React from 'react';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { T, TELAR_BG, glassContent } from '@/lib/telar-design';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 export interface AiCard { label: string; text: string; }
@@ -103,6 +104,7 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
   onSaveAndExit, isSavingAndExiting,
   children,
 }) => {
+  const isMobile = useIsMobile();
   return (
     <div className="flex flex-col h-screen" style={{ background: TELAR_BG }}>
 
@@ -132,7 +134,7 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
       <main className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-[1200px] mx-auto px-4 py-4">
           <div
-            className="p-8 w-full rounded-xl"
+            className="p-4 md:p-8 w-full rounded-xl"
             style={glassContent}
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -164,7 +166,7 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
         submitLabel={submitLabel}
         onSaveAndExit={onSaveAndExit}
         isSavingAndExiting={isSavingAndExiting}
-        leftOffset={80}
+        leftOffset={isMobile ? 0 : 80}
       />
 
     </div>

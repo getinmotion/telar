@@ -267,7 +267,7 @@ const ShopConfigDashboard: React.FC = () => {
 
         {/* ── Header sticky ── */}
         <header
-          className="sticky top-0 z-30 px-12 pt-4 pb-3 grid items-center"
+          className="sticky top-0 z-30 px-4 md:px-12 pt-4 pb-3 flex flex-col md:grid md:items-center gap-2 md:gap-0"
           style={{ gridTemplateColumns: '1fr auto 1fr' }}
         >
           <div className="flex items-center gap-3">
@@ -296,7 +296,7 @@ const ShopConfigDashboard: React.FC = () => {
         </header>
 
         {/* ── Main ── */}
-        <main className="flex-1 overflow-y-auto px-12 pb-20" style={{ overscrollBehavior: 'contain' }}>
+        <main className="flex-1 overflow-y-auto px-4 md:px-12 pb-20" style={{ overscrollBehavior: 'contain' }}>
           <div className="max-w-[1300px] mx-auto pt-8">
 
             {/* ── 4 Metric Cards ── */}
@@ -342,9 +342,9 @@ const ShopConfigDashboard: React.FC = () => {
             {/* ── Grid 8 + 4 ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-              {/* Left — bento grid 5 cols */}
+              {/* Left — bento grid 5 cols (stacks to 1 on mobile) */}
               <div className="lg:col-span-8">
-                <div className="grid grid-cols-5 gap-4" style={{ gridTemplateRows: 'auto auto auto auto' }}>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4" style={{ gridTemplateRows: 'auto auto auto auto' }}>
 
                   {/* ── 1. Identidad artesanal — 3 cols × 2 rows ─────────── */}
                   {(() => {
@@ -363,11 +363,11 @@ const ShopConfigDashboard: React.FC = () => {
                     const { variant, label } = STATUS_PILL[status];
                     return (
                       <div
-                        className="col-span-3 row-span-2 flex flex-row overflow-hidden"
+                        className="md:col-span-3 md:row-span-2 flex flex-col md:flex-row overflow-hidden"
                         style={{ ...glassPrimary, borderRadius: 24, minHeight: 280 }}
                       >
                         {/* ── Foto lateral — columna izquierda ── */}
-                        <div style={{ width: '40%', flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '24px 0 0 24px' }}>
+                        <div className="w-full md:w-[40%] min-h-[180px]" style={{ flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '24px 24px 0 0', minHeight: 180 }}>
                           {photoUrl ? (
                             <img src={photoUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
                           ) : (
@@ -458,7 +458,7 @@ const ShopConfigDashboard: React.FC = () => {
                     const { variant, label } = STATUS_PILL[status];
                     return (
                       <div
-                        className="col-span-2 flex flex-col"
+                        className="md:col-span-2 flex flex-col"
                         style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
                       >
                         <div className="flex items-start justify-between mb-4">
@@ -500,7 +500,7 @@ const ShopConfigDashboard: React.FC = () => {
                     const slideCount = s.heroConfig?.slides?.length ?? 0;
                     return (
                       <div
-                        className="col-span-2 flex flex-col overflow-hidden"
+                        className="md:col-span-2 flex flex-col overflow-hidden"
                         style={{ ...glassPrimary, borderRadius: 24 }}
                       >
                         {/* Thumbnail strip */}
@@ -542,7 +542,7 @@ const ShopConfigDashboard: React.FC = () => {
                     const { variant, label } = STATUS_PILL[overallStatus];
                     return (
                       <div
-                        className="col-span-5 flex flex-col"
+                        className="md:col-span-5 flex flex-col"
                         style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
                       >
                         <div className="flex items-start justify-between mb-5">
@@ -658,7 +658,7 @@ const ShopConfigDashboard: React.FC = () => {
                     const { variant: pv, label: pl } = STATUS_PILL[pStatus];
                     return (
                       <div
-                        className="col-span-3 flex flex-col"
+                        className="md:col-span-3 flex flex-col"
                         style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
                       >
                         <div className="flex items-start justify-between mb-4">
@@ -702,7 +702,7 @@ const ShopConfigDashboard: React.FC = () => {
                     const colors = (s.primaryColors ?? []).slice(0, 5);
                     return (
                       <div
-                        className="col-span-5 flex items-center gap-6"
+                        className="md:col-span-5 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6"
                         style={{ ...glassPrimary, borderRadius: 24, padding: '18px 24px' }}
                       >
                         <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -783,7 +783,7 @@ const ShopConfigDashboard: React.FC = () => {
 
           {/* Mini footer */}
           <footer
-            className="flex items-center justify-between px-12 py-6 mt-8"
+            className="flex flex-col md:flex-row items-center md:justify-between gap-1 px-4 md:px-12 py-6 mt-8"
             style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
           >
             <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
