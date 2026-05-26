@@ -106,12 +106,7 @@
       "Skill(typeorm-create-migration:*)",
       "Bash(npx typeorm-ts-node-commonjs *)",
       "Bash(kill 15121 15153)",
-      "Bash(npm run start > /tmp/api.log 2>&1 & *)",
-      "Bash(grep -E \"\\\\.\\(ts|js|sql\\)$\")",
-      "Bash(PGPASSWORD=\"Getinmotion2025*\" psql -h 52.7.98.126 -p 5432 -U postgres -d getinmotion -t -A -F'|')",
-      "Bash(brew list *)",
-      "Bash(grep -E \"^pg$\")",
-      "Bash(node -e ' *)"
+      "Bash(npm run start > /tmp/api.log 2>&1 & *)"
     ]
   }
 }
