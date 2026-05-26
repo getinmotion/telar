@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useMasterAgent } from '@/context/MasterAgentContext';
 import { useTelarSync } from '@/hooks/useTelarSync';
+import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 
 const SANS = "'Manrope', sans-serif";
 
@@ -74,9 +75,9 @@ export const DashboardLayout: React.FC = () => {
         backgroundAttachment: 'fixed',
       }}
     >
-      {/* Sidebar */}
+      {/* Sidebar — hidden on mobile, visible on md+ */}
       <aside
-        className="w-20 shrink-0 flex flex-col items-center py-8 gap-8 sticky top-0 h-screen z-[60]"
+        className="hidden md:flex w-20 shrink-0 flex-col items-center py-8 gap-8 sticky top-0 h-screen z-[60]"
         style={{
           background: 'rgba(247,246,242,0.45)',
           backdropFilter: 'blur(24px)',
@@ -138,9 +139,14 @@ export const DashboardLayout: React.FC = () => {
             className="flex-1 flex flex-col min-h-0"
           >
             <Outlet />
+            {/* Spacer so content isn't hidden behind mobile bottom nav */}
+            <div className="h-16 shrink-0 md:hidden" />
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav />
     </div>
   );
 };

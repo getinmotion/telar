@@ -63,7 +63,7 @@ const PublicArtisanProfile: React.FC = () => {
         <TrustStrip />
 
         {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden" style={{ minHeight: 520 }}>
+        <section className="relative overflow-hidden min-h-[300px] md:min-h-[520px]">
           {heroImage
             ? <img src={heroImage} alt={profile.artisanName}
                 className="absolute inset-0 w-full h-full object-cover" />
@@ -72,7 +72,7 @@ const PublicArtisanProfile: React.FC = () => {
           <div className="absolute inset-0" style={{
             background: 'linear-gradient(to right, rgba(21,27,45,0.88) 45%, rgba(21,27,45,0.3) 100%)',
           }} />
-          <div className="relative z-10 max-w-[1400px] mx-auto px-10 py-20 flex flex-col justify-end" style={{ minHeight: 520 }}>
+          <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-10 py-12 md:py-20 flex flex-col justify-end min-h-[300px] md:min-h-[520px]">
             <LabelCaps color={T.orange} style={{ marginBottom: 12 }}>Historia del taller</LabelCaps>
             <HeadingSerif as="h1" size={54} style={{ color: 'white', maxWidth: 640, marginBottom: 16 }}>
               {profile.artisticName || profile.artisanName}
@@ -105,12 +105,12 @@ const PublicArtisanProfile: React.FC = () => {
         </section>
 
         {/* ── 2. APRENDIZAJE ─────────────────────────────────────────────── */}
-        <div className="max-w-[1400px] mx-auto px-10 py-10">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-8 md:py-10">
           <div style={{ ...glassLoom, borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 60px -10px rgba(0,0,0,0.06)' }}>
 
             <div className="grid grid-cols-1 md:grid-cols-2">
               {/* Left: story text */}
-              <div className="p-10 flex flex-col justify-center gap-5 border-r" style={{ borderColor: 'rgba(255,255,255,0.5)' }}>
+              <div className="p-6 md:p-10 flex flex-col justify-center gap-5 border-b md:border-b-0 md:border-r" style={{ borderColor: 'rgba(255,255,255,0.5)' }}>
                 <div>
                   <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 8 }}>El aprendizaje</LabelCaps>
                   <HeadingSerif size={32} style={{ marginBottom: 16 }}>
@@ -183,7 +183,7 @@ const PublicArtisanProfile: React.FC = () => {
         {/* ── 3. TALLER ──────────────────────────────────────────────────── */}
         {(profile.workshopDescription || workshopImages.length > 0) && (
           <section className="py-10" style={{ background: T.dark }}>
-            <div className="max-w-[1400px] mx-auto px-10">
+            <div className="max-w-[1400px] mx-auto px-4 md:px-10">
               <div className="mb-8">
                 <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 8 }}>El taller</LabelCaps>
                 <HeadingSerif size={36} style={{ color: 'white' }}>Donde nace el arte</HeadingSerif>
@@ -200,11 +200,7 @@ const PublicArtisanProfile: React.FC = () => {
               </div>
 
               {workshopImages.length > 0 && (
-                <div className="grid gap-3" style={{
-                  gridTemplateColumns: workshopImages.length === 1 ? '1fr'
-                    : workshopImages.length === 2 ? 'repeat(2, 1fr)'
-                    : 'repeat(3, 1fr)',
-                }}>
+                <div className={`grid gap-3 grid-cols-1 ${workshopImages.length >= 2 ? 'md:grid-cols-2' : ''} ${workshopImages.length >= 3 ? 'lg:grid-cols-3' : ''}`}>
                   {workshopImages.slice(0, 3).map((src, i) => (
                     <div key={i} className="overflow-hidden rounded-xl" style={{ aspectRatio: '4/3' }}>
                       <img src={src} alt={`Taller ${i + 1}`}
@@ -228,7 +224,7 @@ const PublicArtisanProfile: React.FC = () => {
         )}
 
         {/* ── 4. TÉCNICAS + MATERIALES ──────────────────────────────────── */}
-        <div className="max-w-[1400px] mx-auto px-10 py-10">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-8 md:py-10">
           <div style={{ ...glassCard, borderRadius: 20, boxShadow: '0 4px 24px -6px rgba(0,0,0,0.06)' }}>
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ '--tw-divide-opacity': 0.3, borderColor: `${T.dark}20` } as any}>
 
@@ -285,8 +281,8 @@ const PublicArtisanProfile: React.FC = () => {
 
         {/* ── 5. QUOTE FINAL ─────────────────────────────────────────────── */}
         {profile.craftMessage && (
-          <div className="max-w-[1400px] mx-auto px-10 pb-10">
-            <div className="p-12 rounded-2xl text-center" style={{ background: T.dark }}>
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10 pb-8 md:pb-10">
+            <div className="p-8 md:p-12 rounded-2xl text-center" style={{ background: T.dark }}>
               <span className="material-symbols-outlined" style={{ fontSize: 32, color: T.orange, marginBottom: 16, display: 'block' }}>format_quote</span>
               <HeadingSerif size={28} style={{ color: 'white', maxWidth: 620, margin: '0 auto 16px' }}>
                 {profile.craftMessage}

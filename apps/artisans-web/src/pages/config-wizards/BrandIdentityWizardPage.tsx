@@ -140,7 +140,7 @@ export default function BrandIdentityWizardPage() {
           <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 20 }}>
             Primera imagen que ven los compradores. Imagen cuadrada en fondo transparente o blanco.
           </p>
-          <div className="w-1/4">
+          <div className="w-1/3 md:w-1/4">
             <ImageUploadSlot
               label="Logo de la tienda" hint="Imagen cuadrada recomendada"
               url={logoUrl} uploading={uploadingLogo}
