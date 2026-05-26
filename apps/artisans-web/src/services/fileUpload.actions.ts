@@ -17,6 +17,7 @@ export enum UploadFolder {
   HERO = 'hero',
   CMS = 'cms',
   OTHER = 'other',
+  PRESENTATION_VIDEOS = 'presentation_videos',
 }
 
 export interface UploadResult {

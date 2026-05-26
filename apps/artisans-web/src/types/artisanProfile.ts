@@ -39,7 +39,8 @@ export interface ArtisanProfileData {
   workshopTools: string[];
 
   // Step 4: Arte y estilo
-  techniques: string[];
+  techniques: string[];       // legacy: nombres hardcoded (backwards compat)
+  techniqueIds?: string[];    // new: UUIDs de técnicas filtradas por oficio
   materials: string[];
   uniqueness: string;
   craftStyle: string[];
@@ -75,13 +76,13 @@ export interface TimelineEvent {
 }
 
 export const LEARNED_FROM_OPTIONS = [
-  { value: 'parents',     label: 'Padres' },
-  { value: 'grandparents', label: 'Abuelos' },
-  { value: 'community',   label: 'Comunidad' },
-  { value: 'school',      label: 'Escuela o instituto' },
-  { value: 'self-taught', label: 'Autodidacta' },
-  { value: 'master',      label: 'Maestro artesano' },
-  { value: 'other',       label: 'Otro' },
+  { value: 'family',      icon: 'family_restroom', label: 'Crecí viéndolo en mi familia',    desc: 'Fue parte natural de crecer, lo vi desde pequeño/a' },
+  { value: 'community',   icon: 'groups',          label: 'Lo aprendí de mi comunidad',       desc: 'La tradición de mi entorno me dio las primeras herramientas' },
+  { value: 'master',      icon: 'person',          label: 'Un maestro me enseñó',             desc: 'Alguien con experiencia me formó en el oficio' },
+  { value: 'self-taught', icon: 'explore',         label: 'Lo descubrí por mi cuenta',        desc: 'La curiosidad y la práctica fueron mis maestros' },
+  { value: 'school',      icon: 'school',          label: 'Estudié o me formé en eso',        desc: 'Pasé por una institución o programa formal' },
+  { value: 'mixed',       icon: 'merge',           label: 'He mezclado varios caminos',       desc: 'Mi aprendizaje viene de fuentes diversas' },
+  { value: 'other',       icon: 'more_horiz',      label: 'Otro',                             desc: 'Mi historia es diferente a todas estas' },
 ];
 
 export const ETHNIC_RELATION_OPTIONS = [
@@ -127,6 +128,7 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   creationProcess: '',
   workshopTools: [],
   techniques: [],
+  techniqueIds: [],
   materials: [],
   uniqueness: '',
   craftStyle: [],
