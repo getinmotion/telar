@@ -76,7 +76,7 @@ function validate(step: number, data: ArtisanProfileData): boolean {
     case 2: return !!data.learnedFrom && data.startAge > 0;
     case 3: return (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) && !!data.workshopDescription;
     case 4: return ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0)
-               && data.materials.length > 0 && !!data.uniqueness;
+               && ((data.materialIds ?? []).length > 0 || data.materials.length > 0) && !!data.uniqueness;
     case 5: return true;
     default: return true;
   }
@@ -85,7 +85,7 @@ function validate(step: number, data: ArtisanProfileData): boolean {
 function isPublishReady(data: ArtisanProfileData): boolean {
   return !!data.artisanName && !!data.artisticName && !!data.artisanPhoto
     && !!data.learnedFromDetail && data.techniques.length > 0
-    && data.materials.length > 0;
+    && ((data.materialIds ?? []).length > 0 || data.materials.length > 0);
 }
 
 interface Props {
