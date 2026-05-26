@@ -4,9 +4,7 @@ import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanSh
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
-import { CraftPicker, TechniquePicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
-import { MaterialPicker } from '@/components/shop/new-product-wizard/components/TaxonomyPicker';
-import { updateArtisanIdentityTechniques } from '@/services/artisan-identity.actions';
+import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 
 interface Props {
   data: ArtisanProfileData;
@@ -325,6 +323,15 @@ const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> =
     }
   }, [recordedBlob]);
 
+  // Asignar el stream al elemento <video> DESPUÉS de que React lo monte en el DOM.
+  // El elemento solo existe cuando isRecording === true, por eso la asignación
+  // directa en startRecording() fallaba (liveRef.current era null en ese momento).
+  useEffect(() => {
+    if (isRecording && liveRef.current && streamRef.current) {
+      liveRef.current.srcObject = streamRef.current;
+    }
+  }, [isRecording]);
+
   const stopStream = () => {
     streamRef.current?.getTracks().forEach(t => t.stop());
     streamRef.current = null;
@@ -335,7 +342,7 @@ const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> =
     if (!file) return;
     setIsUploading(true);
     try {
-      const result = await uploadImage(file, UploadFolder.PROFILES, file.name);
+      const result = await uploadImage(file, UploadFolder.PRESENTATION_VIDEOS, file.name);
       onChange(result.url);
       toast({ title: 'Video subido' });
     } catch {
@@ -349,7 +356,7 @@ const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> =
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
-      if (liveRef.current) { liveRef.current.srcObject = stream; liveRef.current.play(); }
+      // srcObject se asigna en el useEffect, una vez que React monte el <video>
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
       const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
@@ -372,7 +379,7 @@ const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> =
     if (!recordedBlob) return;
     setIsUploading(true);
     try {
-      const result = await uploadImage(recordedBlob, UploadFolder.PROFILES, `video_${Date.now()}.webm`);
+      const result = await uploadImage(recordedBlob, UploadFolder.PRESENTATION_VIDEOS, `video_${Date.now()}.webm`);
       onChange(result.url);
       setRecordedBlob(null);
       toast({ title: 'Video guardado' });
@@ -447,7 +454,7 @@ const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> =
           {isRecording && (
             <div className="space-y-2">
               <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                <video ref={liveRef} muted playsInline className="w-full h-full object-cover" />
+                <video ref={liveRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                 <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/50">
                   <span className="w-2 h-2 rounded-full bg-[#ef4444] animate-pulse" />
                   <span className="text-[10px] font-[800] uppercase tracking-widest text-white/80">Grabando</span>
@@ -581,7 +588,7 @@ export const Step1Identity: React.FC<Props> = ({
 
       {/* ── Módulo 3: Oficio + Técnica ── */}
       <div className="rounded-xl p-5" style={glassCard}>
-        <Label optional>Tu oficio</Label>
+        <Label required>Tu oficio</Label>
         <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
           El oficio artesanal principal de tu taller. Se sincroniza con tu catálogo de productos.
         </p>
@@ -593,52 +600,6 @@ export const Step1Identity: React.FC<Props> = ({
           }}
         />
 
-        {data.craftId && (
-          <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
-            <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/50 mb-1">
-              Técnica
-              <span className="ml-2 normal-case font-[500] tracking-normal text-[#54433e]/30 text-[11px]">— Opcional</span>
-            </p>
-            <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-3">
-              La técnica específica que practicas dentro de este oficio.
-            </p>
-            <TechniquePicker
-              craftId={data.craftId}
-              selectedTechniqueId={data.primaryTechniqueId}
-              onChange={techniqueId => {
-                onChange({ primaryTechniqueId: techniqueId });
-                if (userId) {
-                  updateArtisanIdentityTechniques(userId, {
-                    techniquePrimaryId: techniqueId ?? null,
-                  }).catch(() => {});
-                }
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ── Módulo 4: Materiales ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <div className="flex justify-between items-center mb-1">
-          <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/50">
-            Materiales que usas
-          </p>
-          {(data.materialIds ?? []).length > 0 && (
-            <span className="text-[10px] font-[600] text-[#ec6d13]">
-              {(data.materialIds ?? []).length} seleccionado{(data.materialIds ?? []).length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-          Los materiales con los que trabajas. Se guardan en tu perfil y se sincronizan con tus productos.
-        </p>
-        <MaterialPicker
-          artisanId={userId ?? ''}
-          userId={userId ?? ''}
-          selectedIds={data.materialIds ?? []}
-          onChange={ids => onChange({ materialIds: ids })}
-        />
       </div>
 
       {/* ── Módulo 4: Bio ── */}

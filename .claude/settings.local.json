@@ -104,7 +104,9 @@
       "Bash(ls ~/.claude/skills/ 2>/dev/null || echo \"no existe\")",
       "Skill(typeorm-create-migration)",
       "Skill(typeorm-create-migration:*)",
-      "Bash(npx typeorm-ts-node-commonjs *)"
+      "Bash(npx typeorm-ts-node-commonjs *)",
+      "Bash(kill 15121 15153)",
+      "Bash(npm run start > /tmp/api.log 2>&1 & *)"
     ]
   }
 }

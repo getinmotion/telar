@@ -1,5 +1,6 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, useEffect, KeyboardEvent } from 'react';
 import { ArtisanProfileData } from '@/types/artisanProfile';
+import { getTechniquesByCraftId, Technique } from '@/services/crafts.actions';
 
 const CRAFT_STYLES: { id: string; label: string; desc: string }[] = [
   { id: 'Tradicional',    label: 'Tradicional',    desc: 'Sigue métodos y estéticas ancestrales fieles a su origen' },
@@ -20,22 +21,158 @@ const TIME_OPTIONS = [
   { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
 ] as const;
 
-interface Props {
-  data: ArtisanProfileData;
-  onChange: (updates: Partial<ArtisanProfileData>) => void;
-}
-
-const PRESET_TECHNIQUES = [
-  'Telar de cintura', 'Brocado', 'Teñido natural', 'Urdido',
-  'Bordado', 'Tejido', 'Cerámica', 'Talla en madera',
-  'Cestería', 'Orfebrería', 'Sombrerería', 'Encaje de bolillos',
-];
-
 const PRESET_MATERIALS = [
   'Algodón', 'Seda', 'Lana', 'Fibras naturales',
   'Arcilla', 'Madera', 'Chaquira', 'Cuero',
   'Caña flecha', 'Barro', 'Piedra', 'Metal',
 ];
+
+// ── TechniqueMultiPicker ──────────────────────────────────────────────────────
+
+interface TechniqueMultiPickerProps {
+  craftId?: string;
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}
+
+const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange }) => {
+  const [techniques, setTechniques] = useState<Technique[]>([]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState(false);
+
+  useEffect(() => {
+    if (!craftId) {
+      setTechniques([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    getTechniquesByCraftId(craftId)
+      .then(list => {
+        if (!cancelled) setTechniques(list);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [craftId]);
+
+  const toggle = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter(s => s !== id)
+        : [...selectedIds, id],
+    );
+  };
+
+  // Sin oficio seleccionado
+  if (!craftId) {
+    return (
+      <div
+        className="flex items-start gap-3 p-4 rounded-xl"
+        style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.25)' }}
+      >
+        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">info</span>
+        <div>
+          <p className="font-['Manrope'] text-[13px] font-[700] text-[#54433e]/70 mb-0.5">
+            Elige tu oficio primero
+          </p>
+          <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
+            Para ver las técnicas disponibles, primero selecciona tu oficio en el paso 1.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Cargando
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[52px] rounded-xl animate-pulse"
+            style={{ background: 'rgba(226,213,207,0.25)' }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Error al cargar
+  if (error) {
+    return (
+      <div
+        className="flex items-center gap-3 p-4 rounded-xl"
+        style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)' }}
+      >
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444] shrink-0">warning</span>
+        <p className="font-['Manrope'] text-[12px] text-[#54433e]/60">
+          No se pudieron cargar las técnicas. Intenta avanzar y volver a este paso.
+        </p>
+      </div>
+    );
+  }
+
+  // Sin técnicas para este oficio
+  if (techniques.length === 0) {
+    return (
+      <div
+        className="flex items-start gap-3 p-4 rounded-xl"
+        style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.2)' }}
+      >
+        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">search_off</span>
+        <p className="font-['Manrope'] text-[12px] text-[#54433e]/55 leading-snug">
+          Aún no hay técnicas registradas para este oficio. Puedes continuar y agregarlas más adelante.
+        </p>
+      </div>
+    );
+  }
+
+  // Cards de técnicas
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+      {techniques.map(t => {
+        const active = selectedIds.includes(t.id);
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => toggle(t.id)}
+            className="relative flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-left transition-all"
+            style={{
+              background: active ? 'rgba(236,109,19,0.07)' : 'rgba(247,244,239,0.5)',
+              border: active ? '1.5px solid rgba(236,109,19,0.5)' : '1px solid rgba(226,213,207,0.5)',
+            }}
+          >
+            {/* Check indicator */}
+            <div
+              className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all"
+              style={{ borderColor: active ? '#ec6d13' : 'rgba(84,67,62,0.22)' }}
+            >
+              {active && (
+                <span className="material-symbols-outlined" style={{ fontSize: 11, color: '#ec6d13' }}>check</span>
+              )}
+            </div>
+            <span
+              className="font-['Manrope'] text-[12px] font-[600] leading-snug flex-1"
+              style={{ color: active ? '#ec6d13' : '#54433e' }}
+            >
+              {t.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// ── ChipGroup (materiales) ────────────────────────────────────────────────────
 
 interface ChipGroupProps {
   label: string;
@@ -105,6 +242,13 @@ const ChipGroup: React.FC<ChipGroupProps> = ({ label, required, selected, preset
   );
 };
 
+// ── Step5Craft ────────────────────────────────────────────────────────────────
+
+interface Props {
+  data: ArtisanProfileData;
+  onChange: (updates: Partial<ArtisanProfileData>) => void;
+}
+
 export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
   const isPreset = TIME_OPTIONS.some(o => o.value === data.averageTime);
   const [customTime, setCustomTime] = useState(
@@ -122,12 +266,12 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
     onChange({ averageTime: customTime || undefined });
   };
 
-  const toggleItem = (field: 'techniques' | 'materials' | 'craftStyle', value: string) => {
+  const toggleItem = (field: 'materials' | 'craftStyle', value: string) => {
     const arr = data[field] as string[];
     onChange({ [field]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] });
   };
 
-  const addItem = (field: 'techniques' | 'materials', value: string) => {
+  const addItem = (field: 'materials', value: string) => {
     if (!(data[field] as string[]).includes(value))
       onChange({ [field]: [...(data[field] as string[]), value] });
   };
@@ -135,15 +279,19 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
   return (
     <div className="flex flex-col gap-8">
 
-      {/* Técnicas */}
+      {/* Técnicas — filtradas por oficio */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <ChipGroup
-          label="Técnicas artesanales"
-          required
-          selected={data.techniques}
-          presets={PRESET_TECHNIQUES}
-          onToggle={(v) => toggleItem('techniques', v)}
-          onAdd={(v) => addItem('techniques', v)}
+        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
+          Técnicas artesanales
+          <span className="text-[#ef4444] ml-1">*</span>
+        </label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
+          Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
+        </p>
+        <TechniqueMultiPicker
+          craftId={data.craftId}
+          selectedIds={data.techniqueIds ?? []}
+          onChange={(ids) => onChange({ techniqueIds: ids })}
         />
       </section>
 
@@ -192,9 +340,6 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
                 >
                   {opt.label}
                 </span>
-                {active && (
-                  <div className="absolute" style={{ display: 'none' }} />
-                )}
               </button>
             );
           })}

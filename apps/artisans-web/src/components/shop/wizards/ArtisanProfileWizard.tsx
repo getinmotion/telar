@@ -5,6 +5,7 @@ import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useAuth } from '@/context/AuthContext';
 import { updateArtisanShop, getStoreByUserId } from '@/services/artisanShops.actions';
 import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
+import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { generateArtisanProfileHistory } from '@/services/ai.actions';
 import { ArtisanProfileData, DEFAULT_ARTISAN_PROFILE } from '@/types/artisanProfile';
 import { ArtisanStepShell } from './artisan-profile/ArtisanStepShell';
@@ -71,10 +72,11 @@ const AI_PANEL: Record<number, { cards: Array<{ label: string; text: string }>; 
 
 function validate(step: number, data: ArtisanProfileData): boolean {
   switch (step) {
-    case 1: return !!data.artisanName && !!data.artisticName;
+    case 1: return !!data.artisanName && !!data.artisticName && !!data.craftId;
     case 2: return !!data.learnedFrom && data.startAge > 0;
     case 3: return (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) && !!data.workshopDescription;
-    case 4: return data.techniques.length > 0 && data.materials.length > 0 && !!data.uniqueness;
+    case 4: return ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0)
+               && data.materials.length > 0 && !!data.uniqueness;
     case 5: return true;
     default: return true;
   }
@@ -130,8 +132,8 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
       if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
       if (shopAny.artisanProfileCompleted) setStep(5);
 
-      // Pre-cargar craftId y primaryTechniqueId si el perfil aún no los tiene
-      if (user?.id && (!profile.craftId || !profile.primaryTechniqueId)) {
+      // Pre-cargar craftId, primaryTechniqueId y ubicación desde registro si el perfil aún no los tiene
+      if (user?.id) {
         if (!profile.craftId) {
           getStoreByUserId(user.id)
             .then(store => {
@@ -145,6 +147,19 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
             .then(identity => {
               if (identity?.techniquePrimaryId)
                 setData(prev => ({ ...prev, primaryTechniqueId: prev.primaryTechniqueId ?? identity.techniquePrimaryId! }));
+            })
+            .catch(() => {});
+        }
+        // Leer department y city del perfil de registro (artisan_profile table)
+        // si el wizard aún no tiene esos datos. city en registro = municipality en wizard.
+        if (!profile.department || !profile.municipality) {
+          getUserProfileByUserId(user.id)
+            .then(regProfile => {
+              setData(prev => ({
+                ...prev,
+                department:   prev.department   || regProfile.department   || '',
+                municipality: prev.municipality || regProfile.city         || '',
+              }));
             })
             .catch(() => {});
         }
@@ -166,6 +181,18 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
         municipality:      prev.municipality       || (shopAny?.municipality as string)  || '',
         country:           prev.country            || 'Colombia',
       }));
+      // Complementar con datos de ubicación del registro si el wizard no los tiene
+      if (user?.id) {
+        getUserProfileByUserId(user.id)
+          .then(regProfile => {
+            setData(prev => ({
+              ...prev,
+              department:   prev.department   || regProfile.department || '',
+              municipality: prev.municipality || regProfile.city       || '',
+            }));
+          })
+          .catch(() => {});
+      }
     }
   }, [shopAny?.artisanProfile, telarData.hydrated, shop?.id]);
 
