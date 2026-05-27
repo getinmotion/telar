@@ -25,8 +25,6 @@ export const useArtisanShop = () => {
   const fetchShop = async (retryAttempt = 0) => {
 
     // If we already have shop data, just complete initialization
-
-
     if (shop && user?.id) {
       setLoading(false);
       setInitialCheckComplete(true);

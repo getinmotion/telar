@@ -266,6 +266,7 @@ export const CommercialDashboard: React.FC = () => {
   // isMarketplaceLive = moderator also approved for central marketplace
   const isActivated = shop?.publishStatus === "published" && !!shop?.active;
   const isMarketplaceLive = isActivated && !!(shop as any)?.marketplaceApproved;
+  const hasShop = !!shop && !!shop.id; // Indica si el usuario tiene una tienda creada
   const userName =
     masterState.perfil?.nombre ||
     user?.user_metadata?.name ||
@@ -461,6 +462,19 @@ export const CommercialDashboard: React.FC = () => {
   };
 
   const nextCard: CardConfig = (() => {
+    // State 0: No shop created yet
+    if (!hasShop)
+      return {
+        bg: "rgba(236,109,19,0.05)",
+        accentColor: "#ec6d13",
+        title: "Debe crear la tienda",
+        subtitle: "Configura tu espacio de ventas",
+        body: "Para usar las herramientas de Telar, debes crear tu tienda con informacion de tu negocio.",
+        cta: "Crear tu tienda",
+        ctaRoute: "",
+        ctaAction: undefined,
+        icon: "add_business",
+      };
     // State 2: Activated by artisan, pending marketplace moderation
     if (isActivated && !isMarketplaceLive)
       return {
