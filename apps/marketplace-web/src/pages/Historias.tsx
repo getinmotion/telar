@@ -159,11 +159,12 @@ const Historias = () => {
 
   // Use API data when available; cold-start / outage falls back to baked-in posts.
   const articles: BlogPost[] = useMemo(() => {
-    if (data && data.data.length > 0) return data.data;
+    const apiData = Array.isArray(data?.data) ? data!.data : [];
+    if (apiData.length > 0) return apiData;
     return FALLBACK_BLOG_POSTS;
   }, [data]);
 
-  const total = data?.total ?? FALLBACK_BLOG_POSTS.length;
+  const total = typeof data?.total === 'number' ? data.total : FALLBACK_BLOG_POSTS.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   // Split articles for featured grid (first 3) + rest

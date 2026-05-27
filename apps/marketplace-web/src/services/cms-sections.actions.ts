@@ -40,11 +40,24 @@ export const getCmsSections = async (
       `/cms/sections`,
       { params: { pageKey } },
     );
-    const list = res.data?.data ?? [];
+
+    // Detectar el caso típico: la baseURL no está configurada y Vite devuelve
+    // el index.html del SPA en lugar del JSON del API.
+    if (typeof res.data === 'string' && (res.data as any).startsWith?.('<!')) {
+      console.error(
+        `[cms] /cms/sections?pageKey=${pageKey} respondió HTML en lugar de JSON.\n` +
+          `→ Falta VITE_BACKEND_URL en apps/marketplace-web/.env (o no reiniciaste Vite).\n` +
+          `→ Las peticiones se están sirviendo desde el SPA en vez del backend NestJS.`,
+      );
+      return [];
+    }
+
+    const list = Array.isArray(res.data?.data) ? res.data.data : [];
     if (list.length === 0) {
       console.warn(
-        `[cms] /cms/sections?pageKey=${pageKey} respondió 200 pero data está vacía. ` +
-          `¿Corriste \`npm run cms:seed\` en apps/api?`,
+        `[cms] /cms/sections?pageKey=${pageKey} respondió pero la lista está vacía. ` +
+          `¿Corriste \`npm run cms:seed\` en apps/api? ` +
+          `¿VITE_BACKEND_URL apunta al API correcto?`,
       );
     }
     return [...list].sort((a, b) => a.position - b.position);
