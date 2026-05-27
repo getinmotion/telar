@@ -22,24 +22,20 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
         (artisan_identity_id, url, provider, thumbnail_url, duration_seconds)
       SELECT
         ap.artisan_identity_id,
-        s.presentation_video_url,
-        s.presentation_video_provider,
-        s.presentation_video_thumbnail_url,
-        s.presentation_video_duration_seconds
+        s.presentation_video->>'url',
+        s.presentation_video->>'provider',
+        s.presentation_video->>'thumbnail_url',
+        (s.presentation_video->>'duration_seconds')::INTEGER
       FROM shop.artisan_shops s
       JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
       WHERE ap.artisan_identity_id IS NOT NULL
-        AND s.presentation_video_url IS NOT NULL
+        AND s.presentation_video IS NOT NULL
+        AND s.presentation_video->>'url' IS NOT NULL
       ON CONFLICT (artisan_identity_id) DO NOTHING;
     `);
 
-    await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        DROP COLUMN IF EXISTS presentation_video_url,
-        DROP COLUMN IF EXISTS presentation_video_provider,
-        DROP COLUMN IF EXISTS presentation_video_thumbnail_url,
-        DROP COLUMN IF EXISTS presentation_video_duration_seconds;
-    `);
+    // Note: individual presentation_video columns were already consolidated into the
+    // presentation_video JSONB column — no DROP needed here.
 
     // artisan_bio_config
     await queryRunner.query(`
@@ -59,21 +55,17 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
         (artisan_identity_id, show_shop_link, show_profile_link, featured_product_id)
       SELECT
         ap.artisan_identity_id,
-        s.bio_config_show_shop_link,
-        s.bio_config_show_profile_link,
-        s.bio_config_featured_product_id
+        COALESCE((s.bio_config->>'show_shop_link')::BOOLEAN, true),
+        COALESCE((s.bio_config->>'show_profile_link')::BOOLEAN, true),
+        (s.bio_config->>'featured_product_id')::UUID
       FROM shop.artisan_shops s
       JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
       WHERE ap.artisan_identity_id IS NOT NULL
       ON CONFLICT (artisan_identity_id) DO NOTHING;
     `);
 
-    await queryRunner.query(`
-      ALTER TABLE shop.artisan_shops
-        DROP COLUMN IF EXISTS bio_config_show_shop_link,
-        DROP COLUMN IF EXISTS bio_config_show_profile_link,
-        DROP COLUMN IF EXISTS bio_config_featured_product_id;
-    `);
+    // Note: individual bio_config columns were already consolidated into the
+    // bio_config JSONB column — no DROP needed here.
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

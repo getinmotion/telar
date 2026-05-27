@@ -14,7 +14,7 @@ export class AddIsSuperAdminToUsers1780100100000
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE auth.users
-      ADD COLUMN is_super_admin BOOLEAN NOT NULL DEFAULT false
+      ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT false
     `);
   }
 
