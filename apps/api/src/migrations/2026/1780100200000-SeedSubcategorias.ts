@@ -29,7 +29,7 @@ export class SeedSubcategorias1780100200000 implements MigrationInterface {
         (gen_random_uuid(), 'Máscaras',  'mascaras',  (SELECT id FROM taxonomy.categories WHERE slug = 'arte-y-esculturas'), 2, true),
         -- Juguetes e Instrumentos Musicales
         (gen_random_uuid(), 'Tambores',           'tambores',           (SELECT id FROM taxonomy.categories WHERE slug = 'juguetes-e-instrumentos-musicales'), 1, true),
-        (gen_random_uuid(), 'Muñecos artesanales','municos-artesanales',(SELECT id FROM taxonomy.categories WHERE slug = 'juguetes-e-instrumentos-musicales'), 2, true),
+        (gen_random_uuid(), 'Muñecos artesanales','munecos-artesanales',(SELECT id FROM taxonomy.categories WHERE slug = 'juguetes-e-instrumentos-musicales'), 2, true),
         -- Bolsos y Carteras
         (gen_random_uuid(), 'Mochilas',  'mochilas',  (SELECT id FROM taxonomy.categories WHERE slug = 'bolsos-y-carteras'), 1, true),
         (gen_random_uuid(), 'Tote Bags', 'tote-bags', (SELECT id FROM taxonomy.categories WHERE slug = 'bolsos-y-carteras'), 2, true),
@@ -49,7 +49,7 @@ export class SeedSubcategorias1780100200000 implements MigrationInterface {
         'mesas', 'sillas',
         'platos', 'tazas', 'utensilios',
         'esculturas', 'mascaras',
-        'tambores', 'municos-artesanales',
+        'tambores', 'munecos-artesanales',
         'mochilas', 'tote-bags',
         'jabones-artesanales', 'velas-aromaticas'
       );
