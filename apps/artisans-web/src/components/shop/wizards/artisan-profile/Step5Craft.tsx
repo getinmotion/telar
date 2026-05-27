@@ -1,30 +1,46 @@
-import React, { useState, useEffect, KeyboardEvent } from 'react';
-import { ArtisanProfileData } from '@/types/artisanProfile';
-import { getTechniquesByCraftId, Technique } from '@/services/crafts.actions';
+import React, { useState, useEffect, KeyboardEvent } from "react";
+import { ArtisanProfileData } from "@/types/artisanProfile";
+import { getTechniquesByCraftId, Technique } from "@/services/crafts.actions";
 
 const CRAFT_STYLES: { id: string; label: string; desc: string }[] = [
-  { id: 'Tradicional',    label: 'Tradicional',    desc: 'Sigue métodos y estéticas ancestrales fieles a su origen' },
-  { id: 'Contemporáneo',  label: 'Contemporáneo',  desc: 'Incorpora lenguajes actuales sin abandonar la técnica artesanal' },
-  { id: 'Fusión',         label: 'Fusión',         desc: 'Mezcla tradición con influencias modernas o de otras culturas' },
-  { id: 'Minimalista',    label: 'Minimalista',    desc: 'Formas simples, materiales puros y ausencia de decoración superflua' },
-  { id: 'Colorido',       label: 'Colorido',       desc: 'Paletas vivas que celebran la identidad visual de la comunidad' },
-  { id: 'Experimental',   label: 'Experimental',   desc: 'Explora materiales o procesos no convencionales en el oficio' },
-  { id: 'Funcional',      label: 'Funcional',      desc: 'Diseño orientado al uso cotidiano sin renunciar a la calidad artesanal' },
-  { id: 'Decorativo',     label: 'Decorativo',     desc: 'Primacía de la belleza y el detalle como fin en sí mismo' },
+  {
+    id: "Tradicional",
+    label: "Tradicional",
+    desc: "Sigue métodos y estéticas ancestrales fieles a su origen",
+  },
+  {
+    id: "Contemporáneo",
+    label: "Contemporáneo",
+    desc: "Incorpora lenguajes actuales sin abandonar la técnica artesanal",
+  },
+  {
+    id: "Fusión",
+    label: "Fusión",
+    desc: "Mezcla tradición con influencias modernas o de otras culturas",
+  },
 ];
 
 const TIME_OPTIONS = [
-  { value: 'Horas',      icon: 'bolt',                 label: 'Horas' },
-  { value: '1 a 3 días', icon: 'hourglass_top',        label: '1 a 3 días' },
-  { value: '1 semana',   icon: 'calendar_view_week',   label: '1 semana' },
-  { value: '2 semanas',  icon: 'date_range',           label: '2 semanas' },
-  { value: '1 mes',      icon: 'calendar_month',       label: '1 mes' },
+  { value: "1-3 días", icon: "filter_3", label: "1–3 días" },
+  { value: "1 semana", icon: "date_range", label: "1 semana" },
+  { value: "15 días", icon: "calendar_view_week", label: "15 días" },
+  { value: "1 mes", icon: "calendar_month", label: "1 mes" },
+  { value: "__custom", icon: "edit_calendar", label: "Más..." },
 ] as const;
 
 const PRESET_MATERIALS = [
-  'Algodón', 'Seda', 'Lana', 'Fibras naturales',
-  'Arcilla', 'Madera', 'Chaquira', 'Cuero',
-  'Caña flecha', 'Barro', 'Piedra', 'Metal',
+  "Algodón",
+  "Seda",
+  "Lana",
+  "Fibras naturales",
+  "Arcilla",
+  "Madera",
+  "Chaquira",
+  "Cuero",
+  "Caña flecha",
+  "Barro",
+  "Piedra",
+  "Metal",
 ];
 
 // ── TechniqueMultiPicker ──────────────────────────────────────────────────────
@@ -35,10 +51,14 @@ interface TechniqueMultiPickerProps {
   onChange: (ids: string[]) => void;
 }
 
-const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange }) => {
+const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({
+  craftId,
+  selectedIds,
+  onChange,
+}) => {
   const [techniques, setTechniques] = useState<Technique[]>([]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!craftId) {
@@ -49,7 +69,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     setLoading(true);
     setError(false);
     getTechniquesByCraftId(craftId)
-      .then(list => {
+      .then((list) => {
         if (!cancelled) setTechniques(list);
       })
       .catch(() => {
@@ -58,13 +78,15 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [craftId]);
 
   const toggle = (id: string) => {
     onChange(
       selectedIds.includes(id)
-        ? selectedIds.filter(s => s !== id)
+        ? selectedIds.filter((s) => s !== id)
         : [...selectedIds, id],
     );
   };
@@ -74,15 +96,21 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     return (
       <div
         className="flex items-start gap-3 p-4 rounded-xl"
-        style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.25)' }}
+        style={{
+          background: "rgba(236,109,19,0.04)",
+          border: "1px dashed rgba(236,109,19,0.25)",
+        }}
       >
-        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">info</span>
+        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">
+          info
+        </span>
         <div>
           <p className="font-['Manrope'] text-[13px] font-[700] text-[#54433e]/70 mb-0.5">
             Elige tu oficio primero
           </p>
           <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
-            Para ver las técnicas disponibles, primero selecciona tu oficio en el paso 1.
+            Para ver las técnicas disponibles, primero selecciona tu oficio en
+            el paso 1.
           </p>
         </div>
       </div>
@@ -97,7 +125,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
           <div
             key={i}
             className="h-[52px] rounded-xl animate-pulse"
-            style={{ background: 'rgba(226,213,207,0.25)' }}
+            style={{ background: "rgba(226,213,207,0.25)" }}
           />
         ))}
       </div>
@@ -109,11 +137,17 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     return (
       <div
         className="flex items-center gap-3 p-4 rounded-xl"
-        style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)' }}
+        style={{
+          background: "rgba(239,68,68,0.05)",
+          border: "1px solid rgba(239,68,68,0.15)",
+        }}
       >
-        <span className="material-symbols-outlined text-[18px] text-[#ef4444] shrink-0">warning</span>
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444] shrink-0">
+          warning
+        </span>
         <p className="font-['Manrope'] text-[12px] text-[#54433e]/60">
-          No se pudieron cargar las técnicas. Intenta avanzar y volver a este paso.
+          No se pudieron cargar las técnicas. Intenta avanzar y volver a este
+          paso.
         </p>
       </div>
     );
@@ -124,11 +158,17 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     return (
       <div
         className="flex items-start gap-3 p-4 rounded-xl"
-        style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.2)' }}
+        style={{
+          background: "rgba(236,109,19,0.04)",
+          border: "1px dashed rgba(236,109,19,0.2)",
+        }}
       >
-        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">search_off</span>
+        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">
+          search_off
+        </span>
         <p className="font-['Manrope'] text-[12px] text-[#54433e]/55 leading-snug">
-          Aún no hay técnicas registradas para este oficio. Puedes continuar y agregarlas más adelante.
+          Aún no hay técnicas registradas para este oficio. Puedes continuar y
+          agregarlas más adelante.
         </p>
       </div>
     );
@@ -137,7 +177,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
   // Cards de técnicas
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-      {techniques.map(t => {
+      {techniques.map((t) => {
         const active = selectedIds.includes(t.id);
         return (
           <button
@@ -146,22 +186,33 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
             onClick={() => toggle(t.id)}
             className="relative flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-left transition-all"
             style={{
-              background: active ? 'rgba(236,109,19,0.07)' : 'rgba(247,244,239,0.5)',
-              border: active ? '1.5px solid rgba(236,109,19,0.5)' : '1px solid rgba(226,213,207,0.5)',
+              background: active
+                ? "rgba(236,109,19,0.07)"
+                : "rgba(247,244,239,0.5)",
+              border: active
+                ? "1.5px solid rgba(236,109,19,0.5)"
+                : "1px solid rgba(226,213,207,0.5)",
             }}
           >
             {/* Check indicator */}
             <div
               className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all"
-              style={{ borderColor: active ? '#ec6d13' : 'rgba(84,67,62,0.22)' }}
+              style={{
+                borderColor: active ? "#ec6d13" : "rgba(84,67,62,0.22)",
+              }}
             >
               {active && (
-                <span className="material-symbols-outlined" style={{ fontSize: 11, color: '#ec6d13' }}>check</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 11, color: "#ec6d13" }}
+                >
+                  check
+                </span>
               )}
             </div>
             <span
               className="font-['Manrope'] text-[12px] font-[600] leading-snug flex-1"
-              style={{ color: active ? '#ec6d13' : '#54433e' }}
+              style={{ color: active ? "#ec6d13" : "#54433e" }}
             >
               {t.name}
             </span>
@@ -183,18 +234,28 @@ interface ChipGroupProps {
   onAdd: (v: string) => void;
 }
 
-const ChipGroup: React.FC<ChipGroupProps> = ({ label, required, selected, presets, onToggle, onAdd }) => {
-  const [custom, setCustom] = useState('');
+const ChipGroup: React.FC<ChipGroupProps> = ({
+  label,
+  required,
+  selected,
+  presets,
+  onToggle,
+  onAdd,
+}) => {
+  const [custom, setCustom] = useState("");
 
   const handleAdd = () => {
     const t = custom.trim();
     if (!t) return;
     onAdd(t);
-    setCustom('');
+    setCustom("");
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') { e.preventDefault(); handleAdd(); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAdd();
+    }
   };
 
   return (
@@ -212,23 +273,25 @@ const ChipGroup: React.FC<ChipGroupProps> = ({ label, required, selected, preset
               onClick={() => onToggle(p)}
               className={`px-3 py-1.5 rounded-full text-[12px] font-[600] border transition-all ${
                 active
-                  ? 'bg-[#ec6d13] border-[#ec6d13] text-white'
-                  : 'bg-[#ec6d13]/5 border-[#ec6d13]/20 text-[#ec6d13] hover:bg-[#ec6d13]/10'
+                  ? "bg-[#ec6d13] border-[#ec6d13] text-white"
+                  : "bg-[#ec6d13]/5 border-[#ec6d13]/20 text-[#ec6d13] hover:bg-[#ec6d13]/10"
               }`}
             >
               {p}
             </button>
           );
         })}
-        {selected.filter((s) => !presets.includes(s)).map((s) => (
-          <button
-            key={s}
-            onClick={() => onToggle(s)}
-            className="px-3 py-1.5 rounded-full text-[12px] font-[600] bg-[#ec6d13] border border-[#ec6d13] text-white"
-          >
-            {s}
-          </button>
-        ))}
+        {selected
+          .filter((s) => !presets.includes(s))
+          .map((s) => (
+            <button
+              key={s}
+              onClick={() => onToggle(s)}
+              className="px-3 py-1.5 rounded-full text-[12px] font-[600] bg-[#ec6d13] border border-[#ec6d13] text-white"
+            >
+              {s}
+            </button>
+          ))}
         <input
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
@@ -250,11 +313,14 @@ interface Props {
 }
 
 export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
-  const isPreset = TIME_OPTIONS.some(o => o.value === data.averageTime);
-  const [customTime, setCustomTime] = useState(
-    data.averageTime && !isPreset ? data.averageTime : '',
+  const { user } = useAuth();
+  const [showCustomTime, setShowCustomTime] = useState(
+    () =>
+      !!data.averageTime &&
+      !TIME_OPTIONS.some(
+        (o) => o.value !== "__custom" && o.value === data.averageTime,
+      ),
   );
-  const [showCustom, setShowCustom] = useState(data.averageTime !== undefined && !isPreset);
 
   const selectTime = (value: string) => {
     setShowCustom(false);
@@ -266,27 +332,37 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
     onChange({ averageTime: customTime || undefined });
   };
 
-  const toggleItem = (field: 'materials' | 'craftStyle', value: string) => {
+  const toggleItem = (field: "materials" | "craftStyle", value: string) => {
     const arr = data[field] as string[];
-    onChange({ [field]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] });
+    onChange({
+      [field]: arr.includes(value)
+        ? arr.filter((v) => v !== value)
+        : [...arr, value],
+    });
   };
 
-  const addItem = (field: 'materials', value: string) => {
+  const addItem = (field: "materials", value: string) => {
     if (!(data[field] as string[]).includes(value))
       onChange({ [field]: [...(data[field] as string[]), value] });
   };
 
   return (
     <div className="flex flex-col gap-8">
-
       {/* Técnicas — filtradas por oficio */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+      <section
+        className="p-5 rounded-lg border border-[#e2d5cf]/20"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 2px 12px -2px rgba(0,0,0,0.02)",
+        }}
+      >
         <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
           Técnicas artesanales
           <span className="text-[#ef4444] ml-1">*</span>
         </label>
         <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
-          Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
+          Selecciona las técnicas que aplicas en tu oficio. Puedes elegir
+          varias.
         </p>
         <TechniqueMultiPicker
           craftId={data.craftId}
@@ -296,100 +372,122 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
       </section>
 
       {/* Materiales */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <ChipGroup
-          label="Materiales principales"
-          required
-          selected={data.materials}
-          presets={PRESET_MATERIALS}
-          onToggle={(v) => toggleItem('materials', v)}
-          onAdd={(v) => addItem('materials', v)}
+      <section
+        className="p-5 rounded-lg border border-[#e2d5cf]/20"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 2px 12px -2px rgba(0,0,0,0.02)",
+        }}
+      >
+        <div className="flex justify-between items-center mb-1">
+          <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60">
+            Materiales principales
+            <span className="text-[#ef4444] ml-1">*</span>
+          </label>
+          {(data.materialIds ?? []).length > 0 && (
+            <span className="text-[10px] font-[600] text-[#ec6d13]">
+              {(data.materialIds ?? []).length} seleccionado
+              {(data.materialIds ?? []).length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
+          Selecciona los materiales que usas en tu oficio. Los que elijas quedan
+          guardados en tu perfil artesanal.
+        </p>
+        <MaterialPicker
+          artisanId={user?.id ?? ""}
+          userId={user?.id ?? ""}
+          selectedIds={data.materialIds ?? []}
+          onChange={(ids) => onChange({ materialIds: ids })}
         />
       </section>
 
       {/* Tiempo de elaboración */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-4">
+      <section
+        className="p-5 rounded-lg border border-[#e2d5cf]/20"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 2px 12px -2px rgba(0,0,0,0.02)",
+        }}
+      >
+        <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-3">
           Tiempo promedio de elaboración
-          <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
         </label>
-        <div className="flex flex-wrap gap-3">
-          {TIME_OPTIONS.map(opt => {
-            const active = data.averageTime === opt.value && !showCustom;
+        <div className="grid grid-cols-5 gap-2">
+          {TIME_OPTIONS.map((opt) => {
+            const isCustom = opt.value === "__custom";
+            const isActive = isCustom
+              ? showCustomTime
+              : data.averageTime === opt.value && !showCustomTime;
             return (
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => selectTime(opt.value)}
-                className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
-                  active
-                    ? 'border-[#ec6d13] shadow-sm'
-                    : 'border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm'
+                onClick={() => {
+                  if (isCustom) {
+                    setShowCustomTime(true);
+                    onChange({ averageTime: "" });
+                  } else {
+                    setShowCustomTime(false);
+                    onChange({ averageTime: opt.value });
+                  }
+                }}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border-2 transition-all ${
+                  isActive
+                    ? "border-[#ec6d13] shadow-sm"
+                    : "border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm"
                 }`}
-                style={active ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+                style={
+                  isActive
+                    ? { background: "rgba(236,109,19,0.06)" }
+                    : { background: "#ffffff" }
+                }
               >
                 <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 22, color: active ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
+                  className="material-symbols-outlined text-[20px] transition-colors"
+                  style={{
+                    color: isActive ? "#ec6d13" : "rgba(84,67,62,0.38)",
+                  }}
                 >
                   {opt.icon}
                 </span>
                 <span
-                  className="text-center font-[700] leading-tight px-1"
-                  style={{ fontSize: 10, color: active ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
+                  className="text-[9px] font-[800] uppercase tracking-wide leading-tight text-center transition-colors"
+                  style={{
+                    color: isActive ? "#ec6d13" : "rgba(84,67,62,0.55)",
+                  }}
                 >
                   {opt.label}
                 </span>
               </button>
             );
           })}
-
-          {/* Personalizado */}
-          <button
-            type="button"
-            onClick={openCustom}
-            className={`flex flex-col items-center justify-center gap-1.5 w-[88px] h-[76px] rounded-xl border-2 transition-all ${
-              showCustom
-                ? 'border-[#ec6d13] shadow-sm'
-                : 'border-dashed border-[#e2d5cf]/60 bg-white hover:border-[#ec6d13]/35'
-            }`}
-            style={showCustom ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
-          >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 22, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.38)' }}
-            >
-              edit_note
-            </span>
-            <span
-              className="text-center font-[700] leading-tight px-1"
-              style={{ fontSize: 10, color: showCustom ? '#ec6d13' : 'rgba(84,67,62,0.65)' }}
-            >
-              Personalizado
-            </span>
-          </button>
         </div>
-
-        {showCustom && (
+        {showCustomTime && (
           <input
             type="text"
             autoFocus
-            value={customTime}
-            onChange={e => {
-              setCustomTime(e.target.value);
-              onChange({ averageTime: e.target.value || undefined });
-            }}
-            placeholder="Ej. 3 a 4 semanas, 6 meses..."
-            className="mt-3 w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#ec6d13]/30 focus:outline-none focus:border-[#ec6d13]/60 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
-            style={{ background: 'rgba(247,244,239,0.4)' }}
+            value={data.averageTime ?? ""}
+            onChange={(e) => onChange({ averageTime: e.target.value })}
+            placeholder="Ej: 3 meses, 45 días..."
+            className="mt-3 w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all"
+            style={{ background: "rgba(247,244,239,0.4)" }}
           />
         )}
       </section>
 
       {/* Diferenciación */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+      <section
+        className="p-5 rounded-lg border border-[#e2d5cf]/20"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 2px 12px -2px rgba(0,0,0,0.02)",
+        }}
+      >
         <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
-          ¿Qué hace especial tu trabajo? <span className="text-[#ef4444]">*</span>
+          ¿Qué hace especial tu trabajo?{" "}
+          <span className="text-[#ef4444]">*</span>
         </label>
         <textarea
           rows={5}
@@ -397,17 +495,24 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           onChange={(e) => onChange({ uniqueness: e.target.value })}
           placeholder="Describe qué diferencia tu forma de crear: técnica, acabado, intención, detalle, tradición o mezcla de estilos."
           className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
-          style={{ background: 'rgba(247,244,239,0.4)' }}
+          style={{ background: "rgba(247,244,239,0.4)" }}
         />
       </section>
 
       {/* Estilo artesanal */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
+      <section
+        className="p-5 rounded-lg border border-[#e2d5cf]/20"
+        style={{
+          background: "#ffffff",
+          boxShadow: "0 2px 12px -2px rgba(0,0,0,0.02)",
+        }}
+      >
+        <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] block mb-0.5 uppercase tracking-widest">
           Estilo artesanal
-          <span className="ml-2 font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest text-[#ec6d13] px-1.5 py-0.5 bg-[#ec6d13]/10 rounded">Recomendado</span>
         </label>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mb-4">Puedes elegir más de uno si tu trabajo mezcla lenguajes.</p>
+        <p className="text-[11px] text-[#54433e]/60 mb-3">
+          ¿Cómo se relaciona tu trabajo con la tradición? Puedes elegir varios.
+        </p>
         <div className="flex flex-col gap-2">
           {CRAFT_STYLES.map((s) => {
             const active = data.craftStyle.includes(s.id);
@@ -415,27 +520,37 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => toggleItem('craftStyle', s.id)}
+                onClick={() => toggleItem("craftStyle", s.id)}
+                className="flex items-start gap-3 p-3 rounded-xl text-left transition-all"
                 style={{
-                  background: active ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
-                  border: active ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
+                  background: active
+                    ? "rgba(236,109,19,0.07)"
+                    : "rgba(255,255,255,0.6)",
+                  border: active
+                    ? "1.5px solid rgba(236,109,19,0.4)"
+                    : "1px solid rgba(226,213,207,0.35)",
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:border-[#ec6d13]/30"
               >
                 <div
-                  className="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
-                  style={{ borderColor: active ? '#ec6d13' : 'rgba(84,67,62,0.25)' }}
+                  className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 border-2 flex items-center justify-center transition-colors"
+                  style={{
+                    borderColor: active ? "#ec6d13" : "rgba(84,67,62,0.25)",
+                  }}
                 >
-                  {active && <div className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />}
+                  {active && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#ec6d13]" />
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div>
                   <span
-                    className="font-['Manrope'] text-[13px] font-[700] block"
-                    style={{ color: active ? '#ec6d13' : '#54433e' }}
+                    className="text-[10px] font-[800] uppercase tracking-wider block mb-0.5"
+                    style={{ color: active ? "#ec6d13" : "#54433e" }}
                   >
                     {s.label}
                   </span>
-                  <span className="text-[10px] font-['Manrope'] text-[#54433e]/50 leading-snug">{s.desc}</span>
+                  <span className="text-[10px] text-[#54433e]/50 leading-snug">
+                    {s.desc}
+                  </span>
                 </div>
               </button>
             );
