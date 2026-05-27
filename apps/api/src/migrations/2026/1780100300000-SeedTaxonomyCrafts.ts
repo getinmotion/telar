@@ -59,31 +59,14 @@ export class SeedTaxonomyCrafts1780100300000 implements MigrationInterface {
     `);
 
     // ── 2. Vincular oficios existentes a sus categorías principales ─────────
-    await queryRunner.query(`
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'vajillas-y-cocina')
-        WHERE name = 'Alfarería y Cerámica' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'muebles')
-        WHERE name = 'Ebanistería y Talla' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'joyeria-y-accesorios')
-        WHERE name = 'Innovación y Diseño' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'joyeria-y-accesorios')
-        WHERE name = 'Joyería y Micro-Ingeniería' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'arte-y-esculturas')
-        WHERE name = 'Pintura y Decoración' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'textiles-y-moda')
-        WHERE name = 'Textiles y Tejidos' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'bolsos-y-carteras')
-        WHERE name = 'Trabajo en Cuero' AND category_id IS NULL;
-
-      UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'decoracion-del-hogar')
-        WHERE name = 'Vidrio y Mobiliario' AND category_id IS NULL;
-    `);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'vajillas-y-cocina') WHERE name = 'Alfarería y Cerámica' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'muebles') WHERE name = 'Ebanistería y Talla' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'joyeria-y-accesorios') WHERE name = 'Innovación y Diseño' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'joyeria-y-accesorios') WHERE name = 'Joyería y Micro-Ingeniería' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'arte-y-esculturas') WHERE name = 'Pintura y Decoración' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'textiles-y-moda') WHERE name = 'Textiles y Tejidos' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'bolsos-y-carteras') WHERE name = 'Trabajo en Cuero' AND category_id IS NULL`);
+    await queryRunner.query(`UPDATE taxonomy.crafts SET category_id = (SELECT id FROM taxonomy.categories WHERE slug = 'decoracion-del-hogar') WHERE name = 'Vidrio y Mobiliario' AND category_id IS NULL`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
