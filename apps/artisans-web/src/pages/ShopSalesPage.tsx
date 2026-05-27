@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useShopOrders, orderRequiresShipping, orderNeedsTracking, ShopOrder } from '@/hooks/useShopOrders';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -185,7 +186,7 @@ function SalesInsightCard({
       <div className="flex items-center gap-2 mb-4" style={{ position: 'relative' }}>
         <span className="material-symbols-outlined" style={{ color: '#ec6d13', fontSize: 18 }}>psychology</span>
         <span style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-          Asistente de ventas
+          ORÁCULO
         </span>
       </div>
 
@@ -234,6 +235,7 @@ export default function ShopSalesPage() {
   const navigate = useNavigate();
   const { shop } = useArtisanShop();
   const { orders, loading, stats, fetchOrders, updateTrackingNumber, markAsPickedUp } = useShopOrders(shop?.id);
+  const { setNode, clearNode } = useOraculo();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
@@ -241,6 +243,17 @@ export default function ShopSalesPage() {
   const [selectedOrder, setSelectedOrder] = useState<ShopOrder | null>(null);
   const [trackingInput, setTrackingInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setNode(
+      <SalesInsightCard
+        stats={stats}
+        loading={loading}
+        onGoPending={() => setActiveTab('pending')}
+      />
+    );
+    return clearNode;
+  }, [stats, loading]);
 
   const filteredOrders = useMemo(() => {
     let filtered = orders;
@@ -505,8 +518,8 @@ export default function ShopSalesPage() {
               )}
             </div>
 
-            {/* AI Sales Insight — right */}
-            <div className="lg:w-80 xl:w-96 shrink-0">
+            {/* AI Sales Insight — right (desktop only) */}
+            <div className="hidden md:block lg:w-80 xl:w-96 shrink-0">
               <SalesInsightCard
                 stats={stats}
                 loading={loading}

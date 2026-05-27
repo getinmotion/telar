@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
@@ -48,6 +49,38 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
   const [isSavingStory, setIsSavingStory] = useState(false);
 
   const canContinue = state.name.trim().length > 0 && state.shortDescription.trim().length > 0;
+
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(
+      <div className="p-5 flex flex-col gap-4 rounded-2xl" style={{ background: '#151b2d' }}>
+        <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">psychology</span>
+            <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">ORÁCULO</h2>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
+            <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">Esperando señales...</span>
+          </div>
+        </div>
+        {[
+          { label: 'Lectura visual', text: 'Esperando foto principal para analizar forma, textura, iluminación y fondo.' },
+          { label: 'Historia detectada', text: 'Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.' },
+          { label: 'Próximo paso', text: 'Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.' },
+        ].map(({ label, text }) => (
+          <div key={label} className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">{label}</p>
+            <p className="text-[12px] text-white/75 leading-snug">{text}</p>
+          </div>
+        ))}
+        <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
+          Las sugerencias aparecen al agregar foto, descripción o historia.
+        </p>
+      </div>
+    );
+    return clearNode;
+  }, []);
 
   const loadStories = () => {
     if (!artisanId || loadingStories) return;
@@ -171,7 +204,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* ── AI sidebar ────────────────────────────────────────────────── */}
-          <aside className="lg:col-span-3">
+          <aside className="hidden lg:block lg:col-span-3">
             <div
               className="p-5 sticky top-8 flex flex-col gap-4 rounded-2xl"
               style={{ background: '#151b2d' }}
@@ -180,7 +213,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">psychology</span>
                   <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">
-                    Observación IA
+                    ORÁCULO
                   </h2>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
