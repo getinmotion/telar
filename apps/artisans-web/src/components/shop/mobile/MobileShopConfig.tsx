@@ -111,6 +111,7 @@ export const MobileShopConfig: React.FC<MobileShopConfigProps> = ({ shop, userNa
   const fiscalDone   = !!(profile?.rut && !profile?.rutPendiente);
   const paymentDone  = !!(s.idContraparty);
   const profileDone  = !!s.artisanProfileCompleted;
+  const policiesDone = !!(s.idPoliciesConfig);
 
   // Sección por defecto: primera incompleta
   const defaultSection = (): SectionId => {
@@ -118,6 +119,7 @@ export const MobileShopConfig: React.FC<MobileShopConfigProps> = ({ shop, userNa
     if (!brandDone)   return 'marca';
     if (!heroDone)    return 'hero';
     if (!contactDone || !fiscalDone || !paymentDone) return 'contacto';
+    if (!policiesDone) return 'legal';
     return 'perfil';
   };
 
@@ -346,7 +348,6 @@ export const MobileShopConfig: React.FC<MobileShopConfigProps> = ({ shop, userNa
 
         {/* LEGAL */}
         {active === 'legal' && (() => {
-          const policiesDone = !!(s.idPoliciesConfig);
           const allDone = policiesDone;
           return (
             <div className="flex flex-col">
