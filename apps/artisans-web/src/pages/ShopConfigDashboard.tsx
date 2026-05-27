@@ -371,10 +371,10 @@ const ShopConfigDashboard: React.FC = () => {
         </header>
 
         {/* ── Main ── */}
-        <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+        <main className="flex-1 flex flex-col overflow-hidden" style={{ overscrollBehavior: 'contain' }}>
 
           {/* ── Mobile: hero + métricas + nav de iconos ── */}
-          <div className="md:hidden flex flex-col" style={{ minHeight: 0 }}>
+          <div className="md:hidden flex flex-col flex-1 overflow-hidden">
             <div style={{ padding: '8px 12px 0' }}>
 
             {/* ── Mobile shop hero ── */}
@@ -460,8 +460,48 @@ const ShopConfigDashboard: React.FC = () => {
           </div>{/* closes md:hidden */}
 
           {/* ── Desktop: layout original sin cambios ── */}
-          <div className="hidden md:block px-12 pb-20">
+          <div className="hidden md:flex md:flex-col md:flex-1 md:overflow-y-auto px-12 pb-20">
             <div className="max-w-[1300px] mx-auto pt-8">
+
+            {/* ── 4 Metric Cards (desktop only) ── */}
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              <MetricCard
+                label="Completadas"
+                value={<span>{completedCount}<span style={{ fontSize: 20, opacity: 0.35 }}>/{sections.length}</span></span>}
+                sub="secciones listas"
+                icon="task_alt"
+              />
+              <MetricCard
+                label="Progreso"
+                value={
+                  <span style={{ color: pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : '#151b2d' }}>
+                    {pct}<span style={{ fontSize: 20, opacity: 0.35 }}>%</span>
+                  </span>
+                }
+                sub="configuración total"
+                icon="donut_large"
+              />
+              <MetricCard
+                label="Estado"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: isShopActive ? '#166534' : '#ec6d13' }}>
+                    {isShopActive ? 'Activa' : 'Preparación'}
+                  </span>
+                }
+                sub={isShopActive ? 'visible al público' : 'no activada aún'}
+                icon={isShopActive ? 'storefront' : 'pending'}
+              />
+              <MetricCard
+                label="Perfil"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: profileDone ? '#166534' : 'rgba(21,27,45,0.4)' }}>
+                    {profileDone ? 'Completo' : 'Pendiente'}
+                  </span>
+                }
+                sub="historia y técnicas"
+                icon="person_pin"
+              />
+            </div>
 
             {/* ── Grid 8 + 4 ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

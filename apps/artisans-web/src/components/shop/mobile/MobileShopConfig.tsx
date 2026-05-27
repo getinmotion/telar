@@ -156,7 +156,7 @@ export const MobileShopConfig: React.FC<MobileShopConfigProps> = ({ shop, userNa
       </div>
 
       {/* ── Vista de sección activa ── */}
-      <div className="flex-1 overflow-y-auto flex flex-col" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-y-auto flex flex-col pb-20" style={{ minHeight: 0 }}>
 
         {/* PERFIL */}
         {active === 'perfil' && (() => {
