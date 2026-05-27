@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import logoIcon from '@/assets/logo-icon.svg';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useUnifiedUserData } from '@/hooks/user';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useMasterAgent } from '@/context/MasterAgentContext';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
+import { MobileShopConfig } from '@/components/shop/mobile/MobileShopConfig';
 
 // ── TELAR Design System (mismo que CommercialDashboard) ───────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -34,15 +37,35 @@ const Pill: React.FC<{ children: React.ReactNode; variant?: PillVariant }> = ({ 
 );
 
 // ── MetricCard ─────────────────────────────────────────────────────────────────
-const MetricCard: React.FC<{ label: string; value: React.ReactNode; sub: string; icon: string }> = ({ label, value, sub, icon }) => (
-  <div style={{ ...glassPrimary, borderRadius: 16 }} className="px-5 h-16 flex items-center gap-4">
-    <span className="material-symbols-outlined shrink-0" style={{ color: 'rgba(21,27,45,0.18)', fontSize: 18 }}>{icon}</span>
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>{label}</span>
-      <p style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.35)', marginTop: 1 }}>{sub}</p>
+const MetricCard: React.FC<{
+  label: string; value: React.ReactNode; sub: string; icon: string;
+  mobileValue?: React.ReactNode; mobileIconColor?: string;
+}> = ({ label, value, sub, icon, mobileValue, mobileIconColor }) => (
+  <>
+    {/* Mobile: compact icon chip — 4 columns */}
+    <div
+      className="md:hidden flex flex-col items-center justify-center gap-1 py-3 px-1 text-center"
+      style={{ ...glassPrimary, borderRadius: 14, minHeight: 76 }}
+    >
+      <span className="material-symbols-outlined" style={{ color: mobileIconColor ?? 'rgba(21,27,45,0.22)', fontSize: 22 }}>{icon}</span>
+      <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+        {mobileValue ?? value}
+      </div>
+      <span style={{ fontFamily: SANS, fontSize: 7, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(84,67,62,0.45)', lineHeight: 1.3 }}>
+        {label}
+      </span>
     </div>
-    <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1, flexShrink: 0 }}>{value}</div>
-  </div>
+
+    {/* Desktop: horizontal card */}
+    <div style={{ ...glassPrimary, borderRadius: 16 }} className="hidden md:flex px-5 h-16 items-center gap-4">
+      <span className="material-symbols-outlined shrink-0" style={{ color: 'rgba(21,27,45,0.18)', fontSize: 18 }}>{icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: 'rgba(84,67,62,0.45)' }}>{label}</span>
+        <p style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.35)', marginTop: 1 }}>{sub}</p>
+      </div>
+      <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1, flexShrink: 0 }}>{value}</div>
+    </div>
+  </>
 );
 
 // ── OrangeBtn / OutlineBtn ─────────────────────────────────────────────────────
@@ -190,6 +213,42 @@ const PreviewPanel: React.FC<{ shop: any }> = ({ shop }) => {
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ORÁCULO registration (extracted to avoid hook-after-early-return violation)
+// ══════════════════════════════════════════════════════════════════════════════
+type Insight = { message: string; sub: string; cta: string; route: string };
+const OraculoShopConfig: React.FC<{ insight: Insight; onNavigate: (r: string) => void }> = ({ insight, onNavigate }) => {
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(
+      <div className="p-7 rounded-3xl relative overflow-hidden" style={{ background: '#151b2d' }}>
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(236,109,19,0.1)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -30, left: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(236,109,19,0.05)', filter: 'blur(35px)', pointerEvents: 'none' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-5">
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(236,109,19,0.15)', border: '1px solid rgba(236,109,19,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 19, color: '#ec6d13' }}>smart_toy</span>
+            </div>
+            <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.3)' }}>ORÁCULO</span>
+          </div>
+          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 10, lineHeight: 1.35 }}>{insight.message}</h3>
+          <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: 22 }}>{insight.sub}</p>
+          <button
+            onClick={() => onNavigate(insight.route)}
+            className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-full transition-all hover:opacity-90"
+            style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(236,109,19,0.3)', border: 'none', cursor: 'pointer' }}
+          >
+            {insight.cta}
+            <span className="material-symbols-outlined text-[14px]">east</span>
+          </button>
+        </div>
+      </div>
+    );
+    return clearNode;
+  }, [insight]);
+  return null;
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
 // PAGE
 // ══════════════════════════════════════════════════════════════════════════════
 const ShopConfigDashboard: React.FC = () => {
@@ -242,7 +301,6 @@ const ShopConfigDashboard: React.FC = () => {
   const isShopActive = s.publishStatus === 'published' && !!s.active;
 
   // ── Next AI insight ───────────────────────────────────────────────────────
-  type Insight = { message: string; sub: string; cta: string; route: string };
   const insights: Insight[] = [
     { message: `Empecemos por el logo, ${userName.split(' ')[0]}.`, sub: 'Sin logo tu tienda no aparece en búsquedas. Es lo primero que ven los compradores.', cta: 'Subir logo', route: '/mi-tienda/configurar/brand' },
     { message: 'Ponle cara a tu tienda.', sub: 'Agrega imágenes de tus piezas o tu taller. Un hero con tu trabajo es lo que convierte visitas en ventas.', cta: 'Agregar imágenes', route: '/mi-tienda/configurar/hero' },
@@ -261,49 +319,100 @@ const ShopConfigDashboard: React.FC = () => {
 
   return (
     <>
+      <OraculoShopConfig insight={insight} onNavigate={navigate} />
       <Helmet><title>{`Configurar · ${shopName}`}</title></Helmet>
 
       <div className="h-full flex flex-col min-h-0 overflow-hidden">
 
         {/* ── Header sticky ── */}
-        <header
-          className="sticky top-0 z-30 px-4 md:px-12 pt-4 pb-3 flex flex-col md:grid md:items-center gap-2 md:gap-0"
-          style={{ gridTemplateColumns: '1fr auto 1fr' }}
-        >
-          <div className="flex items-center gap-3">
-            {s.logoUrl && (
-              <img src={s.logoUrl} alt={shopName} className="h-10 w-10 rounded-full object-contain"
-                style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }} />
-            )}
-          </div>
+        <header className="sticky top-0 z-30">
 
-          <div className="flex flex-col items-center text-center">
-            <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
-              Configuración de tienda
-            </h1>
-            <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
-              {completedCount} de {sections.length} secciones completas · {pct}%
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 justify-end">
+          {/* Mobile: flecha · ISO · notificaciones */}
+          <div className="md:hidden px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-9 h-9 flex items-center justify-center rounded-full"
+              style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.07)' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#151b2d' }}>arrow_back</span>
+            </button>
+            <img src={logoIcon} alt="TELAR" className="h-8 w-8 object-contain" />
             <NotificationCenter />
-            <OutlineBtn onClick={() => navigate('/dashboard')}>
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              Dashboard
-            </OutlineBtn>
           </div>
+
+          {/* Desktop: layout 3 columnas original */}
+          <div
+            className="hidden md:grid px-12 pt-4 pb-3 items-center gap-0"
+            style={{ gridTemplateColumns: '1fr auto 1fr' }}
+          >
+            <div className="flex items-center gap-3">
+              {s.logoUrl && (
+                <img src={s.logoUrl} alt={shopName} className="h-10 w-10 rounded-full object-contain"
+                  style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }} />
+              )}
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                Configuración de tienda
+              </h1>
+              <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
+                {completedCount} de {sections.length} secciones completas · {pct}%
+              </p>
+            </div>
+            <div className="flex items-center gap-3 justify-end">
+              <NotificationCenter />
+              <OutlineBtn onClick={() => navigate('/dashboard')}>
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                Dashboard
+              </OutlineBtn>
+            </div>
+          </div>
+
         </header>
 
         {/* ── Main ── */}
-        <main className="flex-1 overflow-y-auto px-4 md:px-12 pb-20" style={{ overscrollBehavior: 'contain' }}>
-          <div className="max-w-[1300px] mx-auto pt-8">
+        <main className="flex-1 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+
+          {/* ── Mobile: hero + métricas + nav de iconos ── */}
+          <div className="md:hidden flex flex-col" style={{ minHeight: 0 }}>
+            <div style={{ padding: '8px 12px 0' }}>
+
+            {/* ── Mobile shop hero ── */}
+            <div className="mb-5 flex items-center gap-4 px-4 py-4 rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 16px rgba(21,27,45,0.04)' }}
+            >
+              {s.logoUrl ? (
+                <img src={s.logoUrl} alt={shopName}
+                  className="w-16 h-16 rounded-2xl object-contain flex-shrink-0"
+                  style={{ background: 'white', padding: 6, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#ec6d13' }}>storefront</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 3 }}>Configuración</p>
+                <h1 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', lineHeight: 1.15, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {shopName}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(21,27,45,0.08)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#166534' : '#ec6d13', transition: 'width 0.6s ease' }} />
+                  </div>
+                  <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: pct === 100 ? '#166534' : '#ec6d13', flexShrink: 0 }}>{pct}%</span>
+                </div>
+              </div>
+            </div>
 
             {/* ── 4 Metric Cards ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8">
               <MetricCard
                 label="Completadas"
                 value={<span>{completedCount}<span style={{ fontSize: 20, opacity: 0.35 }}>/{sections.length}</span></span>}
+                mobileValue={completedCount}
+                mobileIconColor={completedCount === sections.length ? '#166534' : 'rgba(21,27,45,0.3)'}
                 sub="secciones listas"
                 icon="task_alt"
               />
@@ -314,30 +423,45 @@ const ShopConfigDashboard: React.FC = () => {
                     {pct}<span style={{ fontSize: 20, opacity: 0.35 }}>%</span>
                   </span>
                 }
+                mobileValue={`${pct}%`}
+                mobileIconColor={pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : 'rgba(21,27,45,0.3)'}
                 sub="configuración total"
                 icon="donut_large"
               />
               <MetricCard
-                label="Estado tienda"
+                label="Estado"
                 value={
                   <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: isShopActive ? '#166534' : '#ec6d13' }}>
                     {isShopActive ? 'Activa' : 'Preparación'}
                   </span>
                 }
+                mobileValue={isShopActive ? 'Live' : 'Prep.'}
+                mobileIconColor={isShopActive ? '#166534' : '#ec6d13'}
                 sub={isShopActive ? 'visible al público' : 'no activada aún'}
                 icon={isShopActive ? 'storefront' : 'pending'}
               />
               <MetricCard
-                label="Perfil artesanal"
+                label="Perfil"
                 value={
                   <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: profileDone ? '#166534' : 'rgba(21,27,45,0.4)' }}>
                     {profileDone ? 'Completo' : 'Pendiente'}
                   </span>
                 }
+                mobileValue={profileDone ? 'OK' : '—'}
+                mobileIconColor={profileDone ? '#166534' : 'rgba(21,27,45,0.25)'}
                 sub="historia y técnicas"
                 icon="person_pin"
               />
             </div>
+
+            </div>{/* closes padding div */}
+            {/* Nav + sección activa */}
+            <MobileShopConfig shop={s} userName={userName} profile={profile} navigate={navigate} />
+          </div>{/* closes md:hidden */}
+
+          {/* ── Desktop: layout original sin cambios ── */}
+          <div className="hidden md:block px-12 pb-20">
+            <div className="max-w-[1300px] mx-auto pt-8">
 
             {/* ── Grid 8 + 4 ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -751,7 +875,7 @@ const ShopConfigDashboard: React.FC = () => {
                           <span className="material-symbols-outlined" style={{ fontSize: 19, color: '#ec6d13' }}>smart_toy</span>
                         </div>
                         <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-                          Asistente IA · TELAR
+                          ORÁCULO
                         </span>
                       </div>
 
@@ -779,23 +903,25 @@ const ShopConfigDashboard: React.FC = () => {
               </div>
 
             </div>
-          </div>
+            </div>{/* closes max-w-[1300px] */}
 
-          {/* Mini footer */}
-          <footer
-            className="flex flex-col md:flex-row items-center md:justify-between gap-1 px-4 md:px-12 py-6 mt-8"
-            style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
-          >
-            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
-              © {new Date().getFullYear()} TELAR
-            </span>
-            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
-              Hecho con <span style={{ color: '#e05252' }}>♥</span> en Latinoamérica
-            </span>
-            <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
-              Orgullosamente desarrollado en Colombia 🇨🇴
-            </span>
-          </footer>
+            {/* Mini footer */}
+            <footer
+              className="flex flex-col md:flex-row items-center md:justify-between gap-1 px-4 md:px-12 py-6 mt-8"
+              style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
+            >
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                © {new Date().getFullYear()} TELAR
+              </span>
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                Hecho con <span style={{ color: '#e05252' }}>♥</span> en Latinoamérica
+              </span>
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                Orgullosamente desarrollado en Colombia 🇨🇴
+              </span>
+            </footer>
+
+          </div>{/* closes hidden md:block */}
 
         </main>
       </div>
