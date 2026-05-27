@@ -25,8 +25,57 @@ export function useAuthInit(): void {
 
     const store = useAuthStore.getState();
 
+    console.log('Store de la auth', store)
+
+    // ✅ MIGRATION: If Zustand persist has no data, try loading from legacy keys
+    // This handles users who logged in before we implemented Zustand persist
+    if (!store.user && !store.access_token) {
+      const legacyToken = localStorage.getItem('telar_token');
+      const legacyUserStr = localStorage.getItem('telar_user');
+
+      if (legacyToken && legacyUserStr) {
+        try {
+          const legacyUser = JSON.parse(legacyUserStr);
+          console.log('[useAuthInit] Migrating legacy localStorage data to Zustand');
+
+          // Extract user data from legacy structure
+          const user = {
+            id: legacyUser.profile?.userId || legacyUser.id || '',
+            email: legacyUser.profile?.email || legacyUser.email || '',
+            role: legacyUser.profile?.userType || 'authenticated',
+            phone: legacyUser.profile?.whatsappE164,
+            emailConfirmedAt: legacyUser.profile?.createdAt,
+            rawUserMetaData: {
+              full_name: legacyUser.profile?.fullName,
+              first_name: legacyUser.profile?.firstName,
+              last_name: legacyUser.profile?.lastName,
+            },
+            createdAt: legacyUser.profile?.createdAt,
+            updatedAt: legacyUser.profile?.updatedAt,
+          };
+
+          // Migrate to Zustand store
+          useAuthStore.setState({
+            user,
+            access_token: legacyToken,
+            isAuthenticated: true,
+            userMasterContext: legacyUser.context || null,
+            artisanShop: null,
+            userMaturityActions: [],
+          });
+
+          console.log('[useAuthInit] Migration complete - user restored:', user.email);
+        } catch (error) {
+          console.error('[useAuthInit] Failed to migrate legacy data:', error);
+        }
+      }
+    }
+
+    // Re-check store after potential migration
+    const currentStore = useAuthStore.getState();
+
     // Si Zustand ya rehidrató y no hay token, marcar como inicializado y salir
-    if (!store.access_token) {
+    if (!currentStore.access_token) {
       useAuthStore.setState({ isInitialized: true });
       return;
     }
@@ -79,27 +128,27 @@ export function useAuthInit(): void {
     }, TOKEN_REFRESH_INTERVAL_MS);
 
     // Sincronización multi-pestaña: si el usuario hace login en otra pestaña
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key !== 'telar_token' && e.key !== 'telar_user') return;
+    // const handleStorageChange = (e: StorageEvent) => {
+    //   if (e.key !== 'telar_token' && e.key !== 'telar_user') return;
 
-      const token = localStorage.getItem('telar_token');
-      const userStr = localStorage.getItem('telar_user');
+    //   const token = localStorage.getItem('telar_token');
+    //   const userStr = localStorage.getItem('telar_user');
 
-      if (!token || !userStr) {
-        useAuthStore.getState().clearAuth();
-        return;
-      }
+    //   if (!token || !userStr) {
+    //     useAuthStore.getState().clearAuth();
+    //     return;
+    //   }
 
-      try {
-        const user = JSON.parse(userStr);
-        // Solo actualizar si cambió el usuario
-        if (user?.id !== useAuthStore.getState().user?.id) {
-          useAuthStore.setState({ access_token: token, user, isAuthenticated: true });
-        }
-      } catch {
-        // localStorage corrupto — ignorar
-      }
-    };
+    //   try {
+    //     const user = JSON.parse(userStr);
+    //     // Solo actualizar si cambió el usuario
+    //     if (user?.id !== useAuthStore.getState().user?.id) {
+    //       useAuthStore.setState({ access_token: token, user, isAuthenticated: true });
+    //     }
+    //   } catch {
+    //     // localStorage corrupto — ignorar
+    //   }
+    // };
 
     // Sincronización misma pestaña: login.actions.ts despacha este evento
     const handleLoginSuccess = () => {
@@ -109,15 +158,15 @@ export function useAuthInit(): void {
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    // window.addEventListener('storage', handleStorageChange);
     window.addEventListener('auth:login', handleLoginSuccess);
 
     return () => {
       mounted = false;
       if (refreshInterval) clearInterval(refreshInterval);
-      window.removeEventListener('storage', handleStorageChange);
+      // window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('auth:login', handleLoginSuccess);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

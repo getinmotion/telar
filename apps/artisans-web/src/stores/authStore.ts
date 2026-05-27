@@ -245,34 +245,6 @@ export const useAuthStore = create<AuthState>()(
         userMaturityActions: state.userMaturityActions,
         access_token: state.access_token,
       }),
-      // ✅ Recalcular isAuthenticated y enriquecer roles desde el JWT al rehidratar
-      onRehydrateStorage: () => (state) => {
-        // If localStorage has persisted state, restore it
-        if (state) {
-          state.isAuthenticated = !!state.user && !!state.access_token;
-
-          // Enrich user with JWT roles if missing
-          if (state.user && state.access_token && !state.user.roles?.length) {
-            const jwtPayload = parseJwtPayload(state.access_token);
-            if (jwtPayload) {
-              state.user = {
-                ...state.user,
-                isSuperAdmin: jwtPayload.isSuperAdmin ?? state.user.isSuperAdmin ?? false,
-                roles: jwtPayload.roles ?? [],
-              };
-            }
-          }
-        }
-
-        // ✅ ALWAYS mark as initialized, even if state is null
-        // This tells React components that rehydration is complete
-        // If state was null, the store already has correct initial values (all null/false)
-        // Note: We can't mutate null, so we use setState directly
-        const currentState = useAuthStore.getState();
-        if (!currentState.isInitialized) {
-          useAuthStore.setState({ isInitialized: true });
-        }
-      },
     }
   )
 );
