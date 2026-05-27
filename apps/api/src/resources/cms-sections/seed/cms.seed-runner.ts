@@ -21,6 +21,7 @@ import { CmsSection } from '../types/cms-section.types';
 import { tecnicasSeedSections } from './tecnicas.seed';
 import { homeSeedSections } from './home.seed';
 import { coleccionesSeedSections } from './colecciones.seed';
+import { territoriosSeedSections } from './territorios.seed';
 import { contentPicksSeedSections } from './content-picks.seed';
 import { BlogPostsService } from '../../blog-posts/blog-posts.service';
 import { blogPostsSeed } from '../../blog-posts/seed/blog-posts.seed';
@@ -179,6 +180,7 @@ async function bootstrap() {
     await seedPage(cmsSvc, 'tecnicas', tecnicasSeedSections, skippedSections, log);
     await seedPage(cmsSvc, 'home', homeSeedSections, skippedSections, log);
     await seedPage(cmsSvc, 'colecciones', coleccionesSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'territorios', territoriosSeedSections, skippedSections, log);
 
     // content_picks pueden vivir en cualquier pageKey; agrupamos antes de sembrar
     const picksByPage = new Map<string, typeof contentPicksSeedSections>();

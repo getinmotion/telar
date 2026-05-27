@@ -13,6 +13,66 @@ import { Footer } from "@/components/Footer";
 import { getArtisanShops } from "@/services/artisan-shops.actions";
 import { geocodeArtisan, jitter } from "@/lib/colombia-geocodes";
 import type { ArtisanShop } from "@/types/artisan-shops.types";
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
+import type { CmsSection } from "@/services/cms-sections.actions";
+
+/* ── Fallback editorial (used when CMS is empty / unreachable) ──────── */
+const FALLBACK_TERRITORIOS_SECTIONS: CmsSection[] = [
+  {
+    id: "fallback-territorios-hero",
+    pageKey: "territorios",
+    position: 0,
+    type: "territorios_hero",
+    published: true,
+    payload: {
+      kicker: "Geografía Humana",
+      title: "El mapa de nuestros hilos",
+      body: '"El territorio no es un lugar, es un ecosistema de gestos, materiales y memoria. Cada región de Colombia custodia una forma distinta de transformar la materia."',
+      stats: [
+        { value: "+7", label: "Regiones" },
+        { value: "+120", label: "Talleres" },
+        { value: "+24", label: "Técnicas" },
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-territorios-dark",
+    pageKey: "territorios",
+    position: 10,
+    type: "territorios_dark_quote",
+    published: true,
+    payload: {
+      quote:
+        "La geografía dicta la técnica. Donde hay palma, hay cestería; donde hay volcán, hay barro negro.",
+      leftStats: [
+        { value: "+120", caption: "Talleres en el Pacífico", color: "#ec6d13" },
+        { value: "45", caption: "Técnicas en riesgo de desaparición", color: "#ba1a1a" },
+      ],
+      rightTitle: "El rastro de la fibra",
+      rightBody:
+        '"En la humedad del Pacífico, la fibra se curva antes de ceder. El artesano no domina la materia, la acompaña en su metamorfosis natural."',
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-territorios-header",
+    pageKey: "territorios",
+    position: 20,
+    type: "home_section_header",
+    published: true,
+    payload: {
+      slot: "territorios_index",
+      kicker: "Índice Editorial",
+      title: "Territorios de Gracia",
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+];
 
 /* ── Territory data ─────────────────────────────────── */
 interface TerritoryPoint {
@@ -123,6 +183,17 @@ const Territorios = () => {
   const [hoveredTerritory, setHoveredTerritory] = useState<string | null>(null);
   const [selectedTerritory, setSelectedTerritory] = useState<TerritoryPoint | null>(null);
   const [hoveredArtisan, setHoveredArtisan] = useState<string | null>(null);
+
+  const { data: cmsSections } = useCmsSections("territorios");
+  const activeSections =
+    cmsSections && cmsSections.length > 0
+      ? cmsSections
+      : FALLBACK_TERRITORIOS_SECTIONS;
+  const heroSection = activeSections.find((s) => s.type === "territorios_hero");
+  const darkSection = activeSections.find((s) => s.type === "territorios_dark_quote");
+  const indexHeaderSection = activeSections.find(
+    (s) => s.type === "home_section_header" && s.payload?.slot === "territorios_index",
+  );
 
   const { data: shopsResponse } = useQuery({
     queryKey: ["artisan-shops", "territorios-map"],

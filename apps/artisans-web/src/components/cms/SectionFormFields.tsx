@@ -541,6 +541,47 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
   );
 }
 
+export function TerritoriosHeroForm({ draft, setField, setNested }: any) {
+  const stats = draft.stats ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Geografía Humana" />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="El mapa de nuestros hilos" />
+      <FieldArea label="Cuerpo / cita" value={draft.body} onChange={(v) => setField('body', v)} rows={4} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[0, 1, 2].map((i) => (
+          <SubCard key={i}>
+            <SubCardLabel>Stat {i + 1}</SubCardLabel>
+            <FieldText label="Valor" value={stats[i]?.value ?? ''} onChange={(v) => setNested(['stats', i, 'value'], v)} placeholder="+120" />
+            <FieldText label="Label" value={stats[i]?.label ?? ''} onChange={(v) => setNested(['stats', i, 'label'], v)} placeholder="Talleres" />
+          </SubCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function TerritoriosDarkQuoteForm({ draft, setField, setNested }: any) {
+  const leftStats = draft.leftStats ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldArea label="Cita principal" value={draft.quote} onChange={(v) => setField('quote', v)} rows={3} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[0, 1].map((i) => (
+          <SubCard key={i}>
+            <SubCardLabel>Stat {i + 1}</SubCardLabel>
+            <FieldText label="Valor" value={leftStats[i]?.value ?? ''} onChange={(v) => setNested(['leftStats', i, 'value'], v)} placeholder="+120" />
+            <FieldText label="Caption" value={leftStats[i]?.caption ?? ''} onChange={(v) => setNested(['leftStats', i, 'caption'], v)} placeholder="Talleres en el Pacífico" />
+            <FieldText label="Color (hex)" value={leftStats[i]?.color ?? ''} onChange={(v) => setNested(['leftStats', i, 'color'], v)} placeholder="#ec6d13" />
+          </SubCard>
+        ))}
+      </div>
+      <FieldText label="Título panel derecho" value={draft.rightTitle} onChange={(v) => setField('rightTitle', v)} placeholder="El rastro de la fibra" />
+      <FieldArea label="Cuerpo panel derecho" value={draft.rightBody} onChange={(v) => setField('rightBody', v)} rows={3} />
+    </div>
+  );
+}
+
 export function RawJsonForm({
   draft, onChange,
 }: {
@@ -594,6 +635,8 @@ export function renderSectionForm(
     case 'home_hero_carousel': return <HomeHeroCarouselForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />;
     case 'content_pick':       return <ContentPickForm draft={draft} setField={setField} />;
     case 'embedded_widget':    return <EmbeddedWidgetForm draft={draft} setField={setField} />;
+    case 'territorios_hero':   return <TerritoriosHeroForm draft={draft} setField={setField} setNested={setNested} />;
+    case 'territorios_dark_quote': return <TerritoriosDarkQuoteForm draft={draft} setField={setField} setNested={setNested} />;
     default:                   return <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); }} />;
   }
 }

@@ -61,6 +61,8 @@ import {
   ContentPickForm,
   HomeBlockForm,
   HomeHeroCarouselForm,
+  TerritoriosHeroForm,
+  TerritoriosDarkQuoteForm,
   RawJsonForm,
 } from '@/components/cms/SectionFormFields';
 
@@ -81,6 +83,7 @@ const PAGE_KEYS = [
   { key: 'tecnicas',    label: 'Página /tecnicas'              },
   { key: 'home',        label: 'Página / (homepage)'           },
   { key: 'colecciones', label: 'Página /colecciones (índice)'  },
+  { key: 'territorios', label: 'Página /territorios'           },
 ];
 
 const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
@@ -99,6 +102,8 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'home_hero_carousel',   label: 'Home — Hero Carousel (slides editables)'               },
   { value: 'content_pick',         label: 'Content Pick (banner/card que apunta a blog/colección)'},
   { value: 'embedded_widget',      label: 'Embedded Widget (categorías, productos, taller…)'      },
+  { value: 'territorios_hero',     label: 'Territorios — Hero (kicker + título + cita + stats)'   },
+  { value: 'territorios_dark_quote', label: 'Territorios — Cita oscura (quote + stats + panel)'   },
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -161,6 +166,24 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
       return { slot: '', targetType: 'collection', slug: '', label: '', ctaLabel: '', variant: 'banner', overrideTitle: '', overrideExcerpt: '', overrideImageUrl: '' };
     case 'embedded_widget':
       return { widget: 'categories_grid', kicker: '', title: '', subtitle: '', ctaLabel: '', ctaHref: '' };
+    case 'territorios_hero':
+      return {
+        kicker: '', title: '', body: '',
+        stats: [
+          { value: '', label: '' },
+          { value: '', label: '' },
+          { value: '', label: '' },
+        ],
+      };
+    case 'territorios_dark_quote':
+      return {
+        quote: '',
+        leftStats: [
+          { value: '', caption: '', color: '#ec6d13' },
+          { value: '', caption: '', color: '#ba1a1a' },
+        ],
+        rightTitle: '', rightBody: '',
+      };
     default:
       return {};
   }
@@ -525,9 +548,12 @@ function SectionCard({
             {section.type === 'home_hero_carousel' && <HomeHeroCarouselForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />}
             {section.type === 'content_pick'       && <ContentPickForm draft={draft} setField={setField} />}
             {section.type === 'embedded_widget'    && <EmbeddedWidgetForm draft={draft} setField={setField} />}
+            {section.type === 'territorios_hero'   && <TerritoriosHeroForm draft={draft} setField={setField} setNested={setNested} />}
+            {section.type === 'territorios_dark_quote' && <TerritoriosDarkQuoteForm draft={draft} setField={setField} setNested={setNested} />}
             {!['hero','quote','two_column_intro','technique_grid','featured_aside_card','metrics_stat',
                'muestra_intro','archive_label','editorial_footer','home_value_props','home_section_header',
-               'home_block','home_hero_carousel','content_pick','embedded_widget'].includes(section.type) && (
+               'home_block','home_hero_carousel','content_pick','embedded_widget',
+               'territorios_hero','territorios_dark_quote'].includes(section.type) && (
               <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); setDirty(true); }} />
             )}
 

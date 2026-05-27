@@ -700,6 +700,132 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
+    case 'territorios_hero': {
+      const stats: any[] = Array.isArray(p.stats) ? p.stats : [];
+      return (
+        <section className="px-8 pt-24 pb-12 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
+          <div className="md:col-span-8">
+            {p.kicker && (
+              <span
+                className="text-sm tracking-[0.3em] uppercase mb-6 block font-sans font-bold"
+                style={{ color: '#ec6d13' }}
+              >
+                {p.kicker}
+              </span>
+            )}
+            {p.title && (
+              <h1
+                className="text-6xl md:text-8xl font-serif font-bold leading-tight mb-8"
+                style={{ letterSpacing: '-0.02em', color: '#1b1c19' }}
+              >
+                {p.title}
+              </h1>
+            )}
+            {p.body && (
+              <p
+                className="text-xl md:text-2xl font-serif italic max-w-2xl leading-relaxed"
+                style={{ color: '#584237' }}
+              >
+                {p.body}
+              </p>
+            )}
+          </div>
+          {stats.length > 0 && (
+            <div className="md:col-span-4 flex flex-col justify-end items-start md:items-end text-left md:text-right space-y-4">
+              {stats.map((s, i) => (
+                <div key={i}>
+                  <span className="block text-4xl font-serif" style={{ color: '#ec6d13' }}>
+                    {s.value}
+                  </span>
+                  <span
+                    className="text-xs tracking-widest uppercase font-sans"
+                    style={{ color: '#584237' }}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    case 'territorios_dark_quote': {
+      const leftStats: any[] = Array.isArray(p.leftStats) ? p.leftStats : [];
+      return (
+        <section className="py-32" style={{ backgroundColor: '#1b1c19', color: '#e4e2dd' }}>
+          <div className="max-w-[1400px] mx-auto px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
+              <div className="space-y-12">
+                {p.quote && (
+                  <div className="max-w-md">
+                    <span className="text-4xl mb-6 block" style={{ color: '#ec6d13' }}>"</span>
+                    <p className="text-3xl font-serif leading-snug mb-6">{p.quote}</p>
+                    <div className="w-16 h-[2px]" style={{ backgroundColor: '#ec6d13' }} />
+                  </div>
+                )}
+                {leftStats.length > 0 && (
+                  <div className="grid grid-cols-2 gap-8">
+                    {leftStats.map((s, i) => (
+                      <div
+                        key={i}
+                        className="p-8 border rounded-lg"
+                        style={{ borderColor: 'rgba(228,226,221,0.1)' }}
+                      >
+                        <span
+                          className="block text-5xl font-serif mb-2"
+                          style={{ color: s.color || '#ec6d13' }}
+                        >
+                          {s.value}
+                        </span>
+                        <p className="text-xs uppercase tracking-widest opacity-60 font-sans">
+                          {s.caption}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="relative aspect-video md:aspect-square rounded-xl overflow-hidden flex items-center justify-center p-12"
+                style={{ backgroundColor: 'rgba(228,226,221,0.05)' }}
+              >
+                <div
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+                    backgroundSize: '40px 40px',
+                  }}
+                />
+                <div className="relative z-10 text-center">
+                  {p.rightTitle && (
+                    <h4 className="text-4xl font-serif mb-6" style={{ color: '#f9f7f2' }}>
+                      {p.rightTitle}
+                    </h4>
+                  )}
+                  {p.rightBody && (
+                    <p
+                      className="max-w-sm mx-auto leading-relaxed italic"
+                      style={{ color: 'rgba(228,226,221,0.7)' }}
+                    >
+                      {p.rightBody}
+                    </p>
+                  )}
+                  <div className="mt-12 flex justify-center gap-4">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ec6d13' }} />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(236,109,19,0.4)' }} />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(236,109,19,0.2)' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
     default:
       return null;
   }

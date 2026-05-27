@@ -589,6 +589,18 @@ function App() {
                             }
                           />
 
+                          {/* DEV-only: preview del dashboard de envíos sin guard */}
+                          {import.meta.env.DEV && (
+                            <Route
+                              path="/_dev/envios"
+                              element={
+                                <Suspense fallback={<BackofficePageSkeleton />}>
+                                  <ShippingDashboardPage_lazy />
+                                </Suspense>
+                              }
+                            />
+                          )}
+
                           {/* Rutas protegidas del backoffice con layout unificado */}
                           <Route element={<BackofficeProtectedRoute />}>
                             <Route element={<BackofficeLayout />}>
