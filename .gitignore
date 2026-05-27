@@ -1,4 +1,9 @@
 # ============================================================
+# Superpowers brainstorming sessions
+# ============================================================
+.superpowers/
+
+# ============================================================
 # Environment Variables
 # ============================================================
 .env
@@ -175,6 +180,9 @@ temp/
 credentials.json
 secrets.json
 serviceAccountKey.json
+
+# Claude Code — local settings (may contain credentials, never commit)
+**/.claude/settings.local.json
 
 # ============================================================
 # Build Tools
