@@ -14,6 +14,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Footer } from '@/components/Footer';
 import { PageRenderer } from '@/components/cms/PageRenderer';
+import { FALLBACK_HOME_SECTIONS } from '@/datafallback/fallbackHome';
 
 export default function Index() {
   return (
@@ -27,7 +28,7 @@ export default function Index() {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
-        <PageRenderer pageKey="home" />
+        <PageRenderer pageKey="home" fallback={FALLBACK_HOME_SECTIONS} />
         <Footer />
       </div>
     </>

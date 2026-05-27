@@ -35,10 +35,26 @@ export interface CmsSection {
 export const getCmsSections = async (
   pageKey: string,
 ): Promise<CmsSection[]> => {
-  const res = await telarApiPublic.get<{ data: CmsSection[] }>(
-    `/cms/sections`,
-    { params: { pageKey } },
-  );
-  const list = res.data?.data ?? [];
-  return [...list].sort((a, b) => a.position - b.position);
+  try {
+    const res = await telarApiPublic.get<{ data: CmsSection[] }>(
+      `/cms/sections`,
+      { params: { pageKey } },
+    );
+    const list = res.data?.data ?? [];
+    if (list.length === 0) {
+      console.warn(
+        `[cms] /cms/sections?pageKey=${pageKey} respondió 200 pero data está vacía. ` +
+          `¿Corriste \`npm run cms:seed\` en apps/api?`,
+      );
+    }
+    return [...list].sort((a, b) => a.position - b.position);
+  } catch (err: any) {
+    console.error(
+      `[cms] Error consultando /cms/sections?pageKey=${pageKey}:`,
+      err?.message ?? err,
+      err?.code ? `(code=${err.code})` : '',
+      err?.config?.baseURL ? `baseURL=${err.config.baseURL}` : '',
+    );
+    return [];
+  }
 };

@@ -47,7 +47,7 @@ export interface TerritoryDoc {
 
 export type TerritoryDocument = TerritoryDoc & Document;
 
-export const TerritorySchema = new MongooseSchema<TerritoryDocument>(
+export const TerritorySchema = new MongooseSchema(
   {
     slug: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },

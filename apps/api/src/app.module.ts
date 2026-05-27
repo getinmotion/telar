@@ -172,6 +172,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
     CmsSectionsModule,
     BlogPostsModule,
     CollectionsModule,
+    CmsTerritoriesModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,
