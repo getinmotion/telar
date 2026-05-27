@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { getTaxonomySummary, getPendingTaxonomies, type TaxonomyType } from '@/services/taxonomy.actions';
+import { AlertTriangle, CheckCircle2, Clock, XCircle, Package, User } from 'lucide-react';
+import { getTaxonomySummary, getPendingTaxonomies, getAllTaxonomyItems, type TaxonomyType } from '@/services/taxonomy.actions';
 import { getAllCategories } from '@/services/categories.actions';
 import { getBadges } from '@/services/badges.actions';
 import { getCuratorialCategories } from '@/services/curatorial-categories.actions';
@@ -30,10 +30,14 @@ const TYPE_COLORS: Record<TaxonomyType, string> = {
 
 interface ExtraCount { label: string; total: number; color: string }
 
+// Types where "usage" = product count; others = artisan count
+const ARTISAN_COUNT_TYPES: TaxonomyType[] = ['styles', 'herramientas'];
+
 export function TaxonomyResumenTab() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [pendingTotal, setPendingTotal] = useState(0);
   const [extras, setExtras] = useState<ExtraCount[]>([]);
+  const [coverage, setCoverage] = useState<Partial<Record<TaxonomyType, number>>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -56,6 +60,19 @@ export function TaxonomyResumenTab() {
       if (curatR.status === 'fulfilled') extrasList.push({ label: 'Cat. Curatoriales', total: curatR.value.length, color: '#b45309' });
       setExtras(extrasList);
     }).finally(() => setLoading(false));
+
+    const types: TaxonomyType[] = ['crafts', 'techniques', 'materials', 'styles', 'herramientas'];
+    Promise.allSettled(
+      types.map((t) => getAllTaxonomyItems(t, { withProductCount: true }))
+    ).then((results) => {
+      const map: Partial<Record<TaxonomyType, number>> = {};
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          map[types[i]] = r.value.filter((x) => ((x.productCount ?? 0) + (x.artisanCount ?? 0)) > 0).length;
+        }
+      });
+      setCoverage(map);
+    });
   }, []);
 
   const totalTerms = summary
@@ -150,6 +167,14 @@ export function TaxonomyResumenTab() {
                   <KpiItem icon={<CheckCircle2 size={16} color="#15803d" />} label={`${data.approved} aprob.`} />
                   <KpiItem icon={<Clock size={16} color={ORANGE} />} label={`${data.pending} pend.`} />
                   <KpiItem icon={<XCircle size={16} color="#dc2626" />} label={`${data.rejected} recl.`} />
+                  {coverage[type] !== undefined && (
+                    <KpiItem
+                      icon={ARTISAN_COUNT_TYPES.includes(type)
+                        ? <User size={14} color="#6b7280" />
+                        : <Package size={14} color="#6b7280" />}
+                      label={`${coverage[type]} en uso`}
+                    />
+                  )}
                 </div>
               )}
             </div>

@@ -81,8 +81,11 @@ export type GranularRole = typeof GRANULAR_ROLES[number];
 export function useBackofficeAccess() {
   const { user, isAuthenticated } = useAuthStore();
 
-  const jwtRoles: string[] = (user as any)?.roles ?? [];
-  const isSuperAdmin = user?.isSuperAdmin === true;
+  const rawRoles: string[] = (user as any)?.roles ?? [];
+  // Fallback: legacy sessions store a single `role` string instead of a `roles` array
+  const legacyRole: string = (user as any)?.role ?? '';
+  const jwtRoles: string[] = rawRoles.length > 0 ? rawRoles : (legacyRole ? [legacyRole] : []);
+  const isSuperAdmin = user?.isSuperAdmin === true || legacyRole === 'super_admin';
   const isAdmin = isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('admin_global');
   const isModerator =
     isSuperAdmin ||

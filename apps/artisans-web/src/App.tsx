@@ -592,12 +592,12 @@ function App() {
                           {/* Rutas protegidas del backoffice con layout unificado */}
                           <Route element={<BackofficeProtectedRoute />}>
                             <Route element={<BackofficeLayout />}>
-                              {/* Redirect /backoffice → /backoffice/home */}
+                              {/* Redirect /backoffice → /backoffice/dashboard */}
                               <Route
                                 index
                                 path="/backoffice"
                                 element={
-                                  <Navigate to="/backoffice/home" replace />
+                                  <Navigate to="/backoffice/dashboard" replace />
                                 }
                               />
 

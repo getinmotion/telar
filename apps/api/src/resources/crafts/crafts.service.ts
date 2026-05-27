@@ -9,6 +9,7 @@ import { ILike, Repository } from 'typeorm';
 import { Craft, ApprovalStatus } from './entities/craft.entity';
 import { CreateCraftDto } from './dto/create-craft.dto';
 import { UpdateCraftDto } from './dto/update-craft.dto';
+import { ProductArtisanalIdentity } from '../products-new/entities/product-artisanal-identity.entity';
 
 @Injectable()
 export class CraftsService {
@@ -40,6 +41,25 @@ export class CraftsService {
     if (suggestedBy) where.suggestedBy = suggestedBy;
     if (search) where.name = ILike(`%${search}%`);
     return this.craftsRepository.find({ where, order: { name: 'ASC' } });
+  }
+
+  async findAllWithProductCount(): Promise<Array<Craft & { productCount: number }>> {
+    const [items, countRows] = await Promise.all([
+      this.craftsRepository.find({ order: { name: 'ASC' } }),
+      this.craftsRepository
+        .createQueryBuilder('c')
+        .leftJoin(
+          ProductArtisanalIdentity,
+          'pai',
+          'pai.primary_craft_id = c.id AND pai.deleted_at IS NULL',
+        )
+        .select('c.id', 'id')
+        .addSelect('COUNT(DISTINCT pai.product_id)::int', 'productCount')
+        .groupBy('c.id')
+        .getRawMany<{ id: string; productCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.productCount) || 0]));
+    return items.map((item) => ({ ...item, productCount: countMap.get(item.id) ?? 0 }));
   }
 
   /**

@@ -31,6 +31,21 @@ export class TaxonomyStylesService {
     return this.stylesRepo.find({ where, order: { name: 'ASC' } });
   }
 
+  async findAllWithArtisanCount(): Promise<Array<Style & { artisanCount: number }>> {
+    const [items, countRows] = await Promise.all([
+      this.stylesRepo.find({ order: { name: 'ASC' } }),
+      this.stylesRepo
+        .createQueryBuilder('s')
+        .leftJoin('artesanos.artisan_styles', 'as_', 'as_.style_id = s.id')
+        .select('s.id', 'id')
+        .addSelect('COUNT(DISTINCT as_.artisan_id)::int', 'artisanCount')
+        .groupBy('s.id')
+        .getRawMany<{ id: string; artisanCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.artisanCount) || 0]));
+    return items.map((item) => ({ ...item, artisanCount: countMap.get(item.id) ?? 0 }));
+  }
+
   async findOne(id: string): Promise<Style> {
     if (!id) throw new BadRequestException('El ID es requerido');
     const style = await this.stylesRepo.findOne({ where: { id } });

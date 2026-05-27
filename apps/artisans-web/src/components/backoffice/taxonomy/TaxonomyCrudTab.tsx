@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Package, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ import {
   deleteTaxonomyItem,
   type TaxonomyType,
   type TaxonomyItemAdmin,
+  type TaxonomyItemWithCount,
 } from '@/services/taxonomy.actions';
 import {
   getCuratorialCategories,
@@ -32,9 +33,36 @@ interface Props {
   label: string;
 }
 
-type AnyItem = TaxonomyItemAdmin | CuratorialCategory;
+type AnyItem = TaxonomyItemWithCount | CuratorialCategory;
 
 const GREEN = '#15803d';
+
+// Tipos que muestran conteo de productos (via product_artisanal_identity o product_materials_link)
+const PRODUCT_COUNT_TYPES: TabType[] = ['crafts', 'materials', 'techniques'];
+// Tipos que muestran conteo de artesanos (via artisan_styles / artisan_herramientas)
+const ARTISAN_COUNT_TYPES: TabType[] = ['styles', 'herramientas'];
+
+function UsagePill({ count, isArtisan }: { count: number; isArtisan: boolean }) {
+  const hasUse = count > 0;
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      padding: '2px 8px',
+      borderRadius: 20,
+      fontSize: 12,
+      fontWeight: 600,
+      background: hasUse ? 'rgba(21,128,61,0.1)' : 'rgba(0,0,0,0.04)',
+      color: hasUse ? GREEN : '#9ca3af',
+    }}>
+      {isArtisan
+        ? <User size={11} />
+        : <Package size={11} />}
+      {count}
+    </span>
+  );
+}
 
 export function TaxonomyCrudTab({ type, label }: Props) {
   const { toast } = useToast();
@@ -50,6 +78,10 @@ export function TaxonomyCrudTab({ type, label }: Props) {
 
   const isCuratorial = type === 'curatorial';
   const hasCraftsCategory = type === 'crafts';
+  const showProductCount = PRODUCT_COUNT_TYPES.includes(type);
+  const showArtisanCount = ARTISAN_COUNT_TYPES.includes(type);
+  const showCount = showProductCount || showArtisanCount;
+  const countLabel = showArtisanCount ? 'Artesanos' : 'Productos';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +93,7 @@ export function TaxonomyCrudTab({ type, label }: Props) {
         const data = await getAllTaxonomyItems(type as TaxonomyType, {
           search: search || undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
+          withProductCount: showCount,
         });
         setItems(data);
       }
@@ -69,7 +102,7 @@ export function TaxonomyCrudTab({ type, label }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [type, search, statusFilter, isCuratorial, toast]);
+  }, [type, search, statusFilter, isCuratorial, showCount, toast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -134,6 +167,18 @@ export function TaxonomyCrudTab({ type, label }: Props) {
     ? filteredItems.filter((x) => x.name.toLowerCase().includes(search.toLowerCase()))
     : filteredItems;
 
+  const getUsageCount = (item: AnyItem): number | undefined => {
+    const i = item as TaxonomyItemWithCount;
+    if (showProductCount) return i.productCount;
+    if (showArtisanCount) return i.artisanCount;
+    return undefined;
+  };
+
+  // Extra column count for colSpan calculations
+  const extraCols = (showCount ? 1 : 0) + (hasCraftsCategory ? 1 : 0) + (type === 'materials' ? 2 : 0);
+  const baseColSpan = isCuratorial ? 2 : 3; // name + (status) + date
+  const totalColSpan = baseColSpan + extraCols + 1; // +1 for actions
+
   return (
     <div>
       {/* Toolbar */}
@@ -177,11 +222,17 @@ export function TaxonomyCrudTab({ type, label }: Props) {
               {!isCuratorial && (
                 <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Estado</TableHead>
               )}
+              {hasCraftsCategory && (
+                <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Categoría</TableHead>
+              )}
               {type === 'materials' && (
                 <>
                   <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Org.</TableHead>
                   <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Sost.</TableHead>
                 </>
+              )}
+              {showCount && (
+                <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>{countLabel}</TableHead>
               )}
               <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Creado</TableHead>
               <TableHead style={{ width: 80 }} />
@@ -190,19 +241,23 @@ export function TaxonomyCrudTab({ type, label }: Props) {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>
+                <TableCell colSpan={totalColSpan} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>
                   Cargando…
                 </TableCell>
               </TableRow>
             ) : displayItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>
+                <TableCell colSpan={totalColSpan} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>
                   No hay {label.toLowerCase()} {search ? `con "${search}"` : ''}
                 </TableCell>
               </TableRow>
             ) : (
               displayItems.map((item) => {
-                const taxItem = item as TaxonomyItemAdmin;
+                const taxItem = item as TaxonomyItemWithCount;
+                const usageCount = getUsageCount(item);
+                const categoryName = hasCraftsCategory && taxItem.categoryId
+                  ? categories.find((c) => c.id === taxItem.categoryId)?.name ?? '—'
+                  : null;
                 return (
                   <TableRow key={item.id}>
                     <TableCell style={{ fontWeight: 500 }}>{item.name}</TableCell>
@@ -211,11 +266,23 @@ export function TaxonomyCrudTab({ type, label }: Props) {
                         <TaxonomyStatusBadge status={taxItem.status ?? 'approved'} />
                       </TableCell>
                     )}
+                    {hasCraftsCategory && (
+                      <TableCell style={{ color: '#6b7280', fontSize: 13 }}>
+                        {categoryName ?? '—'}
+                      </TableCell>
+                    )}
                     {type === 'materials' && (
                       <>
                         <TableCell>{taxItem.isOrganic ? '✓' : '—'}</TableCell>
                         <TableCell>{taxItem.isSustainable ? '✓' : '—'}</TableCell>
                       </>
+                    )}
+                    {showCount && (
+                      <TableCell>
+                        {usageCount !== undefined
+                          ? <UsagePill count={usageCount} isArtisan={showArtisanCount} />
+                          : <span style={{ color: '#9ca3af', fontSize: 12 }}>—</span>}
+                      </TableCell>
                     )}
                     <TableCell style={{ color: '#9ca3af', fontSize: 13 }}>
                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-CL') : '—'}
@@ -267,6 +334,8 @@ export function TaxonomyCrudTab({ type, label }: Props) {
       <TaxonomyDeleteConfirm
         open={!!deleteTarget}
         itemName={deleteTarget?.name ?? ''}
+        usageCount={deleteTarget ? getUsageCount(deleteTarget) : undefined}
+        countLabel={countLabel}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}

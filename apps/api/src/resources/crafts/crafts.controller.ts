@@ -37,10 +37,12 @@ export class CraftsController {
 
   @Get()
   findAll(
+    @Query('withProductCount') withProductCount?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('suggestedBy') suggestedBy?: string,
   ) {
+    if (withProductCount === 'true') return this.craftsService.findAllWithProductCount();
     return this.craftsService.findAll(search, status, suggestedBy);
   }
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,6 +11,7 @@ import {
   updateTaxonomyItem,
   deleteTaxonomyItem,
   type TaxonomyItemAdmin,
+  type TaxonomyItemWithCount,
 } from '@/services/taxonomy.actions';
 import { TaxonomyStatusBadge } from './TaxonomyStatusBadge';
 import { TaxonomyDeleteConfirm } from './TaxonomyDeleteConfirm';
@@ -23,7 +24,7 @@ export function TaxonomyTecnicasTab() {
   const [crafts, setCrafts] = useState<TaxonomyItemAdmin[]>([]);
   const [selectedCraftId, setSelectedCraftId] = useState<string>('');
   const [loadingCrafts, setLoadingCrafts] = useState(true);
-  const [items, setItems] = useState<TaxonomyItemAdmin[]>([]);
+  const [items, setItems] = useState<TaxonomyItemWithCount[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -47,6 +48,7 @@ export function TaxonomyTecnicasTab() {
         craftId: selectedCraftId,
         search: search || undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
+        withProductCount: true,
       });
       setItems(data);
     } catch {
@@ -171,20 +173,37 @@ export function TaxonomyTecnicasTab() {
                 <TableRow style={{ background: 'rgba(21,128,61,0.06)' }}>
                   <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Nombre</TableHead>
                   <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Estado</TableHead>
+                  <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Productos</TableHead>
                   <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Creado</TableHead>
                   <TableHead style={{ width: 80 }} />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={4} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Cargando…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Cargando…</TableCell></TableRow>
                 ) : items.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Sin técnicas{search ? ` con "${search}"` : ` para ${selectedCraft?.name}`}</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Sin técnicas{search ? ` con "${search}"` : ` para ${selectedCraft?.name}`}</TableCell></TableRow>
                 ) : (
                   items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell style={{ fontWeight: 500 }}>{item.name}</TableCell>
                       <TableCell><TaxonomyStatusBadge status={item.status} /></TableCell>
+                      <TableCell>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 8px',
+                          borderRadius: 20,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: (item.productCount ?? 0) > 0 ? 'rgba(21,128,61,0.1)' : 'rgba(0,0,0,0.04)',
+                          color: (item.productCount ?? 0) > 0 ? GREEN : '#9ca3af',
+                        }}>
+                          <Package size={11} />
+                          {item.productCount ?? 0}
+                        </span>
+                      </TableCell>
                       <TableCell style={{ color: '#9ca3af', fontSize: 13 }}>
                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-CL') : '—'}
                       </TableCell>
@@ -217,6 +236,8 @@ export function TaxonomyTecnicasTab() {
       <TaxonomyDeleteConfirm
         open={!!deleteTarget}
         itemName={deleteTarget?.name ?? ''}
+        usageCount={deleteTarget?.productCount}
+        countLabel="Productos"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}
