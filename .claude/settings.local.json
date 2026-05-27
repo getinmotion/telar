@@ -19,7 +19,8 @@
       "Bash(npx --prefix apps/artisans-web tsc --noEmit)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/territorios)",
       "Bash(PGPASSWORD='Getinmotion2025*' psql -h 52.7.98.126 -p 5432 -U postgres -d getinmotion -c \"SELECT id, email, is_super_admin FROM auth.users WHERE email = 'nicolas@getinmotion.io';\")",
-      "Bash(PGPASSWORD='Getinmotion2025*' psql -h 52.7.98.126 -p 5432 -U postgres -d getinmotion -c \"UPDATE auth.users SET is_super_admin = true WHERE email = 'nicolas@getinmotion.io'; SELECT id, email, is_super_admin FROM auth.users WHERE email = 'nicolas@getinmotion.io';\")"
+      "Bash(PGPASSWORD='Getinmotion2025*' psql -h 52.7.98.126 -p 5432 -U postgres -d getinmotion -c \"UPDATE auth.users SET is_super_admin = true WHERE email = 'nicolas@getinmotion.io'; SELECT id, email, is_super_admin FROM auth.users WHERE email = 'nicolas@getinmotion.io';\")",
+      "Bash(git fetch *)"
     ]
   }
 }
