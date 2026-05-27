@@ -134,7 +134,8 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
         </div>
       ) : (
         <>
-          <table className="w-full text-left">
+          <div className="overflow-x-auto -mx-1">
+          <table className="w-full text-left min-w-[520px]">
             <thead style={{ borderBottom: '1px solid rgba(21,27,45,0.04)' }}>
               <tr>
                 {['', 'Nombre', 'Estado', 'Precio', 'Stock', 'Acción'].map((h, i) => (
@@ -198,6 +199,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
               })}
             </tbody>
           </table>
+          </div>
           {products.length > 8 && (
             <div className="pt-6 text-center">
               <button

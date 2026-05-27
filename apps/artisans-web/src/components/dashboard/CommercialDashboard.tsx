@@ -492,7 +492,7 @@ export const CommercialDashboard: React.FC = () => {
 
             {/* Header sticky */}
             <header
-              className="sticky top-0 z-30 px-12 pt-4 pb-3 grid items-center"
+              className="sticky top-0 z-30 px-4 md:px-12 pt-4 pb-3 flex flex-col md:grid md:items-center gap-2 md:gap-0"
               style={{ gridTemplateColumns: '1fr auto 1fr' }}
             >
               <div className="flex items-center gap-3">
@@ -579,7 +579,7 @@ export const CommercialDashboard: React.FC = () => {
 
             {/* Main */}
             <main
-              className="flex-1 overflow-y-auto px-12 pb-20"
+              className="flex-1 overflow-y-auto px-4 md:px-12 pb-20"
               style={{ overscrollBehavior: 'contain' }}
             >
               <div className="max-w-[1300px] mx-auto pt-8">
@@ -635,7 +635,7 @@ export const CommercialDashboard: React.FC = () => {
                     {isActivated && !isMarketplaceLive ? (
                       /* ── "En revisión" slider ── same shell as the nextCard section */
                       <section
-                        className="p-10 rounded-3xl flex flex-col md:flex-row gap-10 items-center relative overflow-hidden"
+                        className="p-6 md:p-10 rounded-3xl flex flex-col md:flex-row gap-6 md:gap-10 items-center relative overflow-hidden"
                         style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
                       >
                         <div className="flex-1 relative z-10">
@@ -695,7 +695,7 @@ export const CommercialDashboard: React.FC = () => {
                     ) : (
                       /* ── Static nextCard for all other states ── */
                       <section
-                        className="p-10 rounded-3xl flex flex-col md:flex-row gap-10 items-center relative overflow-hidden"
+                        className="p-6 md:p-10 rounded-3xl flex flex-col md:flex-row gap-6 md:gap-10 items-center relative overflow-hidden"
                         style={{ background: nextCard.bg, border: `1px solid ${nextCard.accentColor}20` }}
                       >
                         <div className="flex-1 relative z-10">
@@ -746,7 +746,7 @@ export const CommercialDashboard: React.FC = () => {
                     )}
 
                     {/* Checklist card */}
-                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-10">
+                    <div style={{ ...glassPrimary, borderRadius: 32 }} className="p-6 md:p-10">
                       <div className="flex items-start gap-4 mb-8 flex-wrap">
                         <h2 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 700, color: '#151b2d', lineHeight: 1.2, flex: 1 }}>
                           {isMarketplaceLive
@@ -1094,7 +1094,7 @@ export const CommercialDashboard: React.FC = () => {
 
                 {/* Mini footer */}
                 <footer
-                  className="flex items-center justify-between py-6 mt-8"
+                  className="flex flex-col md:flex-row items-center md:justify-between gap-1 md:gap-0 py-6 mt-8 text-center md:text-left"
                   style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
                 >
                   <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
