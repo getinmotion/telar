@@ -23,14 +23,13 @@ export const ModeratorProtectedRoute: React.FC<ModeratorProtectedRouteProps> = (
   }
 
   if (!user) {
-    // Redirigir al login correcto según el subdominio
-    const loginPath = isModerationSubdomain ? '/login' : '/login';
-    return <Navigate to={loginPath} state={{ from: location }} replace />;
+    // Sin sesión → manda al login de admin para que regrese aquí.
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   if (!isModerator) {
-    // Si no es moderador, redirigir según el contexto
-    const redirectPath = isModerationSubdomain ? '/login' : '/dashboard';
+    // Logueado pero sin permisos → al dashboard de su tienda.
+    const redirectPath = isModerationSubdomain ? '/admin/login' : '/dashboard';
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 

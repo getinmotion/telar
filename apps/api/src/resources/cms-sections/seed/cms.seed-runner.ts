@@ -21,11 +21,16 @@ import { CmsSection } from '../types/cms-section.types';
 import { tecnicasSeedSections } from './tecnicas.seed';
 import { homeSeedSections } from './home.seed';
 import { coleccionesSeedSections } from './colecciones.seed';
+import { territoriosSeedSections } from './territorios.seed';
+import { sobreTelarSeedSections } from './sobre-telar.seed';
+import { historiasSeedSections } from './historias.seed';
 import { contentPicksSeedSections } from './content-picks.seed';
 import { BlogPostsService } from '../../blog-posts/blog-posts.service';
 import { blogPostsSeed } from '../../blog-posts/seed/blog-posts.seed';
 import { CollectionsService } from '../../collections/collections.service';
 import { collectionsSeed } from '../../collections/seed/collections.seed';
+import { CmsTerritoriesService } from '../../cms-territories/cms-territories.service';
+import { cmsTerritoriesSeed } from '../../cms-territories/seed/cms-territories.seed';
 
 async function seedPage(
   svc: CmsSectionsService,
@@ -155,6 +160,57 @@ async function seedCollections(
   );
 }
 
+async function seedTerritories(
+  svc: CmsTerritoriesService,
+  skippedSlugs: Set<string>,
+  log: Logger,
+) {
+  let inserted = 0;
+  let skipped = 0;
+  let respected = 0;
+  for (const t of cmsTerritoriesSeed) {
+    if (skippedSlugs.has(t.slug)) {
+      log.log(`skip cms_territory slug=${t.slug} (curador lo borró)`);
+      respected += 1;
+      continue;
+    }
+    try {
+      await svc.findBySlug(t.slug, { allowDraft: true });
+      log.log(`skip cms_territory slug=${t.slug} (ya existe)`);
+      skipped += 1;
+    } catch {
+      await svc.create({
+        slug: t.slug,
+        name: t.name,
+        department: t.department,
+        region: t.region,
+        subtitle: t.subtitle,
+        description: t.description,
+        longDescription: t.longDescription,
+        culturalTitle: t.culturalTitle,
+        culturalQuote: t.culturalQuote,
+        ctaHeadline: t.ctaHeadline,
+        lat: t.lat ?? undefined,
+        lng: t.lng ?? undefined,
+        color: t.color ?? undefined,
+        markerSize: t.markerSize ?? undefined,
+        techniques: t.techniques ?? undefined,
+        featuredProductId: t.featuredProductId ?? undefined,
+        extraSections: t.extraSections,
+        status: t.status,
+        publishedAt: t.publishedAt ?? undefined,
+        keywords: t.keywords,
+        position: t.position,
+      });
+      log.log(`created cms_territory slug=${t.slug}`);
+      inserted += 1;
+    }
+  }
+  log.log(
+    `[cms_territories] Insertadas: ${inserted}, ya existentes: ${skipped}, respetadas (borradas): ${respected}`,
+  );
+}
+
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: ['error', 'warn', 'log'],
@@ -164,21 +220,26 @@ async function bootstrap() {
     const cmsSvc = app.get(CmsSectionsService);
     const blogSvc = app.get(BlogPostsService);
     const collectionsSvc = app.get(CollectionsService);
+    const territoriesSvc = app.get(CmsTerritoriesService);
     const skipsSvc = app.get(CmsSeedSkipsService);
 
     // Carga skips una vez para todo el seed.
-    const [skippedSections, skippedBlogs, skippedCollections] = await Promise.all([
+    const [skippedSections, skippedBlogs, skippedCollections, skippedTerritories] = await Promise.all([
       skipsSvc.listKeys('cms_page_section'),
       skipsSvc.listKeys('blog_post'),
       skipsSvc.listKeys('collection'),
+      skipsSvc.listKeys('cms_territory'),
     ]);
     log.log(
-      `Skips cargados: ${skippedSections.size} secciones, ${skippedBlogs.size} blog posts, ${skippedCollections.size} colecciones`,
+      `Skips cargados: ${skippedSections.size} secciones, ${skippedBlogs.size} blog posts, ${skippedCollections.size} colecciones, ${skippedTerritories.size} territorios`,
     );
 
     await seedPage(cmsSvc, 'tecnicas', tecnicasSeedSections, skippedSections, log);
     await seedPage(cmsSvc, 'home', homeSeedSections, skippedSections, log);
     await seedPage(cmsSvc, 'colecciones', coleccionesSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'territorios', territoriosSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'sobre-telar', sobreTelarSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'historias', historiasSeedSections, skippedSections, log);
 
     // content_picks pueden vivir en cualquier pageKey; agrupamos antes de sembrar
     const picksByPage = new Map<string, typeof contentPicksSeedSections>();
@@ -192,6 +253,7 @@ async function bootstrap() {
     }
     await seedBlogPosts(blogSvc, skippedBlogs, log);
     await seedCollections(collectionsSvc, skippedCollections, log);
+    await seedTerritories(territoriesSvc, skippedTerritories, log);
 
     log.log('Seed completo.');
   } finally {

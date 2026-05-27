@@ -73,6 +73,12 @@ const BackofficeTiendasPage_lazy = lazy(
 const BackofficePagosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficePagosPage"),
 );
+const BackofficePaymentsSvcPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficePaymentsSvcPage"),
+);
+const BackofficeTerritoriosPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeTerritoriosPage"),
+);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -589,6 +595,36 @@ function App() {
                             }
                           />
 
+                          {/* DEV-only: previews sin guard */}
+                          {import.meta.env.DEV && (
+                            <>
+                              <Route
+                                path="/_dev/envios"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <ShippingDashboardPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                              <Route
+                                path="/_dev/payments-svc"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <BackofficePaymentsSvcPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                              <Route
+                                path="/_dev/territorios"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <BackofficeTerritoriosPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                            </>
+                          )}
+
                           {/* Rutas protegidas del backoffice con layout unificado */}
                           <Route element={<BackofficeProtectedRoute />}>
                             <Route element={<BackofficeLayout />}>
@@ -877,6 +913,30 @@ function App() {
                                       fallback={<BackofficePageSkeleton />}
                                     >
                                       <BackofficePagosPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/pagos/payments-svc"
+                                element={
+                                  <BackofficeProtectedRoute section="pagos">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <BackofficePaymentsSvcPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/territorios"
+                                element={
+                                  <BackofficeProtectedRoute section="cms">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <BackofficeTerritoriosPage_lazy />
                                     </Suspense>
                                   </BackofficeProtectedRoute>
                                 }
