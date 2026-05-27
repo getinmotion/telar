@@ -63,6 +63,14 @@ import {
   HomeHeroCarouselForm,
   TerritoriosHeroForm,
   TerritoriosDarkQuoteForm,
+  AboutHeroForm,
+  AboutTwoColForm,
+  AboutWideBlockForm,
+  AboutCtaForm,
+  HistoriasHeroForm,
+  HistoriasStoryTypesGridForm,
+  HistoriasCapsuleQuoteForm,
+  HistoriasFinalCtaForm,
   RawJsonForm,
 } from '@/components/cms/SectionFormFields';
 
@@ -84,6 +92,8 @@ const PAGE_KEYS = [
   { key: 'home',        label: 'Página / (homepage)'           },
   { key: 'colecciones', label: 'Página /colecciones (índice)'  },
   { key: 'territorios', label: 'Página /territorios'           },
+  { key: 'sobre-telar', label: 'Página /sobre-telar'           },
+  { key: 'historias',   label: 'Página /historias'             },
 ];
 
 const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
@@ -104,6 +114,14 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'embedded_widget',      label: 'Embedded Widget (categorías, productos, taller…)'      },
   { value: 'territorios_hero',     label: 'Territorios — Hero (kicker + título + cita + stats)'   },
   { value: 'territorios_dark_quote', label: 'Territorios — Cita oscura (quote + stats + panel)'   },
+  { value: 'about_hero',           label: 'Sobre Telar — Hero (bg image + título 3 líneas)'        },
+  { value: 'about_two_col',        label: 'Sobre Telar — Bloque 2 columnas (texto + imagen)'       },
+  { value: 'about_wide_block',     label: 'Sobre Telar — Tarjeta ancha (Comercio justo)'           },
+  { value: 'about_cta',            label: 'Sobre Telar — CTA naranja (con dos botones)'            },
+  { value: 'historias_hero',           label: 'Historias — Hero centrado (kicker + título + cta)'    },
+  { value: 'historias_story_types_grid', label: 'Historias — Grid de 4 tarjetas (navegar archivo)' },
+  { value: 'historias_capsule_quote',  label: 'Historias — Cápsula de cita centrada'                 },
+  { value: 'historias_final_cta',      label: 'Historias — CTA final oscuro (N botones)'             },
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -183,6 +201,63 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
           { value: '', caption: '', color: '#ba1a1a' },
         ],
         rightTitle: '', rightBody: '',
+      };
+    case 'about_hero':
+      return {
+        bgImageUrl: '', bgImageAlt: '', bgObjectPosition: 'center 30%',
+        titleLineTop: '', titleLineItalic: '', titleLineBottom: '', body: '',
+      };
+    case 'about_two_col':
+      return {
+        imageSide: 'right',
+        iconName: 'Heart',
+        kicker: '',
+        titleLineTop: '', titleLineItalic: '',
+        intro: '',
+        paragraphs: ['', ''],
+        bullets: [],
+        outro: '',
+        imageUrl: '', imageAlt: '',
+        statValue: '', statLabel: '',
+        overlayKicker: '', overlayTitle: '',
+      };
+    case 'about_wide_block':
+      return {
+        iconName: 'TrendingUp',
+        kicker: '',
+        titleLineTop: '', titleLineItalic: '',
+        paragraphs: ['', ''],
+      };
+    case 'about_cta':
+      return {
+        titleLineTop: '', titleLineItalic: '', body: '',
+        ctas: [
+          { label: '', href: '', variant: 'secondary' },
+          { label: '', href: '', variant: 'outline' },
+        ],
+      };
+    case 'historias_hero':
+      return { kicker: '', title: '', body: '', ctaLabel: '', ctaHref: '' };
+    case 'historias_story_types_grid':
+      return {
+        kicker: '', title: '',
+        cards: [
+          { title: '', subtitle: '', href: '' },
+          { title: '', subtitle: '', href: '' },
+          { title: '', subtitle: '', href: '' },
+          { title: '', subtitle: '', href: '' },
+        ],
+      };
+    case 'historias_capsule_quote':
+      return { body: '' };
+    case 'historias_final_cta':
+      return {
+        kicker: '', titleLineTop: '', titleLineBottom: '',
+        ctas: [
+          { label: '', href: '', variant: 'primary' },
+          { label: '', href: '', variant: 'outline' },
+          { label: '', href: '', variant: 'outline' },
+        ],
       };
     default:
       return {};
@@ -550,10 +625,20 @@ function SectionCard({
             {section.type === 'embedded_widget'    && <EmbeddedWidgetForm draft={draft} setField={setField} />}
             {section.type === 'territorios_hero'   && <TerritoriosHeroForm draft={draft} setField={setField} setNested={setNested} />}
             {section.type === 'territorios_dark_quote' && <TerritoriosDarkQuoteForm draft={draft} setField={setField} setNested={setNested} />}
+            {section.type === 'about_hero'         && <AboutHeroForm draft={draft} setField={setField} />}
+            {section.type === 'about_two_col'      && <AboutTwoColForm draft={draft} setField={setField} setDraft={setDraft} />}
+            {section.type === 'about_wide_block'   && <AboutWideBlockForm draft={draft} setField={setField} setDraft={setDraft} />}
+            {section.type === 'about_cta'          && <AboutCtaForm draft={draft} setField={setField} setNested={setNested} />}
+            {section.type === 'historias_hero'     && <HistoriasHeroForm draft={draft} setField={setField} />}
+            {section.type === 'historias_story_types_grid' && <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />}
+            {section.type === 'historias_capsule_quote'    && <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />}
+            {section.type === 'historias_final_cta'        && <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />}
             {!['hero','quote','two_column_intro','technique_grid','featured_aside_card','metrics_stat',
                'muestra_intro','archive_label','editorial_footer','home_value_props','home_section_header',
                'home_block','home_hero_carousel','content_pick','embedded_widget',
-               'territorios_hero','territorios_dark_quote'].includes(section.type) && (
+               'territorios_hero','territorios_dark_quote',
+               'about_hero','about_two_col','about_wide_block','about_cta',
+               'historias_hero','historias_story_types_grid','historias_capsule_quote','historias_final_cta'].includes(section.type) && (
               <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); setDirty(true); }} />
             )}
 

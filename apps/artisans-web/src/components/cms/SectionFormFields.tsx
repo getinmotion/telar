@@ -582,6 +582,204 @@ export function TerritoriosDarkQuoteForm({ draft, setField, setNested }: any) {
   );
 }
 
+export function AboutHeroForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="URL imagen de fondo" value={draft.bgImageUrl} onChange={(v) => setField('bgImageUrl', v)} placeholder="https://..." />
+      <FieldText label="Alt imagen de fondo" value={draft.bgImageAlt} onChange={(v) => setField('bgImageAlt', v)} />
+      <FieldText label="Object position (CSS)" value={draft.bgObjectPosition} onChange={(v) => setField('bgObjectPosition', v)} placeholder="center 30%" />
+      <FieldText label="Título línea 1" value={draft.titleLineTop} onChange={(v) => setField('titleLineTop', v)} placeholder="TELAR ES EL" />
+      <FieldText label="Título línea 2 (itálica/naranja)" value={draft.titleLineItalic} onChange={(v) => setField('titleLineItalic', v)} placeholder="PUENTE DIGITAL" />
+      <FieldText label="Título línea 3 (opcional)" value={draft.titleLineBottom} onChange={(v) => setField('titleLineBottom', v)} placeholder="DE LA ARTESANÍA" />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={4} />
+    </div>
+  );
+}
+
+export function AboutTwoColForm({ draft, setField, setDraft }: any) {
+  const paragraphs: string[] = Array.isArray(draft.paragraphs) ? draft.paragraphs : [];
+  const bullets: string[] = Array.isArray(draft.bullets) ? draft.bullets : [];
+  const setArr = (key: 'paragraphs' | 'bullets', i: number, value: string) => {
+    setDraft((prev: any) => {
+      const next = { ...prev, [key]: [...(prev[key] ?? [])] };
+      next[key][i] = value;
+      return next;
+    });
+  };
+  const addItem = (key: 'paragraphs' | 'bullets') =>
+    setDraft((prev: any) => ({ ...prev, [key]: [...(prev[key] ?? []), ''] }));
+  const removeItem = (key: 'paragraphs' | 'bullets', i: number) =>
+    setDraft((prev: any) => ({ ...prev, [key]: (prev[key] ?? []).filter((_: any, idx: number) => idx !== i) }));
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <FieldText label="Lado de la imagen (left / right)" value={draft.imageSide} onChange={(v) => setField('imageSide', v)} placeholder="right" />
+        <FieldText label="Icono (Heart / TrendingUp / Sparkles)" value={draft.iconName} onChange={(v) => setField('iconName', v)} />
+      </div>
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Nuestro propósito" />
+      <FieldText label="Título línea 1" value={draft.titleLineTop} onChange={(v) => setField('titleLineTop', v)} />
+      <FieldText label="Título línea 2 (itálica)" value={draft.titleLineItalic} onChange={(v) => setField('titleLineItalic', v)} />
+      <FieldArea label="Intro (opcional, sale antes de bullets)" value={draft.intro} onChange={(v) => setField('intro', v)} rows={2} />
+
+      <div>
+        <label className="text-xs uppercase tracking-widest font-bold">Párrafos</label>
+        {paragraphs.map((para, i) => (
+          <div key={i} className="flex gap-2 items-start mt-2">
+            <Textarea rows={2} value={para} onChange={(e) => setArr('paragraphs', i, e.target.value)} className="flex-1" />
+            <button type="button" className="text-xs text-destructive" onClick={() => removeItem('paragraphs', i)}>×</button>
+          </div>
+        ))}
+        <button type="button" className="text-xs mt-2 underline" onClick={() => addItem('paragraphs')}>+ párrafo</button>
+      </div>
+
+      <div>
+        <label className="text-xs uppercase tracking-widest font-bold">Bullets (opcional)</label>
+        {bullets.map((b, i) => (
+          <div key={i} className="flex gap-2 items-start mt-2">
+            <input value={b} onChange={(e) => setArr('bullets', i, e.target.value)} className="flex-1 px-3 py-2 border rounded-md text-sm" />
+            <button type="button" className="text-xs text-destructive" onClick={() => removeItem('bullets', i)}>×</button>
+          </div>
+        ))}
+        <button type="button" className="text-xs mt-2 underline" onClick={() => addItem('bullets')}>+ bullet</button>
+      </div>
+
+      <FieldArea label="Outro (opcional, sale después de bullets)" value={draft.outro} onChange={(v) => setField('outro', v)} rows={2} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t">
+        <FieldText label="URL imagen" value={draft.imageUrl} onChange={(v) => setField('imageUrl', v)} />
+        <FieldText label="Alt imagen" value={draft.imageAlt} onChange={(v) => setField('imageAlt', v)} />
+        <FieldText label="Stat valor (overlay)" value={draft.statValue} onChange={(v) => setField('statValue', v)} placeholder="1.500+" />
+        <FieldText label="Stat label (overlay)" value={draft.statLabel} onChange={(v) => setField('statLabel', v)} placeholder="Artesanos conectados" />
+        <FieldText label="Overlay kicker (alt)" value={draft.overlayKicker} onChange={(v) => setField('overlayKicker', v)} />
+        <FieldText label="Overlay título itálica (alt)" value={draft.overlayTitle} onChange={(v) => setField('overlayTitle', v)} />
+      </div>
+    </div>
+  );
+}
+
+export function AboutWideBlockForm({ draft, setField, setDraft }: any) {
+  const paragraphs: string[] = Array.isArray(draft.paragraphs) ? draft.paragraphs : [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Icono (TrendingUp / Heart / Sparkles)" value={draft.iconName} onChange={(v) => setField('iconName', v)} />
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título línea 1" value={draft.titleLineTop} onChange={(v) => setField('titleLineTop', v)} />
+      <FieldText label="Título línea 2 (itálica)" value={draft.titleLineItalic} onChange={(v) => setField('titleLineItalic', v)} />
+      <div>
+        <label className="text-xs uppercase tracking-widest font-bold">Párrafos</label>
+        {paragraphs.map((para, i) => (
+          <div key={i} className="flex gap-2 items-start mt-2">
+            <Textarea rows={3} value={para} onChange={(e) => setDraft((prev: any) => {
+              const next = { ...prev, paragraphs: [...(prev.paragraphs ?? [])] };
+              next.paragraphs[i] = e.target.value;
+              return next;
+            })} className="flex-1" />
+            <button type="button" className="text-xs text-destructive" onClick={() => setDraft((prev: any) => ({ ...prev, paragraphs: (prev.paragraphs ?? []).filter((_: any, idx: number) => idx !== i) }))}>×</button>
+          </div>
+        ))}
+        <button type="button" className="text-xs mt-2 underline" onClick={() => setDraft((prev: any) => ({ ...prev, paragraphs: [...(prev.paragraphs ?? []), ''] }))}>+ párrafo</button>
+      </div>
+    </div>
+  );
+}
+
+export function AboutCtaForm({ draft, setField, setNested }: any) {
+  const ctas = draft.ctas ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Título línea 1" value={draft.titleLineTop} onChange={(v) => setField('titleLineTop', v)} />
+      <FieldText label="Título línea 2 (itálica)" value={draft.titleLineItalic} onChange={(v) => setField('titleLineItalic', v)} />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[0, 1].map((i) => (
+          <SubCard key={i}>
+            <SubCardLabel>CTA {i + 1}</SubCardLabel>
+            <FieldText label="Label" value={ctas[i]?.label ?? ''} onChange={(v) => setNested(['ctas', i, 'label'], v)} />
+            <FieldText label="Href" value={ctas[i]?.href ?? ''} onChange={(v) => setNested(['ctas', i, 'href'], v)} placeholder="/productos" />
+            <FieldText label="Variant (secondary / outline)" value={ctas[i]?.variant ?? ''} onChange={(v) => setNested(['ctas', i, 'variant'], v)} placeholder="secondary" />
+          </SubCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HistoriasHeroForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="El Telar Digital" />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Historias hechas a mano" />
+      <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={4} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <FieldText label="CTA label" value={draft.ctaLabel} onChange={(v) => setField('ctaLabel', v)} placeholder="Explorar historias" />
+        <FieldText label="CTA href" value={draft.ctaHref} onChange={(v) => setField('ctaHref', v)} placeholder="#featured" />
+      </div>
+    </div>
+  );
+}
+
+export function HistoriasStoryTypesGridForm({ draft, setField, setNested }: any) {
+  const cards = draft.cards ?? [];
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <SubCard key={i}>
+            <SubCardLabel>Card {i + 1}</SubCardLabel>
+            <FieldText label="Título" value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
+            <FieldText label="Subtítulo" value={cards[i]?.subtitle ?? ''} onChange={(v) => setNested(['cards', i, 'subtitle'], v)} />
+            <FieldText label="Href" value={cards[i]?.href ?? ''} onChange={(v) => setNested(['cards', i, 'href'], v)} placeholder="/tiendas" />
+          </SubCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HistoriasCapsuleQuoteForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldArea label="Cita" value={draft.body} onChange={(v) => setField('body', v)} rows={5} placeholder='"El oficio artesanal..."' />
+    </div>
+  );
+}
+
+export function HistoriasFinalCtaForm({ draft, setField, setNested, setDraft }: any) {
+  const ctas: any[] = Array.isArray(draft.ctas) ? draft.ctas : [];
+  const addCta = () =>
+    setDraft((prev: any) => ({ ...prev, ctas: [...(prev.ctas ?? []), { label: '', href: '', variant: 'outline' }] }));
+  const removeCta = (i: number) =>
+    setDraft((prev: any) => ({ ...prev, ctas: (prev.ctas ?? []).filter((_: any, idx: number) => idx !== i) }));
+
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Continúa el viaje" />
+      <FieldText label="Título línea 1" value={draft.titleLineTop} onChange={(v) => setField('titleLineTop', v)} />
+      <FieldText label="Título línea 2" value={draft.titleLineBottom} onChange={(v) => setField('titleLineBottom', v)} />
+      <div>
+        <label className="text-xs uppercase tracking-widest font-bold">CTAs</label>
+        <div className="space-y-3 mt-2">
+          {ctas.map((cta, i) => (
+            <SubCard key={i}>
+              <div className="flex items-center justify-between">
+                <SubCardLabel>CTA {i + 1}</SubCardLabel>
+                <button type="button" className="text-xs text-destructive" onClick={() => removeCta(i)}>× quitar</button>
+              </div>
+              <FieldText label="Label" value={cta.label ?? ''} onChange={(v) => setNested(['ctas', i, 'label'], v)} />
+              <FieldText label="Href" value={cta.href ?? ''} onChange={(v) => setNested(['ctas', i, 'href'], v)} />
+              <FieldText label="Variant (primary / outline)" value={cta.variant ?? ''} onChange={(v) => setNested(['ctas', i, 'variant'], v)} />
+            </SubCard>
+          ))}
+        </div>
+        <button type="button" className="text-xs mt-3 underline" onClick={addCta}>+ agregar CTA</button>
+      </div>
+    </div>
+  );
+}
+
 export function RawJsonForm({
   draft, onChange,
 }: {
@@ -637,6 +835,14 @@ export function renderSectionForm(
     case 'embedded_widget':    return <EmbeddedWidgetForm draft={draft} setField={setField} />;
     case 'territorios_hero':   return <TerritoriosHeroForm draft={draft} setField={setField} setNested={setNested} />;
     case 'territorios_dark_quote': return <TerritoriosDarkQuoteForm draft={draft} setField={setField} setNested={setNested} />;
+    case 'about_hero':         return <AboutHeroForm draft={draft} setField={setField} />;
+    case 'about_two_col':      return <AboutTwoColForm draft={draft} setField={setField} setDraft={setDraft} />;
+    case 'about_wide_block':   return <AboutWideBlockForm draft={draft} setField={setField} setDraft={setDraft} />;
+    case 'about_cta':          return <AboutCtaForm draft={draft} setField={setField} setNested={setNested} />;
+    case 'historias_hero':     return <HistoriasHeroForm draft={draft} setField={setField} />;
+    case 'historias_story_types_grid': return <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />;
+    case 'historias_capsule_quote':    return <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />;
+    case 'historias_final_cta':        return <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />;
     default:                   return <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); }} />;
   }
 }

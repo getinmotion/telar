@@ -24,21 +24,129 @@ import { formatCurrency } from "@/lib/currencyUtils";
 import { cn } from "@/lib/utils";
 import { FALLBACK_BLOG_POSTS } from "@/datafallback/fallbackBlogPosts";
 import type { BlogPost } from "@/services/blog-posts.actions";
-
-// ── Explore by story type ──────────────────────────
-const STORY_TYPES = [
-  { title: "Artesanos", subtitle: "Vida y Oficio", to: "/tiendas" },
-  { title: "Territorios", subtitle: "Contexto Cultural", to: "/territorios" },
-  { title: "Técnicas", subtitle: "Proceso y Conocimiento", to: "/tecnicas" },
-  { title: "Piezas", subtitle: "Origen de Objetos", to: "/productos" },
-];
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
+import type { CmsSection } from "@/services/cms-sections.actions";
 
 const PER_PAGE = 12;
+
+/* ── Fallback editorial — solo si CMS no responde ─────────────────── */
+const FALLBACK_HISTORIAS_SECTIONS: CmsSection[] = [
+  {
+    id: "fallback-hist-hero",
+    pageKey: "historias",
+    position: 0,
+    type: "historias_hero",
+    published: true,
+    payload: {
+      kicker: "El Telar Digital",
+      title: "Historias hechas a mano",
+      body: "Detrás de cada pieza hay una historia humana. Crónicas de origen, saberes ancestrales y los rostros que dan vida a la artesanía colombiana.",
+      ctaLabel: "Explorar historias",
+      ctaHref: "#featured",
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-hist-story-types",
+    pageKey: "historias",
+    position: 10,
+    type: "historias_story_types_grid",
+    published: true,
+    payload: {
+      kicker: "Navegar el archivo",
+      title: "Explorar por relato",
+      cards: [
+        { title: "Artesanos",   subtitle: "Vida y Oficio",          href: "/tiendas"     },
+        { title: "Territorios", subtitle: "Contexto Cultural",      href: "/territorios" },
+        { title: "Técnicas",    subtitle: "Proceso y Conocimiento", href: "/tecnicas"    },
+        { title: "Piezas",      subtitle: "Origen de Objetos",      href: "/productos"   },
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-hist-products-header",
+    pageKey: "historias",
+    position: 20,
+    type: "home_section_header",
+    published: true,
+    payload: {
+      slot: "historias_products",
+      kicker: "Del Relato al Objeto",
+      title: "Piezas que nacen de esta historia",
+      italicTitle: true,
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-hist-capsule",
+    pageKey: "historias",
+    position: 30,
+    type: "historias_capsule_quote",
+    published: true,
+    payload: {
+      body: '"El oficio artesanal no es nostalgia: es memoria viva que se reinventa con cada puntada, cada quema, cada trenzado."',
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-hist-discover-header",
+    pageKey: "historias",
+    position: 40,
+    type: "home_section_header",
+    published: true,
+    payload: {
+      slot: "historias_discover",
+      kicker: "Seguir leyendo",
+      title: "Relatos por descubrir",
+      italicTitle: true,
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-hist-final-cta",
+    pageKey: "historias",
+    position: 50,
+    type: "historias_final_cta",
+    published: true,
+    payload: {
+      kicker: "Continúa el viaje",
+      titleLineTop: "Cada pieza tiene una historia.",
+      titleLineBottom: "Cada historia, un territorio.",
+      ctas: [
+        { label: "Explorar piezas",  href: "/productos",   variant: "primary" },
+        { label: "Ver territorios",  href: "/territorios", variant: "outline" },
+        { label: "Conocer talleres", href: "/tiendas",     variant: "outline" },
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+];
 
 const Historias = () => {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useBlogPosts({ page, perPage: PER_PAGE });
   const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const { data: cmsSections } = useCmsSections("historias");
+  const sections =
+    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_HISTORIAS_SECTIONS;
+  const heroSection = sections.find((s) => s.type === "historias_hero");
+  const storyTypesSection = sections.find((s) => s.type === "historias_story_types_grid");
+  const productsHeaderSection = sections.find(
+    (s) => s.type === "home_section_header" && s.payload?.slot === "historias_products",
+  );
+  const capsuleSection = sections.find((s) => s.type === "historias_capsule_quote");
+  const discoverHeaderSection = sections.find(
+    (s) => s.type === "home_section_header" && s.payload?.slot === "historias_discover",
+  );
+  const finalCtaSection = sections.find((s) => s.type === "historias_final_cta");
 
   useEffect(() => {
     getProductsNew({ page: 1, limit: 8 })
@@ -75,30 +183,8 @@ const Historias = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
-        {/* HERO */}
-        <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-32 text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <span className="text-[10px] uppercase tracking-[0.4em] text-[#2c2c2c]/40 font-bold">
-              El Telar Digital
-            </span>
-            <h1 className="text-6xl md:text-8xl font-serif italic leading-[0.9] tracking-tight">
-              Historias hechas a mano
-            </h1>
-            <p className="text-xl md:text-2xl text-[#2c2c2c]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
-              Detrás de cada pieza hay una historia humana. Crónicas de origen,
-              saberes ancestrales y los rostros que dan vida a la artesanía
-              colombiana.
-            </p>
-            <div className="pt-4">
-              <a
-                href="#featured"
-                className="inline-block px-10 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#2c2c2c] transition-colors duration-300"
-              >
-                Explorar historias
-              </a>
-            </div>
-          </div>
-        </header>
+        {/* HERO (CMS) */}
+        {heroSection && <CmsSectionRenderer section={heroSection} />}
 
         {isLoading ? (
           <section className="max-w-[1400px] mx-auto px-6 pb-32 animate-pulse">
@@ -211,34 +297,8 @@ const Historias = () => {
               </div>
             </section>
 
-            {/* EXPLORAR POR RELATO */}
-            <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#2c2c2c]/5">
-              <div className="mb-16">
-                <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
-                  Navegar el archivo
-                </h3>
-                <p className="text-3xl md:text-4xl font-serif italic">
-                  Explorar por relato
-                </p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
-                {STORY_TYPES.map((type) => (
-                  <Link
-                    key={type.title}
-                    to={type.to}
-                    className="group p-8 md:p-10 border border-[#2c2c2c]/10 hover:border-[#ec6d13]/30 hover:bg-white transition-all duration-300 text-center"
-                  >
-                    <div className="w-12 h-px bg-[#ec6d13]/40 mx-auto mb-6 group-hover:w-16 transition-all" />
-                    <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-[#ec6d13] transition-colors">
-                      {type.title}
-                    </h4>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#2c2c2c]/40 font-bold">
-                      {type.subtitle}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </section>
+            {/* EXPLORAR POR RELATO (CMS) */}
+            {storyTypesSection && <CmsSectionRenderer section={storyTypesSection} />}
 
             {/* IMMERSIVE DARK BLOCK — GRAN RELATO */}
             {featured && (
@@ -281,14 +341,9 @@ const Historias = () => {
             {/* PRODUCTS */}
             {products.length > 0 && (
               <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
-                <div className="mb-16">
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
-                    Del Relato al Objeto
-                  </h3>
-                  <p className="text-3xl md:text-4xl font-serif italic">
-                    Piezas que nacen de esta historia
-                  </p>
-                </div>
+                {productsHeaderSection ? (
+                  <CmsSectionRenderer section={productsHeaderSection} />
+                ) : null}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                   {products.slice(0, 4).map((product) => {
                     const img = getPrimaryImageUrl(product);
@@ -325,29 +380,15 @@ const Historias = () => {
               </section>
             )}
 
-            {/* CULTURAL CAPSULE */}
-            <section className="py-24 md:py-32 px-6 bg-white/50 border-y border-[#2c2c2c]/5">
-              <div className="max-w-3xl mx-auto text-center">
-                <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
-                <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
-                  "El oficio artesanal no es nostalgia: es memoria viva que se
-                  reinventa con cada puntada, cada quema, cada trenzado."
-                </blockquote>
-                <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
-              </div>
-            </section>
+            {/* CULTURAL CAPSULE (CMS) */}
+            {capsuleSection && <CmsSectionRenderer section={capsuleSection} />}
 
             {/* RELATOS POR DESCUBRIR */}
             {discoverArticles.length > 0 && (
               <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
-                <div className="mb-16">
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2c2c2c]/40">
-                    Seguir leyendo
-                  </h3>
-                  <p className="text-3xl md:text-4xl font-serif italic">
-                    Relatos por descubrir
-                  </p>
-                </div>
+                {discoverHeaderSection ? (
+                  <CmsSectionRenderer section={discoverHeaderSection} />
+                ) : null}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16">
                   {discoverArticles.map((article) => (
                     <Link
@@ -488,41 +529,8 @@ const Historias = () => {
           </>
         )}
 
-        {/* FINAL CTA */}
-        <section className="bg-[#1a1a1a] py-24 md:py-32">
-          <div className="max-w-4xl mx-auto text-center space-y-12 px-6">
-            <div className="space-y-6">
-              <p className="text-[10px] uppercase tracking-[0.5em] text-[#ec6d13] font-bold">
-                Continúa el viaje
-              </p>
-              <h2 className="text-4xl md:text-6xl font-serif leading-[1.1] text-[#f9f7f2] italic">
-                Cada pieza tiene una historia.
-                <br />
-                Cada historia, un territorio.
-              </h2>
-            </div>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-              <Link
-                to="/productos"
-                className="px-12 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
-              >
-                Explorar piezas
-              </Link>
-              <Link
-                to="/territorios"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
-              >
-                Ver territorios
-              </Link>
-              <Link
-                to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
-              >
-                Conocer talleres
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* FINAL CTA (CMS) */}
+        {finalCtaSection && <CmsSectionRenderer section={finalCtaSection} />}
 
         <Footer showNewsletter />
       </div>
