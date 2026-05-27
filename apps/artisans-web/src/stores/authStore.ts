@@ -245,6 +245,13 @@ export const useAuthStore = create<AuthState>()(
         userMaturityActions: state.userMaturityActions,
         access_token: state.access_token,
       }),
+      // Recalcular isAuthenticated e isInitialized después de rehidratar desde localStorage
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isAuthenticated = !!(state.user && state.access_token);
+          state.isInitialized = true;
+        }
+      },
     }
   )
 );
