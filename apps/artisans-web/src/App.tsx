@@ -104,7 +104,6 @@ const TaskAutoCompletionWrapper = ({
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardHome from "./pages/DashboardHome";
 import AgentDetails from "./pages/AgentDetails";
-import MaturityCalculator from "./pages/MaturityCalculator";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
 import UserProgress from "./pages/UserProgress";
 import Login from "./pages/auth/Login";
@@ -327,14 +326,6 @@ function App() {
                             element={
                               <ProtectedRoute>
                                 <OnboardingFlow />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/maturity-calculator"
-                            element={
-                              <ProtectedRoute>
-                                <MaturityCalculator />
                               </ProtectedRoute>
                             }
                           />

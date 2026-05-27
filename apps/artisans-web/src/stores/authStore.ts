@@ -209,30 +209,15 @@ export const useAuthStore = create<AuthState>()(
       // Helper para calcular ruta de redirección
       getRedirectPath: () => {
         const state = get();
-
-        // Calcular si tiene test de madurez completado
-        const context = state.userMasterContext;
-        const taskGenContext = context?.task_generation_context;
-        const maturityScores = taskGenContext?.maturityScores;
-
-        const hasMaturityData = maturityScores &&
-          Object.values(maturityScores).some((v) => (v || 0) > 0);
-
         const shop = state.artisanShop;
 
-
-
-        // Si tiene datos de madurez o tienda, ir al dashboard
-        if (hasMaturityData || shop) {
-          // Si tiene tienda pero está incompleta, continuar creación
-          if (shop && shop.creationStatus !== 'complete') {
-            return '/dashboard/create-shop';
-          }
-          return '/dashboard';
+        // Si tiene tienda pero está incompleta, continuar creación
+        if (shop && shop.creationStatus !== 'complete') {
+          return '/dashboard/create-shop';
         }
 
-        // Usuario nuevo sin progreso → test de madurez
-        return '/maturity-calculator?mode=onboarding';
+        // Siempre redirigir al dashboard (se eliminó maturity-calculator onboarding)
+        return '/dashboard';
       },
     }),
     {

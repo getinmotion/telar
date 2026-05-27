@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
-import { getUserMaturityScoresByUserId } from '@/services/userMaturityScores.actions';
 import { getUserMasterContextByUserId } from '@/services/userMasterContext.actions';
 import {
   AlertDialog,
@@ -110,8 +109,8 @@ export default function DebugArtisanPage() {
         { count: shopsCount },
         { count: materialsCount }
       ] = await Promise.all([
-        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
-        getUserMaturityScoresByUserId(user.id).then(scores => ({ count: scores.length })).catch(() => ({ count: 0 })),
+        // Maturity scores removed - returning 0
+        Promise.resolve({ count: 0 }),
         supabase.from('agent_tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('user_agents').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('agent_chat_conversations').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
@@ -181,8 +180,8 @@ export default function DebugArtisanPage() {
         { data: globalProfiles },
         { data: onboardingProfiles }
       ] = await Promise.all([
-        // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
-        getUserMaturityScoresByUserId(user.id).then(scores => ({ data: scores })).catch(() => ({ data: [] })),
+        // Maturity scores removed - returning empty array
+        Promise.resolve({ data: [] }),
         supabase.from('user_maturity_actions').select('*').eq('user_id', user.id),
         supabase.from('agent_tasks').select('*').eq('user_id', user.id),
         supabase.from('agent_deliverables').select('*').eq('user_id', user.id),
