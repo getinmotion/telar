@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import logoIcon from '@/assets/logo-icon.svg';
 import { toast } from 'sonner';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ import { AICopilotCard } from './AICopilotCard';
 import { ProductsTable } from './sections/ProductsTable';
 import { InventoryAlerts } from './sections/InventoryAlerts';
 import { OrdersSummarySection } from './sections/OrdersSummarySection';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -87,44 +89,61 @@ const MetricCard: React.FC<{
   value: React.ReactNode;
   sub: string;
   icon: string;
-}> = ({ label, value, sub, icon }) => (
-  <div style={{ ...glassPrimary, borderRadius: 24 }} className="p-5 h-32 flex flex-col justify-between">
-    <div className="flex justify-between items-start">
-      <div>
-        <span
-          style={{
-            fontFamily: SANS,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: 'rgba(84,67,62,0.5)',
-          }}
-        >
-          {label}
-        </span>
-        <p
-          style={{
-            fontFamily: SANS,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'rgba(84,67,62,0.4)',
-            marginTop: 2,
-          }}
-        >
-          {sub}
-        </p>
-      </div>
-      <span className="material-symbols-outlined" style={{ color: 'rgba(21,27,45,0.15)', fontSize: 20 }}>
+  mobileValue?: React.ReactNode;
+  mobileIconColor?: string;
+}> = ({ label, value, sub, icon, mobileValue, mobileIconColor }) => (
+  <>
+    {/* Mobile: compact icon-centric chip */}
+    <div
+      className="md:hidden flex flex-col items-center justify-center gap-1 py-3 px-1 text-center"
+      style={{ ...glassPrimary, borderRadius: 14, minHeight: 76 }}
+    >
+      <span
+        className="material-symbols-outlined"
+        style={{ color: mobileIconColor ?? 'rgba(21,27,45,0.22)', fontSize: 22 }}
+      >
         {icon}
       </span>
+      <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+        {mobileValue ?? value}
+      </div>
+      <span style={{
+        fontFamily: SANS, fontSize: 7, fontWeight: 800,
+        letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+        color: 'rgba(84,67,62,0.45)', lineHeight: 1.3,
+      }}>
+        {label}
+      </span>
     </div>
-    <div style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#151b2d', lineHeight: 1.1 }}>
-      {value}
+
+    {/* Desktop: original tall card */}
+    <div style={{ ...glassPrimary, borderRadius: 24 }} className="hidden md:flex flex-col p-5 h-32 justify-between">
+      <div className="flex justify-between items-start">
+        <div>
+          <span style={{
+            fontFamily: SANS, fontSize: 10, fontWeight: 800,
+            letterSpacing: '0.2em', textTransform: 'uppercase' as const,
+            color: 'rgba(84,67,62,0.5)',
+          }}>
+            {label}
+          </span>
+          <p style={{
+            fontFamily: SANS, fontSize: 9, fontWeight: 700,
+            letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+            color: 'rgba(84,67,62,0.4)', marginTop: 2,
+          }}>
+            {sub}
+          </p>
+        </div>
+        <span className="material-symbols-outlined" style={{ color: 'rgba(21,27,45,0.15)', fontSize: 20 }}>
+          {icon}
+        </span>
+      </div>
+      <div style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#151b2d', lineHeight: 1.1 }}>
+        {value}
+      </div>
     </div>
-  </div>
+  </>
 );
 
 // ── CTA Button (orange) ───────────────────────────────────────────────────────
@@ -186,6 +205,8 @@ export const CommercialDashboard: React.FC = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { user }  = useAuth();
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => { setNode(<AICopilotCard />); return clearNode; }, []);
 
   const { shop, loading: shopLoading } = useArtisanShop();
   const { stats: salesStats }          = useShopOrders(shop?.id);
@@ -212,6 +233,7 @@ export const CommercialDashboard: React.FC = () => {
   const [showBioModal,      setShowBioModal]      = useState(false);
   const [bioCopied,         setBioCopied]         = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [showBadgeInfo,    setShowBadgeInfo]    = useState(false);
   const [publishReqs,       setPublishReqs]       = useState<PublishRequirements | null>(null);
 
   const defaultBioConfig = { showShopLink: true, showProfileLink: true, featuredProductId: null as string | null };
@@ -491,90 +513,129 @@ export const CommercialDashboard: React.FC = () => {
       <div className="h-full flex flex-col min-h-0 overflow-hidden">
 
             {/* Header sticky */}
-            <header
-              className="sticky top-0 z-30 px-4 md:px-12 pt-4 pb-3 flex flex-col md:grid md:items-center gap-2 md:gap-0"
-              style={{ gridTemplateColumns: '1fr auto 1fr' }}
-            >
-              <div className="flex items-center gap-3">
-                {shop?.logoUrl && (
-                  <img
-                    src={shop.logoUrl}
-                    alt={shopName}
-                    className="h-10 w-10 rounded-full object-contain"
-                    style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }}
-                  />
-                )}
-              </div>
+            <header className="sticky top-0 z-30">
+              <div className="px-4 md:px-12 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {/* Mobile: ISO de Telar */}
+                  <img src={logoIcon} alt="TELAR" className="md:hidden h-8 w-8 object-contain" />
+                  {/* Desktop: logo de tienda */}
+                  {shop?.logoUrl && (
+                    <img
+                      src={shop.logoUrl}
+                      alt={shopName}
+                      className="hidden md:block h-9 w-9 rounded-full object-contain"
+                      style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }}
+                    />
+                  )}
+                </div>
 
-              <div className="flex flex-col items-center text-center">
-                <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
-                  Hola, {shopName}
-                </h1>
-                <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
-                  {isMarketplaceLive
-                    ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
-                    : isActivated
-                      ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
-                      : 'Tu tienda está creada. Completa lo necesario y actívala.'}
-                </p>
-              </div>
+                {/* ── Desktop: badges completos ── */}
+                <div className="hidden md:flex items-center gap-3">
+                  {agreementName && (
+                    <div
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                      style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.08)' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(84,67,62,0.6)' }}>handshake</span>
+                      <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.7)', whiteSpace: 'nowrap' }}>{agreementName}</span>
+                    </div>
+                  )}
+                  <NotificationCenter />
+                  {isMarketplaceLive ? (
+                    <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
+                      <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                      Ver tienda
+                    </OrangeBtn>
+                  ) : isActivated ? (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                      <span className="material-symbols-outlined text-[14px]" style={{ color: '#3b82f6' }}>hourglass_top</span>
+                      <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>En revisión TELAR</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-end gap-1">
+                      <button
+                        disabled={!publishReqs?.canPublish || publishLoading}
+                        onClick={() => publishReqs?.canPublish && setShowPublishDialog(true)}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors"
+                        style={{ background: publishReqs?.canPublish ? '#ec6d13' : '#151b2d', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700, opacity: publishReqs?.canPublish ? 1 : 0.3, cursor: publishReqs?.canPublish ? 'pointer' : 'not-allowed' }}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+                        {publishLoading ? 'Activando…' : 'Activar y enviar a curación'}
+                      </button>
+                      {!publishReqs?.canPublish && (
+                        <span style={{ ...lc(0.5), letterSpacing: '0.08em' }}>Necesitas al menos 1 producto aprobado</span>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-              <div className="flex items-center gap-3 justify-end">
-                {agreementName && (
-                  <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                    style={{
-                      background: 'rgba(21,27,45,0.05)',
-                      border: '1px solid rgba(21,27,45,0.08)',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(84,67,62,0.6)' }}>handshake</span>
-                    <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.7)', whiteSpace: 'nowrap' }}>
-                      {agreementName}
-                    </span>
-                  </div>
-                )}
-                <NotificationCenter />
-                {isMarketplaceLive ? (
-                  <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
-                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                    Ver tienda
-                  </OrangeBtn>
-                ) : isActivated ? (
-                  <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-full"
-                    style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
-                  >
-                    <span className="material-symbols-outlined text-[14px]" style={{ color: '#3b82f6' }}>hourglass_top</span>
-                    <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>En revisión TELAR</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-end gap-1">
+                {/* ── Mobile: solo iconos ── */}
+                <div className="flex md:hidden items-center gap-2">
+                  {agreementName && (
+                    <button
+                      onClick={() => setShowBadgeInfo(v => !v)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full"
+                      style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.08)' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 15, color: 'rgba(84,67,62,0.6)' }}>handshake</span>
+                    </button>
+                  )}
+                  {isMarketplaceLive ? (
+                    <button
+                      onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                      className="w-8 h-8 flex items-center justify-center rounded-full"
+                      style={{ background: '#ec6d13' }}
+                    >
+                      <span className="material-symbols-outlined text-white" style={{ fontSize: 15 }}>open_in_new</span>
+                    </button>
+                  ) : isActivated ? (
+                    <button
+                      onClick={() => setShowBadgeInfo(v => !v)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full"
+                      style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#3b82f6' }}>hourglass_top</span>
+                    </button>
+                  ) : (
                     <button
                       disabled={!publishReqs?.canPublish || publishLoading}
                       onClick={() => publishReqs?.canPublish && setShowPublishDialog(true)}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors"
-                      style={{
-                        background: publishReqs?.canPublish ? '#ec6d13' : '#151b2d',
-                        color: 'white',
-                        fontFamily: SANS,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        opacity: publishReqs?.canPublish ? 1 : 0.3,
-                        cursor: publishReqs?.canPublish ? 'pointer' : 'not-allowed',
-                      }}
+                      className="w-8 h-8 flex items-center justify-center rounded-full"
+                      style={{ background: publishReqs?.canPublish ? '#ec6d13' : 'rgba(21,27,45,0.15)', opacity: publishReqs?.canPublish ? 1 : 0.4 }}
                     >
-                      <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
-                      {publishLoading ? 'Activando…' : 'Activar y enviar a curación'}
+                      <span className="material-symbols-outlined text-white" style={{ fontSize: 15 }}>rocket_launch</span>
                     </button>
-                    {!publishReqs?.canPublish && (
-                      <span style={{ ...lc(0.5), letterSpacing: '0.08em' }}>
-                        Necesitas al menos 1 producto aprobado
-                      </span>
-                    )}
-                  </div>
-                )}
+                  )}
+                  <NotificationCenter />
+                </div>
               </div>
+
+              {/* ── Panel expandible mobile ── */}
+              {showBadgeInfo && (
+                <div
+                  className="md:hidden px-4 py-3 flex flex-col gap-2 border-t"
+                  style={{ borderColor: 'rgba(21,27,45,0.06)', background: 'rgba(249,247,242,0.98)' }}
+                >
+                  {agreementName && (
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined" style={{ fontSize: 15, color: 'rgba(84,67,62,0.6)' }}>handshake</span>
+                      <div>
+                        <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 1 }}>Convenio</p>
+                        <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: 'rgba(84,67,62,0.8)' }}>{agreementName}</p>
+                      </div>
+                    </div>
+                  )}
+                  {isActivated && !isMarketplaceLive && (
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#3b82f6' }}>hourglass_top</span>
+                      <div>
+                        <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 1 }}>Estado</p>
+                        <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: '#3b82f6' }}>Tu tienda está en revisión por el equipo TELAR</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </header>
 
             {/* Main */}
@@ -582,10 +643,56 @@ export const CommercialDashboard: React.FC = () => {
               className="flex-1 overflow-y-auto px-4 md:px-12 pb-20"
               style={{ overscrollBehavior: 'contain' }}
             >
-              <div className="max-w-[1300px] mx-auto pt-8">
+              <div className="max-w-[1300px] mx-auto pt-6">
+
+                {/* Saludo — desktop */}
+                <div className="hidden md:block mb-6">
+                  <h1 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                    Hola, {shopName}
+                  </h1>
+                  <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 4 }}>
+                    {isMarketplaceLive
+                      ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
+                      : isActivated
+                        ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
+                        : 'Tu tienda está creada. Completa lo necesario y actívala.'}
+                  </p>
+                </div>
+
+                {/* Saludo — mobile hero */}
+                <div className="md:hidden mb-5 flex items-center gap-4 px-4 py-4 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 16px rgba(21,27,45,0.04)' }}
+                >
+                  {shop?.logoUrl ? (
+                    <img
+                      src={shop.logoUrl}
+                      alt={shopName}
+                      className="w-16 h-16 rounded-2xl object-contain flex-shrink-0"
+                      style={{ background: 'white', padding: 6, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#ec6d13' }}>storefront</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 3 }}>Tu tienda</p>
+                    <h1 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', lineHeight: 1.15, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {shopName}
+                    </h1>
+                    <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: 'rgba(84,67,62,0.6)', lineHeight: 1.4 }}>
+                      {isMarketplaceLive
+                        ? 'En el marketplace · lista para recibir pedidos'
+                        : isActivated
+                          ? 'Activa · en revisión por el equipo TELAR'
+                          : 'Completa los pasos y activa tu tienda'}
+                    </p>
+                  </div>
+                </div>
 
                 {/* 4 Metric Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8">
                   <MetricCard
                     label="Productos"
                     value={products.length}
@@ -595,7 +702,7 @@ export const CommercialDashboard: React.FC = () => {
                     icon="inventory_2"
                   />
                   <MetricCard
-                    label="Estado Tienda"
+                    label="Estado"
                     value={
                       <span style={{
                         fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em',
@@ -604,6 +711,12 @@ export const CommercialDashboard: React.FC = () => {
                         {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
                       </span>
                     }
+                    mobileValue={
+                      <span style={{ fontSize: 11, fontWeight: 900, color: isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13' }}>
+                        {isMarketplaceLive ? 'Live' : isActivated ? 'Rev.' : 'Prep.'}
+                      </span>
+                    }
+                    mobileIconColor={isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13'}
                     sub={isMarketplaceLive ? 'Activa y visible' : isActivated ? 'Pendiente curación' : 'No activada'}
                     icon={isMarketplaceLive ? 'check_circle' : isActivated ? 'hourglass_top' : 'pending'}
                   />
@@ -955,19 +1068,53 @@ export const CommercialDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Products table */}
-                    <ProductsTable
-                      products={products}
-                      loadingProducts={loadingProducts}
-                      isActivated={isActivated}
-                    />
+                    {/* Mobile: inventory banner */}
+                    <div
+                      className="md:hidden rounded-2xl p-5 flex items-center justify-between gap-4"
+                      style={{ ...glassPrimary, borderRadius: 20 }}
+                    >
+                      <div>
+                        <p style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                          Mis productos
+                        </p>
+                        <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.6)', marginTop: 3 }}>
+                          {products.length} en tu catálogo
+                        </p>
+                        <button
+                          onClick={() => navigate('/inventario')}
+                          style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.5)', marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        >
+                          Ver inventario
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>east</span>
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => navigate('/productos/subir')}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full shrink-0"
+                        style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(236,109,19,0.3)' }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
+                        Agregar
+                      </button>
+                    </div>
+
+                    {/* Products table — desktop only */}
+                    <div className="hidden md:block">
+                      <ProductsTable
+                        products={products}
+                        loadingProducts={loadingProducts}
+                        isActivated={isActivated}
+                      />
+                    </div>
 
                   </div>
 
                   {/* ── Right sidebar (4) ────────────────────────────────── */}
                   <aside className="lg:col-span-4 space-y-6">
 
-                    <AICopilotCard />
+                    <div className="hidden lg:block">
+                      <AICopilotCard />
+                    </div>
 
                     {/* Faltantes / Alertas */}
                     <InventoryAlerts
@@ -978,13 +1125,45 @@ export const CommercialDashboard: React.FC = () => {
                       onNavigate={(route) => navigate(route)}
                     />
 
-                    {/* Ventas */}
-                    <OrdersSummarySection
-                      salesStats={salesStats}
-                      isMarketplaceLive={isMarketplaceLive}
-                      isActivated={isActivated}
-                      onNavigate={(route) => navigate(route)}
-                    />
+                    {/* Mobile: sales banner */}
+                    <div
+                      className="md:hidden rounded-2xl p-5 flex items-center justify-between gap-4"
+                      style={{ ...glassPrimary, borderRadius: 20 }}
+                    >
+                      <div>
+                        <p style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                          Mis ventas
+                        </p>
+                        <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.6)', marginTop: 3 }}>
+                          {salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : 'Sin ingresos aún'}
+                        </p>
+                        <button
+                          onClick={() => navigate('/mi-tienda/ventas')}
+                          style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: 'rgba(84,67,62,0.5)', marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        >
+                          Ver pedidos
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>east</span>
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => navigate('/mi-tienda/ventas')}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full shrink-0"
+                        style={{ background: '#151b2d', color: 'white', fontFamily: SANS, fontSize: 12, fontWeight: 700 }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>receipt_long</span>
+                        Pedidos
+                      </button>
+                    </div>
+
+                    {/* Ventas — desktop only */}
+                    <div className="hidden md:block">
+                      <OrdersSummarySection
+                        salesStats={salesStats}
+                        isMarketplaceLive={isMarketplaceLive}
+                        isActivated={isActivated}
+                        onNavigate={(route) => navigate(route)}
+                      />
+                    </div>
 
                     {/* Crecimiento */}
                     <div

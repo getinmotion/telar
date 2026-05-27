@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useMasterAgent } from '@/context/MasterAgentContext';
 import { useTelarSync } from '@/hooks/useTelarSync';
 import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
+import { AICopilotCard } from '@/components/dashboard/AICopilotCard';
+import { OraculoProvider, useOraculo } from '@/components/oraculo/OraculoContext';
 
 const SANS = "'Manrope', sans-serif";
 
@@ -47,7 +49,57 @@ const NavItem: React.FC<{
   </button>
 );
 
-export const DashboardLayout: React.FC = () => {
+const MobileAgentDrawer: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const { node } = useOraculo();
+  const content = node ?? <AICopilotCard />;
+  return (
+    <div className="md:hidden fixed left-0 right-0 z-40" style={{ bottom: 60 }}>
+      {/* Content — slides up when open */}
+      <div style={{
+        overflow: 'hidden',
+        maxHeight: open ? '55vh' : 0,
+        transition: 'max-height 0.28s ease',
+      }}>
+        <div style={{ overflowY: 'auto', maxHeight: '55vh', background: '#151b2d', borderRadius: '16px 16px 0 0' }}>
+          {content}
+        </div>
+      </div>
+      {/* Trigger bar */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-5"
+        style={{
+          background: '#151b2d',
+          height: 46,
+          borderTopLeftRadius: open ? 0 : 14,
+          borderTopRightRadius: open ? 0 : 14,
+          borderTop: open ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="material-symbols-outlined" style={{ color: '#ec6d13', fontSize: 16 }}>psychology</span>
+          <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.02em' }}>
+            ORÁCULO
+          </span>
+        </div>
+        <span
+          className="material-symbols-outlined"
+          style={{
+            color: 'rgba(255,255,255,0.35)',
+            fontSize: 18,
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.25s ease',
+          }}
+        >
+          expand_less
+        </span>
+      </button>
+    </div>
+  );
+};
+
+const DashboardContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -92,7 +144,7 @@ export const DashboardLayout: React.FC = () => {
         <nav className="flex flex-col gap-4 items-center flex-1">
           <NavItem icon="grid_view"    label="Inicio"     active={activeNav(['/dashboard'])}               onClick={() => navigate('/dashboard')} />
           <NavItem icon="storefront"   label="Tienda"     active={activeNav(['/mi-tienda/configurar'])}    onClick={() => navigate('/mi-tienda/configurar')} />
-<NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])} onClick={() => navigate('/dashboard/inventory')} />
+          <NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])} onClick={() => navigate('/dashboard/inventory')} />
           <NavItem icon="receipt_long" label="Ventas"     active={activeNav(['/mi-tienda/ventas'])}        onClick={() => navigate('/mi-tienda/ventas')} />
           <NavItem icon="explore"      label="Misiones"   active={activeNav(['/dashboard/tasks'])}         onClick={() => navigate('/dashboard/tasks')} />
         </nav>
@@ -139,14 +191,22 @@ export const DashboardLayout: React.FC = () => {
             className="flex-1 flex flex-col min-h-0"
           >
             <Outlet />
-            {/* Spacer so content isn't hidden behind mobile bottom nav */}
-            <div className="h-16 shrink-0 md:hidden" />
+            {/* Spacer: mobile bottom nav (60px) + agent trigger bar (46px) */}
+            <div className="h-[106px] shrink-0 md:hidden" />
           </motion.div>
         </AnimatePresence>
       </main>
 
+      {/* Mobile agent drawer — sits above bottom nav */}
+      <MobileAgentDrawer />
       {/* Mobile bottom navigation */}
       <MobileBottomNav />
     </div>
   );
 };
+
+export const DashboardLayout: React.FC = () => (
+  <OraculoProvider>
+    <DashboardContent />
+  </OraculoProvider>
+);

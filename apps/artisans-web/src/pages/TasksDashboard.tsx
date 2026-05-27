@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useFixedTasksManager } from '@/hooks/useFixedTasksManager';
 import { MissionsSection } from '@/components/coordinator/sections/MissionsSection';
+import { MissionsAgentCard } from '@/components/coordinator/MissionsAgentCard';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 
 const SERIF = "'Noto Serif', serif";
 const SANS  = "'Manrope', sans-serif";
 
+const CORE_MISSION_IDS = ['create_shop','first_product','five_products','create_artisan_profile','create_brand','review_brand'];
+
 const TasksDashboard = () => {
   const { tasks, completedTasks, completedTaskIds, loading } = useFixedTasksManager();
+
+  const completedCoreCount = useMemo(
+    () => completedTaskIds.filter(id => CORE_MISSION_IDS.includes(id)).length,
+    [completedTaskIds]
+  );
+  const nextMission = useMemo(() => {
+    const next = tasks.find(t => CORE_MISSION_IDS.includes(t.id)) ?? tasks[0] ?? null;
+    if (!next) return null;
+    return { title: next.title, route: next.action.destination, icon: next.icon };
+  }, [tasks]);
+
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(<MissionsAgentCard completedCount={completedCoreCount} totalCount={CORE_MISSION_IDS.length} nextMission={nextMission} loading={loading} />);
+    return clearNode;
+  }, [completedCoreCount, nextMission, loading]);
 
   return (
     <>

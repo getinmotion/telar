@@ -1,0 +1,334 @@
+<h2>¿Cómo navegas dentro de Configuración de tienda?</h2>
+<p class="subtitle">Elige el patrón de navegación interna + layout de módulos en mobile</p>
+
+<style>
+  .phone {
+    width: 220px;
+    min-height: 420px;
+    background: #f9f7f2;
+    border-radius: 28px;
+    border: 2px solid rgba(21,27,45,0.12);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(21,27,45,0.12);
+    margin: 0 auto;
+  }
+  .ph-header {
+    background: rgba(249,247,242,0.96);
+    padding: 10px 12px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(21,27,45,0.07);
+  }
+  .ph-back { font-size: 18px; color: #151b2d; }
+  .ph-iso { width: 22px; height: 22px; background: #ec6d13; border-radius: 5px; }
+  .ph-bell { font-size: 16px; color: rgba(84,67,62,0.5); }
+
+  /* Hero card */
+  .ph-hero {
+    margin: 8px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255,255,255,0.9);
+  }
+  .ph-logo { width: 36px; height: 36px; background: rgba(236,109,19,0.1); border-radius: 10px; flex-shrink: 0; }
+  .ph-shop-name { font-size: 13px; font-weight: 700; color: #151b2d; font-family: Georgia, serif; }
+  .ph-progress { height: 3px; background: rgba(21,27,45,0.08); border-radius: 2px; margin-top: 4px; }
+  .ph-progress-fill { height: 100%; background: #ec6d13; border-radius: 2px; width: 55%; }
+
+  /* Option A: Tab bar */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    background: white;
+    border-bottom: 1px solid rgba(21,27,45,0.07);
+    overflow-x: auto;
+    padding: 0 6px;
+  }
+  .tab-item {
+    padding: 7px 9px;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(84,67,62,0.4);
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    flex-shrink: 0;
+  }
+  .tab-item.active { color: #ec6d13; border-bottom-color: #ec6d13; }
+
+  /* Option B: Icon nav */
+  .icon-nav {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 4px;
+    background: white;
+    border-bottom: 1px solid rgba(21,27,45,0.07);
+  }
+  .icon-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+  .icon-nav-dot {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .icon-nav-dot.active { background: rgba(236,109,19,0.12); }
+  .icon-nav-label { font-size: 7px; font-weight: 700; color: rgba(84,67,62,0.45); text-align: center; }
+  .icon-nav-label.active { color: #ec6d13; }
+
+  /* Checklist rows */
+  .check-row {
+    margin: 4px 8px;
+    background: white;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .check-icon { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .check-icon.done { background: rgba(22,101,52,0.1); }
+  .check-icon.todo { background: rgba(236,109,19,0.1); }
+  .check-icon.empty { background: rgba(21,27,45,0.05); }
+  .check-text { flex: 1; min-width: 0; }
+  .check-title { font-size: 10px; font-weight: 700; color: #151b2d; }
+  .check-sub { font-size: 8px; color: rgba(84,67,62,0.5); }
+  .check-pill { font-size: 7px; font-weight: 800; padding: 2px 6px; border-radius: 99px; flex-shrink: 0; }
+  .pill-done { background: rgba(22,101,52,0.1); color: #166534; }
+  .pill-todo { background: rgba(236,109,19,0.1); color: #ec6d13; }
+
+  /* Module card */
+  .mod-card {
+    margin: 4px 8px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 12px;
+    padding: 11px 13px;
+    border: 1px solid rgba(255,255,255,0.9);
+  }
+  .mod-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .mod-title { font-size: 9px; font-weight: 800; color: rgba(84,67,62,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .mod-content { font-size: 11px; color: #151b2d; font-weight: 600; margin-bottom: 8px; }
+  .mod-cta {
+    background: #151b2d; color: white; border: none; border-radius: 8px;
+    padding: 6px 0; font-size: 10px; font-weight: 700; width: 100%; text-align: center;
+  }
+  .mod-cta.orange { background: #ec6d13; }
+  .mod-cta.outline { background: transparent; color: #151b2d; border: 1px solid rgba(21,27,45,0.15); }
+
+  .ph-scroll { flex: 1; overflow: hidden; padding-bottom: 8px; }
+  .section-label { font-size: 8px; font-weight: 800; color: rgba(84,67,62,0.35); text-transform: uppercase; letter-spacing: 0.12em; padding: 8px 16px 4px; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .card {
+    min-height: 200px;
+  }
+</style>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f5f3ef;">
+      <div class="phone">
+        <div class="ph-header">
+          <span class="ph-back">←</span>
+          <div class="ph-iso"></div>
+          <span class="ph-bell">🔔</span>
+        </div>
+        <div class="ph-hero">
+          <div class="ph-logo"></div>
+          <div style="flex:1">
+            <div class="ph-shop-name">Mi Tienda</div>
+            <div class="ph-progress"><div class="ph-progress-fill"></div></div>
+          </div>
+          <span style="font-size:9px;color:#ec6d13;font-weight:700">55%</span>
+        </div>
+        <!-- Tab bar -->
+        <div class="tab-bar">
+          <div class="tab-item active">Identidad</div>
+          <div class="tab-item">Marca</div>
+          <div class="tab-item">Imágenes</div>
+          <div class="tab-item">Contacto</div>
+          <div class="tab-item">+</div>
+        </div>
+        <div class="ph-scroll">
+          <div class="mod-card" style="margin-top:8px">
+            <div class="mod-header">
+              <span class="mod-title">Identidad artesanal</span>
+              <span class="check-pill pill-done">✓ Listo</span>
+            </div>
+            <div class="mod-content">María García · Tejedora</div>
+            <div style="font-size:9px;color:rgba(84,67,62,0.5);margin-bottom:8px">Boyacá · Técnica: Telar</div>
+            <button class="mod-cta outline">Editar perfil →</button>
+          </div>
+          <div class="mod-card">
+            <div class="mod-header">
+              <span class="mod-title">Próxima sección</span>
+            </div>
+            <div style="font-size:9px;color:rgba(84,67,62,0.4)">Desliza el menú →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tabs deslizables</h3>
+      <p>Barra de pestañas con scroll horizontal. Cada tab muestra un módulo. Familar (Instagram, Settings). Oculta secciones que no caben.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f5f3ef;">
+      <div class="phone">
+        <div class="ph-header">
+          <span class="ph-back">←</span>
+          <div class="ph-iso"></div>
+          <span class="ph-bell">🔔</span>
+        </div>
+        <div class="ph-hero">
+          <div class="ph-logo"></div>
+          <div style="flex:1">
+            <div class="ph-shop-name">Mi Tienda</div>
+            <div class="ph-progress"><div class="ph-progress-fill"></div></div>
+          </div>
+          <span style="font-size:9px;color:#ec6d13;font-weight:700">55%</span>
+        </div>
+        <!-- Icon nav -->
+        <div class="icon-nav">
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot active">👤</div>
+            <div class="icon-nav-label active">Perfil</div>
+          </div>
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot">🎨</div>
+            <div class="icon-nav-label">Marca</div>
+          </div>
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot">🖼</div>
+            <div class="icon-nav-label">Hero</div>
+          </div>
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot">📞</div>
+            <div class="icon-nav-label">Contacto</div>
+          </div>
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot">📋</div>
+            <div class="icon-nav-label">Legal</div>
+          </div>
+          <div class="icon-nav-item">
+            <div class="icon-nav-dot">✨</div>
+            <div class="icon-nav-label">Diseño</div>
+          </div>
+        </div>
+        <div class="ph-scroll">
+          <div class="mod-card" style="margin-top:8px">
+            <div class="mod-header">
+              <span class="mod-title">Identidad artesanal</span>
+              <span class="check-pill pill-done">✓ Listo</span>
+            </div>
+            <div class="mod-content">María García · Tejedora</div>
+            <div style="font-size:9px;color:rgba(84,67,62,0.5);margin-bottom:8px">Boyacá · Telar</div>
+            <button class="mod-cta outline">Editar perfil →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Nav de iconos</h3>
+      <p>6 iconos con label, siempre visibles. Tap → muestra ese módulo. Todo visible de un vistazo, sin scroll en el nav.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 16px; background: #f5f3ef;">
+      <div class="phone">
+        <div class="ph-header">
+          <span class="ph-back">←</span>
+          <div class="ph-iso"></div>
+          <span class="ph-bell">🔔</span>
+        </div>
+        <div class="ph-hero">
+          <div class="ph-logo"></div>
+          <div style="flex:1">
+            <div class="ph-shop-name">Mi Tienda</div>
+            <div class="ph-progress"><div class="ph-progress-fill"></div></div>
+          </div>
+          <span style="font-size:9px;color:#ec6d13;font-weight:700">55%</span>
+        </div>
+        <div class="ph-scroll">
+          <div class="section-label">Secciones</div>
+          <!-- Checklist rows -->
+          <div class="check-row">
+            <div class="check-icon done">✓</div>
+            <div class="check-text">
+              <div class="check-title">Identidad artesanal</div>
+              <div class="check-sub">María García · Tejedora</div>
+            </div>
+            <span class="check-pill pill-done">Listo</span>
+          </div>
+          <div class="check-row">
+            <div class="check-icon done">✓</div>
+            <div class="check-text">
+              <div class="check-title">Marca</div>
+              <div class="check-sub">Logo y tagline</div>
+            </div>
+            <span class="check-pill pill-done">Listo</span>
+          </div>
+          <div class="check-row">
+            <div class="check-icon todo">!</div>
+            <div class="check-text">
+              <div class="check-title">Imágenes de portada</div>
+              <div class="check-sub">Sin imágenes aún</div>
+            </div>
+            <span class="check-pill pill-todo">Pendiente</span>
+          </div>
+          <div class="check-row">
+            <div class="check-icon empty">→</div>
+            <div class="check-text">
+              <div class="check-title">Contacto y cobros</div>
+              <div class="check-sub">WhatsApp, RUT, cuenta</div>
+            </div>
+            <span class="check-pill pill-todo">Pendiente</span>
+          </div>
+          <div class="check-row">
+            <div class="check-icon empty">→</div>
+            <div class="check-text">
+              <div class="check-title">Políticas y FAQ</div>
+              <div class="check-sub">Devoluciones · Preguntas</div>
+            </div>
+            <span class="check-pill pill-todo">Pendiente</span>
+          </div>
+          <div class="check-row">
+            <div class="check-icon empty">✨</div>
+            <div class="check-text">
+              <div class="check-title">Diseño de tienda</div>
+              <div class="check-sub">Template · Colores</div>
+            </div>
+            <span class="check-pill pill-todo">En progreso</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Lista de secciones</h3>
+      <p>Todas las secciones como filas de una lista, con estado visible. Tap → navega directamente al wizard. Scroll continuo, muy rápido.</p>
+    </div>
+  </div>
+
+</div>

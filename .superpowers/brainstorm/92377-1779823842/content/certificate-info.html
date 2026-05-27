@@ -1,0 +1,88 @@
+<h2>¿Qué información debe contener el certificado?</h2>
+<p class="subtitle">Este es un borrador de los datos que incluiría. ¿Falta algo? ¿Sobra algo?</p>
+
+<div class="mockup" style="max-width:680px;margin:0 auto;">
+  <div class="mockup-header">Certificado de Autenticidad — Vista del comprador</div>
+  <div class="mockup-body" style="font-family:serif;padding:32px;">
+
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:11px;letter-spacing:3px;color:#888;text-transform:uppercase;margin-bottom:8px;">Telar · Certificado de Autenticidad</div>
+      <div style="font-size:22px;font-weight:bold;margin-bottom:4px;">Mochila Wayuu Multicolor</div>
+      <div style="font-size:13px;color:#666;">Edición única · Número de serie <code style="background:#f5f0e8;padding:2px 6px;border-radius:4px;">TLR-2026-00847</code></div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #e0d8cc;margin:20px 0;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:4px;">Artesana</div>
+        <div style="font-weight:bold;">María Luz Pushaina</div>
+        <div style="color:#666;">Maestra Artesana · Verificada ✓</div>
+        <div style="color:#666;">La Guajira, Colombia</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:4px;">Técnica & Materiales</div>
+        <div style="font-weight:bold;">Tejido en telar Wayuu</div>
+        <div style="color:#666;">Lana virgen de oveja, tintes naturales</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:4px;">Fecha de creación</div>
+        <div style="font-weight:bold;">Marzo 2026</div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:4px;">Fecha de venta</div>
+        <div style="font-weight:bold;">26 Mayo 2026</div>
+        <div style="color:#666;">Adquirido por: Carlos M.</div>
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #e0d8cc;margin:20px 0;">
+
+    <div style="font-size:12px;color:#666;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:6px;">Firma digital · Hash de autenticidad</div>
+      <code style="background:#f5f0e8;padding:6px 10px;border-radius:4px;display:block;word-break:break-all;font-size:11px;">sha256:a3f8c2e1b94d...7f2091c4e83a</code>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;">
+      <div style="display:inline-block;background:#f5f0e8;border:1px solid #d4c9b0;border-radius:8px;padding:10px 16px;font-size:11px;color:#666;">
+        🔗 Verifica este certificado en <strong>telar.co/verificar/TLR-2026-00847</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="max-width:680px;margin:24px auto 0;">
+  <p class="subtitle" style="text-align:center;">¿Hay campos que faltan o que no necesitamos?</p>
+
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="add-photo" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Foto de la pieza</h3>
+        <p>Incluir imagen del producto en el certificado</p>
+      </div>
+    </div>
+    <div class="option" data-choice="add-story" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Historia / descripción</h3>
+        <p>Texto breve del artesano sobre la pieza</p>
+      </div>
+    </div>
+    <div class="option" data-choice="add-dimensions" onclick="toggleSelect(this)">
+      <div class="letter">+</div>
+      <div class="content">
+        <h3>Dimensiones / peso</h3>
+        <p>Datos físicos de la pieza</p>
+      </div>
+    </div>
+    <div class="option" data-choice="remove-hash" onclick="toggleSelect(this)">
+      <div class="letter">−</div>
+      <div class="content">
+        <h3>Quitar el hash técnico</h3>
+        <p>El hash es para verificación interna — podría confundir al comprador</p>
+      </div>
+    </div>
+  </div>
+</div>
