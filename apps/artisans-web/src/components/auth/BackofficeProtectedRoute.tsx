@@ -33,8 +33,11 @@ export const BackofficeProtectedRoute: React.FC<BackofficeProtectedRouteProps> =
   section,
   children,
 }) => {
-  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth, access_token } = useAuthStore();
   const { hasAnyBackofficeRole, canAccess } = useBackofficeAccess();
+  // Derive authentication from multiple signals — isAuthenticated alone can be stale after a
+  // refresh if partialize or onRehydrateStorage had a race condition.
+  const effectivelyAuthenticated = isAuthenticated || (!!user && !!access_token);
   const location = useLocation();
   const [lastActivity, setLastActivity] = useState(Date.now());
 
@@ -61,7 +64,7 @@ export const BackofficeProtectedRoute: React.FC<BackofficeProtectedRouteProps> =
   }, []);
 
   // 1. No autenticado → al login del backoffice
-  if (!isAuthenticated || !user) {
+  if (!effectivelyAuthenticated || !user) {
     return (
       <Navigate to="/backoffice/login" state={{ from: location }} replace />
     );
