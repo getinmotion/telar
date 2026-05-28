@@ -167,7 +167,7 @@ async def _handle_ask_regions(intro: str) -> str:
                 FROM shop.artisan_shops sa
                 JOIN shop.products_core pc ON pc.store_id = sa.id
                 WHERE pc.deleted_at IS NULL
-                  AND pc.status = 'published'
+                  AND pc.status IN ('published', 'approved', 'approved_with_edits')
                   AND sa.region IS NOT NULL
                   AND sa.region != ''
                 ORDER BY sa.region
@@ -196,6 +196,7 @@ async def _handle_ask_materials(intro: str) -> str:
                 JOIN shop.product_artisanal_identity pai ON pai.primary_craft_id = tc.id
                 JOIN shop.products_core pc ON pc.id = pai.product_id
                 WHERE pc.deleted_at IS NULL AND tc.name IS NOT NULL
+                  AND pc.status IN ('published', 'approved', 'approved_with_edits')
                 ORDER BY tc.name
                 """
             )
