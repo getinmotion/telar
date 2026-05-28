@@ -82,8 +82,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
   }, []);
 
   const handleCategorySelect = (categoryId: string) => {
-    // Al cambiar de categoría, resetear oficio y técnica.
-    update({ categoryId, subcategoryId: undefined, craftId: undefined, primaryTechniqueId: undefined });
+    update({ categoryId, subcategoryId: undefined });
   };
 
   const handleCraftChange = (craftId: string | undefined) => {
@@ -159,34 +158,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
           {/* Main form */}
           <section className="lg:col-span-9 space-y-4">
 
-            {/* ── Materials ────────────────────────────────── */}
-            {/* ── Materials ────────────────────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
-              <div className="flex justify-between items-center mb-1">
-                <div className="flex items-center gap-2">
-                  <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                    Materiales de la pieza
-                  </label>
-                  <AiBadge />
-                </div>
-                {state.materials.length > 0 && (
-                  <span className="text-[10px] font-[600] text-[#ec6d13]">
-                    {state.materials.length} seleccionado{state.materials.length !== 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-[#54433e]/60 mb-4">
-                Selecciona los materiales de tu perfil o agrega nuevos. Los que selecciones aquí quedan asociados a esta pieza y también se guardan en tu perfil artesanal.
-              </p>
-              <MaterialPicker
-                artisanId={artisanId}
-                userId={userId}
-                selectedIds={state.materials}
-                onChange={ids => update({ materials: ids })}
-              />
-            </div>
-
-            {/* ── Categories ──────────────────────────────── */}
+            {/* ── 1. Categoría ──────────────────────────── */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-2 mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
@@ -274,7 +246,71 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
               )}
             </div>
 
-            {/* ── Propósito + Estilo + Colección ─────────── */}
+            {/* ── 2. Oficio + Técnicas ──────────────────── */}
+            <div className="p-5 rounded-2xl" style={cardStyle}>
+              <div className="flex items-center gap-2 mb-1">
+                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
+                  Oficio
+                </label>
+                <AiBadge />
+              </div>
+              <p className="text-[11px] text-[#54433e]/60 mb-4">
+                {selectedCategoryName
+                  ? `Oficios habituales para ${selectedCategoryName}. Puedes buscar cualquier otro.`
+                  : 'Selecciona primero una categoría para ver los oficios más relevantes.'}
+              </p>
+              <CraftPicker
+                categoryName={selectedCategoryName}
+                selectedCraftId={state.craftId}
+                onChange={handleCraftChange}
+              />
+
+              {state.craftId && (
+                <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
+                      Técnica
+                    </label>
+                    <AiBadge />
+                    <span className="text-[10px] text-[#54433e]/35 font-[500]">— Opcional</span>
+                  </div>
+                  <TechniquePicker
+                    craftId={state.craftId}
+                    craftName={state.craftId ? undefined : undefined}
+                    selectedTechniqueId={state.primaryTechniqueId}
+                    onChange={techniqueId => update({ primaryTechniqueId: techniqueId })}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* ── 3. Materiales ─────────────────────────── */}
+            <div className="p-5 rounded-2xl" style={cardStyle}>
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center gap-2">
+                  <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
+                    Materiales de la pieza
+                  </label>
+                  <AiBadge />
+                </div>
+                {state.materials.length > 0 && (
+                  <span className="text-[10px] font-[600] text-[#ec6d13]">
+                    {state.materials.length} seleccionado{state.materials.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[#54433e]/60 mb-4">
+                Selecciona los materiales de tu perfil o agrega nuevos. Los que selecciones aquí quedan asociados a esta pieza y también se guardan en tu perfil artesanal.
+              </p>
+              <MaterialPicker
+                artisanId={artisanId}
+                userId={userId}
+                selectedIds={state.materials}
+                onChange={ids => update({ materials: ids })}
+              />
+            </div>
+
+            {/* ── 4. Propósito + Estilo ─────────────────── */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Propósito */}
@@ -319,7 +355,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   </div>
                 </div>
 
-                {/* Estilo — single-select por producto */}
+                {/* Estilo */}
                 <div>
                   <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] block mb-0.5 uppercase tracking-widest">
                     Estilo
@@ -340,7 +376,6 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                             border: isSelected ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
                           }}
                         >
-                          {/* Radio indicator */}
                           <div
                             className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 border-2 flex items-center justify-center transition-colors"
                             style={{ borderColor: isSelected ? '#ec6d13' : 'rgba(84,67,62,0.25)' }}
@@ -364,46 +399,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
               </div>
             </div>
 
-            {/* ── Oficio ────────────────────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
-              <div className="flex items-center gap-2 mb-1">
-                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                  Oficio
-                </label>
-                <AiBadge />
-              </div>
-              <p className="text-[11px] text-[#54433e]/60 mb-4">
-                {selectedCategoryName
-                  ? `Oficios habituales para ${selectedCategoryName}. Puedes buscar cualquier otro.`
-                  : 'Selecciona primero una categoría para ver los oficios más relevantes.'}
-              </p>
-              <CraftPicker
-                categoryName={selectedCategoryName}
-                selectedCraftId={state.craftId}
-                onChange={handleCraftChange}
-              />
-
-              {/* Técnica — aparece al seleccionar oficio */}
-              {state.craftId && (
-                <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                      Técnica
-                    </label>
-                    <AiBadge />
-                    <span className="text-[10px] text-[#54433e]/35 font-[500]">— Opcional</span>
-                  </div>
-                  <TechniquePicker
-                    craftId={state.craftId}
-                    craftName={state.craftId ? undefined : undefined}
-                    selectedTechniqueId={state.primaryTechniqueId}
-                    onChange={techniqueId => update({ primaryTechniqueId: techniqueId })}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* ── Tipo de producción ─────────────────────── */}
+            {/* ── 5. Tipo de producción ─────────────────── */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] block mb-1 uppercase tracking-widest">
                 Tipo de producción
@@ -441,10 +437,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   );
                 })}
               </div>
-
             </div>
 
-            {/* ── Colaboración ─────────────────────────────── */}
+            {/* ── 6. Colaboración ───────────────────────── */}
             <div className="p-5 space-y-4 rounded-2xl" style={cardStyle}>
               <div className="flex items-center justify-between">
                 <div>
