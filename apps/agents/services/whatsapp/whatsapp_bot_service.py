@@ -163,14 +163,14 @@ async def _handle_ask_regions(intro: str) -> str:
         async with pool.acquire() as conn:
             rows = await conn.fetch(
                 """
-                SELECT DISTINCT sc.region
-                FROM shop.stores sc
-                JOIN shop.products_core pc ON pc.store_id = sc.id
+                SELECT DISTINCT sa.region
+                FROM shop.artisan_shops sa
+                JOIN shop.products_core pc ON pc.store_id = sa.id
                 WHERE pc.deleted_at IS NULL
                   AND pc.status = 'published'
-                  AND sc.region IS NOT NULL
-                  AND sc.region != ''
-                ORDER BY sc.region
+                  AND sa.region IS NOT NULL
+                  AND sa.region != ''
+                ORDER BY sa.region
                 """
             )
         regions = [r["region"] for r in rows]
