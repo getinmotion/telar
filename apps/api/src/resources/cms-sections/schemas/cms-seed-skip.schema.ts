@@ -7,13 +7,13 @@ import { Schema as MongooseSchema, Document } from 'mongoose';
  * Sin este registro, `cms:seed` reinsertaría cualquier slug que el seed file
  * declare pero la DB ya no tenga (porque el match es solo por existencia).
  *
- * `kind`: 'collection' | 'blog_post' | 'cms_page_section'
+ * `kind`: 'collection' | 'blog_post' | 'cms_page_section' | 'cms_territory'
  * `key`:  identificador del doc dentro de su tipo:
  *           - collection / blog_post  → slug
  *           - cms_page_section        → `${pageKey}:${type}:${position}`
  */
 export interface CmsSeedSkipDoc {
-  kind: 'collection' | 'blog_post' | 'cms_page_section';
+  kind: 'collection' | 'blog_post' | 'cms_page_section' | 'cms_territory';
   key: string;
   reason?: string;
   createdAt?: Date;
@@ -27,7 +27,7 @@ export const CmsSeedSkipSchema = new MongooseSchema<CmsSeedSkipDocument>(
     kind: {
       type: String,
       required: true,
-      enum: ['collection', 'blog_post', 'cms_page_section'],
+      enum: ['collection', 'blog_post', 'cms_page_section', 'cms_territory'],
       index: true,
     },
     key: { type: String, required: true, index: true },

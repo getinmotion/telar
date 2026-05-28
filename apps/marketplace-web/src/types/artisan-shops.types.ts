@@ -4,7 +4,23 @@
  */
 
 /**
- * Tienda artesanal individual
+ * Bloque editable "Acerca de" del taller (proviene de artisan_shops.about_content jsonb).
+ * Refleja la estructura que persiste el backend en NestJS.
+ */
+export interface ArtisanShopAboutContent {
+  title?: string;
+  story?: string;
+  mission?: string;
+  vision?: string;
+  values?: string[];
+}
+
+/**
+ * Tienda artesanal individual.
+ *
+ * Mantenido alineado con la entidad ArtisanShop del API NestJS
+ * (apps/api/src/resources/artisan-shops/entities/artisan-shop.entity.ts).
+ * Solo se incluyen los campos públicos que el marketplace puede consumir.
  */
 export interface ArtisanShop {
   id: string;
@@ -26,6 +42,16 @@ export interface ArtisanShop {
     instagram?: string;
     facebook?: string;
   };
+  /** Redes sociales (artisan_shops.social_links jsonb) */
+  socialLinks?: Record<string, string>;
+  /** Eslogan/claim de la marca (artisan_shops.brand_claim) */
+  brandClaim?: string;
+  /** Certificaciones (artisan_shops.certifications jsonb) */
+  certifications?: string[];
+  /** Bloque editorial completo (artisan_shops.about_content jsonb) */
+  aboutContent?: ArtisanShopAboutContent;
+  /** Perfil libre del artesano (artisan_shops.artisan_profile jsonb) */
+  artisanProfile?: Record<string, unknown>;
   active: boolean;
   featured: boolean;
   publishStatus: 'draft' | 'published' | 'archived';

@@ -18,9 +18,15 @@ export class TaxonomyStylesService {
   ) {}
 
   async create(dto: CreateStyleDto): Promise<Style> {
-    const existing = await this.stylesRepo.findOne({ where: { name: dto.name } });
+    const normalizedName = (dto.name ?? '').trim();
+    if (!normalizedName) {
+      throw new BadRequestException('El nombre del estilo es requerido');
+    }
+    // Búsqueda case-insensitive (consistente con findAll/ILike) para evitar duplicados
+    // que solo difieren por mayúsculas o espacios.
+    const existing = await this.stylesRepo.findOne({ where: { name: ILike(normalizedName) } });
     if (existing) throw new ConflictException('Ya existe un estilo con ese nombre');
-    const style = this.stylesRepo.create(dto);
+    const style = this.stylesRepo.create({ ...dto, name: normalizedName });
     return this.stylesRepo.save(style);
   }
 
@@ -73,8 +79,13 @@ export class TaxonomyStylesService {
   async update(id: string, dto: UpdateStyleDto): Promise<Style> {
     await this.findOne(id);
     if (dto.name) {
-      const existing = await this.stylesRepo.findOne({ where: { name: dto.name } });
+      const normalizedName = dto.name.trim();
+      if (!normalizedName) {
+        throw new BadRequestException('El nombre del estilo no puede estar vacío');
+      }
+      const existing = await this.stylesRepo.findOne({ where: { name: ILike(normalizedName) } });
       if (existing && existing.id !== id) throw new ConflictException('Ya existe un estilo con ese nombre');
+      dto.name = normalizedName;
     }
     await this.stylesRepo.update(id, dto);
     return this.findOne(id);

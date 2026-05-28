@@ -94,6 +94,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   const canContinue = !!state.price && !!state.availabilityType;
 
+  // Weight unit states with smart defaults based on materials
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
+  const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
+
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
 

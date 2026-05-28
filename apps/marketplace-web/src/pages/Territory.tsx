@@ -20,6 +20,7 @@ import { formatCurrency } from "@/lib/currencyUtils";
 import { Footer } from "@/components/Footer";
 import type { ArtisanShop } from "@/types/artisan-shops.types";
 import { ArrowRight } from "lucide-react";
+import { useCmsTerritory } from "@/hooks/useCmsTerritory";
 
 /* ── Territory metadata ──────────────────────────────── */
 interface TerritoryExtraSection {
@@ -157,7 +158,24 @@ export default function Territory() {
   const [featuredProduct, setFeaturedProduct] = useState<ProductNewCore | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const territory = slug ? TERRITORY_DATA[slug] : undefined;
+  // Prefer CMS data (Mongo) — fall back to the baked-in TERRITORY_DATA so the
+  // page never blanks during cold start or outage.
+  const { data: cmsTerritory } = useCmsTerritory(slug);
+  const fallback = slug ? TERRITORY_DATA[slug] : undefined;
+  const territory: TerritoryMeta | undefined = cmsTerritory
+    ? {
+        name: cmsTerritory.name,
+        department: cmsTerritory.department,
+        subtitle: cmsTerritory.subtitle,
+        description: cmsTerritory.description,
+        longDescription: cmsTerritory.longDescription,
+        culturalQuote: cmsTerritory.culturalQuote,
+        culturalTitle: cmsTerritory.culturalTitle,
+        ctaHeadline: cmsTerritory.ctaHeadline,
+        featuredProductId: cmsTerritory.featuredProductId ?? undefined,
+        extraSections: cmsTerritory.extraSections ?? [],
+      }
+    : fallback;
 
   // Fetch featured product (if territory defines one)
   useEffect(() => {

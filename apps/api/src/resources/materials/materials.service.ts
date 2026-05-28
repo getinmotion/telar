@@ -22,16 +22,25 @@ export class MaterialsService {
    * Crear un nuevo material
    */
   async create(createDto: CreateMaterialDto): Promise<Material> {
-    // Verificar si ya existe un material con ese nombre
+    const normalizedName = (createDto.name ?? '').trim();
+    if (!normalizedName) {
+      throw new BadRequestException('El nombre del material es requerido');
+    }
+
+    // Búsqueda case-insensitive y trim-aware para ser consistente con findAll (ILike)
+    // y evitar que "Algodón" / "algodon" / " Algodón " se traten como distintos.
     const existingMaterial = await this.materialsRepository.findOne({
-      where: { name: createDto.name },
+      where: { name: ILike(normalizedName) },
     });
 
     if (existingMaterial) {
       throw new ConflictException('Ya existe un material con ese nombre');
     }
 
-    const newMaterial = this.materialsRepository.create(createDto);
+    const newMaterial = this.materialsRepository.create({
+      ...createDto,
+      name: normalizedName,
+    });
     return await this.materialsRepository.save(newMaterial);
   }
 
@@ -106,13 +115,20 @@ export class MaterialsService {
     await this.findOne(id);
 
     if (updateDto.name) {
+      const normalizedName = updateDto.name.trim();
+      if (!normalizedName) {
+        throw new BadRequestException('El nombre del material no puede estar vacío');
+      }
+
       const existingMaterial = await this.materialsRepository.findOne({
-        where: { name: updateDto.name },
+        where: { name: ILike(normalizedName) },
       });
 
       if (existingMaterial && existingMaterial.id !== id) {
         throw new ConflictException('Ya existe un material con ese nombre');
       }
+
+      updateDto.name = normalizedName;
     }
 
     await this.materialsRepository.update(id, updateDto);
