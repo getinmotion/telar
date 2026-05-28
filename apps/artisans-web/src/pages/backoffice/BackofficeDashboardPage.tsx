@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, AlertTriangle, Clock, TrendingUp, Shield } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, AlertTriangle, Clock, TrendingUp, Shield, Map as MapIcon } from 'lucide-react';
 import { useModerationStats } from '@/hooks/useModerationStats';
+import { useShippingAnalytics } from '@/hooks/useShippingAnalytics';
+import { ArtisansMap, uniqueDepartments, countLocated } from '@/components/shipping-dashboard/ArtisansMap';
 import { useAuthStore } from '@/stores/authStore';
 import { SANS, SERIF, lc, formatCurrency, PURPLE, PURPLE_DARK, PURPLE_MID, GREEN_MOD } from '@/components/dashboard/dashboardStyles';
 
@@ -118,6 +120,11 @@ const StatusBar: React.FC<StatusBarProps> = ({ label, value, total, color }) => 
 const BackofficeDashboardPage: React.FC = () => {
   const { user } = useAuthStore();
   const { stats, loading, fetchStats } = useModerationStats();
+  const { shopsData, fetchShopsData } = useShippingAnalytics();
+  const [mapDept, setMapDept] = React.useState<string>('');
+  useEffect(() => { fetchShopsData(); }, [fetchShopsData]);
+  const mapDepartments = React.useMemo(() => uniqueDepartments(shopsData), [shopsData]);
+  const mapCounts = React.useMemo(() => countLocated(shopsData, mapDept || null), [shopsData, mapDept]);
   const navigate = useNavigate();
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
@@ -407,6 +414,55 @@ const BackofficeDashboardPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ── Mapa de artesanos ────────────────────────────────────────── */}
+        <section>
+          <SL dot={PURPLE} text="Distribución geográfica" />
+          <div style={{ ...glassCard, padding: '20px 24px' }}>
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+              <div className="flex items-center gap-2">
+                <MapIcon style={{ width: 16, height: 16, color: PURPLE }} />
+                <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>
+                  Artesanos en el mapa
+                </span>
+                <span style={{ ...lc(0.5), fontSize: 11 }}>
+                  · {mapCounts.located} ubicados / {mapCounts.missing} sin coordenadas
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={mapDept}
+                  onChange={e => setMapDept(e.target.value)}
+                  className="text-xs border rounded px-2 py-1 bg-white"
+                  style={{ fontFamily: SANS }}
+                >
+                  <option value="">Todos los departamentos</option>
+                  {mapDepartments.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => navigate('/backoffice/envios')}
+                  className="text-xs flex items-center gap-1 px-3 py-1 rounded-full"
+                  style={{
+                    background: 'rgba(124,58,237,0.08)',
+                    border: `1px solid ${PURPLE}33`,
+                    color: PURPLE_DARK,
+                    fontFamily: SANS,
+                    fontWeight: 700,
+                  }}
+                >
+                  Ver dashboard de envíos <ArrowUpRight style={{ width: 12, height: 12 }} />
+                </button>
+              </div>
+            </div>
+            <ArtisansMap
+              shopsData={shopsData}
+              filterDepartment={mapDept || null}
+              height={380}
+            />
           </div>
         </section>
 

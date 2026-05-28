@@ -13,6 +13,66 @@ import { Footer } from "@/components/Footer";
 import { getArtisanShops } from "@/services/artisan-shops.actions";
 import { geocodeArtisan, jitter } from "@/lib/colombia-geocodes";
 import type { ArtisanShop } from "@/types/artisan-shops.types";
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
+import type { CmsSection } from "@/services/cms-sections.actions";
+
+/* ── Fallback editorial (used when CMS is empty / unreachable) ──────── */
+const FALLBACK_TERRITORIOS_SECTIONS: CmsSection[] = [
+  {
+    id: "fallback-territorios-hero",
+    pageKey: "territorios",
+    position: 0,
+    type: "territorios_hero",
+    published: true,
+    payload: {
+      kicker: "Geografía Humana",
+      title: "El mapa de nuestros hilos",
+      body: '"El territorio no es un lugar, es un ecosistema de gestos, materiales y memoria. Cada región de Colombia custodia una forma distinta de transformar la materia."',
+      stats: [
+        { value: "+7", label: "Regiones" },
+        { value: "+120", label: "Talleres" },
+        { value: "+24", label: "Técnicas" },
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-territorios-dark",
+    pageKey: "territorios",
+    position: 10,
+    type: "territorios_dark_quote",
+    published: true,
+    payload: {
+      quote:
+        "La geografía dicta la técnica. Donde hay palma, hay cestería; donde hay volcán, hay barro negro.",
+      leftStats: [
+        { value: "+120", caption: "Talleres en el Pacífico", color: "#ec6d13" },
+        { value: "45", caption: "Técnicas en riesgo de desaparición", color: "#ba1a1a" },
+      ],
+      rightTitle: "El rastro de la fibra",
+      rightBody:
+        '"En la humedad del Pacífico, la fibra se curva antes de ceder. El artesano no domina la materia, la acompaña en su metamorfosis natural."',
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-territorios-header",
+    pageKey: "territorios",
+    position: 20,
+    type: "home_section_header",
+    published: true,
+    payload: {
+      slot: "territorios_index",
+      kicker: "Índice Editorial",
+      title: "Territorios de Gracia",
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+];
 
 /* ── Territory data ─────────────────────────────────── */
 interface TerritoryPoint {
@@ -124,6 +184,17 @@ const Territorios = () => {
   const [selectedTerritory, setSelectedTerritory] = useState<TerritoryPoint | null>(null);
   const [hoveredArtisan, setHoveredArtisan] = useState<string | null>(null);
 
+  const { data: cmsSections } = useCmsSections("territorios");
+  const activeSections =
+    cmsSections && cmsSections.length > 0
+      ? cmsSections
+      : FALLBACK_TERRITORIOS_SECTIONS;
+  const heroSection = activeSections.find((s) => s.type === "territorios_hero");
+  const darkSection = activeSections.find((s) => s.type === "territorios_dark_quote");
+  const indexHeaderSection = activeSections.find(
+    (s) => s.type === "home_section_header" && s.payload?.slot === "territorios_index",
+  );
+
   const { data: shopsResponse } = useQuery({
     queryKey: ["artisan-shops", "territorios-map"],
     queryFn: () =>
@@ -176,46 +247,8 @@ const Territorios = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#1b1c19" }}>
-      {/* ═══════════════ HERO ═══════════════ */}
-      <section className="px-8 pt-24 pb-12 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
-        <div className="md:col-span-8">
-          <span
-            className="text-sm tracking-[0.3em] uppercase mb-6 block font-sans font-bold"
-            style={{ color: "#ec6d13" }}
-          >
-            Geografía Humana
-          </span>
-          <h1
-            className="text-6xl md:text-8xl font-serif font-bold leading-tight mb-8"
-            style={{ letterSpacing: "-0.02em", color: "#1b1c19" }}
-          >
-            El mapa de nuestros hilos
-          </h1>
-          <p
-            className="text-xl md:text-2xl font-serif italic max-w-2xl leading-relaxed"
-            style={{ color: "#584237" }}
-          >
-            "El territorio no es un lugar, es un ecosistema de gestos, materiales y memoria. Cada
-            región de Colombia custodia una forma distinta de transformar la materia."
-          </p>
-        </div>
-        <div className="md:col-span-4 flex flex-col justify-end items-start md:items-end text-left md:text-right space-y-4">
-          {[
-            { value: `+${TERRITORIES.length}`, label: "Regiones" },
-            { value: artisanPoints.length > 0 ? `+${artisanPoints.length}` : "+120", label: "Talleres" },
-            { value: "+24", label: "Técnicas" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <span className="block text-4xl font-serif" style={{ color: "#ec6d13" }}>
-                {stat.value}
-              </span>
-              <span className="text-xs tracking-widest uppercase font-sans" style={{ color: "#584237" }}>
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ═══════════════ HERO (CMS) ═══════════════ */}
+      {heroSection && <CmsSectionRenderer section={heroSection} />}
 
       {/* ═══════════════ REAL MAP ═══════════════ */}
       <section className="w-full py-24 relative overflow-hidden" style={{ backgroundColor: "#f5f3ee" }}>
@@ -470,89 +503,25 @@ const Territorios = () => {
         </div>
       </section>
 
-      {/* ═══════════════ DARK EDITORIAL MODULE ═══════════════ */}
-      <section className="py-32" style={{ backgroundColor: "#1b1c19", color: "#e4e2dd" }}>
-        <div className="max-w-[1400px] mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
-            <div className="space-y-12">
-              <div className="max-w-md">
-                <span className="text-4xl mb-6 block" style={{ color: "#ec6d13" }}>"</span>
-                <p className="text-3xl font-serif leading-snug mb-6">
-                  La geografía dicta la técnica. Donde hay palma, hay cestería; donde hay volcán, hay
-                  barro negro.
-                </p>
-                <div className="w-16 h-[2px]" style={{ backgroundColor: "#ec6d13" }} />
-              </div>
-              <div className="grid grid-cols-2 gap-8">
-                <div className="p-8 border rounded-lg" style={{ borderColor: "rgba(228,226,221,0.1)" }}>
-                  <span className="block text-5xl font-serif mb-2" style={{ color: "#ec6d13" }}>
-                    +120
-                  </span>
-                  <p className="text-xs uppercase tracking-widest opacity-60 font-sans">
-                    Talleres en el Pacífico
-                  </p>
-                </div>
-                <div className="p-8 border rounded-lg" style={{ borderColor: "rgba(228,226,221,0.1)" }}>
-                  <span className="block text-5xl font-serif mb-2" style={{ color: "#ba1a1a" }}>
-                    45
-                  </span>
-                  <p className="text-xs uppercase tracking-widest opacity-60 font-sans">
-                    Técnicas en riesgo de desaparición
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* ═══════════════ DARK EDITORIAL MODULE (CMS) ═══════════════ */}
+      {darkSection && <CmsSectionRenderer section={darkSection} />}
 
-            <div
-              className="relative aspect-video md:aspect-square rounded-xl overflow-hidden flex items-center justify-center p-12"
-              style={{ backgroundColor: "rgba(228,226,221,0.05)" }}
-            >
-              <div
-                className="absolute inset-0 opacity-20"
-                style={{
-                  backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
-                  backgroundSize: "40px 40px",
-                }}
-              />
-              <div className="relative z-10 text-center">
-                <h4 className="text-4xl font-serif mb-6" style={{ color: "#f9f7f2" }}>
-                  El rastro de la fibra
-                </h4>
-                <p className="max-w-sm mx-auto leading-relaxed italic" style={{ color: "rgba(228,226,221,0.7)" }}>
-                  "En la humedad del Pacífico, la fibra se curva antes de ceder. El artesano no
-                  domina la materia, la acompaña en su metamorfosis natural."
-                </p>
-                <div className="mt-12 flex justify-center gap-4">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#ec6d13" }} />
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "rgba(236,109,19,0.4)" }} />
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "rgba(236,109,19,0.2)" }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ TERRITORY INDEX ═══════════════ */}
+      {/* ═══════════════ TERRITORY INDEX (CMS header + lista) ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-8 py-32">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-          <div>
-            <span
-              className="text-sm tracking-widest uppercase mb-4 block font-sans font-bold"
-              style={{ color: "#ec6d13" }}
-            >
-              Índice Editorial
-            </span>
-            <h2 className="text-5xl font-serif font-bold">Territorios de Gracia</h2>
+        {indexHeaderSection ? (
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div className="flex-1">
+              <CmsSectionRenderer section={indexHeaderSection} />
+            </div>
+            <div
+              className="w-full md:w-1/2 mb-4 h-[1px]"
+              style={{
+                background: "linear-gradient(90deg, #ec6d13 0%, transparent 100%)",
+                opacity: 0.2,
+              }}
+            />
           </div>
-          <div
-            className="w-full md:w-1/2 mb-4 h-[1px]"
-            style={{
-              background: "linear-gradient(90deg, #ec6d13 0%, transparent 100%)",
-              opacity: 0.2,
-            }}
-          />
-        </div>
+        ) : null}
 
         <div className="space-y-0">
           {TERRITORIES.map((t, i) => (

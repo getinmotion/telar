@@ -150,6 +150,7 @@ LEFT JOIN (
     GROUP BY product_id
 ) media ON pc.id = media.product_id
 WHERE pc.deleted_at IS NULL
+  AND pc.status IN ('published', 'approved', 'approved_with_edits')
   AND 1 - (pe.embedding <=> $1::vector) >= $2
 ORDER BY pe.embedding <=> $1::vector
 LIMIT $3

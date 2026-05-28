@@ -101,6 +101,16 @@ export default function BackofficeTaxonomiaPage() {
         setCounts(map);
       })
       .catch(() => {});
+
+    getTaxonomySummary()
+      .then((summary) => {
+        const map: Record<string, number> = {};
+        for (const [type, data] of Object.entries(summary)) {
+          map[type] = data.total;
+        }
+        setCounts(map);
+      })
+      .catch(() => {});
   }, []);
 
   const isOpen = (key?: 'terms' | 'clasificacion') => {

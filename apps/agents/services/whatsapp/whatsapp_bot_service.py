@@ -156,31 +156,26 @@ async def process_message(msg: IncomingMessage) -> None:
 # ─────────────────────────────────────────────
 
 async def _handle_ask_regions(intro: str) -> str:
-    """Return a deduplicated list of artisan regions extracted from store names."""
+    """Return a deduplicated list of artisan regions queried directly from the DB."""
     try:
-        # Broad semantic search to gather stores from across Colombia
-        results = await semantic_search_service.search_products(
-            query="artesanías colombianas productos artesanales",
-            top_k=80,
-            min_similarity=0.15,
-        )
-
-        raw_regions: list[str] = []
-        for r in results:
-            loc = _extract_location(r.store_name)
-            if loc:
-                raw_regions.append(loc)
-
-        # Also try to extract city/department from store names that include "Colombia"
-        # e.g. "SAN JOSÉ DE TOLUVIEJO, SUCRE, Colombia" → "SAN JOSÉ DE TOLUVIEJO, SUCRE"
-        cleaned: list[str] = []
-        for loc in raw_regions:
-            loc = loc.replace(", Colombia", "").replace(",Colombia", "").strip(", ")
-            if loc:
-                cleaned.append(loc)
-
-        logger.info("ask_regions: found %d raw locations from semantic search", len(cleaned))
-        return format_regions(cleaned, intro)
+        from src.database.pg_client import get_pool
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT DISTINCT sa.region
+                FROM shop.artisan_shops sa
+                JOIN shop.products_core pc ON pc.store_id = sa.id
+                WHERE pc.deleted_at IS NULL
+                  AND pc.status IN ('published', 'approved', 'approved_with_edits')
+                  AND sa.region IS NOT NULL
+                  AND sa.region != ''
+                ORDER BY sa.region
+                """
+            )
+        regions = [r["region"] for r in rows]
+        logger.info("ask_regions: found %d regions from DB", len(regions))
+        return format_regions(regions, intro)
     except Exception as exc:
         logger.error("ask_regions failed: %s", exc)
         return (
@@ -201,6 +196,7 @@ async def _handle_ask_materials(intro: str) -> str:
                 JOIN shop.product_artisanal_identity pai ON pai.primary_craft_id = tc.id
                 JOIN shop.products_core pc ON pc.id = pai.product_id
                 WHERE pc.deleted_at IS NULL AND tc.name IS NOT NULL
+                  AND pc.status IN ('published', 'approved', 'approved_with_edits')
                 ORDER BY tc.name
                 """
             )
