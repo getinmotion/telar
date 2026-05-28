@@ -37,19 +37,36 @@ export class TaxonomyStylesService {
     return this.stylesRepo.find({ where, order: { name: 'ASC' } });
   }
 
-  async findAllWithArtisanCount(): Promise<Array<Style & { artisanCount: number }>> {
-    const [items, countRows] = await Promise.all([
-      this.stylesRepo.find({ order: { name: 'ASC' } }),
-      this.stylesRepo
-        .createQueryBuilder('s')
-        .leftJoin('artesanos.artisan_styles', 'as_', 'as_.style_id = s.id')
-        .select('s.id', 'id')
-        .addSelect('COUNT(DISTINCT as_.artisan_id)::int', 'artisanCount')
-        .groupBy('s.id')
-        .getRawMany<{ id: string; artisanCount: number }>(),
+  async findAllWithProductCount(): Promise<Array<Style & { productCount: number; artisanCount: number }>> {
+    const items = await this.stylesRepo.find({ order: { name: 'ASC' } });
+    if (!items.length) return [];
+    const ids = items.map((i) => i.id);
+
+    const [artisanRows, productRows] = await Promise.all([
+      this.stylesRepo.query<{ style_id: string; cnt: string }[]>(
+        `SELECT style_id, COUNT(DISTINCT artisan_id)::int AS cnt
+         FROM artesanos.artisan_styles
+         WHERE style_id = ANY($1)
+         GROUP BY style_id`,
+        [ids],
+      ),
+      this.stylesRepo.query<{ style_id: string; cnt: string }[]>(
+        `SELECT style_id, COUNT(DISTINCT product_id)::int AS cnt
+         FROM shop.product_artisanal_identity
+         WHERE style_id = ANY($1) AND deleted_at IS NULL
+         GROUP BY style_id`,
+        [ids],
+      ),
     ]);
-    const countMap = new Map(countRows.map((r) => [r.id, Number(r.artisanCount) || 0]));
-    return items.map((item) => ({ ...item, artisanCount: countMap.get(item.id) ?? 0 }));
+
+    const artisanMap  = new Map(artisanRows.map((r)  => [r.style_id, Number(r.cnt)]));
+    const productMap  = new Map(productRows.map((r)  => [r.style_id, Number(r.cnt)]));
+
+    return items.map((item) => ({
+      ...item,
+      artisanCount: artisanMap.get(item.id)  ?? 0,
+      productCount: productMap.get(item.id)  ?? 0,
+    }));
   }
 
   async findOne(id: string): Promise<Style> {

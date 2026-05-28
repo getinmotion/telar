@@ -14,6 +14,7 @@ export interface TaxonomyItemAdmin extends TaxonomyItem {
   description?: string | null;
   categoryId?: string | null;
   craftId?: string | null;
+  craftIds?: string[];
   skuCode?: string | null;
   isOrganic?: boolean;
   isSustainable?: boolean;
@@ -106,6 +107,7 @@ export async function createTaxonomyItem(
     status?: string;
     categoryId?: string;
     craftId?: string;
+    craftIds?: string[];
     skuCode?: string;
     isOrganic?: boolean;
     isSustainable?: boolean;

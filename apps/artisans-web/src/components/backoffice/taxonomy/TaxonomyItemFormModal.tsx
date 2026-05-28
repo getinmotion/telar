@@ -68,6 +68,7 @@ export function TaxonomyItemFormModal({
   const [status, setStatus] = useState<string>('approved');
   const [categoryId, setCategoryId] = useState<string>('');
   const [craftId, setCraftId] = useState<string>('');
+  const [selectedCraftIds, setSelectedCraftIds] = useState<string[]>([]);
   const [skuCode, setSkuCode] = useState('');
   const [isOrganic, setIsOrganic] = useState(false);
   const [isSustainable, setIsSustainable] = useState(false);
@@ -90,6 +91,9 @@ export function TaxonomyItemFormModal({
     setStatus((initialData as TaxonomyItemAdmin)?.status ?? 'approved');
     setCategoryId((initialData as TaxonomyItemAdmin)?.categoryId ?? '');
     setCraftId((initialData as TaxonomyItemAdmin)?.craftId ?? '');
+    const existingCraftIds = (initialData as TaxonomyItemAdmin)?.craftIds;
+    const fallbackCraftId = (initialData as TaxonomyItemAdmin)?.craftId;
+    setSelectedCraftIds(existingCraftIds?.length ? existingCraftIds : fallbackCraftId ? [fallbackCraftId] : []);
     setSkuCode((initialData as TaxonomyItemAdmin)?.skuCode ?? '');
     setIsOrganic((initialData as TaxonomyItemAdmin)?.isOrganic ?? false);
     setIsSustainable((initialData as TaxonomyItemAdmin)?.isSustainable ?? false);
@@ -121,7 +125,7 @@ export function TaxonomyItemFormModal({
           description: description || undefined,
           status,
           ...(taxonomyType === 'crafts' ? { categoryId: categoryId || undefined } : {}),
-          ...(taxonomyType === 'techniques' ? { craftId: craftId || undefined } : {}),
+          ...(taxonomyType === 'techniques' ? { craftIds: selectedCraftIds } : {}),
           ...(skuCode ? { skuCode } : {}),
           ...(taxonomyType === 'materials' ? { isOrganic, isSustainable } : {}),
         };
@@ -161,8 +165,7 @@ export function TaxonomyItemFormModal({
 
   const canSave =
     name.trim().length > 0 &&
-    (variant !== 'badge' || code.trim().length > 0) &&
-    (variant !== 'taxonomy' || taxonomyType !== 'techniques' || craftId);
+    (variant !== 'badge' || code.trim().length > 0);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -265,20 +268,52 @@ export function TaxonomyItemFormModal({
             </div>
           )}
 
-          {/* Techniques: craft (required) */}
+          {/* Techniques: crafts multi-select (optional) */}
           {variant === 'taxonomy' && taxonomyType === 'techniques' && (
             <div>
-              <Label htmlFor="craftId">Oficio *</Label>
-              <Select value={craftId} onValueChange={setCraftId}>
-                <SelectTrigger id="craftId" style={{ marginTop: 4 }}>
-                  <SelectValue placeholder="Selecciona un oficio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {crafts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Label>Oficios asociados <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opcional)</span></Label>
+                {selectedCraftIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCraftIds([])}
+                    style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    Quitar todos
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {crafts.map((c) => {
+                  const active = selectedCraftIds.includes(c.id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setSelectedCraftIds((prev) =>
+                        active ? prev.filter((id) => id !== c.id) : [...prev, c.id],
+                      )}
+                      style={{
+                        border: `1.5px solid ${active ? '#7c3aed' : '#e5e7eb'}`,
+                        borderRadius: 20,
+                        padding: '4px 12px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        background: active ? 'rgba(124,58,237,0.1)' : 'white',
+                        color: active ? '#7c3aed' : '#6b7280',
+                        fontFamily: "'League Spartan', system-ui, sans-serif",
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {active ? '✓ ' : ''}{c.name}
+                    </button>
+                  );
+                })}
+                {crafts.length === 0 && (
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Sin oficios disponibles</span>
+                )}
+              </div>
             </div>
           )}
 

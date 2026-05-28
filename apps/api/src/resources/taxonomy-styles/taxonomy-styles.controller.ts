@@ -35,7 +35,7 @@ export class TaxonomyStylesController {
     @Query('search') search?: string,
     @Query('status') status?: string,
   ) {
-    if (withProductCount === 'true') return this.service.findAllWithArtisanCount();
+    if (withProductCount === 'true') return this.service.findAllWithProductCount();
     return this.service.findAll(search, status);
   }
 

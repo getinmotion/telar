@@ -5,63 +5,116 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { ILike, Repository } from 'typeorm';
+import { ILike, Repository, In } from 'typeorm';
 import { Technique, ApprovalStatus } from './entities/technique.entity';
 import { CreateTechniqueDto } from './dto/create-technique.dto';
 import { UpdateTechniqueDto } from './dto/update-technique.dto';
 import { ProductArtisanalIdentity } from '../products-new/entities/product-artisanal-identity.entity';
 
+type TechniqueWithMeta = Technique & { craftIds: string[] };
+
 @Injectable()
 export class TechniquesService {
   constructor(
     @Inject('TECHNIQUES_REPOSITORY')
-    private readonly techniquesRepository: Repository<Technique>,
+    private readonly repo: Repository<Technique>,
   ) {}
 
-  /**
-   * Crear una nueva técnica
-   */
-  async create(createDto: CreateTechniqueDto): Promise<Technique> {
-    // Verificar si ya existe una técnica con ese nombre para el mismo craft
-    const existingTechnique = await this.techniquesRepository.findOne({
-      where: { name: createDto.name, craftId: createDto.craftId },
-    });
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
-    if (existingTechnique) {
-      throw new ConflictException(
-        'Ya existe una técnica con ese nombre para este craft',
-      );
+  private async loadCraftIds(techniqueIds: string[]): Promise<Map<string, string[]>> {
+    if (!techniqueIds.length) return new Map();
+    const rows = await this.repo.query<{ technique_id: string; craft_id: string }[]>(
+      `SELECT technique_id, craft_id
+       FROM taxonomy.technique_craft_links
+       WHERE technique_id = ANY($1)`,
+      [techniqueIds],
+    );
+    const map = new Map<string, string[]>();
+    for (const row of rows) {
+      const arr = map.get(row.technique_id) ?? [];
+      arr.push(row.craft_id);
+      map.set(row.technique_id, arr);
     }
-
-    const newTechnique = this.techniquesRepository.create(createDto);
-    return await this.techniquesRepository.save(newTechnique);
+    return map;
   }
 
-  async findAll(search?: string, status?: string, suggestedBy?: string): Promise<Technique[]> {
+  private async replaceCraftLinks(techniqueId: string, craftIds: string[]): Promise<void> {
+    await this.repo.query(
+      `DELETE FROM taxonomy.technique_craft_links WHERE technique_id = $1`,
+      [techniqueId],
+    );
+    if (!craftIds.length) return;
+    const values = craftIds.map((cid, i) => `($1, $${i + 2})`).join(', ');
+    await this.repo.query(
+      `INSERT INTO taxonomy.technique_craft_links (technique_id, craft_id) VALUES ${values} ON CONFLICT DO NOTHING`,
+      [techniqueId, ...craftIds],
+    );
+  }
+
+  private attach(items: Technique[], map: Map<string, string[]>): TechniqueWithMeta[] {
+    return items.map((item) => ({ ...item, craftIds: map.get(item.id) ?? [] }));
+  }
+
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  async create(dto: CreateTechniqueDto): Promise<TechniqueWithMeta> {
+    const existing = await this.repo.findOne({ where: { name: dto.name } });
+    if (existing) {
+      throw new ConflictException('Ya existe una técnica con ese nombre');
+    }
+
+    const { craftIds, craftId, ...rest } = dto;
+    const technique = this.repo.create({ ...rest, craftId: craftId ?? null });
+    const saved = await this.repo.save(technique);
+
+    const allCraftIds = Array.from(new Set([...(craftIds ?? []), ...(craftId ? [craftId] : [])]));
+    if (allCraftIds.length) await this.replaceCraftLinks(saved.id, allCraftIds);
+
+    return { ...saved, craftIds: allCraftIds };
+  }
+
+  async findAll(search?: string, status?: string, suggestedBy?: string): Promise<TechniqueWithMeta[]> {
     const where: any = {};
     if (status) where.status = status;
     if (suggestedBy) where.suggestedBy = suggestedBy;
     if (search) where.name = ILike(`%${search}%`);
-    return this.techniquesRepository.find({ where, order: { name: 'ASC' } });
+
+    const items = await this.repo.find({ where, order: { name: 'ASC' } });
+    const map = await this.loadCraftIds(items.map((i) => i.id));
+    return this.attach(items, map);
   }
 
-  /**
-   * Obtener técnicas con el conteo de productos asociados.
-   * Acepta los mismos filtros que findAll (craftId, search, status).
-   */
   async findAllWithProductCount(
     craftId?: string,
     search?: string,
     status?: string,
-  ): Promise<Array<Technique & { productCount: number }>> {
+  ): Promise<Array<TechniqueWithMeta & { productCount: number }>> {
     const where: any = {};
-    if (craftId) where.craftId = craftId;
     if (status) where.status = status;
     if (search) where.name = ILike(`%${search}%`);
 
-    const [items, countRows] = await Promise.all([
-      this.techniquesRepository.find({ where, order: { name: 'ASC' } }),
-      this.techniquesRepository
+    let items: Technique[];
+
+    if (craftId) {
+      // Filtrar via join table (técnicas asociadas al oficio)
+      const linked = await this.repo.query<{ technique_id: string }[]>(
+        `SELECT technique_id FROM taxonomy.technique_craft_links WHERE craft_id = $1`,
+        [craftId],
+      );
+      const ids = linked.map((r) => r.technique_id);
+      if (!ids.length) return [];
+      items = await this.repo.find({ where: { ...where, id: In(ids) }, order: { name: 'ASC' } });
+    } else {
+      items = await this.repo.find({ where, order: { name: 'ASC' } });
+    }
+
+    if (!items.length) return [];
+
+    const itemIds = items.map((i) => i.id);
+
+    const [countRows, craftMap] = await Promise.all([
+      this.repo
         .createQueryBuilder('t')
         .leftJoin(
           ProductArtisanalIdentity,
@@ -70,66 +123,80 @@ export class TechniquesService {
         )
         .select('t.id', 'id')
         .addSelect('COUNT(DISTINCT pai.product_id)::int', 'productCount')
-        .where(craftId ? 't.craftId = :craftId' : '1=1', { craftId })
+        .where('t.id IN (:...ids)', { ids: itemIds })
         .groupBy('t.id')
         .getRawMany<{ id: string; productCount: number }>(),
+      this.loadCraftIds(itemIds),
     ]);
+
     const countMap = new Map(countRows.map((r) => [r.id, Number(r.productCount) || 0]));
-    return items.map((item) => ({ ...item, productCount: countMap.get(item.id) ?? 0 }));
+    return items.map((item) => ({
+      ...item,
+      productCount: countMap.get(item.id) ?? 0,
+      craftIds: craftMap.get(item.id) ?? [],
+    }));
   }
 
-  /**
-   * Obtener una técnica por ID
-   */
-  async findOne(id: string): Promise<Technique> {
-    if (!id) {
-      throw new BadRequestException('El ID es requerido');
-    }
-
-    const technique = await this.techniquesRepository.findOne({
-      where: { id },
-    });
-
-    if (!technique) {
-      throw new NotFoundException(`Técnica con ID ${id} no encontrada`);
-    }
-
-    return technique;
+  async findOne(id: string): Promise<TechniqueWithMeta> {
+    if (!id) throw new BadRequestException('El ID es requerido');
+    const technique = await this.repo.findOne({ where: { id } });
+    if (!technique) throw new NotFoundException(`Técnica con ID ${id} no encontrada`);
+    const map = await this.loadCraftIds([id]);
+    return { ...technique, craftIds: map.get(id) ?? [] };
   }
 
-  async findByCraftId(craftId: string, status?: string): Promise<Technique[]> {
-    const where: any = { craftId };
+  async findByCraftId(craftId: string, status?: string): Promise<TechniqueWithMeta[]> {
+    const linked = await this.repo.query<{ technique_id: string }[]>(
+      `SELECT technique_id FROM taxonomy.technique_craft_links WHERE craft_id = $1`,
+      [craftId],
+    );
+    const ids = linked.map((r) => r.technique_id);
+    if (!ids.length) return [];
+    const where: any = { id: In(ids) };
     if (status) where.status = status;
-    return this.techniquesRepository.find({ where, order: { name: 'ASC' } });
+    const items = await this.repo.find({ where, order: { name: 'ASC' } });
+    const map = await this.loadCraftIds(ids);
+    return this.attach(items, map);
   }
 
-  async findByStatus(status: string): Promise<Technique[]> {
-    return this.techniquesRepository.find({
+  async findByStatus(status: string): Promise<TechniqueWithMeta[]> {
+    const items = await this.repo.find({
       where: { status: status as ApprovalStatus },
       order: { name: 'ASC' },
     });
+    const map = await this.loadCraftIds(items.map((i) => i.id));
+    return this.attach(items, map);
   }
 
-  async update(id: string, updateDto: UpdateTechniqueDto): Promise<Technique> {
+  async update(id: string, updateDto: UpdateTechniqueDto): Promise<TechniqueWithMeta> {
     await this.findOne(id);
 
-    if (updateDto.name || updateDto.craftId) {
-      const technique = await this.findOne(id);
-      const nameToCheck = updateDto.name || technique.name;
-      const craftIdToCheck = updateDto.craftId || technique.craftId;
-
-      const existingTechnique = await this.techniquesRepository.findOne({
-        where: { name: nameToCheck, craftId: craftIdToCheck },
-      });
-
-      if (existingTechnique && existingTechnique.id !== id) {
-        throw new ConflictException(
-          'Ya existe una técnica con ese nombre para este craft',
-        );
+    if (updateDto.name) {
+      const existing = await this.repo.findOne({ where: { name: updateDto.name } });
+      if (existing && existing.id !== id) {
+        throw new ConflictException('Ya existe una técnica con ese nombre');
       }
     }
 
-    await this.techniquesRepository.update(id, updateDto);
+    const { craftIds, craftId, ...rest } = updateDto as any;
+
+    // Actualizar columna legacy si se pasa craftId explícito
+    const colUpdate: any = { ...rest };
+    if (craftId !== undefined) colUpdate.craftId = craftId ?? null;
+
+    if (Object.keys(colUpdate).length) {
+      await this.repo.update(id, colUpdate);
+    }
+
+    // Actualizar craft links si se pasa craftIds (o craftId como single)
+    if (craftIds !== undefined || craftId !== undefined) {
+      const allCraftIds = Array.from(new Set([
+        ...(craftIds ?? []),
+        ...(craftId ? [craftId] : []),
+      ]));
+      await this.replaceCraftLinks(id, allCraftIds);
+    }
+
     return this.findOne(id);
   }
 
@@ -137,38 +204,47 @@ export class TechniquesService {
     id: string,
     status: ApprovalStatus,
     mergeIntoId?: string,
-  ): Promise<Technique | { message: string }> {
+  ): Promise<TechniqueWithMeta | { message: string }> {
     await this.findOne(id);
 
     if (mergeIntoId && status === ApprovalStatus.REJECTED) {
       await this.findOne(mergeIntoId);
-      await this.techniquesRepository.query(
+
+      // Migrar craft_links al destino
+      await this.repo.query(
+        `INSERT INTO taxonomy.technique_craft_links (technique_id, craft_id)
+         SELECT $1, craft_id FROM taxonomy.technique_craft_links WHERE technique_id = $2
+         ON CONFLICT DO NOTHING`,
+        [mergeIntoId, id],
+      );
+
+      await this.repo.query(
         `UPDATE artesanos.artisan_identity SET technique_primary_id = $1 WHERE technique_primary_id = $2`,
         [mergeIntoId, id],
       );
-      await this.techniquesRepository.query(
+      await this.repo.query(
         `UPDATE artesanos.artisan_identity SET technique_secondary_id = $1 WHERE technique_secondary_id = $2`,
         [mergeIntoId, id],
       );
-      await this.techniquesRepository.query(
+      await this.repo.query(
         `UPDATE shop.product_artisanal_identity SET primary_technique_id = $1 WHERE primary_technique_id = $2`,
         [mergeIntoId, id],
       );
-      await this.techniquesRepository.query(
+      await this.repo.query(
         `UPDATE shop.product_artisanal_identity SET secondary_technique_id = $1 WHERE secondary_technique_id = $2`,
         [mergeIntoId, id],
       );
-      await this.techniquesRepository.update(id, { status: ApprovalStatus.REJECTED });
+      await this.repo.update(id, { status: ApprovalStatus.REJECTED });
       return { message: `Técnica fusionada en ${mergeIntoId}` };
     }
 
-    await this.techniquesRepository.update(id, { status });
+    await this.repo.update(id, { status });
     return this.findOne(id);
   }
 
   async remove(id: string): Promise<{ message: string }> {
     await this.findOne(id);
-    await this.techniquesRepository.delete(id);
+    await this.repo.delete(id);
     return { message: `Técnica con ID ${id} eliminada exitosamente` };
   }
 }
