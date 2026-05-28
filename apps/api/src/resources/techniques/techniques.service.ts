@@ -46,31 +46,36 @@ export class TechniquesService {
   }
 
   /**
-   * Obtener todas las técnicas con el conteo de productos asociados
-   * (productos cuya `primary_technique_id` o `secondary_technique_id` coincide).
+   * Obtener técnicas con el conteo de productos asociados.
+   * Acepta los mismos filtros que findAll (craftId, search, status).
    */
-  async findAllWithProductCount(): Promise<
-    Array<{ id: string; name: string; productCount: number }>
-  > {
-    const rows = await this.techniquesRepository
-      .createQueryBuilder('t')
-      .leftJoin(
-        ProductArtisanalIdentity,
-        'pai',
-        '(pai.primary_technique_id = t.id OR pai.secondary_technique_id = t.id) AND pai.deleted_at IS NULL',
-      )
-      .select('t.id', 'id')
-      .addSelect('t.name', 'name')
-      .addSelect('COUNT(DISTINCT pai.product_id)::int', 'productCount')
-      .groupBy('t.id')
-      .orderBy('t.name', 'ASC')
-      .getRawMany<{ id: string; name: string; productCount: number }>();
+  async findAllWithProductCount(
+    craftId?: string,
+    search?: string,
+    status?: string,
+  ): Promise<Array<Technique & { productCount: number }>> {
+    const where: any = {};
+    if (craftId) where.craftId = craftId;
+    if (status) where.status = status;
+    if (search) where.name = ILike(`%${search}%`);
 
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      productCount: Number(r.productCount) || 0,
-    }));
+    const [items, countRows] = await Promise.all([
+      this.techniquesRepository.find({ where, order: { name: 'ASC' } }),
+      this.techniquesRepository
+        .createQueryBuilder('t')
+        .leftJoin(
+          ProductArtisanalIdentity,
+          'pai',
+          '(pai.primary_technique_id = t.id OR pai.secondary_technique_id = t.id) AND pai.deleted_at IS NULL',
+        )
+        .select('t.id', 'id')
+        .addSelect('COUNT(DISTINCT pai.product_id)::int', 'productCount')
+        .where(craftId ? 't.craftId = :craftId' : '1=1', { craftId })
+        .groupBy('t.id')
+        .getRawMany<{ id: string; productCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.productCount) || 0]));
+    return items.map((item) => ({ ...item, productCount: countMap.get(item.id) ?? 0 }));
   }
 
   /**

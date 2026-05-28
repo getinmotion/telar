@@ -9,6 +9,7 @@ import { ILike, Repository } from 'typeorm';
 import { Material, ApprovalStatus } from './entities/material.entity';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { ProductMaterialLink } from '../products-new/entities/product-material-link.entity';
 
 @Injectable()
 export class MaterialsService {
@@ -49,6 +50,25 @@ export class MaterialsService {
     if (suggestedBy) where.suggestedBy = suggestedBy;
     if (search) where.name = ILike(`%${search}%`);
     return this.materialsRepository.find({ where, order: { name: 'ASC' } });
+  }
+
+  async findAllWithProductCount(): Promise<Array<Material & { productCount: number }>> {
+    const [items, countRows] = await Promise.all([
+      this.materialsRepository.find({ order: { name: 'ASC' } }),
+      this.materialsRepository
+        .createQueryBuilder('m')
+        .leftJoin(
+          ProductMaterialLink,
+          'pml',
+          'pml.material_id = m.id AND pml.deleted_at IS NULL',
+        )
+        .select('m.id', 'id')
+        .addSelect('COUNT(DISTINCT pml.product_id)::int', 'productCount')
+        .groupBy('m.id')
+        .getRawMany<{ id: string; productCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.productCount) || 0]));
+    return items.map((item) => ({ ...item, productCount: countMap.get(item.id) ?? 0 }));
   }
 
   /**

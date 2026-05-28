@@ -37,10 +37,12 @@ export class MaterialsController {
 
   @Get()
   findAll(
+    @Query('withProductCount') withProductCount?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('suggestedBy') suggestedBy?: string,
   ) {
+    if (withProductCount === 'true') return this.materialsService.findAllWithProductCount();
     return this.materialsService.findAll(search, status, suggestedBy);
   }
 

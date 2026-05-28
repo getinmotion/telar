@@ -5,6 +5,7 @@ import {
   logout as logoutAction,
 } from '@/pages/auth/actions/login.actions';
 import { useAuthStore } from '@/stores/authStore';
+import { isJwtExpired } from '@/utils/jwt.utils';
 
 const TOKEN_REFRESH_INTERVAL_MS = 3.5 * 60 * 60 * 1000; // 3.5 horas
 
@@ -102,11 +103,15 @@ export function useAuthInit(): void {
             return validateAndInit(attempt + 1);
           }
 
-          // Multiple attempts failed - clear session
-          if (mounted) {
-            console.error('[useAuthInit] Token validation failed after retries, clearing auth');
+          // Only clear session if the JWT is provably expired.
+          // Network errors or backend issues should NOT log the user out.
+          const storedToken = useAuthStore.getState().access_token || localStorage.getItem('telar_token');
+          if (mounted && storedToken && isJwtExpired(storedToken)) {
+            console.warn('[useAuthInit] JWT expired, clearing auth');
             logoutAction();
             useAuthStore.getState().clearAuth();
+          } else if (mounted) {
+            console.warn('[useAuthInit] Validation failed but JWT not expired — keeping session alive');
           }
         }
       } finally {
