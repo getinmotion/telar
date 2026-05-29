@@ -14,6 +14,7 @@
  */
 
 import { useAuthStore } from '@/stores/authStore';
+import { parseJwtPayload } from '@/utils/jwt.utils';
 
 export type BackofficeSection =
   | 'home'
@@ -79,10 +80,32 @@ const GRANULAR_ROLES = [
 export type GranularRole = typeof GRANULAR_ROLES[number];
 
 export function useBackofficeAccess() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, access_token } = useAuthStore();
 
-  const jwtRoles: string[] = (user as any)?.roles ?? [];
-  const isSuperAdmin = user?.isSuperAdmin === true;
+  // Source 1: roles array on the user object (set at login from JWT)
+  const rawRoles: string[] = (user as any)?.roles ?? [];
+
+  // Source 2: parse the stored JWT directly — most reliable, works even for old sessions
+  // where user.roles wasn't persisted or was stored empty
+  const tokenRoles: string[] = (() => {
+    const token = access_token || localStorage.getItem('telar_token');
+    if (!token) return [];
+    const payload = parseJwtPayload(token);
+    return payload?.roles ?? [];
+  })();
+
+  // Source 3: legacy single-role string fallback
+  const legacyRole: string = (user as any)?.role ?? '';
+
+  // Merge all sources — prefer tokenRoles (always fresh from JWT), then rawRoles, then legacyRole
+  const jwtRoles: string[] = tokenRoles.length > 0
+    ? tokenRoles
+    : rawRoles.length > 0
+      ? rawRoles
+      : legacyRole ? [legacyRole] : [];
+  const isSuperAdmin = user?.isSuperAdmin === true
+    || legacyRole === 'super_admin'
+    || jwtRoles.includes('super_admin');
   const isAdmin = isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('admin_global');
   const isModerator =
     isSuperAdmin ||

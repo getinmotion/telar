@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { WizardHeader } from '../../new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '../../new-product-wizard/components/WizardFooter';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 
 interface AiCard { label: string; text: string; }
 
@@ -33,6 +34,42 @@ export const ArtisanStepShell: React.FC<Props> = ({
   isFinalStep, onSubmit, isSubmitting, submitLabel,
   children,
 }) => {
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(
+      <section className="text-white flex flex-col relative overflow-hidden p-5" style={{ background: '#151b2d', borderRadius: 16 }}>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px] text-[#ec6d13]">psychology</span>
+            <h3 className="font-['Noto_Serif'] text-[16px] font-[500] text-white">ORÁCULO</h3>
+          </div>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse" />
+            <span className="text-[9px] font-[800] tracking-widest text-white/60 uppercase">Analizando</span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          {aiCards.map(({ label, text }) => (
+            <div key={label} className="p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">{label}</p>
+              <p className="text-[13px] text-white/80 leading-snug">{text}</p>
+            </div>
+          ))}
+        </div>
+        <div className="pt-5 border-t border-white/10 mt-4">
+          <div className="flex items-start gap-2.5">
+            <span className="material-symbols-outlined text-[14px] text-[#ec6d13] mt-0.5 shrink-0">lightbulb</span>
+            <div>
+              <p className="text-[9px] font-[800] uppercase tracking-widest text-white/30 mb-1">Próximo paso</p>
+              <p className="text-[12px] text-white/60 leading-snug">{aiNext}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+    return clearNode;
+  }, [aiCards, aiNext]);
+
   return (
     <div className="flex-1 overflow-y-auto flex flex-col pb-24 box-border">
       <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} onBack={onBack} />
@@ -45,8 +82,8 @@ export const ArtisanStepShell: React.FC<Props> = ({
               {children}
             </div>
 
-            {/* AI observation panel */}
-            <div className="lg:col-span-5">
+            {/* AI observation panel — desktop only */}
+            <div className="hidden lg:block lg:col-span-5">
               <section
                 className="h-full text-white flex flex-col relative overflow-hidden border border-white/10 shadow-lg rounded-xl p-5 min-h-[480px]"
                 style={{ background: '#151b2d' }}
@@ -54,7 +91,7 @@ export const ArtisanStepShell: React.FC<Props> = ({
                 <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4 mb-6 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px] text-[#ec6d13]">psychology</span>
-                    <h3 className="font-['Noto_Serif'] text-[16px] font-[500] text-white">Observación IA</h3>
+                    <h3 className="font-['Noto_Serif'] text-[16px] font-[500] text-white">ORÁCULO</h3>
                   </div>
                   <div
                     className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10"

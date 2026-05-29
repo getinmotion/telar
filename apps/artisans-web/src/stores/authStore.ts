@@ -244,6 +244,9 @@ export const useAuthStore = create<AuthState>()(
         artisanShop: state.artisanShop,
         userMaturityActions: state.userMaturityActions,
         access_token: state.access_token,
+        // Persistir isAuthenticated para que el refresh no pierda la sesión.
+        // onRehydrateStorage no llama a set(), mutarlo no propaga el cambio.
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )

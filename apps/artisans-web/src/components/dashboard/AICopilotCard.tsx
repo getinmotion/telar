@@ -160,7 +160,7 @@ export const AICopilotCard: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, position: 'relative' }}>
         <span className="material-symbols-outlined" style={{ color: '#ec6d13', fontSize: 18 }}>psychology</span>
         <span style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', flex: 1 }}>
-          Asistente de tienda
+          ORÁCULO
         </span>
         <span style={{
           fontSize: 11, fontFamily: SANS, fontWeight: 700,

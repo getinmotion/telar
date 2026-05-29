@@ -1,0 +1,69 @@
+<h2>3 enfoques de implementación</h2>
+<p class="subtitle">Elige el que más se adapta a lo que necesitamos. Mi recomendación está marcada.</p>
+
+<div class="options">
+
+  <div class="option selected" data-choice="approach-a" onclick="toggleSelect(this)" style="border:2px solid #8b6f47;">
+    <div class="letter" style="background:#8b6f47;color:white;">A ★</div>
+    <div class="content">
+      <h3>Entidad <code>ProductCertificate</code> independiente</h3>
+      <p><strong>Recomendado.</strong> El certificado vive en su propia tabla, vinculada al producto y al artesano. Se genera al crear el producto, y al vender se popula con datos del comprador y la transacción.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Separación limpia de responsabilidades</li>
+          <li>Fácil agregar campos sin tocar Product</li>
+          <li>Migración a blockchain natural (agregar txHash)</li>
+          <li>Reutiliza el patrón TypeORM existente en Telar</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Una tabla más en la BD</li>
+          <li>Join necesario para consultar datos completos</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="approach-b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Extender la entidad <code>Product</code> directamente</h3>
+      <p>Agregar columnas de certificado a la tabla de productos. Más simple al inicio, pero mezcla datos del catálogo con datos de autenticidad.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Sin tabla nueva</li>
+          <li>Consultas sin join</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Tabla Product crece con campos de certificado</li>
+          <li>Difícil soportar múltiples certificados por producto</li>
+          <li>Migración a blockchain más acoplada</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="approach-c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Log de eventos de certificado (event sourcing)</h3>
+      <p>Cada acción (emitido, vendido, transferido) es un registro en <code>CertificateEvent</code>. El certificado se construye leyendo el historial completo de eventos.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Trazabilidad total de cambios de dueño</li>
+          <li>Preparado para reventa y re-transferencias</li>
+          <li>Auditoría completa</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Más complejo de implementar y consultar</li>
+          <li>Overkill para el MVP</li>
+          <li>Mayor curva de aprendizaje para el equipo</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:24px;padding:16px;background:#f5f0e8;border-radius:8px;font-size:13px;max-width:720px;margin-left:auto;margin-right:auto;">
+  <strong>¿Por qué A?</strong> — Sigue el patrón de entidades TypeORM que ya usa Telar (como <code>ArtisanIdentity</code>), es limpia de mantener, y cuando llegue el momento de anclar en blockchain solo hay que agregar campos <code>blockchainTxHash</code> y <code>blockchainNetwork</code> sin refactorizar todo.
+</div>

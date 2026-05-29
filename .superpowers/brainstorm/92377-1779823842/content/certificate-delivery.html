@@ -1,0 +1,56 @@
+<h2>¿Cómo accede el comprador a su certificado?</h2>
+<p class="subtitle">Elige uno o varios formatos de entrega</p>
+
+<div class="options" data-multiselect>
+
+  <div class="option" data-choice="web-page" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Página web con URL única</h3>
+      <p><code style="font-size:11px;background:#f5f0e8;padding:2px 6px;border-radius:3px;">telar.co/certificado/TLR-2026-00847</code><br>
+      Cualquiera puede verificar escaneando o entrando a la URL. El comprador la ve en su cuenta y la puede compartir.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="pdf" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>PDF descargable</h3>
+      <p>El comprador descarga un certificado en PDF desde su cuenta o desde el email de confirmación. Imprimible, guardable, profesional.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="qr" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Código QR para empacar</h3>
+      <p>El artesano puede imprimir un QR y pegarlo físicamente en la pieza. Al escanearlo, abre el certificado web. Une el mundo físico con el digital.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="email" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Email automático al comprar</h3>
+      <p>Después de confirmar la compra, el comprador recibe un email con el certificado o el link. Sin necesidad de ir a su cuenta.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:28px;" class="mockup" style="max-width:600px;">
+  <div class="mockup-header">Ejemplo: Vista en cuenta del comprador</div>
+  <div class="mockup-body" style="padding:20px;">
+    <div style="display:flex;align-items:center;gap:16px;padding:16px;border:1px solid #e0d8cc;border-radius:8px;background:#fafaf8;">
+      <div style="width:56px;height:56px;background:#e0d8cc;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px;">🏺</div>
+      <div style="flex:1;">
+        <div style="font-weight:bold;font-size:14px;">Mochila Wayuu Multicolor</div>
+        <div style="font-size:12px;color:#888;">Por María Luz Pushaina · 26 Mayo 2026</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button class="mock-button" style="font-size:11px;padding:4px 10px;">Ver certificado</button>
+        <button class="mock-button" style="font-size:11px;padding:4px 10px;background:transparent;border:1px solid #ccc;color:#666;">Descargar PDF</button>
+      </div>
+    </div>
+  </div>
+</div>

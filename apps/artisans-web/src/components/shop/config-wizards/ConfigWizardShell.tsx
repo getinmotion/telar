@@ -7,11 +7,12 @@
  * - Footer fijo con botones Cancelar / Guardar
  * - Soporte opcional para "Guardar progreso" y "Guardar y salir"
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { WizardHeader } from '@/components/shop/new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '@/components/shop/new-product-wizard/components/WizardFooter';
 import { T, TELAR_BG, glassContent } from '@/lib/telar-design';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 export interface AiCard { label: string; text: string; }
@@ -56,7 +57,7 @@ const AIObservationPanel: React.FC<{ cards: AiCard[]; next: string }> = ({ cards
     <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4 mb-6 shrink-0">
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined text-[16px] text-[#ec6d13]">psychology</span>
-        <h3 className="font-['Noto_Serif'] text-[16px] font-[500] text-white">Observación IA</h3>
+        <h3 className="font-['Noto_Serif'] text-[16px] font-[500] text-white">ORÁCULO</h3>
       </div>
       <div
         className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10"
@@ -105,6 +106,11 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
   children,
 }) => {
   const isMobile = useIsMobile();
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(<AIObservationPanel cards={aiCards} next={aiNext} />);
+    return clearNode;
+  }, [aiCards, aiNext]);
   return (
     <div className="flex flex-col h-screen" style={{ background: TELAR_BG }}>
 
@@ -144,8 +150,8 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
                 {children}
               </div>
 
-              {/* Panel de IA — 5 columnas */}
-              <div className="lg:col-span-5">
+              {/* Panel de IA — 5 columnas (desktop only) */}
+              <div className="hidden lg:block lg:col-span-5">
                 <AIObservationPanel cards={aiCards} next={aiNext} />
               </div>
 

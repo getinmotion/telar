@@ -37,6 +37,38 @@ export class TaxonomyStylesService {
     return this.stylesRepo.find({ where, order: { name: 'ASC' } });
   }
 
+  async findAllWithProductCount(): Promise<Array<Style & { productCount: number; artisanCount: number }>> {
+    const items = await this.stylesRepo.find({ order: { name: 'ASC' } });
+    if (!items.length) return [];
+    const ids = items.map((i) => i.id);
+
+    const [artisanRows, productRows] = await Promise.all([
+      this.stylesRepo.query<{ style_id: string; cnt: string }[]>(
+        `SELECT style_id, COUNT(DISTINCT artisan_id)::int AS cnt
+         FROM artesanos.artisan_styles
+         WHERE style_id = ANY($1)
+         GROUP BY style_id`,
+        [ids],
+      ),
+      this.stylesRepo.query<{ style_id: string; cnt: string }[]>(
+        `SELECT style_id, COUNT(DISTINCT product_id)::int AS cnt
+         FROM shop.product_artisanal_identity
+         WHERE style_id = ANY($1) AND deleted_at IS NULL
+         GROUP BY style_id`,
+        [ids],
+      ),
+    ]);
+
+    const artisanMap  = new Map(artisanRows.map((r)  => [r.style_id, Number(r.cnt)]));
+    const productMap  = new Map(productRows.map((r)  => [r.style_id, Number(r.cnt)]));
+
+    return items.map((item) => ({
+      ...item,
+      artisanCount: artisanMap.get(item.id)  ?? 0,
+      productCount: productMap.get(item.id)  ?? 0,
+    }));
+  }
+
   async findOne(id: string): Promise<Style> {
     if (!id) throw new BadRequestException('El ID es requerido');
     const style = await this.stylesRepo.findOne({ where: { id } });

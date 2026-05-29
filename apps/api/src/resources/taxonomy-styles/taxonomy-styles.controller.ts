@@ -30,7 +30,12 @@ export class TaxonomyStylesController {
   constructor(private readonly service: TaxonomyStylesService) {}
 
   @Get()
-  findAll(@Query('search') search?: string, @Query('status') status?: string) {
+  findAll(
+    @Query('withProductCount') withProductCount?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+  ) {
+    if (withProductCount === 'true') return this.service.findAllWithProductCount();
     return this.service.findAll(search, status);
   }
 

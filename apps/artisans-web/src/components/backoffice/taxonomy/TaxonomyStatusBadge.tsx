@@ -6,15 +6,19 @@ interface Props {
 }
 
 const LABELS: Record<string, string> = {
-  approved: 'Aprobado',
-  pending: 'Pendiente',
-  rejected: 'Rechazado',
+  approved:  'Aprobado',
+  pending:   'Pendiente',
+  rejected:  'Rechazado',
+  emergente: 'Emergente',
+  regional:  'Regional',
 };
 
 const STATUS_STYLES: Record<string, { color: string; bg: string; border: string; icon: string }> = {
-  approved: { color: '#15803d', bg: 'rgba(21,128,61,0.08)',  border: 'rgba(21,128,61,0.2)',   icon: 'check_circle' },
-  pending:  { color: '#d97706', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)',  icon: 'schedule' },
-  rejected: { color: '#dc2626', bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.2)',   icon: 'cancel' },
+  approved:  { color: '#15803d', bg: 'rgba(21,128,61,0.08)',   border: 'rgba(21,128,61,0.2)',    icon: 'check_circle'  },
+  pending:   { color: '#d97706', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)',   icon: 'schedule'      },
+  rejected:  { color: '#dc2626', bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',    icon: 'cancel'        },
+  emergente: { color: '#b45309', bg: 'rgba(180,83,9,0.08)',    border: 'rgba(180,83,9,0.2)',     icon: 'trending_up'   },
+  regional:  { color: '#0369a1', bg: 'rgba(3,105,161,0.08)',   border: 'rgba(3,105,161,0.2)',    icon: 'map'           },
 };
 
 const fallback = { color: '#6b7280', bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.18)', icon: 'circle' };

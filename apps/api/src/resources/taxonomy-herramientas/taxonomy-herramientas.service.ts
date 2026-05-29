@@ -31,6 +31,21 @@ export class TaxonomyHerramientasService {
     return this.herramientasRepo.find({ where, order: { name: 'ASC' } });
   }
 
+  async findAllWithArtisanCount(): Promise<Array<Herramienta & { artisanCount: number }>> {
+    const [items, countRows] = await Promise.all([
+      this.herramientasRepo.find({ order: { name: 'ASC' } }),
+      this.herramientasRepo
+        .createQueryBuilder('h')
+        .leftJoin('artesanos.artisan_herramientas', 'ah', 'ah.herramienta_id = h.id')
+        .select('h.id', 'id')
+        .addSelect('COUNT(DISTINCT ah.artisan_id)::int', 'artisanCount')
+        .groupBy('h.id')
+        .getRawMany<{ id: string; artisanCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.artisanCount) || 0]));
+    return items.map((item) => ({ ...item, artisanCount: countMap.get(item.id) ?? 0 }));
+  }
+
   async findOne(id: string): Promise<Herramienta> {
     if (!id) throw new BadRequestException('El ID es requerido');
     const h = await this.herramientasRepo.findOne({ where: { id } });

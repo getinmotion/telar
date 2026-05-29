@@ -48,6 +48,7 @@ import { StockDashboardPanel } from "@/components/inventory/StockDashboardPanel"
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { InventoryBulkActions } from "@/components/inventory/InventoryBulkActions";
 import { InventoryAIPanel } from "@/components/inventory/InventoryAIPanel";
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { getModerationCommentsForProducts } from "@/services/productModerationHistory.actions";
 import { LegacyProduct } from "@telar/shared-types";
 
@@ -67,6 +68,7 @@ export const InventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { shop } = useArtisanShop();
   const { refreshModule } = useMasterAgent();
+  const { setNode, clearNode } = useOraculo();
   const {
     loading,
     fetchProducts,
@@ -104,6 +106,13 @@ export const InventoryPage: React.FC = () => {
     };
     loadProducts();
   }, [shop?.id]);
+
+  useEffect(() => {
+    if (!loading) {
+      setNode(<InventoryAIPanel products={products} />);
+    }
+    return clearNode;
+  }, [products, loading]);
 
   useEffect(() => {
     const fetchModerationComments = async () => {

@@ -14,11 +14,17 @@ export interface TaxonomyItemAdmin extends TaxonomyItem {
   description?: string | null;
   categoryId?: string | null;
   craftId?: string | null;
+  craftIds?: string[];
   skuCode?: string | null;
   isOrganic?: boolean;
   isSustainable?: boolean;
   isActive?: boolean;
   updatedAt?: string;
+}
+
+export interface TaxonomyItemWithCount extends TaxonomyItemAdmin {
+  productCount?: number;
+  artisanCount?: number;
 }
 
 const ENDPOINT: Record<TaxonomyType, string> = {
@@ -81,14 +87,15 @@ export async function getPendingTaxonomies(): Promise<Record<TaxonomyType, Taxon
 
 export async function getAllTaxonomyItems(
   type: TaxonomyType,
-  opts?: { search?: string; status?: string; craftId?: string },
-): Promise<TaxonomyItemAdmin[]> {
+  opts?: { search?: string; status?: string; craftId?: string; withProductCount?: boolean },
+): Promise<TaxonomyItemWithCount[]> {
   const params = new URLSearchParams();
   if (opts?.search) params.set('search', opts.search);
   if (opts?.status && opts.status !== 'all') params.set('status', opts.status);
   if (opts?.craftId) params.set('craftId', opts.craftId);
+  if (opts?.withProductCount) params.set('withProductCount', 'true');
   const query = params.toString() ? `?${params.toString()}` : '';
-  const response = await telarApi.get<TaxonomyItemAdmin[]>(`${ENDPOINT[type]}${query}`);
+  const response = await telarApi.get<TaxonomyItemWithCount[]>(`${ENDPOINT[type]}${query}`);
   return response.data;
 }
 
@@ -100,6 +107,7 @@ export async function createTaxonomyItem(
     status?: string;
     categoryId?: string;
     craftId?: string;
+    craftIds?: string[];
     skuCode?: string;
     isOrganic?: boolean;
     isSustainable?: boolean;

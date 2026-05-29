@@ -38,12 +38,13 @@ export class TechniquesController {
   @Get()
   findAll(
     @Query('withProductCount') withProductCount?: string,
+    @Query('craftId') craftId?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('suggestedBy') suggestedBy?: string,
   ) {
     if (withProductCount === 'true' || withProductCount === '1') {
-      return this.techniquesService.findAllWithProductCount();
+      return this.techniquesService.findAllWithProductCount(craftId, search, status);
     }
     return this.techniquesService.findAll(search, status, suggestedBy);
   }
