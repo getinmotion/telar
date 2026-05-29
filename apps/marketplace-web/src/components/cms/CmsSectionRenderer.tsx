@@ -1243,6 +1243,82 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
+    case 'colecciones_seasonal_grid': {
+      const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
+      return (
+        <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20 gap-6">
+            <div className="max-w-xl">
+              {p.kicker && (
+                <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px] mb-4 block">
+                  {p.kicker}
+                </span>
+              )}
+              {p.title && (
+                <h2 className="text-5xl font-serif leading-[1.1]">{p.title}</h2>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12 md:gap-y-16">
+            {cards.map((card, i) => {
+              const inner = (
+                <>
+                  <div className="aspect-[4/5] overflow-hidden relative bg-[#e5e1d8]">
+                    {card.imageUrl && (
+                      <img
+                        src={card.imageUrl}
+                        alt={card.imageAlt || card.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                  </div>
+                  <div className="space-y-2 mt-5">
+                    {card.title && (
+                      <h4 className="text-2xl italic tracking-tight font-serif leading-none">{card.title}</h4>
+                    )}
+                    {card.description && (
+                      <p className="text-[10px] text-[#2c2c2c]/50 leading-relaxed uppercase tracking-widest font-medium">
+                        {card.description}
+                      </p>
+                    )}
+                    {card.cta && (
+                      <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-[#ec6d13] opacity-0 group-hover:opacity-100 transition-opacity">
+                        {card.cta}
+                      </p>
+                    )}
+                  </div>
+                </>
+              );
+              return card.href ? (
+                <Link key={i} to={card.href} className="group">{inner}</Link>
+              ) : (
+                <div key={i} className="group cursor-pointer">{inner}</div>
+              );
+            })}
+          </div>
+        </section>
+      );
+    }
+
+    case 'colecciones_archive_nav_header': {
+      // Header puro del bloque "El Archivo del Saber" — las 3 columnas con sus
+      // listas dinámicas (collections / territories / techniques) se renderizan
+      // en Colecciones.tsx, no en este renderer genérico.
+      return (
+        <div className="mb-16 md:mb-20">
+          {p.kicker && (
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40">
+              {p.kicker}
+            </h3>
+          )}
+          {p.title && (
+            <p className="text-3xl font-serif italic">{p.title}</p>
+          )}
+        </div>
+      );
+    }
+
     default:
       return null;
   }

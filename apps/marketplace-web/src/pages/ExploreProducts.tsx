@@ -55,6 +55,7 @@ const ExploreProducts = () => {
   const {
     categoryHierarchy,
     findCategoryWithChildren,
+    techniques: allTechniques,
     loading: taxonomyLoading,
   } = useTaxonomy();
 
@@ -84,6 +85,26 @@ const ExploreProducts = () => {
       setSearchQuery("");
     }
   }, [searchParams]); // Solo depender de searchParams, no de setSearchQuery
+
+  // Resolver ?tecnica=<slug> a techniqueId. Esto es lo que permite que un
+  // link de "/tecnica/<slug>" sin página propia redirija aquí preseleccionando
+  // el filtro por técnica.
+  useEffect(() => {
+    const tecnicaSlug = searchParams.get("tecnica");
+    if (!tecnicaSlug || !allTechniques || allTechniques.length === 0) return;
+    const normalize = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+    const match = allTechniques.find((t) => normalize(t.name) === tecnicaSlug);
+    if (match && filters.techniqueId !== match.id) {
+      setFilters((prev) => ({ ...prev, techniqueId: match.id }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, allTechniques]);
 
   // Perform semantic search when searchQuery changes
   useEffect(() => {

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
@@ -327,6 +327,13 @@ export default function TecnicaDetail() {
   const [loading, setLoading] = useState(true);
 
   const technique = slug ? findTechniqueData(slug) : undefined;
+
+  // Si la técnica no tiene página editorial propia, redirigir al marketplace
+  // filtrado por esa técnica. El `useEffect` de /productos resuelve el slug
+  // contra `useTaxonomy().techniques` y aplica el filtro `techniqueId`.
+  if (!technique && slug) {
+    return <Navigate to={`/productos?tecnica=${encodeURIComponent(slug)}`} replace />;
+  }
 
   // Find the API technique matching this slug
   const apiTechnique: TaxonomyTechnique | undefined = useMemo(() => {
