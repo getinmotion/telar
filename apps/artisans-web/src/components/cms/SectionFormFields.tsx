@@ -26,8 +26,6 @@ export const ORANGE_MID = '#c45a0a';
 export const SECTION_TYPE_META: Record<string, { icon: string; label: string; description: string }> = {
   hero:                { icon: 'panorama',          label: 'Hero',               description: 'Kicker + título + cuerpo principal' },
   hero_split:          { icon: 'splitscreen',        label: 'Hero Split',         description: 'Título + subtítulo a la izquierda + imagen a la derecha' },
-  colecciones_seasonal_grid:      { icon: 'view_quilt', label: 'Grid Temporada',     description: 'Selecciones de temporada — 4 cards con imagen + texto' },
-  colecciones_archive_nav_header: { icon: 'menu_book',  label: 'Header Archivo',     description: 'Encabezado del bloque "Navegar por la esencia"' },
   quote:               { icon: 'format_quote',       label: 'Cita',               description: 'Cita destacada con atribución' },
   two_column_intro:    { icon: 'view_column',        label: 'Dos columnas',        description: 'Intro dividida en 2 columnas' },
   technique_grid:      { icon: 'grid_view',          label: 'Grilla técnicas',     description: 'Grid de 4 cards de técnica' },

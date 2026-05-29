@@ -23,8 +23,7 @@
       "Bash(git fetch *)",
       "Bash(echo \"api exit=$?\")",
       "Bash(echo \"marketplace exit=$?\")",
-      "Bash(echo \"artisans exit=$?\")",
-      "Bash(grep -n \"Conocer territorios\\\\|</section>$\\\\|<Footer\" /Users/norjuelas/proyectos/gim-projects/telar/apps/marketplace-web/src/pages/Colecciones.tsx)"
+      "Bash(echo \"artisans exit=$?\")"
     ]
   }
 }

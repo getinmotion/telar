@@ -664,10 +664,7 @@ function SectionCard({
             {section.type === 'historias_story_types_grid' && <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />}
             {section.type === 'historias_capsule_quote'    && <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />}
             {section.type === 'historias_final_cta'        && <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />}
-            {section.type === 'colecciones_seasonal_grid'      && <ColeccionesSeasonalGridForm draft={draft} setField={setField} setNested={setNested} />}
-            {section.type === 'colecciones_archive_nav_header' && <ColeccionesArchiveNavHeaderForm draft={draft} setField={setField} />}
             {!['hero','hero_split','quote','two_column_intro','technique_grid','featured_aside_card','metrics_stat',
-               'colecciones_seasonal_grid','colecciones_archive_nav_header',
                'muestra_intro','archive_label','editorial_footer','home_value_props','home_section_header',
                'home_block','home_hero_carousel','content_pick','embedded_widget',
                'territorios_hero','territorios_dark_quote',
