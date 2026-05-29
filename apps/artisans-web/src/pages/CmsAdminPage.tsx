@@ -47,6 +47,7 @@ import {
   FieldText,
   FieldArea,
   HeroForm,
+  HeroSplitForm,
   QuoteForm,
   TwoColumnIntroForm,
   TechniqueGridForm,
@@ -98,6 +99,7 @@ const PAGE_KEYS = [
 
 const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'hero',                 label: 'Hero (kicker + título + cuerpo)'                      },
+  { value: 'hero_split',           label: 'Hero Split (texto a la izquierda + imagen a la derecha)' },
   { value: 'quote',                label: 'Cita destacada'                                        },
   { value: 'two_column_intro',     label: 'Intro a dos columnas'                                  },
   { value: 'technique_grid',       label: 'Grilla de técnicas (4 cards)'                          },
@@ -128,6 +130,12 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
   switch (type) {
     case 'hero':
       return { kicker: '', title: '', subtitle: '', body: '', totalCountLabel: '' };
+    case 'hero_split':
+      return {
+        kicker: '', title: '', subtitle: '', body: '',
+        imageUrl: '', imageAlt: '', imageSide: 'right',
+        ctaLabel: '', ctaHref: '',
+      };
     case 'quote':
       return { kicker: '', body: '', attribution: '' };
     case 'two_column_intro':
@@ -609,6 +617,7 @@ function SectionCard({
         <div style={{ padding: '20px 24px', background: 'rgba(255,255,255,0.5)' }}>
           <div className="space-y-4">
             {section.type === 'hero'               && <HeroForm draft={draft} setField={setField} />}
+            {section.type === 'hero_split'         && <HeroSplitForm draft={draft} setField={setField} />}
             {section.type === 'quote'              && <QuoteForm draft={draft} setField={setField} />}
             {section.type === 'two_column_intro'   && <TwoColumnIntroForm draft={draft} setField={setField} setNested={setNested} />}
             {section.type === 'technique_grid'     && <TechniqueGridForm draft={draft} setField={setField} setNested={setNested} />}
@@ -633,7 +642,7 @@ function SectionCard({
             {section.type === 'historias_story_types_grid' && <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />}
             {section.type === 'historias_capsule_quote'    && <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />}
             {section.type === 'historias_final_cta'        && <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />}
-            {!['hero','quote','two_column_intro','technique_grid','featured_aside_card','metrics_stat',
+            {!['hero','hero_split','quote','two_column_intro','technique_grid','featured_aside_card','metrics_stat',
                'muestra_intro','archive_label','editorial_footer','home_value_props','home_section_header',
                'home_block','home_hero_carousel','content_pick','embedded_widget',
                'territorios_hero','territorios_dark_quote',

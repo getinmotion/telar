@@ -1,4 +1,6 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, useEffect } from "react";
+import { lazyWithReload, clearLazyReloadFlag } from "@/lib/lazyWithReload";
+const lazy = lazyWithReload;
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -180,6 +182,10 @@ import { useAuthInit } from "@/hooks/useAuthInit";
 function App() {
   // ✅ Validate token at app level, before any route rendering
   useAuthInit();
+
+  // Limpia el flag de "ya recargué por stale chunk" cuando el boot completa
+  // sin errores — así un futuro deploy puede volver a self-heal.
+  useEffect(() => { clearLazyReloadFlag(); }, []);
 
   return (
     <ErrorBoundary>
