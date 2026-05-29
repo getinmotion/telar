@@ -29,6 +29,16 @@ export const useIsModerator = (): ModeratorStatus => {
       return;
     }
 
+    // Short-circuit: super_admin de Postgres (columna users.is_super_admin)
+    // gana automático, sin consultar user_roles.
+    const isSuperAdmin =
+      ((user.app_metadata as any) || {}).isSuperAdmin === true;
+    if (isSuperAdmin) {
+      setStatus({ isModerator: true, isAdmin: true, loading: false });
+      checkedUserIdRef.current = user.id;
+      return;
+    }
+
     // Evitar consultas duplicadas para el mismo usuario
     if (checkedUserIdRef.current === user.id) return;
     checkedUserIdRef.current = user.id;
@@ -45,7 +55,7 @@ export const useIsModerator = (): ModeratorStatus => {
     };
 
     checkRoles();
-  }, [user?.id]);
+  }, [user?.id, (user?.app_metadata as any)?.isSuperAdmin]);
 
   return status;
 };

@@ -4,6 +4,7 @@
  */
 export type CmsSectionType =
   | 'hero'
+  | 'hero_split'
   | 'quote'
   | 'two_column_intro'
   | 'technique_grid'

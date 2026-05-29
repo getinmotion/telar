@@ -1,4 +1,6 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, useEffect } from "react";
+import { lazyWithReload, clearLazyReloadFlag } from "@/lib/lazyWithReload";
+const lazy = lazyWithReload;
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -72,6 +74,12 @@ const BackofficeTiendasPage_lazy = lazy(
 );
 const BackofficePagosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficePagosPage"),
+);
+const BackofficePaymentsSvcPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficePaymentsSvcPage"),
+);
+const BackofficeTerritoriosPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeTerritoriosPage"),
 );
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -173,6 +181,10 @@ import { useAuthInit } from "@/hooks/useAuthInit";
 function App() {
   // ✅ Validate token at app level, before any route rendering
   useAuthInit();
+
+  // Limpia el flag de "ya recargué por stale chunk" cuando el boot completa
+  // sin errores — así un futuro deploy puede volver a self-heal.
+  useEffect(() => { clearLazyReloadFlag(); }, []);
 
   return (
     <ErrorBoundary>
@@ -580,15 +592,45 @@ function App() {
                             }
                           />
 
+                          {/* DEV-only: previews sin guard */}
+                          {import.meta.env.DEV && (
+                            <>
+                              <Route
+                                path="/_dev/envios"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <ShippingDashboardPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                              <Route
+                                path="/_dev/payments-svc"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <BackofficePaymentsSvcPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                              <Route
+                                path="/_dev/territorios"
+                                element={
+                                  <Suspense fallback={<BackofficePageSkeleton />}>
+                                    <BackofficeTerritoriosPage_lazy />
+                                  </Suspense>
+                                }
+                              />
+                            </>
+                          )}
+
                           {/* Rutas protegidas del backoffice con layout unificado */}
                           <Route element={<BackofficeProtectedRoute />}>
                             <Route element={<BackofficeLayout />}>
-                              {/* Redirect /backoffice → /backoffice/home */}
+                              {/* Redirect /backoffice → /backoffice/dashboard */}
                               <Route
                                 index
                                 path="/backoffice"
                                 element={
-                                  <Navigate to="/backoffice/home" replace />
+                                  <Navigate to="/backoffice/dashboard" replace />
                                 }
                               />
 
@@ -868,6 +910,30 @@ function App() {
                                       fallback={<BackofficePageSkeleton />}
                                     >
                                       <BackofficePagosPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/pagos/payments-svc"
+                                element={
+                                  <BackofficeProtectedRoute section="pagos">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <BackofficePaymentsSvcPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/territorios"
+                                element={
+                                  <BackofficeProtectedRoute section="cms">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <BackofficeTerritoriosPage_lazy />
                                     </Suspense>
                                   </BackofficeProtectedRoute>
                                 }

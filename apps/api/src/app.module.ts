@@ -46,6 +46,7 @@ import { CmsModule } from './resources/cms/cms.module';
 import { CmsSectionsModule } from './resources/cms-sections/cms-sections.module';
 import { BlogPostsModule } from './resources/blog-posts/blog-posts.module';
 import { CollectionsModule } from './resources/collections/collections.module';
+import { CmsTerritoriesModule } from './resources/cms-territories/cms-territories.module';
 import { PaymentsModule } from './resources/payments/payments.module';
 import { StoresModule } from './resources/stores/stores.module';
 import { ProductsNewModule } from './resources/products-new/products-new.module';
@@ -171,6 +172,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
     CmsSectionsModule,
     BlogPostsModule,
     CollectionsModule,
+    CmsTerritoriesModule,
     PaymentsModule,
     StoresModule,
     ProductsNewModule,

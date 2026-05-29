@@ -9,6 +9,7 @@ import { ILike, Repository } from 'typeorm';
 import { Material, ApprovalStatus } from './entities/material.entity';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
+import { ProductMaterialLink } from '../products-new/entities/product-material-link.entity';
 
 @Injectable()
 export class MaterialsService {
@@ -21,16 +22,25 @@ export class MaterialsService {
    * Crear un nuevo material
    */
   async create(createDto: CreateMaterialDto): Promise<Material> {
-    // Verificar si ya existe un material con ese nombre
+    const normalizedName = (createDto.name ?? '').trim();
+    if (!normalizedName) {
+      throw new BadRequestException('El nombre del material es requerido');
+    }
+
+    // Búsqueda case-insensitive y trim-aware para ser consistente con findAll (ILike)
+    // y evitar que "Algodón" / "algodon" / " Algodón " se traten como distintos.
     const existingMaterial = await this.materialsRepository.findOne({
-      where: { name: createDto.name },
+      where: { name: ILike(normalizedName) },
     });
 
     if (existingMaterial) {
       throw new ConflictException('Ya existe un material con ese nombre');
     }
 
-    const newMaterial = this.materialsRepository.create(createDto);
+    const newMaterial = this.materialsRepository.create({
+      ...createDto,
+      name: normalizedName,
+    });
     return await this.materialsRepository.save(newMaterial);
   }
 
@@ -40,6 +50,25 @@ export class MaterialsService {
     if (suggestedBy) where.suggestedBy = suggestedBy;
     if (search) where.name = ILike(`%${search}%`);
     return this.materialsRepository.find({ where, order: { name: 'ASC' } });
+  }
+
+  async findAllWithProductCount(): Promise<Array<Material & { productCount: number }>> {
+    const [items, countRows] = await Promise.all([
+      this.materialsRepository.find({ order: { name: 'ASC' } }),
+      this.materialsRepository
+        .createQueryBuilder('m')
+        .leftJoin(
+          ProductMaterialLink,
+          'pml',
+          'pml.material_id = m.id AND pml.deleted_at IS NULL',
+        )
+        .select('m.id', 'id')
+        .addSelect('COUNT(DISTINCT pml.product_id)::int', 'productCount')
+        .groupBy('m.id')
+        .getRawMany<{ id: string; productCount: number }>(),
+    ]);
+    const countMap = new Map(countRows.map((r) => [r.id, Number(r.productCount) || 0]));
+    return items.map((item) => ({ ...item, productCount: countMap.get(item.id) ?? 0 }));
   }
 
   /**
@@ -86,13 +115,20 @@ export class MaterialsService {
     await this.findOne(id);
 
     if (updateDto.name) {
+      const normalizedName = updateDto.name.trim();
+      if (!normalizedName) {
+        throw new BadRequestException('El nombre del material no puede estar vacío');
+      }
+
       const existingMaterial = await this.materialsRepository.findOne({
-        where: { name: updateDto.name },
+        where: { name: ILike(normalizedName) },
       });
 
       if (existingMaterial && existingMaterial.id !== id) {
         throw new ConflictException('Ya existe un material con ese nombre');
       }
+
+      updateDto.name = normalizedName;
     }
 
     await this.materialsRepository.update(id, updateDto);

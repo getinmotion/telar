@@ -61,12 +61,14 @@ export const MissionsSection: React.FC<MissionsSectionProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* AI Agent card */}
-      <MissionsAgentCard
-        completedCount={completedCoreCount}
-        totalCount={CORE_MISSION_IDS.length}
-        nextMission={nextMission}
-      />
+      {/* AI Agent card — hidden on mobile (lives in ORÁCULO drawer) */}
+      <div className="hidden md:block">
+        <MissionsAgentCard
+          completedCount={completedCoreCount}
+          totalCount={CORE_MISSION_IDS.length}
+          nextMission={nextMission}
+        />
+      </div>
 
       {/* Pending missions */}
       {pendingTasks.length > 0 && (

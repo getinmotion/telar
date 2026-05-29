@@ -135,14 +135,8 @@ const AI_PANEL: Record<
   },
   5: {
     cards: [
-      {
-        label: "Sistema de calidad",
-        text: "Vista previa editorial. Todos los datos pueden modificarse antes de la publicación.",
-      },
-      {
-        label: "Observación IA",
-        text: "Mientras más completa esté tu historia, mejor construirá TELAR una presentación coherente y verificable.",
-      },
+      { label: 'Sistema de calidad', text: 'Vista previa editorial. Todos los datos pueden modificarse antes de la publicación.' },
+      { label: 'ORÁCULO',     text: 'Mientras más completa esté tu historia, mejor construirá TELAR una presentación coherente y verificable.' },
     ],
     next: "Con los campos obligatorios completos, podrás finalizar y publicar tu perfil artesanal.",
   },

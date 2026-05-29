@@ -43,7 +43,12 @@ export const BackofficeLoginPage: React.FC = () => {
       const hasBackofficeRole =
         isSuperAdmin ||
         jwtRoles.includes('admin') ||
-        jwtRoles.includes('moderator');
+        jwtRoles.includes('admin_global') ||
+        jwtRoles.includes('moderator') ||
+        jwtRoles.includes('supervisor') ||
+        jwtRoles.includes('moderator_product') ||
+        jwtRoles.includes('moderator_taxonomy') ||
+        jwtRoles.includes('curator_marketplace');
 
       if (!hasBackofficeRole) {
         // Usuario sin rol de backoffice
@@ -64,10 +69,10 @@ export const BackofficeLoginPage: React.FC = () => {
       // Redirigir según el rol o al destino guardado
       if (from && from !== '/backoffice/login') {
         navigate(from, { replace: true });
-      } else if (isSuperAdmin || jwtRoles.includes('admin')) {
-        navigate('/backoffice/home', { replace: true });
+      } else if (isSuperAdmin || jwtRoles.includes('admin') || jwtRoles.includes('admin_global')) {
+        navigate('/backoffice/dashboard', { replace: true });
       } else {
-        navigate('/backoffice/moderacion', { replace: true });
+        navigate('/backoffice/studio', { replace: true });
       }
     } catch (error: any) {
       toast({

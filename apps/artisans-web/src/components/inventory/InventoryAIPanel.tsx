@@ -73,7 +73,7 @@ export const InventoryAIPanel: React.FC<InventoryAIPanelProps> = ({ products }) 
             <span className="material-symbols-outlined" style={{ fontSize: 17, color: '#ec6d13' }}>smart_toy</span>
           </div>
           <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-            Asistente IA · TELAR
+            ORÁCULO
           </span>
         </div>
 

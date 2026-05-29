@@ -598,52 +598,83 @@ const ProductDetail = () => {
         )}
 
         {/* ═══════════════ ARTISAN PROFILE ═══════════════ */}
-        {product.storeName && (
-          <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="aspect-square bg-[#e5e1d8] rounded-2xl overflow-hidden">
-                {shop?.bannerUrl ? (
-                  <img
-                    src={shop.bannerUrl}
-                    alt={product.storeName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : shop?.logoUrl ? (
-                  <img
-                    src={shop.logoUrl}
-                    alt={product.storeName}
-                    className="w-full h-full object-contain p-12"
-                  />
-                ) : null}
+        {/*
+          Identidad artesanal: solo se renderiza si la tienda tiene datos reales
+          que mostrar. Fuentes (en orden de preferencia):
+            - shop.aboutContent.story  (about_content jsonb del API)
+            - shop.story               (story columna directa)
+            - shop.description         (descripción breve)
+          Si nada existe, NO mostramos texto genérico hardcoded — preferimos
+          ocultar la sección a inventar copy.
+        */}
+        {(() => {
+          const aboutStory = shop?.aboutContent?.story?.trim();
+          const directStory = shop?.story?.trim();
+          const description = shop?.description?.trim();
+          const identityStory = aboutStory || directStory || description || null;
+          const claim = shop?.brandClaim?.trim() || shop?.aboutContent?.title?.trim() || null;
+          // Si no hay tienda real ni copy alguno, no renderizamos la sección.
+          if (!product.storeName || (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)) {
+            return null;
+          }
+          return (
+            <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="aspect-square bg-[#e5e1d8] rounded-2xl overflow-hidden">
+                  {shop?.bannerUrl ? (
+                    <img
+                      src={shop.bannerUrl}
+                      alt={product.storeName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : shop?.logoUrl ? (
+                    <img
+                      src={shop.logoUrl}
+                      alt={product.storeName}
+                      className="w-full h-full object-contain p-12"
+                    />
+                  ) : null}
+                </div>
               </div>
-            </div>
-            <div className="order-1 lg:order-2 space-y-8">
-              <div>
-                <span className="text-[#ec6d13] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
-                  Conoce al artesano
-                </span>
-                <h3 className="text-4xl font-serif text-[#2c2c2c] mb-6">
-                  El taller que creó esta pieza
-                </h3>
-                <h4 className="text-2xl font-serif italic text-[#2c2c2c]/80 mb-6">
-                  {product.storeName}
-                </h4>
+              <div className="order-1 lg:order-2 space-y-8">
+                <div>
+                  <span className="text-[#ec6d13] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
+                    Conoce al artesano
+                  </span>
+                  <h3 className="text-4xl font-serif text-[#2c2c2c] mb-6">
+                    {claim || `El taller que creó esta pieza`}
+                  </h3>
+                  <h4 className="text-2xl font-serif italic text-[#2c2c2c]/80 mb-6">
+                    {product.storeName}
+                  </h4>
+                </div>
+                {identityStory && (
+                  <div className="space-y-4 text-[#2c2c2c]/70 text-lg font-light italic leading-relaxed">
+                    <p>{identityStory}</p>
+                  </div>
+                )}
+                {shop?.certifications && shop.certifications.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {shop.certifications.map((cert) => (
+                      <span
+                        key={cert}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#2c2c2c]/15 text-[#2c2c2c]/70"
+                      >
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Link
+                  to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
+                  className="inline-block border border-[#2c2c2c] text-[#2c2c2c] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2c2c2c] hover:text-white transition-all"
+                >
+                  Ver perfil del taller
+                </Link>
               </div>
-              <div className="space-y-4 text-[#2c2c2c]/70 text-lg font-light italic leading-relaxed">
-                <p>
-                  {shop?.story ||
-                    `${product.storeName} es un taller dedicado a la preservación de técnicas artesanales tradicionales. Cada miembro del taller aporta su experiencia en el manejo de materiales naturales y técnicas transmitidas durante generaciones. El taller trabaja bajo principios de comercio justo y producción artesanal responsable.`}
-                </p>
-              </div>
-              <Link
-                to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
-                className="inline-block border border-[#2c2c2c] text-[#2c2c2c] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2c2c2c] hover:text-white transition-all"
-              >
-                Ver perfil del taller
-              </Link>
-            </div>
-          </section>
-        )}
+            </section>
+          );
+        })()}
 
         {/* ═══════════════ FAIR TRADE BLOCK ═══════════════ */}
         <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 bg-[#2c2c2c] rounded-3xl overflow-hidden shadow-2xl min-h-[60vh]">

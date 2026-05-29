@@ -59,43 +59,57 @@ export interface CategoryWithChildren extends TaxonomyCategory {
 
 // ── API Calls ─────────────────────────────────────────
 
+/**
+ * Coerce cualquier respuesta a array. La API puede devolver `[...]`,
+ * `{ data: [...] }`, `null`, `undefined`, o un error — y este helper hace que
+ * el caller siempre reciba un array (vacío en el peor caso). Evita los
+ * `*.map is not a function` y `is not iterable` que crashean páginas enteras.
+ */
+function coerceArray<T>(raw: any): T[] {
+  if (Array.isArray(raw)) return raw as T[];
+  if (Array.isArray(raw?.data)) return raw.data as T[];
+  return [];
+}
+
+async function safeGetArray<T>(path: string, label: string): Promise<T[]> {
+  try {
+    const response = await telarApiPublic.get(path);
+    return coerceArray<T>(response.data);
+  } catch (err: any) {
+    console.warn(
+      `[taxonomy] GET ${path} falló (${label}):`,
+      err?.message ?? err,
+    );
+    return [];
+  }
+}
+
 /** GET /categories — all categories (flat list with parent relations) */
-export const getCategories = async (): Promise<TaxonomyCategory[]> => {
-  const response = await telarApiPublic.get<TaxonomyCategory[]>('/categories');
-  return response.data;
-};
+export const getCategories = async (): Promise<TaxonomyCategory[]> =>
+  safeGetArray<TaxonomyCategory>('/categories', 'getCategories');
 
 /** GET /categories/active — only active categories */
-export const getActiveCategories = async (): Promise<TaxonomyCategory[]> => {
-  const response = await telarApiPublic.get('/categories/active');
-  const raw = response.data;
-  // Handle both array and { data: [...] } response formats
-  return Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
-};
+export const getActiveCategories = async (): Promise<TaxonomyCategory[]> =>
+  safeGetArray<TaxonomyCategory>('/categories/active', 'getActiveCategories');
 
 /** GET /categories/parent/:parentId — subcategories of a parent */
-export const getSubcategories = async (parentId: string): Promise<TaxonomyCategory[]> => {
-  const response = await telarApiPublic.get<TaxonomyCategory[]>(`/categories/parent/${parentId}`);
-  return response.data;
-};
+export const getSubcategories = async (parentId: string): Promise<TaxonomyCategory[]> =>
+  safeGetArray<TaxonomyCategory>(
+    `/categories/parent/${parentId}`,
+    'getSubcategories',
+  );
 
 /** GET /materials — all materials */
-export const getMaterials = async (): Promise<TaxonomyMaterial[]> => {
-  const response = await telarApiPublic.get<TaxonomyMaterial[]>('/materials');
-  return response.data;
-};
+export const getMaterials = async (): Promise<TaxonomyMaterial[]> =>
+  safeGetArray<TaxonomyMaterial>('/materials', 'getMaterials');
 
 /** GET /crafts — all crafts */
-export const getCrafts = async (): Promise<TaxonomyCraft[]> => {
-  const response = await telarApiPublic.get<TaxonomyCraft[]>('/crafts');
-  return response.data;
-};
+export const getCrafts = async (): Promise<TaxonomyCraft[]> =>
+  safeGetArray<TaxonomyCraft>('/crafts', 'getCrafts');
 
 /** GET /techniques — all techniques */
-export const getTechniques = async (): Promise<TaxonomyTechnique[]> => {
-  const response = await telarApiPublic.get<TaxonomyTechnique[]>('/techniques');
-  return response.data;
-};
+export const getTechniques = async (): Promise<TaxonomyTechnique[]> =>
+  safeGetArray<TaxonomyTechnique>('/techniques', 'getTechniques');
 
 export interface TechniqueWithProductCount {
   id: string;
@@ -106,17 +120,18 @@ export interface TechniqueWithProductCount {
 /** GET /techniques?withProductCount=true — técnicas + cantidad de productos asociados */
 export const getTechniquesWithProductCount = async (): Promise<
   TechniqueWithProductCount[]
-> => {
-  const response = await telarApiPublic.get<TechniqueWithProductCount[]>(
+> =>
+  safeGetArray<TechniqueWithProductCount>(
     '/techniques?withProductCount=true',
+    'getTechniquesWithProductCount',
   );
-  return Array.isArray(response.data) ? response.data : [];
-};
 
 /** GET /curatorial-categories — all curatorial collections */
 export const getCuratorialCategories = async (): Promise<TaxonomyCuratorialCategory[]> => {
-  const response = await telarApiPublic.get<TaxonomyCuratorialCategory[]>('/curatorial-categories');
-  return response.data;
+  return safeGetArray<TaxonomyCuratorialCategory>(
+    '/curatorial-categories',
+    'getCuratorialCategories',
+  );
 };
 
 // ── Helpers ───────────────────────────────────────────
