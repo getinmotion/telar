@@ -23,6 +23,79 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
   const p = section.payload ?? {};
 
   switch (section.type) {
+    case 'hero_split': {
+      const imageOnRight = (p.imageSide || 'right') !== 'left';
+      const text = (
+        <div className="flex-1 space-y-6">
+          {p.kicker && (
+            <span
+              className="text-[11px] uppercase tracking-[0.4em] font-bold font-sans"
+              style={{ color: '#ec6d13' }}
+            >
+              {p.kicker}
+            </span>
+          )}
+          {p.title && (
+            <h1
+              className="text-5xl md:text-6xl font-serif font-bold leading-tight"
+              style={{ letterSpacing: '-0.02em', color: '#1b1c19' }}
+            >
+              {p.title}
+            </h1>
+          )}
+          {p.subtitle && (
+            <p
+              className="text-xl md:text-2xl font-serif italic leading-relaxed"
+              style={{ color: '#584237' }}
+            >
+              {p.subtitle}
+            </p>
+          )}
+          {p.body && (
+            <p
+              className="text-base leading-relaxed max-w-xl"
+              style={{ color: 'rgba(44,44,44,0.7)' }}
+            >
+              {p.body}
+            </p>
+          )}
+          {p.ctaLabel && p.ctaHref && (
+            <Link
+              to={p.ctaHref}
+              className="inline-block mt-4 px-10 py-4 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1b1c19] transition-colors duration-300"
+              style={{ backgroundColor: '#ec6d13' }}
+            >
+              {p.ctaLabel}
+            </Link>
+          )}
+        </div>
+      );
+      const image = (
+        <div className="flex-1">
+          <div
+            className="aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-sm"
+            style={{ backgroundColor: '#e4e2dd' }}
+          >
+            {p.imageUrl && (
+              <img
+                src={p.imageUrl}
+                alt={p.imageAlt || ''}
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
+          </div>
+        </div>
+      );
+      return (
+        <section className="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
+          <div className="flex flex-col md:flex-row gap-12 md:gap-20 items-center">
+            {imageOnRight ? (<>{text}{image}</>) : (<>{image}{text}</>)}
+          </div>
+        </section>
+      );
+    }
+
     case 'hero':
       return (
         <header className="mb-32 max-w-4xl">

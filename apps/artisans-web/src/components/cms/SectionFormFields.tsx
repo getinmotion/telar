@@ -25,6 +25,7 @@ export const ORANGE_MID = '#c45a0a';
 // ─── Section type metadata ────────────────────────────────────────────────────
 export const SECTION_TYPE_META: Record<string, { icon: string; label: string; description: string }> = {
   hero:                { icon: 'panorama',          label: 'Hero',               description: 'Kicker + título + cuerpo principal' },
+  hero_split:          { icon: 'splitscreen',        label: 'Hero Split',         description: 'Título + subtítulo a la izquierda + imagen a la derecha' },
   quote:               { icon: 'format_quote',       label: 'Cita',               description: 'Cita destacada con atribución' },
   two_column_intro:    { icon: 'view_column',        label: 'Dos columnas',        description: 'Intro dividida en 2 columnas' },
   technique_grid:      { icon: 'grid_view',          label: 'Grilla técnicas',     description: 'Grid de 4 cards de técnica' },
@@ -142,6 +143,32 @@ export function HeroForm({ draft, setField }: any) {
       <FieldText label="Etiqueta del contador" value={draft.totalCountLabel} onChange={(v) => setField('totalCountLabel', v)} placeholder="Técnicas Documentadas" />
       <div className="md:col-span-2">
         <FieldArea label="Cuerpo" value={draft.body} onChange={(v) => setField('body', v)} rows={4} />
+      </div>
+    </div>
+  );
+}
+
+export function HeroSplitForm({ draft, setField }: any) {
+  return (
+    <div className="space-y-4">
+      <FieldText label="Kicker (opcional)" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Geografía Humana" />
+      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Título grande del hero" />
+      <FieldText label="Subtítulo (itálica)" value={draft.subtitle} onChange={(v) => setField('subtitle', v)} placeholder="Subtítulo en serif itálica" />
+      <FieldArea label="Cuerpo (opcional)" value={draft.body} onChange={(v) => setField('body', v)} rows={3} />
+
+      <ImageUploadField
+        label="Imagen del hero"
+        value={draft.imageUrl ?? ''}
+        onChange={(v) => setField('imageUrl', v)}
+        altValue={draft.imageAlt ?? ''}
+        onAltChange={(v) => setField('imageAlt', v)}
+      />
+
+      <FieldText label="Lado de la imagen (right / left)" value={draft.imageSide} onChange={(v) => setField('imageSide', v)} placeholder="right" />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <FieldText label="CTA label (opcional)" value={draft.ctaLabel} onChange={(v) => setField('ctaLabel', v)} placeholder="Explorar" />
+        <FieldText label="CTA href" value={draft.ctaHref} onChange={(v) => setField('ctaHref', v)} placeholder="/productos" />
       </div>
     </div>
   );
@@ -819,6 +846,7 @@ export function renderSectionForm(
 ) {
   switch (section_type) {
     case 'hero':               return <HeroForm draft={draft} setField={setField} />;
+    case 'hero_split':         return <HeroSplitForm draft={draft} setField={setField} />;
     case 'quote':              return <QuoteForm draft={draft} setField={setField} />;
     case 'two_column_intro':   return <TwoColumnIntroForm draft={draft} setField={setField} setNested={setNested} />;
     case 'technique_grid':     return <TechniqueGridForm draft={draft} setField={setField} setNested={setNested} />;
