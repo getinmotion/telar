@@ -1,67 +1,62 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  CreateDateColumn,
-  BaseEntity,
-} from 'typeorm';
+import { IsString, IsNotEmpty, IsOptional, IsObject } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-@Entity({ name: 'achievements_catalog', schema: 'artesanos' })
-export class AchievementsCatalog extends BaseEntity {
+export class CreateAchievementsCatalogDto {
   @ApiProperty({
     description: 'ID único del logro (texto descriptivo)',
     example: 'first_mission',
   })
-  @PrimaryColumn({ type: 'text' })
+  @IsString()
+  @IsNotEmpty()
   id: string;
 
   @ApiProperty({
     description: 'Título del logro',
     example: 'Primera Misión',
   })
-  @Column({ type: 'text' })
+  @IsString()
+  @IsNotEmpty()
   title: string;
 
   @ApiProperty({
     description: 'Descripción del logro',
     example: 'Completaste tu primera misión empresarial',
   })
-  @Column({ type: 'text' })
+  @IsString()
+  @IsNotEmpty()
   description: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Icono del logro',
     example: 'star',
     default: 'trophy',
   })
-  @Column({ type: 'text', default: 'trophy' })
-  icon: string;
+  @IsString()
+  @IsOptional()
+  icon?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Criterios de desbloqueo',
     example: { type: 'missions_completed', count: 1 },
   })
-  @Column({ type: 'jsonb', name: 'unlock_criteria', default: '{}' })
-  unlockCriteria: object;
+  @IsObject()
+  @IsOptional()
+  unlockCriteria?: object;
 
   @ApiPropertyOptional({
     description: 'Categoría del logro',
     example: 'missions',
   })
-  @Column({ type: 'text', nullable: true })
-  category: string | null;
+  @IsString()
+  @IsOptional()
+  category?: string;
 
   @ApiPropertyOptional({
     description: 'Nivel del logro',
     example: 'bronze',
-    default: 'bronze',
     enum: ['bronze', 'silver', 'gold', 'platinum'],
   })
-  @Column({ type: 'text', default: 'bronze' })
-  tier: string;
-
-  @ApiProperty({ description: 'Fecha de creación' })
-  @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
-  createdAt: Date;
+  @IsString()
+  @IsOptional()
+  tier?: string;
 }

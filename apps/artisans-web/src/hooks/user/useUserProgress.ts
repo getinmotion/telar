@@ -7,7 +7,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
   getUserProgressByUserId,
@@ -15,6 +14,7 @@ import {
   updateUserProgressWithRewards,
 } from '@/services/userProgress.actions';
 import { getUserAchievementsByUserId } from '@/services/userAchievements.actions';
+import { getAllAchievementsCatalog } from '@/services/achievementsCatalog.actions';
 import { UserProgress } from '@/types/userProgress.types';
 
 interface Achievement {
@@ -116,23 +116,17 @@ export const useUserProgress = () => {
         }))
       );
 
-      // ⚠️ TODO: Migrate achievements catalog to NestJS
-      // Currently using Supabase direct query
-      // Endpoint needed: GET /achievements-catalog
-      const { data: catalogData, error: catalogError } = await supabase
-        .from('achievements_catalog')
-        .select('*')
-        .order('display_order', { ascending: true });
-
-      if (catalogError) throw catalogError;
+      // ✅ MIGRATED: Fetch achievements catalog from NestJS
+      // Endpoint: GET /achievements-catalog
+      const catalogData = await getAllAchievementsCatalog();
 
       setAchievementsCatalog(
-        (catalogData || []).map((c: any) => ({
+        catalogData.map((c) => ({
           id: c.id,
           title: c.title,
           description: c.description,
           icon: c.icon,
-          unlockCriteria: c.unlock_criteria,
+          unlockCriteria: c.unlockCriteria,
           category: c.category
         }))
       );
