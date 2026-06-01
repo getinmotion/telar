@@ -72,6 +72,8 @@ services:
       MONGO_HOST: ${MONGO_HOST}
       MONGO_NAME: ${MONGO_NAME}
       MONGO_AUTH_SOURCE: ${MONGO_AUTH_SOURCE}
+      SESSION_SECRET: ${SESSION_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     ports:
       - "127.0.0.1:${API_PORT}:${API_PORT}"
     networks:
