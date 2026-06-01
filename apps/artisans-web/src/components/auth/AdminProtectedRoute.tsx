@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
 
 interface AdminProtectedRouteProps {
   children: React.ReactNode;
@@ -18,25 +18,23 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [lastActivity, setLastActivity] = useState(Date.now());
 
-  // Session validation and timeout check
+  // Session validation y timeout — usa el token JWT propio (sin Supabase Auth)
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        await signOut();
+    const checkSession = () => {
+      const { access_token } = useAuthStore.getState();
+
+      if (!access_token) {
+        signOut();
         return;
       }
 
-      // Check if session is expired
       const now = Date.now();
       if (now - lastActivity > SESSION_TIMEOUT) {
-        console.log('Session timeout - auto logout');
-        await signOut();
+        signOut();
       }
     };
 
-    const interval = setInterval(checkSession, 60000); // Check every minute
+    const interval = setInterval(checkSession, 60000);
     return () => clearInterval(interval);
   }, [lastActivity, signOut]);
 

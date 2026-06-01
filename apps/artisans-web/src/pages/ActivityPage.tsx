@@ -1,19 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { useUserInsights } from '@/hooks/useUserInsights';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { ActivityTimeline } from '@/components/profile/ActivityTimeline';
 import { IntelligentInsights } from '@/components/profile/IntelligentInsights';
 import { DeliverablesCenter } from '@/components/profile/DeliverablesCenter';
-import { MotionLogo } from '@/components/MotionLogo';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Activity, TrendingUp, FileText } from 'lucide-react';
+import { Activity, TrendingUp, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ActivityPage: React.FC = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { language: rawLanguage } = useLanguage();
   const { insights, loading: insightsLoading } = useUserInsights();
@@ -51,36 +47,7 @@ const ActivityPage: React.FC = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
-              <MotionLogo size="sm" />
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold text-foreground">
-                  {t[language].title}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {t[language].subtitle}
-                </p>
-              </div>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">{t[language].back}</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 overflow-y-auto">
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-8">

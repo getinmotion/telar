@@ -401,7 +401,7 @@ export const CostCalculatorAgent = () => {
           </div>
         );
         
-      case 'results':
+      case 'results': {
         const results = calculateResults();
         return (
           <div className="space-y-4">
@@ -449,7 +449,8 @@ export const CostCalculatorAgent = () => {
             </div>
           </div>
         );
-        
+      }
+
       default:
         return null;
     }

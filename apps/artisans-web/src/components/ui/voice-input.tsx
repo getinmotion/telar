@@ -74,22 +74,18 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
       reader.readAsDataURL(audioBlob);
 
       reader.onloadend = async () => {
-        try {
-          const base64Audio = (reader.result as string).split(',')[1];
+        const base64Audio = (reader.result as string).split(',')[1];
 
-          const response = await transcribeAudioAPI({
-            audio: base64Audio,
-            language: language === 'es' ? 'es' : 'en'
-          });
+        const response = await transcribeAudioAPI({
+          audio: base64Audio,
+          language: language === 'es' ? 'es' : 'en'
+        });
 
-          if (response.text) {
-            onTranscript(response.text);
-          }
-
-          setIsProcessing(false);
-        } catch (apiError) {
-          throw apiError;
+        if (response.text) {
+          onTranscript(response.text);
         }
+
+        setIsProcessing(false);
       };
     } catch (error) {
       console.error('Transcription error:', error);

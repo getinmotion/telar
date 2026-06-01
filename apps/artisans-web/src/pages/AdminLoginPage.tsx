@@ -17,7 +17,8 @@ export const AdminLoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath = (location.state as any)?.from?.pathname ?? '/admin';
+  // Default: panel de moderación (donde están los botones de CMS / usuarios / etc.).
+  const fromPath = (location.state as any)?.from?.pathname ?? '/moderacion';
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

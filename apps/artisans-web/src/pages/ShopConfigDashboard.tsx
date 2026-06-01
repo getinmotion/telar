@@ -1,1031 +1,971 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  ArrowLeft,
-  Wand2,
-  Plus,
-  X,
-  GripVertical,
-  ChevronDown,
-  RefreshCw,
-  ExternalLink,
-  Sparkles,
-} from "lucide-react";
-import { toast } from "sonner";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { ShopPreview } from "@/components/shop/ShopPreview";
-import { HeroSlideUploader } from "@/components/shop/HeroSlideUploader";
-// import { syncBrandToShop } from '@/utils/syncBrandToShop';
-import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
-import { useAutoHeroGeneration } from "@/hooks/useAutoHeroGeneration";
-import { BrandValidationModal } from "@/components/shop/BrandValidationModal";
-import {
-  getArtisanShopByUserId,
-  updateArtisanShop,
-} from "@/services/artisanShops.actions";
+import React, { useState, useEffect } from 'react';
+import logoIcon from '@/assets/logo-icon.svg';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useArtisanShop } from '@/hooks/useArtisanShop';
+import { useAuth } from '@/context/AuthContext';
+import { useUnifiedUserData } from '@/hooks/user';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { useMasterAgent } from '@/context/MasterAgentContext';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
+import { MobileShopConfig } from '@/components/shop/mobile/MobileShopConfig';
 
-const ShopConfigDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const [shop, setShop] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [showBrandModal, setShowBrandModal] = useState(false);
-  const [brandValidation, setBrandValidation] = useState<any>(null);
+// ── TELAR Design System (mismo que CommercialDashboard) ───────────────────────
+const SERIF = "'Noto Serif', serif";
+const SANS  = "'Manrope', sans-serif";
 
-  const { generateHeroSlides, isGenerating: isGeneratingHero } =
-    useAutoHeroGeneration();
+const glassPrimary: React.CSSProperties = {
+  background:           'rgba(255,255,255,0.82)',
+  backdropFilter:       'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  border:               '1px solid rgba(255,255,255,0.65)',
+  boxShadow:            '0 4px 20px rgba(21,27,45,0.02)',
+};
 
-  // Hero config state
-  const [heroSlides, setHeroSlides] = useState<any[]>([]);
-  const [showManualHero, setShowManualHero] = useState(false);
-  const [newSlide, setNewSlide] = useState({
-    title: "",
-    subtitle: "",
-    image: "",
-    ctaText: "",
-    ctaLink: "",
-  });
+// ── Pill badge ─────────────────────────────────────────────────────────────────
+type PillVariant = 'success' | 'warning' | 'draft';
+const PILL: Record<PillVariant, React.CSSProperties> = {
+  success: { background: 'rgba(22,101,52,0.1)',  color: '#166534' },
+  warning: { background: 'rgba(236,109,19,0.1)', color: '#ec6d13' },
+  draft:   { background: 'rgba(21,27,45,0.06)',  color: 'rgba(84,67,62,0.6)' },
+};
+const Pill: React.FC<{ children: React.ReactNode; variant?: PillVariant }> = ({ children, variant = 'draft' }) => (
+  <span style={{ ...PILL[variant], borderRadius: 9999, padding: '2px 10px', fontFamily: SANS, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'inline-block', whiteSpace: 'nowrap' }}>
+    {children}
+  </span>
+);
 
-  // About config state
-  const [aboutContent, setAboutContent] = useState({
-    title: "",
-    story: "",
-    mission: "",
-    vision: "",
-    values: [],
-  });
-  const [showManualAbout, setShowManualAbout] = useState(false);
-
-  // Contact config state
-  const [contactConfig, setContactConfig] = useState({
-    email: "",
-    phone: "",
-    whatsapp: "",
-    address: "",
-    hours: "",
-    map_embed: "",
-    welcomeMessage: "",
-    formIntroText: "",
-  });
-
-  useEffect(() => {
-    fetchShop();
-  }, []);
-
-  const fetchShop = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const data = await getArtisanShopByUserId(user.id);
-      if (!data) throw new Error("Shop not found");
-
-      setShop(data);
-      const heroConfig = data.heroConfig as any;
-      setHeroSlides(heroConfig?.slides || []);
-
-      const aboutData = data.aboutContent as any;
-      setAboutContent(
-        aboutData || {
-          title: "",
-          story: data.story || "",
-          mission: "",
-          vision: "",
-          values: [],
-        },
-      );
-
-      const contactData = data.contactConfig as any;
-      const contactInfo = data.contactInfo as any;
-      setContactConfig(
-        contactData || {
-          email: contactInfo?.email || "",
-          phone: contactInfo?.phone || "",
-          whatsapp: contactInfo?.whatsapp || "",
-          address: contactInfo?.address || "",
-          hours: "",
-          map_embed: "",
-          welcomeMessage: "",
-          formIntroText: "",
-        },
-      );
-    } catch (error: any) {
-      console.error("Error fetching shop:", error);
-      toast.error("Error al cargar la tienda");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveHeroConfig = async () => {
-    setSaving(true);
-    try {
-      await updateArtisanShop(shop.id, {
-        heroConfig: {
-          slides: heroSlides,
-          autoplay: true,
-          duration: 5000,
-        },
-      });
-
-      toast.success("Configuración del hero guardada");
-    } catch (error: any) {
-      console.error("Error saving hero:", error);
-      toast.error("Error al guardar");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveAboutContent = async () => {
-    setSaving(true);
-    try {
-      await updateArtisanShop(shop.id, {
-        aboutContent: aboutContent,
-      });
-
-      toast.success('Contenido de "Nosotros" guardado');
-    } catch (error: any) {
-      console.error("Error saving about:", error);
-      toast.error("Error al guardar");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveContactConfig = async () => {
-    setSaving(true);
-    try {
-      await updateArtisanShop(shop.id, {
-        contactConfig: contactConfig,
-      });
-
-      toast.success("Configuración de contacto guardada");
-    } catch (error: any) {
-      console.error("Error saving contact:", error);
-      toast.error("Error al guardar");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const generateCompleteHeroWithAI = async () => {
-    if (!shop?.id) return;
-
-    const result = await generateHeroSlides(shop.id, { autoSave: false });
-
-    if (result.needsBrandInfo) {
-      setBrandValidation({
-        missingFields: result.missingFields || [],
-        completionPercentage: result.completionPercentage || 0,
-      });
-      setShowBrandModal(true);
-      return;
-    }
-
-    if (result.success && result.slides) {
-      const formattedSlides = result.slides.map((slide) => ({
-        id: slide.id,
-        title: slide.title,
-        subtitle: slide.subtitle,
-        ctaText: slide.ctaText,
-        ctaLink: slide.ctaLink,
-        image: slide.imageUrl,
-      }));
-      setHeroSlides(formattedSlides);
-      toast.success("✨ Hero slider generado con IA");
-    }
-  };
-
-  const generateAboutWithAI = async () => {
-    setSaving(true);
-    try {
-      toast.info('Generando contenido "Nosotros" con IA...');
-
-      const { data, error } = await supabase.functions.invoke(
-        "generate-shop-about",
-        {
-          body: {
-            shopName: shop.shop_name,
-            craftType: shop.craft_type,
-            region: shop.region,
-            currentStory: shop.story,
-            brandClaim: shop.brand_claim || "",
-            brandColors: shop.primary_colors || [],
-          },
-        },
-      );
-
-      if (error) throw error;
-
-      setAboutContent(data);
-      toast.success("✨ Contenido generado con IA");
-    } catch (error: any) {
-      console.error("Error generating about:", error);
-      toast.error("Error al generar contenido");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const generateContactWithAI = async () => {
-    setSaving(true);
-    try {
-      toast.info("Generando textos de contacto con IA...");
-
-      const { data, error } = await supabase.functions.invoke(
-        "generate-shop-contact",
-        {
-          body: {
-            shopName: shop.shop_name,
-            craftType: shop.craft_type,
-            region: shop.region,
-            brandClaim: shop.brand_claim || "",
-          },
-        },
-      );
-
-      if (error) throw error;
-
-      setContactConfig({
-        ...contactConfig,
-        welcomeMessage: data.welcomeMessage,
-        formIntroText: data.formIntroText,
-        hours: data.suggestedHours,
-      });
-
-      toast.success("✨ Textos de contacto generados con IA");
-    } catch (error: any) {
-      console.error("Error generating contact:", error);
-      toast.error("Error al generar textos de contacto");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // const handleSyncFromBrandWizard = async () => {
-  //   setSyncing(true);
-  //   try {
-  //     const { data: { user } } = await supabase.auth.getUser();
-  //     if (!user) return;
-
-  //     const result = await syncBrandToShop(user.id);
-
-  //     if (result.success) {
-  //       toast.success(result.message);
-  //       await fetchShop(); // Recargar tienda
-  //     } else {
-  //       toast.error(result.message);
-  //     }
-  //   } catch (error: any) {
-  //     console.error('Error syncing:', error);
-  //     toast.error('Error al sincronizar');
-  //   } finally {
-  //     setSyncing(false);
-  //   }
-  // };
-
-  const addSlide = () => {
-    if (!newSlide.title || !newSlide.subtitle) {
-      toast.error("Completa título y subtítulo");
-      return;
-    }
-
-    setHeroSlides([...heroSlides, { ...newSlide, id: Date.now().toString() }]);
-    setNewSlide({
-      title: "",
-      subtitle: "",
-      image: "",
-      ctaText: "",
-      ctaLink: "",
-    });
-  };
-
-  const removeSlide = (id: string) => {
-    setHeroSlides(heroSlides.filter((slide) => slide.id !== id));
-  };
-
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
-    const items = Array.from(heroSlides);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setHeroSlides(items);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Cargando...
+// ── MetricCard ─────────────────────────────────────────────────────────────────
+const MetricCard: React.FC<{
+  label: string; value: React.ReactNode; sub: string; icon: string;
+  mobileValue?: React.ReactNode; mobileIconColor?: string;
+}> = ({ label, value, sub, icon, mobileValue, mobileIconColor }) => (
+  <>
+    {/* Mobile: compact icon chip — 4 columns */}
+    <div
+      className="md:hidden flex flex-col items-center justify-center gap-1 py-3 px-1 text-center"
+      style={{ ...glassPrimary, borderRadius: 14, minHeight: 76 }}
+    >
+      <span className="material-symbols-outlined" style={{ color: mobileIconColor ?? 'rgba(21,27,45,0.22)', fontSize: 22 }}>{icon}</span>
+      <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+        {mobileValue ?? value}
       </div>
-    );
-  }
+      <span style={{ fontFamily: SANS, fontSize: 7, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(84,67,62,0.45)', lineHeight: 1.3 }}>
+        {label}
+      </span>
+    </div>
 
-  if (!shop) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Tienda no encontrada
+    {/* Desktop: horizontal card */}
+    <div style={{ ...glassPrimary, borderRadius: 16 }} className="hidden md:flex px-5 h-16 items-center gap-4">
+      <span className="material-symbols-outlined shrink-0" style={{ color: 'rgba(21,27,45,0.18)', fontSize: 18 }}>{icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: 'rgba(84,67,62,0.45)' }}>{label}</span>
+        <p style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.35)', marginTop: 1 }}>{sub}</p>
       </div>
-    );
-  }
+      <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1, flexShrink: 0 }}>{value}</div>
+    </div>
+  </>
+);
 
-  const publicShopUrl = `/tienda/${shop.slug}`;
+// ── OrangeBtn / OutlineBtn ─────────────────────────────────────────────────────
+const OrangeBtn: React.FC<{ children: React.ReactNode; onClick?: () => void }> = ({ children, onClick }) => (
+  <button onClick={onClick}
+    className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-all hover:opacity-90 hover:scale-[1.02]"
+    style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 13, fontWeight: 700, boxShadow: '0 4px 12px rgba(236,109,19,0.3)' }}>
+    {children}
+  </button>
+);
+const OutlineBtn: React.FC<{ children: React.ReactNode; onClick?: () => void }> = ({ children, onClick }) => (
+  <button onClick={onClick}
+    className={cn('flex items-center gap-2 px-5 py-2.5 rounded-full transition-all hover:bg-white/60')}
+    style={{ border: '1px solid rgba(21,27,45,0.1)', color: '#151b2d', fontFamily: SANS, fontSize: 13, fontWeight: 700 }}>
+    {children}
+  </button>
+);
+
+// ── Bento types ───────────────────────────────────────────────────────────────
+type SectionStatus = 'complete' | 'partial' | 'empty';
+
+const STATUS_PILL: Record<SectionStatus, { variant: PillVariant; label: string }> = {
+  complete: { variant: 'success', label: 'Completo' },
+  partial:  { variant: 'warning', label: 'En progreso' },
+  empty:    { variant: 'draft',   label: 'Pendiente' },
+};
+
+const EditBtn: React.FC<{ label?: string; onClick: () => void }> = ({ label = 'Editar', onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '6px 14px', borderRadius: 9999, border: 'none', cursor: 'pointer',
+      background: 'rgba(21,27,45,0.06)', color: '#151b2d',
+      fontFamily: SANS, fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+    }}
+  >
+    {label}
+    <span className="material-symbols-outlined" style={{ fontSize: 13 }}>arrow_forward</span>
+  </button>
+);
+
+// ── Preview Panel ──────────────────────────────────────────────────────────────
+const PreviewPanel: React.FC<{ shop: any }> = ({ shop }) => {
+  const [tab, setTab] = useState<'marketplace' | 'ecommerce' | 'mobile'>('marketplace');
+  const name   = shop?.shopName   ?? 'Tu tienda';
+  const claim  = shop?.brandClaim ?? '';
+  const banner = shop?.bannerUrl  ?? '';
+  const logo   = shop?.logoUrl    ?? '';
+  const color  = shop?.primaryColors?.[0] ?? '#ec6d13';
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <Helmet>
-        <title>{`Configurar Tienda - ${shop.shopName}`}</title>
-      </Helmet>
-
-      <div className="max-w-6xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/mi-tienda")}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver al Taller Digital
-        </Button>
-
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">✨ Configurar Tienda con IA</h1>
-          <Button
-            variant="outline"
-            onClick={() => window.open(publicShopUrl, "_blank")}
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Ver Tienda Pública
-          </Button>
+    <div style={{ position: 'sticky', top: 24 }}>
+      <div style={{ ...glassPrimary, borderRadius: 28, overflow: 'hidden' }}>
+        {/* Tab bar */}
+        <div style={{ padding: '14px 18px 0', display: 'flex', gap: 4, borderBottom: '1px solid rgba(21,27,45,0.05)' }}>
+          {([
+            { id: 'marketplace' as const, icon: 'store',        label: 'Marketplace' },
+            { id: 'ecommerce'   as const, icon: 'shopping_bag', label: 'E-commerce'  },
+            { id: 'mobile'      as const, icon: 'smartphone',   label: 'Móvil'       },
+          ]).map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{
+                padding: '6px 11px', borderRadius: '8px 8px 0 0', border: 'none',
+                background: tab === t.id ? 'rgba(236,109,19,0.07)' : 'transparent',
+                cursor: 'pointer', fontFamily: SANS, fontSize: 10, fontWeight: 700,
+                color: tab === t.id ? '#ec6d13' : 'rgba(84,67,62,0.5)',
+                display: 'flex', alignItems: 'center', gap: 4,
+                borderBottom: tab === t.id ? '2px solid #ec6d13' : '2px solid transparent',
+              }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 12 }}>{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
         </div>
 
-        <Tabs defaultValue="hero" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="hero">Hero Slider</TabsTrigger>
-            <TabsTrigger value="about">Nosotros</TabsTrigger>
-            <TabsTrigger value="contact">Contacto</TabsTrigger>
-            <TabsTrigger value="brand">Marca & Preview</TabsTrigger>
-          </TabsList>
-
-          {/* Hero Configuration - IA FIRST */}
-          <TabsContent value="hero" className="space-y-6">
-            <Card className="p-6">
-              <div className="text-center space-y-4 mb-8">
-                <div className="flex items-center justify-center gap-2 text-primary mb-2">
-                  <Sparkles className="w-5 h-5" />
-                  <h2 className="text-2xl font-bold">
-                    Hero Slider Inteligente
-                  </h2>
+        {/* Mockup */}
+        <div style={{ background: '#f5f0e8', minHeight: 300 }}>
+          {tab === 'marketplace' && (
+            <div style={{ padding: 20, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 180, borderRadius: 14, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: 'white' }}>
+                <div style={{ aspectRatio: '4/3', background: banner ? 'transparent' : 'rgba(21,27,45,0.05)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {banner ? <img src={banner} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'rgba(21,27,45,0.1)' }}>store</span>}
                 </div>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Genera automáticamente un hero slider completo con 3 slides
-                  profesionales basados en tu tienda y marca
-                </p>
-                <Button
-                  size="lg"
-                  onClick={generateCompleteHeroWithAI}
-                  disabled={saving}
-                  className="w-full max-w-md mx-auto"
-                >
-                  <Wand2 className="w-5 h-5 mr-2" />
-                  {heroSlides.length > 0
-                    ? "Regenerar Hero Slider con IA"
-                    : "Generar Hero Slider con IA"}
-                </Button>
+                <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {logo ? <img src={logo} style={{ width: 20, height: 20, borderRadius: 5, objectFit: 'contain', flexShrink: 0 }} alt="" /> : <div style={{ width: 20, height: 20, borderRadius: 5, background: 'rgba(21,27,45,0.06)', flexShrink: 0 }} />}
+                  <div>
+                    <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, color: '#151b2d', lineHeight: 1.2 }}>{name}</p>
+                    {claim && <p style={{ fontFamily: SANS, fontSize: 8, color: 'rgba(84,67,62,0.5)', lineHeight: 1.3, marginTop: 1 }}>{claim.slice(0, 35)}{claim.length > 35 ? '…' : ''}</p>}
+                  </div>
+                </div>
               </div>
-
-              {/* Separator */}
-              <div className="flex items-center gap-4 my-8">
-                <Separator className="flex-1" />
-                <span className="text-sm text-muted-foreground">
-                  O agrega slides individualmente
-                </span>
-                <Separator className="flex-1" />
+            </div>
+          )}
+          {tab === 'ecommerce' && (
+            <div>
+              <div style={{ background: 'white', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(21,27,45,0.05)' }}>
+                {logo ? <img src={logo} style={{ width: 26, height: 26, borderRadius: 7, objectFit: 'contain' }} alt="" /> : <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(21,27,45,0.06)' }} />}
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>{name}</p>
+                  {claim && <p style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.45)' }}>{claim}</p>}
+                </div>
+                <div style={{ padding: '4px 10px', borderRadius: 6, background: color, color: 'white', fontFamily: SANS, fontSize: 8, fontWeight: 800 }}>Comprar</div>
               </div>
+              <div style={{ height: 80, background: banner ? 'transparent' : 'rgba(21,27,45,0.04)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {banner ? <img src={banner} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} alt="" /> : <span style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(21,27,45,0.18)' }}>Hero banner</span>}
+              </div>
+              <div style={{ padding: 12, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
+                {[1,2,3].map(i => (
+                  <div key={i} style={{ borderRadius: 8, overflow: 'hidden', background: 'white', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ aspectRatio: '1', background: 'rgba(21,27,45,0.04)' }} />
+                    <div style={{ padding: '5px 7px' }}>
+                      <div style={{ height: 5, borderRadius: 3, background: 'rgba(21,27,45,0.07)', marginBottom: 4 }} />
+                      <div style={{ height: 16, borderRadius: 5, background: color, opacity: 0.8 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {tab === 'mobile' && (
+            <div style={{ padding: 16, display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 148, borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', background: 'white' }}>
+                <div style={{ padding: '7px 11px', display: 'flex', alignItems: 'center', gap: 5, borderBottom: '1px solid rgba(21,27,45,0.05)' }}>
+                  {logo ? <img src={logo} style={{ width: 18, height: 18, borderRadius: 4, objectFit: 'contain' }} alt="" /> : <div style={{ width: 18, height: 18, borderRadius: 4, background: 'rgba(21,27,45,0.06)' }} />}
+                  <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: '#151b2d' }}>{name}</span>
+                </div>
+                <div style={{ height: 65, background: banner ? 'transparent' : 'rgba(21,27,45,0.04)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {banner && <img src={banner} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} alt="" />}
+                </div>
+                <div style={{ padding: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                  {[1,2,3,4].map(i => <div key={i} style={{ borderRadius: 5, background: 'rgba(21,27,45,0.04)', aspectRatio: '1' }} />)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-              {/* Hero Slide Uploader */}
-              <HeroSlideUploader
-                onSlideCreated={(slide) =>
-                  setHeroSlides([...heroSlides, slide])
-                }
-                shopContext={{
-                  shopName: shop.shop_name,
-                  craftType: shop.craft_type || "artesanía",
-                  brandClaim: shop.brand_claim || "",
-                  brandColors: shop.primary_colors || [],
-                }}
+        <div style={{ padding: '10px 18px', borderTop: '1px solid rgba(21,27,45,0.04)' }}>
+          <p style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)', lineHeight: 1.5 }}>Vista previa · Template Artesano activo</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ORÁCULO registration (extracted to avoid hook-after-early-return violation)
+// ══════════════════════════════════════════════════════════════════════════════
+type Insight = { message: string; sub: string; cta: string; route: string };
+const OraculoShopConfig: React.FC<{ insight: Insight; onNavigate: (r: string) => void }> = ({ insight, onNavigate }) => {
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(
+      <div className="p-7 rounded-3xl relative overflow-hidden" style={{ background: '#151b2d' }}>
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(236,109,19,0.1)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -30, left: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(236,109,19,0.05)', filter: 'blur(35px)', pointerEvents: 'none' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-5">
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(236,109,19,0.15)', border: '1px solid rgba(236,109,19,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 19, color: '#ec6d13' }}>smart_toy</span>
+            </div>
+            <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.3)' }}>ORÁCULO</span>
+          </div>
+          <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 10, lineHeight: 1.35 }}>{insight.message}</h3>
+          <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: 22 }}>{insight.sub}</p>
+          <button
+            onClick={() => onNavigate(insight.route)}
+            className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-full transition-all hover:opacity-90"
+            style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(236,109,19,0.3)', border: 'none', cursor: 'pointer' }}
+          >
+            {insight.cta}
+            <span className="material-symbols-outlined text-[14px]">east</span>
+          </button>
+        </div>
+      </div>
+    );
+    return clearNode;
+  }, [insight]);
+  return null;
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PAGE
+// ══════════════════════════════════════════════════════════════════════════════
+const ShopConfigDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { user }  = useAuth();
+  const { shop, loading } = useArtisanShop();
+  const { masterState } = useMasterAgent();
+  const { profile } = useUnifiedUserData();
+
+  if (loading) return (
+    <div className="flex-1 flex items-center justify-center">
+      <span className="material-symbols-outlined animate-spin" style={{ fontSize: 32, color: '#ec6d13' }}>progress_activity</span>
+    </div>
+  );
+  if (!shop) return (
+    <div className="flex-1 flex items-center justify-center">
+      <p style={{ fontFamily: SANS, color: 'rgba(84,67,62,0.6)' }}>Tienda no encontrada</p>
+    </div>
+  );
+
+  const s = shop as any;
+  const userName = masterState.perfil?.nombre || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Artesano';
+  const shopName = s.shopName || userName;
+
+  // ── Status computation ────────────────────────────────────────────────────
+  const brandDone    = !!(s.logoUrl && s.brandClaim);
+  const brandPartial = !brandDone && !!(s.logoUrl || s.brandClaim || s.shopName);
+  const heroDone     = !!(s.bannerUrl || s.heroConfig?.slides?.length > 0);
+  const contactDone  = !!(s.contactConfig?.whatsapp || s.contactConfig?.email);
+  const policiesDone = !!(s.idPoliciesConfig);
+  const profileDone  = !!s.artisanProfileCompleted;
+  const fiscalDone   = !!(profile?.rut && !profile?.rutPendiente);
+  const paymentDone  = !!(s.idContraparty);
+
+  const toStatus = (done: boolean, partial = false): SectionStatus =>
+    done ? 'complete' : partial ? 'partial' : 'empty';
+
+  const sections: SectionStatus[] = [
+    toStatus(brandDone, brandPartial),
+    toStatus(heroDone),
+    toStatus(contactDone),
+    toStatus(policiesDone),
+    toStatus(profileDone),
+    toStatus(fiscalDone),
+    toStatus(paymentDone),
+    'partial', // design — always exists
+  ];
+  const completedCount = sections.filter(s => s === 'complete').length;
+  const pct = Math.round(completedCount / sections.length * 100);
+  const isShopActive = s.publishStatus === 'published' && !!s.active;
+
+  // ── Next AI insight ───────────────────────────────────────────────────────
+  const insights: Insight[] = [
+    { message: `Empecemos por el logo, ${userName.split(' ')[0]}.`, sub: 'Sin logo tu tienda no aparece en búsquedas. Es lo primero que ven los compradores.', cta: 'Subir logo', route: '/mi-tienda/configurar/brand' },
+    { message: 'Ponle cara a tu tienda.', sub: 'Agrega imágenes de tus piezas o tu taller. Un hero con tu trabajo es lo que convierte visitas en ventas.', cta: 'Agregar imágenes', route: '/mi-tienda/configurar/hero' },
+    { message: '¿Cómo te contactan los compradores?', sub: 'Agrega WhatsApp o email. Sin datos de contacto, la venta se corta antes de empezar.', cta: 'Agregar contacto', route: '/mi-tienda/configurar/contact' },
+    { message: '¿Qué pasa si alguien devuelve?', sub: 'Los compradores leen la política antes de comprar. Unos párrafos claros aumentan la confianza.', cta: 'Escribir política', route: '/mi-tienda/configurar/return-policy' },
+    { message: `Cuéntanos quién eres, ${userName.split(' ')[0]}.`, sub: 'Tu historia es lo que te diferencia de una tienda cualquiera. Los compradores conectan con personas, no con productos.', cta: 'Completar perfil', route: '/dashboard/artisan-profile-wizard' },
+    { message: '¡Vas muy bien!', sub: 'Tu tienda tiene lo esencial. Revisa el diseño y ajusta los detalles para que se vea exactamente como quieres.', cta: 'Ver diseño', route: '/mi-tienda/configurar/design' },
+  ];
+  const insightIndex =
+    !brandDone ? 0 :
+    !heroDone  ? 1 :
+    !contactDone ? 2 :
+    !policiesDone ? 3 :
+    !profileDone ? 4 : 5;
+  const insight = insights[insightIndex];
+
+  return (
+    <>
+      <OraculoShopConfig insight={insight} onNavigate={navigate} />
+      <Helmet><title>{`Configurar · ${shopName}`}</title></Helmet>
+
+      <div className="h-full flex flex-col min-h-0 overflow-hidden">
+
+        {/* ── Header sticky ── */}
+        <header className="sticky top-0 z-30">
+
+          {/* Mobile: flecha · ISO · notificaciones */}
+          <div className="md:hidden px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-9 h-9 flex items-center justify-center rounded-full"
+              style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.07)' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#151b2d' }}>arrow_back</span>
+            </button>
+            <img src={logoIcon} alt="TELAR" className="h-8 w-8 object-contain" />
+            <NotificationCenter />
+          </div>
+
+          {/* Desktop: layout 3 columnas original */}
+          <div
+            className="hidden md:grid px-12 pt-4 pb-3 items-center gap-0"
+            style={{ gridTemplateColumns: '1fr auto 1fr' }}
+          >
+            <div className="flex items-center gap-3">
+              {s.logoUrl && (
+                <img src={s.logoUrl} alt={shopName} className="h-10 w-10 rounded-full object-contain"
+                  style={{ border: '1px solid rgba(21,27,45,0.08)', background: 'white', padding: 2 }} />
+              )}
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <h1 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                Configuración de tienda
+              </h1>
+              <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 2 }}>
+                {completedCount} de {sections.length} secciones completas · {pct}%
+              </p>
+            </div>
+            <div className="flex items-center gap-3 justify-end">
+              <NotificationCenter />
+              <OutlineBtn onClick={() => navigate('/dashboard')}>
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                Dashboard
+              </OutlineBtn>
+            </div>
+          </div>
+
+        </header>
+
+        {/* ── Main ── */}
+        <main className="flex-1 flex flex-col overflow-hidden" style={{ overscrollBehavior: 'contain' }}>
+
+          {/* ── Mobile: hero + métricas + nav de iconos ── */}
+          <div className="md:hidden flex flex-col flex-1 overflow-hidden">
+            <div style={{ padding: '8px 12px 0' }}>
+
+            {/* ── Mobile shop hero ── */}
+            <div className="mb-5 flex items-center gap-4 px-4 py-4 rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 16px rgba(21,27,45,0.04)' }}
+            >
+              {s.logoUrl ? (
+                <img src={s.logoUrl} alt={shopName}
+                  className="w-16 h-16 rounded-2xl object-contain flex-shrink-0"
+                  style={{ background: 'white', padding: 6, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#ec6d13' }}>storefront</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 3 }}>Configuración</p>
+                <h1 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', lineHeight: 1.15, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {shopName}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(21,27,45,0.08)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#166534' : '#ec6d13', transition: 'width 0.6s ease' }} />
+                  </div>
+                  <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: pct === 100 ? '#166534' : '#ec6d13', flexShrink: 0 }}>{pct}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 4 Metric Cards ── */}
+            <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8">
+              <MetricCard
+                label="Completadas"
+                value={<span>{completedCount}<span style={{ fontSize: 20, opacity: 0.35 }}>/{sections.length}</span></span>}
+                mobileValue={completedCount}
+                mobileIconColor={completedCount === sections.length ? '#166534' : 'rgba(21,27,45,0.3)'}
+                sub="secciones listas"
+                icon="task_alt"
               />
+              <MetricCard
+                label="Progreso"
+                value={
+                  <span style={{ color: pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : '#151b2d' }}>
+                    {pct}<span style={{ fontSize: 20, opacity: 0.35 }}>%</span>
+                  </span>
+                }
+                mobileValue={`${pct}%`}
+                mobileIconColor={pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : 'rgba(21,27,45,0.3)'}
+                sub="configuración total"
+                icon="donut_large"
+              />
+              <MetricCard
+                label="Estado"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: isShopActive ? '#166534' : '#ec6d13' }}>
+                    {isShopActive ? 'Activa' : 'Preparación'}
+                  </span>
+                }
+                mobileValue={isShopActive ? 'Live' : 'Prep.'}
+                mobileIconColor={isShopActive ? '#166534' : '#ec6d13'}
+                sub={isShopActive ? 'visible al público' : 'no activada aún'}
+                icon={isShopActive ? 'storefront' : 'pending'}
+              />
+              <MetricCard
+                label="Perfil"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: profileDone ? '#166534' : 'rgba(21,27,45,0.4)' }}>
+                    {profileDone ? 'Completo' : 'Pendiente'}
+                  </span>
+                }
+                mobileValue={profileDone ? 'OK' : '—'}
+                mobileIconColor={profileDone ? '#166534' : 'rgba(21,27,45,0.25)'}
+                sub="historia y técnicas"
+                icon="person_pin"
+              />
+            </div>
 
-              {heroSlides.length > 0 && (
-                <div className="mb-6 space-y-4">
-                  <h3 className="font-semibold text-lg">Slides Actuales:</h3>
-                  <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="slides">
-                      {(provided) => (
-                        <div
-                          {...provided.droppableProps}
-                          ref={provided.innerRef}
-                          className="space-y-3"
-                        >
-                          {heroSlides.map((slide, index) => (
-                            <Draggable
-                              key={slide.id}
-                              draggableId={slide.id}
-                              index={index}
-                            >
-                              {(provided) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  className="bg-muted p-4 rounded-lg flex items-start gap-4"
-                                >
-                                  <div {...provided.dragHandleProps}>
-                                    <GripVertical className="w-5 h-5 text-muted-foreground" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <h3 className="font-semibold">
-                                      {slide.title}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                      {slide.subtitle}
-                                    </p>
-                                    {slide.ctaText && (
-                                      <p className="text-xs text-muted-foreground mt-2">
-                                        CTA: {slide.ctaText}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeSlide(slide.id)}
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
+            </div>{/* closes padding div */}
+            {/* Nav + sección activa */}
+            <MobileShopConfig shop={s} userName={userName} profile={profile} navigate={navigate} />
+          </div>{/* closes md:hidden */}
+
+          {/* ── Desktop: layout original sin cambios ── */}
+          <div className="hidden md:flex md:flex-col md:flex-1 md:overflow-y-auto px-12 pb-20">
+            <div className="max-w-[1300px] mx-auto pt-8">
+
+            {/* ── 4 Metric Cards (desktop only) ── */}
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              <MetricCard
+                label="Completadas"
+                value={<span>{completedCount}<span style={{ fontSize: 20, opacity: 0.35 }}>/{sections.length}</span></span>}
+                sub="secciones listas"
+                icon="task_alt"
+              />
+              <MetricCard
+                label="Progreso"
+                value={
+                  <span style={{ color: pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : '#151b2d' }}>
+                    {pct}<span style={{ fontSize: 20, opacity: 0.35 }}>%</span>
+                  </span>
+                }
+                sub="configuración total"
+                icon="donut_large"
+              />
+              <MetricCard
+                label="Estado"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: isShopActive ? '#166534' : '#ec6d13' }}>
+                    {isShopActive ? 'Activa' : 'Preparación'}
+                  </span>
+                }
+                sub={isShopActive ? 'visible al público' : 'no activada aún'}
+                icon={isShopActive ? 'storefront' : 'pending'}
+              />
+              <MetricCard
+                label="Perfil"
+                value={
+                  <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', color: profileDone ? '#166534' : 'rgba(21,27,45,0.4)' }}>
+                    {profileDone ? 'Completo' : 'Pendiente'}
+                  </span>
+                }
+                sub="historia y técnicas"
+                icon="person_pin"
+              />
+            </div>
+
+            {/* ── Grid 8 + 4 ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+              {/* Left — bento grid 5 cols (stacks to 1 on mobile) */}
+              <div className="lg:col-span-8">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4" style={{ gridTemplateRows: 'auto auto auto auto' }}>
+
+                  {/* ── 1. Identidad artesanal — 3 cols × 2 rows ─────────── */}
+                  {(() => {
+                    const ap        = s.artisanProfile ?? {};
+                    const craftType = ap.craftType || s.craftType || '';
+                    const dept      = s.department || ap.department || '';
+                    const muni      = s.municipality || ap.municipality || '';
+                    const bio       = ap.shortBio || ap.story || ap.description || s.description || '';
+                    const photoUrl  = ap.artisanPhoto || ap.workshopPhoto || '';
+                    const initial   = (ap.artisanName || userName || '?')[0].toUpperCase();
+                    const tags      = [
+                      ...(ap.techniques ?? []).slice(0, 2),
+                      ...(ap.craftStyle ?? []).slice(0, 2),
+                    ].slice(0, 4);
+                    const status    = toStatus(profileDone);
+                    const { variant, label } = STATUS_PILL[status];
+                    return (
+                      <div
+                        className="md:col-span-3 md:row-span-2 flex flex-col md:flex-row overflow-hidden"
+                        style={{ ...glassPrimary, borderRadius: 24, minHeight: 280 }}
+                      >
+                        {/* ── Foto lateral — columna izquierda ── */}
+                        <div className="w-full md:w-[40%] min-h-[180px]" style={{ flexShrink: 0, position: 'relative', overflow: 'hidden', borderRadius: '24px 24px 0 0', minHeight: 180 }}>
+                          {photoUrl ? (
+                            <img src={photoUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', background: 'rgba(236,109,19,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontFamily: SERIF, fontSize: 72, fontWeight: 700, color: 'rgba(236,109,19,0.18)', lineHeight: 1, userSelect: 'none' }}>{initial}</span>
+                            </div>
+                          )}
+                          {/* gradient overlay en la parte inferior de la foto */}
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 50%, rgba(21,27,45,0.55) 100%)' }} />
+                          {/* craft chip sobre el gradiente */}
+                          {craftType && (
+                            <div style={{ position: 'absolute', bottom: 14, left: 14, right: 14 }}>
+                              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: 'white', background: 'rgba(236,109,19,0.8)', borderRadius: 9999, padding: '3px 10px', display: 'inline-block' }}>
+                                {craftType}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* ── Info — columna derecha ── */}
+                        <div style={{ flex: 1, padding: '22px 22px 18px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          {/* header */}
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <div>
+                              <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.4)' }}>
+                                Identidad artesanal
+                              </span>
+                              <p style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', marginTop: 3, lineHeight: 1.2 }}>
+                                {ap.artisanName || userName}
+                              </p>
+                              {ap.artisticName && (
+                                <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: 'rgba(84,67,62,0.55)', marginTop: 2 }}>
+                                  {ap.artisticName}
+                                </p>
+                              )}
+                            </div>
+                            <Pill variant={variant}>{label}</Pill>
+                          </div>
+
+                          {/* divider */}
+                          <div style={{ height: 1, background: 'rgba(21,27,45,0.06)', marginBottom: 14 }} />
+
+                          {/* bio */}
+                          {bio ? (
+                            <p style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.65)', lineHeight: 1.7, flex: 1, marginBottom: 14 }}>
+                              {bio.length > 160 ? bio.slice(0, 160) + '…' : bio}
+                            </p>
+                          ) : (
+                            <p style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.32)', lineHeight: 1.7, flex: 1, fontStyle: 'italic', marginBottom: 14 }}>
+                              Tu historia y técnicas artesanales aún no están configuradas.
+                            </p>
+                          )}
+
+                          {/* tags */}
+                          {tags.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+                              {tags.map(tag => (
+                                <span key={tag} style={{ fontFamily: SANS, fontSize: 9, fontWeight: 700, background: 'rgba(21,27,45,0.05)', color: 'rgba(84,67,62,0.65)', borderRadius: 9999, padding: '3px 9px' }}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* footer */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            {(dept || muni) ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(84,67,62,0.4)' }}>location_on</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)' }}>
+                                  {[dept, muni].filter(Boolean).join(' · ')}
+                                </span>
+                              </div>
+                            ) : <div />}
+                            <EditBtn
+                              label={profileDone ? 'Editar perfil' : 'Completar perfil'}
+                              onClick={() => navigate('/dashboard/artisan-profile-wizard', { state: { returnTo: '/mi-tienda/configurar' } })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── 2. Marca — 2 cols ─────────────────────────────────── */}
+                  {(() => {
+                    const status = toStatus(brandDone, brandPartial);
+                    const { variant, label } = STATUS_PILL[status];
+                    return (
+                      <div
+                        className="md:col-span-2 flex flex-col"
+                        style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>
+                            Marca
+                          </span>
+                          <Pill variant={variant}>{label}</Pill>
+                        </div>
+
+                        <div className="flex items-center gap-3 mb-3">
+                          {s.logoUrl
+                            ? <img src={s.logoUrl} style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'contain', background: 'white', border: '1px solid rgba(21,27,45,0.08)', padding: 3, flexShrink: 0 }} alt="" />
+                            : <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(21,27,45,0.05)', border: '1px dashed rgba(21,27,45,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'rgba(21,27,45,0.2)' }}>palette</span>
+                              </div>
+                          }
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ fontFamily: SERIF, fontSize: 16, fontWeight: 700, color: '#151b2d', margin: 0 }}>{shopName}</p>
+                            {s.brandClaim
+                              ? <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.55)', fontStyle: 'italic', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  &ldquo;{s.brandClaim}&rdquo;
+                                </p>
+                              : <p style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.3)', marginTop: 2, fontStyle: 'italic' }}>Sin tagline</p>
+                            }
+                          </div>
+                        </div>
+
+                        <div className="mt-auto flex justify-end">
+                          <EditBtn label={brandDone ? 'Editar' : 'Configurar'} onClick={() => navigate('/mi-tienda/configurar/brand')} />
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── 3. Imágenes de portada — 2 cols ──────────────────── */}
+                  {(() => {
+                    const status = toStatus(heroDone);
+                    const { variant, label } = STATUS_PILL[status];
+                    const slideCount = s.heroConfig?.slides?.length ?? 0;
+                    return (
+                      <div
+                        className="md:col-span-2 flex flex-col overflow-hidden"
+                        style={{ ...glassPrimary, borderRadius: 24 }}
+                      >
+                        {/* Thumbnail strip */}
+                        <div style={{ height: 80, background: s.bannerUrl ? 'transparent' : 'rgba(21,27,45,0.04)', position: 'relative', flexShrink: 0 }}>
+                          {s.bannerUrl
+                            ? <img src={s.bannerUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                            : <div className="w-full h-full flex items-center justify-center">
+                                <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'rgba(21,27,45,0.12)' }}>panorama</span>
+                              </div>
+                          }
+                          <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                            <Pill variant={variant}>{label}</Pill>
+                          </div>
+                        </div>
+
+                        <div style={{ padding: '14px 18px' }} className="flex flex-col flex-1">
+                          <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>
+                            Imágenes de portada
+                          </span>
+                          <p style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.6)', marginTop: 4, flex: 1 }}>
+                            {heroDone
+                              ? slideCount > 0 ? `${slideCount} slide${slideCount > 1 ? 's' : ''} configurado${slideCount > 1 ? 's' : ''}` : 'Banner del marketplace listo'
+                              : 'Tarjeta y hero banner de tu tienda'}
+                          </p>
+                          <div className="flex justify-end mt-3">
+                            <EditBtn label={heroDone ? 'Editar' : 'Agregar'} onClick={() => navigate('/mi-tienda/configurar/hero')} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── 4. Contacto, Fiscal y Cobro — 5 cols (full) ─────── */}
+                  {(() => {
+                    const cc = s.contactConfig ?? {};
+                    const allDone = contactDone && fiscalDone && paymentDone;
+                    const anyDone = contactDone || fiscalDone || paymentDone;
+                    const overallStatus = toStatus(allDone, anyDone && !allDone);
+                    const { variant, label } = STATUS_PILL[overallStatus];
+                    return (
+                      <div
+                        className="md:col-span-5 flex flex-col"
+                        style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
+                      >
+                        <div className="flex items-start justify-between mb-5">
+                          <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>
+                            Contacto, fiscal y cobro
+                          </span>
+                          <Pill variant={variant}>{label}</Pill>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 flex-1">
+                          {/* Sub-card: Contacto y envíos */}
+                          <div style={{ borderRadius: 14, background: 'rgba(21,27,45,0.025)', border: '1px solid rgba(21,27,45,0.05)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#ec6d13' }}>chat</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>Contacto y envíos</span>
+                              </div>
+                              <Pill variant={STATUS_PILL[toStatus(contactDone)].variant}>{STATUS_PILL[toStatus(contactDone)].label}</Pill>
+                            </div>
+                            <div className="flex flex-col gap-1.5 flex-1">
+                              {cc.whatsapp
+                                ? <div className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 13, color: '#25d366' }}>phone_iphone</span><span style={{ fontFamily: SANS, fontSize: 11, color: '#151b2d', fontWeight: 600 }}>{cc.whatsapp}</span></div>
+                                : <div className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(21,27,45,0.2)' }}>phone_iphone</span><span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.35)', fontStyle: 'italic' }}>WhatsApp pendiente</span></div>
+                              }
+                              {cc.email && <div className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 13, color: '#ec6d13' }}>mail</span><span style={{ fontFamily: SANS, fontSize: 11, color: '#151b2d', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cc.email}</span></div>}
+                              {(cc.address?.streetAddress || (typeof cc.address === 'string' && cc.address)) && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(84,67,62,0.4)' }}>location_on</span>
+                                  <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {(() => { const a = typeof cc.address === 'string' ? cc.address : [cc.address?.streetAddress, cc.address?.municipality].filter(Boolean).join(', '); return a.length > 30 ? a.slice(0, 30) + '…' : a; })()}
+                                  </span>
                                 </div>
                               )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  </DragDropContext>
+                              {cc.hours && <div className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(84,67,62,0.4)' }}>schedule</span><span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.6)' }}>{cc.hours}</span></div>}
+                            </div>
+                            <div className="flex justify-end mt-1">
+                              <EditBtn label={contactDone ? 'Editar' : 'Agregar'} onClick={() => navigate('/mi-tienda/configurar/contact')} />
+                            </div>
+                          </div>
 
-                  <Button
-                    onClick={saveHeroConfig}
-                    disabled={saving}
-                    className="w-full"
-                  >
-                    Guardar Configuración
-                  </Button>
-                </div>
-              )}
+                          {/* Sub-card: Información fiscal */}
+                          <div style={{ borderRadius: 14, background: 'rgba(21,27,45,0.025)', border: '1px solid rgba(21,27,45,0.05)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#ec6d13' }}>receipt_long</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>Información fiscal</span>
+                              </div>
+                              <Pill variant={STATUS_PILL[toStatus(fiscalDone)].variant}>{STATUS_PILL[toStatus(fiscalDone)].label}</Pill>
+                            </div>
+                            <div className="flex flex-col gap-1.5 flex-1">
+                              {profile?.rut
+                                ? <>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: fiscalDone ? '#166534' : '#ec6d13' }}>badge</span>
+                                      <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 600, color: '#151b2d' }}>{profile.rut}</span>
+                                    </div>
+                                    {profile.rutPendiente && <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: '#ec6d13', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Verificación pendiente</span>}
+                                    {fiscalDone && <span style={{ fontFamily: SANS, fontSize: 10, color: '#166534', fontWeight: 600 }}>RUT verificado</span>}
+                                  </>
+                                : <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.35)', fontStyle: 'italic' }}>RUT / NIT no registrado</span>
+                              }
+                            </div>
+                            <div className="flex justify-end mt-1">
+                              <EditBtn
+                                label={profile?.rut ? 'Editar RUT' : 'Registrar RUT'}
+                                onClick={() => navigate('/mi-tienda/configurar/contact?tab=rut', { state: { returnTo: '/mi-tienda/configurar' } })}
+                              />
+                            </div>
+                          </div>
 
-              <Collapsible
-                open={showManualHero}
-                onOpenChange={setShowManualHero}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
-                    <span>⚙️ Configuración Manual Avanzada</span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${showManualHero ? "rotate-180" : ""}`}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 pt-4">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Agregar Slide Manualmente</h3>
-                    <Input
-                      placeholder="Título"
-                      value={newSlide.title}
-                      onChange={(e) =>
-                        setNewSlide({ ...newSlide, title: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="Subtítulo"
-                      value={newSlide.subtitle}
-                      onChange={(e) =>
-                        setNewSlide({ ...newSlide, subtitle: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="URL de imagen"
-                      value={newSlide.image}
-                      onChange={(e) =>
-                        setNewSlide({ ...newSlide, image: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="Texto del botón (opcional)"
-                      value={newSlide.ctaText}
-                      onChange={(e) =>
-                        setNewSlide({ ...newSlide, ctaText: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="Enlace del botón (opcional)"
-                      value={newSlide.ctaLink}
-                      onChange={(e) =>
-                        setNewSlide({ ...newSlide, ctaLink: e.target.value })
-                      }
-                    />
-                    <Button onClick={addSlide}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Agregar Slide
-                    </Button>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          </TabsContent>
-
-          {/* About Configuration - IA FIRST */}
-          <TabsContent value="about" className="space-y-6">
-            <Card className="p-6">
-              <div className="text-center space-y-4 mb-8">
-                <div className="flex items-center justify-center gap-2 text-primary mb-2">
-                  <Sparkles className="w-5 h-5" />
-                  <h2 className="text-2xl font-bold">
-                    Sección "Nosotros" Inteligente
-                  </h2>
-                </div>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Genera automáticamente contenido profesional para tu sección
-                  Nosotros: historia, misión, visión y valores
-                </p>
-                <Button
-                  size="lg"
-                  onClick={generateAboutWithAI}
-                  disabled={saving}
-                  className="w-full max-w-md mx-auto"
-                >
-                  <Wand2 className="w-5 h-5 mr-2" />
-                  {aboutContent.story
-                    ? "Regenerar Contenido con IA"
-                    : "Generar Contenido con IA"}
-                </Button>
-              </div>
-
-              {aboutContent.story && (
-                <div className="space-y-4 mb-6">
-                  <Card className="p-6 bg-muted/50">
-                    <h3 className="font-semibold text-lg mb-3">
-                      {aboutContent.title || "Sobre Nosotros"}
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                          Historia:
-                        </h4>
-                        <p className="text-sm">{aboutContent.story}</p>
-                      </div>
-                      {aboutContent.mission && (
-                        <div>
-                          <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                            Misión:
-                          </h4>
-                          <p className="text-sm">{aboutContent.mission}</p>
-                        </div>
-                      )}
-                      {aboutContent.vision && (
-                        <div>
-                          <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                            Visión:
-                          </h4>
-                          <p className="text-sm">{aboutContent.vision}</p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-
-                  <Button
-                    onClick={saveAboutContent}
-                    disabled={saving}
-                    className="w-full"
-                  >
-                    Guardar Contenido
-                  </Button>
-                </div>
-              )}
-
-              <Collapsible
-                open={showManualAbout}
-                onOpenChange={setShowManualAbout}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between">
-                    <span>✏️ Editar Manualmente</span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${showManualAbout ? "rotate-180" : ""}`}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 pt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Título
-                      </label>
-                      <Input
-                        value={aboutContent.title}
-                        onChange={(e) =>
-                          setAboutContent({
-                            ...aboutContent,
-                            title: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Historia
-                      </label>
-                      <Textarea
-                        value={aboutContent.story}
-                        onChange={(e) =>
-                          setAboutContent({
-                            ...aboutContent,
-                            story: e.target.value,
-                          })
-                        }
-                        rows={6}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Misión
-                      </label>
-                      <Textarea
-                        value={aboutContent.mission}
-                        onChange={(e) =>
-                          setAboutContent({
-                            ...aboutContent,
-                            mission: e.target.value,
-                          })
-                        }
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Visión
-                      </label>
-                      <Textarea
-                        value={aboutContent.vision}
-                        onChange={(e) =>
-                          setAboutContent({
-                            ...aboutContent,
-                            vision: e.target.value,
-                          })
-                        }
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          </TabsContent>
-
-          {/* Contact Configuration - CON IA */}
-          <TabsContent value="contact" className="space-y-6">
-            <Card className="p-6">
-              <div className="text-center space-y-4 mb-8">
-                <div className="flex items-center justify-center gap-2 text-primary mb-2">
-                  <Sparkles className="w-5 h-5" />
-                  <h2 className="text-2xl font-bold">
-                    Sección de Contacto Inteligente
-                  </h2>
-                </div>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Genera textos de bienvenida y formulario personalizados para
-                  tu página de contacto
-                </p>
-                <Button
-                  size="lg"
-                  onClick={generateContactWithAI}
-                  disabled={saving}
-                  className="w-full max-w-md mx-auto"
-                >
-                  <Wand2 className="w-5 h-5 mr-2" />
-                  Generar Textos de Contacto con IA
-                </Button>
-              </div>
-
-              {contactConfig.welcomeMessage && (
-                <Card className="p-6 bg-muted/50 mb-6">
-                  <h3 className="font-semibold mb-3">Vista Previa:</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Mensaje de Bienvenida:
-                      </span>
-                      <p className="text-sm mt-1">
-                        {contactConfig.welcomeMessage}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Intro del Formulario:
-                      </span>
-                      <p className="text-sm mt-1">
-                        {contactConfig.formIntroText}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Información de Contacto</h3>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={contactConfig.email}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        email: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Teléfono
-                  </label>
-                  <Input
-                    value={contactConfig.phone}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        phone: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    WhatsApp
-                  </label>
-                  <Input
-                    value={contactConfig.whatsapp}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        whatsapp: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Dirección
-                  </label>
-                  <Input
-                    value={contactConfig.address}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        address: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Horario
-                  </label>
-                  <Input
-                    value={contactConfig.hours}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        hours: e.target.value,
-                      })
-                    }
-                    placeholder="Lun-Vie 9:00-18:00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Google Maps Embed
-                  </label>
-                  <Textarea
-                    value={contactConfig.map_embed}
-                    onChange={(e) =>
-                      setContactConfig({
-                        ...contactConfig,
-                        map_embed: e.target.value,
-                      })
-                    }
-                    placeholder="Pega el código embed de Google Maps"
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={saveContactConfig}
-                disabled={saving}
-                className="mt-6 w-full"
-              >
-                Guardar Configuración
-              </Button>
-            </Card>
-          </TabsContent>
-
-          {/* Brand & Preview Tab */}
-          <TabsContent value="brand" className="space-y-6">
-            <Card className="p-6">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    Configuración de Marca
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Gestiona tu identidad de marca y visualiza cómo se verá en
-                    la tienda
-                  </p>
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/dashboard/brand-wizard")}
-                  className="w-full"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Ir al Brand Wizard Completo
-                </Button>
-
-                <Separator />
-
-                {/* <Button
-                  variant="outline"
-                  onClick={handleSyncFromBrandWizard}
-                  disabled={syncing}
-                  className="w-full"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                  Sincronizar desde Brand Wizard
-                </Button> */}
-
-                <Separator />
-
-                {/* Logo Section */}
-                <div>
-                  <h3 className="font-medium mb-3">Logo</h3>
-                  {shop.logo_url ? (
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={shop.logo_url}
-                        alt="Logo"
-                        className="h-20 w-20 object-contain border rounded-lg p-2"
-                      />
-                      <div className="text-sm text-muted-foreground">
-                        Logo configurado desde Brand Wizard
-                      </div>
-                    </div>
-                  ) : (
-                    <Card className="p-4 bg-muted/50">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        No hay logo configurado. Completa el Brand Wizard para
-                        establecer tu logo.
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate("/dashboard/brand-wizard")}
-                      >
-                        Ir al Brand Wizard
-                      </Button>
-                    </Card>
-                  )}
-                </div>
-
-                {/* Claim Section */}
-                {shop.brand_claim && (
-                  <div>
-                    <h3 className="font-medium mb-3">Claim de Marca</h3>
-                    <Card className="p-4 bg-muted/50">
-                      <p className="italic">"{shop.brand_claim}"</p>
-                    </Card>
-                  </div>
-                )}
-
-                {/* Colors Section */}
-                <div>
-                  <h3 className="font-medium mb-3">Paleta de Colores</h3>
-                  {shop.primary_colors?.length > 0 ||
-                  shop.secondary_colors?.length > 0 ? (
-                    <div className="space-y-4">
-                      {shop.primary_colors?.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                            Colores Primarios
-                          </h4>
-                          <div className="flex gap-3">
-                            {shop.primary_colors.map(
-                              (color: string, index: number) => (
-                                <div key={index} className="text-center">
-                                  <div
-                                    className="w-16 h-16 rounded-lg shadow-md mb-2"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                  <p className="text-xs font-mono">{color}</p>
-                                </div>
-                              ),
-                            )}
+                          {/* Sub-card: Datos de cobro */}
+                          <div style={{ borderRadius: 14, background: 'rgba(21,27,45,0.025)', border: '1px solid rgba(21,27,45,0.05)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#ec6d13' }}>account_balance</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>Datos de cobro</span>
+                              </div>
+                              <Pill variant={STATUS_PILL[toStatus(paymentDone)].variant}>{STATUS_PILL[toStatus(paymentDone)].label}</Pill>
+                            </div>
+                            <div className="flex flex-col gap-1.5 flex-1">
+                              {paymentDone
+                                ? <>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#166534' }}>check_circle</span>
+                                      <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 600, color: '#151b2d' }}>Cuenta configurada</span>
+                                    </div>
+                                    <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.5)' }}>Recibirás pagos automáticamente</span>
+                                  </>
+                                : <>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(21,27,45,0.2)' }}>account_balance</span>
+                                      <span style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.35)', fontStyle: 'italic' }}>Sin cuenta bancaria</span>
+                                    </div>
+                                    <span style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.4)' }}>Necesaria para recibir pagos</span>
+                                  </>
+                              }
+                            </div>
+                            <div className="flex justify-end mt-1">
+                              <EditBtn
+                                label={paymentDone ? 'Ver cuenta' : 'Configurar cobros'}
+                                onClick={() => navigate('/mi-tienda/configurar/contact?tab=banco', { state: { returnTo: '/mi-tienda/configurar' } })}
+                              />
+                            </div>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    );
+                  })()}
 
-                      {shop.secondary_colors?.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                            Colores Secundarios
-                          </h4>
-                          <div className="flex gap-3">
-                            {shop.secondary_colors.map(
-                              (color: string, index: number) => (
-                                <div key={index} className="text-center">
-                                  <div
-                                    className="w-16 h-16 rounded-lg shadow-md mb-2"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                  <p className="text-xs font-mono">{color}</p>
-                                </div>
-                              ),
-                            )}
+                  {/* ── 5. Políticas y FAQ — 3 cols ──────────────────────── */}
+                  {(() => {
+                    const pStatus = toStatus(policiesDone);
+                    const { variant: pv, label: pl } = STATUS_PILL[pStatus];
+                    return (
+                      <div
+                        className="md:col-span-3 flex flex-col"
+                        style={{ ...glassPrimary, borderRadius: 24, padding: 22 }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>
+                            Políticas y FAQ
+                          </span>
+                          <Pill variant={pv}>{pl}</Pill>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 flex-1">
+                          {/* Devoluciones */}
+                          <div style={{ borderRadius: 14, background: 'rgba(21,27,45,0.025)', border: '1px solid rgba(21,27,45,0.05)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ec6d13' }}>policy</span>
+                              <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>Devoluciones</span>
+                            </div>
+                            <p style={{ fontFamily: SANS, fontSize: 11, color: policiesDone ? 'rgba(84,67,62,0.65)' : 'rgba(84,67,62,0.35)', fontStyle: policiesDone ? 'normal' : 'italic', lineHeight: 1.5, flex: 1 }}>
+                              {policiesDone ? 'Política configurada' : 'Sin política aún'}
+                            </p>
+                            <EditBtn label={policiesDone ? 'Editar' : 'Crear'} onClick={() => navigate('/mi-tienda/configurar/return-policy')} />
+                          </div>
+
+                          {/* FAQ */}
+                          <div style={{ borderRadius: 14, background: 'rgba(21,27,45,0.025)', border: '1px solid rgba(21,27,45,0.05)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ec6d13' }}>quiz</span>
+                              <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 800, color: '#151b2d' }}>Preguntas frecuentes</span>
+                            </div>
+                            <p style={{ fontFamily: SANS, fontSize: 11, color: policiesDone ? 'rgba(84,67,62,0.65)' : 'rgba(84,67,62,0.35)', fontStyle: policiesDone ? 'normal' : 'italic', lineHeight: 1.5, flex: 1 }}>
+                              {policiesDone ? 'Responde las dudas de tus compradores' : 'Sin preguntas aún'}
+                            </p>
+                            <EditBtn label={policiesDone ? 'Editar' : 'Agregar'} onClick={() => navigate('/mi-tienda/configurar/faq')} />
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Card className="p-4 bg-muted/50">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        No hay colores configurados. Completa el Brand Wizard
-                        para establecer tu paleta.
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate("/dashboard/brand-wizard")}
-                      >
-                        Ir al Brand Wizard
-                      </Button>
-                    </Card>
-                  )}
-                </div>
+                      </div>
+                    );
+                  })()}
 
-                {/* Shop Preview */}
-                <div>
-                  <h3 className="font-medium mb-4">
-                    Vista Previa de Tu Tienda
-                  </h3>
-                  <ShopPreview
-                    primaryColors={shop.primary_colors}
-                    secondaryColors={shop.secondary_colors}
-                    logoUrl={shop.logo_url}
-                    brandClaim={shop.brand_claim}
-                    shopName={shop.shop_name}
-                  />
+                  {/* ── 6. Diseño de tienda — 5 cols (full) ──────────────── */}
+                  {(() => {
+                    const colors = (s.primaryColors ?? []).slice(0, 5);
+                    return (
+                      <div
+                        className="md:col-span-5 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6"
+                        style={{ ...glassPrimary, borderRadius: 24, padding: '18px 24px' }}
+                      >
+                        <div style={{ width: 40, height: 40, borderRadius: 11, background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#3b82f6' }}>style</span>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.45)' }}>Diseño de tienda</span>
+                          <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', marginTop: 2 }}>
+                            Template Artesano · Controla cómo se ve tu tienda en el marketplace y en tu ecommerce
+                          </p>
+                        </div>
+                        {colors.length > 0 && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            {colors.map((c: string, i: number) => (
+                              <div key={i} style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: '2px solid rgba(255,255,255,0.9)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }} />
+                            ))}
+                          </div>
+                        )}
+                        <Pill variant="warning">En progreso</Pill>
+                        <EditBtn label="Ver diseño" onClick={() => navigate('/mi-tienda/configurar/design')} />
+                      </div>
+                    );
+                  })()}
+
+
                 </div>
               </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+
+              {/* Right — AI card + preview sticky */}
+              <div className="lg:col-span-4 hidden lg:block">
+                <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* AI dark card */}
+                  <div
+                    className="p-7 rounded-3xl relative overflow-hidden"
+                    style={{ background: '#151b2d' }}
+                  >
+                    {/* Decorative blur */}
+                    <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(236,109,19,0.1)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', bottom: -30, left: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(236,109,19,0.05)', filter: 'blur(35px)', pointerEvents: 'none' }} />
+
+                    <div className="relative z-10">
+                      {/* Badge */}
+                      <div className="flex items-center gap-3 mb-5">
+                        <div style={{ width: 38, height: 38, borderRadius: 11, background: 'rgba(236,109,19,0.15)', border: '1px solid rgba(236,109,19,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 19, color: '#ec6d13' }}>smart_toy</span>
+                        </div>
+                        <span style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+                          ORÁCULO
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 10, lineHeight: 1.35 }}>
+                        {insight.message}
+                      </h3>
+                      <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: 22 }}>
+                        {insight.sub}
+                      </p>
+
+                      <button
+                        onClick={() => navigate(insight.route)}
+                        className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-full transition-all hover:opacity-90"
+                        style={{ background: '#ec6d13', color: 'white', fontFamily: SANS, fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(236,109,19,0.3)', border: 'none', cursor: 'pointer' }}
+                      >
+                        {insight.cta}
+                        <span className="material-symbols-outlined text-[14px]">east</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <PreviewPanel shop={s} />
+                </div>
+              </div>
+
+            </div>
+            </div>{/* closes max-w-[1300px] */}
+
+            {/* Mini footer */}
+            <footer
+              className="flex flex-col md:flex-row items-center md:justify-between gap-1 px-4 md:px-12 py-6 mt-8"
+              style={{ borderTop: '1px solid rgba(21,27,45,0.05)' }}
+            >
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                © {new Date().getFullYear()} TELAR
+              </span>
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                Hecho con <span style={{ color: '#e05252' }}>♥</span> en Latinoamérica
+              </span>
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: 'rgba(84,67,62,0.3)', letterSpacing: '0.04em' }}>
+                Orgullosamente desarrollado en Colombia 🇨🇴
+              </span>
+            </footer>
+
+          </div>{/* closes hidden md:block */}
+
+        </main>
       </div>
-
-      {/* Brand Validation Modal */}
-      <BrandValidationModal
-        open={showBrandModal}
-        onClose={() => setShowBrandModal(false)}
-        missingFields={brandValidation?.missingFields || []}
-        completionPercentage={brandValidation?.completionPercentage || 0}
-      />
-    </div>
+    </>
   );
 };
 

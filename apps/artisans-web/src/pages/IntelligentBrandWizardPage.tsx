@@ -4,7 +4,7 @@ import { BrandWizardHeader } from '@/components/brand/BrandWizardHeader';
 
 const IntelligentBrandWizardPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <BrandWizardHeader />
       <div className="container mx-auto py-6 px-4">
         <div className="max-w-4xl mx-auto">

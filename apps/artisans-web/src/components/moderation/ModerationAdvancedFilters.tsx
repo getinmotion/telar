@@ -50,61 +50,48 @@ export const ModerationAdvancedFilters: React.FC<ModerationAdvancedFiltersProps>
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-4 p-4 bg-muted/30 rounded-lg border">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Filter className="w-4 h-4" />
-        Filtros:
-      </div>
-      
-      <div className="flex-1 min-w-[200px] max-w-[300px]">
-        <Label className="text-xs text-muted-foreground mb-1.5 block">Buscar</Label>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Nombre, tienda..."
-            value={filters.search}
-            onChange={(e) => updateFilter('search', e.target.value)}
-            className="pl-9 h-9"
-          />
-        </div>
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input
+          placeholder="Buscar..."
+          value={filters.search}
+          onChange={(e) => updateFilter('search', e.target.value)}
+          className="pl-7 h-7 w-36 text-xs"
+        />
       </div>
 
-      <div className="min-w-[180px]">
-        <Label className="text-xs text-muted-foreground mb-1.5 block">Categoría</Label>
-        <Select value={filters.category} onValueChange={(v) => updateFilter('category', v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Select value={filters.category} onValueChange={(v) => updateFilter('category', v)}>
+        <SelectTrigger className="h-7 text-xs w-32">
+          <SelectValue placeholder="Categoría" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((cat) => (
+            <SelectItem key={cat.value} value={cat.value} className="text-xs">{cat.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <div className="min-w-[160px]">
-        <Label className="text-xs text-muted-foreground mb-1.5 block">Región</Label>
-        <Select value={filters.region} onValueChange={(v) => updateFilter('region', v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {regions.map((reg) => (
-              <SelectItem key={reg.value} value={reg.value}>{reg.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Select value={filters.region} onValueChange={(v) => updateFilter('region', v)}>
+        <SelectTrigger className="h-7 text-xs w-28">
+          <SelectValue placeholder="Región" />
+        </SelectTrigger>
+        <SelectContent>
+          {regions.map((reg) => (
+            <SelectItem key={reg.value} value={reg.value} className="text-xs">{reg.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <div className="flex items-center gap-2 px-3 py-2 bg-background rounded-md border">
+      <div className="flex items-center gap-1.5">
         <Switch
           id="non-marketplace"
           checked={filters.onlyNonMarketplace}
           onCheckedChange={(v) => updateFilter('onlyNonMarketplace', v)}
+          className="scale-75"
         />
-        <Label htmlFor="non-marketplace" className="text-xs cursor-pointer">
-          Solo tiendas sin aprobar marketplace
+        <Label htmlFor="non-marketplace" className="text-xs cursor-pointer whitespace-nowrap text-muted-foreground">
+          Sin marketplace
         </Label>
       </div>
     </div>

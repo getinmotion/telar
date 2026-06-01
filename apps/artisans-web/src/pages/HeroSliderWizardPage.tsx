@@ -15,7 +15,7 @@ const HeroSliderWizardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Cargando...</div>
       </div>
     );
@@ -45,7 +45,7 @@ const HeroSliderWizardPage: React.FC = () => {
 
   return (
     <ShopThemeProvider theme={theme}>
-      <div className="min-h-screen bg-background py-8 px-4">
+      <div className="min-h-screen py-8 px-4">
         <Helmet>
           <title>{`Configurar Hero Slider - ${shop.shopName}`}</title>
           <meta name="description" content="Configura el hero slider de tu tienda con asistencia de IA" />

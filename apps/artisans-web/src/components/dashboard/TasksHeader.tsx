@@ -1,8 +1,6 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { MotionLogo } from '@/components/MotionLogo';
-import { ArrowLeft, CheckCircle2, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, Clock } from 'lucide-react';
 
 interface TasksHeaderProps {
   pendingCount?: number;
@@ -15,8 +13,6 @@ export const TasksHeader: React.FC<TasksHeaderProps> = ({
   completedCount = 0,
   totalProgress = 0
 }) => {
-  const navigate = useNavigate();
-
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/50 shadow-sm">
       <div className="container mx-auto py-3 px-4 flex justify-between items-center">
@@ -32,28 +28,15 @@ export const TasksHeader: React.FC<TasksHeaderProps> = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          {/* Stats badges */}
-          <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium">
-              <Clock className="w-3 h-3" />
-              {pendingCount}
-            </div>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
-              <CheckCircle2 className="w-3 h-3" />
-              {completedCount}
-            </div>
+        <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium">
+            <Clock className="w-3 h-3" />
+            {pendingCount}
           </div>
-          
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al Taller Digital
-          </Button>
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
+            <CheckCircle2 className="w-3 h-3" />
+            {completedCount}
+          </div>
         </div>
       </div>
     </header>

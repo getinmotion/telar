@@ -9,7 +9,6 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles, Loader2, Eye, Edit, Rocket, ArrowLeft, ArrowRight, Wand2, Image as ImageIcon, Trash2 } from 'lucide-react';
@@ -21,6 +20,7 @@ import { AIGenerationConfirmModal, ManualSlideContent } from '@/components/shop/
 import { EventBus } from '@/utils/eventBus';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { AIDisclaimer } from '@/components/ui/AIDisclaimer';
+import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
 
 type WizardStep = 'generate' | 'preview' | 'edit' | 'publish';
@@ -585,10 +585,11 @@ export const HeroSliderWizard: React.FC<HeroSliderWizardProps> = ({
                                 </div>
                                 <div>
                                   <Label>Subtítulo</Label>
-                                  <Textarea
+                                  <SpeechTextarea
                                     value={slide.subtitle}
-                                    onChange={(e) => handleSlideUpdate(index, 'subtitle', e.target.value)}
+                                    onChange={(v) => handleSlideUpdate(index, 'subtitle', v)}
                                     rows={2}
+                                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                   />
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">

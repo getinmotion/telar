@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, Loader2 } from 'lucide-react';
+import { ArrowLeft, LogOut, Loader2, ShieldCheck, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useUnifiedUserData } from '@/hooks/user';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useEmailPreferences } from '@/hooks/useEmailPreferences';
 import { useMasterAgent } from '@/context/MasterAgentContext';
+import { useIsModerator } from '@/hooks/useIsModerator';
 import { supabase } from '@/integrations/supabase/client';
-import { getArtisanShopByUserId } from '@/services/artisanShops.actions';
 
 import { ProfileNavigation, ProfileSection } from '@/components/profile/ProfileNavigation';
 import { ProfileHeaderCompact } from '@/components/profile/ProfileHeaderCompact';
 import { PersonalInfoSection } from '@/components/profile/sections/PersonalInfoSection';
 import { ShopInfoSection } from '@/components/profile/sections/ShopInfoSection';
 import { PreferencesSection } from '@/components/profile/sections/PreferencesSection';
-import { PaymentSection } from '@/components/profile/sections/PaymentSection';
-import { RutSection } from '@/components/profile/sections/RutSection';
 import { NotificationsSection } from '@/components/profile/sections/NotificationsSection';
 import { SecuritySection } from '@/components/profile/sections/SecuritySection';
 import { SupportSection } from '@/components/profile/sections/SupportSection';
@@ -39,11 +37,10 @@ const ProfilePage: React.FC = () => {
   const { preferences, loading: prefsLoading, saving: prefsSaving, updateCategory } = useEmailPreferences();
   const { masterState } = useMasterAgent();
 
+  const { isModerator, isAdmin } = useIsModerator();
+
   const [activeSection, setActiveSection] = useState<ProfileSection>('personal');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [hasBankData, setHasBankData] = useState(false);
-  const [bankStatus, setBankStatus] = useState<'incomplete' | 'complete' | 'pending_review' | 'rejected'>('incomplete');
-
   // Calculate maturity level
   const maturityLevel = useMemo(() => {
     const nivel = masterState?.growth?.nivel_madurez;
@@ -52,26 +49,6 @@ const ProfilePage: React.FC = () => {
     }
     return 0;
   }, [masterState]);
-
-  // Check bank data status
-  useEffect(() => {
-    const checkBankData = async () => {
-      if (!user?.id) return;
-
-      try {
-        const data = await getArtisanShopByUserId(user.id);
-
-        if (data?.idContraparty) {
-          setHasBankData(true);
-          setBankStatus('complete');
-        }
-      } catch (error) {
-        console.error('Error checking bank data:', error);
-      }
-    };
-
-    checkBankData();
-  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -90,7 +67,7 @@ const ProfilePage: React.FC = () => {
   // Loading state
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -114,24 +91,11 @@ const ProfilePage: React.FC = () => {
           <ShopInfoSection
             shop={shop}
             isLoading={shopLoading}
+            userId={user?.id}
           />
         );
       case 'preferences':
         return <PreferencesSection />;
-      case 'payment':
-        return (
-          <PaymentSection
-            hasBankData={hasBankData}
-            bankStatus={bankStatus}
-          />
-        );
-      case 'fiscal':
-        return (
-          <RutSection
-            rut={profile?.rut}
-            rutPending={profile?.rutPendiente}
-          />
-        );
       case 'notifications':
         return (
           <NotificationsSection
@@ -151,35 +115,7 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="gap-1 sm:gap-2 px-2 sm:px-3"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Volver al Dashboard</span>
-              <span className="sm:hidden">Volver</span>
-            </Button>
-
-            {/* Mobile logout button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowLogoutDialog(true)}
-              className="lg:hidden text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 overflow-y-auto">
       {/* Main Content */}
       <main className="container max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6">
         <div className="mb-4 sm:mb-6">
@@ -196,11 +132,40 @@ const ProfilePage: React.FC = () => {
         {/* Layout with Navigation */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Sidebar Navigation */}
-          <ProfileNavigation
-            activeSection={activeSection}
-            onSectionChange={setActiveSection}
-            onLogout={() => setShowLogoutDialog(true)}
-          />
+          <div className="flex flex-col gap-3">
+            <ProfileNavigation
+              activeSection={activeSection}
+              onSectionChange={setActiveSection}
+              onLogout={() => setShowLogoutDialog(true)}
+            />
+
+            {/* Admin / Moderator access panel */}
+            {(isAdmin || isModerator) && (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                  Acceso privilegiado
+                </p>
+                {isAdmin && (
+                  <button
+                    onClick={() => navigate('/admin')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors hover:bg-muted"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-[#ec6d13] shrink-0" />
+                    Panel de administración
+                  </button>
+                )}
+                {isModerator && (
+                  <button
+                    onClick={() => navigate('/moderacion')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors hover:bg-muted"
+                  >
+                    <Shield className="h-4 w-4 text-[#2563eb] shrink-0" />
+                    Panel de moderación
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Content Area */}
           <div className="flex-1 min-w-0 mt-2 lg:mt-0">

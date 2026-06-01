@@ -45,6 +45,18 @@ export class StoresController {
   }
 
   /**
+   * PATCH /stores/user/:userId/artisanal-profile
+   * Actualiza el perfil artesanal (oficio primario) de la tienda del usuario
+   */
+  @Patch('user/:userId/artisanal-profile')
+  upsertArtisanalProfile(
+    @Param('userId') userId: string,
+    @Body() body: { primaryCraftId: string | null },
+  ) {
+    return this.storesService.upsertArtisanalProfileByUserId(userId, body.primaryCraftId);
+  }
+
+  /**
    * GET /stores/legacy/:legacyId
    * Obtener solo datos legacy de artisan_shops
    */

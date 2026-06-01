@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useAuthStore } from '@/stores/authStore';
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,14 +9,20 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user: authContextUser, loading } = useAuth();
-  const { isAuthenticated, user: storeUser } = useAuthStore();
+  const { isAuthenticated, user: storeUser, isInitialized } = useAuthStore();
   const location = useLocation();
-  
-  // ✅ Usar datos del Zustand store si están disponibles, sino del AuthContext
+
+  // Use Zustand store data as source of truth, AuthContext as fallback
   const user = storeUser || authContextUser;
   const isUserAuthenticated = isAuthenticated || !!authContextUser;
 
-  if (loading) {
+  console.log("user", user);
+  console.log("isUserAuthenticated", isUserAuthenticated);
+  console.log("isInizializate", isInitialized);
+
+  // ✅ Wait for Zustand to finish rehydrating from localStorage
+  // loading = !isInitialized, so we wait until initialization completes
+  if (loading || !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -28,6 +33,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
+  // ✅ Only check authentication AFTER initialization is complete
   if (!isUserAuthenticated || !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

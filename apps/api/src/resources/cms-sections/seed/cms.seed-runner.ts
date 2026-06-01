@@ -8,31 +8,48 @@
  *  - Sections (cms_pages): match por `pageKey + type + position`.
  *  - Blog posts (blog_posts): match por `slug`.
  *  - Collections (collections): match por `slug`.
+ *
+ * Respeta deletions: si el curador borró un doc desde el admin, el seed
+ * NO lo re-crea (lee `cms_seed_skips`).
  */
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from '../../../app.module';
 import { CmsSectionsService } from '../cms-sections.service';
+import { CmsSeedSkipsService } from '../cms-seed-skips.service';
 import { CmsSection } from '../types/cms-section.types';
 import { tecnicasSeedSections } from './tecnicas.seed';
 import { homeSeedSections } from './home.seed';
 import { coleccionesSeedSections } from './colecciones.seed';
+import { territoriosSeedSections } from './territorios.seed';
+import { sobreTelarSeedSections } from './sobre-telar.seed';
+import { historiasSeedSections } from './historias.seed';
 import { contentPicksSeedSections } from './content-picks.seed';
 import { BlogPostsService } from '../../blog-posts/blog-posts.service';
 import { blogPostsSeed } from '../../blog-posts/seed/blog-posts.seed';
 import { CollectionsService } from '../../collections/collections.service';
 import { collectionsSeed } from '../../collections/seed/collections.seed';
+import { CmsTerritoriesService } from '../../cms-territories/cms-territories.service';
+import { cmsTerritoriesSeed } from '../../cms-territories/seed/cms-territories.seed';
 
 async function seedPage(
   svc: CmsSectionsService,
   pageKey: string,
   sections: Omit<CmsSection, 'id' | 'createdAt' | 'updatedAt'>[],
+  skippedKeys: Set<string>,
   log: Logger,
 ) {
   const existing = await svc.findAllByPage(pageKey, true);
   let inserted = 0;
+  let respected = 0;
 
   for (const section of sections) {
+    const skipKey = `${pageKey}:${section.type}:${section.position}`;
+    if (skippedKeys.has(skipKey)) {
+      log.log(`skip pageKey=${pageKey} ${section.type}@${section.position} (curador la borró)`);
+      respected += 1;
+      continue;
+    }
     const already = existing.find(
       (s) => s.type === section.type && s.position === section.position,
     );
@@ -56,14 +73,24 @@ async function seedPage(
   }
 
   log.log(
-    `[${pageKey}] Insertadas: ${inserted}, ya existentes: ${sections.length - inserted}`,
+    `[${pageKey}] Insertadas: ${inserted}, ya existentes: ${sections.length - inserted - respected}, respetadas (borradas): ${respected}`,
   );
 }
 
-async function seedBlogPosts(svc: BlogPostsService, log: Logger) {
+async function seedBlogPosts(
+  svc: BlogPostsService,
+  skippedSlugs: Set<string>,
+  log: Logger,
+) {
   let inserted = 0;
   let skipped = 0;
+  let respected = 0;
   for (const post of blogPostsSeed) {
+    if (skippedSlugs.has(post.slug)) {
+      log.log(`skip blog-post slug=${post.slug} (curador lo borró)`);
+      respected += 1;
+      continue;
+    }
     try {
       await svc.findBySlug(post.slug, { allowDraft: true });
       log.log(`skip blog-post slug=${post.slug} (ya existe)`);
@@ -87,13 +114,25 @@ async function seedBlogPosts(svc: BlogPostsService, log: Logger) {
       inserted += 1;
     }
   }
-  log.log(`[blog_posts] Insertadas: ${inserted}, ya existentes: ${skipped}`);
+  log.log(
+    `[blog_posts] Insertadas: ${inserted}, ya existentes: ${skipped}, respetadas (borradas): ${respected}`,
+  );
 }
 
-async function seedCollections(svc: CollectionsService, log: Logger) {
+async function seedCollections(
+  svc: CollectionsService,
+  skippedSlugs: Set<string>,
+  log: Logger,
+) {
   let inserted = 0;
   let skipped = 0;
+  let respected = 0;
   for (const c of collectionsSeed) {
+    if (skippedSlugs.has(c.slug)) {
+      log.log(`skip collection slug=${c.slug} (curador la borró)`);
+      respected += 1;
+      continue;
+    }
     try {
       await svc.findBySlug(c.slug, { allowDraft: true });
       log.log(`skip collection slug=${c.slug} (ya existe)`);
@@ -116,7 +155,60 @@ async function seedCollections(svc: CollectionsService, log: Logger) {
       inserted += 1;
     }
   }
-  log.log(`[collections] Insertadas: ${inserted}, ya existentes: ${skipped}`);
+  log.log(
+    `[collections] Insertadas: ${inserted}, ya existentes: ${skipped}, respetadas (borradas): ${respected}`,
+  );
+}
+
+async function seedTerritories(
+  svc: CmsTerritoriesService,
+  skippedSlugs: Set<string>,
+  log: Logger,
+) {
+  let inserted = 0;
+  let skipped = 0;
+  let respected = 0;
+  for (const t of cmsTerritoriesSeed) {
+    if (skippedSlugs.has(t.slug)) {
+      log.log(`skip cms_territory slug=${t.slug} (curador lo borró)`);
+      respected += 1;
+      continue;
+    }
+    try {
+      await svc.findBySlug(t.slug, { allowDraft: true });
+      log.log(`skip cms_territory slug=${t.slug} (ya existe)`);
+      skipped += 1;
+    } catch {
+      await svc.create({
+        slug: t.slug,
+        name: t.name,
+        department: t.department,
+        region: t.region,
+        subtitle: t.subtitle,
+        description: t.description,
+        longDescription: t.longDescription,
+        culturalTitle: t.culturalTitle,
+        culturalQuote: t.culturalQuote,
+        ctaHeadline: t.ctaHeadline,
+        lat: t.lat ?? undefined,
+        lng: t.lng ?? undefined,
+        color: t.color ?? undefined,
+        markerSize: t.markerSize ?? undefined,
+        techniques: t.techniques ?? undefined,
+        featuredProductId: t.featuredProductId ?? undefined,
+        extraSections: t.extraSections,
+        status: t.status,
+        publishedAt: t.publishedAt ?? undefined,
+        keywords: t.keywords,
+        position: t.position,
+      });
+      log.log(`created cms_territory slug=${t.slug}`);
+      inserted += 1;
+    }
+  }
+  log.log(
+    `[cms_territories] Insertadas: ${inserted}, ya existentes: ${skipped}, respetadas (borradas): ${respected}`,
+  );
 }
 
 async function bootstrap() {
@@ -128,26 +220,40 @@ async function bootstrap() {
     const cmsSvc = app.get(CmsSectionsService);
     const blogSvc = app.get(BlogPostsService);
     const collectionsSvc = app.get(CollectionsService);
+    const territoriesSvc = app.get(CmsTerritoriesService);
+    const skipsSvc = app.get(CmsSeedSkipsService);
 
-    await seedPage(cmsSvc, 'tecnicas', tecnicasSeedSections, log);
-    await seedPage(cmsSvc, 'home', homeSeedSections, log);
-    await seedPage(cmsSvc, 'colecciones', coleccionesSeedSections, log);
+    // Carga skips una vez para todo el seed.
+    const [skippedSections, skippedBlogs, skippedCollections, skippedTerritories] = await Promise.all([
+      skipsSvc.listKeys('cms_page_section'),
+      skipsSvc.listKeys('blog_post'),
+      skipsSvc.listKeys('collection'),
+      skipsSvc.listKeys('cms_territory'),
+    ]);
+    log.log(
+      `Skips cargados: ${skippedSections.size} secciones, ${skippedBlogs.size} blog posts, ${skippedCollections.size} colecciones, ${skippedTerritories.size} territorios`,
+    );
+
+    await seedPage(cmsSvc, 'tecnicas', tecnicasSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'home', homeSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'colecciones', coleccionesSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'territorios', territoriosSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'sobre-telar', sobreTelarSeedSections, skippedSections, log);
+    await seedPage(cmsSvc, 'historias', historiasSeedSections, skippedSections, log);
 
     // content_picks pueden vivir en cualquier pageKey; agrupamos antes de sembrar
-    const picksByPage = new Map<
-      string,
-      typeof contentPicksSeedSections
-    >();
+    const picksByPage = new Map<string, typeof contentPicksSeedSections>();
     for (const pick of contentPicksSeedSections) {
       const list = picksByPage.get(pick.pageKey) ?? [];
       list.push(pick);
       picksByPage.set(pick.pageKey, list);
     }
     for (const [pageKey, picks] of picksByPage) {
-      await seedPage(cmsSvc, pageKey, picks, log);
+      await seedPage(cmsSvc, pageKey, picks, skippedSections, log);
     }
-    await seedBlogPosts(blogSvc, log);
-    await seedCollections(collectionsSvc, log);
+    await seedBlogPosts(blogSvc, skippedBlogs, log);
+    await seedCollections(collectionsSvc, skippedCollections, log);
+    await seedTerritories(territoriesSvc, skippedTerritories, log);
 
     log.log('Seed completo.');
   } finally {

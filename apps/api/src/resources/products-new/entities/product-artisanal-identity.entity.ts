@@ -11,6 +11,7 @@ import { ProductCore } from './product-core.entity';
 import { Craft } from '../../crafts/entities/craft.entity';
 import { Technique } from '../../techniques/entities/technique.entity';
 import { CuratorialCategory } from '../../curatorial-categories/entities/curatorial-category.entity';
+import { Style } from '../../taxonomy-styles/entities/style.entity';
 
 /**
  * PRODUCT_ARTISANAL_IDENTITY - Identidad artesanal del producto
@@ -33,11 +34,14 @@ export class ProductArtisanalIdentity {
   @Column({ name: 'curatorial_category_id', type: 'uuid', nullable: true })
   curatorialCategoryId: string;
 
+  @Column({ name: 'style_id', type: 'uuid', nullable: true })
+  styleId: string | null;
+
   @Column({ name: 'piece_type', type: 'varchar', nullable: true })
   pieceType: string; // 'funcional', 'decorativa', 'mixta'
 
   @Column({ type: 'varchar', nullable: true })
-  style: string; // 'tradicional', 'contemporaneo', 'fusion'
+  style: string; // 'tradicional', 'contemporaneo', 'fusion' — campo legacy, usar styleId
 
   @Column({ name: 'is_collaboration', type: 'boolean', default: false })
   isCollaboration: boolean;
@@ -71,4 +75,8 @@ export class ProductArtisanalIdentity {
   @ManyToOne(() => CuratorialCategory, { nullable: true })
   @JoinColumn({ name: 'curatorial_category_id' })
   curatorialCategory?: CuratorialCategory;
+
+  @ManyToOne(() => Style, { nullable: true })
+  @JoinColumn({ name: 'style_id' })
+  styleEntity?: Style;
 }

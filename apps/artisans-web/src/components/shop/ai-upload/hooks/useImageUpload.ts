@@ -82,7 +82,7 @@ export const useImageUpload = () => {
 
         try {
           console.log(`🔄 Uploading image ${index + 1}: ${optimizedImage.name}`);
-          const result = await uploadImage(optimizedImage, UploadFolder.PRODUCTS);
+          const result = await uploadImage(optimizedImage, UploadFolder.PRODUCTS, undefined, { suppressToast: true });
 
           setUploadProgress(prev => prev.map((item, i) =>
             i === index ? { ...item, status: 'completed', progress: 100 } : item

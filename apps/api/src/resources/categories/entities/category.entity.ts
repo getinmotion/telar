@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 
 @Entity({ name: 'categories', schema: 'taxonomy' })
@@ -37,6 +38,10 @@ export class Category {
 
   @Column({ type: 'boolean', default: true, name: 'is_active' })
   isActive: boolean;
+
+  @Index()
+  @Column({ type: 'varchar', length: 5, nullable: true, name: 'sku_code' })
+  skuCode: string | null;
 
   @Column({ type: 'uuid', nullable: true, name: 'legacy_id' })
   legacyId: string | null;

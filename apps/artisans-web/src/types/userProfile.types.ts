@@ -61,6 +61,7 @@ export interface UserProfile {
   user: UserProfileUser;
   fullName: string;
   avatarUrl: string | null;
+  agreementId: string | null;
   createdAt: string;
   updatedAt: string;
   businessDescription: string | null;

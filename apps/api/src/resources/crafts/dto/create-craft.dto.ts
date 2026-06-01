@@ -20,4 +20,8 @@ export class CreateCraftDto {
   @IsOptional()
   @IsUUID()
   suggestedBy?: string;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }

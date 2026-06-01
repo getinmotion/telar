@@ -11,6 +11,7 @@ import { CmsSection } from './types/cms-section.types';
 import { CreateCmsSectionDto } from './dto/create-cms-section.dto';
 import { UpdateCmsSectionDto } from './dto/update-cms-section.dto';
 import { CmsPageDocument, CmsPageSection } from './schemas/cms-page.schema';
+import { CmsSeedSkipsService } from './cms-seed-skips.service';
 
 /**
  * Cada vista pública del marketplace es UN documento en `cms_pages`. El
@@ -24,6 +25,7 @@ export class CmsSectionsService {
   constructor(
     @Inject('CMS_PAGE_MODEL')
     private readonly pageModel: Model<CmsPageDocument>,
+    private readonly seedSkips: CmsSeedSkipsService,
   ) {}
 
   // ── helpers ───────────────────────────────────────────
@@ -140,9 +142,16 @@ export class CmsSectionsService {
       .findOne({ 'sections.id': id })
       .exec();
     if (!page) throw new NotFoundException(`CmsSection ${id} not found`);
+    const target = (page.sections ?? []).find((s) => s.id === id);
     page.sections = (page.sections ?? []).filter((s) => s.id !== id);
     page.markModified('sections');
     await page.save();
+    if (target) {
+      await this.seedSkips.record(
+        'cms_page_section',
+        `${page.pageKey}:${target.type}:${target.position}`,
+      );
+    }
     return { id };
   }
 

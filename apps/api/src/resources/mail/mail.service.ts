@@ -272,4 +272,34 @@ export class MailService {
       },
     });
   }
+
+  /**
+   * Notificar al comprador que su pago no pudo procesarse
+   */
+  async sendPaymentFailureNotification(
+    email: string,
+    data: { cartId: string; transactionId: string },
+  ): Promise<void> {
+    const baseUrl = (
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:1010'
+    ).replace(/\/$/, '');
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Tu pago no pudo ser procesado - Telar',
+      template: './payment-confirmation',
+      context: {
+        buyerName: email.split('@')[0],
+        cartId: data.cartId,
+        transactionId: data.transactionId,
+        failed: true,
+        retryUrl: `${baseUrl}/cart`,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
 }

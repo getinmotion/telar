@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Truck, Package, Search, BarChart3 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Truck, Package, Search, BarChart3, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { BoxSimulatorTab } from '@/components/shipping-dashboard/BoxSimulatorTab
 import { BulkQuoterTab } from '@/components/shipping-dashboard/BulkQuoterTab';
 import { ArtisanExplorerTab } from '@/components/shipping-dashboard/ArtisanExplorerTab';
 import { CoverageOverviewTab } from '@/components/shipping-dashboard/CoverageOverviewTab';
+import { ArtisansMapTab } from '@/components/shipping-dashboard/ArtisansMapTab';
 
 const ShippingDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,12 +27,12 @@ const ShippingDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {isModerationSubdomain && <ModerationHeader />}
 
       <div className={isModerationSubdomain ? 'pt-16' : ''}>
         {/* Title bar */}
-        <div className="border-b bg-card">
+        <div className="border-b border-white/50 glass-header">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -68,8 +69,13 @@ const ShippingDashboardPage: React.FC = () => {
             </Card>
           )}
 
-          <Tabs defaultValue="simulador" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="mapa" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="mapa" className="gap-1">
+                <Map className="w-3 h-3" />
+                <span className="hidden sm:inline">Mapa Artesanos</span>
+                <span className="sm:hidden">Mapa</span>
+              </TabsTrigger>
               <TabsTrigger value="simulador" className="gap-1">
                 <Truck className="w-3 h-3" />
                 <span className="hidden sm:inline">Simulador Cajas</span>
@@ -91,6 +97,10 @@ const ShippingDashboardPage: React.FC = () => {
                 <span className="sm:hidden">Cobertura</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="mapa">
+              <ArtisansMapTab shopsData={shopsData} />
+            </TabsContent>
 
             <TabsContent value="simulador">
               <BoxSimulatorTab />

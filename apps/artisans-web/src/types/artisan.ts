@@ -1,5 +1,17 @@
 // Artisan-specific types for the e-commerce module
 
+export interface HeroConfig {
+  slides?: HeroSlide[];
+  autoplay?: boolean;
+  duration?: number;
+}
+
+export interface HeroSlide {
+  image_url?: string;
+  title?: string;
+  subtitle?: string;
+}
+
 export interface ArtisanShop {
   id: string;
   user_id: string;
@@ -11,14 +23,14 @@ export interface ArtisanShop {
   banner_url?: string;
   craft_type?: string;
   region?: string;
-  certifications: any; // JSON field
-  contact_info: any; // JSON field
-  social_links: any; // JSON field
-  hero_config?: any; // JSON field
+  certifications: string[];
+  contact_info: ContactInfo;
+  social_links: SocialLinks;
+  hero_config?: HeroConfig;
   active: boolean;
   featured: boolean;
   publish_status?: string; // 'draft' | 'pending_publish' | 'published'
-  seo_data: any; // JSON field
+  seo_data: SEOData;
   id_contraparty?: string; // Cobre counterparty ID - indica datos bancarios completos
   // Nuevos campos para desacoplar publicación de datos bancarios
   bank_data_status?: string; // 'not_set' | 'incomplete' | 'complete'
@@ -88,22 +100,22 @@ export interface Product {
   short_description?: string;
   price: number;
   compare_price?: number;
-  images: any; // JSON field
+  images: string[];
   category?: string;
   subcategory?: string;
-  tags: any; // JSON field
+  tags: string[];
   inventory: number;
   sku?: string;
   weight?: number;
-  dimensions?: any; // JSON field - ProductDimensions
-  materials: any; // JSON field
-  techniques: any; // JSON field
+  dimensions?: ProductDimensions;
+  materials: string[];
+  techniques: string[];
   production_time?: string;
   customizable: boolean;
   active: boolean;
   featured: boolean;
   moderation_status?: string; // 'draft' | 'pending_moderation' | 'approved' | 'approved_with_edits' | 'changes_requested' | 'rejected' | 'archived'
-  seo_data: any; // JSON field
+  seo_data: SEOData;
   // Nuevos campos para control de venta
   shipping_data_complete?: boolean; // True si peso y dimensiones completas
   ready_for_checkout?: boolean; // True si puede venderse (moderación + banco + envío)

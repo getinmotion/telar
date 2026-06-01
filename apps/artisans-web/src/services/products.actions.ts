@@ -106,9 +106,7 @@ export function mapProductResponseToLegacy(product: ProductResponse): Product {
 
     // Artesanía
     materials: materials,
-    techniques: [
-      ...product.materials,
-    ].filter(Boolean), // Filtrar nulls/undefined
+    techniques: [], // TODO: Mapear cuando se agreguen nombres de técnicas a products-new
     production_time:
       product.artisanalIdentity?.estimatedElaborationTime ||
       product.production?.productionTimeDays?.toString() ||

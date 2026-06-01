@@ -1,12 +1,11 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, CheckCircle, Package, AlertCircle, CreditCard } from 'lucide-react';
+import { Store, CheckCircle, AlertCircle, CreditCard } from 'lucide-react';
 import { ModerationShop } from '@/hooks/useShopModeration';
 import { ModerationPagination } from './ModerationPagination';
+import { cn } from '@/lib/utils';
 
 interface ModerationShopQueueProps {
   shops: ModerationShop[];
@@ -16,7 +15,6 @@ interface ModerationShopQueueProps {
   selectedShops?: string[];
   onToggleSelection?: (shopId: string) => void;
   selectionMode?: boolean;
-  // Pagination props
   pagination?: {
     page: number;
     pageSize: number;
@@ -39,36 +37,25 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="flex flex-col h-full">
-        <ScrollArea className="flex-1">
-          <div className="space-y-2 p-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Card key={i}>
-                <CardContent className="p-3">
-                  <div className="flex gap-3">
-                    <Skeleton className="w-16 h-16 rounded" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+      <div className="p-2 space-y-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex gap-2.5 px-2 py-2 rounded animate-pulse">
+            <Skeleton className="w-10 h-10 rounded shrink-0" />
+            <div className="flex-1 space-y-1.5 py-0.5">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2.5 w-1/2" />
+            </div>
           </div>
-        </ScrollArea>
+        ))}
       </div>
     );
   }
 
   if (shops.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <Store className="w-12 h-12 text-muted-foreground mb-3 opacity-50" />
-        <p className="font-medium text-foreground">No hay tiendas</p>
-        <p className="text-sm text-muted-foreground">
-          No se encontraron tiendas con los filtros aplicados
-        </p>
+      <div className="flex flex-col items-center justify-center h-full py-12 text-center text-muted-foreground">
+        <Store className="w-8 h-8 mb-2 opacity-30" />
+        <p className="text-xs">No hay tiendas con estos filtros</p>
       </div>
     );
   }
@@ -76,125 +63,107 @@ export const ModerationShopQueue: React.FC<ModerationShopQueueProps> = ({
   return (
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-1">
-        <div className="space-y-2 p-2">
+        <div className="p-1.5 space-y-0.5">
           {shops.map((shop) => {
             const isSelected = selectedShopId === shop.id;
             const isApproved = shop.marketplaceApproved === true;
             const isChecked = selectedShops.includes(shop.id);
 
             return (
-              <Card
+              <div
                 key={shop.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary shadow-lg' : ''
-                  } ${isChecked ? 'bg-primary/5 border-primary/30' : ''}`}
+                className={cn(
+                  "flex gap-2.5 px-2 py-2 rounded-md cursor-pointer transition-colors",
+                  isSelected
+                    ? "bg-primary text-primary-foreground"
+                    : isChecked
+                    ? "bg-primary/10 hover:bg-primary/15"
+                    : "hover:bg-muted/70"
+                )}
                 onClick={() => onSelectShop(shop)}
               >
-                <CardContent className="p-3">
-                  <div className="flex gap-3">
-                    {/* Checkbox for selection mode */}
-                    {selectionMode && onToggleSelection && (
-                      <div
-                        className="flex items-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleSelection(shop.id);
-                        }}
-                      >
-                        <Checkbox
-                          checked={isChecked}
-                          onCheckedChange={() => onToggleSelection(shop.id)}
-                        />
-                      </div>
-                    )}
-
-                    {/* Logo */}
-                    <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                      {shop.logoUrl ? (
-                        <img
-                          src={shop.logoUrl}
-                          alt={shop.shopName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Store className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className="font-medium text-sm truncate">
-                          {shop.shopName}
-                        </h4>
-                        {isApproved ? (
-                          <Badge variant="default" className="shrink-0 text-xs">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Marketplace
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="shrink-0 text-xs">
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            No aprobada
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        {shop.region && (
-                          <span className="flex items-center gap-1">
-                            📍 {shop.region}
-                          </span>
-                        )}
-                        {shop.craftType && (
-                          <span className="flex items-center gap-1">
-                            🎨 {shop.craftType}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Bank Data Badge */}
-                      <div className="flex items-center gap-2 mt-2">
-                        {shop.hasBankData ? (
-                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                            <CreditCard className="w-3 h-3 mr-1" />
-                            Datos bancarios ✓
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
-                            <CreditCard className="w-3 h-3 mr-1" />
-                            Sin datos bancarios
-                          </Badge>
-                        )}
-                      </div>
-
-                      {shop.productCounts && (
-                        <div className="flex items-center gap-3 mt-2 text-xs">
-                          <span className="flex items-center gap-1">
-                            <Package className="w-3 h-3" />
-                            {shop.productCounts.total} productos
-                          </span>
-                          <span className="text-success">
-                            ✓ {shop.productCounts.approved} aprobados
-                          </span>
-                          {shop.productCounts.pending > 0 && (
-                            <span className="text-warning">
-                              ⏳ {shop.productCounts.pending} pendientes
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                {selectionMode && onToggleSelection && (
+                  <div
+                    className="flex items-center shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSelection(shop.id);
+                    }}
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => onToggleSelection(shop.id)}
+                    />
                   </div>
-                </CardContent>
-              </Card>
+                )}
+
+                {/* Logo */}
+                <div className="w-10 h-10 bg-muted rounded overflow-hidden shrink-0">
+                  {shop.logoUrl ? (
+                    <img
+                      src={shop.logoUrl}
+                      alt={shop.shopName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Store className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className={cn(
+                    "text-xs font-medium truncate leading-tight",
+                    isSelected ? "text-primary-foreground" : "text-foreground"
+                  )}>
+                    {shop.shopName}
+                  </p>
+
+                  <div className={cn(
+                    "flex items-center gap-1.5 mt-0.5 text-[11px]",
+                    isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                  )}>
+                    {isApproved ? (
+                      <span className="flex items-center gap-0.5">
+                        <CheckCircle className="w-3 h-3 text-success" />
+                        Marketplace
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-0.5">
+                        <AlertCircle className="w-3 h-3 text-warning" />
+                        Sin aprobar
+                      </span>
+                    )}
+                    {shop.hasBankData ? (
+                      <span className="flex items-center gap-0.5">
+                        <CreditCard className="w-3 h-3 text-success" />
+                        Banco ✓
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-0.5 text-destructive/70">
+                        <CreditCard className="w-3 h-3" />
+                        Sin banco
+                      </span>
+                    )}
+                  </div>
+
+                  {(shop.region || shop.craftType) && (
+                    <p className={cn(
+                      "text-[10px] truncate mt-0.5",
+                      isSelected ? "text-primary-foreground/60" : "text-muted-foreground/70"
+                    )}>
+                      {[shop.region, shop.craftType].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
       </ScrollArea>
 
-      {/* Pagination */}
       {pagination && onPageChange && pagination.totalPages > 1 && (
         <ModerationPagination
           currentPage={pagination.page}

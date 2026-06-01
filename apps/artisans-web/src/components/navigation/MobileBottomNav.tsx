@@ -1,71 +1,96 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Home, Users, Settings, BarChart3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTranslations } from '@/hooks/useTranslations';
 
-interface MobileBottomNavProps {}
+const SANS = "'Manrope', sans-serif";
 
-export const MobileBottomNav: React.FC<MobileBottomNavProps> = () => {
+const BottomNavItem: React.FC<{
+  icon: string;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}> = ({ icon, label, active, onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] flex-1 py-1.5 transition-all"
+    style={{ color: active ? '#151b2d' : 'rgba(84,67,62,0.45)' }}
+  >
+    <span
+      className="material-symbols-outlined"
+      style={{
+        fontSize: 22,
+        fontVariationSettings: active ? "'FILL' 1, 'wght' 400" : "'FILL' 0, 'wght' 300",
+      }}
+    >
+      {icon}
+    </span>
+    <span
+      style={{
+        fontFamily: SANS,
+        fontSize: 8,
+        fontWeight: 800,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        lineHeight: 1,
+      }}
+    >
+      {label}
+    </span>
+  </button>
+);
+
+export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslations();
 
-  const navItems = [
-    {
-      id: 'dashboard',
-      label: t.mobileBottomNav.dashboard,
-      icon: Home,
-      path: '/dashboard',
-      isActive: location.pathname === '/dashboard' || location.pathname === '/'
-    },
-    {
-      id: 'agents',
-      label: t.mobileBottomNav.agents,
-      icon: Users,
-      path: '/agent-manager',
-      isActive: location.pathname.includes('/agent')
-    },
-    {
-      id: 'analytics',
-      label: t.mobileBottomNav.analytics,
-      icon: BarChart3,
-      path: '/maturity-calculator',
-      isActive: location.pathname.includes('/maturity')
-    },
-    {
-      id: 'settings',
-      label: t.mobileBottomNav.settings,
-      icon: Settings,
-      path: '/dashboard',
-      isActive: false
-    }
-  ];
+  const isActive = (paths: string[]) =>
+    paths.some(p =>
+      p.endsWith('*')
+        ? location.pathname.startsWith(p.slice(0, -1))
+        : location.pathname === p,
+    );
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 safe-area-bottom">
-      <div className="flex items-center justify-around px-4 py-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-                item.isActive
-                  ? 'text-purple-600 bg-purple-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{item.label}</span>
-            </Button>
-          );
-        })}
-      </div>
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center px-2 md:hidden"
+      style={{
+        background: 'rgba(247,246,242,0.92)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(255,255,255,0.5)',
+        minHeight: 60,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      <BottomNavItem
+        icon="grid_view"
+        label="Inicio"
+        active={isActive(['/dashboard'])}
+        onClick={() => navigate('/dashboard')}
+      />
+      <BottomNavItem
+        icon="storefront"
+        label="Tienda"
+        active={isActive(['/mi-tienda/configurar'])}
+        onClick={() => navigate('/mi-tienda/configurar')}
+      />
+      <BottomNavItem
+        icon="bar_chart"
+        label="Inventario"
+        active={isActive(['/dashboard/inventory', '/inventario'])}
+        onClick={() => navigate('/dashboard/inventory')}
+      />
+      <BottomNavItem
+        icon="receipt_long"
+        label="Ventas"
+        active={isActive(['/mi-tienda/ventas'])}
+        onClick={() => navigate('/mi-tienda/ventas')}
+      />
+      <BottomNavItem
+        icon="explore"
+        label="Misiones"
+        active={isActive(['/dashboard/tasks'])}
+        onClick={() => navigate('/dashboard/tasks')}
+      />
     </div>
   );
 };

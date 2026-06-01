@@ -14,17 +14,11 @@ import {
 export const register = async (
     registerPayload: RegisterPayload
 ): Promise<RegisterSuccessResponse> => {
-    try {
-        // Llamada al endpoint de registro del backend NestJS
-        const response = await telarApi.post<RegisterSuccessResponse>(
-            "/auth/register",
-            registerPayload
-        );
-
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+    const response = await telarApi.post<RegisterSuccessResponse>(
+        "/auth/register",
+        registerPayload
+    );
+    return response.data;
 };
 
 /**
@@ -36,15 +30,8 @@ export const register = async (
 export const verifyEmail = async (
     token: string
 ): Promise<VerifyEmailSuccessResponse> => {
-    try {
-        // Llamada al endpoint de verificación de email del backend NestJS
-        // El token va en la URL como parámetro de ruta
-        const response = await telarApi.post<VerifyEmailSuccessResponse>(
-            `/email-verifications/verify/${token}`
-        );
-
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+    const response = await telarApi.post<VerifyEmailSuccessResponse>(
+        `/email-verifications/verify/${token}`
+    );
+    return response.data;
 };

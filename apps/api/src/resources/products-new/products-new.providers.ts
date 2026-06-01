@@ -10,6 +10,10 @@ import {
   ProductMaterialLink,
   ProductVariant,
 } from './entities';
+import { Category } from '../categories/entities/category.entity';
+import { Technique } from '../techniques/entities/technique.entity';
+import { Territory } from '../territories/entities/territory.entity';
+import { ArtisanShop } from '../stores/entities/artisan-shop.entity';
 
 export const productsNewProviders = [
   {
@@ -64,6 +68,30 @@ export const productsNewProviders = [
     provide: 'PRODUCT_VARIANTS_REPOSITORY',
     useFactory: (dataSource: DataSource) =>
       dataSource.getRepository(ProductVariant),
+    inject: ['DATA_SOURCE'],
+  },
+  {
+    provide: 'SKU_CATEGORY_REPOSITORY',
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(Category),
+    inject: ['DATA_SOURCE'],
+  },
+  {
+    provide: 'SKU_TECHNIQUE_REPOSITORY',
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(Technique),
+    inject: ['DATA_SOURCE'],
+  },
+  {
+    provide: 'SKU_TERRITORY_REPOSITORY',
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(Territory),
+    inject: ['DATA_SOURCE'],
+  },
+  {
+    provide: 'SKU_ARTISAN_SHOP_REPOSITORY',
+    useFactory: (dataSource: DataSource) =>
+      dataSource.getRepository(ArtisanShop),
     inject: ['DATA_SOURCE'],
   },
 ];

@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { CollectionDocument } from './schemas/collection.schema';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { CmsSeedSkipsService } from '../cms-sections/cms-seed-skips.service';
 
 export interface ListCollectionsOptions {
   status?: 'draft' | 'published';
@@ -21,6 +22,7 @@ export class CollectionsService {
   constructor(
     @Inject('COLLECTION_MODEL')
     private readonly model: Model<CollectionDocument>,
+    private readonly seedSkips: CmsSeedSkipsService,
   ) {}
 
   async findAll(options: ListCollectionsOptions = {}) {
@@ -104,6 +106,10 @@ export class CollectionsService {
   async remove(id: string) {
     const doc = await this.model.findByIdAndDelete(id).exec();
     if (!doc) throw new NotFoundException(`Collection ${id} not found`);
+    // Marca el slug como "skip" para que `cms:seed` no lo resucite.
+    if (doc.slug) {
+      await this.seedSkips.record('collection', doc.slug);
+    }
     return { id };
   }
 }

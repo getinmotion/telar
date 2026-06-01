@@ -8,14 +8,22 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Sparkles, Loader2, Rocket, ArrowLeft, ArrowRight, Wand2, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Sparkles, Loader2, Rocket, ArrowLeft, ArrowRight, Wand2, Mail, Phone, MapPin, Clock, Package } from 'lucide-react';
 import { VoiceInput } from '@/components/ui/voice-input';
 import { EventBus } from '@/utils/eventBus';
 import { AIDisclaimer } from '@/components/ui/AIDisclaimer';
 import { getArtisanShopById, updateArtisanShop } from '@/services/artisanShops.actions';
 import { generateShopContact } from '@/services/ai.actions';
+import { ColombiaLocationSelect } from '@/components/ui/colombia-location-select';
 
 type WizardStep = 'generate' | 'configure' | 'publish';
+
+interface ShippingAddress {
+  streetAddress: string;
+  department: string;
+  municipality: string;
+  postalCode: string;
+}
 
 interface ContactConfig {
   welcomeMessage: string;
@@ -23,7 +31,7 @@ interface ContactConfig {
   email: string;
   phone: string;
   whatsapp: string;
-  address: string;
+  address: ShippingAddress;
   hours: string;
   mapEmbedUrl: string;
 }
@@ -48,7 +56,7 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
       email: '',
       phone: '',
       whatsapp: '',
-      address: '',
+      address: { streetAddress: '', department: '', municipality: '', postalCode: '' },
       hours: '',
       mapEmbedUrl: ''
     }
@@ -72,7 +80,14 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
 
         // Si tiene config existente, cargar
         if (data.contactConfig && typeof data.contactConfig === 'object' && 'welcomeMessage' in data.contactConfig) {
-          setConfig(data.contactConfig as unknown as ContactConfig);
+          const cc = data.contactConfig as any;
+          // Backward compat: address may be a legacy string
+          if (typeof cc.address === 'string') {
+            cc.address = { streetAddress: cc.address, department: data.department || '', municipality: data.municipality || '', postalCode: '' };
+          } else if (!cc.address || typeof cc.address !== 'object') {
+            cc.address = { streetAddress: '', department: data.department || '', municipality: data.municipality || '', postalCode: '' };
+          }
+          setConfig(cc as ContactConfig);
           setStep('configure');
         } else if (data.contactInfo && typeof data.contactInfo === 'object') {
           // Pre-fill con datos básicos si existen
@@ -138,8 +153,10 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
           email: config.email,
           phone: config.phone,
           whatsapp: config.whatsapp
-        } as any
-      });
+        } as any,
+        department: config.address?.department || undefined,
+        municipality: config.address?.municipality || undefined,
+      } as any);
 
       EventBus.publish('shop.contact.added', { shopId });
 
@@ -182,7 +199,7 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
             <h2 className="text-2xl font-bold">{stepTitles[step]}</h2>
             <p className="text-muted-foreground">
               {step === 'generate' && 'Mensajes de bienvenida y formulario con IA'}
-              {step === 'configure' && 'Email, teléfono, dirección y horarios'}
+              {step === 'configure' && 'Email, teléfono, dirección de despacho y horarios'}
               {step === 'publish' && 'Activa tu página de contacto'}
             </p>
           </div>
@@ -336,18 +353,49 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Dirección Física (opcional)
-                  </Label>
-                  <Textarea
-                    id="address"
-                    value={config.address}
-                    onChange={(e) => setConfig({ ...config, address: e.target.value })}
-                    rows={2}
-                    placeholder="Calle 123 #45-67, Bogotá, Colombia"
+                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-sm">Dirección de Despacho</span>
+                    <span className="text-xs text-destructive font-medium">* requerida para envíos</span>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="streetAddress" className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      Dirección <span className="text-destructive ml-0.5">*</span>
+                    </Label>
+                    <Input
+                      id="streetAddress"
+                      value={config.address?.streetAddress || ''}
+                      onChange={(e) => setConfig({ ...config, address: { ...config.address, streetAddress: e.target.value } })}
+                      placeholder="Calle 123 #45-67, Local 2"
+                      required
+                    />
+                  </div>
+
+                  <ColombiaLocationSelect
+                    department={config.address?.department || ''}
+                    municipality={config.address?.municipality || ''}
+                    onDepartmentChange={(val) => setConfig({ ...config, address: { ...config.address, department: val, municipality: '' } })}
+                    onMunicipalityChange={(val) => setConfig({ ...config, address: { ...config.address, municipality: val } })}
+                    showLabels
+                    required
                   />
+
+                  <div>
+                    <Label htmlFor="postalCode">
+                      Código Postal <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="postalCode"
+                      value={config.address?.postalCode || ''}
+                      onChange={(e) => setConfig({ ...config, address: { ...config.address, postalCode: e.target.value } })}
+                      placeholder="110111"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -380,16 +428,32 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
             </div>
           </Card>
 
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={handleGenerate} disabled={isGenerating}>
-              <Wand2 className="w-4 h-4 mr-2" />
-              {isGenerating ? 'Regenerando...' : 'Regenerar Textos'}
-            </Button>
-            <Button className="flex-1" onClick={() => setStep('publish')}>
-              Guardar y continuar
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
+          {(() => {
+            const addr = config.address;
+            const isAddressComplete = !!(
+              addr?.streetAddress?.trim() &&
+              addr?.department?.trim() &&
+              addr?.municipality?.trim() &&
+              addr?.postalCode?.trim()
+            );
+            return (
+              <div className="flex gap-4">
+                <Button variant="outline" onClick={handleGenerate} disabled={isGenerating}>
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  {isGenerating ? 'Regenerando...' : 'Regenerar Textos'}
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => setStep('publish')}
+                  disabled={!isAddressComplete}
+                  title={!isAddressComplete ? 'Completa todos los campos de dirección de despacho' : undefined}
+                >
+                  Guardar y continuar
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -425,10 +489,15 @@ export const ContactWizard: React.FC<ContactWizardProps> = ({
                         <span>WhatsApp: {config.whatsapp}</span>
                       </div>
                     )}
-                    {config.address && (
+                    {config.address?.streetAddress && (
                       <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                        <span>{config.address}</span>
+                        <span>
+                          {config.address.streetAddress}
+                          {config.address.municipality && `, ${config.address.municipality}`}
+                          {config.address.department && ` (${config.address.department})`}
+                          {config.address.postalCode && ` · CP ${config.address.postalCode}`}
+                        </span>
                       </div>
                     )}
                     {config.hours && (

@@ -38,43 +38,43 @@ export const isStepValid = (stepId: WizardStepId, profileData: UserProfileData):
         profileData.experience
       );
     
-    case 'businessMaturity':
-      // For paymentMethods, check if it's a non-empty array or a non-empty string
-      const hasPaymentMethods = Array.isArray(profileData.paymentMethods) 
+    case 'businessMaturity': {
+      const hasPaymentMethods = Array.isArray(profileData.paymentMethods)
         ? profileData.paymentMethods.length > 0
         : !!profileData.paymentMethods;
-      
+
       return !!(
         hasPaymentMethods &&
-        profileData.brandIdentity && 
+        profileData.brandIdentity &&
         profileData.financialControl
       );
-    
-    case 'managementStyle':
-      // For taskOrganization, check if it's a non-empty array or a non-empty string
+    }
+
+    case 'managementStyle': {
       const hasTaskOrganization = Array.isArray(profileData.taskOrganization)
         ? profileData.taskOrganization.length > 0
         : !!profileData.taskOrganization;
-      
+
       return !!(
-        profileData.teamStructure && 
+        profileData.teamStructure &&
         hasTaskOrganization &&
         profileData.decisionMaking
       );
-    
-    case 'extendedQuestions':
-      // For collaboration, check if it's a non-empty array or a non-empty string
+    }
+
+    case 'extendedQuestions': {
       const hasCollaboration = Array.isArray(profileData.collaboration)
         ? profileData.collaboration.length > 0
         : !!profileData.collaboration;
-      
+
       return !!(
-        profileData.pricingMethod && 
-        profileData.internationalSales && 
-        profileData.formalizedBusiness && 
+        profileData.pricingMethod &&
+        profileData.internationalSales &&
+        profileData.formalizedBusiness &&
         hasCollaboration &&
         profileData.economicSustainability
       );
+    }
     
     case 'bifurcation':
     case 'results':

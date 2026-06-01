@@ -275,3 +275,16 @@ export const upsertArtisanShop = async (
     return await createArtisanShop({ ...payload, userId } as CreateArtisanShopPayload);
   }
 };
+
+/**
+ * Guarda el oficio primario del artesano en su perfil artesanal de tienda.
+ * Se llama desde el wizard de productos para sincronizar el oficio bidireccionalmente.
+ *
+ * Endpoint: PATCH /stores/user/:userId/artisanal-profile
+ */
+export const updateStoreArtisanalCraft = async (
+  userId: string,
+  primaryCraftId: string | null,
+): Promise<void> => {
+  await telarApi.patch(`/stores/user/${userId}/artisanal-profile`, { primaryCraftId });
+};

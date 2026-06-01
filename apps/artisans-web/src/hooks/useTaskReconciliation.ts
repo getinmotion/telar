@@ -49,7 +49,6 @@ export const useTaskReconciliation = () => {
         const hasShop = !!shop;
         const hasLogo = !!shop?.logoUrl;
         const hasHeroSlider = !!(shop?.heroConfig as any)?.slides?.length;
-        const hasStory = !!(shop?.story || (shop?.aboutContent as any)?.story);
         const hasSocialLinks = !!(shop?.socialLinks && Object.keys(shop.socialLinks as object).length > 0);
         const contactInfo = (shop?.contactInfo as any) || {};
         const hasContactInfo = !!(contactInfo?.email || contactInfo?.phone);
@@ -59,7 +58,6 @@ export const useTaskReconciliation = () => {
           hasShop,
           hasLogo,
           hasHeroSlider,
-          hasStory,
           hasSocialLinks,
           hasContactInfo,
           hasRUT,
@@ -127,14 +125,6 @@ export const useTaskReconciliation = () => {
                     titleLower.includes('personaliza') ||
                     titleLower.includes('customize_shop') ||
                     titleLower.includes('slider')) && hasHeroSlider) {
-            shouldComplete = true;
-          }
-          // Historia / About / Nosotros
-          else if ((titleLower.includes('historia') ||
-                    titleLower.includes('about') ||
-                    titleLower.includes('nosotros') ||
-                    titleLower.includes('create_story') ||
-                    descLower.includes('historia')) && hasStory) {
             shouldComplete = true;
           }
           // Contacto

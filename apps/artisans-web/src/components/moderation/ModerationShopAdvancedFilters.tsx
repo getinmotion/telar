@@ -62,99 +62,92 @@ export const ModerationShopAdvancedFilters: React.FC<ModerationShopAdvancedFilte
     filters.craftType !== 'all';
 
   return (
-    <div className="flex flex-wrap items-center gap-3 py-3">
-      {/* Search */}
-      <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
         <Input
-          placeholder="Buscar tienda..."
+          placeholder="Buscar..."
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
-          className="pl-9"
+          className="pl-7 h-7 w-32 text-xs"
         />
       </div>
 
-      {/* Bank Data Filter */}
       <Select
         value={filters.hasBankData}
         onValueChange={(value: 'all' | 'yes' | 'no') =>
           onFiltersChange({ ...filters, hasBankData: value })
         }
       >
-        <SelectTrigger className="w-[180px]">
-          <CreditCard className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Datos bancarios" />
+        <SelectTrigger className="h-7 text-xs w-28">
+          <CreditCard className="w-3 h-3 mr-1 text-muted-foreground shrink-0" />
+          <SelectValue placeholder="Banco" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos</SelectItem>
-          <SelectItem value="yes">Con datos bancarios</SelectItem>
-          <SelectItem value="no">Sin datos bancarios</SelectItem>
+          <SelectItem value="all" className="text-xs">Banco: todos</SelectItem>
+          <SelectItem value="yes" className="text-xs">Con datos</SelectItem>
+          <SelectItem value="no" className="text-xs">Sin datos</SelectItem>
         </SelectContent>
       </Select>
 
-      {/* Approved Products Filter */}
       <Select
         value={filters.minApprovedProducts}
         onValueChange={(value: 'all' | '0' | '1' | '5') =>
           onFiltersChange({ ...filters, minApprovedProducts: value })
         }
       >
-        <SelectTrigger className="w-[180px]">
-          <Package className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Productos aprobados" />
+        <SelectTrigger className="h-7 text-xs w-28">
+          <Package className="w-3 h-3 mr-1 text-muted-foreground shrink-0" />
+          <SelectValue placeholder="Productos" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Cualquier cantidad</SelectItem>
-          <SelectItem value="0">Sin productos aprobados</SelectItem>
-          <SelectItem value="1">1+ productos aprobados</SelectItem>
-          <SelectItem value="5">5+ productos aprobados</SelectItem>
+          <SelectItem value="all" className="text-xs">Productos: todos</SelectItem>
+          <SelectItem value="0" className="text-xs">Sin aprobados</SelectItem>
+          <SelectItem value="1" className="text-xs">1+ aprobados</SelectItem>
+          <SelectItem value="5" className="text-xs">5+ aprobados</SelectItem>
         </SelectContent>
       </Select>
 
-      {/* Region Filter */}
       <Select
         value={filters.region}
         onValueChange={(value) => onFiltersChange({ ...filters, region: value })}
       >
-        <SelectTrigger className="w-[160px]">
-          <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+        <SelectTrigger className="h-7 text-xs w-28">
+          <MapPin className="w-3 h-3 mr-1 text-muted-foreground shrink-0" />
           <SelectValue placeholder="Región" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todas las regiones</SelectItem>
+          <SelectItem value="all" className="text-xs">Todas las regiones</SelectItem>
           {regions.map((region) => (
-            <SelectItem key={region} value={region}>
-              {region}
-            </SelectItem>
+            <SelectItem key={region} value={region} className="text-xs">{region}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {/* Craft Type Filter */}
       <Select
         value={filters.craftType}
         onValueChange={(value) => onFiltersChange({ ...filters, craftType: value })}
       >
-        <SelectTrigger className="w-[160px]">
-          <Palette className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Artesanía" />
+        <SelectTrigger className="h-7 text-xs w-28">
+          <Palette className="w-3 h-3 mr-1 text-muted-foreground shrink-0" />
+          <SelectValue placeholder="Oficio" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todas las artesanías</SelectItem>
+          <SelectItem value="all" className="text-xs">Todos los oficios</SelectItem>
           {craftTypes.map((type) => (
-            <SelectItem key={type} value={type}>
-              {type}
-            </SelectItem>
+            <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {/* Clear Button */}
       {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={handleClear} className="gap-1">
-          <X className="w-4 h-4" />
+        <button
+          onClick={handleClear}
+          className="flex items-center gap-1 h-7 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X className="w-3.5 h-3.5" />
           Limpiar
-        </Button>
+        </button>
       )}
     </div>
   );

@@ -16,11 +16,6 @@ export class StoreResponseDto {
   updatedAt?: Date;
 
   // Datos relacionados
-  artisanalProfile?: {
-    primaryCraftId?: string;
-    isCollaborationStudio: boolean;
-  };
-
   contacts?: {
     email?: string;
     phone?: string;
@@ -83,13 +78,6 @@ export class StoreResponseDto {
     };
 
     // Agregar relaciones si existen
-    if (store.artisanalProfile) {
-      response.artisanalProfile = {
-        primaryCraftId: store.artisanalProfile.primaryCraftId,
-        isCollaborationStudio: store.artisanalProfile.isCollaborationStudio,
-      };
-    }
-
     if (store.contacts) {
       response.contacts = {
         email: store.contacts.email,

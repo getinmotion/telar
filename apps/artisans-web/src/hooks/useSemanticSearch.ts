@@ -47,7 +47,7 @@ interface UseSemanticSearchReturn {
 }
 
 const SEMANTIC_SEARCH_ENDPOINT = import.meta.env.VITE_SEMANTIC_SEARCH_URL || 'http://localhost:8000/search';
-const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY || 'ZzmB_u_5ipK8IqEoMmBtEJ6Tzg7oS1lT7ttbGTcHZOM';
+const SEMANTIC_SEARCH_API_KEY = import.meta.env.VITE_SEMANTIC_SEARCH_API_KEY || '';
 
 export const useSemanticSearch = (): UseSemanticSearchReturn => {
   const [loading, setLoading] = useState(false);

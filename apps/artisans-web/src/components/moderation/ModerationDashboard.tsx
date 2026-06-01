@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MODERATION_STATUS_LABELS } from '@/constants/moderation-copy';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -126,22 +127,22 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
         products: stats.productDetails.pending_moderation,
       },
       products_approved: {
-        title: `Productos Aprobados (${stats.products.approved})`,
+        title: `${MODERATION_STATUS_LABELS['approved']} (${stats.products.approved})`,
         type: 'products',
         products: stats.productDetails.approved,
       },
       products_approved_edits: {
-        title: `Productos Aprobados con Ediciones (${stats.products.approved_with_edits})`,
+        title: `${MODERATION_STATUS_LABELS['approved_with_edits']} (${stats.products.approved_with_edits})`,
         type: 'products',
         products: stats.productDetails.approved_with_edits,
       },
       products_changes_requested: {
-        title: `Productos con Cambios Pedidos (${stats.products.changes_requested})`,
+        title: `${MODERATION_STATUS_LABELS['changes_requested']} (${stats.products.changes_requested})`,
         type: 'products',
         products: stats.productDetails.changes_requested,
       },
       products_rejected: {
-        title: `Productos Rechazados (${stats.products.rejected})`,
+        title: `${MODERATION_STATUS_LABELS['rejected']} (${stats.products.rejected})`,
         type: 'products',
         products: stats.productDetails.rejected,
       },
@@ -228,28 +229,28 @@ export const ModerationDashboard: React.FC<ModerationDashboardProps> = ({
               onClick={() => openDrillDown('products_pending')}
             />
             <StatCard
-              title="Aprobados"
+              title={MODERATION_STATUS_LABELS['approved']}
               value={stats.products.approved}
               icon={<CheckCircle className="w-5 h-5 text-success" />}
               variant="success"
               onClick={() => openDrillDown('products_approved')}
             />
             <StatCard
-              title="Con ediciones"
+              title={MODERATION_STATUS_LABELS['approved_with_edits']}
               value={stats.products.approved_with_edits}
               icon={<CheckCircle className="w-5 h-5 text-success" />}
               variant="success"
               onClick={() => openDrillDown('products_approved_edits')}
             />
             <StatCard
-              title="Cambios pedidos"
+              title={MODERATION_STATUS_LABELS['changes_requested']}
               value={stats.products.changes_requested}
               icon={<AlertCircle className="w-5 h-5 text-warning" />}
               variant="warning"
               onClick={() => openDrillDown('products_changes_requested')}
             />
             <StatCard
-              title="Rechazados"
+              title={MODERATION_STATUS_LABELS['rejected']}
               value={stats.products.rejected}
               icon={<XCircle className="w-5 h-5 text-destructive" />}
               variant="destructive"

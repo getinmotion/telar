@@ -5,6 +5,8 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -57,8 +59,13 @@ export class PaymentsController {
     description: 'Error procesando el webhook',
   })
   async handlePaymentWebhook(
+    @Headers('x-webhook-secret') webhookSecret: string | undefined,
     @Body() webhookData: PaymentWebhookDto,
   ): Promise<{ success: boolean; message: string }> {
+    const expectedSecret = process.env.PAYMENTS_WEBHOOK_SECRET;
+    if (expectedSecret && webhookSecret !== expectedSecret) {
+      throw new UnauthorizedException('Invalid webhook secret');
+    }
     this.logger.log(
       `[Webhook] Recibida notificación de pago - Cart ID: ${webhookData.cart_id}, Status: ${webhookData.status}`,
     );

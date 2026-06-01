@@ -6,6 +6,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import session from 'express-session';
 import { ConfigService } from '@nestjs/config';
 import { ImageUrlBuilder } from './common/utils/image-url-builder.util';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   // Allowed origins. Tomadas de la env CORS_ORIGINS (csv) cuando esté
@@ -54,8 +55,9 @@ async function bootstrap() {
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     },
-    logger: console,
+    bufferLogs: true,
   });
+  app.useLogger(app.get(Logger));
 
   // Configure Image URL Builder for CDN
   const configService = app.get(ConfigService);
@@ -66,7 +68,7 @@ async function bootstrap() {
   // Configurar sesión para Passport (requerido para OAuth)
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'your-secret-key',
+      secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -80,7 +82,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
     }),
   );

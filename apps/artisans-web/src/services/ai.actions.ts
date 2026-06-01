@@ -32,6 +32,7 @@ export interface ArtisanProfileHistoryResponse {
 }
 
 export interface GenerateArtisanProfileHistoryRequest {
+  artisanId?: string;
   profile: ArtisanProfileData;
   shopName: string;
   craftType: string;
@@ -111,7 +112,6 @@ export interface GenerateHeroImageResponse {
 export type ContentContext =
   | 'product_name'
   | 'product_description'
-  | 'shop_story'
   | 'shop_mission'
   | 'shop_vision'
   | 'shop_description'

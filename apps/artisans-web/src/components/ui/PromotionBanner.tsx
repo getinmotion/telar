@@ -64,14 +64,54 @@ const defaultBanners: PromotionBanner[] = [
   }
 ];
 
-export const PromotionBanner: React.FC<PromotionBannerProps> = ({ 
+export const PromotionBanner: React.FC<PromotionBannerProps> = ({
   banners = defaultBanners,
-  className = '' 
+  className = ''
 }) => {
   const [dismissedBanners, setDismissedBanners] = useState<string[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = React.useState<string>('');
 
   const activeBanners = banners.filter(banner => !dismissedBanners.includes(banner.id));
+  const currentBanner = activeBanners[currentBannerIndex % activeBanners.length];
+
+  React.useEffect(() => {
+    if (activeBanners.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentBannerIndex(prev => (prev + 1) % activeBanners.length);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [activeBanners.length]);
+
+  React.useEffect(() => {
+    if (!currentBanner?.countdown) return;
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = currentBanner.countdown!.endDate.getTime() - now;
+
+      if (distance > 0) {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (days > 0) {
+          setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+        } else {
+          setTimeLeft(`${hours}h ${minutes}m`);
+        }
+      } else {
+        setTimeLeft('¡Expirado!');
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+
+    return () => clearInterval(interval);
+  }, [currentBanner]);
 
   const dismissBanner = (bannerId: string) => {
     setDismissedBanners(prev => [...prev, bannerId]);
@@ -108,51 +148,6 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
   if (activeBanners.length === 0) {
     return null;
   }
-
-  // Cycle through banners if multiple
-  const currentBanner = activeBanners[currentBannerIndex % activeBanners.length];
-
-  // Auto-rotate banners
-  React.useEffect(() => {
-    if (activeBanners.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentBannerIndex(prev => (prev + 1) % activeBanners.length);
-      }, 5000); // Change every 5 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [activeBanners.length]);
-
-  // Countdown timer
-  const [timeLeft, setTimeLeft] = React.useState<string>('');
-
-  React.useEffect(() => {
-    if (currentBanner.countdown) {
-      const updateCountdown = () => {
-        const now = new Date().getTime();
-        const distance = currentBanner.countdown!.endDate.getTime() - now;
-
-        if (distance > 0) {
-          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
-          if (days > 0) {
-            setTimeLeft(`${days}d ${hours}h ${minutes}m`);
-          } else {
-            setTimeLeft(`${hours}h ${minutes}m`);
-          }
-        } else {
-          setTimeLeft('¡Expirado!');
-        }
-      };
-
-      updateCountdown();
-      const interval = setInterval(updateCountdown, 60000); // Update every minute
-
-      return () => clearInterval(interval);
-    }
-  }, [currentBanner]);
 
   return (
     <div className={`w-full ${className}`}>

@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { BlogPostDocument } from './schemas/blog-post.schema';
 import { CreateBlogPostDto } from './dto/create-blog-post.dto';
 import { UpdateBlogPostDto } from './dto/update-blog-post.dto';
+import { CmsSeedSkipsService } from '../cms-sections/cms-seed-skips.service';
 
 export interface ListBlogPostsOptions {
   status?: 'draft' | 'published';
@@ -22,6 +23,7 @@ export class BlogPostsService {
   constructor(
     @Inject('BLOG_POST_MODEL')
     private readonly model: Model<BlogPostDocument>,
+    private readonly seedSkips: CmsSeedSkipsService,
   ) {}
 
   async findAll(options: ListBlogPostsOptions = {}) {
@@ -104,6 +106,9 @@ export class BlogPostsService {
   async remove(id: string) {
     const doc = await this.model.findByIdAndDelete(id).exec();
     if (!doc) throw new NotFoundException(`Blog post ${id} not found`);
+    if (doc.slug) {
+      await this.seedSkips.record('blog_post', doc.slug);
+    }
     return { id };
   }
 }

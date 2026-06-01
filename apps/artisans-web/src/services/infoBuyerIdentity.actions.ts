@@ -7,6 +7,10 @@ export interface InfoBuyerIdentity {
   email: string | null;
   nombreCompleto: string | null;
   celular: string | null;
+  idTypeId: string | null;
+  idNumber: string | null;
+  countryId: string | null;
+  agreementId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +88,10 @@ export interface UpdateInfoBuyerIdentityDto {
   nombreCompleto?: string;
   email?: string;
   celular?: string;
+  idTypeId?: string;
+  idNumber?: string;
+  countryId?: string;
+  agreementId?: string;
 }
 
 /**

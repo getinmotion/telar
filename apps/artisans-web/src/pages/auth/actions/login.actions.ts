@@ -7,6 +7,7 @@ import {
 } from "../types/login.types";
 import { useAuthStore } from "@/stores/authStore";
 import { toastError } from "@/utils/toast.utils";
+import { parseJwtPayload } from "@/utils/jwt.utils";
 
 /**
  * Iniciar sesión en el backend NestJS
@@ -22,9 +23,18 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
             loginPayload
         );
 
+        // Decodificar el JWT para extraer roles[] e isSuperAdmin
+        // El JWT (Fase 0.2) ya incluye estos campos; el objeto `user` del response no los trae.
+        const jwtPayload = parseJwtPayload(response.data.access_token);
+
         // ✅ Guardar toda la información en el store de Zustand
         useAuthStore.getState().setAuthData({
-            user: response.data.user,
+            user: {
+                ...response.data.user,
+                // Enriquecer user con datos del JWT que no vienen en el response body
+                isSuperAdmin: jwtPayload?.isSuperAdmin ?? response.data.user?.isSuperAdmin ?? false,
+                roles: jwtPayload?.roles ?? [],
+            },
             userMasterContext: response.data.userMasterContext,
             artisanShop: response.data.artisanShop,
             userMaturityActions: response.data.userMaturityActions,
@@ -47,22 +57,13 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
  * @throws Error si el token no es válido o no existe
  */
 export const getCurrentUser = async (): Promise<GetProfileSuccessResponse> => {
-    try {
-        // El token se envía automáticamente por el interceptor de telarApi
-        const response = await telarApi.get<GetProfileSuccessResponse>(
-            '/auth/profile'
-        );
-
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+    const response = await telarApi.get<GetProfileSuccessResponse>('/auth/profile');
+    return response.data;
 }
 
 /**
- * Refrescar el token de acceso usando el token actual
- * @returns RefreshTokenSuccessResponse con el nuevo access_token
- * @throws Error si el token no es válido o ha expirado
+ * Refrescar el token de acceso usando el token actual.
+ * Actualiza roles e isSuperAdmin en el store con los datos del nuevo JWT.
  */
 export const refreshToken = async (): Promise<RefreshTokenSuccessResponse> => {
     try {
@@ -71,9 +72,27 @@ export const refreshToken = async (): Promise<RefreshTokenSuccessResponse> => {
             '/auth/refresh'
         );
 
-        // Actualizar el token en localStorage
         if (response.data.access_token) {
             localStorage.setItem('telar_token', response.data.access_token);
+
+            // Actualizar roles e isSuperAdmin en el store con el nuevo JWT
+            const jwtPayload = parseJwtPayload(response.data.access_token);
+            if (jwtPayload) {
+                const currentUser = useAuthStore.getState().user;
+                if (currentUser) {
+                    useAuthStore.getState().setAuthData({
+                        user: {
+                            ...currentUser,
+                            isSuperAdmin: jwtPayload.isSuperAdmin ?? currentUser.isSuperAdmin ?? false,
+                            roles: jwtPayload.roles ?? currentUser.roles ?? [],
+                        },
+                        userMasterContext: useAuthStore.getState().userMasterContext,
+                        artisanShop: useAuthStore.getState().artisanShop,
+                        userMaturityActions: useAuthStore.getState().userMaturityActions,
+                        access_token: response.data.access_token,
+                    });
+                }
+            }
         }
 
         return response.data;

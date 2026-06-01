@@ -14,11 +14,11 @@ export interface MaturityScores {
 }
 
 export interface UserProfileContext {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BusinessProfileContext {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AnalyzeAndGenerateTasksRequest {
@@ -33,7 +33,7 @@ export interface AnalyzeAndGenerateTasksRequest {
 export interface MasterCoordinatorRequest {
   action: string;
   userId?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============= Response Types =============

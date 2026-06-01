@@ -245,11 +245,8 @@ export class PaymentsService {
 
   /**
    * Maneja pagos fallidos (FAILED)
-   *
-   * TODO: Implementar la lógica específica:
-   * - Actualizar estado del checkout en BD
-   * - Enviar notificación al usuario
-   * - Liberar inventario reservado (si aplica)
+   * - Marca el carrito como ABANDONED
+   * - Notifica al comprador por email
    */
   private async handleFailedPayment(
     webhookData: PaymentWebhookDto,
@@ -258,11 +255,50 @@ export class PaymentsService {
       `[FAILED] Procesando pago fallido para cart: ${webhookData.cart_id}`,
     );
 
-    // TODO: Implementar lógica de pago fallido
-    // Ejemplo:
-    // - await this.checkoutsService.updateStatus(cartId, 'FAILED');
-    // - await this.notificationsService.notifyPaymentFailure(cartId);
-    // - await this.inventoryService.releaseReservation(cartId);
+    try {
+      const cart = await this.cartRepository.findOne({
+        where: { id: webhookData.cart_id },
+        relations: ['buyer'],
+      });
+
+      if (!cart) {
+        this.logger.warn(`[FAILED] Cart not found: ${webhookData.cart_id}`);
+        return;
+      }
+
+      // Marcar carrito como ABANDONED para permitir reintento
+      if (cart.status === CartStatus.OPEN || cart.status === CartStatus.LOCKED) {
+        await this.cartRepository.update(
+          { id: webhookData.cart_id },
+          { status: CartStatus.ABANDONED },
+        );
+        this.logger.log(
+          `[FAILED] Carrito marcado como ABANDONED: ${webhookData.cart_id}`,
+        );
+      }
+
+      // Notificar al comprador
+      const buyer = await this.userRepository.findOne({
+        where: { id: cart.buyerUserId },
+      });
+
+      if (buyer?.email) {
+        await this.mailService
+          .sendPaymentFailureNotification(buyer.email, {
+            cartId: cart.id,
+            transactionId: webhookData.transaction_id,
+          })
+          .catch((err) =>
+            this.logger.error(`[FAILED] Error enviando email a ${buyer.email}`, err),
+          );
+      }
+    } catch (error) {
+      this.logger.error(
+        `[FAILED] Error procesando pago fallido para cart: ${webhookData.cart_id}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
   }
 
   /**

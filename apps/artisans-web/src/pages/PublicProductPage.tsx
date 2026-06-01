@@ -1,538 +1,385 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { formatCurrency } from '@/utils/currency';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
-import { ArtisanShop } from '@/types/artisanShop.types';
-import { Product } from '@/types/artisan';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Star, Package, Timer, ShoppingBag, AlertTriangle, Truck, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ShopThemeProvider, useShopTheme } from '@/contexts/ShopThemeContext';
-import { convertLegacyToNewPalette } from '@/utils/colorUtils';
+import { useAuth } from '@/context/AuthContext';
+import { getArtisanShopBySlug } from '@/services/artisanShops.actions';
+import { getProductById, getMarketplaceProductsByShopId } from '@/services/products.actions';
+import { Product } from '@/types/artisan';
 import { ShoppingCartProvider, useCart } from '@/contexts/ShoppingCartContext';
-import { ShopNavbar } from '@/components/shop/ShopNavbar';
-import { ShopFooter } from '@/components/shop/ShopFooter';
-import { User } from '@supabase/supabase-js';
-import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  T, pageBg, glassCard, glassLoom,
+  LabelCaps, HeadingSerif,
+  ShopTopBar, ShopPublicFooter, TrustStrip,
+  normShop, getProductImage, formatPriceCOP, getAvailabilityInfo,
+  getMaterialsLabel, getTechniqueLabel, ProductCardCompact,
+  ShopLoadingState, ShopNotFoundState,
+} from '@/components/shop/public/ShopPublicShell';
 
-// Bruvi components
-import { PromoBanner } from '@/components/shop/bruvi/PromoBanner';
-import { ProductAboutSection } from '@/components/shop/bruvi/ProductAboutSection';
-import { ProductReviewsSection } from '@/components/shop/bruvi/ProductReviewsSection';
-
+// ─── Outer wrapper ─────────────────────────────────────────────────────────────
 export const PublicProductPage: React.FC = () => {
   const { shopSlug, productId } = useParams<{ shopSlug: string; productId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [shop, setShop] = useState<ArtisanShop | null>(null);
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
-  const isPreviewMode = searchParams.get('preview') === 'true';
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-  const authLoadedRef = useRef(false);
+  const isPreview = searchParams.get('preview') === 'true';
+  const authLoaded = !isPreview || !authLoading;
 
-  useEffect(() => {
-    if (!isPreviewMode) {
-      authLoadedRef.current = true;
-      return;
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-        setCurrentUser(session?.user || null);
-        authLoadedRef.current = true;
-      }
-    });
-
-    const timeout = setTimeout(() => {
-      authLoadedRef.current = true;
-    }, 1500);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
-  }, [isPreviewMode]);
+  const [rawShop,   setRawShop]   = useState<any>(null);
+  const [product,   setProduct]   = useState<Product | null>(null);
+  const [related,   setRelated]   = useState<Product[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [isOwner,   setIsOwner]   = useState(false);
 
   useEffect(() => {
-    const fetchProductData = async () => {
-      if (!shopSlug || !productId) return;
-
-      if (isPreviewMode && !authLoadedRef.current) {
-        return;
-      }
-
+    if (!authLoaded || !shopSlug || !productId) return;
+    (async () => {
       try {
         const shopData = await getArtisanShopBySlug(shopSlug);
+        if (!shopData) { navigate('/tiendas'); return; }
 
-        if (!shopData) {
-          toast.error('Tienda no encontrada');
-          navigate('/tiendas');
-          return;
-        }
-
-        const ownerCheck = currentUser?.id === shopData.userId;
+        const ownerCheck = !!user && (shopData as any).userId === user.id;
         setIsOwner(ownerCheck);
-
-        if (!shopData.active && !ownerCheck) {
-          toast.error('Tienda no disponible');
-          navigate('/tiendas');
-          return;
+        if (!ownerCheck && (shopData as any).publishStatus !== 'published') {
+          navigate('/tiendas'); return;
         }
+        setRawShop(shopData);
 
-        setShop(shopData);
+        const prod = await getProductById(productId);
+        if (!prod) { navigate(`/tienda/${shopSlug}`); return; }
+        // Consider visible any product that was returned by the API (it passed server-side filters).
+        // Explicit block only for clearly inactive statuses.
+        const prodStatus = (prod as any).moderation_status ?? '';
+        const blocked = ['rejected', 'draft'].includes(prodStatus);
+        if (!ownerCheck && blocked) { navigate(`/tienda/${shopSlug}`); return; }
+        setProduct(prod);
 
-        let productQuery = supabase
-          .from('products')
-          .select('*')
-          .eq('id', productId)
-          .eq('shop_id', shopData.id);
-
-        if (!ownerCheck) {
-          productQuery = productQuery.eq('active', true);
-        }
-
-        const { data: productData, error: productError } = await productQuery.maybeSingle();
-
-        if (productError || !productData) {
-          toast.error('Producto no encontrado');
-          navigate(`/tienda/${shopSlug}${isPreviewMode ? '?preview=true' : ''}`);
-          return;
-        }
-
-        setProduct(productData);
-
-        const { data: relatedData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('shop_id', shopData.id)
-          .eq('active', true)
-          .neq('id', productId)
-          .limit(6);
-
-        setRelatedProducts(relatedData || []);
-
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        toast.error('Error al cargar el producto');
+        const relatedAll = await getMarketplaceProductsByShopId((shopData as any).id).catch(() => []);
+        setRelated(relatedAll.filter((p: Product) => p.id !== productId).slice(0, 6));
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
-    };
+    })();
+  }, [shopSlug, productId, authLoaded, navigate, user]);
 
-    fetchProductData();
-  }, [shopSlug, productId, navigate, currentUser, isPreviewMode]);
+  const shop = useMemo(() => rawShop ? normShop(rawShop) : null, [rawShop]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center animate-fade-in">
-          <ShoppingBag className="w-16 h-16 mx-auto text-primary/60 mb-4" />
-          <div className="text-xl font-medium text-foreground">Cargando producto...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!shop || !product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-background">
-        <h1 className="text-2xl font-bold">Producto no encontrado</h1>
-        <Button onClick={() => navigate('/tiendas')}>Ver todas las tiendas</Button>
-      </div>
-    );
-  }
-
-  const shopData = shop as any;
-  const theme = {
-    palette: shopData.primary_colors && shopData.secondary_colors
-      ? convertLegacyToNewPalette(shopData.primary_colors, shopData.secondary_colors)
-      : convertLegacyToNewPalette(),
-    brandClaim: shopData.brand_claim,
-    logoUrl: shopData.logo_url,
-  };
+  if (loading) return <ShopLoadingState />;
+  if (!shop || !product) return <ShopNotFoundState message="Producto no encontrado" />;
 
   return (
     <ShoppingCartProvider>
-      <ShopThemeProvider theme={theme}>
-        <ProductPageContent
-          shop={shop}
-          product={product}
-          relatedProducts={relatedProducts}
-          isOwner={isOwner}
-          isPreviewMode={isPreviewMode}
-        />
-      </ShopThemeProvider>
+      <ProductDetail
+        shop={shop} shopSlug={shopSlug!}
+        product={product} related={related}
+        isOwner={isOwner} isPreview={isPreview}
+      />
     </ShoppingCartProvider>
   );
 };
 
-interface ProductPageContentProps {
-  shop: ArtisanShop;
+// ─── Detail (inside cart provider) ────────────────────────────────────────────
+interface DetailProps {
+  shop: ReturnType<typeof normShop>;
+  shopSlug: string;
   product: Product;
-  relatedProducts: Product[];
+  related: Product[];
   isOwner: boolean;
-  isPreviewMode: boolean;
+  isPreview: boolean;
 }
 
-const ProductPageContent: React.FC<ProductPageContentProps> = ({
-  shop, product, relatedProducts, isOwner, isPreviewMode
-}) => {
+const ProductDetail: React.FC<DetailProps> = ({ shop, shopSlug, product, related, isOwner, isPreview }) => {
   const navigate = useNavigate();
-  const [selectedImage, setSelectedImage] = useState(0);
   const { addToCart } = useCart();
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [adding, setAdding] = useState(false);
 
-  const productData = product as any;
-  const moderationStatus = productData?.moderation_status;
-  const showModerationBadge = isOwner && isPreviewMode && moderationStatus && moderationStatus !== 'approved';
+  const p = product as any;
 
-  const getModerationLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      'pending_moderation': 'Pendiente de Aprobación',
-      'changes_requested': 'Cambios Solicitados',
-      'rejected': 'Rechazado',
-      'draft': 'Borrador'
-    };
-    return labels[status] || status;
-  };
+  // ─── Image handling ───────────────────────────────────────────────
+  const images: Array<{ url: string; is_primary?: boolean }> = useMemo(() => {
+    const raw = p.images ?? [];
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+    return raw.map((img: any) =>
+      typeof img === 'string' ? { url: img } : img
+    ).filter((img: any) => img?.url);
+  }, [p.images]);
 
+  const mainImageUrl = images[selectedIdx]?.url ?? images[0]?.url ?? null;
 
+  // ─── Data extraction ──────────────────────────────────────────────
+  const price       = p.price ?? 0;
+  const priceLabel  = formatPriceCOP(product);
+  const avail       = getAvailabilityInfo(product);
+  const mats        = Array.isArray(p.materials) ? p.materials as string[] : [];
+  const techs       = Array.isArray(p.techniques) ? (p.techniques as any[]).map((t: any) =>
+    typeof t === 'string' ? t : (t?.material?.name ?? t?.name ?? '')).filter(Boolean) : [];
+  const location    = [shop.municipality, shop.department].filter(Boolean).join(', ');
+  const isOutOfStock = (p.inventory ?? 1) === 0;
+
+  // ─── Cart ────────────────────────────────────────────────────────
   const handleAddToCart = async () => {
+    if (isOutOfStock) return;
+    setAdding(true);
     try {
-      await addToCart(product.id, 1, product.price);
-      toast.success('Producto agregado al carrito', {
-        description: product.name,
-      });
-    } catch (error) {
-      toast.error('Error al agregar al carrito');
+      await addToCart(product.id, 1, price, (p.shop_id ?? ''), product.name, images);
+      toast.success('Pieza agregada al carrito', { description: product.name });
+    } catch {
+      toast.error('No se pudo agregar al carrito');
+    } finally {
+      setAdding(false);
     }
   };
 
-  const images = (product.images as any) || [];
-  const materials = (product.materials as any) || [];
-  const techniques = (product.techniques as any) || [];
-  const dimensions = (product.dimensions as any) || {};
-
-  // Calculate free shipping threshold
-  const freeShippingThreshold = 150000;
-  const remaining = freeShippingThreshold - product.price;
+  const backUrl = `${isPreview ? `?preview=true` : ''}`;
 
   return (
-    <>
+    <div style={pageBg}>
       <Helmet>
-        <title>{`${product.name} - ${shop.shopName}`}</title>
-        <meta name="description" content={product.description || `${product.name} - Artesanía de ${shop.shop_name}`} />
+        <title>{`${product.name} · ${shop.shopName} · TELAR`}</title>
+        <meta name="description" content={p.description || `${product.name} — ${shop.shopName}`} />
         <meta property="og:title" content={product.name} />
-        <meta property="og:description" content={product.description || `Artesanía de ${shop.shop_name}`} />
-        <meta property="og:image" content={images[0]} />
-        <meta property="product:price:amount" content={product.price.toString()} />
-        <meta property="product:price:currency" content="COP" />
+        <meta property="og:image" content={mainImageUrl ?? ''} />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
-        {/* Preview Header */}
-        {isPreviewMode && isOwner && (
-          <div className="sticky top-0 z-50 bg-foreground text-background px-4 py-3">
-            <div className="container mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="font-medium">Vista Previa</span>
-                <span className="text-sm opacity-80">Esta tienda aún no está publicada</span>
-              </div>
-              <Button variant="secondary" size="sm" onClick={() => navigate('/mi-tienda')}>
-                ← Volver al Dashboard
-              </Button>
-            </div>
-          </div>
-        )}
+      <ShopTopBar shop={shop} shopSlug={shopSlug} activePage="product"
+        isPreviewMode={isPreview} isOwner={isOwner} />
 
-        {/* Moderation Banner */}
-        {showModerationBadge && (
-          <div className="bg-warning/20 border-b border-warning px-4 py-2">
-            <div className="container mx-auto flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-warning" />
-              <span className="text-sm font-medium">
-                Estado de moderación: {getModerationLabel(moderationStatus)}
-              </span>
-            </div>
-          </div>
-        )}
+      <TrustStrip />
 
-        {/* Promo Banner */}
-        <PromoBanner
-          region={shop.region?.replace(/_/g, ' ')}
-          craftType={shop.craft_type?.replace(/-/g, ' ')}
-        />
+      {/* ── BREADCRUMB ─────────────────────────────────────────────── */}
+      <div className="max-w-[1400px] mx-auto px-10 py-4 flex items-center gap-3">
+        <Link to={`/tienda/${shopSlug}/catalogo${backUrl}`}
+          className="flex items-center gap-1.5 transition-opacity hover:opacity-70"
+          style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, color: `${T.muted}70`, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>arrow_back</span>
+          Catálogo
+        </Link>
+        <span style={{ color: `${T.dark}18` }}>/</span>
+        <span style={{ fontFamily: T.sans, fontSize: 11, color: `${T.dark}40`, letterSpacing: '0.05em' }}
+          className="truncate max-w-xs">{product.name}</span>
+      </div>
 
-        {/* Navbar */}
-        <ShopNavbar
-          shopName={shop.shop_name}
-          logoUrl={shop.logo_url || undefined}
-          shopSlug={shop.shop_slug}
-        />
+      {/* ── MAIN SECTION ───────────────────────────────────────────── */}
+      <div className="max-w-[1400px] mx-auto px-10 pb-8">
+        <div style={{ ...glassLoom, borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 60px -10px rgba(0,0,0,0.07)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2">
 
-        {/* Breadcrumb */}
-        <div className="border-b border-border/50 bg-card/50">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                onClick={() => navigate(`/tienda/${shop.shop_slug}${isPreviewMode ? '?preview=true' : ''}`)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver a la tienda
-              </Button>
-              <Badge variant="outline" className="text-xs uppercase tracking-wider">
-                {product.category || shop.craft_type?.replace(/-/g, ' ')}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Product Section - Bruvi Layout */}
-        <section className="py-12 md:py-16">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-
-              {/* Gallery - Left */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                {/* Main Image */}
-                <div className="aspect-square rounded-3xl overflow-hidden bg-cream-200 shadow-elegant mb-4">
-                  {images.length > 0 ? (
-                    <img
-                      src={images[selectedImage] || images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ShoppingBag className="w-20 h-20 text-muted-foreground/30" />
+            {/* LEFT: Gallery */}
+            <div className="border-r" style={{ borderColor: 'rgba(255,255,255,0.5)' }}>
+              {/* Main image */}
+              <div className="aspect-square overflow-hidden bg-[#f7f4ef]">
+                {mainImageUrl
+                  ? <img src={mainImageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center">
+                      <span className="material-symbols-outlined" style={{ fontSize: 60, color: `${T.muted}15` }}>image</span>
                     </div>
-                  )}
-                </div>
+                }
+              </div>
 
-                {/* Thumbnails */}
-                {images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-3">
-                    {images.slice(0, 4).map((image: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${selectedImage === index
-                          ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-transparent hover:border-border'
-                          }`}
-                      >
-                        <img src={image} alt="" className="w-full h-full object-cover" />
-                      </button>
+              {/* Thumbnails */}
+              {images.length > 1 && (
+                <div className="flex gap-2 p-4 overflow-x-auto" style={{ background: 'rgba(255,255,255,0.5)' }}>
+                  {images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedIdx(i)}
+                      className="shrink-0 overflow-hidden transition-all"
+                      style={{
+                        width: 64, height: 64, borderRadius: 10,
+                        border: `2px solid ${selectedIdx === i ? T.orange : 'transparent'}`,
+                        outline: selectedIdx === i ? `2px solid ${T.orange}20` : 'none',
+                      }}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT: Product info */}
+            <div className="p-10 flex flex-col gap-5">
+              {/* Location + availability */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                {location && (
+                  <div className="flex items-center gap-1.5" style={{ color: `${T.muted}70` }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>
+                    <LabelCaps color={`${T.muted}70`}>{location}</LabelCaps>
+                  </div>
+                )}
+                <span className="px-3 py-1.5 rounded-full text-white text-[9px] font-[800] uppercase tracking-wider"
+                  style={{ background: avail.dark ? `${T.dark}dd` : T.orange, fontFamily: T.sans }}>
+                  {avail.label}
+                </span>
+              </div>
+
+              {/* Name */}
+              <HeadingSerif as="h1" size={36} style={{ lineHeight: 1.1 }}>{product.name}</HeadingSerif>
+
+              {/* Subtitle: technique + category */}
+              {(techs[0] || p.category) && (
+                <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                  {[techs[0], p.category].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
+              {/* Price */}
+              {priceLabel && (
+                <div className="flex items-baseline gap-3">
+                  <span style={{ fontFamily: T.serif, fontSize: 34, fontWeight: 700, color: T.orange }}>
+                    {priceLabel}
+                  </span>
+                </div>
+              )}
+
+              {/* CTA */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isOutOfStock || adding}
+                  className="flex-1 h-12 rounded-full text-white flex items-center justify-center gap-2 transition-opacity"
+                  style={{
+                    background: isOutOfStock ? `${T.dark}40` : T.dark,
+                    fontFamily: T.sans, fontSize: 11, fontWeight: 800,
+                    letterSpacing: '0.15em', textTransform: 'uppercase',
+                    opacity: adding ? 0.7 : 1,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                    {isOutOfStock ? 'remove_shopping_cart' : 'shopping_bag'}
+                  </span>
+                  {isOutOfStock ? 'Agotado' : adding ? 'Agregando…' : avail.ctaLabel}
+                </button>
+                <button className="w-12 h-12 rounded-full flex items-center justify-center border transition-colors hover:border-orange-400"
+                  style={{ border: `1px solid ${T.dark}15` }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.muted }}>favorite</span>
+                </button>
+              </div>
+
+              {/* Stock indicator */}
+              {p.inventory > 0 && p.inventory <= 10 && (
+                <div className="flex items-center gap-2" style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}80` }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: T.orange }}>inventory_2</span>
+                  Solo quedan {p.inventory} disponibles
+                </div>
+              )}
+
+              {/* Materials */}
+              {mats.length > 0 && (
+                <div className="space-y-2">
+                  <LabelCaps>Materiales</LabelCaps>
+                  <div className="flex flex-wrap gap-1.5">
+                    {mats.map((m: string) => (
+                      <span key={m} className="px-3 py-1 rounded-full"
+                        style={{ background: `${T.dark}07`, fontFamily: T.sans, fontSize: 11, fontWeight: 600, color: `${T.muted}cc`, border: `1px solid ${T.dark}10` }}>
+                        {m}
+                      </span>
                     ))}
                   </div>
-                )}
-              </motion.div>
-
-              {/* Product Info - Right */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="space-y-6"
-              >
-                {/* Header */}
-                <div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
-                    {techniques[0] || 'Artesanía'} · {product.category || 'Pieza única'}
-                    {product.inventory && product.inventory <= 5 && ' · Serie limitada'}
-                  </p>
-
-                  <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-                    {product.name}
-                  </h1>
-
-                  {/* Rating placeholder */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">(12 reseñas)</span>
-                  </div>
                 </div>
+              )}
 
-                {/* Price */}
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-foreground">
-                    {formatCurrency(product.price)}
-                  </span>
-                  {product.compare_price && product.compare_price > product.price && (
-                    <span className="text-lg text-muted-foreground line-through">
-                      {formatCurrency(product.compare_price)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Purchase Options */}
-                <div className="space-y-3 p-4 bg-card rounded-xl border border-border/50">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="purchase" defaultChecked className="w-4 h-4 text-primary" />
-                    <span className="font-medium">Compra única</span>
-                  </label>
-                  {product.customizable && (
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="radio" name="purchase" className="w-4 h-4 text-primary" />
-                      <span className="font-medium">Pedido personalizado</span>
-                    </label>
-                  )}
-                </div>
-
-                {/* Production Time */}
-                {product.production_time && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Timer className="w-4 h-4" />
-                    <span className="text-sm">Tiempo estimado de elaboración: {product.production_time}</span>
-                  </div>
-                )}
-
-                {/* Add to Cart */}
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={product.inventory === 0}
-                  size="lg"
-                  className="w-full h-14 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
-                >
-                  <ShoppingBag className="w-5 h-5 mr-3" />
-                  {product.inventory === 0 ? 'Agotado' : 'Agregar al carrito'}
-                </Button>
-
-                {/* Shipping Progress */}
-                {remaining > 0 && (
-                  <div className="p-4 bg-secondary/10 rounded-xl border border-secondary/20">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Truck className="w-4 h-4 text-secondary" />
-                      <span>Te faltan <strong>{formatCurrency(remaining)}</strong> para obtener envío gratuito</span>
-                    </div>
-                    <div className="mt-2 h-2 bg-secondary/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-secondary rounded-full transition-all"
-                        style={{ width: `${Math.min((product.price / freeShippingThreshold) * 100, 100)}%` }}
-                      />
+              {/* Production info */}
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t" style={{ borderColor: `${T.dark}08` }}>
+                {[
+                  { icon: 'store',         label: 'Tienda',   value: shop.shopName },
+                  { icon: 'handshake',     label: 'Compra',   value: 'Directa al artesano' },
+                  p.production_time && { icon: 'schedule',    label: 'Elaboración', value: `~${p.production_time}` },
+                  p.weight           && { icon: 'scale',      label: 'Peso',        value: `${p.weight} kg` },
+                ].filter(Boolean).map(({ icon, label, value }: any) => (
+                  <div key={label} className="flex items-start gap-2">
+                    <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: 14, color: T.orange }}>{icon}</span>
+                    <div>
+                      <p style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', color: `${T.muted}50`, textTransform: 'uppercase' }}>{label}</p>
+                      <p style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 600, color: T.dark }}>{value}</p>
                     </div>
                   </div>
-                )}
-
-                {/* Inventory Badge */}
-                {product.inventory && product.inventory > 0 && product.inventory <= 10 && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Package className="w-4 h-4" />
-                    <span>Solo quedan {product.inventory} disponibles</span>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <ProductAboutSection
-          description={product.description}
-          technique={techniques[0]}
-          materials={materials}
-          productionTime={product.production_time}
-          dimensions={dimensions}
-          weight={product.weight}
-        />
-
-        {/* Storytelling Extended */}
-        <section className="py-16 bg-cream-200/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-6">
-                Hecha con tradición
-              </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Cada pieza nace en el taller de {shop.shop_name}, donde la técnica y la tradición
-                se mezclan para crear algo verdaderamente único. No es producción industrial:
-                es un oficio que ha pasado por generaciones.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <section className="py-16 bg-background">
-            <div className="container mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground text-center mb-10">
-                También te puede interesar
-              </h2>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {relatedProducts.slice(0, 4).map((relatedProduct, index) => (
-                  <motion.div
-                    key={relatedProduct.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="group cursor-pointer"
-                    onClick={() => navigate(`/tienda/${shop.shop_slug}/producto/${relatedProduct.id}${isPreviewMode ? '?preview=true' : ''}`)}
-                  >
-                    <div className="bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-hover transition-all border border-border/30">
-                      <div className="aspect-square overflow-hidden bg-cream-200">
-                        {(relatedProduct.images as any)?.[0] ? (
-                          <img
-                            src={(relatedProduct.images as any)[0]}
-                            alt={relatedProduct.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <ShoppingBag className="w-12 h-12 text-muted-foreground/30" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                          {relatedProduct.name}
-                        </h3>
-                        <span className="font-bold text-primary">
-                          {formatCurrency(relatedProduct.price)}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
                 ))}
               </div>
             </div>
-          </section>
-        )}
-
-        {/* Reviews */}
-        <ProductReviewsSection
-          averageRating={4.8}
-          totalReviews={12}
-          onWriteReview={() => toast.info('Función de reseñas próximamente')}
-        />
-
-        {/* Footer */}
-        <ShopFooter
-          shopName={shop.shop_name}
-          contactEmail={(shop.contact_info as any)?.email}
-          contactPhone={(shop.contact_info as any)?.phone}
-          address={(shop.contact_info as any)?.address}
-          socialLinks={shop.social_links as any}
-        />
+          </div>
+        </div>
       </div>
-    </>
+
+      {/* ── DESCRIPCIÓN ────────────────────────────────────────────── */}
+      {p.description && (
+        <div className="max-w-[1400px] mx-auto px-10 pb-8">
+          <div style={{ ...glassCard, borderRadius: 20, boxShadow: '0 4px 24px -6px rgba(0,0,0,0.05)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3">
+              <div className="md:col-span-2 p-10 border-r" style={{ borderColor: `${T.dark}06` }}>
+                <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 12 }}>Historia de la pieza</LabelCaps>
+                <p style={{ fontFamily: T.sans, fontSize: 15, color: `${T.muted}cc`, lineHeight: 1.85 }}>
+                  {p.description}
+                </p>
+              </div>
+              <div className="p-8 space-y-5">
+                <LabelCaps color={T.orange} style={{ display: 'block', marginBottom: 4 }}>Especificaciones</LabelCaps>
+                {[
+                  p.dimensions?.height && { label: 'Alto',       value: `${p.dimensions.height} cm` },
+                  p.dimensions?.width  && { label: 'Ancho',      value: `${p.dimensions.width} cm` },
+                  p.dimensions?.length && { label: 'Largo',      value: `${p.dimensions.length} cm` },
+                  p.weight             && { label: 'Peso',        value: `${p.weight} kg` },
+                  p.sku                && { label: 'Referencia',  value: p.sku },
+                  techs.length > 0     && { label: 'Técnica',    value: techs.join(', ') },
+                ].filter(Boolean).map(({ label, value }: any) => (
+                  <div key={label} className="flex justify-between gap-3 py-2 border-b last:border-0"
+                    style={{ borderColor: `${T.dark}07` }}>
+                    <span style={{ fontFamily: T.sans, fontSize: 11, color: `${T.muted}60`, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</span>
+                    <span style={{ fontFamily: T.sans, fontSize: 13, color: T.dark, fontWeight: 600 }}>{value}</span>
+                  </div>
+                ))}
+                {[p.dimensions?.height, p.dimensions?.width, p.dimensions?.length, p.weight, p.sku, techs.length > 0].every(v => !v) && (
+                  <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}40` }}>Sin especificaciones adicionales.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── AUTENTICIDAD ──────────────────────────────────────────── */}
+      <div className="max-w-[1400px] mx-auto px-10 pb-8">
+        <div className="rounded-xl px-8 py-6 flex items-center gap-8 flex-wrap" style={{ background: `${T.orange}08`, border: `1px solid ${T.orange}18` }}>
+          {[
+            { icon: 'verified',      text: `Pieza verificada por TELAR — hecha en ${shop.municipality || shop.region || 'Colombia'}` },
+            { icon: 'person',        text: `Compra directa a ${shop.shopName}` },
+            { icon: 'local_shipping',text: 'Envío a todo Colombia disponible' },
+          ].map(({ icon, text }) => (
+            <div key={icon} className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18, color: T.orange }}>{icon}</span>
+              <span style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}cc` }}>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── OTRAS PIEZAS ──────────────────────────────────────────── */}
+      {related.length > 0 && (
+        <div className="max-w-[1400px] mx-auto px-10 pb-12">
+          <div className="flex items-center justify-between mb-5">
+            <HeadingSerif size={24}>Más piezas del taller</HeadingSerif>
+            <Link to={`/tienda/${shopSlug}/catalogo`}
+              style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: T.orange }}>
+              Ver catálogo →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {related.map(r => (
+              <ProductCardCompact
+                key={r.id}
+                product={r}
+                onClick={() => navigate(`/tienda/${shopSlug}/producto/${r.id}${isPreview ? '?preview=true' : ''}`)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <ShopPublicFooter shop={shop} shopSlug={shopSlug} />
+    </div>
   );
 };

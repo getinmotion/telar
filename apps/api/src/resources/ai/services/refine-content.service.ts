@@ -113,19 +113,6 @@ INSTRUCCIONES:
 - Usa párrafos cortos para facilidad de lectura
 - En español`;
 
-      case 'shop_story':
-        return `Eres un escritor experto en historias de marca artesanales. Tu trabajo es refinar la historia que el usuario escribió, corrigiendo errores ortográficos y gramaticales mientras mantienes la autenticidad.
-
-INSTRUCCIONES:
-- Responde SOLO con el texto refinado, sin explicaciones
-- Corrige TODOS los errores ortográficos (ej: "tejeduria" → "tejeduría", "coperativa" → "cooperativa")
-- Corrige errores gramaticales y puntuación
-- Mejora la fluidez del texto sin cambiar el mensaje original
-- Mantén el tono auténtico y personal del artesano
-- Usa mayúsculas en nombres propios (ej: "nabusimake" → "Nabusimake")
-- Mantén la estructura original de párrafos
-- En español`;
-
       case 'shop_mission':
         return `Eres un escritor experto en declaraciones de misión para marcas artesanales. Tu trabajo es refinar la misión escrita por el usuario.
 

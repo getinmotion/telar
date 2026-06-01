@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { upsertUserProgress } from '@/services/userProgress.actions';
 import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
+import { getArtisanShopByUserId, createArtisanShop, isSlugAvailable } from '@/services/artisanShops.actions';
 
 const MaturityCalculator = () => {
   const { language } = useLanguage();
@@ -45,7 +46,45 @@ const MaturityCalculator = () => {
   }, [trackEvent, finalLanguage]);
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard/home');
+    navigate('/dashboard');
+  };
+
+  const autoCreateShop = async (profileData?: any) => {
+    if (!user?.id) return;
+    try {
+      const existing = await getArtisanShopByUserId(user.id);
+      if (existing) return; // Ya tiene tienda, no crear
+    } catch {
+      // No existe, continuar con creación
+    }
+
+    try {
+      const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Mi Tienda';
+      const craftType = profileData?.craftType || profileData?.industry || 'Artesanía';
+
+      // Generar slug único
+      const baseSlug = userName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      let slug = baseSlug;
+      let counter = 1;
+      while (!(await isSlugAvailable(slug))) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
+      await createArtisanShop({
+        userId: user.id,
+        shopName: userName,
+        shopSlug: slug,
+        craftType,
+        active: false,
+        creationStatus: 'complete',
+      } as any);
+
+      console.log('[MaturityCalculator] Tienda auto-creada para', user.id);
+    } catch (shopError) {
+      // La auto-creación de tienda no debe bloquear el flujo
+      console.warn('[MaturityCalculator] No se pudo auto-crear tienda:', shopError);
+    }
   };
 
   const handleComplete = async (scores: CategoryScore, recommendedAgents: RecommendedAgents, profileData?: any) => {
@@ -80,7 +119,10 @@ const MaturityCalculator = () => {
         });
       }
 
-      // 🎯 PASO 2: Generar tareas personalizadas
+      // 🏪 PASO 2: Auto-crear tienda (si no existe)
+      await autoCreateShop(profileData);
+
+      // 🎯 PASO 3: Generar tareas personalizadas
       const tasks = await analyzeProfileAndGenerateTasks();
 
       if (tasks && tasks.length > 0) {
@@ -92,7 +134,7 @@ const MaturityCalculator = () => {
 
       // Redirigir al dashboard
       setTimeout(() => {
-        navigate('/dashboard/home');
+        navigate('/dashboard');
       }, 2000);
 
     } catch (error) {
@@ -106,7 +148,7 @@ const MaturityCalculator = () => {
 
       // Redirigir incluso si hay errores
       setTimeout(() => {
-        navigate('/dashboard/home');
+        navigate('/dashboard');
       }, 2000);
     } finally {
       setIsGeneratingTasks(false);

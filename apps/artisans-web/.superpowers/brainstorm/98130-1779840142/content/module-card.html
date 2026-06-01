@@ -1,0 +1,293 @@
+<h2>¿Cómo muestra el contenido cada sección?</h2>
+<p class="subtitle">El nav de iconos está fijo arriba. ¿Qué aparece debajo cuando seleccionas una sección?</p>
+
+<style>
+  .phone {
+    width: 210px;
+    min-height: 400px;
+    background: #f9f7f2;
+    border-radius: 28px;
+    border: 2px solid rgba(21,27,45,0.12);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(21,27,45,0.12);
+    margin: 0 auto;
+    font-family: -apple-system, sans-serif;
+  }
+  .ph-header {
+    background: rgba(249,247,242,0.97);
+    padding: 9px 12px 7px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(21,27,45,0.07);
+    flex-shrink: 0;
+  }
+  .ph-iso { width: 20px; height: 20px; background: #ec6d13; border-radius: 5px; }
+  .ph-hero {
+    margin: 7px 8px 0;
+    background: rgba(255,255,255,0.85);
+    border-radius: 12px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.9);
+    flex-shrink: 0;
+  }
+  .ph-logo { width: 30px; height: 30px; background: rgba(236,109,19,0.1); border-radius: 8px; flex-shrink: 0; }
+  .ph-name { font-size: 11px; font-weight: 700; color: #151b2d; font-family: Georgia, serif; }
+  .ph-bar { height: 3px; background: rgba(21,27,45,0.07); border-radius: 2px; margin-top: 3px; }
+  .ph-bar-fill { height: 100%; background: #ec6d13; border-radius: 2px; width: 55%; }
+
+  /* Icon nav */
+  .icon-nav {
+    display: flex;
+    justify-content: space-around;
+    padding: 7px 2px 5px;
+    background: white;
+    border-bottom: 1px solid rgba(21,27,45,0.06);
+    flex-shrink: 0;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+  .nav-dot {
+    width: 26px; height: 26px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .nav-dot.active { background: rgba(236,109,19,0.12); }
+  .nav-label { font-size: 6.5px; font-weight: 700; color: rgba(84,67,62,0.4); }
+  .nav-label.active { color: #ec6d13; }
+
+  /* Scroll area */
+  .ph-scroll { flex: 1; overflow: hidden; padding: 8px 0 8px; }
+
+  /* === OPTION A: Rich card with preview === */
+  .rich-card {
+    margin: 0 8px 8px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.95);
+  }
+  .rich-photo {
+    height: 64px;
+    background: linear-gradient(135deg, rgba(236,109,19,0.15), rgba(21,27,45,0.08));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    position: relative;
+  }
+  .rich-body { padding: 10px 12px; }
+  .rich-label { font-size: 7px; font-weight: 800; color: rgba(84,67,62,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+  .rich-title { font-size: 12px; font-weight: 700; color: #151b2d; font-family: Georgia, serif; margin-bottom: 3px; }
+  .rich-sub { font-size: 9px; color: rgba(84,67,62,0.55); margin-bottom: 8px; line-height: 1.4; }
+  .cta-full {
+    width: 100%; padding: 8px 0; border: none; border-radius: 9px;
+    font-size: 10px; font-weight: 700; text-align: center;
+    cursor: pointer;
+  }
+  .cta-orange { background: #ec6d13; color: white; }
+  .cta-dark { background: #151b2d; color: white; }
+  .cta-outline { background: transparent; color: #151b2d; border: 1.5px solid rgba(21,27,45,0.15); }
+  .pill-sm {
+    position: absolute; top: 6px; right: 6px;
+    font-size: 7px; font-weight: 800; padding: 2px 7px; border-radius: 99px;
+    background: rgba(22,101,52,0.15); color: #166534;
+  }
+
+  /* === OPTION B: Action rows === */
+  .action-row {
+    margin: 0 8px 5px;
+    background: white;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ar-icon { width: 28px; height: 28px; border-radius: 8px; background: rgba(236,109,19,0.1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .ar-icon.done { background: rgba(22,101,52,0.1); }
+  .ar-body { flex: 1; min-width: 0; }
+  .ar-title { font-size: 10px; font-weight: 700; color: #151b2d; }
+  .ar-sub { font-size: 8px; color: rgba(84,67,62,0.5); }
+  .ar-cta { font-size: 9px; font-weight: 700; color: #ec6d13; white-space: nowrap; flex-shrink: 0; }
+  .ar-cta.done { color: rgba(84,67,62,0.35); }
+  .section-hd { font-size: 7px; font-weight: 800; color: rgba(84,67,62,0.35); text-transform: uppercase; letter-spacing: 0.12em; padding: 4px 16px 3px; }
+
+  /* === OPTION C: Full-screen section === */
+  .fullsec-header {
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(21,27,45,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .fullsec-title { font-size: 12px; font-weight: 700; color: #151b2d; font-family: Georgia, serif; }
+  .fullsec-pill { font-size: 7px; font-weight: 800; padding: 2px 7px; border-radius: 99px; background: rgba(22,101,52,0.12); color: #166534; }
+  .fullsec-photo {
+    height: 80px;
+    background: linear-gradient(135deg, rgba(236,109,19,0.12), rgba(21,27,45,0.06));
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+    flex-shrink: 0;
+  }
+  .fullsec-body { padding: 10px 12px; }
+  .fullsec-name { font-size: 13px; font-weight: 700; color: #151b2d; font-family: Georgia, serif; margin-bottom: 2px; }
+  .fullsec-sub { font-size: 9px; color: rgba(84,67,62,0.55); margin-bottom: 10px; line-height: 1.4; }
+  .tag-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tag { font-size: 8px; font-weight: 700; background: rgba(21,27,45,0.06); color: rgba(84,67,62,0.65); border-radius: 99px; padding: 2px 7px; }
+  .cta-row { display: flex; gap: 5px; }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .card { min-height: 180px; }
+</style>
+
+<div class="cards">
+
+  <!-- A: Rich card -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px; background:#f0ede8;">
+      <div class="phone">
+        <div class="ph-header">
+          <span style="font-size:16px;color:#151b2d">←</span>
+          <div class="ph-iso"></div>
+          <span style="font-size:13px;color:rgba(84,67,62,0.4)">🔔</span>
+        </div>
+        <div class="ph-hero">
+          <div class="ph-logo"></div>
+          <div style="flex:1"><div class="ph-name">Mi Tienda</div><div class="ph-bar"><div class="ph-bar-fill"></div></div></div>
+          <span style="font-size:8px;color:#ec6d13;font-weight:700">55%</span>
+        </div>
+        <div class="icon-nav">
+          <div class="nav-item"><div class="nav-dot active">👤</div><div class="nav-label active">Perfil</div></div>
+          <div class="nav-item"><div class="nav-dot">🎨</div><div class="nav-label">Marca</div></div>
+          <div class="nav-item"><div class="nav-dot">🖼</div><div class="nav-label">Hero</div></div>
+          <div class="nav-item"><div class="nav-dot">📞</div><div class="nav-label">Contacto</div></div>
+          <div class="nav-item"><div class="nav-dot">📋</div><div class="nav-label">Legal</div></div>
+          <div class="nav-item"><div class="nav-dot">✨</div><div class="nav-label">Diseño</div></div>
+        </div>
+        <div class="ph-scroll">
+          <div class="rich-card">
+            <div class="rich-photo">
+              🧵
+              <div class="pill-sm">✓ Listo</div>
+            </div>
+            <div class="rich-body">
+              <div class="rich-label">Identidad artesanal</div>
+              <div class="rich-title">María García</div>
+              <div class="rich-sub">Tejedora · Boyacá<br>Técnica: Telar tradicional</div>
+              <button class="cta-full cta-outline">Editar perfil →</button>
+            </div>
+          </div>
+          <div class="rich-card">
+            <div class="rich-body">
+              <div class="rich-label">Marca</div>
+              <div class="rich-title">Hilos del Páramo</div>
+              <div class="rich-sub">"Tejidos que cuentan historias"</div>
+              <button class="cta-full cta-outline">Editar marca →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Cards con preview</h3>
+      <p>Scroll vertical de cards, cada una con imagen/preview, info resumida y CTA full-width. Como la home.</p>
+    </div>
+  </div>
+
+  <!-- B: Action rows -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px; background:#f0ede8;">
+      <div class="phone">
+        <div class="ph-header">
+          <span style="font-size:16px;color:#151b2d">←</span>
+          <div class="ph-iso"></div>
+          <span style="font-size:13px;color:rgba(84,67,62,0.4)">🔔</span>
+        </div>
+        <div class="ph-hero">
+          <div class="ph-logo"></div>
+          <div style="flex:1"><div class="ph-name">Mi Tienda</div><div class="ph-bar"><div class="ph-bar-fill"></div></div></div>
+          <span style="font-size:8px;color:#ec6d13;font-weight:700">55%</span>
+        </div>
+        <div class="icon-nav">
+          <div class="nav-item"><div class="nav-dot">👤</div><div class="nav-label">Perfil</div></div>
+          <div class="nav-item"><div class="nav-dot">🎨</div><div class="nav-label">Marca</div></div>
+          <div class="nav-item"><div class="nav-dot">🖼</div><div class="nav-label">Hero</div></div>
+          <div class="nav-item"><div class="nav-dot active">📞</div><div class="nav-label active">Contacto</div></div>
+          <div class="nav-item"><div class="nav-dot">📋</div><div class="nav-label">Legal</div></div>
+          <div class="nav-item"><div class="nav-dot">✨</div><div class="nav-label">Diseño</div></div>
+        </div>
+        <div class="ph-scroll">
+          <div class="section-hd">Contacto y cobros</div>
+          <div class="action-row">
+            <div class="ar-icon done">💬</div>
+            <div class="ar-body"><div class="ar-title">WhatsApp</div><div class="ar-sub">+57 300 123 4567</div></div>
+            <div class="ar-cta done">Editar</div>
+          </div>
+          <div class="action-row">
+            <div class="ar-icon">🧾</div>
+            <div class="ar-body"><div class="ar-title">RUT / NIT</div><div class="ar-sub">Sin registrar</div></div>
+            <div class="ar-cta">Agregar →</div>
+          </div>
+          <div class="action-row">
+            <div class="ar-icon">🏦</div>
+            <div class="ar-body"><div class="ar-title">Cuenta bancaria</div><div class="ar-sub">Sin configurar</div></div>
+            <div class="ar-cta">Agregar →</div>
+          </div>
+          <div class="action-row">
+            <div class="ar-icon">📍</div>
+            <div class="ar-body"><div class="ar-title">Dirección</div><div class="ar-sub">Bogotá, Colombia</div></div>
+            <div class="ar-cta done">Editar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Filas de acción</h3>
+      <p>Lista de ítems con icono + info + CTA inline. Rápido de escanear, ideal para secciones con múltiples sub-items (Contacto, Legal).</p>
+    </div>
+  </div>
+
+  <!-- C: Full section view -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px; background:#f0ede8;">
+      <div class="phone">
+        <div class="ph-header">
+          <span style="font-size:16px;color:#151b2d">←</span>
+          <div class="ph-iso"></div>
+          <span style="font-size:13px;color:rgba(84,67,62,0.4)">🔔</span>
+        </div>
+        <div class="icon-nav" style="margin-top:0">
+          <div class="nav-item"><div class="nav-dot active">👤</div><div class="nav-label active">Perfil</div></div>
+          <div class="nav-item"><div class="nav-dot">🎨</div><div class="nav-label">Marca</div></div>
+          <div class="nav-item"><div class="nav-dot">🖼</div><div class="nav-label">Hero</div></div>
+          <div class="nav-item"><div class="nav-dot">📞</div><div class="nav-label">Contacto</div></div>
+          <div class="nav-item"><div class="nav-dot">📋</div><div class="nav-label">Legal</div></div>
+          <div class="nav-item"><div class="nav-dot">✨</div><div class="nav-label">Diseño</div></div>
+        </div>
+        <div class="fullsec-photo">🧵</div>
+        <div class="fullsec-header">
+          <div class="fullsec-title">Identidad artesanal</div>
+          <div class="fullsec-pill">✓ Listo</div>
+        </div>
+        <div class="ph-scroll">
+          <div class="fullsec-body">
+            <div class="fullsec-name">María García</div>
+            <div class="fullsec-sub">Tejedora · Boyacá, Colombia<br>Técnica: Telar tradicional andino</div>
+            <div class="tag-row">
+              <div class="tag">Telar</div>
+              <div class="tag">Lana</div>
+              <div class="tag">Andino</div>
+            </div>
+            <div class="cta-row">
+              <button class="cta-full cta-dark" style="flex:1">Editar perfil</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Vista de sección completa</h3>
+      <p>El contenido toma toda la pantalla debajo del nav. Sin hero card. Foto grande de la sección, contenido detallado y CTA prominente.</p>
+    </div>
+  </div>
+
+</div>

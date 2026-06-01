@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -44,6 +45,7 @@ export const ShopTable: React.FC<ShopTableProps> = ({
   actionLoading,
   loading,
 }) => {
+  const navigate = useNavigate();
   const allSelected = shops.length > 0 && selectedShops.length === shops.length;
   const someSelected = selectedShops.length > 0 && selectedShops.length < shops.length;
 
@@ -182,6 +184,13 @@ export const ShopTable: React.FC<ShopTableProps> = ({
                 </span>
               </TableCell>
               <TableCell>
+                <button
+                  onClick={() => navigate(`/backoffice/tiendas/${shop.id}`)}
+                  title="Ver perfil CRM"
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors mr-1"
+                >
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </button>
                 <ShopActionsDropdown
                   shop={shop}
                   onApprove={onApprove}

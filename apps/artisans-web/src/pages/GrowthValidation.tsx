@@ -19,7 +19,7 @@ export default function GrowthValidation() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <NewDashboardHeader 
         onMaturityCalculatorClick={() => navigate('/maturity-calculator')}
       />

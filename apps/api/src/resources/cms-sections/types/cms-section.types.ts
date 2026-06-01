@@ -4,6 +4,7 @@
  */
 export type CmsSectionType =
   | 'hero'
+  | 'hero_split'
   | 'quote'
   | 'two_column_intro'
   | 'technique_grid'
@@ -17,6 +18,9 @@ export type CmsSectionType =
   | 'home_block'
   | 'home_hero_carousel'
   | 'content_pick'
+  | 'embedded_widget'
+  | 'colecciones_seasonal_grid'
+  | 'colecciones_archive_nav_header'
   | string;
 
 export interface CmsSection {

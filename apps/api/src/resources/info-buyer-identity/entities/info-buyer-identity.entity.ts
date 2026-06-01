@@ -26,6 +26,18 @@ export class InfoBuyerIdentity {
   @Column({ type: 'varchar', length: 50, nullable: true })
   celular: string | null;
 
+  @Column({ type: 'uuid', nullable: true, name: 'id_type_id' })
+  idTypeId: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, name: 'id_number' })
+  idNumber: string | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'country_id' })
+  countryId: string | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'agreement_id' })
+  agreementId: string | null;
+
   @CreateDateColumn({
     type: 'timestamp',
     name: 'created_at',
