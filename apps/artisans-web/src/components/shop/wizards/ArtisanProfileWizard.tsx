@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useArtisanShop } from "@/hooks/useArtisanShop";
-import { useProducts } from "@/hooks/useProducts";
 import { useAuth } from "@/context/AuthContext";
 import {
   updateArtisanShop,
@@ -146,7 +145,7 @@ const AI_PANEL: Record<
 function validate(step: number, data: ArtisanProfileData): boolean {
   switch (step) {
     case 1:
-      return !!data.artisanName && !!data.artisticName && ((data.craftIds?.length ?? 0) > 0 || !!data.craftId);
+      return !!data.artisanName && !!data.artisticName && !!data.craftId;
     case 2:
       return !!data.learnedFrom && data.startAge > 0;
     case 3:
@@ -195,15 +194,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   const [generatedStory, setGeneratedStory] = useState<any>(null);
 
   const telarData = useTelarDataStore();
-  const { products } = useProducts((shop as any)?.id);
-
-  // Categorías únicas de los productos para sugerir oficios relevantes
-  const suggestedCategoryNames = useMemo(() => {
-    const cats = products
-      .map(p => (p as any).category as string | undefined)
-      .filter((c): c is string => !!c);
-    return [...new Set(cats)];
-  }, [products]);
   const shopAny = shop as any;
   const isProfileCompleted = shopAny?.artisanProfileCompleted === true;
 
@@ -237,10 +227,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
         municipality:
           profile.municipality || (shopAny?.municipality as string) || "",
         country: profile.country || "Colombia",
-        // Backwards compat: inicializar craftIds desde craftId si aún no existe
-        craftIds: profile.craftIds?.length
-          ? profile.craftIds
-          : profile.craftId ? [profile.craftId] : [],
       });
       if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
       if (shopAny.artisanProfileCompleted) setStep(5);
@@ -255,7 +241,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
                 setData((prev) => ({
                   ...prev,
                   craftId: prev.craftId ?? craftId,
-                  craftIds: prev.craftIds?.length ? prev.craftIds : [craftId],
                 }));
             })
             .catch(() => {});
@@ -480,7 +465,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
           shopSlug={(shop as any)?.shopSlug || ""}
           shopName={(shop as any)?.shopName || ""}
           userId={user?.id}
-          suggestedCategoryNames={suggestedCategoryNames}
           onShopUpdate={async (updates) => {
             if (shop?.id) {
               await updateArtisanShop(shop.id, updates as any);

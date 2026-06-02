@@ -501,10 +501,10 @@ export const CommercialDashboard: React.FC = () => {
   const REVIEW_SLIDES = [
     { icon: 'share',       label: 'Comparte tu tienda ahora',           body: 'Tu tienda ya tiene URL propia y está visible. Comparte tu link de BIO en Instagram, WhatsApp y con tus clientes habituales mientras esperas la curación.',          cta: 'Compartir link de BIO',     action: () => setShowBioModal(true) },
     { icon: 'add_circle',  label: 'Sube más productos',                  body: 'Aprovecha este tiempo para completar tu catálogo. Más productos publicados aumentan tus posibilidades en el marketplace central.',                                     cta: 'Crear producto',            action: () => navigate('/productos/subir') },
-    ...(!hasProfile ? [{ icon: 'person_pin', label: 'Completa tu perfil artesanal', body: 'Los curadores de TELAR valoran el perfil completo. Tu historia, técnicas y fotos de taller son los criterios más importantes para la aprobación.', cta: 'Editar perfil', action: () => navigate('/dashboard/artisan-profile-wizard') }] : []),
+    { icon: 'person_pin',  label: 'Completa tu perfil artesanal',        body: 'Los curadores de TELAR valoran el perfil completo. Tu historia, técnicas y fotos de taller son los criterios más importantes para la aprobación.',                    cta: 'Editar perfil',             action: () => navigate('/dashboard/artisan-profile-wizard') },
     { icon: 'quiz',        label: 'Prepara tus preguntas frecuentes',    body: 'Cuando lleguen los primeros compradores ya tendrás las respuestas listas. Las FAQs reducen el tiempo de soporte y generan más confianza.',                             cta: 'Configurar FAQs',           action: () => navigate('/mi-tienda/configurar') },
   ];
-  const reviewSl = REVIEW_SLIDES[reviewSlide % REVIEW_SLIDES.length];
+  const reviewSl = REVIEW_SLIDES[reviewSlide];
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -775,8 +775,8 @@ export const CommercialDashboard: React.FC = () => {
                                 key={i}
                                 onClick={() => setReviewSlide(i)}
                                 style={{
-                                  width: i === reviewSlide % REVIEW_SLIDES.length ? 20 : 6, height: 6, borderRadius: 3,
-                                  background: i === reviewSlide % REVIEW_SLIDES.length ? '#3b82f6' : 'rgba(21,27,45,0.12)',
+                                  width: i === reviewSlide ? 20 : 6, height: 6, borderRadius: 3,
+                                  background: i === reviewSlide ? '#3b82f6' : 'rgba(21,27,45,0.12)',
                                   border: 'none', cursor: 'pointer', padding: 0,
                                   transition: 'width 0.3s ease, background 0.2s',
                                 }}
