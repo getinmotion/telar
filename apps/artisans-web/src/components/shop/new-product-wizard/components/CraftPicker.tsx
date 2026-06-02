@@ -1,14 +1,15 @@
 /**
- * CraftPicker / TechniquePicker
+ * CraftPicker / CraftMultiPicker / TechniquePicker
  *
  * Componentes de selección de oficio y técnica en estilo tarjeta.
  * Mismo patrón visual que MaterialPicker (TaxonomyPicker.tsx).
  *
- * CraftPicker  — single-select, filtrado por categoría del producto.
- * TechniquePicker — single-select, aparece solo cuando hay oficio seleccionado.
+ * CraftPicker      — single-select, filtrado por categoría del producto (wizard de producto).
+ * CraftMultiPicker — multi-select, muestra hasta 10 oficios sugeridos por categoría (wizard de perfil).
+ * TechniquePicker  — single-select, aparece solo cuando hay oficio seleccionado.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getAllCrafts, getTechniquesByCraftId, type Craft, type Technique } from '@/services/crafts.actions';
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
@@ -232,6 +233,197 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
         <div className="flex items-center gap-1.5 pt-1">
           <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">check_circle</span>
           <span className="text-[11px] font-[700] text-[#ec6d13]">{selectedCraft.name}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── CraftMultiPicker ──────────────────────────────────────────────────────────
+// Variante multi-select para el wizard de perfil artesanal.
+// Muestra hasta MAX_VISIBLE oficios relevantes por defecto (basado en categorías de productos),
+// pre-seleccionando automáticamente los que coincidan si no hay selección previa.
+
+const MAX_VISIBLE = 10;
+
+interface CraftMultiPickerProps {
+  selectedCraftIds: string[];
+  onChange: (craftIds: string[]) => void;
+  /** Nombres de categorías de productos del artesano (para sugerencia inteligente). */
+  suggestedCategoryNames?: string[];
+}
+
+export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
+  selectedCraftIds,
+  onChange,
+  suggestedCategoryNames,
+}) => {
+  const [allCrafts, setAllCrafts]     = useState<Craft[]>([]);
+  const [isLoading, setIsLoading]     = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAll, setShowAll]         = useState(false);
+  const autoSelectedRef               = useRef(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    getAllCrafts()
+      .then(setAllCrafts)
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  // Auto-seleccionar hasta MAX_VISIBLE oficios relevantes la primera vez que carga
+  useEffect(() => {
+    if (!allCrafts.length || autoSelectedRef.current) return;
+    if (selectedCraftIds.length > 0) { autoSelectedRef.current = true; return; }
+    if (!suggestedCategoryNames?.length) return;
+
+    const keywords = suggestedCategoryNames
+      .flatMap(cat => getCraftKeywordsForCategory(cat) ?? []);
+    if (!keywords.length) return;
+
+    const matched = allCrafts
+      .filter(c => matchesCategoryFilter(c.name, keywords))
+      .slice(0, MAX_VISIBLE)
+      .map(c => c.id);
+
+    if (matched.length) {
+      autoSelectedRef.current = true;
+      onChange(matched);
+    }
+  }, [allCrafts, suggestedCategoryNames, selectedCraftIds.length]);
+
+  const toggle = (id: string) => {
+    onChange(
+      selectedCraftIds.includes(id)
+        ? selectedCraftIds.filter(s => s !== id)
+        : [...selectedCraftIds, id],
+    );
+  };
+
+  // Palabras clave de las categorías sugeridas para ordenar relevantes primero
+  const suggestedKeywords: string[] = (suggestedCategoryNames ?? [])
+    .flatMap(cat => getCraftKeywordsForCategory(cat) ?? []);
+
+  // Crafts visibles según estado
+  const visibleCrafts: Craft[] = (() => {
+    if (searchQuery.trim().length >= 2) {
+      return allCrafts.filter(c =>
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+    if (showAll) return allCrafts;
+
+    // Siempre mostrar los seleccionados
+    const selected  = allCrafts.filter(c => selectedCraftIds.includes(c.id));
+    const suggested = suggestedKeywords.length
+      ? allCrafts.filter(c => !selectedCraftIds.includes(c.id) && matchesCategoryFilter(c.name, suggestedKeywords))
+      : allCrafts.filter(c => !selectedCraftIds.includes(c.id));
+
+    // Completar hasta MAX_VISIBLE con sugeridos (o todos si no hay keywords)
+    const remaining = MAX_VISIBLE - selected.length;
+    return [...selected, ...suggested.slice(0, Math.max(remaining, 0))];
+  })();
+
+  const hiddenCount = !showAll && !searchQuery
+    ? allCrafts.length - visibleCrafts.length
+    : 0;
+
+  const selectedCraftObjects = allCrafts.filter(c => selectedCraftIds.includes(c.id));
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
+        <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+        Cargando oficios...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <span className="material-symbols-outlined text-[15px] text-[#54433e]/30 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          search
+        </span>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => { setSearchQuery(e.target.value); setShowAll(false); }}
+          placeholder="Buscar oficio..."
+          className="w-full border border-[#e2d5cf]/40 rounded-xl px-4 pl-9 py-2 text-[13px] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/40 focus:ring-2 focus:ring-[#ec6d13]/8 transition-all hover:border-[#e2d5cf]/70"
+          style={{ background: 'rgba(247,244,239,0.4)' }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#54433e]/30 hover:text-[#54433e]/60"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        )}
+      </div>
+
+      {/* Label */}
+      {!searchQuery && (
+        <p className="text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/40">
+          {showAll ? 'Todos los oficios' : suggestedKeywords.length ? 'Oficios sugeridos según tus productos' : 'Oficios disponibles'}
+        </p>
+      )}
+
+      {/* Cards grid */}
+      {visibleCrafts.length > 0 ? (
+        <div className="flex flex-wrap gap-2.5">
+          {visibleCrafts.map(craft => {
+            const isSelected = selectedCraftIds.includes(craft.id);
+            return (
+              <TaxonomyCard
+                key={craft.id}
+                name={craft.name}
+                icon={getCraftIcon(craft.name)}
+                isSelected={isSelected}
+                onClick={() => toggle(craft.id)}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-[12px] text-[#54433e]/40 italic py-1">
+          {searchQuery ? `Sin resultados para "${searchQuery}"` : 'No hay oficios disponibles.'}
+        </p>
+      )}
+
+      {/* Show all / show less */}
+      {hiddenCount > 0 && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
+        >
+          <span className="material-symbols-outlined text-[15px]">expand_more</span>
+          Ver los {hiddenCount} oficios restantes
+        </button>
+      )}
+      {showAll && !searchQuery && (
+        <button
+          onClick={() => setShowAll(false)}
+          className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
+        >
+          <span className="material-symbols-outlined text-[15px]">expand_less</span>
+          Mostrar menos
+        </button>
+      )}
+
+      {/* Selected summary */}
+      {selectedCraftObjects.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">check_circle</span>
+          {selectedCraftObjects.map(c => (
+            <span key={c.id} className="text-[11px] font-[700] text-[#ec6d13]">{c.name}</span>
+          ))}
+          {selectedCraftObjects.length > 1 && (
+            <span className="text-[10px] text-[#54433e]/40">— {selectedCraftObjects.length} oficios</span>
+          )}
         </div>
       )}
     </div>

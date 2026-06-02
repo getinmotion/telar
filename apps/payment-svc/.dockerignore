@@ -1,8 +1,0 @@
-.git
-.vscode
-.idea
-bin
-tmp
-*.md
-docker-compose.yml
-Dockerfile

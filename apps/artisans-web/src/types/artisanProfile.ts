@@ -7,7 +7,8 @@ export interface ArtisanProfileData {
   shortBio?: string;
   artisanPhoto?: string;
   artisanVideo?: string;
-  craftId?: string;             // UUID del oficio principal (FK → crafts)
+  craftId?: string;             // UUID del oficio principal (FK → crafts) — backwards compat
+  craftIds?: string[];          // UUIDs de todos los oficios seleccionados (multi-select)
   primaryTechniqueId?: string;   // UUID de la técnica principal (FK → techniques)
   secondaryTechniqueId?: string; // UUID de la técnica secundaria (FK → techniques)
   materialIds?: string[];       // UUIDs de materiales del perfil (artisan_materials)
@@ -127,6 +128,7 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   workshopDescription: '',
   creationProcess: '',
   workshopTools: [],
+  craftIds: [],
   techniques: [],
   techniqueIds: [],
   materials: [],

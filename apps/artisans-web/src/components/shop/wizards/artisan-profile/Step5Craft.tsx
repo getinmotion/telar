@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArtisanProfileData } from '@/types/artisanProfile';
-import { getTechniquesByCraftId, Technique } from '@/services/crafts.actions';
+import { getAllCrafts, getTechniquesByCraftId, Craft, Technique } from '@/services/crafts.actions';
 import { suggestTaxonomyItem } from '@/services/taxonomy.actions';
 import { useAuth } from '@/context/AuthContext';
 import { MaterialPicker } from '../../new-product-wizard/components/TaxonomyPicker';
@@ -98,35 +98,58 @@ const TechniqueCard: React.FC<TechniqueCardProps> = ({ name, isSelected, isPendi
 );
 
 // ── TechniqueMultiPicker ──────────────────────────────────────────────────────
+// Versión multi-oficio: recibe craftIds[] y agrupa técnicas por oficio.
 
 interface TechniqueMultiPickerProps {
-  craftId?: string;
+  craftIds: string[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
 }
 
-const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange }) => {
+interface CraftGroup {
+  craft: Craft;
+  techniques: Technique[];
+}
+
+const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftIds, selectedIds, onChange }) => {
   const { user } = useAuth();
-  const [allTechniques, setAllTechniques] = useState<Technique[]>([]);
-  const [loading, setLoading]             = useState(false);
-  const [error, setError]                 = useState(false);
-  const [searchQuery, setSearchQuery]     = useState('');
-  const [showSuggest, setShowSuggest]     = useState(false);
-  const [suggestName, setSuggestName]     = useState('');
-  const [isSuggesting, setIsSuggesting]   = useState(false);
-  const [pendingNames, setPendingNames]   = useState<string[]>([]);
+  const [craftGroups, setCraftGroups]   = useState<CraftGroup[]>([]);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState(false);
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [showSuggest, setShowSuggest]   = useState(false);
+  const [suggestName, setSuggestName]   = useState('');
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [pendingIds, setPendingIds]     = useState<string[]>([]);
+  // craftId used for suggest (first selected craft)
+  const primaryCraftId = craftIds[0];
+
+  const craftIdsKey = craftIds.join(',');
 
   useEffect(() => {
-    if (!craftId) { setAllTechniques([]); return; }
+    if (!craftIds.length) { setCraftGroups([]); return; }
     let cancelled = false;
     setLoading(true);
     setError(false);
-    getTechniquesByCraftId(craftId)
-      .then(list => { if (!cancelled) setAllTechniques(list); })
+    Promise.all([
+      getAllCrafts(),
+      ...craftIds.map(id => getTechniquesByCraftId(id).then(list => ({ id, list }))),
+    ])
+      .then(([allCrafts, ...techniqueResults]) => {
+        if (cancelled) return;
+        const craftMap = new Map((allCrafts as Craft[]).map(c => [c.id, c]));
+        const groups: CraftGroup[] = (techniqueResults as { id: string; list: Technique[] }[])
+          .map(({ id, list }) => ({ craft: craftMap.get(id)!, techniques: list }))
+          .filter(g => g.craft);
+        setCraftGroups(groups);
+      })
       .catch(() => { if (!cancelled) setError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [craftId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [craftIdsKey]);
+
+  const allTechniques = craftGroups.flatMap(g => g.techniques);
 
   const toggle = (id: string) => {
     onChange(
@@ -140,11 +163,16 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     setIsSuggesting(true);
     try {
       const newItem = await suggestTaxonomyItem('techniques', name, user?.id);
-      // Add optimistic pending entry to local list and select it
-      const fakeEntry: Technique = { id: newItem.id, craftId: craftId ?? '', name: newItem.name, isActive: false };
-      setAllTechniques(prev => [...prev, fakeEntry]);
+      const fakeEntry: Technique = { id: newItem.id, craftId: primaryCraftId ?? '', name: newItem.name, isActive: false };
+      setCraftGroups(prev => {
+        const idx = prev.findIndex(g => g.craft.id === primaryCraftId);
+        if (idx === -1) return prev;
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], techniques: [...updated[idx].techniques, fakeEntry] };
+        return updated;
+      });
       onChange([...selectedIds, newItem.id]);
-      setPendingNames(prev => [...prev, newItem.id]);
+      setPendingIds(prev => [...prev, newItem.id]);
       setSuggestName('');
       setShowSuggest(false);
     } catch {
@@ -162,7 +190,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
         .slice(0, 14)
     : [];
 
-  if (!craftId) {
+  if (!craftIds.length) {
     return (
       <div
         className="flex items-start gap-3 p-4 rounded-xl"
@@ -171,10 +199,10 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
         <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">info</span>
         <div>
           <p className="font-['Manrope'] text-[13px] font-[700] text-[#54433e]/70 mb-0.5">
-            Elige tu oficio primero
+            Elige tus oficios primero
           </p>
           <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
-            Para ver las técnicas disponibles, primero selecciona tu oficio en el paso 1.
+            Para ver las técnicas disponibles, primero selecciona tus oficios en el paso 1.
           </p>
         </div>
       </div>
@@ -207,7 +235,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
   return (
     <div className="space-y-5">
 
-      {/* Técnicas seleccionadas como cards */}
+      {/* Técnicas seleccionadas */}
       {selectedTechniques.length > 0 && (
         <div>
           <p className="text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/40 mb-3">
@@ -219,7 +247,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
                 key={t.id}
                 name={t.name}
                 isSelected
-                isPending={pendingNames.includes(t.id)}
+                isPending={pendingIds.includes(t.id)}
                 onClick={() => toggle(t.id)}
               />
             ))}
@@ -233,9 +261,9 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
         </p>
       )}
 
-      {/* Catálogo / búsqueda */}
+      {/* Catálogo agrupado por oficio */}
       <div
-        className="pt-4 space-y-3"
+        className="pt-4 space-y-5"
         style={{ borderTop: selectedTechniques.length > 0 ? '1px solid rgba(226,213,207,0.25)' : 'none' }}
       >
         {selectedTechniques.length > 0 && (
@@ -303,6 +331,33 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
             )}
           </div>
         )}
+
+        {/* Grupos por oficio (solo si no hay búsqueda activa) */}
+        {!searchQuery && craftGroups.map(group => {
+          const unselected = group.techniques.filter(t => !selectedIds.includes(t.id));
+          if (unselected.length === 0) return null;
+          return (
+            <div key={group.craft.id}>
+              {craftGroups.length > 1 && (
+                <p className="text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/35 mb-2 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[12px]">construction</span>
+                  {group.craft.name}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2.5">
+                {unselected.map(t => (
+                  <TechniqueCard
+                    key={t.id}
+                    name={t.name}
+                    isSelected={false}
+                    isPending={pendingIds.includes(t.id)}
+                    onClick={() => toggle(t.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
 
         {/* Sugerir técnica */}
         {!showSuggest ? (
@@ -392,7 +447,7 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
         </p>
         <TechniqueMultiPicker
-          craftId={data.craftId}
+          craftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
           selectedIds={data.techniqueIds ?? []}
           onChange={(ids) => onChange({ techniqueIds: ids })}
         />

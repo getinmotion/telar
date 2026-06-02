@@ -61,7 +61,8 @@ export const cmsSectionsProviders = [
           `Error conectando a Mongo en ${host}/${name}`,
           error as Error,
         );
-        throw error;
+        log.warn('Mongo no disponible — el CMS funcionará en modo degradado.');
+        return mongoose;
       }
     },
   },
