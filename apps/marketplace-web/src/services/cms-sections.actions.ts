@@ -20,8 +20,6 @@ export type CmsSectionType =
   | 'home_section_header'
   | 'home_block'
   | 'home_hero_carousel'
-  | 'colecciones_seasonal_grid'
-  | 'colecciones_archive_nav_header'
   | string;
 
 export interface CmsSection {

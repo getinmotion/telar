@@ -3,9 +3,14 @@ import { CmsSection } from '../types/cms-section.types';
 /**
  * Initial editorial content for /territorios.
  *
- * La página ahora se renderiza 100 % via <PageRenderer pageKey="territorios" />.
- * El bloque interactivo (mapa + spotlight + tiendas + lista índice) vive
- * como `embedded_widget` con `widget: 'territorios_map_block'`.
+ * Tipos usados:
+ *  - territorios_hero        → kicker + title + body (cita) + array de stats
+ *  - territorios_dark_quote  → módulo oscuro con cita + stats + panel derecho
+ *  - home_section_header     → kicker + title (reutilizado para "Índice Editorial")
+ *
+ * El mapa, el grid de territorios y la lista índice siguen siendo data del
+ * front (vienen del array TERRITORIES + los shops de la API). Lo que se hizo
+ * CMS es la copia editorial.
  */
 export const territoriosSeedSections: Omit<
   CmsSection,
@@ -28,27 +33,10 @@ export const territoriosSeedSections: Omit<
       ],
     },
   },
-
-  // 10 — Bloque interactivo (mapa + spotlight + tiendas + lista índice)
+  // 10 — Dark editorial module
   {
     pageKey: 'territorios',
     position: 10,
-    type: 'embedded_widget',
-    published: true,
-    payload: {
-      slot: 'territorios_map_block',
-      widget: 'territorios_map_block',
-      mapCaption: 'Diagrama de Densidad Artesanal / 2025',
-      spotlightKicker: 'Foco Regional',
-      spotlightCtaLabel: 'Explorar Colección',
-      unlocatedLabel: 'Tiendas sin ubicación cartográfica',
-    },
-  },
-
-  // 20 — Dark editorial module
-  {
-    pageKey: 'territorios',
-    position: 20,
     type: 'territorios_dark_quote',
     published: true,
     payload: {
@@ -63,11 +51,10 @@ export const territoriosSeedSections: Omit<
         '"En la humedad del Pacífico, la fibra se curva antes de ceder. El artesano no domina la materia, la acompaña en su metamorfosis natural."',
     },
   },
-
-  // 30 — Index header (queda al final, sobre la lista índice del widget)
+  // 20 — Index header ("Territorios de Gracia")
   {
     pageKey: 'territorios',
-    position: 30,
+    position: 20,
     type: 'home_section_header',
     published: true,
     payload: {
@@ -75,6 +62,10 @@ export const territoriosSeedSections: Omit<
       kicker: 'Índice Editorial',
       title: 'Territorios de Gracia',
       subtitle: '',
+      ctaLabel: '',
+      ctaHref: '',
+      imageUrl: '',
+      imageAlt: '',
     },
   },
 ];
