@@ -24,6 +24,7 @@
       "Bash(echo \"api exit=$?\")",
       "Bash(echo \"marketplace exit=$?\")",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "Bash(echo \"artisans exit=$?\")",
       "Bash(ipconfig)",
       "Bash(xargs grep -l \"supabase\\\\|SUPABASE\")",
@@ -41,6 +42,9 @@
 =======
       "Bash(echo \"artisans exit=$?\")"
 >>>>>>> 90f6650243a90b6752a66d385560a09b4b68daf9
+=======
+      "Bash(echo \"artisans exit=$?\")"
+>>>>>>> 55ccb8343d53150a37423e6fa1a5f6b878d5ad35
     ]
   }
 }

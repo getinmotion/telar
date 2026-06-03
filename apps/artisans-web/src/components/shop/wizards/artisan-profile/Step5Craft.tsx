@@ -106,12 +106,7 @@ interface TechniqueMultiPickerProps {
   onSelectedNamesChange?: (names: string[]) => void;
 }
 
-interface CraftGroup {
-  craft: Craft;
-  techniques: Technique[];
-}
-
-const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftIds, selectedIds, onChange, onSelectedNamesChange }) => {
+const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange, onSelectedNamesChange }) => {
   const { user } = useAuth();
   const [allTechniques, setAllTechniques] = useState<Technique[]>([]);
   const [loading, setLoading]             = useState(false);
@@ -140,7 +135,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftIds, s
       onSelectedNamesChange(allTechniques.filter(t => selectedIds.includes(t.id)).map(t => t.name));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [craftGroups]);
+  }, [allTechniques, selectedIds]);
 
   const toggle = (id: string) => {
     const nextIds = selectedIds.includes(id)

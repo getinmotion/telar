@@ -5,7 +5,7 @@ import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { getLandingUrl } from '@/config/urls';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
-import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
+import { CraftMultiPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 
 interface Props {
   data: ArtisanProfileData;
@@ -14,6 +14,7 @@ interface Props {
   shopName?: string;
   onShopUpdate?: (updates: { shopName?: string; shopSlug?: string }) => Promise<void>;
   userId?: string;
+  suggestedCategoryNames?: string[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -497,6 +498,7 @@ export const Step1Identity: React.FC<Props> = ({
   shopName: _shopName = '',
   onShopUpdate,
   userId,
+  suggestedCategoryNames,
 }) => {
   const [showSlug, setShowSlug] = useState(false);
 
@@ -586,20 +588,20 @@ export const Step1Identity: React.FC<Props> = ({
         )}
       </div>
 
-      {/* ── Módulo 3: Oficio + Técnica ── */}
+      {/* ── Módulo 3: Oficios ── */}
       <div className="rounded-xl p-5" style={glassCard}>
-        <Label required>Tu oficio</Label>
+        <Label required>Tus oficios</Label>
         <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-          El oficio artesanal principal de tu taller. Se sincroniza con tu catálogo de productos.
+          Los oficios artesanales que practicas en tu taller. Puedes seleccionar varios.
         </p>
-        <CraftPicker
-          selectedCraftId={data.craftId}
-          onChange={craftId => {
-            onChange({ craftId, primaryTechniqueId: undefined });
-            if (userId) updateStoreArtisanalCraft(userId, craftId ?? null).catch(() => {});
+        <CraftMultiPicker
+          selectedCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
+          suggestedCategoryNames={suggestedCategoryNames}
+          onChange={craftIds => {
+            onChange({ craftIds, craftId: craftIds[0], techniqueIds: [] });
+            if (userId) updateStoreArtisanalCraft(userId, craftIds[0] ?? null).catch(() => {});
           }}
         />
-
       </div>
 
       {/* ── Módulo 4: Bio ── */}
