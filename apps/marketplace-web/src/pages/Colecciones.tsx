@@ -242,9 +242,9 @@ export default function Colecciones() {
         </header>
 
         {/* ═══════════════ CONTENT PICKS (banners/cards de blog o colección) ═══════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 pb-12">
+        {/* <section className="max-w-[1400px] mx-auto px-6 pb-12">
           <ContentPicks pageKey="colecciones" />
-        </section>
+        </section> */}
 
         {/* ═══════════════ CMS COLLECTIONS (curadas desde el admin) ═══════════════ */}
         {cmsCollections.length > 0 && (
@@ -479,7 +479,7 @@ export default function Colecciones() {
         </section>
 
         {/* ═══════════════ SEASONAL SELECTS ═══════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
+        {/* <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20 gap-6">
             <div className="max-w-xl">
               <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px] mb-4 block">
@@ -520,10 +520,10 @@ export default function Colecciones() {
               );
             })}
           </div>
-        </section>
+        </section> */}
 
         {/* ═══════════════ CTA DARK BLOCK ═══════════════ */}
-        <section className="bg-[#1a1a1a] py-24 md:py-32">
+        <section className="bg-[#1a1a1a] py-14 md:py-14">
           <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16 px-6">
             <div className="space-y-6">
               <p className="text-[10px] uppercase tracking-[0.5em] text-[#ec6d13] font-bold">

@@ -341,7 +341,7 @@ const Historias = () => {
 
             {/* PRODUCTS */}
             {products.length > 0 && (
-              <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
+              <section className="max-w-[1400px] mx-auto px-6 py-20 md:py-20">
                 {productsHeaderSection ? (
                   <CmsSectionRenderer section={productsHeaderSection} />
                 ) : null}

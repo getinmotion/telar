@@ -18,9 +18,9 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
   };
 
   return (
-    <footer className={`relative bg-[#1a1a1a] text-white overflow-visible ${showNewsletter ? "pt-32 mt-40" : "pt-16 mt-0"}`}>
+    <footer className={`relative bg-[#1a1a1a] text-white overflow-visible `}>
       {/* ── Floating Newsletter Module (only on Historias & Sobre Telar) ── */}
-      {showNewsletter && (
+      {/* {showNewsletter && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
           <div className="bg-white text-[#1a1a1a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
             <div className="max-w-md">
@@ -57,10 +57,10 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* ── 6-Column Navigation ── */}
-      <div className={`max-w-7xl mx-auto px-8 py-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 ${showNewsletter ? "mt-20 md:mt-0" : ""}`}>
+      <div className={`max-w-7xl mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 ${showNewsletter ? "mt-10 md:mt-0" : ""}`}>
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
           <FooterLink to="/categorias">Categorías</FooterLink>

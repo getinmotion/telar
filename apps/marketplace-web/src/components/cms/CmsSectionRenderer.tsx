@@ -422,7 +422,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
 
     case 'muestra_intro':
       return (
-        <div className="mb-12 max-w-3xl">
+        <div className="mb-10 max-w-3xl">
           {p.kicker && (
             <span
               className="text-[10px] uppercase tracking-[0.5em] mb-4 block font-bold font-sans"
@@ -453,7 +453,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'archive_label':
       return (
         <h2
-          className="text-[10px] uppercase tracking-[0.5em] mb-24 block font-bold text-center font-sans"
+          className="text-[10px] uppercase tracking-[0.5em] mb-10 block font-bold text-center font-sans"
           style={{ color: '#ec6d13' }}
         >
           {p.kicker}
@@ -1185,7 +1185,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
 
     case 'historias_capsule_quote': {
       return (
-        <section className="py-24 md:py-32 px-6 bg-white/50 border-y border-[#2c2c2c]/5">
+        <section className="py-20 md:py-20 px-6 bg-white/50 border-y border-[#2c2c2c]/5">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
             <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">

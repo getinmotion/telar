@@ -295,12 +295,12 @@ const Index = () => {
                       className={`group ${idx === 1 ? "mt-12 md:mt-24" : ""}`}
                     >
                       <Link to={`/product/${product.id}`}>
-                        <div className="aspect-[3/4] bg-[#e5e1d8] mb-6 grayscale hover:grayscale-0 transition-all duration-700 overflow-hidden relative">
+                        <div className="aspect-[3/4] bg-[#e5e1d8] mb-6 overflow-hidden relative">
                           {imageUrl ? (
                             <img
                               src={imageUrl}
                               alt={product.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                             />
                           ) : (
                             <div className="w-full h-full bg-[#e5e1d8]" />
@@ -356,7 +356,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ COMERCIO JUSTO ═══════════════ */}
-        <section className="py-24 px-6 max-w-[1400px] mx-auto">
+        {/* <section className="py-24 px-6 max-w-[1400px] mx-auto">
           <div className="border border-[#2c2c2c]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
             <div className="max-w-xl space-y-8 relative z-10">
               <h2 className="text-4xl md:text-5xl font-serif">
@@ -379,7 +379,7 @@ const Index = () => {
             </div>
             <div className="flex-1 w-full md:w-auto h-64 bg-[#e5e1d8] opacity-20" />
           </div>
-        </section>
+        </section> */}
 
         {/* ═══════════════ HUELLA DIGITAL ═══════════════ */}
         <section className="py-24 bg-white">
@@ -456,7 +456,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ FEATURED SHOP ═══════════════ */}
-        <section className="py-32 bg-[#fdfaf6]">
+        <section className="py-14 bg-[#fdfaf6]">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
               Conoce a los talleres artesanales
@@ -529,7 +529,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ REGALOS CON HISTORIA ═══════════════ */}
-        <section className="py-24 bg-[#f9f7f2]">
+        <section className="py-10 bg-[#f9f7f2]">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-col md:flex-row gap-16 items-center">
               <div className="flex-1 space-y-8">
@@ -573,7 +573,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ COLECCIONES ═══════════════ */}
-        <section className="py-24">
+        <section className="py-10">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-16 opacity-40">
               Colecciones
@@ -638,13 +638,17 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ ALIADOS ═══════════════ */}
-        <section className="py-24 border-t border-[#2c2c2c]/10">
+       <section className="py-24 border-t border-[#2c2c2c]/10">
           <div className="max-w-2xl mx-auto px-6 text-center space-y-8">
             <h2 className="text-[10px] font-bold text-[#2c2c2c]/40 uppercase tracking-[0.4em]">
               Aliados
             </h2>
             <div className="flex flex-col items-center gap-6">
-              <div className="w-48 h-12 bg-[#e5e1d8] opacity-50" />
+              <img
+                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
+                alt="Artesanías de Colombia"
+                className="w-48 h-auto object-contain"
+              />
               <h3 className="text-2xl font-serif">
                 Con el apoyo de Artesanías de Colombia
               </h3>
