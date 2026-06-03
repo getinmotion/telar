@@ -807,45 +807,6 @@ export function HistoriasFinalCtaForm({ draft, setField, setNested, setDraft }: 
   );
 }
 
-export function ColeccionesSeasonalGridForm({ draft, setField, setNested }: any) {
-  const cards = draft.cards ?? [];
-  return (
-    <div className="space-y-4">
-      <FieldText label="Slot (interno, no cambiar)" value={draft.slot} onChange={(v) => setField('slot', v)} placeholder="colecciones_seasonal" />
-      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Actualidad" />
-      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Selecciones de temporada" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[0, 1, 2, 3].map((i) => (
-          <SubCard key={i}>
-            <SubCardLabel>Card {i + 1}</SubCardLabel>
-            <FieldText label="Título" value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
-            <FieldText label="Descripción" value={cards[i]?.description ?? ''} onChange={(v) => setNested(['cards', i, 'description'], v)} />
-            <FieldText label="CTA texto" value={cards[i]?.cta ?? ''} onChange={(v) => setNested(['cards', i, 'cta'], v)} placeholder="Adquirir piezas" />
-            <FieldText label="Href" value={cards[i]?.href ?? ''} onChange={(v) => setNested(['cards', i, 'href'], v)} placeholder="/productos" />
-            <ImageUploadField
-              label="Imagen"
-              value={cards[i]?.imageUrl ?? ''}
-              onChange={(v) => setNested(['cards', i, 'imageUrl'], v)}
-              altValue={cards[i]?.imageAlt ?? ''}
-              onAltChange={(v) => setNested(['cards', i, 'imageAlt'], v)}
-            />
-          </SubCard>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function ColeccionesArchiveNavHeaderForm({ draft, setField }: any) {
-  return (
-    <div className="space-y-4">
-      <FieldText label="Slot (interno, no cambiar)" value={draft.slot} onChange={(v) => setField('slot', v)} placeholder="colecciones_archive_nav" />
-      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="El Archivo del Saber" />
-      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Navegar por la esencia" />
-    </div>
-  );
-}
-
 export function RawJsonForm({
   draft, onChange,
 }: {
@@ -910,8 +871,6 @@ export function renderSectionForm(
     case 'historias_story_types_grid': return <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />;
     case 'historias_capsule_quote':    return <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />;
     case 'historias_final_cta':        return <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />;
-    case 'colecciones_seasonal_grid':      return <ColeccionesSeasonalGridForm draft={draft} setField={setField} setNested={setNested} />;
-    case 'colecciones_archive_nav_header': return <ColeccionesArchiveNavHeaderForm draft={draft} setField={setField} />;
     default:                   return <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); }} />;
   }
 }

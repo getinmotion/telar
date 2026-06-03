@@ -23,6 +23,7 @@
       "Bash(git fetch *)",
       "Bash(echo \"api exit=$?\")",
       "Bash(echo \"marketplace exit=$?\")",
+<<<<<<< HEAD
       "Bash(echo \"artisans exit=$?\")",
       "Bash(ipconfig)",
       "Bash(xargs grep -l \"supabase\\\\|SUPABASE\")",
@@ -37,6 +38,9 @@
       "Bash(grep -iE \"\\\\.tsx$|\\\\.ts$\")",
       "Bash(xargs grep -l \"ArtisanProfile\")",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+=======
+      "Bash(echo \"artisans exit=$?\")"
+>>>>>>> 90f6650243a90b6752a66d385560a09b4b68daf9
     ]
   }
 }

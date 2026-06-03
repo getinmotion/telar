@@ -1,0 +1,56 @@
+# GetInMotion Agents Service - Python Dependencies
+# Core dependencies for the multi-agent system
+
+# ============================================================
+# FastAPI & Web Server
+# ============================================================
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+pydantic==2.11.3
+pydantic-settings==2.9.1
+python-multipart==0.0.20
+
+# ============================================================
+# LangChain & Agents
+# ============================================================
+langchain==0.3.25
+langchain-openai==0.3.16
+langgraph==0.3.34
+langsmith==0.3.45
+
+# ============================================================
+# OpenAI
+# ============================================================
+openai==1.75.0
+
+# ============================================================
+# Database & Vector Store
+# ============================================================
+supabase==2.15.3
+# postgrest will be installed automatically by supabase
+psycopg2-binary==2.9.9
+asyncpg==0.30.0
+
+# ============================================================
+# Utilities
+# ============================================================
+python-dotenv==1.0.0
+httpx>=0.27.0,<0.29.0
+requests==2.31.0
+tavily-python==0.3.3
+Jinja2==3.1.6
+langdetect==1.0.9
+python-frontmatter==1.1.0
+
+# ============================================================
+# Optional: Monitoring & Logging
+# ============================================================
+sentry-sdk[fastapi]==1.40.0  # Optional: Error tracking
+
+# ============================================================
+# Development Dependencies (optional)
+# ============================================================
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# black==23.12.1
+# ruff==0.1.11

@@ -1,0 +1,272 @@
+"""
+Standalone FastAPI application for the Agents Service.
+Can be run independently or integrated into a larger application.
+"""
+
+import sys
+import os
+from pathlib import Path
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+# Add backend to path
+backend_path = str(Path(__file__).parent.parent)
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
+# Import after path setup
+from agents.api import router as agents_router
+from agents.search_api import router as search_router
+from agents.joyitas_search_api import router as joyitas_search_router
+from agents.whatsapp_api import router as whatsapp_router
+from agents.tracing import init_langsmith
+from src.api.config import settings
+from src.database.pg_client import get_pool, close_pool
+from src.database.joyitas_pg_client import get_joyitas_pool, close_joyitas_pool
+
+# Configure logging
+logging.basicConfig(
+    level=settings.log_level.upper(),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    logger.info("Starting GetInMotion Agents Service")
+    logger.info(f"📊 Version: 1.0.0")
+    logger.info(f"🤖 OpenAI Model: {settings.openai_model}")
+    logger.info(f"📦 Embedding Model: {settings.embedding_model}")
+    logger.info(f"🗄️  Agents DB: {'configured' if settings.agents_db_url else 'NOT configured'}")
+    logger.info(f"🔧 Available Agents: 8 (Onboarding, Legal, Product, Pricing, Digital Presence, FAQ, Servicio Cliente, Fotografia)")
+    
+    # Initialize LangSmith tracing
+    init_langsmith()
+    if settings.langsmith_api_key and settings.langsmith_tracing:
+        logger.info(f"📈 LangSmith Tracing: Enabled (Project: {settings.langsmith_project})")
+    else:
+        logger.info("📈 LangSmith Tracing: Disabled")
+    
+    # Log WhatsApp bot status
+    if settings.whatsapp_access_token and settings.whatsapp_phone_number_id:
+        logger.info("WhatsApp bot: configured (phone_number_id=%s...)", settings.whatsapp_phone_number_id[:10])
+    else:
+        logger.warning("WhatsApp bot: NOT configured (WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID missing)")
+
+    # Check Tavily API for pricing agent
+    if settings.tavily_api_key:
+        logger.info("🌐 Tavily Web Search: Enabled (Pricing Agent)")
+    else:
+        logger.warning("⚠️  Tavily Web Search: Disabled (Pricing Agent will have limited capabilities)")
+    
+    # Warm up agents DB connection pool
+    if settings.agents_db_url:
+        try:
+            from src.database.supabase_client import db as agents_db
+            await agents_db._get_pool()
+            logger.info("Agents DB pool ready")
+        except Exception as exc:
+            logger.warning(f"Agents DB pool could not be created at startup: {exc}")
+    else:
+        logger.warning("AGENTS_DB_URL not set - memory and profile persistence will be unavailable")
+
+    # Warm up catalog DB connection pool
+    if settings.catalog_db_url:
+        try:
+            await get_pool()
+            logger.info("Catalog DB pool ready")
+        except Exception as exc:
+            logger.warning(f"Catalog DB pool could not be created at startup: {exc}")
+    else:
+        logger.warning("CATALOG_DB_URL not set - semantic search will be unavailable")
+
+    # Warm up joyitas DB connection pool (stage test DB — graceful on failure)
+    try:
+        await get_joyitas_pool()
+        logger.info("Joyitas DB pool ready")
+    except Exception as exc:
+        logger.warning(f"Joyitas DB pool could not be created at startup: {exc}")
+
+    logger.info("Agents Service Ready")
+
+    yield
+
+    # Shutdown
+    await close_pool()
+    await close_joyitas_pool()
+    try:
+        from src.database.supabase_client import db as agents_db
+        await agents_db.close()
+    except Exception:
+        pass
+    logger.info("Shutting down GetInMotion Agents Service")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="GetInMotion Agents API",
+    description="""
+    Multi-agent system for Colombian artisan business support.
+    
+    ## Features
+    - **6 Specialized Agents**: Legal, Product, Pricing, Digital Presence, FAQ, Onboarding
+    - **Intelligent Routing**: Supervisor agent automatically routes to the right specialist
+    - **Hierarchical Memory**: Persistent conversation and profile memory
+    - **RAG Knowledge Base**: Retrieval-augmented generation for accurate answers
+    - **Web Search**: Real-time market data for pricing strategies
+    - **Context Awareness**: Agents maintain conversation context and user profiles
+    
+    ## Available Agents
+    1. **Onboarding Agent**: Maturity assessment (16 questions across 4 categories)
+    2. **Legal Agent**: Legal, tax, and accounting guidance
+    3. **Product Agent**: Catalog management and product recommendations
+    4. **Pricing Agent**: Pricing strategies and market research
+    5. **Digital Presence Agent**: Social media and marketing strategies
+    6. **FAQ Agent**: General business questions
+    
+    ## Quick Start
+    1. POST `/api/agents/process` - Process a user request (supervisor routes automatically)
+    2. GET `/api/agents/history/{session_id}` - Retrieve conversation history
+    3. POST `/api/agents/memory/search` - Search across memories
+    4. GET `/api/agents/info` - Get detailed agent information
+    """,
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "Agents System",
+            "description": "Multi-agent system endpoints for processing user requests",
+        },
+        {
+            "name": "Semantic Search",
+            "description": "Embedding generation, semantic search and batch indexing for the marketplace catalog",
+        },
+    ]
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure properly in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(agents_router, prefix="/api")
+app.include_router(search_router, prefix="/api")
+app.include_router(joyitas_search_router, prefix="/api")
+app.include_router(whatsapp_router, prefix="/api")
+
+# Serve uploaded product photos as static files
+_uploads_dir = os.path.join(os.path.dirname(__file__), "uploads", "product-photos")
+os.makedirs(_uploads_dir, exist_ok=True)
+app.mount("/uploads/product-photos", StaticFiles(directory=_uploads_dir), name="product-photos")
+
+
+@app.get("/", status_code=status.HTTP_200_OK)
+async def root():
+    """Root endpoint with service information."""
+    return {
+        "service": "GetInMotion Agents API",
+        "version": "1.0.0",
+        "status": "operational",
+        "description": "Multi-agent system for artisan business support",
+        "agents": {
+            "count": 6,
+            "types": [
+                "onboarding",
+                "legal",
+                "producto",
+                "pricing",
+                "presencia_digital",
+                "faq"
+            ]
+        },
+        "endpoints": {
+            "process": "/api/agents/process",
+            "history": "/api/agents/history/{session_id}",
+            "memory_search": "/api/agents/memory/search",
+            "profile": "/api/agents/memory/profile/{user_id}",
+            "info": "/api/agents/info",
+            "health": "/api/agents/health",
+            "search_products": "/api/search/products",
+            "generate_embedding": "/api/search/embeddings/generate",
+            "save_embedding": "/api/search/embeddings/save",
+            "index_products": "/api/search/index/products",
+            "index_status": "/api/search/index/products/status",
+        },
+        "documentation": {
+            "swagger": "/docs",
+            "redoc": "/redoc"
+        },
+        "features": [
+            "Intelligent supervisor routing",
+            "Hierarchical memory system",
+            "RAG knowledge base",
+            "Web search integration",
+            "Context-aware conversations",
+            "LangSmith tracing (optional)"
+        ]
+    }
+
+
+@app.get("/health", status_code=status.HTTP_200_OK)
+async def health_check():
+    """Global health check endpoint."""
+    return {
+        "status": "healthy",
+        "service": "agents",
+        "version": "1.0.0",
+        "checks": {
+            "openai": bool(settings.openai_api_key),
+            "agents_db": bool(settings.agents_db_url),
+            "langsmith": bool(settings.langsmith_api_key),
+            "tavily": bool(settings.tavily_api_key)
+        },
+        "agents": {
+            "onboarding": True,
+            "legal": True,
+            "producto": True,
+            "pricing": True,
+            "presencia_digital": True,
+            "faq": True
+        }
+    }
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """Global exception handler for unexpected errors."""
+    logger.error(f"Unexpected error: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "success": False,
+            "detail": "An unexpected error occurred",
+            "error": str(exc)
+        }
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run(
+        "main:app",
+        host=settings.host,
+        port=settings.port,
+        reload=True,
+        log_level=settings.log_level
+    )
