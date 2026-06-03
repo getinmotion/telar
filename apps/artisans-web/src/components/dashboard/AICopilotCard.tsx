@@ -148,7 +148,7 @@ export const AICopilotCard: React.FC = () => {
         padding: '28px 28px 32px',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: 340,
+        minHeight: 480,
         display: 'flex',
         flexDirection: 'column',
       }}

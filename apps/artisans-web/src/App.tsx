@@ -351,14 +351,6 @@ function App() {
                             }
                           />
                           <Route
-                            path="/notifications"
-                            element={
-                              <ProtectedRoute>
-                                <NotificationsPage />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
                             path="/dashboard/progress"
                             element={
                               <ProtectedRoute>
@@ -453,6 +445,10 @@ function App() {
                             <Route
                               path="/dashboard"
                               element={<DashboardHome />}
+                            />
+                            <Route
+                              path="/notifications"
+                              element={<NotificationsPage />}
                             />
                             <Route path="/profile" element={<Profile />} />
                             <Route

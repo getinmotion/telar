@@ -22,7 +22,6 @@ import { getAgreementById } from '@/services/agreements.actions';
 import { AICopilotCard } from './AICopilotCard';
 import { ProductsTable } from './sections/ProductsTable';
 import { OrdersSummarySection } from './sections/OrdersSummarySection';
-import { InventoryAlerts } from './sections/InventoryAlerts';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
@@ -791,37 +790,50 @@ export const CommercialDashboard: React.FC = () => {
               </div>
 
               <div className="flex items-stretch gap-2 overflow-x-auto pb-0.5 md:pb-0 shrink-0">
-                <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
-                  <span style={{ fontFamily: SANS, fontSize: 19, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>{products.length}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>Productos</span>
+
+                {/* Productos */}
+                <div className="flex flex-col items-center justify-center px-5 py-3.5 rounded-xl shrink-0 gap-1"
+                  style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', minWidth: 108 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#8b5cf6' }}>inventory_2</span>
+                  <span style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>{products.length}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Productos</span>
                 </div>
+
+                {/* Estado */}
                 {(() => {
                   const stColor = isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13';
-                  const stBg    = isMarketplaceLive ? 'rgba(22,101,52,0.06)' : isActivated ? 'rgba(59,130,246,0.06)' : 'rgba(236,109,19,0.06)';
-                  const stBdr   = isMarketplaceLive ? 'rgba(22,101,52,0.18)' : isActivated ? 'rgba(59,130,246,0.18)' : 'rgba(236,109,19,0.18)';
+                  const stBg    = isMarketplaceLive ? 'rgba(22,101,52,0.08)'   : isActivated ? 'rgba(59,130,246,0.08)'   : 'rgba(236,109,19,0.08)';
+                  const stBdr   = isMarketplaceLive ? 'rgba(22,101,52,0.22)'   : isActivated ? 'rgba(59,130,246,0.22)'   : 'rgba(236,109,19,0.22)';
+                  const stIcon  = isMarketplaceLive ? 'check_circle'           : isActivated ? 'hourglass_top'           : 'rocket_launch';
+                  const stLabel = isMarketplaceLive ? 'Live'                   : isActivated ? 'Revisión'                : 'Prep.';
                   return (
-                    <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
-                      style={{ background: stBg, border: `1px solid ${stBdr}`, minWidth: 76 }}>
-                      <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 900, color: stColor, lineHeight: 1 }}>
-                        {isMarketplaceLive ? 'Live' : isActivated ? 'Revisión' : 'Prep.'}
-                      </span>
-                      <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>Estado</span>
+                    <div className="flex flex-col items-center justify-center px-5 py-3.5 rounded-xl shrink-0 gap-1"
+                      style={{ background: stBg, border: `1px solid ${stBdr}`, minWidth: 114 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: stColor }}>{stIcon}</span>
+                      <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 900, color: stColor, lineHeight: 1 }}>{stLabel}</span>
+                      <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Estado</span>
                     </div>
                   );
                 })()}
-                <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
-                  <span style={{ fontFamily: SANS, fontSize: 19, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>{totalStock}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>Inventario</span>
+
+                {/* Inventario */}
+                <div className="flex flex-col items-center justify-center px-5 py-3.5 rounded-xl shrink-0 gap-1"
+                  style={{ background: 'rgba(236,109,19,0.08)', border: '1px solid rgba(236,109,19,0.2)', minWidth: 108 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#ec6d13' }}>warehouse</span>
+                  <span style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>{totalStock}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Inventario</span>
                 </div>
-                <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
-                  <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+
+                {/* Ventas */}
+                <div className="flex flex-col items-center justify-center px-5 py-3.5 rounded-xl shrink-0 gap-1"
+                  style={{ background: 'rgba(22,101,52,0.08)', border: '1px solid rgba(22,101,52,0.2)', minWidth: 108 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#166534' }}>payments</span>
+                  <span style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
                     {salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
                   </span>
-                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>Ventas</span>
+                  <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Ventas</span>
                 </div>
+
               </div>
             </div>
 
@@ -1090,14 +1102,6 @@ export const CommercialDashboard: React.FC = () => {
                 <div className="hidden lg:block">
                   <AICopilotCard />
                 </div>
-
-                <InventoryAlerts
-                  isActivated={isActivated}
-                  checklistItems={checklistItems}
-                  lowStockProducts={lowStockProducts}
-                  draftProducts={draftProducts}
-                  onNavigate={(route) => navigate(route)}
-                />
 
                 {/* Mobile: sales banner */}
                 <div className="md:hidden rounded-2xl p-5 flex items-center justify-between gap-4" style={{ ...glassPrimary, borderRadius: 20 }}>
