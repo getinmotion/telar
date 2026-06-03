@@ -81,6 +81,7 @@ import { TaxonomyAliasesModule } from './resources/taxonomy-aliases/taxonomy-ali
 import { MarketplaceAssignmentsModule } from './resources/marketplace-assignments/marketplace-assignments.module';
 import { FeaturedCollectionsModule } from './resources/featured-collections/featured-collections.module';
 import { StoreHealthScoresModule } from './resources/store-health-scores/store-health-scores.module';
+import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
 
 @Module({
   imports: [
@@ -207,6 +208,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
     MarketplaceAssignmentsModule,
     FeaturedCollectionsModule,
     StoreHealthScoresModule,
+    AchievementsCatalogModule,
   ],
   controllers: [],
   providers: [],

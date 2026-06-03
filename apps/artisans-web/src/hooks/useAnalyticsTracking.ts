@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useAuthStore } from '@/stores/authStore';
-import { getScoresForAnalytics } from '@/services/userMaturityScores.actions';
 import { logAnalyticsEvent } from '@/services/analyticsEvents.actions';
 
 export type AnalyticsEventType = 
@@ -91,24 +90,8 @@ export const useAnalyticsTracking = () => {
     } = params;
 
     try {
-      // Get user's maturity level from latest scores
-      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
-      const maturityData = await getScoresForAnalytics(userId);
-
-      let maturityLevel = 'unknown';
-      if (maturityData) {
-        const avgScore = (
-          maturityData.ideaValidation +
-          maturityData.userExperience +
-          maturityData.marketFit +
-          maturityData.monetization
-        ) / 4;
-
-        if (avgScore >= 80) maturityLevel = 'advanced';
-        else if (avgScore >= 60) maturityLevel = 'intermediate';
-        else if (avgScore >= 40) maturityLevel = 'basic';
-        else maturityLevel = 'beginner';
-      }
+      // Maturity scores removed - always return 'unknown' level
+      const maturityLevel = 'unknown';
 
       // ✅ Log to persistent analytics via NestJS backend
       const analyticsEvent = await logAnalyticsEvent({
