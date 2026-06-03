@@ -247,6 +247,7 @@ const ModerationOSPage: React.FC = () => {
   });
   const [kanbanData, setKanbanData] = useState<Record<string, QueueCardItem[]>>({});
   const [kanbanLoading, setKanbanLoading] = useState(false);
+  const kanbanLoadedRef = useRef(false);
 
   // Taxonomy state
   const [taxonomyData, setTaxonomyData] = useState<Record<TaxonomyType, TaxonomyItem[]>>({} as any);
@@ -470,10 +471,17 @@ const ModerationOSPage: React.FC = () => {
     return sorted;
   }, [activeCards, q, activeFilters, sortBy, scoresMap]);
 
-  // Kanban data
+  // Kanban data - Solo cargar cuando se activa el modo kanban por primera vez
   useEffect(() => {
-    if (viewMode !== 'kanban' || activeSection !== 'products') return;
+    // Solo ejecutar si:
+    // 1. El modo es kanban
+    // 2. La sección es products
+    // 3. No se ha cargado previamente (evita recargas innecesarias)
+    if (viewMode !== 'kanban' || activeSection !== 'products' || kanbanLoadedRef.current) return;
+
     setKanbanLoading(true);
+    kanbanLoadedRef.current = true;
+
     const statuses = ['pending_moderation', 'changes_requested', 'rejected', 'approved_with_edits'];
     Promise.all(statuses.map(status => getModerationQueue({ status, page: 1, pageSize: 30 })))
       .then(results => {
@@ -492,6 +500,10 @@ const ModerationOSPage: React.FC = () => {
           }));
         });
         setKanbanData(grouped);
+      })
+      .catch((error) => {
+        console.error('Error loading kanban data:', error);
+        kanbanLoadedRef.current = false; // Resetear para permitir retry
       })
       .finally(() => setKanbanLoading(false));
   }, [viewMode, activeSection]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -542,6 +554,8 @@ const ModerationOSPage: React.FC = () => {
     setCheckedIds(new Set());
     setSearchQuery('');
     setActiveFilters({ region: '', category: '', hasNoPhotos: false, nonMarketplaceOnly: false });
+    // Resetear el flag de kanban cuando se cambia de sección para permitir recarga
+    kanbanLoadedRef.current = false;
   }, [activeSection, activeSubsection]);
 
   // Derived counts for modules
@@ -557,8 +571,12 @@ const ModerationOSPage: React.FC = () => {
       fetchShops({ filter: 'all', page: 1 });
     } else {
       fetchModerationQueue({ status: SECTION_TO_PRODUCT_STATUS[activeSubsection] ?? 'pending_moderation', page: 1 });
+      // Si está en modo kanban, refrescar también los datos del kanban
+      if (viewMode === 'kanban') {
+        kanbanLoadedRef.current = false; // Resetear para forzar recarga
+      }
     }
-  }, [activeSection, activeSubsection, fetchTaxonomies, fetchShops, fetchModerationQueue]);
+  }, [activeSection, activeSubsection, viewMode, fetchTaxonomies, fetchShops, fetchModerationQueue]);
 
   const isRefreshing = activeSection === 'taxonomy' ? taxonomyLoading : isLoading;
 

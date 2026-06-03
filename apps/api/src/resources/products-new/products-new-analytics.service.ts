@@ -538,7 +538,7 @@ export class ProductsNewAnalyticsService {
         SELECT COUNT(id)::int AS count
         FROM shop.products_core
         WHERE deleted_at IS NULL
-          AND (description IS NULL OR TRIM(description) = '')
+          AND (short_description IS NULL OR TRIM(short_description) = '')
       `),
       // Products without artisanal identity row
       this.dataSource.query<any[]>(`

@@ -34,13 +34,12 @@ export class TaxonomyHerramientasService {
   async findAllWithArtisanCount(): Promise<Array<Herramienta & { artisanCount: number }>> {
     const [items, countRows] = await Promise.all([
       this.herramientasRepo.find({ order: { name: 'ASC' } }),
-      this.herramientasRepo
-        .createQueryBuilder('h')
-        .leftJoin('artesanos.artisan_herramientas', 'ah', 'ah.herramienta_id = h.id')
-        .select('h.id', 'id')
-        .addSelect('COUNT(DISTINCT ah.artisan_id)::int', 'artisanCount')
-        .groupBy('h.id')
-        .getRawMany<{ id: string; artisanCount: number }>(),
+      this.herramientasRepo.query<{ id: string; artisanCount: number }[]>(`
+        SELECT h.id, COUNT(DISTINCT ah.artisan_id)::int AS "artisanCount"
+        FROM taxonomy.herramientas h
+        LEFT JOIN artesanos.artisan_herramientas ah ON ah.herramienta_id = h.id
+        GROUP BY h.id
+      `),
     ]);
     const countMap = new Map(countRows.map((r) => [r.id, Number(r.artisanCount) || 0]));
     return items.map((item) => ({ ...item, artisanCount: countMap.get(item.id) ?? 0 }));

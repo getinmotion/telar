@@ -17,11 +17,17 @@ const AdminPage = lazy(() => import("@/pages/Admin"));
 const BackofficeDashboardPage = lazy(
   () => import("@/pages/backoffice/BackofficeDashboardPage"),
 );
+const BackofficeHomePage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeHomePage"),
+);
 const BackofficeMarketplaceHealthPage = lazy(
   () => import("@/pages/backoffice/BackofficeMarketplaceHealthPage"),
 );
 const BackofficeConveniosPage = lazy(
   () => import("@/pages/backoffice/BackofficeConveniosPage"),
+);
+const BackofficeComercialPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeComercialPage"),
 );
 const BackofficeTiendaDetailPage = lazy(
   () => import("@/pages/backoffice/BackofficeTiendaDetailPage"),
@@ -56,6 +62,9 @@ const ProductStudioPage_lazy = lazy(
 );
 const MarketplaceCurationPage_lazy = lazy(
   () => import("@/pages/admin/MarketplaceCurationPage"),
+);
+const ModerationOSPage_lazy = lazy(
+  () => import("@/pages/admin/ModerationOSPage"),
 );
 const DesignSystemEditorPage_lazy = lazy(
   () => import("@/pages/admin/DesignSystemEditorPage"),
@@ -644,28 +653,28 @@ function App() {
                               />
 
                               {/* HOME — Panel de Operaciones (todos los roles) */}
-                              {/* <Route
-                                  path="/backoffice/home"
-                                  element={
-                                    <BackofficeProtectedRoute section="home">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <BackofficeHomePage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/home"
+                                element={
+                                  <BackofficeProtectedRoute section="home">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <BackofficeHomePage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
 
                               {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
-                              {/* <Route
-                                  path="/backoffice/moderacion-os"
-                                  element={
-                                    <BackofficeProtectedRoute section="moderation">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <ModerationOSPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/moderacion-os"
+                                element={
+                                  <BackofficeProtectedRoute section="moderation">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <ModerationOSPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
                               <Route
                                 path="/backoffice/revisor"
                                 element={
@@ -827,16 +836,16 @@ function App() {
                               />
 
                               {/* COMERCIAL (admin+) */}
-                              {/* <Route
-                                  path="/backoffice/comercial"
-                                  element={
-                                    <BackofficeProtectedRoute section="comercial">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <BackofficeComercialPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/comercial"
+                                element={
+                                  <BackofficeProtectedRoute section="comercial">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <BackofficeComercialPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
 
                               {/* OPERACIONES + SISTEMA (super_admin) */}
                               <Route
