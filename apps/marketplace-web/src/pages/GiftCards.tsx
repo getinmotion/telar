@@ -191,7 +191,7 @@ const GiftCards = () => {
       {/* Hero Editorial Section */}
       <header className="relative w-full h-[70vh] min-h-[500px] max-h-[820px] flex items-center justify-center overflow-hidden">
         {(() => {
-          const heroImg = ARTESANOS_P_IMAGES[0] ?? caucaImage ?? editorialImage(0);
+          const heroImg =  caucaImage ;
           return heroImg ? (
             <>
               <img
@@ -395,7 +395,7 @@ const GiftCards = () => {
 
       {/* Product Recommendations */}
       {recommendations.length > 0 && (
-        <section className="py-32 px-6 md:px-12 max-w-7xl mx-auto">
+        <section className="py-20 px-6 md:px-12 max-w-7xl mx-auto">
           <div className="flex justify-between items-baseline mb-16">
             <h2 className="font-serif text-4xl">Recomendaciones de Telar</h2>
             <Link
@@ -677,7 +677,7 @@ const GiftCards = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-32 max-w-3xl mx-auto px-6">
+      <section className="py-20 max-w-3xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="font-serif text-4xl italic">Preguntas frecuentes</h2>
         </div>
@@ -710,7 +710,6 @@ const GiftCards = () => {
         </div>
       </section>
 
-      <div className="pb-24" />
       <Footer />
     </div>
   );

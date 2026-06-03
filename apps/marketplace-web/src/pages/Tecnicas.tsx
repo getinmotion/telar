@@ -395,13 +395,28 @@ export default function Tecnicas() {
     (s) => !SLOT_TYPES.has(s.type),
   );
 
-  // Muestra de Técnicas: only API techniques with at least one product.
+  // Muestra de Técnicas: only API techniques with at least one product AND with a valid image.
+  // Filter out techniques whose products are all in draft/archived state (no image available).
   const muestraTecnicas = (techWithCount ?? [])
-    .filter((t) => t.productCount > 0)
+    .filter((t) => {
+      // Only show techniques that have products
+      if (t.productCount <= 0) return false;
+      // Only show techniques that have a valid image from published products
+      const hasImage = getTechniqueImage(techImages, t.name);
+      return !!hasImage;
+    })
     .sort((a, b) => b.productCount - a.productCount);
 
+  // Filter orderedTechniques to only include techniques with valid images (published products)
+  const filteredTechniques = useMemo(() => {
+    return orderedTechniques.filter((t) => {
+      const hasImage = getTechniqueImage(techImages, t.name);
+      return !!hasImage;
+    });
+  }, [orderedTechniques, techImages]);
+
   // Split for composition: 1 primary + 1 secondary + 1 wide row feature + 4 thumbs
-  const [primary, secondary, ...rest] = orderedTechniques;
+  const [primary, secondary, ...rest] = filteredTechniques;
   const archiveRow1 = rest.slice(0, 2); // 2 squares bracketing a curator note
   const archiveRowWide = rest.slice(2, 3); // horizontal feature next to data card
   const archiveThumbs = rest.slice(3, 7); // 4 small thumbnails
@@ -451,7 +466,7 @@ export default function Tecnicas() {
             </div>
             <div className="flex items-center gap-8">
               <span className="text-[10px] uppercase tracking-[0.1em] opacity-40 italic font-sans">
-                Mostrando {Math.min(visible, orderedTechniques.length) || 0} /{" "}
+                Mostrando {Math.min(visible, filteredTechniques.length) || 0} /{" "}
                 {totalCount}
               </span>
               <button className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-sans">
@@ -699,14 +714,14 @@ export default function Tecnicas() {
 
         {/* ═══════════════ DYNAMIC ARCHIVE — ASYMMETRIC ═══════════════ */}
         {!loading && rest.length > 0 && (
-          <section className="mb-48">
+          <section className="mb-10">
             {archiveLabelSection && (
               <CmsSectionRenderer section={archiveLabelSection} />
             )}
 
             <div className="grid grid-cols-12 gap-8">
               {/* ── Row 1: two squares, full-width ── */}
-              {archiveRow1[0] && (
+              {/* {archiveRow1[0] && (
                 <ArchiveSquareCard
                   tech={archiveRow1[0]}
                   index={2}
@@ -721,7 +736,7 @@ export default function Tecnicas() {
                   techImages={techImages}
                   span="md:col-span-6"
                 />
-              )}
+              )} */}
 
               {/* ── Row 2: data card + horizontal feature ── */}
               {metricsStatSection && (
@@ -758,7 +773,7 @@ export default function Tecnicas() {
             </div>
 
             {/* Pagination / Load more */}
-            {orderedTechniques.length > visible && (
+            {filteredTechniques.length > visible && (
               <div className="mt-32 flex justify-start">
                 <button
                   onClick={() => setVisible((v) => v + VISIBLE_COUNT)}

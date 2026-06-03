@@ -420,7 +420,7 @@ const Territorios = () => {
       )}
 
       {/* ═══════════════ TERRITORY SPOTLIGHT ═══════════════ */}
-      <section className="max-w-[1400px] mx-auto px-8 py-24">
+      {/* <section className="max-w-[1400px] mx-auto px-8 py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           <div className="lg:col-span-5 order-2 lg:order-1">
             <span
@@ -501,13 +501,13 @@ const Territorios = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ═══════════════ DARK EDITORIAL MODULE (CMS) ═══════════════ */}
       {darkSection && <CmsSectionRenderer section={darkSection} />}
 
       {/* ═══════════════ TERRITORY INDEX (CMS header + lista) ═══════════════ */}
-      <section className="max-w-[1400px] mx-auto px-8 py-32">
+      <section className="max-w-[1400px] mx-auto px-8 py-20">
         {indexHeaderSection ? (
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="flex-1">
