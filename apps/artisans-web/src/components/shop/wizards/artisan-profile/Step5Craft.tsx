@@ -103,9 +103,15 @@ interface TechniqueMultiPickerProps {
   craftId?: string;
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  onSelectedNamesChange?: (names: string[]) => void;
 }
 
-const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange }) => {
+interface CraftGroup {
+  craft: Craft;
+  techniques: Technique[];
+}
+
+const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftIds, selectedIds, onChange, onSelectedNamesChange }) => {
   const { user } = useAuth();
   const [allTechniques, setAllTechniques] = useState<Technique[]>([]);
   const [loading, setLoading]             = useState(false);
@@ -128,10 +134,22 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     return () => { cancelled = true; };
   }, [craftId]);
 
+  // Emit selected technique names whenever the catalog loads or selection changes
+  useEffect(() => {
+    if (onSelectedNamesChange && allTechniques.length > 0) {
+      onSelectedNamesChange(allTechniques.filter(t => selectedIds.includes(t.id)).map(t => t.name));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [craftGroups]);
+
   const toggle = (id: string) => {
-    onChange(
-      selectedIds.includes(id) ? selectedIds.filter(s => s !== id) : [...selectedIds, id],
-    );
+    const nextIds = selectedIds.includes(id)
+      ? selectedIds.filter(s => s !== id)
+      : [...selectedIds, id];
+    onChange(nextIds);
+    if (onSelectedNamesChange) {
+      onSelectedNamesChange(allTechniques.filter(t => nextIds.includes(t.id)).map(t => t.name));
+    }
   };
 
   const handleSuggest = async () => {
@@ -373,6 +391,7 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
   const [showCustomTime, setShowCustomTime] = useState(
     () => !!data.averageTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === data.averageTime),
   );
+  const [selectedTechniqueNames, setSelectedTechniqueNames] = useState<string[]>([]);
 
   const toggleItem = (field: 'craftStyle', value: string) => {
     const arr = data[field] as string[];
@@ -395,6 +414,7 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           craftId={data.craftId}
           selectedIds={data.techniqueIds ?? []}
           onChange={(ids) => onChange({ techniqueIds: ids })}
+          onSelectedNamesChange={setSelectedTechniqueNames}
         />
       </section>
 
@@ -419,6 +439,7 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           userId={user?.id ?? ''}
           selectedIds={data.materialIds ?? []}
           onChange={ids => onChange({ materialIds: ids })}
+          suggestFromTechniqueNames={selectedTechniqueNames}
         />
       </section>
 

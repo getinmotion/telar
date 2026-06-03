@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { EventBus } from '@/utils/eventBus';
 import { supabase } from '@/integrations/supabase/client';
+import { getAchievementCatalogById } from '@/services/achievementsCatalog.actions';
+import { createUserAchievement } from '@/services/userAchievements.actions';
 import confetti from 'canvas-confetti';
 
 /**
@@ -32,41 +34,33 @@ export const useMilestoneNotifications = () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
 
-          // Check if badge already exists
-          const { data: existing } = await supabase
-            .from('user_achievements')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('achievement_id', badgeId)
-            .single();
+          // ✅ MIGRATED: Get badge info from NestJS catalog
+          // Endpoint: GET /achievements-catalog/:id
+          try {
+            const catalogBadge = await getAchievementCatalogById(badgeId);
 
-          if (!existing) {
-            // Get badge info from catalog
-            const { data: catalogBadge } = await supabase
-              .from('achievements_catalog')
-              .select('*')
-              .eq('id', badgeId)
-              .single();
+            // ✅ MIGRATED: Create user achievement via NestJS
+            // Endpoint: POST /user-achievements
+            await createUserAchievement({
+              userId: user.id,
+              achievementId: badgeId,
+              title: catalogBadge.title,
+              description: catalogBadge.description,
+              icon: catalogBadge.icon
+            });
 
-            if (catalogBadge) {
-              // Unlock badge
-              await supabase
-                .from('user_achievements')
-                .insert({
-                  user_id: user.id,
-                  achievement_id: badgeId,
-                  title: catalogBadge.title,
-                  description: catalogBadge.description,
-                  icon: catalogBadge.icon
-                });
-
-              // Show badge unlock notification
-              toast({
-                title: `🏆 ¡Badge Desbloqueado!`,
-                description: catalogBadge.title,
-                duration: 6000
-              });
+            // Show badge unlock notification
+            toast({
+              title: `🏆 ¡Badge Desbloqueado!`,
+              description: catalogBadge.title,
+              duration: 6000
+            });
+          } catch (achievementError: any) {
+            // Si el badge no existe en el catálogo o ya está desbloqueado, ignorar
+            if (achievementError.response?.status === 404 || achievementError.response?.status === 409) {
+              return;
             }
+            throw achievementError;
           }
         } catch (error) {
           console.error('Error unlocking milestone badge:', error);

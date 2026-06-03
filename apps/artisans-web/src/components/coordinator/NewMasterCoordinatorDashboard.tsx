@@ -89,15 +89,11 @@ import { toast } from "sonner";
 import { EventBus } from "@/utils/eventBus";
 import { getTaskCompletionData } from "@/hooks/utils/taskCompletionHelpers";
 import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
-import { useMaturityTestStatus } from "@/hooks/useMaturityTestStatus";
-import { MATURITY_TEST_CONFIG } from "@/config/maturityTest";
 import { useBrandSyncValidator } from "@/hooks/useBrandSyncValidator";
 import { useWizardTaskDetector } from "@/hooks/useWizardTaskDetector";
 import { useOnboardingValidation } from "@/hooks/useOnboardingValidation";
 import { ArtisanProgressHero } from "@/components/dashboard/artisan/ArtisanProgressHero";
-import { UserProgressDashboard } from "@/components/dashboard/UserProgressDashboard";
 import { DashboardNavHeader } from "@/components/dashboard/DashboardNavHeader";
-import { ContinueMaturityBanner } from "@/components/dashboard/ContinueMaturityBanner";
 import { useShopNavigation } from "@/hooks/useShopNavigation";
 import { DashboardSkeleton } from "@/components/dashboard/skeletons";
 import { ShopSalesMiniCard } from "@/components/dashboard/ShopSalesMiniCard";
@@ -203,11 +199,6 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
 
   // 🎯 Auto-detección de wizards completados para marcar tareas
   useWizardTaskDetector();
-
-  // 🔄 Usar totalAnswered del hook como fuente principal
-  const totalAnswered = maturityTotalAnswered;
-  const remainingQuestions =
-    MATURITY_TEST_CONFIG.TOTAL_QUESTIONS - totalAnswered;
 
   // 🔐 Mostrar modal de perfil incompleto cuando faltan datos críticos
   useEffect(() => {
@@ -860,100 +851,14 @@ export const NewMasterCoordinatorDashboard: React.FC = () => {
               userName={
                 profile.nombre || user?.user_metadata?.name || "Artesano"
               }
-              maturityScores={dynamicMaturityScores}
               totalProgress={totalProgress}
-              hasCompletedMaturityTest={hasCompleted}
               unifiedProgress={unifiedProgress}
             />
           </motion.div>
         )}
 
-        {/* User Progress Dashboard */}
-        {hasCompletedOnboarding && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
-          >
-            <UserProgressDashboard />
-          </motion.div>
-        )}
-
         {/* 2️⃣ Dashboard Action Cards - Estilo Nike Sofisticado */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Card: Test de Madurez */}
-          {!checkingOnboarding && !hasCompleted && !hasInProgress && (
-            <DashboardActionCard
-              badge={{ label: "Nuevo", variant: "recommended" }}
-              icon={<Lightbulb className="w-8 h-8" />}
-              category="Evaluación"
-              title="Test de Madurez"
-              subtitle="Descubre dónde estás y hacia dónde ir"
-              metadata={[
-                {
-                  icon: <Clock className="w-3.5 h-3.5" />,
-                  value: "~5 minutos",
-                },
-                {
-                  icon: <BarChart3 className="w-3.5 h-3.5" />,
-                  value: "4 áreas clave",
-                },
-              ]}
-              primaryAction={{
-                label: "Empezar Evaluación",
-                onClick: () => {
-                  trackEvent({
-                    eventType: "onboarding_started" as any,
-                    eventData: { source: "dashboard_action_card" },
-                  });
-                  navigate("/maturity-calculator?mode=onboarding");
-                },
-              }}
-              status="warning"
-            />
-          )}
-
-          {/* Card: Continuar Test (In Progress) */}
-          {!checkingOnboarding && hasInProgress && !hasCompleted && (
-            <DashboardActionCard
-              badge={{ label: "En Progreso", variant: "default" }}
-              icon={<Target className="w-8 h-8" />}
-              category="Evaluación"
-              title="Test de Madurez"
-              subtitle="Continúa donde lo dejaste"
-              progress={{
-                current: testTotalAnswered,
-                total: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
-                label: "preguntas",
-              }}
-              metadata={[
-                {
-                  icon: <Clock className="w-3.5 h-3.5" />,
-                  value: `~${Math.ceil(remainingQuestions * 0.5)} min restantes`,
-                },
-                {
-                  icon: <BarChart3 className="w-3.5 h-3.5" />,
-                  value: "4 áreas por evaluar",
-                },
-              ]}
-              primaryAction={{
-                label: "Continuar",
-                onClick: () => {
-                  trackEvent({
-                    eventType: "onboarding_resumed" as any,
-                    eventData: {
-                      source: "dashboard_action_card",
-                      progress: testTotalAnswered,
-                    },
-                  });
-                  navigate("/maturity-calculator?mode=continue");
-                },
-              }}
-              status="default"
-            />
-          )}
-
           {/* Card: Mi Marca - Cuando ya tiene diagnóstico completo */}
           {(() => {
             const brandEval = (context?.conversationInsights as any)

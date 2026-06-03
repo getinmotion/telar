@@ -1,17 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { MotionLogo } from '@/components/MotionLogo';
-import { LoginOnboardingSlider } from '@/components/auth/LoginOnboardingSlider';
-import { usePerformanceMetrics, measurePageLoad } from '@/hooks/usePerformanceMetrics';
-import { login as loginAction } from './actions/login.actions';
-import { useAuthStore } from '@/stores/authStore';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { MotionLogo } from "@/components/MotionLogo";
+import { LoginOnboardingSlider } from "@/components/auth/LoginOnboardingSlider";
+import {
+  usePerformanceMetrics,
+  measurePageLoad,
+} from "@/hooks/usePerformanceMetrics";
+import { login as loginAction } from "./actions/login.actions";
+import { useAuthStore } from "@/stores/authStore";
 
-const pageMetrics = measurePageLoad('Login');
+const pageMetrics = measurePageLoad("Login");
 
 /**
  * Obtener la ruta de redirección usando el store de Zustand
@@ -23,13 +26,13 @@ const getUserRedirectPath = (): string => {
 };
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const perf = usePerformanceMetrics('Login');
+  const perf = usePerformanceMetrics("Login");
 
   // ✅ Ref para evitar múltiples redirecciones
   const hasAttemptedRedirect = useRef(false);
@@ -59,7 +62,7 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    perf.startMetric('login_total');
+    perf.startMetric("login_total");
     setIsLoading(true);
 
     if (!email || !password) {
@@ -68,22 +71,22 @@ export default function Login() {
         description: "Por favor completa todos los campos",
         variant: "destructive",
       });
-      perf.endMetric('login_total');
+      perf.endMetric("login_total");
       setIsLoading(false);
       return;
     }
 
     try {
-      perf.startMetric('nestjs_login');
+      perf.startMetric("nestjs_login");
 
       // ✅ Llamar al backend NestJS para login
       // La función loginAction ya guarda toda la info en el store de Zustand
       await loginAction({
         email: email.trim().toLowerCase(),
-        password
+        password,
       });
 
-      perf.endMetric('nestjs_login');
+      perf.endMetric("nestjs_login");
 
       toast({
         title: "¡Bienvenido!",
@@ -91,11 +94,11 @@ export default function Login() {
       });
 
       // ✅ Calcular y redirigir inmediatamente después de que se actualice el store
-      perf.startMetric('redirect_path_calculation');
+      perf.startMetric("redirect_path_calculation");
       const redirectPath = getUserRedirectPath();
-      perf.endMetric('redirect_path_calculation');
+      perf.endMetric("redirect_path_calculation");
 
-      perf.endMetric('login_total');
+      perf.endMetric("login_total");
       perf.logReport();
 
       // Resetear loading antes de navegar
@@ -103,44 +106,13 @@ export default function Login() {
 
       // Redirigir
       navigate(redirectPath, { replace: true });
-
     } catch (error: any) {
-      perf.endMetric('login_total');
+      perf.endMetric("login_total");
       perf.logReport();
       setIsLoading(false);
 
       // Manejar errores específicos del backend NestJS
       const errorResponse = error?.response?.data;
-
-      if (errorResponse?.statusCode === 401) {
-        const errorMessage = errorResponse?.message?.message || errorResponse?.message;
-
-        if (typeof errorMessage === 'string' && errorMessage.includes('Credenciales inválidas')) {
-          toast({
-            title: "Credenciales incorrectas",
-            description: "El email o la contraseña no son correctos",
-            variant: "destructive",
-          });
-        } else if (typeof errorMessage === 'string' && errorMessage.includes('no verificado')) {
-          toast({
-            title: "Email no verificado",
-            description: "Por favor verifica tu email antes de iniciar sesión",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error al iniciar sesión",
-            description: "Credenciales inválidas",
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Error inesperado",
-          description: "Ocurrió un error al iniciar sesión. Por favor intenta nuevamente.",
-          variant: "destructive",
-        });
-      }
     }
   };
 
@@ -196,7 +168,10 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="2xl:space-y-6 space-y-2">
               {/* Email Field */}
               <div className="space-y-2 text-left">
-                <Label htmlFor="email" className="text-foreground text-sm font-semibold text-left block">
+                <Label
+                  htmlFor="email"
+                  className="text-foreground text-sm font-semibold text-left block"
+                >
                   Correo
                 </Label>
                 <Input
@@ -212,7 +187,10 @@ export default function Login() {
 
               {/* Password Field */}
               <div className="space-y-2 text-left">
-                <Label htmlFor="password" className="text-foreground text-sm font-semibold text-left block">
+                <Label
+                  htmlFor="password"
+                  className="text-foreground text-sm font-semibold text-left block"
+                >
                   Contraseña
                 </Label>
                 <div className="relative">
@@ -254,7 +232,7 @@ export default function Login() {
                   disabled={isLoading}
                   className="w-[180px] h-12 rounded-[12px] bg-accent hover:bg-accent/90 text-white text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Entrando...' : 'Entrar'}
+                  {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
               </div>
             </form>
@@ -262,7 +240,7 @@ export default function Login() {
             {/* Register Link */}
             <div className="mt-8 text-left">
               <span className="text-muted-foreground text-sm">
-                ¿No tienes cuenta?{' '}
+                ¿No tienes cuenta?{" "}
               </span>
               <Link
                 to="/register"

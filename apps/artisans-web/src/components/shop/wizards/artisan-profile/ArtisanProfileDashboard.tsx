@@ -13,6 +13,7 @@ import { ArtisanProfileData, LEARNED_FROM_OPTIONS } from '@/types/artisanProfile
 import { useToast } from '@/components/ui/use-toast';
 import { generateArtisanProfileHistory } from '@/services/ai.actions';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
+import { getLandingUrl } from '@/config/urls';
 
 interface ArtisanProfileDashboardProps {
   data: ArtisanProfileData;
@@ -147,7 +148,7 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
   };
 
   const handleViewPublic = () => {
-    window.open(`/tienda/${shopSlug}/perfil-artesanal`, '_blank');
+    window.open(getLandingUrl(`/tienda/${shopSlug}/perfil-artesanal`), '_blank');
   };
 
   return (

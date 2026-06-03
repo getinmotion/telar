@@ -82,6 +82,7 @@ import { MarketplaceAssignmentsModule } from './resources/marketplace-assignment
 import { FeaturedCollectionsModule } from './resources/featured-collections/featured-collections.module';
 import { StoreHealthScoresModule } from './resources/store-health-scores/store-health-scores.module';
 import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-info.module';
+import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
 
 @Module({
   imports: [
@@ -209,6 +210,7 @@ import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-i
     FeaturedCollectionsModule,
     StoreHealthScoresModule,
     PayoutUserInfoModule,
+    AchievementsCatalogModule,
   ],
   controllers: [],
   providers: [],
