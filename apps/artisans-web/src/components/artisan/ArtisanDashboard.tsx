@@ -18,6 +18,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getLandingUrl } from '@/config/urls';
 
 export const ArtisanDashboard: React.FC = () => {
   const { shop, loading } = useArtisanShop();
@@ -89,7 +90,7 @@ export const ArtisanDashboard: React.FC = () => {
       title: 'Ver mi Vitrina',
       description: 'Mira cómo te ven tus clientes',
       icon: Eye,
-      action: () => window.open(`/tienda/${shop.shop_slug}`, '_blank'),
+      action: () => window.open(getLandingUrl(`/tienda/${shop.shop_slug}`), '_blank'),
     },
     {
       title: 'Mis Tareas',

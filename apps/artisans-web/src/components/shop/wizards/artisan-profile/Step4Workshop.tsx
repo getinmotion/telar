@@ -188,6 +188,7 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
           userId={userId}
           selected={data.workshopTools}
           onChange={(names) => onChange({ workshopTools: names })}
+          suggestFromCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
         />
       </section>
     </div>

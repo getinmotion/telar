@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Package, DollarSign, TrendingUp, AlertCircle, Eye, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useShopNavigation } from '@/hooks/useShopNavigation';
+import { getLandingUrl } from '@/config/urls';
 
 interface Product {
   id: string;
@@ -213,7 +214,7 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
           <Button 
             variant="outline" 
             className="h-auto py-4 justify-start"
-            onClick={() => window.open(`/tienda/${shopSlug}`, '_blank')}
+            onClick={() => window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}
           >
             <Eye className="w-5 h-5 mr-3" />
             <div className="text-left">
