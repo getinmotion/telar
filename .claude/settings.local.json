@@ -35,7 +35,8 @@
       "Bash(xargs grep -l \"oficio\")",
       "Bash(xargs grep -l \"artisan.*profile\\\\|profile.*artisan\" -i)",
       "Bash(grep -iE \"\\\\.tsx$|\\\\.ts$\")",
-      "Bash(xargs grep -l \"ArtisanProfile\")"
+      "Bash(xargs grep -l \"ArtisanProfile\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

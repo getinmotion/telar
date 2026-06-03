@@ -16,11 +16,11 @@ import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useShopPublish, type PublishRequirements } from '@/hooks/useShopPublish';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
+import { getLandingUrl } from '@/config/urls';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { getAgreementById } from '@/services/agreements.actions';
 import { AICopilotCard } from './AICopilotCard';
 import { ProductsTable } from './sections/ProductsTable';
-import { InventoryAlerts } from './sections/InventoryAlerts';
 import { OrdersSummarySection } from './sections/OrdersSummarySection';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 
@@ -398,7 +398,7 @@ export const CommercialDashboard: React.FC = () => {
       body: 'Tu tienda ya está activa en tu URL personal. Nuestro equipo editorial la revisará para habilitarla en el marketplace central de TELAR. Te avisaremos cuando sea aprobada.',
       cta: 'Ver mi tienda',
       ctaRoute: '#',
-      ctaAction: () => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank'),
+      ctaAction: () => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank'),
       icon: 'hourglass_top',
     };
     // State 1: Not yet activated — guide artisan through requirements
@@ -542,7 +542,7 @@ export const CommercialDashboard: React.FC = () => {
                   )}
                   <NotificationCenter />
                   {isMarketplaceLive ? (
-                    <OrangeBtn onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}>
+                    <OrangeBtn onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}>
                       <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                       Ver tienda
                     </OrangeBtn>
@@ -582,7 +582,7 @@ export const CommercialDashboard: React.FC = () => {
                   )}
                   {isMarketplaceLive ? (
                     <button
-                      onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                      onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}
                       className="w-8 h-8 flex items-center justify-center rounded-full"
                       style={{ background: '#ec6d13' }}
                     >
@@ -645,97 +645,93 @@ export const CommercialDashboard: React.FC = () => {
             >
               <div className="max-w-[1300px] mx-auto pt-6">
 
-                {/* Saludo — desktop */}
-                <div className="hidden md:block mb-6">
-                  <h1 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
-                    Hola, {shopName}
-                  </h1>
-                  <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: 'rgba(84,67,62,0.7)', marginTop: 4 }}>
-                    {isMarketplaceLive
-                      ? 'Tu tienda está en el marketplace y lista para recibir pedidos.'
-                      : isActivated
-                        ? 'Tu tienda está activa. El equipo TELAR la está revisando para el marketplace.'
-                        : 'Tu tienda está creada. Completa lo necesario y actívala.'}
-                  </p>
-                </div>
+                {/* ── Saludo + Destacados (una sola fila) ─────────────── */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6 mb-8">
 
-                {/* Saludo — mobile hero */}
-                <div className="md:hidden mb-5 flex items-center gap-4 px-4 py-4 rounded-2xl"
-                  style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 16px rgba(21,27,45,0.04)' }}
-                >
-                  {shop?.logoUrl ? (
-                    <img
-                      src={shop.logoUrl}
-                      alt={shopName}
-                      className="w-16 h-16 rounded-2xl object-contain flex-shrink-0"
-                      style={{ background: 'white', padding: 6, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#ec6d13' }}>storefront</span>
+                  {/* Logo + texto */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    {shop?.logoUrl ? (
+                      <img
+                        src={shop.logoUrl}
+                        alt={shopName}
+                        className="w-10 h-10 rounded-xl object-contain shrink-0"
+                        style={{ background: 'white', padding: 4, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 1px 6px rgba(21,27,45,0.06)' }}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#ec6d13' }}>storefront</span>
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h1 className="truncate" style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 700, color: '#151b2d', lineHeight: 1.2 }}>
+                        Hola, {shopName}
+                      </h1>
+                      <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: 'rgba(84,67,62,0.55)', marginTop: 2, lineHeight: 1.35 }}>
+                        {isMarketplaceLive
+                          ? 'Tu tienda está activa en el marketplace.'
+                          : isActivated
+                            ? 'En revisión · el equipo TELAR está evaluando tu tienda.'
+                            : 'Completa los pasos pendientes y activa tu tienda.'}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 3 }}>Tu tienda</p>
-                    <h1 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', lineHeight: 1.15, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {shopName}
-                    </h1>
-                    <p style={{ fontFamily: SANS, fontSize: 11, fontWeight: 500, color: 'rgba(84,67,62,0.6)', lineHeight: 1.4 }}>
-                      {isMarketplaceLive
-                        ? 'En el marketplace · lista para recibir pedidos'
-                        : isActivated
-                          ? 'Activa · en revisión por el equipo TELAR'
-                          : 'Completa los pasos y activa tu tienda'}
-                    </p>
                   </div>
-                </div>
 
-                {/* 4 Metric Cards */}
-                <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8">
-                  <MetricCard
-                    label="Productos"
-                    value={products.length}
-                    sub={isMarketplaceLive
-                      ? `${publishedProducts.length} pub · ${draftProducts.length} borrador`
-                      : '1 requerido para activar'}
-                    icon="inventory_2"
-                  />
-                  <MetricCard
-                    label="Estado"
-                    value={
-                      <span style={{
-                        fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em',
-                        color: isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13',
-                      }}>
-                        {isMarketplaceLive ? 'En marketplace' : isActivated ? 'En revisión' : 'En preparación'}
+                  {/* 4 chips compactos */}
+                  <div className="flex items-stretch gap-2 overflow-x-auto pb-0.5 md:pb-0 shrink-0">
+
+                    {/* Productos */}
+                    <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
+                      <span style={{ fontFamily: SANS, fontSize: 19, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+                        {products.length}
                       </span>
-                    }
-                    mobileValue={
-                      <span style={{ fontSize: 11, fontWeight: 900, color: isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13' }}>
-                        {isMarketplaceLive ? 'Live' : isActivated ? 'Rev.' : 'Prep.'}
+                      <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                        Productos
                       </span>
-                    }
-                    mobileIconColor={isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13'}
-                    sub={isMarketplaceLive ? 'Activa y visible' : isActivated ? 'Pendiente curación' : 'No activada'}
-                    icon={isMarketplaceLive ? 'check_circle' : isActivated ? 'hourglass_top' : 'pending'}
-                  />
-                  <MetricCard
-                    label="Inventario"
-                    value={totalStock}
-                    sub={
-                      isActivated && lowStockProducts.length > 0
-                        ? `${lowStockProducts.length} con bajo stock`
-                        : isActivated ? 'Stock al día' : 'Sin stock cargado'
-                    }
-                    icon="warehouse"
-                  />
-                  <MetricCard
-                    label="Ventas"
-                    value={salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
-                    sub={isMarketplaceLive ? 'Ingresos totales' : 'Aparecen al aprobarse'}
-                    icon="payments"
-                  />
+                    </div>
+
+                    {/* Estado */}
+                    {(() => {
+                      const stColor = isMarketplaceLive ? '#166534' : isActivated ? '#3b82f6' : '#ec6d13';
+                      const stBg    = isMarketplaceLive ? 'rgba(22,101,52,0.06)' : isActivated ? 'rgba(59,130,246,0.06)' : 'rgba(236,109,19,0.06)';
+                      const stBdr   = isMarketplaceLive ? 'rgba(22,101,52,0.18)' : isActivated ? 'rgba(59,130,246,0.18)' : 'rgba(236,109,19,0.18)';
+                      return (
+                        <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
+                          style={{ background: stBg, border: `1px solid ${stBdr}`, minWidth: 76 }}>
+                          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 900, color: stColor, lineHeight: 1 }}>
+                            {isMarketplaceLive ? 'Live' : isActivated ? 'Revisión' : 'Prep.'}
+                          </span>
+                          <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                            Estado
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Inventario */}
+                    <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
+                      <span style={{ fontFamily: SANS, fontSize: 19, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+                        {totalStock}
+                      </span>
+                      <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                        Inventario
+                      </span>
+                    </div>
+
+                    {/* Ventas */}
+                    <div className="flex flex-col items-center justify-center px-4 py-2 rounded-xl shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(226,213,207,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', minWidth: 72 }}>
+                      <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
+                        {salesStats.totalRevenue > 0 ? formatCurrency(salesStats.totalRevenue) : '$0'}
+                      </span>
+                      <span style={{ fontFamily: SANS, fontSize: 8, fontWeight: 800, color: 'rgba(84,67,62,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+                        Ventas
+                      </span>
+                    </div>
+
+                  </div>
                 </div>
 
                 {/* Grid 8 + 4 */}
@@ -748,17 +744,17 @@ export const CommercialDashboard: React.FC = () => {
                     {isActivated && !isMarketplaceLive ? (
                       /* ── "En revisión" slider ── same shell as the nextCard section */
                       <section
-                        className="p-6 md:p-10 rounded-3xl flex flex-col md:flex-row gap-6 md:gap-10 items-center relative overflow-hidden"
+                        className="p-6 md:p-10 rounded-3xl flex flex-col md:flex-row gap-6 md:gap-10 items-start relative overflow-hidden"
                         style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.12)' }}
                       >
-                        <div className="flex-1 relative z-10">
-                          <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 12, lineHeight: 1.3 }}>
+                        <div className="flex-1 relative z-10 w-full text-left">
+                          <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 12, lineHeight: 1.3, textAlign: 'left' }}>
                             {reviewSl.label}
                           </h3>
-                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.7, marginBottom: 28, maxWidth: 380 }}>
+                          <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.7, marginBottom: 28, maxWidth: 380, textAlign: 'left' }}>
                             {reviewSl.body}
                           </p>
-                          <div className="flex gap-3 flex-wrap items-center">
+                          <div className="flex gap-3 flex-wrap items-center justify-start">
                             <button
                               onClick={reviewSl.action}
                               className="flex items-center gap-2 px-5 py-2.5 rounded-full transition-opacity hover:opacity-80"
@@ -769,7 +765,7 @@ export const CommercialDashboard: React.FC = () => {
                             </button>
                           </div>
                           {/* Dot navigation */}
-                          <div className="flex items-center gap-2 mt-6">
+                          <div className="flex items-center justify-start gap-2 mt-6">
                             {REVIEW_SLIDES.map((_, i) => (
                               <button
                                 key={i}
@@ -786,7 +782,7 @@ export const CommercialDashboard: React.FC = () => {
                         </div>
 
                         {/* Illustration */}
-                        <div className="shrink-0 relative w-44 h-44">
+                        <div className="hidden md:block shrink-0 relative w-44 h-44">
                           <div className="absolute inset-0 rounded-3xl rotate-6 opacity-40" style={{ background: 'rgba(59,130,246,0.18)' }} />
                           <div
                             className="absolute inset-4 rounded-2xl -rotate-3 flex items-center justify-center"
@@ -993,7 +989,7 @@ export const CommercialDashboard: React.FC = () => {
 
                           {/* Canal 1: eCommerce personal */}
                           <button
-                            onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                            onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}
                             disabled={!shopSlug}
                             className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01]"
                             style={{
@@ -1018,7 +1014,7 @@ export const CommercialDashboard: React.FC = () => {
 
                           {/* Canal 2: TELAR marketplace */}
                           <button
-                            onClick={() => shopSlug && window.open(`/tienda/${shopSlug}`, '_blank')}
+                            onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}
                             disabled={!shopSlug}
                             className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01] relative overflow-hidden"
                             style={{
@@ -1112,18 +1108,9 @@ export const CommercialDashboard: React.FC = () => {
                   {/* ── Right sidebar (4) ────────────────────────────────── */}
                   <aside className="lg:col-span-4 space-y-6">
 
-                    <div className="hidden lg:block">
+                    <div className="hidden lg:block sticky top-6">
                       <AICopilotCard />
                     </div>
-
-                    {/* Faltantes / Alertas */}
-                    <InventoryAlerts
-                      isActivated={isActivated}
-                      checklistItems={checklistItems}
-                      lowStockProducts={lowStockProducts}
-                      draftProducts={draftProducts}
-                      onNavigate={(route) => navigate(route)}
-                    />
 
                     {/* Mobile: sales banner */}
                     <div

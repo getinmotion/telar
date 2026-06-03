@@ -9,7 +9,7 @@
  * una vez que esos endpoints de perfil estén disponibles.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   getArtisanMaterials,
   addArtisanMaterial,
@@ -44,6 +44,37 @@ function getIcon(name: string): string {
   return 'texture';
 }
 
+// ── Technique → material keyword mapping ──────────────────────────────────────
+
+const TECHNIQUE_MATERIAL_MAP: { techniqueKeywords: string[]; materialKeywords: string[] }[] = [
+  { techniqueKeywords: ['tejido', 'telar', 'urdimbre', 'trama'], materialKeywords: ['algodón', 'lana', 'seda', 'hilo', 'lino', 'fibra', 'yute', 'rafia', 'fique', 'cabuya'] },
+  { techniqueKeywords: ['bordado', 'costura', 'puntada', 'aguja'], materialKeywords: ['hilo', 'seda', 'algodón', 'tela', 'cañamazo', 'lino'] },
+  { techniqueKeywords: ['cerámica', 'alfarería', 'torneado', 'modelado', 'arcilla'], materialKeywords: ['arcilla', 'barro', 'greda', 'porcelana', 'terracota', 'caolín'] },
+  { techniqueKeywords: ['tallado', 'escultura', 'talla', 'gubia'], materialKeywords: ['madera', 'guadua', 'bambú', 'balsa', 'totumo'] },
+  { techniqueKeywords: ['cestería', 'trenzado', 'palma', 'mimbre', 'junco'], materialKeywords: ['palma', 'mimbre', 'caña', 'ratán', 'fibra', 'junco', 'iraca'] },
+  { techniqueKeywords: ['joyería', 'filigrana', 'orfebrería', 'repujado', 'soldadura'], materialKeywords: ['oro', 'plata', 'cobre', 'bronce', 'metal', 'latón', 'alambre'] },
+  { techniqueKeywords: ['macramé', 'nudo', 'anudado'], materialKeywords: ['cuerda', 'yute', 'algodón', 'cáñamo', 'hilo'] },
+  { techniqueKeywords: ['crochet', 'ganchillo', 'punto'], materialKeywords: ['lana', 'algodón', 'hilo', 'seda', 'acrílico'] },
+  { techniqueKeywords: ['pintura', 'serigrafía', 'teñido', 'tintura', 'batik'], materialKeywords: ['pigmento', 'tinte', 'pintura', 'anilina', 'óxido', 'cera'] },
+  { techniqueKeywords: ['cuero', 'marroquinería', 'repujado'], materialKeywords: ['cuero', 'piel', 'gamuza', 'ante'] },
+  { techniqueKeywords: ['vidrio', 'vitraux', 'vitral', 'esmalte'], materialKeywords: ['vidrio', 'cristal', 'esmalte', 'plomo'] },
+  { techniqueKeywords: ['fundición', 'forja', 'cincelado'], materialKeywords: ['hierro', 'acero', 'bronce', 'cobre', 'metal'] },
+  { techniqueKeywords: ['papel', 'papelería', 'origami'], materialKeywords: ['papel', 'cartón', 'cartulina'] },
+];
+
+function getSuggestedMaterialKeywords(techniqueNames: string[]): string[] {
+  const keywords = new Set<string>();
+  for (const techName of techniqueNames) {
+    const lower = techName.toLowerCase();
+    for (const { techniqueKeywords, materialKeywords } of TECHNIQUE_MATERIAL_MAP) {
+      if (techniqueKeywords.some(kw => lower.includes(kw))) {
+        materialKeywords.forEach(kw => keywords.add(kw));
+      }
+    }
+  }
+  return [...keywords];
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface MaterialPickerProps {
@@ -54,6 +85,8 @@ interface MaterialPickerProps {
   /** IDs de materiales seleccionados para este producto. */
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  /** Nombres de técnicas seleccionadas para sugerir materiales afines. */
+  suggestFromTechniqueNames?: string[];
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -63,6 +96,7 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
   userId,
   selectedIds,
   onChange,
+  suggestFromTechniqueNames,
 }) => {
   const [profileItems, setProfileItems] = useState<ArtisanMaterialItem[]>([]);
   const [approvedCatalog, setApprovedCatalog] = useState<Material[]>([]);
@@ -74,6 +108,19 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
   const [isSuggesting, setIsSuggesting] = useState(false);
 
   const profileIds = profileItems.map(p => p.materialId);
+
+  // Materials suggested from selected techniques (approved catalog, not yet in profile)
+  const suggestedMaterials = useMemo(() => {
+    if (!suggestFromTechniqueNames?.length || !approvedCatalog.length) return [];
+    const keywords = getSuggestedMaterialKeywords(suggestFromTechniqueNames);
+    if (!keywords.length) return [];
+    return approvedCatalog
+      .filter(m =>
+        keywords.some(kw => m.name.toLowerCase().includes(kw)) &&
+        !profileIds.includes(m.id),
+      )
+      .slice(0, 10);
+  }, [suggestFromTechniqueNames, approvedCatalog, profileIds]);
 
   const searchResults = searchQuery.trim().length >= 2
     ? approvedCatalog
@@ -230,6 +277,35 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
         <p className="text-[12px] text-[#54433e]/40 italic py-2">
           Aún no tienes materiales en tu perfil. Busca uno abajo o sugiérelo.
         </p>
+      )}
+
+      {/* ── Sugeridos por técnicas ───────────────────────────────────────── */}
+      {suggestedMaterials.length > 0 && (
+        <div
+          className="p-3 rounded-xl space-y-2"
+          style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.25)' }}
+        >
+          <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
+            Sugeridos para tus técnicas
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {suggestedMaterials.map(mat => (
+              <button
+                key={mat.id}
+                onClick={() => handleAddFromSearch(mat)}
+                disabled={addingId === mat.id}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ec6d13]/25 bg-white hover:border-[#ec6d13]/50 hover:bg-[#ec6d13]/5 text-[12px] text-[#54433e] font-[500] transition-all group disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[14px] text-[#ec6d13]/50 group-hover:text-[#ec6d13] transition-colors ${addingId === mat.id ? 'animate-spin' : ''}`}>
+                  {addingId === mat.id ? 'progress_activity' : getIcon(mat.name)}
+                </span>
+                {mat.name}
+                <span className="material-symbols-outlined text-[11px] text-[#54433e]/25 group-hover:text-[#ec6d13] transition-colors">add</span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* ── Agregar desde catálogo ────────────────────────────────────────── */}
@@ -432,6 +508,36 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ name, icon, isSelected, isP
   </button>
 );
 
+// ── Craft → tool keyword mapping ─────────────────────────────────────────────
+
+const CRAFT_TOOL_MAP: { craftKeywords: string[]; toolKeywords: string[] }[] = [
+  { craftKeywords: ['tejido', 'telar', 'textil', 'tapiz'], toolKeywords: ['telar', 'lanzadera', 'aguja', 'urdidor', 'peine', 'canilla'] },
+  { craftKeywords: ['bordado', 'costura', 'confección'], toolKeywords: ['aguja', 'bastidor', 'aro', 'tijera', 'dedal', 'enhebrador'] },
+  { craftKeywords: ['cerámica', 'alfarería', 'arcilla', 'barro'], toolKeywords: ['torno', 'horno', 'espátula', 'esteca', 'molde', 'paleta'] },
+  { craftKeywords: ['tallado', 'escultura', 'madera', 'guadua'], toolKeywords: ['formón', 'gubia', 'cincel', 'martillo', 'sierra', 'lija'] },
+  { craftKeywords: ['cestería', 'trenzado', 'mimbre', 'palma'], toolKeywords: ['aguja', 'tijera', 'punzón', 'machete', 'navaja'] },
+  { craftKeywords: ['joyería', 'orfebrería', 'filigrana', 'metal'], toolKeywords: ['soplete', 'martillo', 'yunque', 'alicate', 'pinza', 'lima', 'soldador'] },
+  { craftKeywords: ['macramé', 'nudo', 'cuerda'], toolKeywords: ['tijera', 'tabla', 'peine', 'cinta'] },
+  { craftKeywords: ['crochet', 'tejido a punto', 'ganchillo'], toolKeywords: ['ganchillo', 'aguja', 'crochet'] },
+  { craftKeywords: ['pintura', 'mural', 'lienzo'], toolKeywords: ['pincel', 'brocha', 'espátula', 'paleta', 'caballete'] },
+  { craftKeywords: ['cuero', 'marroquinería', 'talabartería'], toolKeywords: ['punzón', 'cuchillo', 'martillo', 'molde', 'aguja'] },
+  { craftKeywords: ['vidrio', 'vitraux'], toolKeywords: ['cortador', 'sierra', 'pinza', 'soplete'] },
+  { craftKeywords: ['forja', 'herrería', 'fundición'], toolKeywords: ['martillo', 'yunque', 'horno', 'soplete', 'tenaza', 'cincel'] },
+];
+
+function getSuggestedToolKeywords(craftNames: string[]): string[] {
+  const keywords = new Set<string>();
+  for (const craftName of craftNames) {
+    const lower = craftName.toLowerCase();
+    for (const { craftKeywords, toolKeywords } of CRAFT_TOOL_MAP) {
+      if (craftKeywords.some(kw => lower.includes(kw))) {
+        toolKeywords.forEach(kw => keywords.add(kw));
+      }
+    }
+  }
+  return [...keywords];
+}
+
 // ── ToolPicker ────────────────────────────────────────────────────────────────
 
 const TOOL_ICON_MAP: { keywords: string[]; icon: string }[] = [
@@ -463,10 +569,13 @@ interface ToolPickerProps {
   userId?: string;
   selected: string[];
   onChange: (names: string[]) => void;
+  /** IDs de oficios seleccionados en paso 1, para sugerir herramientas afines. */
+  suggestFromCraftIds?: string[];
 }
 
-export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChange }) => {
+export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChange, suggestFromCraftIds }) => {
   const [catalog, setCatalog] = useState<TaxonomyItem[]>([]);
+  const [craftNames, setCraftNames] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showSuggest, setShowSuggest] = useState(false);
@@ -479,6 +588,27 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
+
+  // Fetch craft names to resolve IDs for keyword matching
+  const craftIdsKey = suggestFromCraftIds?.join(',') ?? '';
+  useEffect(() => {
+    if (!suggestFromCraftIds?.length) { setCraftNames([]); return; }
+    import('@/services/crafts.actions').then(({ getAllCrafts }) =>
+      getAllCrafts().then(crafts => {
+        setCraftNames(crafts.filter(c => suggestFromCraftIds.includes(c.id)).map(c => c.name));
+      }).catch(() => {}),
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [craftIdsKey]);
+
+  const suggestedTools = useMemo(() => {
+    if (!craftNames.length || !catalog.length) return [];
+    const keywords = getSuggestedToolKeywords(craftNames);
+    if (!keywords.length) return [];
+    return catalog
+      .filter(t => keywords.some(kw => t.name.toLowerCase().includes(kw)) && !selected.includes(t.name))
+      .slice(0, 10);
+  }, [craftNames, catalog, selected]);
 
   const searchResults = searchQuery.trim().length >= 2
     ? catalog
@@ -547,6 +677,34 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
         <p className="text-[12px] text-[#54433e]/40 italic py-2">
           Aún no has agregado herramientas. Busca una abajo o sugiérela.
         </p>
+      )}
+
+      {/* Sugeridas por oficio */}
+      {suggestedTools.length > 0 && (
+        <div
+          className="p-3 rounded-xl space-y-2"
+          style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.25)' }}
+        >
+          <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
+            Sugeridas para tu oficio
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {suggestedTools.map(item => (
+              <button
+                key={item.id}
+                onClick={() => handleAddFromSearch(item)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ec6d13]/25 bg-white hover:border-[#ec6d13]/50 hover:bg-[#ec6d13]/5 text-[12px] text-[#54433e] font-[500] transition-all group"
+              >
+                <span className="material-symbols-outlined text-[14px] text-[#ec6d13]/50 group-hover:text-[#ec6d13] transition-colors">
+                  {getToolIcon(item.name)}
+                </span>
+                {item.name}
+                <span className="material-symbols-outlined text-[11px] text-[#54433e]/25 group-hover:text-[#ec6d13] transition-colors">add</span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Catálogo / búsqueda */}

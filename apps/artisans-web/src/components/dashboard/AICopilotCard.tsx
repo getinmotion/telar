@@ -144,51 +144,58 @@ export const AICopilotCard: React.FC = () => {
     <div
       style={{
         background: '#151b2d',
-        borderRadius: 16,
-        padding: '20px 24px',
+        borderRadius: 20,
+        padding: '28px 28px 32px',
         position: 'relative',
         overflow: 'hidden',
+        minHeight: 340,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {/* Subtle accent blob */}
+      {/* Accent blobs */}
       <div style={{
-        position: 'absolute', top: -40, right: -40, width: 160, height: 160,
-        borderRadius: '50%', background: 'rgba(236,109,19,0.06)', pointerEvents: 'none',
+        position: 'absolute', top: -50, right: -50, width: 200, height: 200,
+        borderRadius: '50%', background: 'rgba(236,109,19,0.05)', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: -60, left: -40, width: 180, height: 180,
+        borderRadius: '50%', background: 'rgba(59,130,246,0.04)', pointerEvents: 'none',
       }} />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, position: 'relative' }}>
         <span className="material-symbols-outlined" style={{ color: '#ec6d13', fontSize: 18 }}>psychology</span>
-        <span style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', flex: 1 }}>
+        <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 700, color: 'rgba(255,255,255,0.92)', flex: 1, letterSpacing: '0.02em' }}>
           ORÁCULO
         </span>
         <span style={{
           fontSize: 11, fontFamily: SANS, fontWeight: 700,
           color: completionScore >= 80 ? '#4ade80' : completionScore >= 40 ? '#fbbf24' : '#f87171',
           background: completionScore >= 80 ? 'rgba(74,222,128,0.1)' : completionScore >= 40 ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)',
-          borderRadius: 20, padding: '2px 8px',
+          borderRadius: 20, padding: '3px 10px',
         }}>
           {completionScore}%
         </span>
       </div>
 
-      {/* Thin progress bar */}
-      <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 16, overflow: 'hidden', position: 'relative' }}>
+      {/* Progress bar */}
+      <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 24, overflow: 'hidden', position: 'relative' }}>
         <div style={{ height: '100%', borderRadius: 2, background: '#ec6d13', width: `${completionScore}%`, transition: 'width 0.6s ease' }} />
       </div>
 
-      {/* Human message */}
-      <div style={{ position: 'relative' }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'flex-start' }}>
+      {/* Message — flex-1 so it fills available vertical space */}
+      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 28, alignItems: 'flex-start' }}>
           <div style={{
-            width: 28, height: 28, borderRadius: 8, background: 'rgba(236,109,19,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
+            width: 32, height: 32, borderRadius: 10, background: 'rgba(236,109,19,0.14)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
           }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ec6d13' }}>{insight.icon}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ec6d13' }}>{insight.icon}</span>
           </div>
           <p style={{
-            fontFamily: SANS, fontSize: 13, lineHeight: 1.65,
-            color: 'rgba(255,255,255,0.72)', margin: 0,
+            fontFamily: SANS, fontSize: 13, lineHeight: 1.7,
+            color: 'rgba(255,255,255,0.68)', margin: 0,
           }}>
             {insight.message}
           </p>
@@ -199,8 +206,9 @@ export const AICopilotCard: React.FC = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             background: '#ec6d13', color: 'white', border: 'none',
-            borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+            borderRadius: 10, padding: '10px 18px', cursor: 'pointer',
             fontFamily: SANS, fontSize: 12, fontWeight: 700,
+            alignSelf: 'flex-start',
           }}
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}

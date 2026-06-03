@@ -157,7 +157,7 @@ function validate(step: number, data: ArtisanProfileData): boolean {
     case 4:
       return (
         ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
-        data.materials.length > 0 &&
+        ((data.materialIds ?? []).length > 0 || data.materials.length > 0) &&
         !!data.uniqueness
       );
     case 5:
@@ -173,7 +173,7 @@ function isPublishReady(data: ArtisanProfileData): boolean {
     !!data.artisticName &&
     !!data.artisanPhoto &&
     !!data.learnedFromDetail &&
-    data.techniques.length > 0 &&
+    ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
     ((data.materialIds ?? []).length > 0 || data.materials.length > 0)
   );
 }
