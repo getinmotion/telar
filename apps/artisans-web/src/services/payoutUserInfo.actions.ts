@@ -81,7 +81,8 @@ export const getPayoutUserInfoByUserId = async (
 ): Promise<PayoutUserInfo[]> => {
   try {
     const response = await telarApi.get<PayoutUserInfo[]>(
-      `/payout-user-info/user/${userId}`
+      `/payout-user-info/user/${userId}`,
+      { _suppressToast: true } as any,
     );
     return response.data;
   } catch (error: any) {

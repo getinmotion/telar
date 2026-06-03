@@ -16,8 +16,14 @@ import {
  * Obtiene todos los logros del catálogo ordenados por display_order
  */
 export const getAllAchievementsCatalog = async (): Promise<AchievementsCatalog[]> => {
-  const response = await telarApi.get<AchievementsCatalog[]>('/achievements-catalog');
-  return response.data;
+  try {
+    const response = await telarApi.get<AchievementsCatalog[]>('/achievements-catalog', {
+      _suppressToast: true,
+    } as any);
+    return response.data;
+  } catch {
+    return [];
+  }
 };
 
 /**
