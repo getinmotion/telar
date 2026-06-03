@@ -23,7 +23,28 @@
       "Bash(git fetch *)",
       "Bash(echo \"api exit=$?\")",
       "Bash(echo \"marketplace exit=$?\")",
+<<<<<<< HEAD
+<<<<<<< HEAD
+      "Bash(echo \"artisans exit=$?\")",
+      "Bash(ipconfig)",
+      "Bash(xargs grep -l \"supabase\\\\|SUPABASE\")",
+      "Bash(netstat -ano)",
+      "Bash(netsh advfirewall *)",
+      "PowerShell(Get-NetFirewallRule -Direction Inbound -Enabled True | Get-NetFirewallPortFilter | Where-Object { $_.LocalPort -eq '1010' })",
+      "PowerShell(New-NetFirewallRule -DisplayName \"Telar API dev \\(1010\\)\" -Direction Inbound -Protocol TCP -LocalPort 1010 -Action Allow -Profile Private -Description \"Permite acceso local al servidor NestJS en dev\")",
+      "PowerShell(New-NetFirewallRule -DisplayName \"Telar Frontend dev \\(8080\\)\" -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Allow -Profile Private -Description \"Permite acceso local al frontend Vite en dev\")",
+      "PowerShell(New-NetFirewallRule -DisplayName \"Telar Frontend dev \\(8081\\)\" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Private -Description \"Permite acceso local al frontend Vite en dev \\(puerto alternativo\\)\")",
+      "Bash(xargs grep -l \"oficio\")",
+      "Bash(xargs grep -l \"artisan.*profile\\\\|profile.*artisan\" -i)",
+      "Bash(grep -iE \"\\\\.tsx$|\\\\.ts$\")",
+      "Bash(xargs grep -l \"ArtisanProfile\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+=======
       "Bash(echo \"artisans exit=$?\")"
+>>>>>>> 90f6650243a90b6752a66d385560a09b4b68daf9
+=======
+      "Bash(echo \"artisans exit=$?\")"
+>>>>>>> 55ccb8343d53150a37423e6fa1a5f6b878d5ad35
     ]
   }
 }

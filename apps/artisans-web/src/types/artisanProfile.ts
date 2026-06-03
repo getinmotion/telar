@@ -8,6 +8,7 @@ export interface ArtisanProfileData {
   artisanPhoto?: string;
   artisanVideo?: string;
   craftId?: string;             // UUID del oficio principal (FK → crafts)
+  craftIds?: string[];          // UUIDs de oficios (multi-select, craftId = craftIds[0])
   primaryTechniqueId?: string;   // UUID de la técnica principal (FK → techniques)
   secondaryTechniqueId?: string; // UUID de la técnica secundaria (FK → techniques)
   materialIds?: string[];       // UUIDs de materiales del perfil (artisan_materials)
