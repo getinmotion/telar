@@ -75,10 +75,22 @@ export const BackofficeLoginPage: React.FC = () => {
         navigate('/backoffice/studio', { replace: true });
       }
     } catch (error: any) {
+      console.error('Login error:', error);
+
+      // Extraer el mensaje de error de forma segura
+      let errorMessage = 'Credenciales incorrectas o acceso denegado.';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
         title: 'Error de autenticación',
-        description:
-          error?.response?.data?.message ?? 'Credenciales incorrectas o acceso denegado.',
+        description: String(errorMessage), // Asegurarse de que sea un string
         variant: 'destructive',
       });
     } finally {

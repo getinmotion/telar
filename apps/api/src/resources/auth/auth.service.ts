@@ -111,7 +111,7 @@ export class AuthService {
           firstName: registerDto.firstName.trim(),
           lastName: registerDto.lastName.trim(),
           fullName: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
-          // idType: idTypeRecord.idTypeValue, // Guardar el código (CC, DNI, etc.)
+          idType: idTypeRecord.idTypeValue, // Guardar el código (CC, DNI, etc.)
           idNumber: registerDto.idNumber.trim(),
           whatsappE164: registerDto.whatsapp,
           department: registerDto.department.trim(),
