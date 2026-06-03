@@ -16,7 +16,7 @@ import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useShopPublish, type PublishRequirements } from '@/hooks/useShopPublish';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
-import { getLandingUrl } from '@/config/urls';
+import { buildMarketplaceStoreUrl, buildAppStoreUrl, MARKETPLACE_DOMAIN } from '@/config/urls';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { getAgreementById } from '@/services/agreements.actions';
 import { AICopilotCard } from './AICopilotCard';
@@ -535,7 +535,7 @@ export const CommercialDashboard: React.FC = () => {
         ctaRoute: "#",
         ctaAction: () =>
           shopSlug &&
-          window.open(getLandingUrl(`/tienda/${shopSlug}`), "_blank"),
+          window.open(buildMarketplaceStoreUrl(shopSlug), "_blank"),
         icon: "hourglass_top",
       };
     if (!isActivated) {
@@ -688,7 +688,7 @@ export const CommercialDashboard: React.FC = () => {
               )}
               <NotificationCenter />
               {isMarketplaceLive ? (
-                <OrangeBtn onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}>
+                <OrangeBtn onClick={() => shopSlug && window.open(buildMarketplaceStoreUrl(shopSlug), '_blank')}>
                   <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                   Ver tienda
                 </OrangeBtn>
@@ -725,7 +725,7 @@ export const CommercialDashboard: React.FC = () => {
                 </button>
               )}
               {isMarketplaceLive ? (
-                <button onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')}
+                <button onClick={() => shopSlug && window.open(buildMarketplaceStoreUrl(shopSlug), '_blank')}
                   className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: '#ec6d13' }}>
                   <span className="material-symbols-outlined text-white" style={{ fontSize: 15 }}>open_in_new</span>
                 </button>
@@ -1016,7 +1016,7 @@ export const CommercialDashboard: React.FC = () => {
                       </button>
                     )}
                     <div className="grid grid-cols-2 gap-3">
-                      <button onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')} disabled={!shopSlug}
+                      <button onClick={() => shopSlug && window.open(buildAppStoreUrl(shopSlug), '_blank')} disabled={!shopSlug}
                         className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01]"
                         style={{ background: 'linear-gradient(135deg, #ec6d13 0%, #f59944 100%)', boxShadow: '0 6px 20px rgba(236,109,19,0.25)', opacity: shopSlug ? 1 : 0.4 }}>
                         <div className="flex items-center justify-between w-full">
@@ -1026,11 +1026,11 @@ export const CommercialDashboard: React.FC = () => {
                         <div>
                           <p style={{ fontFamily: SANS, fontSize: 12, fontWeight: 900, color: 'white', letterSpacing: '0.02em' }}>Mi eCommerce</p>
                           <p style={{ fontFamily: SANS, fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.75)', marginTop: 1 }}>
-                            {shopSlug ? `telar.co/tienda/${shopSlug}` : 'Sin URL aún'}
+                            {shopSlug ? buildAppStoreUrl(shopSlug) : 'Sin URL aún'}
                           </p>
                         </div>
                       </button>
-                      <button onClick={() => shopSlug && window.open(getLandingUrl(`/tienda/${shopSlug}`), '_blank')} disabled={!shopSlug}
+                      <button onClick={() => shopSlug && window.open(buildMarketplaceStoreUrl(shopSlug), '_blank')} disabled={!shopSlug}
                         className="flex flex-col items-start gap-2 p-4 rounded-2xl text-left transition-all hover:scale-[1.01] relative overflow-hidden"
                         style={{ background: '#151b2d', boxShadow: '0 6px 20px rgba(21,27,45,0.18)', opacity: shopSlug ? 1 : 0.4 }}>
                         <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full"
@@ -1204,7 +1204,7 @@ export const CommercialDashboard: React.FC = () => {
             </div>
             <h2 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#151b2d', marginBottom: 8 }}>Activar tu tienda</h2>
             <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.6, marginBottom: 8 }}>
-              Tu tienda quedará activa en tu URL personal{shopSlug ? ` (telar.co/tienda/${shopSlug})` : ''}.
+              Tu tienda quedará activa en tu URL personal{shopSlug ? ` (${buildMarketplaceStoreUrl(shopSlug)})` : ''}.
             </p>
             <p style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: 'rgba(84,67,62,0.7)', lineHeight: 1.6, marginBottom: 24 }}>
               El equipo editorial de TELAR revisará tu información para habilitarla en el marketplace central. Te avisaremos cuando sea aprobada.
