@@ -3,6 +3,7 @@ import { UploadFolder, uploadImage } from '@/services/fileUpload.actions';
 import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanShops.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
+import { getLandingUrl } from '@/config/urls';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 
@@ -126,7 +127,6 @@ const SlugCreator: React.FC<{
   const { toast } = useToast();
 
   const MARKETPLACE_DOMAIN = 'telar.co';
-  const STORE_DOMAIN = 'telar.co';
 
   // Sync initial slug when artisticName changes and no current slug
   useEffect(() => {
@@ -188,7 +188,7 @@ const SlugCreator: React.FC<{
     {
       icon: 'language',
       label: 'Tu tienda online',
-      value: `${slug || '…'}.${STORE_DOMAIN}`,
+      value: `${MARKETPLACE_DOMAIN}/tienda/${slug || '…'}`,
       live: true,
     },
     {
