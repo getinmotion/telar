@@ -3,7 +3,7 @@ import { UploadFolder, uploadImage } from '@/services/fileUpload.actions';
 import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanShops.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
-import { getLandingUrl } from '@/config/urls';
+import { buildMarketplaceStoreUrl, buildAppStoreUrl, MARKETPLACE_DOMAIN } from '@/config/urls';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { CraftMultiPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 
@@ -127,8 +127,6 @@ const SlugCreator: React.FC<{
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
-  const MARKETPLACE_DOMAIN = 'telar.co';
-
   // Sync initial slug when artisticName changes and no current slug
   useEffect(() => {
     if (!currentSlug && artisticName) {
@@ -183,13 +181,13 @@ const SlugCreator: React.FC<{
     {
       icon: 'storefront',
       label: 'Marketplace',
-      value: `${MARKETPLACE_DOMAIN}/tienda/${slug || '…'}`,
+      value: buildMarketplaceStoreUrl(slug || '…'),
       live: true,
     },
     {
       icon: 'language',
       label: 'Tu tienda online',
-      value: `${MARKETPLACE_DOMAIN}/tienda/${slug || '…'}`,
+      value: buildAppStoreUrl(slug || '…'),
       live: true,
     },
     {
@@ -225,7 +223,7 @@ const SlugCreator: React.FC<{
       {/* Slug input */}
       <div className="px-5 py-4 border-b border-white/8">
         <div className="flex items-center gap-2 rounded-lg px-4 py-2.5" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">telar.co/tienda/</span>
+          <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">{MARKETPLACE_DOMAIN}/tienda/</span>
           <input
             type="text"
             value={slug}
