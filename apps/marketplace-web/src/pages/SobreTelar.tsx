@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
-import { PageRenderer } from "@/components/cms/PageRenderer";
+import { useCmsSections } from "@/hooks/useCmsSections";
+import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 import type { CmsSection } from "@/services/cms-sections.actions";
 
 // ── S3 image constants (used by the fallback below) ─────────────────────
@@ -120,6 +121,10 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
 ];
 
 export default function SobreTelar() {
+  const { data: cmsSections } = useCmsSections("sobre-telar");
+  const sections =
+    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_SOBRE_TELAR_SECTIONS;
+
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">
       {/* Breadcrumb */}
@@ -133,7 +138,10 @@ export default function SobreTelar() {
         </nav>
       </div>
 
-      <PageRenderer pageKey="sobre-telar" fallback={FALLBACK_SOBRE_TELAR_SECTIONS} />
+      {/* CMS-driven editorial */}
+      {sections.map((s) => (
+        <CmsSectionRenderer key={s.id} section={s} />
+      ))}
 
       <Footer showNewsletter />
     </div>
