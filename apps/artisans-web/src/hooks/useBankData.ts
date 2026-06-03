@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { ArtisanBankData } from "@/types/artisan";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
 import {
-  getCounterparty,
-  createCounterpartySelf,
-  CounterpartyResponse,
-} from "@/services/cobre.actions";
+  getPayoutUserInfoByUserId,
+  createPayoutUserInfo,
+  updatePayoutUserInfo,
+} from "@/services/payoutUserInfo.actions";
+import { PayoutUserInfo } from "@/types/payoutUserInfo.types";
 
 interface BankDataForm {
   holder_name: string;
@@ -22,26 +22,30 @@ interface BankDataForm {
   geo: string;
 }
 
-const mapCounterpartyToArtisanBankData = (
-  userId: string,
-  counterpartyId: string,
-  data: CounterpartyResponse,
+/**
+ * ✅ MIGRATED: Mapea PayoutUserInfo (NestJS) a ArtisanBankData (formato legacy)
+ * Resource: payout-user-info
+ *
+ * Nota: bankName y numAccount vienen DESENCRIPTADOS del backend
+ * idType e idNumber vienen del perfil del usuario (user_profiles)
+ */
+const mapPayoutUserInfoToArtisanBankData = (
+  data: PayoutUserInfo,
 ): ArtisanBankData => {
-  const meta = data.metadata ?? {};
   return {
-    id: counterpartyId,
-    user_id: userId,
-    holder_name: meta.counterparty_fullname ?? '',
-    document_type: meta.counterparty_id_type ?? '',
-    document_number: meta.counterparty_id_number ?? '',
-    bank_code: meta.beneficiary_institution ?? '',
-    account_type: data.type ?? '',
-    account_number: meta.account_number ?? '',
-    country: 'Colombia',
-    currency: 'COP',
-    status: 'complete',
-    created_at: (data.created_at as string) ?? new Date().toISOString(),
-    updated_at: (data.updated_at as string) ?? new Date().toISOString(),
+    id: data.id,
+    user_id: data.userId,
+    holder_name: data.namePayoutMain,
+    document_type: data.idType || '', // Viene del perfil del usuario
+    document_number: data.idNumber || '', // Viene del perfil del usuario (desencriptado)
+    bank_code: data.bankName, // Nombre completo del banco (desencriptado)
+    account_type: data.typeAccount,
+    account_number: data.numAccount, // Desencriptado
+    country: data.countryId, // UUID del país
+    currency: data.currency,
+    status: 'complete', // Asumimos completo si existe el registro
+    created_at: data.createdAt,
+    updated_at: data.updatedAt,
   };
 };
 
@@ -52,6 +56,10 @@ export const useBankData = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  /**
+   * ✅ MIGRATED: Obtiene los datos de payout desde NestJS
+   * Endpoint: GET /payout-user-info/user/:userId
+   */
   const fetchBankData = useCallback(async () => {
     if (!user?.id) {
       setLoading(false);
@@ -61,16 +69,17 @@ export const useBankData = () => {
     try {
       setLoading(true);
 
-      const shop = await getArtisanShopByUserId(user.id);
-      if (!shop?.idContraparty) {
-        setLoading(false);
-        return;
-      }
+      const payoutData = await getPayoutUserInfoByUserId(user.id);
 
-      const data = await getCounterparty(shop.idContraparty);
-      setBankData(mapCounterpartyToArtisanBankData(user.id, shop.idContraparty, data));
+      // Tomamos el primer registro (el usuario debería tener solo uno)
+      if (payoutData && payoutData.length > 0) {
+        setBankData(mapPayoutUserInfoToArtisanBankData(payoutData[0]));
+      } else {
+        setBankData(null);
+      }
     } catch {
       // Sin datos bancarios disponibles
+      setBankData(null);
     } finally {
       setLoading(false);
     }
@@ -80,6 +89,10 @@ export const useBankData = () => {
     fetchBankData();
   }, [fetchBankData]);
 
+  /**
+   * ✅ MIGRATED: Guarda los datos de payout en NestJS
+   * Endpoint: POST /payout-user-info
+   */
   const saveBankData = async (
     formData: BankDataForm,
   ): Promise<{ success: boolean; id_contraparty?: string }> => {
@@ -89,24 +102,33 @@ export const useBankData = () => {
     }
 
     try {
-      const result = await createCounterpartySelf(user.id, {
-        holder_name: formData.holder_name,
-        document_type: formData.document_type,
-        document_number: formData.document_number,
-        bank_code: formData.bank_code,
-        account_type: formData.account_type,
-        account_number: formData.account_number,
+      const result = await createPayoutUserInfo({
+        namePayoutMain: formData.holder_name,
+        userId: user.id,
+        idType: formData.document_type,
+        idNumber: formData.document_number,
+        typeAccount: formData.account_type,
+        bankName: formData.bank_code, // Ahora se espera nombre del banco
+        numAccount: formData.account_number,
+        countryId: formData.country, // Se espera UUID del país
+        currency: formData.currency,
+        createdBy: user.id,
       });
 
+      await fetchBankData(); // Actualizar datos locales
       toast({ title: "Datos bancarios guardados", description: "Tus datos han sido guardados correctamente" });
-      return { success: true, id_contraparty: result.id_contraparty };
-    } catch {
+      return { success: true, id_contraparty: result.id };
+    } catch (error) {
+      console.error('Error saving payout info:', error);
       toast({ title: "Error", description: "No se pudieron guardar los datos bancarios", variant: "destructive" });
       return { success: false };
     }
   };
 
-  // "Actualizar" en Cobre implica crear una nueva contraparte y reemplazar la anterior
+  /**
+   * ✅ MIGRATED: Actualiza los datos de payout en NestJS
+   * Endpoint: PATCH /payout-user-info/:id
+   */
   const updateBankData = async (
     formData: BankDataForm,
   ): Promise<{ success: boolean; id_contraparty?: string }> => {
@@ -115,20 +137,29 @@ export const useBankData = () => {
       return { success: false };
     }
 
+    if (!bankData?.id) {
+      toast({ title: "Error", description: "No se encontró registro de datos bancarios para actualizar", variant: "destructive" });
+      return { success: false };
+    }
+
     try {
-      const result = await createCounterpartySelf(user.id, {
-        holder_name: formData.holder_name,
-        document_type: formData.document_type,
-        document_number: formData.document_number,
-        bank_code: formData.bank_code,
-        account_type: formData.account_type,
-        account_number: formData.account_number,
+      const result = await updatePayoutUserInfo(bankData.id, {
+        namePayoutMain: formData.holder_name,
+        idType: formData.document_type,
+        idNumber: formData.document_number,
+        typeAccount: formData.account_type,
+        bankName: formData.bank_code, // Ahora se espera nombre del banco
+        numAccount: formData.account_number,
+        countryId: formData.country, // Se espera UUID del país
+        currency: formData.currency,
+        updatedBy: user.id,
       });
 
       toast({ title: "Datos actualizados", description: "Tus datos bancarios han sido actualizados correctamente" });
       await fetchBankData();
-      return { success: true, id_contraparty: result.id_contraparty };
-    } catch {
+      return { success: true, id_contraparty: result.id };
+    } catch (error) {
+      console.error('Error updating payout info:', error);
       toast({ title: "Error", description: "No se pudieron actualizar los datos bancarios", variant: "destructive" });
       return { success: false };
     }

@@ -642,67 +642,67 @@ export async function getPendingModerationCount(): Promise<number> {
 
 export async function getModerationStats(): Promise<ModerationStatsData> {
   const [productResults, firstShopsRes] = await Promise.all([
-      Promise.all(
-        MODERATION_STATUSES.map((status) =>
-          telarApi
-            .get<{ data: ProductResponse[]; total: number }>('/products-new', {
-              params: { status, limit: 50, page: 1 },
-            })
-            .then((r) => ({ status, total: r.data.total || 0, data: r.data.data || [] }))
-            .catch(() => ({ status, total: 0, data: [] as ProductResponse[] })),
-        ),
+    Promise.all(
+      MODERATION_STATUSES.map((status) =>
+        telarApi
+          .get<{ data: ProductResponse[]; total: number }>('/products-new', {
+            params: { status, limit: 50, page: 1 },
+          })
+          .then((r) => ({ status, total: r.data.total || 0, data: r.data.data || [] }))
+          .catch(() => ({ status, total: 0, data: [] as ProductResponse[] })),
       ),
-      telarApi
-        .get<ModerationShopsResponse>('/artisan-shops', {
-          params: { limit: 200, page: 1 },
-        })
-        .catch(() => ({ data: { data: [], total: 0 } })),
-    ]);
+    ),
+    telarApi
+      .get<ModerationShopsResponse>('/artisan-shops', {
+        params: { limit: 100, page: 1 },
+      })
+      .catch(() => ({ data: { data: [], total: 0 } })),
+  ]);
 
-    const productCounts: Record<string, number> = {};
-    const productsByStatus: Record<string, ProductResponse[]> = {};
-    productResults.forEach(({ status, total, data }) => {
-      productCounts[status] = total;
-      productsByStatus[status] = data;
-    });
+  const productCounts: Record<string, number> = {};
+  const productsByStatus: Record<string, ProductResponse[]> = {};
+  productResults.forEach(({ status, total, data }) => {
+    productCounts[status] = total;
+    productsByStatus[status] = data;
+  });
 
-    // Paginar tiendas si hay más de 100 (límite máximo de la API)
-    const firstShops = firstShopsRes.data.data || [];
-    const totalShops = firstShopsRes.data.total || firstShops.length;
-    let shops: ModerationShopApi[] = firstShops;
-    if (totalShops > firstShops.length) {
-      const remaining = totalShops - firstShops.length;
-      const extraPages = Math.ceil(remaining / 100);
-      const extraResults = await Promise.all(
-        Array.from({ length: extraPages }, (_, i) =>
-          telarApi
-            .get<ModerationShopsResponse>('/artisan-shops', {
-              params: { limit: 100, page: i + 2 },
-            })
-            .catch(() => ({ data: { data: [] } }))
-        )
-      );
-      shops = [...firstShops, ...extraResults.flatMap(r => r.data.data || [])];
-    }
+  // Paginar tiendas si hay más de 100 (límite máximo de la API)
+  const firstShops = firstShopsRes.data.data || [];
+  const totalShops = firstShopsRes.data.total || firstShops.length;
+  let shops: ModerationShopApi[] = firstShops;
+  if (totalShops > firstShops.length) {
+    const remaining = totalShops - firstShops.length;
+    const extraPages = Math.ceil(remaining / 100);
+    const extraResults = await Promise.all(
+      Array.from({ length: extraPages }, (_, i) =>
+        telarApi
+          .get<ModerationShopsResponse>('/artisan-shops', {
+            params: { limit: 100, page: i + 2 },
+          })
+          .catch(() => ({ data: { data: [] } }))
+      )
+    );
+    shops = [...firstShops, ...extraResults.flatMap(r => r.data.data || [])];
+  }
 
-    const approvedShops = shops.filter((s) => s.marketplaceApproved === true).length;
-    const notApprovedShops = shops.filter((s) => !s.marketplaceApproved).length;
-    const withBankData = shops.filter((s) => s.idContraparty != null).length;
-    const publishedShops = shops.filter((s) => s.publishStatus === 'published').length;
-    const pendingPublishShops = shops.filter((s) => s.publishStatus !== 'published').length;
+  const approvedShops = shops.filter((s) => s.marketplaceApproved === true).length;
+  const notApprovedShops = shops.filter((s) => !s.marketplaceApproved).length;
+  const withBankData = shops.filter((s) => s.idContraparty != null).length;
+  const publishedShops = shops.filter((s) => s.publishStatus === 'published').length;
+  const pendingPublishShops = shops.filter((s) => s.publishStatus !== 'published').length;
 
-    return {
-      productCounts,
-      productsByStatus,
-      shopCounts: {
-        all: totalShops,
-        approved: approvedShops,
-        not_approved: notApprovedShops,
-      },
-      shopsWithBankData: withBankData,
-      shopsWithoutBankData: shops.length - withBankData,
-      publishedShops,
-      pendingPublishShops,
-      shops,
-    };
+  return {
+    productCounts,
+    productsByStatus,
+    shopCounts: {
+      all: totalShops,
+      approved: approvedShops,
+      not_approved: notApprovedShops,
+    },
+    shopsWithBankData: withBankData,
+    shopsWithoutBankData: shops.length - withBankData,
+    publishedShops,
+    pendingPublishShops,
+    shops,
+  };
 }

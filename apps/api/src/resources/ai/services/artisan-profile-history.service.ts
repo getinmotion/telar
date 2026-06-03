@@ -114,8 +114,8 @@ EL TALLER:
 - Descripción: ${profile.workshopDescription}
 
 LA ARTESANÍA:
-- Técnicas: ${profile.techniques.join(', ')}
-- Materiales: ${profile.materials.join(', ')}
+- Técnicas: ${profile.techniques?.join(', ') ?? 'No especificadas'}
+- Materiales: ${profile.materials?.join(', ') ?? 'No especificados'}
 - Tiempo promedio: ${profile.averageTime}
 - Lo que lo hace único: ${profile.uniqueness}
 - Mensaje del artesano: ${profile.craftMessage}
@@ -193,11 +193,11 @@ Por favor genera un JSON con la siguiente estructura:
           event: `Comenzó a aprender de ${profile.learnedFrom}`,
         },
       ],
-      originStory: profile.motivation,
-      culturalStory: profile.culturalHistory,
-      craftStory: profile.uniqueness,
-      workshopStory: profile.workshopDescription,
-      artisanQuote: profile.craftMessage,
+      originStory: profile.motivation ?? '',
+      culturalStory: profile.culturalHistory ?? '',
+      craftStory: profile.uniqueness ?? '',
+      workshopStory: profile.workshopDescription ?? '',
+      artisanQuote: profile.craftMessage ?? '',
       closingMessage:
         'Cada pieza cuenta una historia de tradición y pasión.',
     };

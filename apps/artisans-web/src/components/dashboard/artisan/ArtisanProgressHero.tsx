@@ -1,27 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Sparkles, Award, TrendingUp, Target, Users, DollarSign, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Award } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CategoryScore } from '@/types/dashboard';
 import { UnifiedProgress, Milestone } from '@/types/unifiedProgress';
 import { cn } from '@/lib/utils';
 import { MilestoneDetailPopover } from './MilestoneDetailPopover';
-import { MaturityScoreExplanation } from './MaturityScoreExplanation';
-import { MaturityTestPrompt } from './MaturityTestPrompt';
-import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { useUnifiedProgress } from '@/hooks/useUnifiedProgress';
-import { useMaturityTestStatus } from '@/hooks/useMaturityTestStatus';
 import { useMilestoneNotifications } from '@/hooks/useMilestoneNotifications';
 import { useUnifiedUserData } from '@/hooks/user/useUnifiedUserData';
 import { MILESTONE_DISPLAY_CONFIG } from '@/config/systemConfig';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SystemIcon } from '@/components/ui/SystemIcon';
 
 interface ArtisanProgressHeroProps {
   userName?: string;
-  maturityScores: CategoryScore;
   totalProgress: number;
-  hasCompletedMaturityTest?: boolean;
   unifiedProgress?: UnifiedProgress | null;
 }
 
@@ -29,9 +21,7 @@ interface ArtisanProgressHeroProps {
 
 export const ArtisanProgressHero: React.FC<ArtisanProgressHeroProps> = ({
   userName: userNameProp,
-  maturityScores,
-  totalProgress,
-  hasCompletedMaturityTest = false
+  totalProgress
 }) => {
   const { unifiedProgress, loading: progressLoading } = useUnifiedProgress();
   const { profile, context } = useUnifiedUserData();
@@ -70,11 +60,8 @@ export const ArtisanProgressHero: React.FC<ArtisanProgressHeroProps> = ({
     // Fallback: usar 'Artesano' si nada más está disponible
     return 'Artesano';
   }, [profile?.brandName, context?.businessProfile?.brandName, userNameProp]);
-  const { hasInProgress, totalAnswered } = useMaturityTestStatus();
   const [selectedMilestone, setSelectedMilestone] = useState<(Milestone & { icon: string; color: string }) | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [scoreExplanationOpen, setScoreExplanationOpen] = useState(false);
-  const [selectedScoreCategory, setSelectedScoreCategory] = useState<'ideaValidation' | 'userExperience' | 'marketFit' | 'monetization'>('ideaValidation');
 
   // Activate milestone notifications
   useMilestoneNotifications();
@@ -110,11 +97,6 @@ export const ArtisanProgressHero: React.FC<ArtisanProgressHeroProps> = ({
     console.log('[ArtisanProgressHero] 🎯 Milestone clicked:', milestone);
     setSelectedMilestone(milestone);
     setIsPopoverOpen(true);
-  };
-
-  const handleScoreClick = (category: 'ideaValidation' | 'userExperience' | 'marketFit' | 'monetization') => {
-    setSelectedScoreCategory(category);
-    setScoreExplanationOpen(true);
   };
 
   const getMood = () => {
@@ -228,90 +210,6 @@ export const ArtisanProgressHero: React.FC<ArtisanProgressHeroProps> = ({
           </div>
         </div>
 
-        {/* Quick Metrics - Now in Collapsible */}
-        <Collapsible defaultOpen={false}>
-          <CollapsibleTrigger className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 rounded-lg transition-all text-left group">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📊</span>
-              <span className="font-semibold text-foreground">Métricas de Madurez</span>
-            </div>
-            <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-3">
-            <p className="text-sm text-muted-foreground mb-3 px-1">
-              Estas métricas se activarán cuando completes el Test de Madurez
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <button
-                onClick={() => handleScoreClick('ideaValidation')}
-                className="neumorphic rounded-lg p-3 transition-all cursor-pointer text-left hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-success" />
-                    <div className="text-xs text-muted-foreground">Validación</div>
-                  </div>
-                  <InfoTooltip content="Click para ver detalles" />
-                </div>
-                <div className="text-xl font-bold text-foreground">{maturityScores.ideaValidation}%</div>
-                {!hasCompletedMaturityTest && (
-                  <Badge className="mt-1.5 text-xs bg-muted text-muted-foreground border-0">⊘ Pendiente</Badge>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleScoreClick('userExperience')}
-                className="neumorphic rounded-lg p-3 transition-all cursor-pointer text-left hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-success" />
-                    <div className="text-xs text-muted-foreground">Experiencia</div>
-                  </div>
-                  <InfoTooltip content="Click para ver detalles" />
-                </div>
-                <div className="text-xl font-bold text-foreground">{maturityScores.userExperience}%</div>
-                {!hasCompletedMaturityTest && (
-                  <Badge className="mt-1.5 text-xs bg-muted text-muted-foreground border-0">⊘ Pendiente</Badge>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleScoreClick('marketFit')}
-                className="neumorphic rounded-lg p-3 transition-all cursor-pointer text-left hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5 text-success" />
-                    <div className="text-xs text-muted-foreground">Mercado</div>
-                  </div>
-                  <InfoTooltip content="Click para ver detalles" />
-                </div>
-                <div className="text-xl font-bold text-foreground">{maturityScores.marketFit}%</div>
-                {!hasCompletedMaturityTest && (
-                  <Badge className="mt-1.5 text-xs bg-muted text-muted-foreground border-0">⊘ Pendiente</Badge>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleScoreClick('monetization')}
-                className="neumorphic rounded-lg p-3 transition-all cursor-pointer text-left hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <DollarSign className="w-3.5 h-3.5 text-success" />
-                    <div className="text-xs text-muted-foreground">Monetización</div>
-                  </div>
-                  <InfoTooltip content="Click para ver detalles" />
-                </div>
-                <div className="text-xl font-bold text-foreground">{maturityScores.monetization}%</div>
-                {!hasCompletedMaturityTest && (
-                  <Badge className="mt-1.5 text-xs bg-muted text-muted-foreground border-0">⊘ Pendiente</Badge>
-                )}
-              </button>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
       </div>
 
         {/* Milestone Detail Popover */}
@@ -321,19 +219,9 @@ export const ArtisanProgressHero: React.FC<ArtisanProgressHeroProps> = ({
             isOpen={isPopoverOpen}
             onClose={() => setIsPopoverOpen(false)}
             currentProgress={totalProgress}
-            maturityScores={maturityScores}
           />
         )}
       </Card>
-
-      {/* Score Explanation Modal */}
-      <MaturityScoreExplanation
-        isOpen={scoreExplanationOpen}
-        onClose={() => setScoreExplanationOpen(false)}
-        category={selectedScoreCategory}
-        score={maturityScores[selectedScoreCategory]}
-        hasCompletedTest={hasCompletedMaturityTest}
-      />
     </>
   );
 };

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
 import { ArtisanOriginDisplay, type ArtisanOriginData } from '@/components/profile/ArtisanOriginDisplay';
 import type { ArtisanShop } from '@/types/artisanShop.types';
 
@@ -166,19 +165,6 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
             Editar Tienda
           </Button>
         </div>
-
-        {/* Tarjetas de Perfil Artesanal - Solo se muestran en el perfil */}
-        {shop.craftType && (
-          <div className="pt-6 border-t border-border mt-4">
-            <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-              Tu Perfil Artesanal
-            </h4>
-            <ArtisanProfileCards
-              craftType={shop.craftType}
-              language="es"
-            />
-          </div>
-        )}
 
         {/* Origen artesanal */}
         {userId && (
