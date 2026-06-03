@@ -25,6 +25,7 @@ import { ProductsTable } from "./sections/ProductsTable";
 import { InventoryAlerts } from "./sections/InventoryAlerts";
 import { OrdersSummarySection } from "./sections/OrdersSummarySection";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
+import { useBankData } from "@/hooks/useBankData";
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -271,6 +272,7 @@ export const CommercialDashboard: React.FC = () => {
   const { stats: salesStats } = useShopOrders(shop?.id);
   const { fetchProducts } = useInventory();
   const { unifiedProgress } = useUnifiedProgress();
+  const { bankData } = useBankData();
   const { tasks: fixedTasks, completedTaskIds } = useFixedTasksManager();
   const { masterState } = useMasterAgent();
   const {
@@ -434,6 +436,7 @@ export const CommercialDashboard: React.FC = () => {
     !!(shop as any)?.contactConfig?.email ||
     !!(shop as any)?.contact_config?.email;
   const hasInventory = totalStock > 0;
+  const hasBankData = !!bankData;
 
   const checklistItems = [
     {
@@ -453,6 +456,12 @@ export const CommercialDashboard: React.FC = () => {
       done: hasBrand,
       required: false,
       route: "/mi-tienda/configurar",
+    },
+    {
+      label: "Datos bancarios",
+      done: hasBankData,
+      required: true,
+      route: "/mi-cuenta/datos-bancarios",
     },
     {
       label: "Contacto",
