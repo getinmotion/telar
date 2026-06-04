@@ -247,7 +247,7 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
 
         <div className="flex flex-col gap-4">
           {/* País | Departamento | Municipio */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <label className={labelClass}>
                 País
@@ -304,7 +304,7 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
               Esta información sitúa culturalmente tu trabajo en TELAR. Nos ayuda a conectarte con tu patrimonio y con compradores que valoran el origen.
             </p>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={labelClass}>Comunidad o vereda</label>
                 <input

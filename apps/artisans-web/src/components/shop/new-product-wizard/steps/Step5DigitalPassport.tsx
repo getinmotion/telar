@@ -75,8 +75,94 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
 
   return (
     <div className="pb-32" style={{ background: 'transparent' }}>
+
+      {/* ══ MOBILE: Pasaporte compacto ══════════════════════════════════════ */}
+      <div className="md:hidden px-4 pt-4 flex flex-col gap-3">
+
+        {/* Passport ID */}
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={softGlass}>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#166534]" />
+            <span className="font-['Manrope'] text-[10px] font-[800] text-[#166534] uppercase tracking-widest">Pasaporte preparado</span>
+          </div>
+          <span className="font-mono text-[12px] font-bold text-[#ec6d13]">{passportId}</span>
+        </div>
+
+        {/* Historia + metadata */}
+        <div className="p-4 rounded-xl" style={softGlass}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/50">Historia y proceso</span>
+            <button onClick={() => onGoToStep?.(1)} className="text-[10px] font-[800] text-[#ec6d13]">Editar</button>
+          </div>
+          <p className="font-['Noto_Serif'] text-[13px] italic text-[#151b2d] leading-relaxed" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            "{state.artisanalHistory
+              ? state.artisanalHistory.slice(0, 180) + (state.artisanalHistory.length > 180 ? '…' : '')
+              : 'Sin historia registrada aún.'}"
+          </p>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {[
+              { icon: 'foundation', label: technique },
+              { icon: 'draw', label: subTechnique },
+              { icon: 'eco', label: materialsText.length > 28 ? materialsText.slice(0, 28) + '…' : materialsText },
+              { icon: 'schedule', label: elaborationText },
+            ].map(({ icon, label }) => (
+              <div key={icon} className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(21,27,45,0.05)' }}>
+                <span className="material-symbols-outlined text-[#ec6d13]" style={{ fontSize: 11 }}>{icon}</span>
+                <span className="font-['Manrope'] text-[10px] font-[600] text-[#54433e]">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Origen + Detalles físicos */}
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { icon: 'location_on', label: 'ORIGEN', value: origin, editStep: 1 },
+            { icon: 'straighten', label: 'FÍSICO', value: dimensions, editStep: 4 },
+          ].map(({ icon, label, value, editStep }) => (
+            <button key={label} onClick={() => onGoToStep?.(editStep)} className="p-3 rounded-xl text-left" style={softGlass}>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[#ec6d13]" style={{ fontSize: 13 }}>{icon}</span>
+                <span className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/45">{label}</span>
+              </div>
+              <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] leading-snug">{value}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Tira de imágenes */}
+        {state.images.filter(Boolean).length > 0 && (
+          <div className="p-3 rounded-xl" style={softGlass}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/50">Evidencia</span>
+              <button onClick={() => onGoToStep?.(3)} className="text-[10px] font-[800] text-[#ec6d13]">Gestionar</button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {state.images.slice(0, 5).map((img, i) => {
+                const url = getPreviewUrl(img);
+                return url ? (
+                  <div key={i} className="w-[64px] h-[64px] rounded-lg overflow-hidden flex-shrink-0">
+                    <img src={url} className="w-full h-full object-cover" alt="" />
+                  </div>
+                ) : null;
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Aviso */}
+        <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: 'rgba(236,109,19,0.05)', border: '1px solid rgba(236,109,19,0.15)' }}>
+          <span className="material-symbols-outlined text-[#ec6d13] shrink-0" style={{ fontSize: 15 }}>info</span>
+          <p className="font-['Manrope'] text-[11px] font-[500] text-[#54433e]">
+            El pasaporte se activará cuando la pieza sea aprobada para marketplace.
+          </p>
+        </div>
+
+      </div>
+      {/* ══ FIN MOBILE ═══════════════════════════════════════════════════════ */}
+
       <main
-        className="flex flex-col gap-8 pt-6"
+        className="hidden md:flex flex-col gap-8 pt-6"
         style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px 0' }}
       >
 

@@ -42,16 +42,16 @@ const STEPS = [
   },
   {
     n: 3,
-    icon: "storefront",
-    title: "Tu taller y proceso",
-    subtitle: "Muéstranos dónde trabajas y cómo nace una pieza.",
-  },
-  {
-    n: 4,
     icon: "auto_fix_high",
     title: "Tu arte y estilo",
     subtitle:
       "Define las técnicas, materiales y rasgos que identifican tu trabajo.",
+  },
+  {
+    n: 4,
+    icon: "storefront",
+    title: "Tu taller y proceso",
+    subtitle: "Muéstranos dónde trabajas y cómo nace una pieza.",
   },
   {
     n: 5,
@@ -102,23 +102,6 @@ const AI_PANEL: Record<
   3: {
     cards: [
       {
-        label: "Lectura visual del taller",
-        text: "Sube una foto para detectar automáticamente el tipo de entorno artesanal.",
-      },
-      {
-        label: "Señales del proceso",
-        text: "Cuando describas tu proceso, TELAR podrá sugerir fases y tiempos de oficio.",
-      },
-      {
-        label: "Herramientas detectadas",
-        text: "Las herramientas que cites ayudarán a categorizar tu perfil con mayor precisión.",
-      },
-    ],
-    next: "En el siguiente paso definiremos tu estética y las técnicas que identifican tu trabajo.",
-  },
-  4: {
-    cards: [
-      {
         label: "Técnica detectada",
         text: "Esperando selección de técnica para identificar oficio principal y señales de especialización.",
       },
@@ -129,6 +112,23 @@ const AI_PANEL: Record<
       {
         label: "Estilo artesanal",
         text: "TELAR sugerirá etiquetas curatoriales cuando describas qué hace especial tu trabajo.",
+      },
+    ],
+    next: "En el siguiente paso nos mostrarás tu taller y el proceso de creación.",
+  },
+  4: {
+    cards: [
+      {
+        label: "Lectura visual del taller",
+        text: "Sube una foto para detectar automáticamente el tipo de entorno artesanal.",
+      },
+      {
+        label: "Señales del proceso",
+        text: "Cuando describas tu proceso, TELAR podrá sugerir fases y tiempos de oficio.",
+      },
+      {
+        label: "Herramientas detectadas",
+        text: "Las herramientas que cites ayudarán a categorizar tu perfil con mayor precisión.",
       },
     ],
     next: "En el siguiente paso revisaremos cómo se verá tu perfil antes de publicarlo.",
@@ -150,14 +150,14 @@ function validate(step: number, data: ArtisanProfileData): boolean {
       return !!data.learnedFrom && data.startAge > 0;
     case 3:
       return (
-        (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) &&
-        !!data.workshopDescription
-      );
-    case 4:
-      return (
         ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
         ((data.materialIds ?? []).length > 0 || data.materials.length > 0) &&
         !!data.uniqueness
+      );
+    case 4:
+      return (
+        (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) &&
+        !!data.workshopDescription
       );
     case 5:
       return true;
@@ -474,10 +474,10 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
         />
       )}
       {step === 2 && <Step2Origin data={data} onChange={updateData} />}
-      {step === 3 && (
+      {step === 3 && <Step5Craft data={data} onChange={updateData} />}
+      {step === 4 && (
         <Step4Workshop data={data} onChange={updateData} userId={user?.id} />
       )}
-      {step === 4 && <Step5Craft data={data} onChange={updateData} />}
     </ArtisanStepShell>
   );
 };

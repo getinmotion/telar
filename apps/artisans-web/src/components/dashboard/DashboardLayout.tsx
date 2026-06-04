@@ -227,9 +227,9 @@ const DashboardContent: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Mobile agent drawer and bottom nav are hidden during wizard routes */}
+      {/* Agent drawer hidden during wizard routes; bottom nav always visible */}
       {!isWizardRoute && <MobileAgentDrawer />}
-      {!isWizardRoute && <MobileBottomNav />}
+      <MobileBottomNav />}
     </div>
   );
 };

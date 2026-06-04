@@ -49,9 +49,13 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
           <button
             onClick={onSaveProgress}
             disabled={isSavingProgress}
-            className="hidden sm:block font-['Manrope'] text-[10px] font-[800] text-[#54433e]/60 hover:text-[#ec6d13] uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Guardar"
+            className="flex items-center gap-1 font-['Manrope'] text-[10px] font-[800] text-[#54433e]/60 hover:text-[#ec6d13] uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isSavingProgress ? 'Guardando…' : 'Guardar progreso'}
+            <span className="material-symbols-outlined text-[15px]">
+              {isSavingProgress ? 'progress_activity' : 'save'}
+            </span>
+            <span className="hidden sm:inline">{isSavingProgress ? 'Guardando…' : 'Guardar'}</span>
           </button>
         )}
 

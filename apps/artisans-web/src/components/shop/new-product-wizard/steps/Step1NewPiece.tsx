@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
@@ -118,7 +119,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
       setSaveTitle('');
       setShowSaveDialog(false);
     } catch {
-      // toast de error por interceptor
+      toast.error('No se pudo guardar la historia. Intenta de nuevo.');
     } finally {
       setIsSavingStory(false);
     }
@@ -192,7 +193,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-10 pb-32 px-6 md:px-10">
+      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-10 pb-[188px] md:pb-32 px-6 md:px-10">
         <div className="hidden md:block">
           <WizardHeader
             step={step}
@@ -356,10 +357,22 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
 
             {/* Historia y contexto */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
-              <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
-                Historia y contexto
-                <span className="ml-2 text-[#54433e]/30 normal-case font-[500] tracking-normal">— Opcional</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60">
+                  Historia y contexto
+                  <span className="ml-2 text-[#54433e]/30 normal-case font-[500] tracking-normal">— Opcional</span>
+                </label>
+                {!showSaveDialog && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowSaveDialog(true); setSaveTitle(state.name ? `Historia: ${state.name}` : ''); }}
+                    className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/50 hover:text-[#ec6d13] transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">bookmark_add</span>
+                    Guardar historia
+                  </button>
+                )}
+              </div>
               <p className="text-[11px] text-[#54433e]/40 leading-snug mb-3">
                 No es la descripción del producto — es el origen. ¿De quién aprendiste? ¿Qué representa esta pieza para tu comunidad? Esta historia aparece en el pasaporte digital de la obra.
               </p>
@@ -397,8 +410,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
               </div>
 
               {/* ── Story library actions ───────────────────────────────── */}
-              <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
-                {/* Cargar historia guardada */}
+              <div className="mt-3">
                 <button
                   type="button"
                   onClick={handleOpenPicker}
@@ -409,18 +421,6 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                   </span>
                   {showPicker ? 'Cerrar biblioteca' : 'Usar historia guardada'}
                 </button>
-
-                {/* Guardar historia actual */}
-                {(state.artisanalHistory ?? '').trim().length > 10 && !showSaveDialog && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowSaveDialog(true); setSaveTitle(state.name ? `Historia: ${state.name}` : ''); }}
-                    className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/50 hover:text-[#ec6d13] transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">bookmark_add</span>
-                    Guardar para futuros productos
-                  </button>
-                )}
               </div>
 
               {/* Save dialog */}
@@ -432,20 +432,20 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                   <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/80">
                     Guardar en tu biblioteca de historias
                   </p>
+                  <input
+                    type="text"
+                    value={saveTitle}
+                    onChange={e => setSaveTitle(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !isSavingStory && handleSaveStory()}
+                    placeholder="Dale un nombre a esta historia..."
+                    autoFocus
+                    className="w-full border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
+                  />
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={saveTitle}
-                      onChange={e => setSaveTitle(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && !isSavingStory && handleSaveStory()}
-                      placeholder="Dale un nombre a esta historia..."
-                      autoFocus
-                      className="flex-1 border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
-                    />
                     <button
                       onClick={handleSaveStory}
                       disabled={!saveTitle.trim() || isSavingStory}
-                      className="px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center gap-1.5 shrink-0"
+                      className="flex-1 px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
                     >
                       {isSavingStory && (
                         <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
@@ -454,7 +454,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                     </button>
                     <button
                       onClick={() => { setShowSaveDialog(false); setSaveTitle(''); }}
-                      className="px-3 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors shrink-0"
+                      className="px-4 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors"
                     >
                       Cancelar
                     </button>

@@ -267,6 +267,8 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const isMobile = useIsMobile();
+  const DEFAULT_LIMIT = isMobile ? 5 : 10;
 
   useEffect(() => {
     setIsLoading(true);
@@ -293,13 +295,16 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
-    if (!categoryKeywords || showAll) return allCrafts;
-    return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    if (showAll) return allCrafts;
+    if (categoryKeywords) return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    return allCrafts.slice(0, DEFAULT_LIMIT);
   })();
 
-  const hiddenCount = categoryKeywords && !showAll && !searchQuery
-    ? allCrafts.length - visibleCrafts.length
-    : 0;
+  const hiddenCount = (() => {
+    if (searchQuery || showAll) return 0;
+    if (!categoryKeywords) return Math.max(0, allCrafts.length - DEFAULT_LIMIT);
+    return allCrafts.length - visibleCrafts.length;
+  })();
 
   const selectedCrafts = allCrafts.filter(c => selectedCraftIds.includes(c.id));
 
@@ -374,13 +379,13 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
-      {showAll && !searchQuery && categoryKeywords && (
+      {showAll && !searchQuery && (
         <button
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
           <span className="material-symbols-outlined text-[15px]">expand_less</span>
-          Mostrar solo los sugeridos
+          {categoryKeywords ? 'Mostrar solo los sugeridos' : 'Ver menos'}
         </button>
       )}
 

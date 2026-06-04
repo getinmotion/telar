@@ -9,7 +9,7 @@ import { useUnifiedUserData } from '@/hooks/user';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { useMasterAgent } from '@/context/MasterAgentContext';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
-import { MobileShopConfig } from '@/components/shop/mobile/MobileShopConfig';
+import { MobileShopConfig, MobileShopNav, SectionId } from '@/components/shop/mobile/MobileShopConfig';
 
 // ── TELAR Design System (mismo que CommercialDashboard) ───────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -257,6 +257,7 @@ const ShopConfigDashboard: React.FC = () => {
   const { shop, loading } = useArtisanShop();
   const { masterState } = useMasterAgent();
   const { profile } = useUnifiedUserData();
+  const [activeMobileSection, setActiveMobileSection] = useState<SectionId>('perfil');
 
   if (loading) return (
     <div className="flex-1 flex items-center justify-center">
@@ -327,17 +328,20 @@ const ShopConfigDashboard: React.FC = () => {
         {/* ── Header sticky ── */}
         <header className="sticky top-0 z-30">
 
-          {/* Mobile: flecha · ISO · notificaciones */}
-          <div className="md:hidden px-4 py-3 flex items-center justify-between">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-9 h-9 flex items-center justify-center rounded-full"
-              style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.07)' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#151b2d' }}>arrow_back</span>
-            </button>
-            <img src={logoIcon} alt="TELAR" className="h-8 w-8 object-contain" />
-            <NotificationCenter />
+          {/* Mobile: flecha · ISO · notificaciones + nav */}
+          <div className="md:hidden flex flex-col">
+            <div className="px-4 py-3 flex items-center justify-between">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-9 h-9 flex items-center justify-center rounded-full"
+                style={{ background: 'rgba(21,27,45,0.05)', border: '1px solid rgba(21,27,45,0.07)' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#151b2d' }}>arrow_back</span>
+              </button>
+              <img src={logoIcon} alt="TELAR" className="h-8 w-8 object-contain" />
+              <NotificationCenter />
+            </div>
+            <MobileShopNav active={activeMobileSection} setActive={setActiveMobileSection} />
           </div>
 
           {/* Desktop: layout 3 columnas original */}
@@ -373,41 +377,39 @@ const ShopConfigDashboard: React.FC = () => {
         {/* ── Main ── */}
         <main className="flex-1 flex flex-col overflow-hidden" style={{ overscrollBehavior: 'contain' }}>
 
-          {/* ── Mobile: hero + métricas + nav de iconos ── */}
-          <div className="md:hidden flex flex-col flex-1 overflow-hidden">
-            <div style={{ padding: '8px 12px 0' }}>
+          {/* ── Mobile: contenido scrolleable ── */}
+          <div className="md:hidden flex-1 overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
 
-            {/* ── Mobile shop hero ── */}
-            <div className="mb-5 flex items-center gap-4 px-4 py-4 rounded-2xl"
+            {/* ── Hero compacto ── */}
+            <div className="mx-3 mt-3 mb-2 flex items-center gap-3 px-3 py-3 rounded-2xl"
               style={{ background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 16px rgba(21,27,45,0.04)' }}
             >
               {s.logoUrl ? (
                 <img src={s.logoUrl} alt={shopName}
-                  className="w-16 h-16 rounded-2xl object-contain flex-shrink-0"
-                  style={{ background: 'white', padding: 6, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
+                  className="w-12 h-12 rounded-xl object-contain flex-shrink-0"
+                  style={{ background: 'white', padding: 4, border: '1px solid rgba(21,27,45,0.07)', boxShadow: '0 2px 8px rgba(21,27,45,0.06)' }}
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.12)' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#ec6d13' }}>storefront</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#ec6d13' }}>storefront</span>
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 800, color: 'rgba(84,67,62,0.35)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 3 }}>Configuración</p>
-                <h1 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d', lineHeight: 1.15, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <h1 style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 700, color: '#151b2d', lineHeight: 1.2, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {shopName}
                 </h1>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(21,27,45,0.08)' }}>
                     <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#166534' : '#ec6d13', transition: 'width 0.6s ease' }} />
                   </div>
-                  <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: pct === 100 ? '#166534' : '#ec6d13', flexShrink: 0 }}>{pct}%</span>
+                  <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: pct === 100 ? '#166534' : '#ec6d13', flexShrink: 0 }}>{pct}%</span>
                 </div>
               </div>
             </div>
 
-            {/* ── 4 Metric Cards ── */}
-            <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8">
+            {/* ── 3 Metric Cards (sin Progreso, ya está en el hero) ── */}
+            <div className="grid grid-cols-3 gap-2 mx-3 mb-3">
               <MetricCard
                 label="Completadas"
                 value={<span>{completedCount}<span style={{ fontSize: 20, opacity: 0.35 }}>/{sections.length}</span></span>}
@@ -415,18 +417,6 @@ const ShopConfigDashboard: React.FC = () => {
                 mobileIconColor={completedCount === sections.length ? '#166534' : 'rgba(21,27,45,0.3)'}
                 sub="secciones listas"
                 icon="task_alt"
-              />
-              <MetricCard
-                label="Progreso"
-                value={
-                  <span style={{ color: pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : '#151b2d' }}>
-                    {pct}<span style={{ fontSize: 20, opacity: 0.35 }}>%</span>
-                  </span>
-                }
-                mobileValue={`${pct}%`}
-                mobileIconColor={pct === 100 ? '#166534' : pct >= 60 ? '#ec6d13' : 'rgba(21,27,45,0.3)'}
-                sub="configuración total"
-                icon="donut_large"
               />
               <MetricCard
                 label="Estado"
@@ -454,9 +444,11 @@ const ShopConfigDashboard: React.FC = () => {
               />
             </div>
 
-            </div>{/* closes padding div */}
-            {/* Nav + sección activa */}
-            <MobileShopConfig shop={s} userName={userName} profile={profile} navigate={navigate} />
+            {/* ── Contenido de sección activa ── */}
+            <MobileShopConfig shop={s} userName={userName} profile={profile} navigate={navigate} active={activeMobileSection} />
+
+            {/* Spacer para bottom nav + agent drawer */}
+            <div className="h-28" />
           </div>{/* closes md:hidden */}
 
           {/* ── Desktop: layout original sin cambios ── */}

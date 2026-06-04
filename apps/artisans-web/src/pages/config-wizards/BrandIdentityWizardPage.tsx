@@ -7,7 +7,7 @@ import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { ImageUploadSlot } from '@/components/ui/ImageUploadSlot';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
-import { T, inputStyle } from '@/lib/telar-design';
+import { T } from '@/lib/telar-design';
 
 // ── Datos del panel de IA ─────────────────────────────────────────────────────
 const AI_CARDS = [
@@ -133,47 +133,95 @@ export default function BrandIdentityWizardPage() {
       >
 
         {/* ── Logo ────────────────────────────────────────────────────── */}
-        <div>
-          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
-            Logo de tu tienda
-          </p>
-          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 20 }}>
-            Primera imagen que ven los compradores. Imagen cuadrada en fondo transparente o blanco.
-          </p>
-          <div className="w-1/3 md:w-1/4">
-            <ImageUploadSlot
-              label="Logo de la tienda" hint="Imagen cuadrada recomendada"
-              url={logoUrl} uploading={uploadingLogo}
-              onFile={handleLogoFile}
-              onRemove={() => { setLogoUrl(''); updateArtisanShop(shop!.id, { logoUrl: '' } as any); }}
-              aspect="aspect-square" icon="storefront"
-            />
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="font-['Noto_Serif'] text-[18px] md:text-[17px] font-[700] text-[#151b2d] leading-snug">
+              Logo de tu tienda
+            </p>
+            <p className="font-['Manrope'] text-[14px] md:text-[13px] text-[#54433e]/55 leading-relaxed mt-1.5">
+              Primera imagen que ven los compradores. Usa una imagen cuadrada con fondo transparente o blanco.
+            </p>
+          </div>
+
+          <div className="flex items-start gap-5">
+            <div className="w-[120px] md:w-[100px] shrink-0">
+              <ImageUploadSlot
+                label="Logo de la tienda" hint="Imagen cuadrada"
+                url={logoUrl} uploading={uploadingLogo}
+                onFile={handleLogoFile}
+                onRemove={() => { setLogoUrl(''); updateArtisanShop(shop!.id, { logoUrl: '' } as any); }}
+                aspect="aspect-square" icon="storefront"
+              />
+            </div>
+            <div className="flex flex-col gap-2 pt-1">
+              <p className="font-['Manrope'] text-[12px] font-[700] text-[#54433e]/60">
+                Recomendaciones
+              </p>
+              {[
+                { icon: 'crop_square',    text: 'Formato cuadrado (1:1)' },
+                { icon: 'brightness_high', text: 'Fondo blanco o transparente' },
+                { icon: 'high_quality',   text: 'Mínimo 400×400 px' },
+              ].map(({ icon, text }) => (
+                <div key={text} className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">{icon}</span>
+                  <span className="font-['Manrope'] text-[12px] text-[#54433e]/50">{text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div style={{ height: 1, background: 'rgba(84,67,62,0.08)' }} />
+        <div className="h-px bg-[#54433e]/8" />
 
         {/* ── Tagline ─────────────────────────────────────────────────── */}
-        <div>
-          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
-            Tagline de tu marca
-          </p>
-          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 16 }}>
-            Una frase corta que capture la esencia de tu taller. Aparece en tu tienda y en el marketplace.
-          </p>
-          <label style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}65`, display: 'block', marginBottom: 6 }}>
-            Tagline / Claim
-          </label>
-          <input
-            value={brandClaim}
-            onChange={e => setBrandClaim(e.target.value)}
-            placeholder="Ej. Tejidos que cuentan historias ancestrales"
-            style={inputStyle}
-            maxLength={120}
-          />
-          <p style={{ fontFamily: T.sans, fontSize: 10, color: `${T.muted}40`, marginTop: 6, textAlign: 'right' }}>
-            {brandClaim.length}/120
-          </p>
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="font-['Noto_Serif'] text-[18px] md:text-[17px] font-[700] text-[#151b2d] leading-snug">
+              Tagline de tu marca
+            </p>
+            <p className="font-['Manrope'] text-[14px] md:text-[13px] text-[#54433e]/55 leading-relaxed mt-1.5">
+              Una frase corta que capture la esencia de tu taller. Aparece en tu tienda y en el marketplace.
+            </p>
+          </div>
+
+          <div>
+            <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
+              Tagline / Claim
+            </label>
+            <input
+              value={brandClaim}
+              onChange={e => setBrandClaim(e.target.value)}
+              placeholder="Ej. Tejidos que cuentan historias ancestrales"
+              maxLength={120}
+              className="w-full rounded-[10px] px-4 py-3 font-['Manrope'] text-[16px] md:text-[14px] text-[#151b2d] border border-[#54433e]/14 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all placeholder:text-[#151b2d]/25"
+              style={{ background: 'rgba(247,244,239,0.5)' }}
+            />
+            <div className="flex items-center justify-between mt-1.5">
+              <p className="font-['Manrope'] text-[11px] text-[#54433e]/40">
+                Máximo 10 palabras, sé específico y auténtico
+              </p>
+              <p className="font-['Manrope'] text-[11px] text-[#54433e]/35 shrink-0">
+                {brandClaim.length}/120
+              </p>
+            </div>
+          </div>
+
+          {brandClaim.trim() && (
+            <div
+              className="flex items-start gap-3 p-4 rounded-xl"
+              style={{ background: 'rgba(236,109,19,0.05)', border: '1px solid rgba(236,109,19,0.15)' }}
+            >
+              <span className="material-symbols-outlined text-[16px] text-[#ec6d13] shrink-0 mt-0.5">format_quote</span>
+              <div>
+                <p className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
+                  Vista previa
+                </p>
+                <p className="font-['Noto_Serif'] text-[15px] text-[#151b2d] leading-snug italic">
+                  {brandClaim}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
       </ConfigWizardShell>
