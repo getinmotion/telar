@@ -92,7 +92,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
 
   if (isFinalStep) {
     return (
-      <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
+      <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <ProgressBar />
         <div className={innerClass}>
           <BackButton />
@@ -120,7 +120,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   }
 
   return (
-    <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
+    <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <ProgressBar />
       <div className={innerClass}>
         <BackButton />

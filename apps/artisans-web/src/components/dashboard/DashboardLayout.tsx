@@ -8,6 +8,7 @@ import { useTelarSync } from '@/hooks/useTelarSync';
 import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 import { AICopilotCard } from '@/components/dashboard/AICopilotCard';
 import { OraculoProvider, useOraculo } from '@/components/oraculo/OraculoContext';
+import { useIsWizardRoute } from '@/hooks/useIsWizardRoute';
 
 const SANS = "'Manrope', sans-serif";
 
@@ -119,6 +120,7 @@ const DashboardContent: React.FC = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { masterState } = useMasterAgent();
+  const isWizardRoute = useIsWizardRoute();
 
   useTelarSync();
 
@@ -219,16 +221,15 @@ const DashboardContent: React.FC = () => {
             className="flex-1 flex flex-col min-h-0"
           >
             <Outlet />
-            {/* Spacer: mobile bottom nav (60px) + agent trigger bar (46px) */}
-            <div className="h-[106px] shrink-0 md:hidden" />
+            {/* Spacer: mobile bottom nav (60px) + agent trigger bar (46px). Hidden during wizards. */}
+            {!isWizardRoute && <div className="h-[106px] shrink-0 md:hidden" />}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Mobile agent drawer — sits above bottom nav */}
-      <MobileAgentDrawer />
-      {/* Mobile bottom navigation */}
-      <MobileBottomNav />
+      {/* Mobile agent drawer and bottom nav are hidden during wizard routes */}
+      {!isWizardRoute && <MobileAgentDrawer />}
+      {!isWizardRoute && <MobileBottomNav />}
     </div>
   );
 };

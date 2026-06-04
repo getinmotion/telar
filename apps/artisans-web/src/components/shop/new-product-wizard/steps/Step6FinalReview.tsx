@@ -12,7 +12,6 @@ import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { mapNewStateToDto, extractApiError } from '../hooks/useWizardDraft';
 import { WizardFooter } from '../components/WizardFooter';
-import { WizardHeader } from '../components/WizardHeader';
 
 interface Props {
   state: NewWizardState;
@@ -23,6 +22,7 @@ interface Props {
   shopId: string;
   step: number;
   totalSteps: number;
+  leftOffset?: number;
 }
 
 
@@ -82,6 +82,7 @@ export const Step6FinalReview: React.FC<Props> = ({
   shopId,
   step,
   totalSteps,
+  leftOffset,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -240,17 +241,8 @@ export const Step6FinalReview: React.FC<Props> = ({
       : '—';
 
   return (
-    <div className="min-h-screen pb-32" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="fact_check"
-          title="Revisión final"
-          subtitle="Verifica la información antes de enviar a curaduría"
-        />
-
+    <div className="pb-32" style={{ background: 'transparent' }}>
+      <main className="max-w-[1200px] mx-auto px-4 md:px-10 pt-6">
         {/* Info block */}
         <div
           className="rounded-lg p-6 mb-8 flex items-start gap-4"
@@ -484,7 +476,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         isSubmitting={isSubmitting}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
-        leftOffset={80}
+        leftOffset={leftOffset}
       />
     </div>
   );

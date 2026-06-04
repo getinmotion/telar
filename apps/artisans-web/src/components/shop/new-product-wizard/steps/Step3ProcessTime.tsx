@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { ToolPicker } from '../components/TaxonomyPicker';
 import {
   getStoriesByArtisan,
@@ -20,6 +21,7 @@ interface Props {
   step: number;
   totalSteps: number;
   artisanId?: string;
+  leftOffset?: number;
 }
 
 const DRYING_TIMES = ['N/A', '24-48 horas', '3 a 5 días', '1 semana'];
@@ -134,7 +136,7 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
   );
 };
 
-export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '' }) => {
+export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', leftOffset }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(
     () => !!state.elaborationTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === state.elaborationTime),
@@ -150,6 +152,41 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
   const [isSavingProcess, setIsSavingProcess] = useState(false);
+
+  const { setNode, clearNode } = useOraculo();
+  useEffect(() => {
+    setNode(
+      <div className="p-5 flex flex-col gap-4" style={{ background: '#151b2d', borderRadius: 16 }}>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>auto_awesome</span>
+            <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Sugerido por IA</h3>
+          </div>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ec6d13' }} />
+            <span className="text-[9px] font-[800] tracking-widest text-white/60 uppercase">Analizando</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-white/50">Basado en las fotos, descripción y técnica seleccionada.</p>
+        <div className="flex flex-col gap-3">
+          {([
+            { label: 'Tiempo estimado', value: state.elaborationTime ?? '1 semana' },
+            { label: 'Capacidad sugerida', value: `${state.monthlyCapacity ?? 4} piezas / mes` },
+            { label: 'Método detectado', value: state.processMethod ?? 'Hecho a mano' },
+          ] as { label: string; value: string }[]).map(({ label, value }) => (
+            <div key={label} className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">{label}</p>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest" style={{ background: 'rgba(236,109,19,0.2)', color: '#ec6d13' }}>IA</span>
+              </div>
+              <p className="text-[13px] text-white/80 font-[500]">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    return clearNode;
+  }, [state.elaborationTime, state.monthlyCapacity, state.processMethod]);
 
   const loadProcesses = () => {
     if (!artisanId || loadingProcesses) return;
@@ -245,19 +282,21 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="history_edu"
-          title="Proceso y tiempo"
-          subtitle="Evidencia y descripción para la trazabilidad TELAR"
-        />
+      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
+        <div className="hidden md:block">
+          <WizardHeader
+            step={step}
+            totalSteps={totalSteps}
+            onBack={onBack}
+            icon="history_edu"
+            title="Proceso y tiempo"
+            subtitle="Evidencia y descripción para la trazabilidad TELAR"
+          />
+        </div>
 
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar */}
-          <aside className="col-span-12 lg:col-span-3 sticky top-8">
+          <aside className="hidden lg:block lg:col-span-3 sticky top-8">
             <div className="p-5 text-white rounded-2xl" style={{ background: '#151b2d' }}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-[#ec6d13] text-lg">auto_awesome</span>
@@ -676,7 +715,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
         onNext={onNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        leftOffset={80}
+        leftOffset={leftOffset}
       />
     </div>
   );

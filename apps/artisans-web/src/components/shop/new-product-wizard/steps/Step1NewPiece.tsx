@@ -20,6 +20,7 @@ interface Props {
   totalSteps: number;
   artisanId?: string;
   userId?: string;
+  leftOffset?: number;
 }
 
 const IMAGE_SLOTS = [
@@ -33,7 +34,7 @@ const IMAGE_SLOTS = [
 const hasSpeechSupport = typeof window !== 'undefined' &&
   ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '' }) => {
+export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '', leftOffset }) => {
   const [isRecordingDesc, setIsRecordingDesc] = useState(false);
   const [isRecordingHistory, setIsRecordingHistory] = useState(false);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -191,15 +192,17 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="w-full max-w-[1200px] mx-auto pt-10 pb-32 px-6 md:px-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="add_photo_alternate"
-          title="Nueva pieza"
-          subtitle="Captura inicial para que TELAR entienda qué estás creando"
-        />
+      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-10 pb-32 px-6 md:px-10">
+        <div className="hidden md:block">
+          <WizardHeader
+            step={step}
+            totalSteps={totalSteps}
+            onBack={onBack}
+            icon="add_photo_alternate"
+            title="Nueva pieza"
+            subtitle="Captura inicial para que TELAR entienda qué estás creando"
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -268,7 +271,20 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
               <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
                 Registro Visual
               </label>
-              <div className="flex gap-3">
+
+              {/* Mobile: tira horizontal scrollable */}
+              <div className="md:hidden">
+                <MobileImageStrip
+                  images={state.images}
+                  fileInputRefs={fileInputRefs}
+                  onFileChange={handleFileChange}
+                  onDelete={handleDeleteImage}
+                  getPreviewUrl={getPreviewUrl}
+                />
+              </div>
+
+              {/* Desktop: grid de slots original */}
+              <div className="hidden md:flex gap-3">
                 <div className="flex-1 min-w-0">
                   <ImageSlot
                     slot={IMAGE_SLOTS[0]}
@@ -509,7 +525,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
         disabledReason={!canContinue ? 'Faltan datos obligatorios.' : undefined}
-        leftOffset={80}
+        leftOffset={leftOffset}
       />
     </div>
   );
@@ -593,3 +609,72 @@ const ImageSlot: React.FC<ImageSlotProps> = ({
     </div>
   );
 };
+
+// ── MobileImageStrip ───────────────────────────────────────────────────────────
+
+interface MobileImageStripProps {
+  images: NewWizardState['images'];
+  fileInputRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  onDelete: (index: number, e: React.MouseEvent) => void;
+  getPreviewUrl: (img: File | string | undefined) => string | null;
+}
+
+const MobileImageStrip: React.FC<MobileImageStripProps> = ({
+  images,
+  fileInputRefs,
+  onFileChange,
+  onDelete,
+  getPreviewUrl,
+}) => (
+  <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' as any }}>
+    {IMAGE_SLOTS.map(slot => {
+      const preview = getPreviewUrl(images[slot.index]);
+      return (
+        <div key={slot.index} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+          {/* Slot cuadrado */}
+          <div
+            onClick={() => fileInputRefs.current[slot.index]?.click()}
+            className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
+            style={{ background: preview ? undefined : 'rgba(255,255,255,0.8)' }}
+          >
+            {preview ? (
+              <>
+                <img src={preview} className="w-full h-full object-cover" alt={slot.label} />
+                <button
+                  type="button"
+                  onClick={e => onDelete(slot.index, e)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.55)' }}
+                >
+                  <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>close</span>
+                </button>
+              </>
+            ) : (
+              <span
+                className="material-symbols-outlined text-[26px]"
+                style={{ color: 'rgba(84,67,62,0.28)' }}
+              >
+                {slot.icon}
+              </span>
+            )}
+            <input
+              ref={el => { fileInputRefs.current[slot.index] = el; }}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => onFileChange(e, slot.index)}
+            />
+          </div>
+          {/* Label del slot */}
+          <span
+            className="text-[9px] font-['Manrope'] font-[800] uppercase tracking-wider text-center leading-tight"
+            style={{ color: 'rgba(84,67,62,0.5)', width: 80 }}
+          >
+            {slot.label}
+          </span>
+        </div>
+      );
+    })}
+  </div>
+);

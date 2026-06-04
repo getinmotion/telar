@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { NewWizardState, PiecePurpose, PieceStyle, ProductionType } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
-import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { MaterialPicker } from '../components/TaxonomyPicker';
 import { CraftPicker, TechniquePicker } from '../components/CraftPicker';
@@ -18,6 +17,7 @@ interface Props {
   totalSteps: number;
   artisanId?: string;
   userId?: string;
+  leftOffset?: number;
 }
 
 const TELAR_CATEGORY_DEFS: { name: string; icon: string }[] = [
@@ -58,9 +58,11 @@ const cardStyle = {
   border: '1px solid rgba(255,255,255,0.65)',
 } as const;
 
-export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '' }) => {
+export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '', leftOffset }) => {
   const [showCollaboration, setShowCollaboration] = useState(state.isCollaboration ?? false);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [craftName, setCraftName] = useState<string | undefined>();
+  const [techniqueName, setTechniqueName] = useState<string | undefined>();
 
   const canContinue = !!state.categoryId && !!state.craftId;
 
@@ -87,6 +89,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
 
   const handleCraftChange = (craftId: string | undefined) => {
     update({ craftId, primaryTechniqueId: undefined, secondaryTechniqueId: undefined });
+    if (!craftId) { setCraftName(undefined); setTechniqueName(undefined); }
   };
 
   const toggleCollaboration = (val: boolean) => {
@@ -95,20 +98,11 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="w-full max-w-[1200px] mx-auto pt-10 pb-32 px-6 md:px-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={step > 1 ? onBack : undefined}
-          icon="fingerprint"
-          title="Identidad artesanal"
-          subtitle="Técnica, estilo, materiales y categoría de tu pieza"
-        />
-
+    <div style={{ background: 'transparent' }}>
+      <main className="w-full max-w-[1200px] mx-auto pt-6 pb-32 px-4 md:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* AI Sidebar */}
-          <aside className="lg:col-span-3">
+          {/* AI Sidebar — desktop only */}
+          <aside className="hidden lg:block lg:col-span-3">
             <div
               className="p-5 sticky top-8 flex flex-col gap-4 rounded-2xl"
               style={{ background: '#151b2d' }}
@@ -263,6 +257,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                 categoryName={selectedCategoryName}
                 selectedCraftId={state.craftId}
                 onChange={handleCraftChange}
+                onNameChange={setCraftName}
               />
 
               {state.craftId && (
@@ -276,9 +271,10 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   </div>
                   <TechniquePicker
                     craftId={state.craftId}
-                    craftName={state.craftId ? undefined : undefined}
+                    craftName={craftName}
                     selectedTechniqueId={state.primaryTechniqueId}
                     onChange={techniqueId => update({ primaryTechniqueId: techniqueId })}
+                    onNameChange={setTechniqueName}
                   />
                 </div>
               )}
@@ -307,6 +303,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                 userId={userId}
                 selectedIds={state.materials}
                 onChange={ids => update({ materials: ids })}
+                suggestFromTechniqueNames={[craftName, techniqueName].filter(Boolean) as string[]}
               />
             </div>
 
@@ -495,7 +492,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
         nextLabel="Confirmar y continuar"
-        leftOffset={80}
+        leftOffset={leftOffset}
       />
     </div>
   );

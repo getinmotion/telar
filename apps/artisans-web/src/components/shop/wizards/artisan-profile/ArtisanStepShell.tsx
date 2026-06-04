@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { WizardHeader } from '../../new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '../../new-product-wizard/components/WizardFooter';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AiCard { label: string; text: string; }
 
@@ -34,6 +35,7 @@ export const ArtisanStepShell: React.FC<Props> = ({
   isFinalStep, onSubmit, isSubmitting, submitLabel,
   children,
 }) => {
+  const isMobile = useIsMobile();
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
     setNode(
@@ -71,10 +73,18 @@ export const ArtisanStepShell: React.FC<Props> = ({
   }, [aiCards, aiNext]);
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col pb-24 box-border">
-      <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} onBack={onBack} />
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Header: fixed en mobile, sticky en desktop */}
+      <div
+        className="fixed md:sticky top-0 left-0 right-0 md:left-auto md:right-auto z-30 border-b border-[#e2d5cf]/40 shrink-0"
+        style={{ background: 'rgba(249,247,242,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+      >
+        <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} onBack={onBack} />
+      </div>
 
-      <main className="w-full max-w-[1200px] mx-auto px-4 py-4">
+      {/* Contenido scrollable */}
+      <div className="flex-1 overflow-y-auto pt-14 md:pt-0 pb-24">
+        <main className="w-full max-w-[1200px] mx-auto px-4 py-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
 
             {/* Form content */}
@@ -128,8 +138,10 @@ export const ArtisanStepShell: React.FC<Props> = ({
             </div>
 
           </div>
-      </main>
+        </main>
+      </div>
 
+      {/* Footer fuera del scroll */}
       <WizardFooter
         step={step}
         totalSteps={totalSteps}
@@ -143,7 +155,7 @@ export const ArtisanStepShell: React.FC<Props> = ({
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         submitLabel={submitLabel}
-        leftOffset={80}
+        leftOffset={isMobile ? 0 : 80}
       />
     </div>
   );
