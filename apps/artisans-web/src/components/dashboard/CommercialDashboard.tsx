@@ -457,7 +457,7 @@ export const CommercialDashboard: React.FC = () => {
       label: "Datos bancarios",
       done: hasBankData,
       required: true,
-      route: "/mi-cuenta/datos-bancarios",
+      route: "/mi-tienda/configurar/contact?tab=banco",
     },
     {
       label: "Contacto",

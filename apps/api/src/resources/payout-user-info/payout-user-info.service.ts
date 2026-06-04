@@ -169,9 +169,39 @@ export class PayoutUserInfoService {
     id: string,
     updatePayoutUserInfoDto: UpdatePayoutUserInfoDto,
   ): Promise<PayoutUserInfo> {
-    await this.getById(id);
+    const existing = await this.getById(id);
 
-    await this.payoutUserInfoRepository.update(id, updatePayoutUserInfoDto);
+    // 1. Extraer idType e idNumber del DTO (pertenecen a UserProfile, no a PayoutUserInfo)
+    const { idType, idNumber, ...payoutData } = updatePayoutUserInfoDto;
+
+    // 2. Si vienen idType o idNumber, actualizar el UserProfile
+    if (idType || idNumber) {
+      const userProfile = await this.userProfilesService.getByUserId(
+        existing.userId,
+      );
+      if (userProfile) {
+        const updateData: any = {};
+        if (idType) updateData.idType = idType;
+        if (idNumber) updateData.idNumber = idNumber;
+        await this.userProfilesService.update(userProfile.id, updateData);
+      }
+    }
+
+    // 3. Encriptar datos sensibles si vienen en el update
+    const dataToUpdate: any = { ...payoutData };
+    if (payoutData.bankName) {
+      dataToUpdate.bankName = this.encryptionService.encrypt(
+        payoutData.bankName,
+      );
+    }
+    if (payoutData.numAccount) {
+      dataToUpdate.numAccount = this.encryptionService.encrypt(
+        payoutData.numAccount,
+      );
+    }
+
+    // 4. Actualizar solo los campos que pertenecen a PayoutUserInfo
+    await this.payoutUserInfoRepository.update(id, dataToUpdate);
 
     return await this.getById(id);
   }

@@ -83,6 +83,7 @@ import { FeaturedCollectionsModule } from './resources/featured-collections/feat
 import { StoreHealthScoresModule } from './resources/store-health-scores/store-health-scores.module';
 import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-info.module';
 import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
+import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
 
 @Module({
   imports: [
@@ -211,6 +212,7 @@ import { AchievementsCatalogModule } from './resources/achievements-catalog/achi
     StoreHealthScoresModule,
     PayoutUserInfoModule,
     AchievementsCatalogModule,
+    ArtisansKnowledgeModule,
   ],
   controllers: [],
   providers: [],
