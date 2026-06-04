@@ -90,6 +90,11 @@ const BackofficePaymentsSvcPage_lazy = lazy(
 const BackofficeTerritoriosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeTerritoriosPage"),
 );
+
+// ─── Growth/Onboarding ────────────────────────────────────────────────────────
+const AgentFormPage_lazy = lazy(
+  () => import("@/pages/growth/AgentFormPage"),
+);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -232,6 +237,16 @@ function App() {
                           <Route
                             path="/verify-email"
                             element={<VerifyEmail />}
+                          />
+
+                          {/* Growth/Onboarding - Usuario sin shop */}
+                          <Route
+                            path="/growth/agent-form"
+                            element={
+                              <Suspense fallback={<div>Cargando...</div>}>
+                                <AgentFormPage_lazy />
+                              </Suspense>
+                            }
                           />
 
                           {/* Legal pages */}

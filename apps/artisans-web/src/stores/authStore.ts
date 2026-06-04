@@ -211,6 +211,11 @@ export const useAuthStore = create<AuthState>()(
         const state = get();
         const shop = state.artisanShop;
 
+        // ✅ Si NO tiene shop, redirigir al formulario de onboarding
+        if (!shop) {
+          return '/growth/agent-form';
+        }
+
         // Si tiene tienda pero está incompleta, continuar creación
         if (shop && shop.creationStatus !== 'complete') {
           return '/dashboard/create-shop';

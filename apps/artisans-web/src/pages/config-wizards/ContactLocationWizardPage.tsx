@@ -6,9 +6,12 @@ import { useArtisanShop } from '@/hooks/useArtisanShop';
 import { useBankData } from '@/hooks/useBankData';
 import { useUnifiedUserData } from '@/hooks/user/useUnifiedUserData';
 import { updateArtisanShop } from '@/services/artisanShops.actions';
-import { getCounterparty } from '@/services/cobre.actions';
 import { getUserProfileByUserId } from '@/services/userProfiles.actions';
 import { BANKS_DATA } from '@/data/cobreBankData';
+import { getPayoutUserInfoByUserId } from '@/services/payoutUserInfo.actions';
+import { PayoutUserInfo } from '@/types/payoutUserInfo.types';
+import { getAllCountries } from '@/services/countries.actions';
+import { Country } from '@/types/country.types';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
 import {
@@ -37,15 +40,6 @@ interface BankFormData {
   account_number: string;
   country: string;
   currency: string;
-}
-
-interface CounterpartyMeta {
-  account_number: string;
-  beneficiary_institution: string;
-  counterparty_fullname: string;
-  counterparty_id_number: string;
-  counterparty_id_type: string;
-  registered_account: string;
 }
 
 // ── Helpers de UI ─────────────────────────────────────────────────────────────
@@ -140,12 +134,14 @@ export default function ContactLocationWizardPage() {
     bank_code: '', account_type: 'ch', account_number: '',
     country: 'Colombia', currency: 'COP',
   });
-  const [counterpartyData, setCounterpartyData]         = useState<CounterpartyMeta | null>(null);
-  const [hasCounterparty,  setHasCounterparty]           = useState(false);
-  const [loadingCounterparty, setLoadingCounterparty]   = useState(true);
+  const [payoutData, setPayoutData]         = useState<PayoutUserInfo | null>(null);
+  const [hasPayoutData,  setHasPayoutData]           = useState(false);
+  const [loadingPayoutData, setLoadingPayoutData]   = useState(true);
   const [isEditingBanco,   setIsEditingBanco]            = useState(false);
   const [showConfirmBanco, setShowConfirmBanco]          = useState(false);
   const [savingBanco,      setSavingBanco]               = useState(false);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(true);
 
   // ── Cargar datos del perfil de registro ──────────────────────────────────
   useEffect(() => {
@@ -182,21 +178,69 @@ export default function ContactLocationWizardPage() {
     if (!cc.whatsapp && !cc.email) setShowRegBanner(true);
   }, [shop?.id]);
 
-  // ── Cargar datos bancarios (contraparte) ──────────────────────────────────
+  /**
+   * ✅ MIGRATED: Obtiene los datos de payout desde NestJS
+   * Endpoint: GET /payout-user-info/user/:userId
+   */
   useEffect(() => {
-    if (!user?.id) { setLoadingCounterparty(false); return; }
-    const s = shop as any;
-    if (!s?.idContraparty) { setHasCounterparty(false); setLoadingCounterparty(false); return; }
-    setHasCounterparty(true);
-    getCounterparty(s.idContraparty)
-      .then(data => setCounterpartyData(data.metadata as CounterpartyMeta))
-      .catch(() => {})
-      .finally(() => setLoadingCounterparty(false));
-  }, [user?.id, (shop as any)?.idContraparty]);
+    const fetchPayoutData = async () => {
+      if (!user?.id) {
+        setLoadingPayoutData(false);
+        return;
+      }
+
+      try {
+        const data = await getPayoutUserInfoByUserId(user.id);
+
+        if (data && data.length > 0) {
+          setHasPayoutData(true);
+          setPayoutData(data[0]); // Tomamos el primer registro
+        } else {
+          setHasPayoutData(false);
+          setPayoutData(null);
+        }
+      } catch {
+        // Sin datos de payout disponibles
+        setHasPayoutData(false);
+        setPayoutData(null);
+      } finally {
+        setLoadingPayoutData(false);
+      }
+    };
+
+    fetchPayoutData();
+  }, [user?.id]);
+
+  /**
+   * Carga los países disponibles
+   * Endpoint: GET /countries
+   */
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const countriesData = await getAllCountries();
+        setCountries(countriesData);
+
+        // Pre-seleccionar el primer país si existe
+        if (countriesData && countriesData.length > 0) {
+          setBankForm((prev) => ({
+            ...prev,
+            country: countriesData[0].id, // UUID del primer país
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading countries:', error);
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
 
   // ── Cargar bankData en el formulario ──────────────────────────────────────
   useEffect(() => {
-    if (bankData && !hasCounterparty) {
+    if (bankData && !hasPayoutData) {
       setBankForm(prev => ({
         ...prev,
         holder_name:     bankData.holder_name     || '',
@@ -207,24 +251,32 @@ export default function ContactLocationWizardPage() {
         account_number:  bankData.account_number   || '',
       }));
     }
-  }, [bankData, hasCounterparty]);
+  }, [bankData, hasPayoutData]);
 
-  // ── Pre-fill al entrar en modo edición banco ──────────────────────────────
+  /**
+   * ✅ MIGRATED: Pre-cargar formulario en modo edición con datos de PayoutUserInfo
+   * Nota: bankName y numAccount vienen DESENCRIPTADOS del backend
+   * idType e idNumber vienen del perfil del usuario
+   */
   useEffect(() => {
-    if (isEditingBanco && counterpartyData) {
-      const bank = BANKS_DATA.find(b => b.name === counterpartyData.beneficiary_institution || b.code === counterpartyData.beneficiary_institution);
-      const mapAccountType = (t: string) => ({ ahorros: 'ch', ch: 'ch', corriente: 'cc', cc: 'cc', r2p: 'r2p', dp: 'dp', 'breb-key': 'breb-key', r2p_breb: 'r2p_breb' } as any)[t?.toLowerCase()] ?? 'ch';
+    if (isEditingBanco && payoutData) {
+      // Find bank code from bank name
+      const bank = BANKS_DATA.find(
+        (b) => b.name === payoutData.bankName || b.code === payoutData.bankName
+      );
+
       setBankForm({
-        holder_name:     counterpartyData.counterparty_fullname  || '',
-        document_type:   counterpartyData.counterparty_id_type   || 'cc',
-        document_number: counterpartyData.counterparty_id_number || '',
-        bank_code:       bank?.code || counterpartyData.beneficiary_institution || '',
-        account_type:    mapAccountType(counterpartyData.registered_account),
-        account_number:  counterpartyData.account_number         || '',
-        country: 'Colombia', currency: 'COP',
+        holder_name: payoutData.namePayoutMain || "",
+        document_type: payoutData.idType || "cc", // Viene del perfil del usuario
+        document_number: payoutData.idNumber || "", // Viene del perfil del usuario (desencriptado)
+        bank_code: bank?.code || payoutData.bankName || "",
+        account_type: payoutData.typeAccount || "ch",
+        account_number: payoutData.numAccount || "", // Desencriptado
+        country: payoutData.countryId || "Colombia", // UUID del país
+        currency: payoutData.currency || "COP",
       });
     }
-  }, [isEditingBanco, counterpartyData]);
+  }, [isEditingBanco, payoutData]);
 
   // ── Cargar RUT ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -286,18 +338,30 @@ export default function ContactLocationWizardPage() {
 
   // ── Handlers Banco ────────────────────────────────────────────────────────
   const handleSubmitBanco = () => {
-    if (hasCounterparty && isEditingBanco) { setShowConfirmBanco(true); return; }
+    if (hasPayoutData && isEditingBanco) { setShowConfirmBanco(true); return; }
     performSaveBanco();
   };
 
+  /**
+   * ✅ MIGRATED: Guardar o actualizar datos de payout
+   */
   const performSaveBanco = async () => {
+    // Validate required fields before saving
+    if (!bankForm.account_type) {
+      bankForm.account_type = "ch"; // Default to savings if somehow empty
+    }
+
     setSavingBanco(true);
+
     let result: any;
-    if (hasCounterparty && isEditingBanco) {
+    if (hasPayoutData && isEditingBanco) {
+      // Update existing data
       result = await updateBankData({ ...bankForm, status: 'complete', geo: 'col' });
     } else {
+      // Create new data
       result = await saveBankData({ ...bankForm, status: 'complete', geo: 'col' });
     }
+
     setSavingBanco(false);
 
     if (result.success && result.id_contraparty && user) {
@@ -306,12 +370,15 @@ export default function ContactLocationWizardPage() {
 
       if (isEditingBanco) {
         setIsEditingBanco(false);
-        setLoadingCounterparty(true);
+        setLoadingPayoutData(true);
         try {
-          const data = await getCounterparty(result.id_contraparty);
-          if (data?.metadata) setCounterpartyData(data.metadata as CounterpartyMeta);
+          // Recargar datos actualizados
+          const data = await getPayoutUserInfoByUserId(user.id);
+          if (data && data.length > 0) {
+            setPayoutData(data[0]);
+          }
         } finally {
-          setLoadingCounterparty(false);
+          setLoadingPayoutData(false);
         }
         toast.success('Datos bancarios actualizados');
       } else {
@@ -588,7 +655,7 @@ export default function ContactLocationWizardPage() {
             <SectionTitle icon="account_balance" label="Datos de cobro" sub="Cuenta bancaria donde recibirás los pagos de tus ventas. Procesado por Cobre." />
 
             {/* Vista read-only */}
-            {hasCounterparty && counterpartyData && !isEditingBanco && !loadingCounterparty && (
+            {hasPayoutData && payoutData && !isEditingBanco && !loadingPayoutData && (
               <div className="flex flex-col gap-4">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'rgba(22,101,52,0.07)', border: '1px solid rgba(22,101,52,0.18)' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#166534' }}>check_circle</span>
@@ -602,12 +669,12 @@ export default function ContactLocationWizardPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {[
-                    { label: 'Titular', value: counterpartyData.counterparty_fullname },
-                    { label: 'Tipo de documento', value: getDocTypeLabel(counterpartyData.counterparty_id_type) },
-                    { label: 'Número de documento', value: counterpartyData.counterparty_id_number },
-                    { label: 'Banco', value: counterpartyData.beneficiary_institution },
-                    { label: 'Tipo de cuenta', value: getAccountTypeLabel(counterpartyData.registered_account) },
-                    { label: 'Número de cuenta', value: counterpartyData.account_number ? `****${counterpartyData.account_number.slice(-4)}` : '-' },
+                    { label: 'Titular', value: payoutData.namePayoutMain },
+                    { label: 'Tipo de documento', value: getDocTypeLabel(payoutData.idType || '') },
+                    { label: 'Número de documento', value: payoutData.idNumber },
+                    { label: 'Banco', value: payoutData.bankName },
+                    { label: 'Tipo de cuenta', value: getAccountTypeLabel(payoutData.typeAccount || '') },
+                    { label: 'Número de cuenta', value: payoutData.numAccount ? `****${payoutData.numAccount.slice(-4)}` : '-' },
                   ].map(({ label, value }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(84,67,62,0.03)', border: '1px solid rgba(84,67,62,0.07)' }}>
                       <p style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}45`, margin: '0 0 4px' }}>{label}</p>
@@ -628,8 +695,8 @@ export default function ContactLocationWizardPage() {
               </div>
             )}
 
-            {/* Loading contraparte */}
-            {loadingCounterparty && (
+            {/* Loading payout data */}
+            {loadingPayoutData && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 16 }}>
                 <span className="material-symbols-outlined animate-spin" style={{ fontSize: 20, color: T.orange }}>progress_activity</span>
                 <span style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60` }}>Cargando datos bancarios...</span>
@@ -637,7 +704,7 @@ export default function ContactLocationWizardPage() {
             )}
 
             {/* Formulario */}
-            {(!hasCounterparty || isEditingBanco) && !loadingCounterparty && (
+            {(!hasPayoutData || isEditingBanco) && !loadingPayoutData && (
               <div className="flex flex-col gap-4">
                 {isEditingBanco && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '12px 14px', borderRadius: 10, background: 'rgba(236,109,19,0.06)', border: '1px solid rgba(236,109,19,0.18)' }}>
@@ -709,6 +776,31 @@ export default function ContactLocationWizardPage() {
                     style={inputStyle}
                   />
                 </Field>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Field label="País">
+                    <select
+                      value={bankForm.country}
+                      onChange={e => handleBankChange('country', e.target.value)}
+                      disabled
+                      style={inputStyle}
+                    >
+                      {countries.map((country) => (
+                        <option key={country.id} value={country.id}>
+                          {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Moneda">
+                    <input
+                      value={bankForm.currency}
+                      onChange={e => handleBankChange('currency', e.target.value)}
+                      disabled
+                      style={inputStyle}
+                    />
+                  </Field>
+                </div>
 
                 {isEditingBanco && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
