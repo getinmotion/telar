@@ -29,8 +29,11 @@ export const cmsSectionsProviders = [
           log.log('Mongo conectado (MONGO_URI override)');
           return mongoose;
         } catch (error) {
-          log.error('Error conectando a Mongo (MONGO_URI)', error as Error);
-          throw error;
+          log.error(
+            'Error conectando a Mongo (MONGO_URI) — CMS no disponible, resto de la API continúa',
+            error as Error,
+          );
+          return mongoose;
         }
       }
 
