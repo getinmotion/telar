@@ -55,7 +55,7 @@ const Shops = () => {
   }, []);
 
   useEffect(() => {
-    if (contextShops.length > 0) {
+    if (Array.isArray(contextShops) && contextShops.length > 0) {
       setShops(
         contextShops.map((s) => ({
           id: s.id,

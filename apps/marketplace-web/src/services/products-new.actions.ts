@@ -68,10 +68,10 @@ export interface ProductArtisanalIdentity {
 
 export interface ProductPhysicalSpecs {
   id: string;
-  width?: number;
-  height?: number;
-  depth?: number;
-  weight?: number;
+  heightCm?: number;
+  widthCm?: number;
+  lengthOrDiameterCm?: number;
+  realWeightKg?: number;
 }
 
 export interface ProductProduction {
@@ -194,6 +194,27 @@ export interface ProductFeatured {
 
 // ── API Calls ─────────────────────────────────────────
 
+/**
+ * Coerce cualquier respuesta de productos a un objeto paginado válido.
+ * Evita los `products is not iterable` cuando la API devuelve `undefined`,
+ * un array suelto, o un envelope distinto al esperado.
+ */
+function coerceArr<T>(raw: any): T[] {
+  if (Array.isArray(raw)) return raw as T[];
+  if (Array.isArray(raw?.data)) return raw.data as T[];
+  return [];
+}
+
+function coercePaginated(raw: any): ProductsNewPaginatedResponse {
+  const data = coerceArr<ProductNewCore>(raw);
+  return {
+    data,
+    total: typeof raw?.total === 'number' ? raw.total : data.length,
+    page: typeof raw?.page === 'number' ? raw.page : 1,
+    limit: typeof raw?.limit === 'number' ? raw.limit : data.length,
+  } as ProductsNewPaginatedResponse;
+}
+
 /** GET /products-new — all products (with optional filters) */
 export const getProductsNew = async (params?: {
   page?: number;
@@ -202,10 +223,15 @@ export const getProductsNew = async (params?: {
   categoryId?: string;
   status?: string;
 }): Promise<ProductsNewPaginatedResponse> => {
-  const response = await telarApiPublic.get<ProductsNewPaginatedResponse>('/products-new', {
-    params,
-  });
-  return response.data;
+  try {
+    const response = await telarApiPublic.get<ProductsNewPaginatedResponse>('/products-new', {
+      params,
+    });
+    return coercePaginated(response.data);
+  } catch (err: any) {
+    console.warn('[products-new] GET /products-new falló:', err?.message ?? err);
+    return { data: [], total: 0, page: 1, limit: 0 } as ProductsNewPaginatedResponse;
+  }
 };
 
 /** GET /products-new/:id — single product with all layers */
@@ -216,27 +242,47 @@ export const getProductNewById = async (id: string): Promise<ProductNewCore> => 
 
 /** GET /products-new/category/:categoryId — products by category */
 export const getProductsByCategory = async (categoryId: string): Promise<ProductNewCore[]> => {
-  const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/category/${categoryId}`);
-  return response.data;
+  try {
+    const response = await telarApiPublic.get(`/products-new/category/${categoryId}`);
+    return coerceArr<ProductNewCore>(response.data);
+  } catch (err: any) {
+    console.warn(`[products-new] GET /products-new/category/${categoryId} falló:`, err?.message ?? err);
+    return [];
+  }
 };
 
 /** POST /products-new/by-ids — hidrata productos por IDs (usado por bloques CMS) */
 export const getProductsByIds = async (ids: string[]): Promise<ProductNewCore[]> => {
   if (!ids || ids.length === 0) return [];
-  const response = await telarApiPublic.post<ProductNewCore[]>('/products-new/by-ids', { ids });
-  return response.data;
+  try {
+    const response = await telarApiPublic.post('/products-new/by-ids', { ids });
+    return coerceArr<ProductNewCore>(response.data);
+  } catch (err: any) {
+    console.warn('[products-new] POST /products-new/by-ids falló:', err?.message ?? err);
+    return [];
+  }
 };
 
 /** GET /products-new/store/:storeId — products by store */
 export const getProductsByStore = async (storeId: string): Promise<ProductNewCore[]> => {
-  const response = await telarApiPublic.get<ProductNewCore[]>(`/products-new/marketplace/store/${storeId}`);
-  return response.data;
+  try {
+    const response = await telarApiPublic.get(`/products-new/marketplace/store/${storeId}`);
+    return coerceArr<ProductNewCore>(response.data);
+  } catch (err: any) {
+    console.warn(`[products-new] GET store/${storeId} falló:`, err?.message ?? err);
+    return [];
+  }
 };
 
 /** GET /products-new/marketplace/featured — featured products (isFeatured = true) */
 export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
-  const response = await telarApiPublic.get<ProductFeatured[]>('/products-new/marketplace/featured');
-  return response.data;
+  try {
+    const response = await telarApiPublic.get('/products-new/marketplace/featured');
+    return coerceArr<ProductFeatured>(response.data);
+  } catch (err: any) {
+    console.warn('[products-new] GET marketplace/featured falló:', err?.message ?? err);
+    return [];
+  }
 };
 
 // ── Helpers ───────────────────────────────────────────

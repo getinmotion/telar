@@ -38,6 +38,7 @@ export interface Product {
   name: string;
   description: string;
   shortDescription: string;
+  history?: string | null;
   price: string;              // Precio como string
   imageUrl: string | null;
   images: string[];
@@ -60,7 +61,7 @@ export interface Product {
   material: string | null;    // tags[0]
 
   // Especificaciones técnicas
-  dimensions?: { width: number; height: number; length?: number } | string;
+  dimensions?: { width?: number; height?: number; length?: number } | string;
   weight?: string;
   productionTime?: string | null;
   leadTimeDays?: number;

@@ -1408,7 +1408,7 @@ export class ProductsNewService {
 
     // Aplicar filtros
     if (filters?.storeId) {
-      queryBuilder.andWhere('product.artisanShop_id = :storeId', {
+      queryBuilder.andWhere('product.storeId = :storeId', {
         storeId: filters.storeId,
       });
     }

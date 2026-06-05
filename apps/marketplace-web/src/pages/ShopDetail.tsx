@@ -579,41 +579,57 @@ export default function ShopDetail() {
         )}
       </section>
 
-      {/* Editorial Block — Story */}
-      {shop.story && (
-        <section className="bg-white py-24 border-y border-[#2c2c2c]/5">
-          <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
-            <div className="aspect-square bg-[#e5e1d8] shadow-sm overflow-hidden rounded-sm">
-              {heroImages.length > 1 && (
-                <img
-                  src={heroImages[1]}
-                  alt={shop.shopName}
-                  className="w-full h-full object-cover"
-                />
-              )}
+      {/* Editorial Block — Story
+          Fuente real (en orden): aboutContent.story → story → description.
+          Título: aboutContent.title → brandClaim → copy editorial por defecto.
+          Si no hay ningún story real, ocultamos la sección entera para no
+          ensuciar el perfil con texto inventado. */}
+      {(() => {
+        const editorialStory =
+          shop.aboutContent?.story?.trim() ||
+          shop.story?.trim() ||
+          shop.description?.trim() ||
+          null;
+        if (!editorialStory) return null;
+        const editorialTitle =
+          shop.aboutContent?.title?.trim() ||
+          shop.brandClaim?.trim() ||
+          "Un taller que preserva oficio y territorio";
+        return (
+          <section className="bg-white py-24 border-y border-[#2c2c2c]/5">
+            <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
+              <div className="aspect-square bg-[#e5e1d8] shadow-sm overflow-hidden rounded-sm">
+                {heroImages.length > 1 && (
+                  <img
+                    src={heroImages[1]}
+                    alt={shop.shopName}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="space-y-10">
+                <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight">
+                  {editorialTitle}
+                </h2>
+                <p className="text-xl text-[#2c2c2c]/60 leading-relaxed font-light italic">
+                  "{editorialStory}"
+                </p>
+                <Link
+                  to={
+                    shop.contactInfo?.instagram
+                      ? `https://instagram.com/${shop.contactInfo.instagram}`
+                      : "#"
+                  }
+                  className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#ec6d13] pb-3 hover:text-[#ec6d13] transition-all inline-flex items-center gap-3 group"
+                >
+                  Leer historia del artesano
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
-            <div className="space-y-10">
-              <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight">
-                Un taller que preserva oficio y territorio
-              </h2>
-              <p className="text-xl text-[#2c2c2c]/60 leading-relaxed font-light italic">
-                "{shop.story}"
-              </p>
-              <Link
-                to={
-                  shop.contactInfo?.instagram
-                    ? `https://instagram.com/${shop.contactInfo.instagram}`
-                    : "#"
-                }
-                className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#ec6d13] pb-3 hover:text-[#ec6d13] transition-all inline-flex items-center gap-3 group"
-              >
-                Leer historia del artesano
-                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Technique + Origin Block */}
       {(primaryTechnique || primaryCraft) && (

@@ -46,19 +46,38 @@ interface ContentPicksProps {
 
 export function ContentPicks({ pageKey, slot, className }: ContentPicksProps) {
   const { data: sections } = useCmsSections(pageKey);
+  // Dedupe por slot — si admin y seed crearon el mismo slot, gana la última posición.
+  const seenSlots = new Set<string>();
   const picks = (sections ?? [])
     .filter((s) => s.type === 'content_pick' && s.published !== false)
-    .map((s) => s.payload as PickPayload)
-    .filter((p) => (slot ? p.slot === slot : true));
+    .filter((s) => (slot ? (s.payload as PickPayload)?.slot === slot : true))
+    .filter((s) => {
+      const slotName = (s.payload as PickPayload)?.slot;
+      if (!slotName || seenSlots.has(slotName)) return false;
+      seenSlots.add(slotName);
+      return true;
+    });
 
   if (picks.length === 0) return null;
 
   return (
     <div className={className ?? 'space-y-8'}>
-      {picks.map((p) => (
-        <ContentPickItem key={p.slot} pick={p} />
+      {picks.map((s) => (
+        <ContentPickItem key={s.id} pick={s.payload as PickPayload} />
       ))}
     </div>
+  );
+}
+
+/**
+ * Render un solo pick. Exportado para uso desde SectionDispatcher cuando un
+ * `content_pick` aparece en la lista ordenada de secciones (PageRenderer).
+ */
+export function ContentPickInline({ pick }: { pick: PickPayload }) {
+  return (
+    <section className="max-w-[1400px] mx-auto px-6 py-12">
+      <ContentPickItem pick={pick} />
+    </section>
   );
 }
 

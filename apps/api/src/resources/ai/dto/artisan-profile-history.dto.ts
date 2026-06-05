@@ -30,91 +30,94 @@ export class ArtisanProfileDataDto {
   @IsOptional()
   artisanVideo?: string;
 
-  @ApiProperty({ description: 'De quién aprendió el oficio' })
+  @ApiPropertyOptional({ description: 'De quién aprendió el oficio' })
   @IsString()
-  @IsNotEmpty()
-  learnedFrom: string;
+  @IsOptional()
+  learnedFrom?: string;
 
-  @ApiProperty({ description: 'Edad en que comenzó' })
+  @ApiPropertyOptional({ description: 'Edad en que comenzó' })
   @IsNumber()
   @Min(0)
-  startAge: number;
+  @IsOptional()
+  startAge?: number;
 
-  @ApiProperty({ description: 'Significado cultural del oficio' })
+  @ApiPropertyOptional({ description: 'Significado cultural del oficio' })
   @IsString()
-  @IsNotEmpty()
-  culturalMeaning: string;
+  @IsOptional()
+  culturalMeaning?: string;
 
-  @ApiProperty({ description: 'Motivación del artesano' })
+  @ApiPropertyOptional({ description: 'Motivación del artesano' })
   @IsString()
-  @IsNotEmpty()
-  motivation: string;
+  @IsOptional()
+  motivation?: string;
 
-  @ApiProperty({ description: 'Historia cultural de la región/etnia' })
+  @ApiPropertyOptional({ description: 'Historia cultural de la región/etnia' })
   @IsString()
-  @IsNotEmpty()
-  culturalHistory: string;
+  @IsOptional()
+  culturalHistory?: string;
 
-  @ApiProperty({ description: 'Relación étnica' })
+  @ApiPropertyOptional({ description: 'Relación étnica' })
   @IsString()
-  @IsNotEmpty()
-  ethnicRelation: string;
+  @IsOptional()
+  ethnicRelation?: string;
 
-  @ApiProperty({ description: 'Conocimiento ancestral' })
+  @ApiPropertyOptional({ description: 'Conocimiento ancestral' })
   @IsString()
-  @IsNotEmpty()
-  ancestralKnowledge: string;
+  @IsOptional()
+  ancestralKnowledge?: string;
 
-  @ApiProperty({ description: 'Importancia territorial' })
+  @ApiPropertyOptional({ description: 'Importancia territorial' })
   @IsString()
-  @IsNotEmpty()
-  territorialImportance: string;
+  @IsOptional()
+  territorialImportance?: string;
 
-  @ApiProperty({ description: 'Dirección del taller' })
+  @ApiPropertyOptional({ description: 'Dirección del taller' })
   @IsString()
-  @IsNotEmpty()
-  workshopAddress: string;
+  @IsOptional()
+  workshopAddress?: string;
 
-  @ApiProperty({ description: 'Fotos del taller', type: [String] })
+  @ApiPropertyOptional({ description: 'Fotos del taller', type: [String] })
   @IsArray()
   @IsString({ each: true })
-  workshopPhotos: string[];
+  @IsOptional()
+  workshopPhotos?: string[];
 
   @ApiPropertyOptional({ description: 'Video del taller' })
   @IsString()
   @IsOptional()
   workshopVideo?: string;
 
-  @ApiProperty({ description: 'Descripción del taller' })
+  @ApiPropertyOptional({ description: 'Descripción del taller' })
   @IsString()
-  @IsNotEmpty()
-  workshopDescription: string;
+  @IsOptional()
+  workshopDescription?: string;
 
-  @ApiProperty({ description: 'Técnicas utilizadas', type: [String] })
+  @ApiPropertyOptional({ description: 'Técnicas utilizadas (nombres legacy)', type: [String] })
   @IsArray()
   @IsString({ each: true })
-  techniques: string[];
+  @IsOptional()
+  techniques?: string[];
 
-  @ApiProperty({ description: 'Materiales utilizados', type: [String] })
+  @ApiPropertyOptional({ description: 'Materiales utilizados (nombres legacy)', type: [String] })
   @IsArray()
   @IsString({ each: true })
-  materials: string[];
+  @IsOptional()
+  materials?: string[];
 
-  @ApiProperty({ description: 'Tiempo promedio de elaboración' })
+  @ApiPropertyOptional({ description: 'Tiempo promedio de elaboración' })
   @IsString()
-  @IsNotEmpty()
-  averageTime: string;
+  @IsOptional()
+  averageTime?: string;
 
-  @ApiProperty({ description: 'Lo que hace única su artesanía' })
+  @ApiPropertyOptional({ description: 'Lo que hace única su artesanía' })
   @IsString()
-  @IsNotEmpty()
-  uniqueness: string;
+  @IsOptional()
+  uniqueness?: string;
 
-  @ApiProperty({ description: 'Mensaje del artesano sobre su oficio' })
+  @ApiPropertyOptional({ description: 'Mensaje del artesano sobre su oficio' })
   @IsString()
-  @IsNotEmpty()
-  craftMessage: string;
-
+  @IsOptional()
+  craftMessage?: string;
 }
 
 export class GenerateArtisanProfileHistoryDto {
@@ -127,15 +130,15 @@ export class GenerateArtisanProfileHistoryDto {
   @IsNotEmpty()
   shopName: string;
 
-  @ApiProperty({ description: 'Tipo de artesanía', example: 'Cerámica' })
+  @ApiPropertyOptional({ description: 'Tipo de artesanía', example: 'Cerámica' })
   @IsString()
-  @IsNotEmpty()
-  craftType: string;
+  @IsOptional()
+  craftType?: string;
 
-  @ApiProperty({ description: 'Región del artesano', example: 'Caribe' })
+  @ApiPropertyOptional({ description: 'Región del artesano', example: 'Caribe' })
   @IsString()
-  @IsNotEmpty()
-  region: string;
+  @IsOptional()
+  region?: string;
 
   @ApiPropertyOptional({ description: 'ID del artesano para guardar la historia generada' })
   @IsUUID()

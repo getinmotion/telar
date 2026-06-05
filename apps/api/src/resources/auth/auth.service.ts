@@ -111,7 +111,7 @@ export class AuthService {
           firstName: registerDto.firstName.trim(),
           lastName: registerDto.lastName.trim(),
           fullName: `${registerDto.firstName.trim()} ${registerDto.lastName.trim()}`,
-          // idType: idTypeRecord.idTypeValue, // Guardar el código (CC, DNI, etc.)
+          idType: idTypeRecord.idTypeValue.toLowerCase(), // Guardar el código en minúsculas (cc, nit, ce, etc.)
           idNumber: registerDto.idNumber.trim(),
           whatsappE164: registerDto.whatsapp,
           department: registerDto.department.trim(),
@@ -128,6 +128,7 @@ export class AuthService {
         });
       } catch (profileError) {
         // Si falla la creación del perfil, eliminar el usuario
+        console.error('❌ ERROR CREANDO PERFIL EN REGISTER:', profileError);
         await this.usersService.hardDelete(createdUserId);
         throw new InternalServerErrorException(
           'Error al crear el perfil de usuario',

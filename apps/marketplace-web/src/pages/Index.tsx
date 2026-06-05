@@ -10,79 +10,15 @@ import { Footer } from "@/components/Footer";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
-  getFeaturedProductsNew,
-  type ProductFeatured,
+  getProductsNew,
+  getPrimaryImageUrl,
+  getProductPrice,
+  getCraftName,
+  getTechniqueName,
+  type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
-import { HeroCarousel } from "@/components/home/HeroCarousel";
-import { NavbarV2 } from "@/components/NavbarV2";
-import { HeroSectionV2 } from "@/components/HeroSectionV2";
-import { useCmsSections } from "@/hooks/useCmsSections";
-import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
-import type { CmsSection } from "@/services/cms-sections.actions";
-
-/** Fallback editorial — keep in sync with apps/api/.../seed/home.seed.ts */
-const fb = (id: string, position: number, type: string, payload: any): CmsSection => ({
-  id, pageKey: "home", position, type, published: true, payload,
-  createdAt: "", updatedAt: "",
-});
-const FALLBACK_HOME_SECTIONS: CmsSection[] = [
-  fb("fb-h-hero", 5, "home_hero_carousel", {
-    description: "Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean.",
-    tagline: "Hecho a mano por talleres artesanales de Colombia.",
-    primaryCtaLabel: "Explorar Piezas", primaryCtaHref: "/productos",
-    secondaryCtaLabel: "Conocer Talleres", secondaryCtaHref: "/tiendas",
-    autoplaySeconds: 6,
-    slides: [
-      {
-        title: "HISTORIAS HECHAS", subtitle: "A MANO",
-        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png",
-        imageAlt: "Artesanía colombiana",
-        origin: "Nariño, Colombia",
-        quote: "Cada puntada es un susurro de nuestros ancestros.",
-      },
-      {
-        title: "ARTESANÍA", subtitle: "AUTÉNTICA",
-        imageUrl: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
-        imageAlt: "Tejedoras del Cauca",
-        origin: "Valle del Cauca, Colombia",
-        quote: "Cada pieza cuenta una historia única.",
-      },
-    ],
-  }),
-  fb("fb-h-value-props", 0, "home_value_props", {
-    cards: [
-      { title: "Hecho a mano", body: "Cada pieza es creada por talleres artesanales reales que mantienen vivas técnicas tradicionales." },
-      { title: "Origen cultural", body: "Los objetos conservan la historia de la región y las comunidades donde fueron creados." },
-      { title: "Autenticidad registrada", body: "Cada pieza cuenta con una huella digital que documenta su origen, su taller y su proceso artesanal." },
-    ],
-  }),
-  fb("fb-h-cats", 1, "home_section_header", {
-    slot: "categories",
-    kicker: "Explorar por categorías", title: "", subtitle: "", ctaLabel: "", ctaHref: "",
-  }),
-  fb("fb-h-feat", 2, "home_section_header", {
-    slot: "featured_products",
-    title: "Creaciones Destacadas",
-    subtitle: "Piezas con alma seleccionadas por su maestría técnica.",
-    ctaLabel: "Ver colección completa", ctaHref: "/productos",
-  }),
-  fb("fb-h-mp", 3, "home_block", {
-    slot: "marketplace_diferente",
-    kicker: "Un marketplace diferente",
-    body: "Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.",
-    ctaLabel: "Descubrir cómo funciona Telar", ctaHref: "/newsletter",
-    variant: "dark",
-  }),
-  fb("fb-h-cj", 4, "home_block", {
-    slot: "comercio_justo",
-    title: "Comercio justo para quienes crean",
-    body: "Trabajamos directamente con talleres artesanales para asegurar que quienes crean las piezas reciban una compensación justa por su trabajo. Construimos relaciones directas entre quienes crean las piezas y quienes las valoran.",
-    ctaLabel: "Conocer más", ctaHref: "/newsletter",
-    variant: "bordered",
-  }),
-];
 
 // ── Seeded random for consistent daily shuffle ──
 const seededRandom = (seed: number) => {
@@ -102,7 +38,7 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
   const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
-  const [products, setProducts] = useState<ProductFeatured[]>([]);
+  const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
   const dailySeed = useMemo(() => {
@@ -110,27 +46,12 @@ const Index = () => {
     return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
   }, []);
 
-  // Fetch featured products
+  // Fetch products
   useEffect(() => {
-    getFeaturedProductsNew()
-      .then((data) => {
-        // Validamos si la data ya es un arreglo
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } 
-        // Si viene envuelta en una propiedad "data" (muy común en APIs)
-        else if (data && Array.isArray((data as any).data)) {
-          setProducts((data as any).data);
-        }
-        // Si viene envuelta en "products"
-        else if (data && Array.isArray((data as any).products)) {
-          setProducts((data as any).products);
-        }
-        // Fallback preventivo
-        else {
-          console.warn("La API no devolvió un arreglo esperado:", data);
-          setProducts([]);
-        }
+    getProductsNew({ page: 1, limit: 50 })
+      .then((res) => {
+        const data = Array.isArray(res) ? res : res.data ?? [];
+        setProducts(data as ProductNewCore[]);
       })
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false));
@@ -141,27 +62,24 @@ const Index = () => {
     fetchFeaturedShops(8);
   }, []);
 
-// 3 featured products (purchasable, shuffled, from different stores)
+  // 3 featured products (purchasable, shuffled, from different stores)
   const featuredProducts = useMemo(() => {
-    // 1. Aseguramos que sea un arreglo antes de filtrar
-    const safeProducts = Array.isArray(products) ? products : [];
-
-    // 2. Usamos safeProducts en lugar de products directamente
-    const available = safeProducts.filter(
-      (p) => !p.status || p.status === "published" || p.status === "approved",
+    // Filter out archived/draft — keep published or unset status
+    const available = products.filter(
+      (p) => !p.status || p.status === "published",
     );
-    
-    if (available.length === 0 && safeProducts.length > 0) {
-      const shuffled = shuffleArray(safeProducts, dailySeed);
+    if (available.length === 0 && products.length > 0) {
+      // Fallback: if all products have a non-published status, use all
+      // (the API likely only returns published products anyway)
+      const shuffled = shuffleArray(products, dailySeed);
       return shuffled.slice(0, 3);
     }
-    
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
-    const picked: ProductFeatured[] = [];
+    const picked: ProductNewCore[] = [];
     for (const p of shuffled) {
-      const store = p.storeName ?? "";
+      const store = p.artisanShop?.shopName ?? "";
       if (!seen.has(store)) {
         picked.push(p);
         seen.add(store);
@@ -178,14 +96,12 @@ const Index = () => {
     return picked;
   }, [products, dailySeed]);
 
-// Featured shop (first one or Karen Dayana if available)
+  // Featured shop (first one or Karen Dayana if available)
   const featuredShop = useMemo(() => {
-    const safeShops = Array.isArray(featuredShops) ? featuredShops : [];
-
-    const karen = safeShops.find((s) =>
+    const karen = featuredShops.find((s) =>
       s.shopName?.toLowerCase().includes("karen dayana"),
     );
-    return karen || safeShops[0] || null;
+    return karen || featuredShops[0] || null;
   }, [featuredShops]);
 
   // Categories for display (up to 8 parent categories)
@@ -194,26 +110,6 @@ const Index = () => {
       .filter((c) => c.isActive && c.slug !== "cuidado-personal")
       .slice(0, 8);
   }, [categoryHierarchy]);
-
-  const HERO_IMAGE =
-    "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png";
-
-  // CMS: editorial slots para homepage (con FALLBACK quemado)
-  const { data: cmsHomeSections } = useCmsSections("home");
-  const homeSections =
-    cmsHomeSections && cmsHomeSections.length > 0
-      ? cmsHomeSections
-      : FALLBACK_HOME_SECTIONS;
-  const findSlot = (type: string, slot?: string): CmsSection | undefined =>
-    homeSections.find(
-      (s) => s.type === type && (!slot || s.payload?.slot === slot),
-    );
-  const heroCarouselSection = findSlot("home_hero_carousel");
-  const valuePropsSection = findSlot("home_value_props");
-  const categoriesHeader = findSlot("home_section_header", "categories");
-  const featuredHeader = findSlot("home_section_header", "featured_products");
-  const marketplaceDiferenteBlock = findSlot("home_block", "marketplace_diferente");
-  const comercioJustoBlock = findSlot("home_block", "comercio_justo");
 
   return (
     <>
@@ -226,22 +122,103 @@ const Index = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
-        {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
+        {/* ═══════════════ HERO ═══════════════ */}
+        <section className="max-w-[1400px] mx-auto px-6 py-16 grid lg:grid-cols-12 gap-12 items-center">
+          {/* Left: Text */}
+          <div className="lg:col-span-5 space-y-10 lg:border-r border-[#2c2c2c]/5 lg:pr-12">
+            <div className="space-y-6">
+              <h1 className="text-6xl md:text-8xl leading-[0.9] text-[#2c2c2c] font-serif italic">
+                Historias hechas a mano
+              </h1>
+              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
+                Objetos auténticos creados por talleres artesanales de Colombia.
+                Cada pieza conserva la historia, el origen y el conocimiento de
+                quienes la crean.
+              </p>
+              <p className="text-xs uppercase tracking-widest text-[#2c2c2c]/50 mt-2">
+                Hecho a mano por talleres artesanales de Colombia.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                to="/productos"
+                className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors text-center"
+              >
+                Explorar piezas
+              </Link>
+              <Link
+                to="/tiendas"
+                className="border border-[#2c2c2c]/20 px-10 py-4 uppercase text-xs tracking-widest hover:border-[#2c2c2c] transition-colors text-center"
+              >
+                Conocer talleres
+              </Link>
+            </div>
+          </div>
 
-          <HeroSectionV2 />
-      
-        {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
-        {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />}
+          {/* Right: Hero image + quote */}
+          <div className="lg:col-span-7">
+            <div className="grid grid-cols-6 gap-4">
+              {/* Main hero image */}
+              <div className="col-span-6 aspect-[16/9] bg-[#e5e1d8] overflow-hidden relative">
+                {featuredProducts[0] && getPrimaryImageUrl(featuredProducts[0]) ? (
+                  <img
+                    src={getPrimaryImageUrl(featuredProducts[0])!}
+                    alt={featuredProducts[0].name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="placeholder-box w-full h-full" />
+                )}
+              </div>
+              {/* Quote area */}
+              <div className="col-span-3 border-t border-[#2c2c2c]/10 pt-4">
+                <p className="text-[10px] uppercase tracking-widest text-[#ec6d13] font-bold mb-2">
+                  Origen: San Jacinto
+                </p>
+                <p className="font-serif italic text-lg leading-snug">
+                  "Cada puntada es un susurro de nuestros ancestros."
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════ VALUE PROPS ═══════════════ */}
+        <section className="py-12 bg-[#fdfaf6]/50 border-b border-[#2c2c2c]/5">
+          <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-3 gap-12">
+            <div className="space-y-3">
+              <h4 className="font-serif italic text-xl">Hecho a mano</h4>
+              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
+                Cada pieza es creada por talleres artesanales reales que
+                mantienen vivas técnicas tradicionales.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-serif italic text-xl">Origen cultural</h4>
+              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
+                Los objetos conservan la historia de la región y las comunidades
+                donde fueron creados.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-serif italic text-xl">
+                Autenticidad registrada
+              </h4>
+              <p className="text-xs text-[#2c2c2c]/60 leading-relaxed uppercase tracking-wider">
+                Cada pieza cuenta con una huella digital que documenta su origen,
+                su taller y su proceso artesanal.
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* ═══════════════ CATEGORIES ═══════════════ */}
         <section className="py-12 border-y border-[#2c2c2c]/10">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-wrap justify-between gap-y-12">
-              {categoriesHeader?.payload?.kicker && (
-                <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
-                  {categoriesHeader.payload.kicker}
-                </span>
-              )}
+              <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
+                Explorar por categorías
+              </span>
               {displayCategories.map((cat) => (
                 <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
                   <Link to={`/categoria/${cat.slug}`}>
@@ -277,9 +254,24 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ FEATURED PRODUCTS (header CMS) ═══════════════ */}
+        {/* ═══════════════ FEATURED PRODUCTS ═══════════════ */}
         <section className="py-24 max-w-[1400px] mx-auto px-6">
-          {featuredHeader && <CmsSectionRenderer section={featuredHeader} />}
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div className="max-w-xl">
+              <h2 className="text-5xl font-serif mb-4">
+                Creaciones Destacadas
+              </h2>
+              <p className="text-[#2c2c2c]/60 italic font-serif">
+                Piezas con alma seleccionadas por su maestría técnica.
+              </p>
+            </div>
+            <Link
+              to="/productos"
+              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+            >
+              Ver colección completa
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {productsLoading || featuredProducts.length === 0
               ? [...Array(3)].map((_, i) => (
@@ -291,11 +283,11 @@ const Index = () => {
                   </div>
                 ))
               : featuredProducts.map((product, idx) => {
-                  const imageUrl = product.imageUrl;
-                  const price = product.price;
-                  const shopName = product.storeName;
-                  const department = product.department;
-                  const technique = product.primaryTechnique;
+                  const imageUrl = getPrimaryImageUrl(product);
+                  const price = getProductPrice(product);
+                  const shopName = product.artisanShop?.shopName;
+                  const department = product.artisanShop?.department;
+                  const technique = getTechniqueName(product);
 
                   return (
                     <article
@@ -303,12 +295,12 @@ const Index = () => {
                       className={`group ${idx === 1 ? "mt-12 md:mt-24" : ""}`}
                     >
                       <Link to={`/product/${product.id}`}>
-                        <div className="aspect-[3/4] bg-[#e5e1d8] mb-6 grayscale hover:grayscale-0 transition-all duration-700 overflow-hidden relative">
+                        <div className="aspect-[3/4] bg-[#e5e1d8] mb-6 overflow-hidden relative">
                           {imageUrl ? (
                             <img
                               src={imageUrl}
                               alt={product.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                             />
                           ) : (
                             <div className="w-full h-full bg-[#e5e1d8]" />
@@ -340,23 +332,63 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ UN MARKETPLACE DIFERENTE (CMS) ═══════════════ */}
-        {marketplaceDiferenteBlock && (
-          <CmsSectionRenderer section={marketplaceDiferenteBlock} />
-        )}
+        {/* ═══════════════ UN MARKETPLACE DIFERENTE ═══════════════ */}
+        <section className="bg-[#2c2c2c] text-[#fdfaf6] py-32">
+          <div className="max-w-[1400px] mx-auto px-6">
+            <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
+              Un marketplace diferente
+            </h2>
+            <div className="grid md:grid-cols-3 gap-16">
+              <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
+                <p className="text-2xl font-serif italic opacity-90">
+                  Telar conecta a compradores con talleres artesanales reales.
+                  Cada pieza tiene origen, autor y proceso documentado.
+                </p>
+                <Link
+                  to="/newsletter"
+                  className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
+                >
+                  Descubrir cómo funciona Telar
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {/* ═══════════════ COMERCIO JUSTO (CMS) ═══════════════ */}
-        {comercioJustoBlock && (
-          <CmsSectionRenderer section={comercioJustoBlock} />
-        )}
+        {/* ═══════════════ COMERCIO JUSTO ═══════════════ */}
+        {/* <section className="py-24 px-6 max-w-[1400px] mx-auto">
+          <div className="border border-[#2c2c2c]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
+            <div className="max-w-xl space-y-8 relative z-10">
+              <h2 className="text-4xl md:text-5xl font-serif">
+                Comercio justo para quienes crean
+              </h2>
+              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed italic">
+                Trabajamos directamente con talleres artesanales para asegurar
+                que quienes crean las piezas reciban una compensación justa por
+                su trabajo. Construimos relaciones directas entre quienes crean
+                las piezas y quienes las valoran.
+              </p>
+              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
+                <Link
+                  to="/newsletter"
+                  className="border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                >
+                  Conocer más
+                </Link>
+              </div>
+            </div>
+            <div className="flex-1 w-full md:w-auto h-64 bg-[#e5e1d8] opacity-20" />
+          </div>
+        </section> */}
 
         {/* ═══════════════ HUELLA DIGITAL ═══════════════ */}
         <section className="py-24 bg-white">
           <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
             <div className="aspect-square bg-[#e5e1d8]">
-              {featuredProducts[1] && featuredProducts[1].imageUrl ? (
+              {featuredProducts[1] &&
+              getPrimaryImageUrl(featuredProducts[1]) ? (
                 <img
-                  src={featuredProducts[1].imageUrl}
+                  src={getPrimaryImageUrl(featuredProducts[1])!}
                   alt="Huella digital"
                   className="w-full h-full object-cover"
                 />
@@ -424,7 +456,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ FEATURED SHOP ═══════════════ */}
-        <section className="py-32 bg-[#fdfaf6]">
+        <section className="py-14 bg-[#fdfaf6]">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
               Conoce a los talleres artesanales
@@ -497,7 +529,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ REGALOS CON HISTORIA ═══════════════ */}
-        <section className="py-24 bg-[#f9f7f2]">
+        <section className="py-10 bg-[#f9f7f2]">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-col md:flex-row gap-16 items-center">
               <div className="flex-1 space-y-8">
@@ -516,18 +548,20 @@ const Index = () => {
               </div>
               <div className="flex-1 grid grid-cols-2 gap-4 w-full">
                 <div className="aspect-square bg-[#e5e1d8] overflow-hidden">
-                  {featuredProducts[1] && featuredProducts[1].imageUrl ? (
+                  {featuredProducts[1] &&
+                  getPrimaryImageUrl(featuredProducts[1]) ? (
                     <img
-                      src={featuredProducts[1].imageUrl}
+                      src={getPrimaryImageUrl(featuredProducts[1])!}
                       alt="Regalo artesanal"
                       className="w-full h-full object-cover"
                     />
                   ) : null}
                 </div>
                 <div className="aspect-square bg-[#e5e1d8] mt-12 overflow-hidden">
-                  {featuredProducts[2] && featuredProducts[2].imageUrl ? (
+                  {featuredProducts[2] &&
+                  getPrimaryImageUrl(featuredProducts[2]) ? (
                     <img
-                      src={featuredProducts[2].imageUrl}
+                      src={getPrimaryImageUrl(featuredProducts[2])!}
                       alt="Regalo artesanal"
                       className="w-full h-full object-cover"
                     />
@@ -539,7 +573,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ COLECCIONES ═══════════════ */}
-        <section className="py-24">
+        <section className="py-10">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-16 opacity-40">
               Colecciones
@@ -604,7 +638,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ ALIADOS ═══════════════ */}
-        <section className="py-24 border-t border-[#2c2c2c]/10">
+       <section className="py-24 border-t border-[#2c2c2c]/10">
           <div className="max-w-2xl mx-auto px-6 text-center space-y-8">
             <h2 className="text-[10px] font-bold text-[#2c2c2c]/40 uppercase tracking-[0.4em]">
               Aliados

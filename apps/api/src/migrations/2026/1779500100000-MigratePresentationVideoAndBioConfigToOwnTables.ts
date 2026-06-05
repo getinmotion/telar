@@ -17,7 +17,6 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
       );
     `);
 
-    // Migrar datos desde columnas individuales
     await queryRunner.query(`
       INSERT INTO artesanos.artisan_presentation_video
         (artisan_identity_id, url, provider, thumbnail_url, duration_seconds)
@@ -34,7 +33,7 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
       ON CONFLICT (artisan_identity_id) DO NOTHING;
     `);
 
-    // Eliminar columnas individuales después de migrar
+    // Drop individual presentation_video columns after migration
     await queryRunner.query(`
       ALTER TABLE shop.artisan_shops
         DROP COLUMN IF EXISTS presentation_video_url,
@@ -56,7 +55,6 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
       );
     `);
 
-    // Migrar datos desde columnas individuales
     await queryRunner.query(`
       INSERT INTO artesanos.artisan_bio_config
         (artisan_identity_id, show_shop_link, show_profile_link, featured_product_id)
@@ -71,7 +69,7 @@ export class MigratePresentationVideoAndBioConfigToOwnTables1779500100000 implem
       ON CONFLICT (artisan_identity_id) DO NOTHING;
     `);
 
-    // Eliminar columnas individuales después de migrar
+    // Drop individual bio_config columns after migration
     await queryRunner.query(`
       ALTER TABLE shop.artisan_shops
         DROP COLUMN IF EXISTS bio_config_show_shop_link,

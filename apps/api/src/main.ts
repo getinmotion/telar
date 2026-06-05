@@ -41,11 +41,13 @@ async function bootstrap() {
         if (/^https?:\/\/([a-z0-9-]+\.)*telar\.co$/i.test(origin)) {
           return callback(null, true);
         }
-        // En dev permitimos cualquier puerto en localhost / 127.0.0.1
-        // (vite preview elige puerto dinámico cuando 8080 está ocupado).
+        // En dev permitimos cualquier puerto en localhost / 127.0.0.1 / IPs
+        // privadas de red local (192.168.x.x, 10.x.x.x, 172.16-31.x.x).
         if (
           process.env.NODE_ENV !== 'production' &&
-          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+          /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/i.test(
+            origin,
+          )
         ) {
           return callback(null, true);
         }
