@@ -556,11 +556,6 @@ export const NotificationsPage: React.FC = () => {
       <main className="flex-1 overflow-y-auto px-4 md:px-12 pb-20" style={{ overscrollBehavior: 'contain' }}>
         <div className="max-w-[1300px] mx-auto pt-6">
 
-        {/* Mobile: Oráculo at top */}
-        <div className="lg:hidden mb-6">
-          <AICopilotCard />
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
           {/* ── Left col: notification sections ─────────────────────────── */}

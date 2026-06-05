@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { useNavigate } from "react-router-dom";
 import {
   getArtisansKnowledgeProfile,
   submitStep1Identity,
@@ -8,16 +8,20 @@ import {
   submitStep3ClientMarket,
   submitStep4OperationGrowth,
   checkProfileCompletion,
-} from '@/services/artisansKnowledge.actions';
-import { createArtisanShop } from '@/services/artisanShops.actions';
+} from "@/services/artisansKnowledge.actions";
+import { createArtisanShop } from "@/services/artisanShops.actions";
+import {
+  getActiveCategories,
+  type Category,
+} from "@/services/categories.actions";
 import type {
   ArtisansIdentityProfile,
   CreateArtisansIdentityOneDto,
   CreateArtisansCommercialTwoDto,
   CreateArtisansClientMarketThreeDto,
   CreateArtisansOperationGrowthFourDto,
-} from '@/types/artisansKnowledge.types';
-import { toast } from 'sonner';
+} from "@/types/artisansKnowledge.types";
+import { toast } from "sonner";
 
 /**
  * Formulario de onboarding step by step para nuevos artesanos
@@ -43,52 +47,80 @@ export const AgentFormPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState<ArtisansIdentityProfile | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Opciones para "¿Qué te hace especial?"
+  const specialDefinitionOptions = [
+    "Técnica o tradición (cómo lo hago)",
+    "Diseño o creatividad propia (qué hago)",
+    "Materiales únicos o sostenibles",
+    "Historia, cultura o territorio",
+    "Precio accesible",
+    "No lo tengo claro",
+  ];
+
+  // Opciones para "¿De dónde nace tu oficio artesanal?"
+  const bornDefinitionOptions = [
+    "Lo heredé de mi familia o comunidad",
+    "Lo aprendí de maestros o procesos tradicionales",
+    "Me formé de manera académica o técnica",
+    "Lo desarrollé de forma autodidacta con los años",
+    "Mezclo tradición, exploración y práctica propia",
+  ];
 
   // Step 1: Identidad
-  const [step1Data, setStep1Data] = useState<Omit<CreateArtisansIdentityOneDto, 'createdBy'>>({
-    nameShop: '',
-    artisanHistory: '',
+  const [step1Data, setStep1Data] = useState<
+    Omit<CreateArtisansIdentityOneDto, "createdBy">
+  >({
+    nameShop: "",
+    artisanHistory: "",
     ageExperience: 0,
-    shopHistory: '',
-    shopDescription: '',
-    shopDefinition: '',
-    shopCategoriesId: '',
-    shopSpecialDefinitionOne: '',
+    shopHistory: "",
+    shopDescription: "",
+    shopDefinition: "",
+    shopCategoriesId: "",
+    shopSpecialDefinitionOne: "",
     shopSpecialDefinitionTwo: null,
     shopSpecialDefinitionThree: null,
-    shopBornSpecialDefinitionOne: '',
+    shopBornSpecialDefinitionOne: "",
     shopBornSpecialDefinitionTwo: null,
     shopBornSpecialDefinitionThree: null,
   });
 
   // Step 2: Comercial
-  const [step2Data, setStep2Data] = useState<Omit<CreateArtisansCommercialTwoDto, 'createdBy'>>({
-    shopRangePayment: '',
-    shopKnowledgeCost: '',
-    shopKnowledgeDefineCost: '',
-    shopKnowledgeIsProfitable: '',
+  const [step2Data, setStep2Data] = useState<
+    Omit<CreateArtisansCommercialTwoDto, "createdBy">
+  >({
+    shopRangePayment: "",
+    shopKnowledgeCost: "",
+    shopKnowledgeDefineCost: "",
+    shopKnowledgeIsProfitable: "",
   });
 
   // Step 3: Cliente/Mercado
-  const [step3Data, setStep3Data] = useState<Omit<CreateArtisansClientMarketThreeDto, 'createdBy'>>({
-    shopKnowledgeMainBuyerOne: '',
+  const [step3Data, setStep3Data] = useState<
+    Omit<CreateArtisansClientMarketThreeDto, "createdBy">
+  >({
+    shopKnowledgeMainBuyerOne: "",
     shopKnowledgeMainBuyerTwo: null,
     shopKnowledgeMainBuyerThree: null,
-    shopKnowledgeDigitalPresence: '',
-    shopKnowledgeWhereSaleOne: '',
+    shopKnowledgeDigitalPresence: "",
+    shopKnowledgeWhereSaleOne: "",
     shopKnowledgeWhereSaleTwo: null,
     shopKnowledgeWhereSaleThree: null,
-    shopKnowledgeSalesActivity: '',
+    shopKnowledgeSalesActivity: "",
   });
 
   // Step 4: Operaciones/Crecimiento
-  const [step4Data, setStep4Data] = useState<Omit<CreateArtisansOperationGrowthFourDto, 'createdBy'>>({
-    shopKnowledgeProductsMakeMonth: '',
-    shopKnowledgeLimitTodayOne: '',
+  const [step4Data, setStep4Data] = useState<
+    Omit<CreateArtisansOperationGrowthFourDto, "createdBy">
+  >({
+    shopKnowledgeProductsMakeMonth: "",
+    shopKnowledgeLimitTodayOne: "",
     shopKnowledgeLimitTodayTwo: null,
     shopKnowledgeLimitTodayThree: null,
-    shopManyWorkers: '',
-    shopFirstSolvingTelar: '',
+    shopManyWorkers: "",
+    shopFirstSolvingTelar: "",
   });
 
   // ─── Load Profile ─────────────────────────────────────────────────────────
@@ -106,52 +138,92 @@ export const AgentFormPage: React.FC = () => {
           // Hydrate form data from existing profile
           if (existingProfile.identityOne) {
             setStep1Data({
-              nameShop: existingProfile.identityOne.nameShop || '',
-              artisanHistory: existingProfile.identityOne.artisanHistory || '',
+              nameShop: existingProfile.identityOne.nameShop || "",
+              artisanHistory: existingProfile.identityOne.artisanHistory || "",
               ageExperience: existingProfile.identityOne.ageExperience || 0,
-              shopHistory: existingProfile.identityOne.shopHistory || '',
-              shopDescription: existingProfile.identityOne.shopDescription || '',
-              shopDefinition: existingProfile.identityOne.shopDefinition || '',
-              shopCategoriesId: existingProfile.identityOne.shopCategoriesId || '',
-              shopSpecialDefinitionOne: existingProfile.identityOne.shopSpecialDefinitionOne || '',
-              shopSpecialDefinitionTwo: existingProfile.identityOne.shopSpecialDefinitionTwo || null,
-              shopSpecialDefinitionThree: existingProfile.identityOne.shopSpecialDefinitionThree || null,
-              shopBornSpecialDefinitionOne: existingProfile.identityOne.shopBornSpecialDefinitionOne || '',
-              shopBornSpecialDefinitionTwo: existingProfile.identityOne.shopBornSpecialDefinitionTwo || null,
-              shopBornSpecialDefinitionThree: existingProfile.identityOne.shopBornSpecialDefinitionThree || null,
+              shopHistory: existingProfile.identityOne.shopHistory || "",
+              shopDescription:
+                existingProfile.identityOne.shopDescription || "",
+              shopDefinition: existingProfile.identityOne.shopDefinition || "",
+              shopCategoriesId:
+                existingProfile.identityOne.shopCategoriesId || "",
+              shopSpecialDefinitionOne:
+                existingProfile.identityOne.shopSpecialDefinitionOne || "",
+              shopSpecialDefinitionTwo:
+                existingProfile.identityOne.shopSpecialDefinitionTwo || null,
+              shopSpecialDefinitionThree:
+                existingProfile.identityOne.shopSpecialDefinitionThree || null,
+              shopBornSpecialDefinitionOne:
+                existingProfile.identityOne.shopBornSpecialDefinitionOne || "",
+              shopBornSpecialDefinitionTwo:
+                existingProfile.identityOne.shopBornSpecialDefinitionTwo ||
+                null,
+              shopBornSpecialDefinitionThree:
+                existingProfile.identityOne.shopBornSpecialDefinitionThree ||
+                null,
             });
           }
 
           if (existingProfile.commercialTwo) {
             setStep2Data({
-              shopRangePayment: existingProfile.commercialTwo.shopRangePayment || '',
-              shopKnowledgeCost: existingProfile.commercialTwo.shopKnowledgeCost || '',
-              shopKnowledgeDefineCost: existingProfile.commercialTwo.shopKnowledgeDefineCost || '',
-              shopKnowledgeIsProfitable: existingProfile.commercialTwo.shopKnowledgeIsProfitable || '',
+              shopRangePayment:
+                existingProfile.commercialTwo.shopRangePayment || "",
+              shopKnowledgeCost:
+                existingProfile.commercialTwo.shopKnowledgeCost || "",
+              shopKnowledgeDefineCost:
+                existingProfile.commercialTwo.shopKnowledgeDefineCost || "",
+              shopKnowledgeIsProfitable:
+                existingProfile.commercialTwo.shopKnowledgeIsProfitable || "",
             });
           }
 
           if (existingProfile.clientMarketThree) {
             setStep3Data({
-              shopKnowledgeMainBuyerOne: existingProfile.clientMarketThree.shopKnowledgeMainBuyerOne || '',
-              shopKnowledgeMainBuyerTwo: existingProfile.clientMarketThree.shopKnowledgeMainBuyerTwo || null,
-              shopKnowledgeMainBuyerThree: existingProfile.clientMarketThree.shopKnowledgeMainBuyerThree || null,
-              shopKnowledgeDigitalPresence: existingProfile.clientMarketThree.shopKnowledgeDigitalPresence || '',
-              shopKnowledgeWhereSaleOne: existingProfile.clientMarketThree.shopKnowledgeWhereSaleOne || '',
-              shopKnowledgeWhereSaleTwo: existingProfile.clientMarketThree.shopKnowledgeWhereSaleTwo || null,
-              shopKnowledgeWhereSaleThree: existingProfile.clientMarketThree.shopKnowledgeWhereSaleThree || null,
-              shopKnowledgeSalesActivity: existingProfile.clientMarketThree.shopKnowledgeSalesActivity || '',
+              shopKnowledgeMainBuyerOne:
+                existingProfile.clientMarketThree.shopKnowledgeMainBuyerOne ||
+                "",
+              shopKnowledgeMainBuyerTwo:
+                existingProfile.clientMarketThree.shopKnowledgeMainBuyerTwo ||
+                null,
+              shopKnowledgeMainBuyerThree:
+                existingProfile.clientMarketThree.shopKnowledgeMainBuyerThree ||
+                null,
+              shopKnowledgeDigitalPresence:
+                existingProfile.clientMarketThree
+                  .shopKnowledgeDigitalPresence || "",
+              shopKnowledgeWhereSaleOne:
+                existingProfile.clientMarketThree.shopKnowledgeWhereSaleOne ||
+                "",
+              shopKnowledgeWhereSaleTwo:
+                existingProfile.clientMarketThree.shopKnowledgeWhereSaleTwo ||
+                null,
+              shopKnowledgeWhereSaleThree:
+                existingProfile.clientMarketThree.shopKnowledgeWhereSaleThree ||
+                null,
+              shopKnowledgeSalesActivity:
+                existingProfile.clientMarketThree.shopKnowledgeSalesActivity ||
+                "",
             });
           }
 
           if (existingProfile.operationGrowthFour) {
             setStep4Data({
-              shopKnowledgeProductsMakeMonth: existingProfile.operationGrowthFour.shopKnowledgeProductsMakeMonth || '',
-              shopKnowledgeLimitTodayOne: existingProfile.operationGrowthFour.shopKnowledgeLimitTodayOne || '',
-              shopKnowledgeLimitTodayTwo: existingProfile.operationGrowthFour.shopKnowledgeLimitTodayTwo || null,
-              shopKnowledgeLimitTodayThree: existingProfile.operationGrowthFour.shopKnowledgeLimitTodayThree || null,
-              shopManyWorkers: existingProfile.operationGrowthFour.shopManyWorkers || '',
-              shopFirstSolvingTelar: existingProfile.operationGrowthFour.shopFirstSolvingTelar || '',
+              shopKnowledgeProductsMakeMonth:
+                existingProfile.operationGrowthFour
+                  .shopKnowledgeProductsMakeMonth || "",
+              shopKnowledgeLimitTodayOne:
+                existingProfile.operationGrowthFour
+                  .shopKnowledgeLimitTodayOne || "",
+              shopKnowledgeLimitTodayTwo:
+                existingProfile.operationGrowthFour
+                  .shopKnowledgeLimitTodayTwo || null,
+              shopKnowledgeLimitTodayThree:
+                existingProfile.operationGrowthFour
+                  .shopKnowledgeLimitTodayThree || null,
+              shopManyWorkers:
+                existingProfile.operationGrowthFour.shopManyWorkers || "",
+              shopFirstSolvingTelar:
+                existingProfile.operationGrowthFour.shopFirstSolvingTelar || "",
             });
           }
 
@@ -171,8 +243,8 @@ export const AgentFormPage: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
-        toast.error('Error al cargar tu perfil');
+        console.error("Error loading profile:", error);
+        toast.error("Error al cargar tu perfil");
       } finally {
         setIsLoading(false);
       }
@@ -181,6 +253,39 @@ export const AgentFormPage: React.FC = () => {
     loadProfile();
   }, [user?.id]);
 
+  // ─── Load Categories ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await getActiveCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        toast.error("Error al cargar las categorías");
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // ─── Helper Functions ─────────────────────────────────────────────────────
+
+  // Filtrar opciones disponibles para "¿Qué te hace especial?"
+  const getAvailableSpecialOptions = (excludeValues: (string | null)[]) => {
+    const filtered = excludeValues.filter(
+      (v): v is string => v !== null && v !== "",
+    );
+    return specialDefinitionOptions.filter((opt) => !filtered.includes(opt));
+  };
+
+  // Filtrar opciones disponibles para "¿De dónde nace tu oficio artesanal?"
+  const getAvailableBornOptions = (excludeValues: (string | null)[]) => {
+    const filtered = excludeValues.filter(
+      (v): v is string => v !== null && v !== "",
+    );
+    return bornDefinitionOptions.filter((opt) => !filtered.includes(opt));
+  };
+
   // ─── Submit Handlers ──────────────────────────────────────────────────────
 
   const handleSubmitStep1 = async () => {
@@ -188,15 +293,15 @@ export const AgentFormPage: React.FC = () => {
 
     // Validación básica
     if (!step1Data.nameShop.trim()) {
-      toast.error('El nombre de la tienda es requerido');
+      toast.error("El nombre de la tienda es requerido");
       return;
     }
     if (!step1Data.artisanHistory.trim()) {
-      toast.error('Tu historia artesanal es requerida');
+      toast.error("Tu historia artesanal es requerida");
       return;
     }
     if (step1Data.ageExperience <= 0) {
-      toast.error('Selecciona tus años de experiencia');
+      toast.error("Selecciona tus años de experiencia");
       return;
     }
 
@@ -204,11 +309,11 @@ export const AgentFormPage: React.FC = () => {
     try {
       const updatedProfile = await submitStep1Identity(user.id, step1Data);
       setProfile(updatedProfile);
-      toast.success('Bloque 1 guardado correctamente');
+      toast.success("Bloque 1 guardado correctamente");
       setCurrentStep(2);
     } catch (error) {
-      console.error('Error saving step 1:', error);
-      toast.error('Error al guardar el bloque 1');
+      console.error("Error saving step 1:", error);
+      toast.error("Error al guardar el bloque 1");
     } finally {
       setIsSaving(false);
     }
@@ -221,11 +326,11 @@ export const AgentFormPage: React.FC = () => {
     try {
       const updatedProfile = await submitStep2Commercial(user.id, step2Data);
       setProfile(updatedProfile);
-      toast.success('Bloque 2 guardado correctamente');
+      toast.success("Bloque 2 guardado correctamente");
       setCurrentStep(3);
     } catch (error) {
-      console.error('Error saving step 2:', error);
-      toast.error('Error al guardar el bloque 2');
+      console.error("Error saving step 2:", error);
+      toast.error("Error al guardar el bloque 2");
     } finally {
       setIsSaving(false);
     }
@@ -238,11 +343,11 @@ export const AgentFormPage: React.FC = () => {
     try {
       const updatedProfile = await submitStep3ClientMarket(user.id, step3Data);
       setProfile(updatedProfile);
-      toast.success('Bloque 3 guardado correctamente');
+      toast.success("Bloque 3 guardado correctamente");
       setCurrentStep(4);
     } catch (error) {
-      console.error('Error saving step 3:', error);
-      toast.error('Error al guardar el bloque 3');
+      console.error("Error saving step 3:", error);
+      toast.error("Error al guardar el bloque 3");
     } finally {
       setIsSaving(false);
     }
@@ -253,15 +358,18 @@ export const AgentFormPage: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const updatedProfile = await submitStep4OperationGrowth(user.id, step4Data);
+      const updatedProfile = await submitStep4OperationGrowth(
+        user.id,
+        step4Data,
+      );
       setProfile(updatedProfile);
-      toast.success('Bloque 4 guardado correctamente');
+      toast.success("Bloque 4 guardado correctamente");
 
       // All 4 steps complete - now create shop and redirect
       setCurrentStep(5);
     } catch (error) {
-      console.error('Error saving step 4:', error);
-      toast.error('Error al guardar el bloque 4');
+      console.error("Error saving step 4:", error);
+      toast.error("Error al guardar el bloque 4");
     } finally {
       setIsSaving(false);
     }
@@ -275,26 +383,26 @@ export const AgentFormPage: React.FC = () => {
       // Create shop with basic data from step 1
       const shopSlug = step1Data.nameShop
         .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
 
       await createArtisanShop({
         userId: user.id,
         shopName: step1Data.nameShop,
         shopSlug: shopSlug,
-        creationStatus: 'complete',
+        creationStatus: "complete",
         creationStep: 0,
         description: step1Data.shopDescription,
         story: step1Data.shopHistory,
       });
 
-      toast.success('¡Tu tienda ha sido creada exitosamente!');
+      toast.success("¡Tu tienda ha sido creada exitosamente!");
 
       // Redirect to dashboard
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error('Error creating shop:', error);
-      toast.error(error?.message || 'Error al crear la tienda');
+      console.error("Error creating shop:", error);
+      toast.error(error?.message || "Error al crear la tienda");
     } finally {
       setIsSaving(false);
     }
@@ -361,7 +469,9 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step1Data.nameShop}
-                  onChange={(e) => setStep1Data({ ...step1Data, nameShop: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({ ...step1Data, nameShop: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Ej: Artesanías Don Juan"
                 />
@@ -374,7 +484,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step1Data.artisanHistory}
-                  onChange={(e) => setStep1Data({ ...step1Data, artisanHistory: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      artisanHistory: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[120px]"
                   placeholder="Cuéntanos sobre ti, tu trayectoria como artesano..."
                 />
@@ -387,7 +502,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <select
                   value={step1Data.ageExperience}
-                  onChange={(e) => setStep1Data({ ...step1Data, ageExperience: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      ageExperience: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                 >
                   <option value={0}>Selecciona un rango</option>
@@ -404,7 +524,9 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step1Data.shopHistory}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopHistory: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({ ...step1Data, shopHistory: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[120px]"
                   placeholder="¿Cómo nació tu tienda? ¿Qué te inspiró?"
                 />
@@ -417,7 +539,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step1Data.shopDescription}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopDescription: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopDescription: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="Describe qué tipo de productos creas..."
                 />
@@ -430,27 +557,39 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step1Data.shopDefinition}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopDefinition: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopDefinition: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="¿Qué representa tu trabajo para ti?"
                 />
               </div>
 
-              {/* Categoría (temporal - usar ID estático por ahora) */}
+              {/* Categoría */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Categoría de tu tienda *
                 </label>
-                <input
-                  type="text"
+                <select
                   value={step1Data.shopCategoriesId}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopCategoriesId: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopCategoriesId: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                  placeholder="ID de categoría (temporal)"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Por ahora ingresa el ID de categoría. Próximamente será un selector.
-                </p>
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Qué te hace especial */}
@@ -458,55 +597,129 @@ export const AgentFormPage: React.FC = () => {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   ¿Qué te hace especial? *
                 </label>
-                <input
-                  type="text"
+                <select
                   value={step1Data.shopSpecialDefinitionOne}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopSpecialDefinitionOne: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopSpecialDefinitionOne: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
-                  placeholder="Primera característica especial"
-                />
-                <input
-                  type="text"
-                  value={step1Data.shopSpecialDefinitionTwo || ''}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopSpecialDefinitionTwo: e.target.value || null })}
+                >
+                  <option value="">Selecciona una característica</option>
+                  {specialDefinitionOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={step1Data.shopSpecialDefinitionTwo || ""}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopSpecialDefinitionTwo: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
-                  placeholder="Segunda característica (opcional)"
-                />
-                <input
-                  type="text"
-                  value={step1Data.shopSpecialDefinitionThree || ''}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopSpecialDefinitionThree: e.target.value || null })}
+                >
+                  <option value="">Segunda característica (opcional)</option>
+                  {getAvailableSpecialOptions([
+                    step1Data.shopSpecialDefinitionOne,
+                  ]).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={step1Data.shopSpecialDefinitionThree || ""}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopSpecialDefinitionThree: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                  placeholder="Tercera característica (opcional)"
-                />
+                >
+                  <option value="">Tercera característica (opcional)</option>
+                  {getAvailableSpecialOptions([
+                    step1Data.shopSpecialDefinitionOne,
+                    step1Data.shopSpecialDefinitionTwo,
+                  ]).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Historia de origen */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Historia de origen de tu trabajo *
+                  ¿De dónde nace tu oficio artesanal? *
                 </label>
-                <input
-                  type="text"
+                <select
                   value={step1Data.shopBornSpecialDefinitionOne}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopBornSpecialDefinitionOne: e.target.value })}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopBornSpecialDefinitionOne: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
-                  placeholder="¿Cómo comenzó todo?"
-                />
-                <input
-                  type="text"
-                  value={step1Data.shopBornSpecialDefinitionTwo || ''}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopBornSpecialDefinitionTwo: e.target.value || null })}
+                >
+                  <option value="">Selecciona el origen de tu oficio</option>
+                  {bornDefinitionOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={step1Data.shopBornSpecialDefinitionTwo || ""}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopBornSpecialDefinitionTwo: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
-                  placeholder="Detalles adicionales (opcional)"
-                />
-                <input
-                  type="text"
-                  value={step1Data.shopBornSpecialDefinitionThree || ''}
-                  onChange={(e) => setStep1Data({ ...step1Data, shopBornSpecialDefinitionThree: e.target.value || null })}
+                >
+                  <option value="">Segundo origen (opcional)</option>
+                  {getAvailableBornOptions([
+                    step1Data.shopBornSpecialDefinitionOne,
+                  ]).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={step1Data.shopBornSpecialDefinitionThree || ""}
+                  onChange={(e) =>
+                    setStep1Data({
+                      ...step1Data,
+                      shopBornSpecialDefinitionThree: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                  placeholder="Más detalles (opcional)"
-                />
+                >
+                  <option value="">Tercer origen (opcional)</option>
+                  {getAvailableBornOptions([
+                    step1Data.shopBornSpecialDefinitionOne,
+                    step1Data.shopBornSpecialDefinitionTwo,
+                  ]).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex justify-end gap-4 pt-4">
@@ -515,7 +728,7 @@ export const AgentFormPage: React.FC = () => {
                   disabled={isSaving}
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isSaving ? 'Guardando...' : 'Continuar'}
+                  {isSaving ? "Guardando..." : "Continuar"}
                 </button>
               </div>
             </div>
@@ -534,7 +747,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step2Data.shopRangePayment}
-                  onChange={(e) => setStep2Data({ ...step2Data, shopRangePayment: e.target.value })}
+                  onChange={(e) =>
+                    setStep2Data({
+                      ...step2Data,
+                      shopRangePayment: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="Describe tu modelo de precios..."
                 />
@@ -546,7 +764,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step2Data.shopKnowledgeCost}
-                  onChange={(e) => setStep2Data({ ...step2Data, shopKnowledgeCost: e.target.value })}
+                  onChange={(e) =>
+                    setStep2Data({
+                      ...step2Data,
+                      shopKnowledgeCost: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="¿Tienes claridad sobre tus costos?"
                 />
@@ -558,7 +781,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step2Data.shopKnowledgeDefineCost}
-                  onChange={(e) => setStep2Data({ ...step2Data, shopKnowledgeDefineCost: e.target.value })}
+                  onChange={(e) =>
+                    setStep2Data({
+                      ...step2Data,
+                      shopKnowledgeDefineCost: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="¿Qué incluyes en tus costos?"
                 />
@@ -570,7 +798,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step2Data.shopKnowledgeIsProfitable}
-                  onChange={(e) => setStep2Data({ ...step2Data, shopKnowledgeIsProfitable: e.target.value })}
+                  onChange={(e) =>
+                    setStep2Data({
+                      ...step2Data,
+                      shopKnowledgeIsProfitable: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="Cuéntanos sobre la rentabilidad de tu negocio..."
                 />
@@ -588,7 +821,7 @@ export const AgentFormPage: React.FC = () => {
                   disabled={isSaving}
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isSaving ? 'Guardando...' : 'Continuar'}
+                  {isSaving ? "Guardando..." : "Continuar"}
                 </button>
               </div>
             </div>
@@ -608,21 +841,36 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step3Data.shopKnowledgeMainBuyerOne}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeMainBuyerOne: e.target.value })}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeMainBuyerOne: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Principal tipo de cliente"
                 />
                 <input
                   type="text"
-                  value={step3Data.shopKnowledgeMainBuyerTwo || ''}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeMainBuyerTwo: e.target.value || null })}
+                  value={step3Data.shopKnowledgeMainBuyerTwo || ""}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeMainBuyerTwo: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Segundo tipo de cliente (opcional)"
                 />
                 <input
                   type="text"
-                  value={step3Data.shopKnowledgeMainBuyerThree || ''}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeMainBuyerThree: e.target.value || null })}
+                  value={step3Data.shopKnowledgeMainBuyerThree || ""}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeMainBuyerThree: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Tercer tipo de cliente (opcional)"
                 />
@@ -634,7 +882,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step3Data.shopKnowledgeDigitalPresence}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeDigitalPresence: e.target.value })}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeDigitalPresence: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="¿Tienes redes sociales, página web?"
                 />
@@ -647,21 +900,36 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step3Data.shopKnowledgeWhereSaleOne}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeWhereSaleOne: e.target.value })}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeWhereSaleOne: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Principal canal de venta"
                 />
                 <input
                   type="text"
-                  value={step3Data.shopKnowledgeWhereSaleTwo || ''}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeWhereSaleTwo: e.target.value || null })}
+                  value={step3Data.shopKnowledgeWhereSaleTwo || ""}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeWhereSaleTwo: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Segundo canal (opcional)"
                 />
                 <input
                   type="text"
-                  value={step3Data.shopKnowledgeWhereSaleThree || ''}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeWhereSaleThree: e.target.value || null })}
+                  value={step3Data.shopKnowledgeWhereSaleThree || ""}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeWhereSaleThree: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Tercer canal (opcional)"
                 />
@@ -673,7 +941,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step3Data.shopKnowledgeSalesActivity}
-                  onChange={(e) => setStep3Data({ ...step3Data, shopKnowledgeSalesActivity: e.target.value })}
+                  onChange={(e) =>
+                    setStep3Data({
+                      ...step3Data,
+                      shopKnowledgeSalesActivity: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="Describe tu actividad de ventas..."
                 />
@@ -691,7 +964,7 @@ export const AgentFormPage: React.FC = () => {
                   disabled={isSaving}
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isSaving ? 'Guardando...' : 'Continuar'}
+                  {isSaving ? "Guardando..." : "Continuar"}
                 </button>
               </div>
             </div>
@@ -711,7 +984,12 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step4Data.shopKnowledgeProductsMakeMonth}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopKnowledgeProductsMakeMonth: e.target.value })}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopKnowledgeProductsMakeMonth: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Ej: 50 productos, 20 piezas, etc."
                 />
@@ -724,21 +1002,36 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step4Data.shopKnowledgeLimitTodayOne}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopKnowledgeLimitTodayOne: e.target.value })}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopKnowledgeLimitTodayOne: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Principal limitación"
                 />
                 <input
                   type="text"
-                  value={step4Data.shopKnowledgeLimitTodayTwo || ''}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopKnowledgeLimitTodayTwo: e.target.value || null })}
+                  value={step4Data.shopKnowledgeLimitTodayTwo || ""}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopKnowledgeLimitTodayTwo: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground mb-2"
                   placeholder="Segunda limitación (opcional)"
                 />
                 <input
                   type="text"
-                  value={step4Data.shopKnowledgeLimitTodayThree || ''}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopKnowledgeLimitTodayThree: e.target.value || null })}
+                  value={step4Data.shopKnowledgeLimitTodayThree || ""}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopKnowledgeLimitTodayThree: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Tercera limitación (opcional)"
                 />
@@ -751,7 +1044,12 @@ export const AgentFormPage: React.FC = () => {
                 <input
                   type="text"
                   value={step4Data.shopManyWorkers}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopManyWorkers: e.target.value })}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopManyWorkers: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
                   placeholder="Ej: Solo yo, 2 personas, 5 personas, etc."
                 />
@@ -763,7 +1061,12 @@ export const AgentFormPage: React.FC = () => {
                 </label>
                 <textarea
                   value={step4Data.shopFirstSolvingTelar}
-                  onChange={(e) => setStep4Data({ ...step4Data, shopFirstSolvingTelar: e.target.value })}
+                  onChange={(e) =>
+                    setStep4Data({
+                      ...step4Data,
+                      shopFirstSolvingTelar: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground min-h-[100px]"
                   placeholder="¿Qué esperas de TELAR?"
                 />
@@ -781,7 +1084,7 @@ export const AgentFormPage: React.FC = () => {
                   disabled={isSaving}
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isSaving ? 'Guardando...' : 'Finalizar'}
+                  {isSaving ? "Guardando..." : "Finalizar"}
                 </button>
               </div>
             </div>
@@ -791,8 +1094,18 @@ export const AgentFormPage: React.FC = () => {
           {currentStep === 5 && (
             <div className="text-center space-y-6">
               <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
 
@@ -801,7 +1114,8 @@ export const AgentFormPage: React.FC = () => {
               </h2>
 
               <p className="text-muted-foreground">
-                Ahora vamos a crear tu tienda en TELAR con toda la información que compartiste.
+                Ahora vamos a crear tu tienda en TELAR con toda la información
+                que compartiste.
               </p>
 
               <button
@@ -809,7 +1123,7 @@ export const AgentFormPage: React.FC = () => {
                 disabled={isSaving}
                 className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-lg font-medium"
               >
-                {isSaving ? 'Creando tu tienda...' : 'Crear mi tienda'}
+                {isSaving ? "Creando tu tienda..." : "Crear mi tienda"}
               </button>
             </div>
           )}

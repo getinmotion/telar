@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -21,7 +20,10 @@ export class StoryLibraryController {
   constructor(private readonly service: StoryLibraryService) {}
 
   @Get()
-  findByArtisan(@Query('artisan_id') artisanId: string) {
+  async findByArtisan(@Request() req: any) {
+    // Graceful: if no artisan profile exists yet, return empty array instead of 404
+    const artisanId = await this.service.resolveArtisanIdByUserId(req.user?.sub).catch(() => null);
+    if (!artisanId) return [];
     return this.service.findByArtisan(artisanId);
   }
 
@@ -36,12 +38,16 @@ export class StoryLibraryController {
   }
 
   @Post()
-  create(@Body() dto: CreateStoryDto) {
-    return this.service.create(dto);
+  async create(@Body() dto: CreateStoryDto, @Request() req: any) {
+    const artisanId = await this.service.resolveArtisanIdByUserId(
+      dto.artisanId || req.user?.sub,
+    );
+    return this.service.create({ ...dto, artisanId });
   }
 
   @Post(':id/clone')
-  clone(@Param('id') id: string, @Body('artisanId') artisanId: string) {
+  async clone(@Param('id') id: string, @Request() req: any) {
+    const artisanId = await this.service.resolveArtisanIdByUserId(req.user?.sub);
     return this.service.clone(id, artisanId);
   }
 

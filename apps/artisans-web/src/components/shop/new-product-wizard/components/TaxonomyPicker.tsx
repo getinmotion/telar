@@ -569,13 +569,16 @@ interface ToolPickerProps {
   userId?: string;
   selected: string[];
   onChange: (names: string[]) => void;
-  /** IDs de oficios seleccionados en paso 1, para sugerir herramientas afines. */
+  /** IDs de oficios del paso 2, para sugerir herramientas afines. */
   suggestFromCraftIds?: string[];
+  /** IDs de técnicas del paso 2, para sugerir herramientas afines. */
+  suggestFromTechniqueIds?: string[];
 }
 
-export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChange, suggestFromCraftIds }) => {
+export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChange, suggestFromCraftIds, suggestFromTechniqueIds }) => {
   const [catalog, setCatalog] = useState<TaxonomyItem[]>([]);
   const [craftNames, setCraftNames] = useState<string[]>([]);
+  const [techniqueNames, setTechniqueNames] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showSuggest, setShowSuggest] = useState(false);
@@ -589,7 +592,7 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Fetch craft names to resolve IDs for keyword matching
+  // Resolución de nombres de oficio desde IDs
   const craftIdsKey = suggestFromCraftIds?.join(',') ?? '';
   useEffect(() => {
     if (!suggestFromCraftIds?.length) { setCraftNames([]); return; }
@@ -601,14 +604,33 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [craftIdsKey]);
 
+  // Resolución de nombres de técnicas desde IDs
+  const techniqueIdsKey = suggestFromTechniqueIds?.join(',') ?? '';
+  useEffect(() => {
+    if (!suggestFromTechniqueIds?.length) { setTechniqueNames([]); return; }
+    searchTaxonomy('tecnicas', undefined, 'approved')
+      .then(items => {
+        setTechniqueNames(
+          items.filter(t => suggestFromTechniqueIds.includes(t.id)).map(t => t.name),
+        );
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [techniqueIdsKey]);
+
   const suggestedTools = useMemo(() => {
-    if (!craftNames.length || !catalog.length) return [];
-    const keywords = getSuggestedToolKeywords(craftNames);
+    const allNames = [...craftNames, ...techniqueNames];
+    if (!allNames.length || !catalog.length) return [];
+    const keywords = getSuggestedToolKeywords(allNames);
     if (!keywords.length) return [];
     return catalog
       .filter(t => keywords.some(kw => t.name.toLowerCase().includes(kw)) && !selected.includes(t.name))
       .slice(0, 10);
-  }, [craftNames, catalog, selected]);
+  }, [craftNames, techniqueNames, catalog, selected]);
+
+  const suggestionLabel = techniqueNames.length > 0
+    ? 'Sugeridas para tu oficio y técnicas'
+    : 'Sugeridas para tu oficio';
 
   const searchResults = searchQuery.trim().length >= 2
     ? catalog
@@ -687,7 +709,7 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
         >
           <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[13px]">auto_awesome</span>
-            Sugeridas para tu oficio
+            {suggestionLabel}
           </p>
           <div className="flex flex-wrap gap-2">
             {suggestedTools.map(item => (
