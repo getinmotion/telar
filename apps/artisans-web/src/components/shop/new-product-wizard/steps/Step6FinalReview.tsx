@@ -12,7 +12,6 @@ import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { mapNewStateToDto, extractApiError } from '../hooks/useWizardDraft';
 import { WizardFooter } from '../components/WizardFooter';
-import { WizardHeader } from '../components/WizardHeader';
 
 interface Props {
   state: NewWizardState;
@@ -23,6 +22,7 @@ interface Props {
   shopId: string;
   step: number;
   totalSteps: number;
+  leftOffset?: number;
 }
 
 
@@ -82,6 +82,7 @@ export const Step6FinalReview: React.FC<Props> = ({
   shopId,
   step,
   totalSteps,
+  leftOffset,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -240,20 +241,105 @@ export const Step6FinalReview: React.FC<Props> = ({
       : '—';
 
   return (
-    <div className="min-h-screen pb-32" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="fact_check"
-          title="Revisión final"
-          subtitle="Verifica la información antes de enviar a curaduría"
-        />
+    <div className="pb-32" style={{ background: 'transparent' }}>
 
+      {/* ══ MOBILE: Revisión compacta ════════════════════════════════════════ */}
+      <div className="md:hidden px-4 pt-4 flex flex-col gap-3">
+
+        {/* Aviso */}
+        <div className="flex items-start gap-2 p-3 rounded-xl" style={{ background: 'rgba(22,101,52,0.06)', border: '1px solid rgba(22,101,52,0.18)' }}>
+          <span className="material-symbols-outlined text-[#166534] shrink-0" style={{ fontSize: 15 }}>info</span>
+          <p className="font-['Manrope'] text-[11px] font-[500] text-[#54433e]">
+            El pasaporte permanece preparado hasta la aprobación del producto para marketplace.
+          </p>
+        </div>
+
+        {/* Filas de revisión */}
+        {([
+          {
+            icon: 'add_photo_alternate',
+            title: 'La pieza',
+            value: state.name || '—',
+            sub: state.shortDescription ? state.shortDescription.slice(0, 55) + (state.shortDescription.length > 55 ? '…' : '') : null,
+            ready: !!(state.name && state.shortDescription),
+            step: 1,
+          },
+          {
+            icon: 'language',
+            title: 'Identidad y origen',
+            value: categoryName ?? (state.categoryId ? '…' : 'Sin categoría'),
+            sub: originText !== '—' ? originText : null,
+            ready: !!state.categoryId,
+            step: 2,
+          },
+          {
+            icon: 'build',
+            title: 'Técnica y proceso',
+            value: craftName ?? (state.craftId ? '…' : 'Sin oficio'),
+            sub: state.elaborationTime ?? null,
+            ready: !!state.craftId,
+            step: 3,
+          },
+          {
+            icon: 'sell',
+            title: 'Precio y logística',
+            value: state.price ? `$${Math.round(state.price * 1.05).toLocaleString('es-CO')} COP` : 'Sin precio',
+            sub: state.availabilityType === 'en_stock' ? `${state.inventory ?? 0} unidades`
+              : state.availabilityType === 'bajo_pedido' ? 'Bajo pedido'
+              : state.availabilityType === 'edicion_limitada' ? `Ed. limitada · ${state.inventory ?? 0} un.`
+              : null,
+            ready: !!(state.price && state.inventory && state.availabilityType),
+            step: 4,
+          },
+          {
+            icon: 'verified',
+            title: 'Pasaporte digital',
+            value: 'Preparado',
+            sub: null,
+            ready: true,
+            step: 5,
+          },
+        ] as { icon: string; title: string; value: string; sub: string | null; ready: boolean; step: number }[]).map(({ icon, title, value, sub, ready, step }) => (
+          <div key={title} className="flex items-center gap-3 p-3 rounded-xl" style={glassCard}>
+            {/* Icon */}
+            {step === 1 && mainPreview ? (
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-white/60">
+                <img src={mainPreview} className="w-full h-full object-cover" alt="" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(236,109,19,0.08)' }}>
+                <span className="material-symbols-outlined text-[#ec6d13]" style={{ fontSize: 18 }}>{icon}</span>
+              </div>
+            )}
+
+            {/* Texto */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/45">{title}</span>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${ready ? 'bg-[#166534]' : 'bg-[#ec6d13]'}`} />
+              </div>
+              <p className="font-['Manrope'] text-[13px] font-[700] text-[#151b2d] truncate">{value}</p>
+              {sub && <p className="font-['Manrope'] text-[10px] text-[#54433e]/50 truncate mt-0.5">{sub}</p>}
+            </div>
+
+            {/* Editar */}
+            <button
+              onClick={() => onGoToStep(step)}
+              className="flex items-center gap-0.5 text-[10px] font-[800] text-[#ec6d13] shrink-0 uppercase tracking-wide"
+            >
+              Editar
+              <span className="material-symbols-outlined" style={{ fontSize: 13 }}>east</span>
+            </button>
+          </div>
+        ))}
+
+      </div>
+      {/* ══ FIN MOBILE ═══════════════════════════════════════════════════════ */}
+
+      <main className="max-w-[1200px] mx-auto px-4 md:px-10 pt-6">
         {/* Info block */}
         <div
-          className="rounded-lg p-6 mb-8 flex items-start gap-4"
+          className="hidden md:flex rounded-lg p-6 mb-8 items-start gap-4"
           style={glassCard}
         >
           <span className="material-symbols-outlined text-[#166534] mt-1">info</span>
@@ -263,7 +349,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         </div>
 
         {/* Review grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* Card 1: La pieza */}
           <div className="rounded-lg p-6 flex flex-col justify-between" style={glassCard}>
             <div>
@@ -484,7 +570,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         isSubmitting={isSubmitting}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
-        leftOffset={80}
+        leftOffset={leftOffset}
       />
     </div>
   );

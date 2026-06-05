@@ -10,6 +10,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllCrafts, getTechniquesByCraftId, type Craft, type Technique } from '@/services/crafts.actions';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
 
@@ -105,17 +106,21 @@ interface CraftPickerProps {
   categoryName?: string;
   selectedCraftId?: string;
   onChange: (craftId: string | undefined) => void;
+  onNameChange?: (name: string | undefined) => void;
 }
 
 export const CraftPicker: React.FC<CraftPickerProps> = ({
   categoryName,
   selectedCraftId,
   onChange,
+  onNameChange,
 }) => {
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const isMobile = useIsMobile();
+  const DEFAULT_LIMIT = isMobile ? 5 : 10;
 
   useEffect(() => {
     setIsLoading(true);
@@ -127,20 +132,22 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
 
   const categoryKeywords = getCraftKeywordsForCategory(categoryName);
 
-  // Crafts visibles según filtro de categoría o búsqueda
   const visibleCrafts: Craft[] = (() => {
     if (searchQuery.trim().length >= 2) {
       return allCrafts.filter(c =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
-    if (!categoryKeywords || showAll) return allCrafts;
+    if (showAll) return allCrafts;
+    if (!categoryKeywords) return allCrafts.slice(0, DEFAULT_LIMIT);
     return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
   })();
 
-  const hiddenCount = categoryKeywords && !showAll && !searchQuery
-    ? allCrafts.length - visibleCrafts.length
-    : 0;
+  const hiddenCount = (() => {
+    if (searchQuery || showAll) return 0;
+    if (!categoryKeywords) return Math.max(0, allCrafts.length - DEFAULT_LIMIT);
+    return allCrafts.length - visibleCrafts.length;
+  })();
 
   const selectedCraft = allCrafts.find(c => c.id === selectedCraftId);
 
@@ -196,7 +203,10 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
                 name={craft.name}
                 icon={getCraftIcon(craft.name)}
                 isSelected={isSelected}
-                onClick={() => onChange(isSelected ? undefined : craft.id)}
+                onClick={() => {
+                  onChange(isSelected ? undefined : craft.id);
+                  onNameChange?.(isSelected ? undefined : craft.name);
+                }}
               />
             );
           })}
@@ -217,13 +227,13 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
-      {showAll && !searchQuery && categoryKeywords && (
+      {showAll && !searchQuery && (
         <button
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
           <span className="material-symbols-outlined text-[15px]">expand_less</span>
-          Ver solo los de {categoryName}
+          {categoryKeywords ? `Ver solo los de ${categoryName}` : 'Ver menos'}
         </button>
       )}
 
@@ -257,6 +267,8 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const isMobile = useIsMobile();
+  const DEFAULT_LIMIT = isMobile ? 5 : 10;
 
   useEffect(() => {
     setIsLoading(true);
@@ -283,13 +295,16 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
-    if (!categoryKeywords || showAll) return allCrafts;
-    return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    if (showAll) return allCrafts;
+    if (categoryKeywords) return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    return allCrafts.slice(0, DEFAULT_LIMIT);
   })();
 
-  const hiddenCount = categoryKeywords && !showAll && !searchQuery
-    ? allCrafts.length - visibleCrafts.length
-    : 0;
+  const hiddenCount = (() => {
+    if (searchQuery || showAll) return 0;
+    if (!categoryKeywords) return Math.max(0, allCrafts.length - DEFAULT_LIMIT);
+    return allCrafts.length - visibleCrafts.length;
+  })();
 
   const selectedCrafts = allCrafts.filter(c => selectedCraftIds.includes(c.id));
 
@@ -364,13 +379,13 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
-      {showAll && !searchQuery && categoryKeywords && (
+      {showAll && !searchQuery && (
         <button
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
           <span className="material-symbols-outlined text-[15px]">expand_less</span>
-          Mostrar solo los sugeridos
+          {categoryKeywords ? 'Mostrar solo los sugeridos' : 'Ver menos'}
         </button>
       )}
 
@@ -406,6 +421,7 @@ interface TechniquePickerProps {
   craftName?: string;
   selectedTechniqueId?: string;
   onChange: (techniqueId: string | undefined) => void;
+  onNameChange?: (name: string | undefined) => void;
 }
 
 export const TechniquePicker: React.FC<TechniquePickerProps> = ({
@@ -413,6 +429,7 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   craftName,
   selectedTechniqueId,
   onChange,
+  onNameChange,
 }) => {
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -465,7 +482,10 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
               name={tech.name}
               icon={getCraftIcon(tech.name)}
               isSelected={isSelected}
-              onClick={() => onChange(isSelected ? undefined : tech.id)}
+              onClick={() => {
+                onChange(isSelected ? undefined : tech.id);
+                onNameChange?.(isSelected ? undefined : tech.name);
+              }}
               small
             />
           );

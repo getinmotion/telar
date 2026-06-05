@@ -24,7 +24,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { T, inputStyle, divider } from '@/lib/telar-design';
+import { T, divider } from '@/lib/telar-design';
+
+// Inputs con fontSize 16px en mobile para evitar zoom en iOS
+const inputBg: React.CSSProperties = { background: 'rgba(247,244,239,0.5)' };
+const mobileInputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 14px', borderRadius: 10,
+  border: '1px solid rgba(84,67,62,0.14)', outline: 'none',
+  fontFamily: T.sans, color: T.dark, ...inputBg,
+};
+const inputCls = "text-[16px] sm:text-[13px]";
 import { EventBus } from '@/utils/eventBus';
 import { NotificationTemplates } from '@/services/notificationService';
 
@@ -49,15 +58,15 @@ const SectionTitle: React.FC<{ icon: string; label: string; sub: string }> = ({ 
       <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.orange }}>{icon}</span>
       <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, margin: 0 }}>{label}</p>
     </div>
-    <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}65`, lineHeight: 1.5, margin: 0, paddingLeft: 26 }}>{sub}</p>
+    <p className="text-[13px] sm:text-[12px]" style={{ fontFamily: T.sans, color: `${T.muted}65`, lineHeight: 1.5, margin: 0, paddingLeft: 26 }}>{sub}</p>
   </div>
 );
 
 const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
   <div>
-    <div style={{ marginBottom: 5, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-      <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}65` }}>{label}</span>
-      {hint && <span style={{ fontFamily: T.sans, fontSize: 10, color: `${T.muted}38` }}>{hint}</span>}
+    <div style={{ marginBottom: 6, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+      <span className="text-[11px] sm:text-[10px]" style={{ fontFamily: T.sans, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: `${T.muted}65` }}>{label}</span>
+      {hint && <span className="text-[11px] sm:text-[10px]" style={{ fontFamily: T.sans, color: `${T.muted}38` }}>{hint}</span>}
     </div>
     {children}
   </div>
@@ -417,31 +426,31 @@ export default function ContactLocationWizardPage() {
   const muni       = s?.municipality ?? s?.artisanProfile?.municipality ?? '';
 
   // ── Tab pill bar ──────────────────────────────────────────────────────────
-  const tabs: { id: Tab; icon: string; label: string }[] = [
-    { id: 'contacto', icon: 'chat',          label: 'Contacto y envíos'  },
-    { id: 'rut',      icon: 'receipt_long',  label: 'Información fiscal' },
-    { id: 'banco',    icon: 'account_balance', label: 'Datos de cobro'  },
+  const tabs: { id: Tab; icon: string; label: string; shortLabel: string }[] = [
+    { id: 'contacto', icon: 'chat',            label: 'Contacto y envíos',   shortLabel: 'Contacto' },
+    { id: 'rut',      icon: 'receipt_long',    label: 'Información fiscal',  shortLabel: 'Fiscal'   },
+    { id: 'banco',    icon: 'account_balance', label: 'Datos de cobro',      shortLabel: 'Cobro'    },
   ];
 
   const TabBar = (
-    <div style={{ display: 'flex', gap: 6, padding: '4px', borderRadius: 14, background: 'rgba(84,67,62,0.06)', width: 'fit-content', marginBottom: 28 }}>
+    <div className="flex gap-1.5 p-1 rounded-2xl mb-7" style={{ background: 'rgba(84,67,62,0.06)' }}>
       {tabs.map(t => {
         const active = activeTab === t.id;
         return (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl transition-all"
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              fontFamily: T.sans, fontSize: 11, fontWeight: 800, letterSpacing: '0.04em',
               background: active ? T.dark : 'transparent',
               color: active ? 'white' : `${T.muted}70`,
-              transition: 'all 0.18s ease',
+              fontFamily: T.sans, fontWeight: 800, letterSpacing: '0.03em',
+              border: 'none', cursor: 'pointer',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{t.icon}</span>
-            {t.label}
+            <span className="hidden sm:inline" style={{ fontSize: 11 }}>{t.label}</span>
+            <span className="sm:hidden" style={{ fontSize: 11 }}>{t.shortLabel}</span>
           </button>
         );
       })}
@@ -532,13 +541,13 @@ export default function ContactLocationWizardPage() {
                 <Field label="WhatsApp" hint="Canal principal — obligatorio">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, color: `${T.muted}35`, flexShrink: 0 }}>phone_iphone</span>
-                    <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+57 300 000 0000" style={inputStyle} />
+                    <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+57 300 000 0000" style={mobileInputStyle} className={inputCls} />
                   </div>
                 </Field>
                 <Field label="Correo electrónico público">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, color: `${T.muted}35`, flexShrink: 0 }}>mail</span>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="taller@ejemplo.com" style={inputStyle} />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="taller@ejemplo.com" style={mobileInputStyle} className={inputCls} />
                   </div>
                 </Field>
               </div>
@@ -566,15 +575,15 @@ export default function ContactLocationWizardPage() {
                 <Field label="Dirección de despacho" hint="Calle, número, barrio">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, color: `${T.muted}35`, flexShrink: 0 }}>location_on</span>
-                    <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Cra. 12 #45-67, Barrio Centro" style={inputStyle} />
+                    <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Cra. 12 #45-67, Barrio Centro" style={mobileInputStyle} className={inputCls} />
                   </div>
                 </Field>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Teléfono fijo" hint="Opcional">
-                    <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="601 000 0000" style={inputStyle} />
+                    <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="601 000 0000" style={mobileInputStyle} className={inputCls} />
                   </Field>
                   <Field label="Horario de atención / despacho">
-                    <input value={hours} onChange={e => setHours(e.target.value)} placeholder="Lun–Vie 8am–5pm" style={inputStyle} />
+                    <input value={hours} onChange={e => setHours(e.target.value)} placeholder="Lun–Vie 8am–5pm" style={mobileInputStyle} className={inputCls} />
                   </Field>
                 </div>
               </div>
@@ -595,7 +604,7 @@ export default function ContactLocationWizardPage() {
                   <Field key={label} label={label}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 18, color: `${T.muted}35`, flexShrink: 0 }}>{icon}</span>
-                      <input value={val} onChange={e => set(e.target.value)} placeholder={ph} style={inputStyle} />
+                      <input value={val} onChange={e => set(e.target.value)} placeholder={ph} style={mobileInputStyle} className={inputCls} />
                     </div>
                   </Field>
                 ))}
@@ -633,7 +642,7 @@ export default function ContactLocationWizardPage() {
                     value={rutNumber}
                     onChange={e => setRutNumber(e.target.value)}
                     placeholder="900123456-1"
-                    style={inputStyle}
+                    style={mobileInputStyle} className={inputCls}
                   />
                 </div>
               </Field>
@@ -667,7 +676,7 @@ export default function ContactLocationWizardPage() {
                   <span style={{ fontFamily: T.sans, fontSize: 11, color: `${T.muted}60` }}>Tus datos bancarios están cifrados y protegidos.</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { label: 'Titular', value: payoutData.namePayoutMain },
                     { label: 'Tipo de documento', value: getDocTypeLabel(payoutData.idType || '') },
@@ -677,8 +686,8 @@ export default function ContactLocationWizardPage() {
                     { label: 'Número de cuenta', value: payoutData.numAccount ? `****${payoutData.numAccount.slice(-4)}` : '-' },
                   ].map(({ label, value }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(84,67,62,0.03)', border: '1px solid rgba(84,67,62,0.07)' }}>
-                      <p style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}45`, margin: '0 0 4px' }}>{label}</p>
-                      <p style={{ fontFamily: T.sans, fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{value || '-'}</p>
+                      <p className="text-[10px] sm:text-[9px]" style={{ fontFamily: T.sans, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: `${T.muted}45`, margin: '0 0 4px' }}>{label}</p>
+                      <p className="text-[14px] sm:text-[13px]" style={{ fontFamily: T.sans, fontWeight: 600, color: T.dark, margin: 0 }}>{value || '-'}</p>
                     </div>
                   ))}
                 </div>
@@ -720,13 +729,13 @@ export default function ContactLocationWizardPage() {
                     value={bankForm.holder_name}
                     onChange={e => handleBankChange('holder_name', e.target.value)}
                     placeholder="Nombre completo como aparece en la cuenta"
-                    style={inputStyle}
+                    style={mobileInputStyle} className={inputCls}
                   />
                 </Field>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Tipo de documento" hint="Requerido">
-                    <select value={bankForm.document_type} onChange={e => handleBankChange('document_type', e.target.value)} style={inputStyle}>
+                    <select value={bankForm.document_type} onChange={e => handleBankChange('document_type', e.target.value)} style={mobileInputStyle} className={inputCls}>
                       <option value="cc">Cédula de Ciudadanía</option>
                       <option value="pa">Pasaporte</option>
                       <option value="nit">NIT</option>
@@ -738,20 +747,20 @@ export default function ContactLocationWizardPage() {
                       value={bankForm.document_number}
                       onChange={e => handleBankChange('document_number', e.target.value)}
                       placeholder="Ej: 1234567890"
-                      style={inputStyle}
+                      style={mobileInputStyle} className={inputCls}
                     />
                   </Field>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Banco" hint="Requerido">
-                    <select value={bankForm.bank_code} onChange={e => handleBankChange('bank_code', e.target.value)} style={inputStyle}>
+                    <select value={bankForm.bank_code} onChange={e => handleBankChange('bank_code', e.target.value)} style={mobileInputStyle} className={inputCls}>
                       <option value="">Selecciona tu banco</option>
                       {BANKS_DATA.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
                     </select>
                   </Field>
                   <Field label="Tipo de cuenta" hint="Requerido">
-                    <select value={bankForm.account_type} onChange={e => handleBankChange('account_type', e.target.value)} style={inputStyle}>
+                    <select value={bankForm.account_type} onChange={e => handleBankChange('account_type', e.target.value)} style={mobileInputStyle} className={inputCls}>
                       <option value="ch">Ahorros</option>
                       <option value="cc">Corriente</option>
                       <option value="r2p">R2P</option>
@@ -773,17 +782,17 @@ export default function ContactLocationWizardPage() {
                       handleBankChange('account_number', isBreB ? e.target.value : e.target.value.replace(/\D/g, ''));
                     }}
                     placeholder={bankForm.account_type === 'breb-key' || bankForm.account_type === 'r2p_breb' ? 'Ej: @tunombre o llave Bre-b' : 'Solo números'}
-                    style={inputStyle}
+                    style={mobileInputStyle} className={inputCls}
                   />
                 </Field>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="País">
                     <select
                       value={bankForm.country}
                       onChange={e => handleBankChange('country', e.target.value)}
                       disabled
-                      style={inputStyle}
+                      style={mobileInputStyle} className={inputCls}
                     >
                       {countries.map((country) => (
                         <option key={country.id} value={country.id}>
@@ -797,7 +806,7 @@ export default function ContactLocationWizardPage() {
                       value={bankForm.currency}
                       onChange={e => handleBankChange('currency', e.target.value)}
                       disabled
-                      style={inputStyle}
+                      style={mobileInputStyle} className={inputCls}
                     />
                   </Field>
                 </div>

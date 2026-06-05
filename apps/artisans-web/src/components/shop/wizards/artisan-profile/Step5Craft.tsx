@@ -347,7 +347,6 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
                 onChange={e => setSuggestName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !isSuggesting && handleSuggest()}
                 placeholder="Nombre de la técnica..."
-                autoFocus
                 className="flex-1 border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
               />
               <button
@@ -488,7 +487,6 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
         {showCustomTime && (
           <input
             type="text"
-            autoFocus
             value={data.averageTime ?? ''}
             onChange={e => onChange({ averageTime: e.target.value })}
             placeholder="Ej: 3 meses, 45 días..."

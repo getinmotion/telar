@@ -71,7 +71,7 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-2 md:gap-4">
         {stats.map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -79,17 +79,17 @@ export const StockDashboardPanel: React.FC<StockDashboardPanelProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="p-4 hover:shadow-lg transition-all">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground mb-1">
+            <Card className="p-2 md:p-4 hover:shadow-lg transition-all">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[9px] md:text-xs text-muted-foreground mb-0.5 md:mb-1 leading-tight">
                     {stat.label}
                   </p>
-                  <p className={`text-2xl font-bold ${stat.color}`}>
-                    {stat.isValue ? stat.value : stat.value}
+                  <p className={`text-base md:text-2xl font-bold ${stat.color}`}>
+                    {stat.value}
                   </p>
                 </div>
-                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                <div className={`hidden md:flex p-3 rounded-xl ${stat.bgColor}`}>
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
               </div>

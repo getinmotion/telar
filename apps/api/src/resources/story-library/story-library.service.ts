@@ -101,4 +101,12 @@ export class StoryLibraryService {
       [productId],
     );
   }
+
+  async resolveArtisanIdByUserId(userId: string): Promise<string> {
+    const rows = await this.storyRepo.query(
+      `SELECT id FROM artesanos.artisan_profile WHERE id = $1 OR user_id = $1 LIMIT 1`,
+      [userId],
+    );
+    return rows[0]?.id ?? userId;
+  }
 }

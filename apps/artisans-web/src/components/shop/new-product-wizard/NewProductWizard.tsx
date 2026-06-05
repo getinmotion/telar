@@ -12,11 +12,74 @@ import { Step3ProcessTime } from './steps/Step3ProcessTime';
 import { Step4PriceLogistics } from './steps/Step4PriceLogistics';
 import { Step5DigitalPassport } from './steps/Step5DigitalPassport';
 import { Step6FinalReview } from './steps/Step6FinalReview';
+import { WizardHeader } from './components/WizardHeader';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
+import { useOraculo } from '@/components/oraculo/OraculoContext';
+import { AICopilotCard } from '@/components/dashboard/AICopilotCard';
+
+const SANS = "'Manrope', sans-serif";
+
+const WizardOraculoDrawer: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const { node } = useOraculo();
+  const content = node ?? <AICopilotCard />;
+  return (
+    <div
+      className="md:hidden fixed left-0 right-0 z-50"
+      style={{ bottom: 'calc(59px + env(safe-area-inset-bottom))' }}
+    >
+      <div style={{ overflow: 'hidden', maxHeight: open ? '55vh' : 0, transition: 'max-height 0.28s ease' }}>
+        <div style={{ overflowY: 'auto', maxHeight: '55vh', background: '#151b2d', borderRadius: '16px 16px 0 0' }}>
+          {content}
+        </div>
+      </div>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-5"
+        style={{
+          background: '#151b2d',
+          height: 46,
+          borderTopLeftRadius: open ? 0 : 14,
+          borderTopRightRadius: open ? 0 : 14,
+          borderTop: open ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="material-symbols-outlined" style={{ color: '#ec6d13', fontSize: 16 }}>psychology</span>
+          <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.02em' }}>
+            ORÁCULO
+          </span>
+        </div>
+        <span
+          className="material-symbols-outlined"
+          style={{
+            color: 'rgba(255,255,255,0.35)',
+            fontSize: 18,
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.25s ease',
+          }}
+        >
+          expand_less
+        </span>
+      </button>
+    </div>
+  );
+};
 
 const TOTAL_STEPS = 6;
 
+const STEP_CONFIGS = [
+  { icon: 'add_photo_alternate', title: 'Nueva pieza', subtitle: 'Captura inicial para que TELAR entienda qué estás creando' },
+  { icon: 'fingerprint',         title: 'Identidad artesanal', subtitle: 'Técnica, estilo, materiales y categoría de tu pieza' },
+  { icon: 'history_edu',         title: 'Proceso y tiempo', subtitle: 'Evidencia y descripción para la trazabilidad TELAR' },
+  { icon: 'payments',            title: 'Precio y logística', subtitle: 'Define cómo se comercializa y despacha esta pieza' },
+  { icon: 'verified',            title: 'Pasaporte digital', subtitle: 'Vista previa del pasaporte de trazabilidad' },
+  { icon: 'fact_check',          title: 'Revisión final', subtitle: 'Verifica la información antes de enviar a curaduría' },
+];
+
 export const NewProductWizard: React.FC = () => {
+  const isMobile = useIsMobile();
   const urlParamsInit = new URLSearchParams(window.location.search);
   const [currentStep, setCurrentStep] = useState(urlParamsInit.get('edit') === 'true' ? TOTAL_STEPS : 1);
   const [hasShop, setHasShop] = useState<boolean | null>(null);
@@ -295,25 +358,50 @@ export const NewProductWizard: React.FC = () => {
     isEditMode,
     artisanId: user?.id ?? '',
     userId: user?.id ?? '',
+    leftOffset: isMobile ? 0 : 80,
   };
 
+  const stepConfig = STEP_CONFIGS[currentStep - 1];
+
   return (
-    <div
-      className="flex-1 overflow-y-auto"
-    >
-      {currentStep === 1 && <Step1NewPiece {...stepProps} />}
-      {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
-      {currentStep === 3 && <Step3ProcessTime {...stepProps} />}
-      {currentStep === 4 && <Step4PriceLogistics {...stepProps} />}
-      {currentStep === 5 && <Step5DigitalPassport {...stepProps} onGoToStep={goToStep} />}
-      {currentStep === 6 && (
-        <Step6FinalReview
-          {...stepProps}
-          shopId={shopId}
-          onGoToStep={goToStep}
-          onPublished={handlePublished}
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Header fixed — solo mobile; desktop usa el header propio de cada step */}
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-30 border-b border-[#e2d5cf]/40"
+        style={{ background: 'rgba(249,247,242,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+      >
+        <WizardHeader
+          step={currentStep}
+          totalSteps={TOTAL_STEPS}
+          icon={stepConfig.icon}
+          title={stepConfig.title}
+          subtitle={stepConfig.subtitle}
+          onBack={goBack}
+          onSaveProgress={saveDraft}
+          isSavingProgress={isSavingDraft}
         />
-      )}
+      </div>
+
+      {/* Contenido scrollable */}
+      <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
+        {currentStep === 1 && <Step1NewPiece {...stepProps} />}
+        {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
+        {currentStep === 3 && <Step3ProcessTime {...stepProps} />}
+        {currentStep === 4 && <Step4PriceLogistics {...stepProps} />}
+        {currentStep === 5 && <Step5DigitalPassport {...stepProps} onGoToStep={goToStep} />}
+        {currentStep === 6 && (
+          <Step6FinalReview
+            {...stepProps}
+            shopId={shopId}
+            onGoToStep={goToStep}
+            onPublished={handlePublished}
+          />
+        )}
+        {/* Spacer mobile: footer (~59px) + oráculo trigger bar (46px) + safe area */}
+        <div className="shrink-0 md:hidden" style={{ height: 'calc(105px + env(safe-area-inset-bottom))' }} />
+      </div>
+
+      <WizardOraculoDrawer />
     </div>
   );
 };
