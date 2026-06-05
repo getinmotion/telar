@@ -70,8 +70,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
         <FooterNav title="Telar">
           <FooterLink to="/sobre-telar">Sobre Telar</FooterLink>
           <FooterLink to="/historias">Historias</FooterLink>
-          <FooterLink to="/talleres">Talleres</FooterLink>
-          <FooterLink to="/trazabilidad">Trazabilidad</FooterLink>
+          <FooterLink to="/tiendas">Talleres</FooterLink>
+          <FooterLink to="/sobre-telar">Trazabilidad</FooterLink>
         </FooterNav>
 
         <FooterNav title="Descubrir">
@@ -98,7 +98,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
         <FooterNav title="Cuenta">
           <FooterLink to="/profile">Mi cuenta</FooterLink>
           <FooterLink to="/wishlist">Favoritos</FooterLink>
-          <FooterLink to="/">Pedidos</FooterLink>
+          <FooterLink to="/profile">Pedidos</FooterLink>
         </FooterNav>
       </div>
 

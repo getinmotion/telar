@@ -221,10 +221,46 @@ const TECHNIQUE_EDITORIAL: Record<string, TechniqueEditorial> = {
 };
 
 function getEditorial(name: string): TechniqueEditorial {
-  const key = name.toLowerCase();
-  if (TECHNIQUE_EDITORIAL[key]) return TECHNIQUE_EDITORIAL[key];
+  // El editorial está indexado con un set fijo de keys (ej. "anudados",
+  // "tejido en telar"). El API de técnicas puede devolver el nombre en otra
+  // forma — singular vs plural, con o sin acento, capitalización distinta.
+  // Probamos variantes antes de caer al fallback para que el link generado
+  // apunte al slug correcto del editorial (y TecnicaDetail lo renderice
+  // sin redirigir a /productos).
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+  const stripPlural = (s: string) => s.replace(/(es|s)$/i, "");
+
+  const raw = name.toLowerCase();
+  const norm = normalize(name);
+  const variants = [
+    raw,
+    norm,
+    stripPlural(raw),
+    stripPlural(norm),
+    `${raw}s`,
+    `${norm}s`,
+    `${stripPlural(raw)}s`,
+    `${stripPlural(norm)}s`,
+  ];
+
+  for (const v of variants) {
+    if (TECHNIQUE_EDITORIAL[v]) return TECHNIQUE_EDITORIAL[v];
+  }
+
+  // Fallback: comparar normalizando ambas claves para tolerar acentos en el
+  // diccionario editorial también.
+  const found = Object.entries(TECHNIQUE_EDITORIAL).find(([key]) => {
+    const k = normalize(key);
+    return k === norm || stripPlural(k) === stripPlural(norm);
+  });
+  if (found) return found[1];
+
   return {
-    slug: name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+    slug: norm.replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
     tagline: "Tradición artesanal colombiana.",
     origin: "Colombia",
     region: "Colombia",
@@ -651,7 +687,7 @@ export default function Tecnicas() {
                 return (
                   <Link
                     key={t.id}
-                    to={`/tecnica`}
+                    to={`/tecnica/${getEditorial(t.name).slug}`}
                     className="group block"
                   >
                     <div

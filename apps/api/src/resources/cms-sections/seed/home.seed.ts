@@ -20,7 +20,7 @@ export const homeSeedSections: Omit<
   CmsSection,
   'id' | 'createdAt' | 'updatedAt'
 >[] = [
-  // 0 — Hero carousel
+  // 0 — Hero carousel (la maqueta usa una sola imagen fija, sin rotación)
   {
     pageKey: 'home',
     position: 0,
@@ -30,29 +30,19 @@ export const homeSeedSections: Omit<
       description:
         'Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean.',
       tagline: 'Hecho a mano por talleres artesanales de Colombia.',
-      primaryCtaLabel: 'Explorar Piezas',
+      primaryCtaLabel: 'Explorar piezas',
       primaryCtaHref: '/productos',
-      secondaryCtaLabel: 'Conocer Talleres',
+      secondaryCtaLabel: 'Conocer talleres',
       secondaryCtaHref: '/tiendas',
-      autoplaySeconds: 6,
+      autoplaySeconds: 0,
       slides: [
         {
-          title: 'HISTORIAS HECHAS',
-          subtitle: 'A MANO',
-          imageUrl:
-            'https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png',
+          title: 'Historias hechas a mano',
+          subtitle: '',
+          imageUrl: '/cms-placeholder.svg',
           imageAlt: 'Artesanía colombiana',
-          origin: 'Nariño, Colombia',
+          origin: 'San Jacinto',
           quote: 'Cada puntada es un susurro de nuestros ancestros.',
-        },
-        {
-          title: 'ARTESANÍA',
-          subtitle: 'AUTÉNTICA',
-          imageUrl:
-            'https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg',
-          imageAlt: 'Tejedoras del Cauca',
-          origin: 'Valle del Cauca, Colombia',
-          quote: 'Cada pieza cuenta una historia única.',
         },
       ],
     },

@@ -89,6 +89,13 @@ const ExploreProducts = () => {
   // Resolver ?tecnica=<slug> a techniqueId. Esto es lo que permite que un
   // link de "/tecnica/<slug>" sin página propia redirija aquí preseleccionando
   // el filtro por técnica.
+  //
+  // El matching tolera diferencias de plural/singular y de acentos porque los
+  // slugs editoriales (en `Tecnicas.tsx`) no siempre coinciden 1:1 con los
+  // nombres en la tabla del API. Probamos:
+  //   1. Match exacto del slug normalizado.
+  //   2. Match permitiendo sufijo `s`/`es` en cualquiera de los dos lados.
+  //   3. Match por inclusión (uno contiene al otro).
   useEffect(() => {
     const tecnicaSlug = searchParams.get("tecnica");
     if (!tecnicaSlug || !allTechniques || allTechniques.length === 0) return;
@@ -99,12 +106,92 @@ const ExploreProducts = () => {
         .replace(/[̀-ͯ]/g, "")
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "");
-    const match = allTechniques.find((t) => normalize(t.name) === tecnicaSlug);
+    const stripPlural = (s: string) =>
+      s.replace(/(es|s)$/i, "");
+
+    const target = normalize(tecnicaSlug);
+    const targetSingular = stripPlural(target);
+
+    let match = allTechniques.find((t) => normalize(t.name) === target);
+    if (!match) {
+      match = allTechniques.find((t) => {
+        const apiSlug = normalize(t.name);
+        return (
+          apiSlug === targetSingular ||
+          stripPlural(apiSlug) === target ||
+          stripPlural(apiSlug) === targetSingular
+        );
+      });
+    }
+    if (!match) {
+      match = allTechniques.find((t) => {
+        const apiSlug = normalize(t.name);
+        return apiSlug.includes(targetSingular) || target.includes(stripPlural(apiSlug));
+      });
+    }
+
     if (match && filters.techniqueId !== match.id) {
-      setFilters((prev) => ({ ...prev, techniqueId: match.id }));
+      setFilters((prev) => ({ ...prev, techniqueId: match!.id }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, allTechniques]);
+
+  // Resolver ?categoria=<slug> contra la taxonomía. Cubre dos casos:
+  //  1. <slug> es de una categoría PADRE → filtra por padre + hijas.
+  //  2. <slug> es de una SUBCATEGORÍA   → encuentra al padre y filtra
+  //     solo por la subcategoría (UX coherente cuando el mega-menu o un
+  //     link externo manda directo a una subcategoría).
+  // También sincroniza el estado cuando el URL cambia (no sólo en mount).
+  useEffect(() => {
+    const slug = searchParams.get("categoria");
+    if (!slug) {
+      if (filters.categorySlug !== null || filters.subcategorySlug !== null) {
+        setFilters((prev) => ({
+          ...prev,
+          categorySlug: null,
+          subcategorySlug: null,
+        }));
+      }
+      return;
+    }
+    if (!categoryHierarchy || categoryHierarchy.length === 0) return;
+
+    // 1) ¿Es slug de padre?
+    const parent = categoryHierarchy.find((c) => c.slug === slug);
+    if (parent) {
+      if (
+        filters.categorySlug !== parent.slug ||
+        filters.subcategorySlug !== null
+      ) {
+        setFilters((prev) => ({
+          ...prev,
+          categorySlug: parent.slug,
+          subcategorySlug: null,
+        }));
+      }
+      return;
+    }
+
+    // 2) ¿Es slug de subcategoría?
+    for (const cat of categoryHierarchy) {
+      const sub = cat.subcategories.find((s) => s.slug === slug);
+      if (sub) {
+        if (
+          filters.categorySlug !== cat.slug ||
+          filters.subcategorySlug !== sub.slug
+        ) {
+          setFilters((prev) => ({
+            ...prev,
+            categorySlug: cat.slug,
+            subcategorySlug: sub.slug,
+          }));
+        }
+        return;
+      }
+    }
+    // 3) Slug no encontrado → mantenemos lo que haya, nada que hacer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, categoryHierarchy]);
 
   // Perform semantic search when searchQuery changes
   useEffect(() => {
@@ -319,6 +406,11 @@ const ExploreProducts = () => {
   }, [priceExtent.max]);
 
   // ── Sync filters and search to URL (skip on initial mount) ──
+  // La URL usa un único parámetro `categoria` que puede ser el slug del padre
+  // O el de la subcategoría. El resolver (useEffect arriba) sabe distinguir
+  // entre ambos casos. Si la persistimos solo como padre cuando hay
+  // subcategoría seleccionada, el resolver borraría el subcategorySlug en
+  // el ciclo siguiente (race condition).
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -326,10 +418,17 @@ const ExploreProducts = () => {
     }
     const params: Record<string, string> = {};
     if (searchQuery) params.q = searchQuery;
-    if (filters.categorySlug) params.categoria = filters.categorySlug;
+    const slugForUrl = filters.subcategorySlug ?? filters.categorySlug;
+    if (slugForUrl) params.categoria = slugForUrl;
     if (filters.sortBy !== "newest") params.orden = filters.sortBy;
     setSearchParams(params, { replace: true });
-  }, [filters.categorySlug, filters.sortBy, searchQuery, setSearchParams]);
+  }, [
+    filters.categorySlug,
+    filters.subcategorySlug,
+    filters.sortBy,
+    searchQuery,
+    setSearchParams,
+  ]);
 
   // ── Client-side filtering ──
   const filteredProducts = useMemo(() => {

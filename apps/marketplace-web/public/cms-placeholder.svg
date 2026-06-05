@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#d1cdc3" stroke-width="0.6"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="#e5e1d8"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+  <line x1="0" y1="0" x2="1200" y2="800" stroke="#d1cdc3" stroke-width="1.2"/>
+  <line x1="1200" y1="0" x2="0" y2="800" stroke="#d1cdc3" stroke-width="1.2"/>
+  <g font-family="'Playfair Display', Georgia, serif" text-anchor="middle" fill="#2c2c2c">
+    <text x="600" y="380" font-size="48" font-style="italic">CMS placeholder</text>
+    <text x="600" y="430" font-size="18" font-style="normal" letter-spacing="6" fill="#7a8a7a">TELAR · IMAGEN PENDIENTE</text>
+  </g>
+</svg>

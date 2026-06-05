@@ -32,11 +32,13 @@ export const contentPicksSeedSections: Omit<
   'id' | 'createdAt' | 'updatedAt'
 >[] = [
   // 1) Pick de una colección — banner grande
+  // NO visible en la maqueta de home; queda en el seed como slot disponible
+  // para que el curador lo active cuando quiera.
   {
     pageKey: 'home',
     position: 50,
     type: 'content_pick',
-    published: true,
+    published: false,
     payload: {
       slot: 'home_pick_1',
       targetType: 'collection',
@@ -47,11 +49,12 @@ export const contentPicksSeedSections: Omit<
     },
   },
   // 2) Pick de un blog post — card normal
+  // NO visible en la maqueta de home; mismo razonamiento que home_pick_1.
   {
     pageKey: 'home',
     position: 51,
     type: 'content_pick',
-    published: true,
+    published: false,
     payload: {
       slot: 'home_pick_2',
       targetType: 'blog',

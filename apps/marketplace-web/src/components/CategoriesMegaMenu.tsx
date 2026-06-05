@@ -110,16 +110,15 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                 const isActive = activeCategory?.id === cat.id;
                 return (
                   <li key={cat.id}>
-                    <button
+                    <Link
+                      to={`/productos?categoria=${cat.slug}`}
                       className={`flex items-center space-x-4 p-3 -mx-3 rounded-sm w-full text-left transition-all ${
                         isActive
                           ? "bg-[#f2eee4] text-[#ec6d13]"
                           : "text-foreground/60 hover:text-[#ec6d13] hover:bg-[#f2eee4]/50"
                       }`}
                       onMouseEnter={() => setActiveCategory(cat)}
-                      onClick={() => {
-                        onClose();
-                      }}
+                      onClick={onClose}
                     >
                       <Icon className="w-5 h-5" />
                       <span
@@ -129,7 +128,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                       >
                         {cat.name}
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 );
               })}

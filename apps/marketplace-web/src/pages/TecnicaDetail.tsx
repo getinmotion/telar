@@ -314,7 +314,24 @@ function techniqueToSlug(name: string): string {
 }
 
 function findTechniqueData(slug: string): TechniqueEditorial | undefined {
-  return TECHNIQUE_DATA[slug];
+  // Match tolerante para que el slug `anudado` (singular del API) encuentre
+  // el editorial `anudados` (plural) y la página renderice en vez de
+  // redirigir a /productos. Mismo razonamiento aplica para acentos.
+  if (TECHNIQUE_DATA[slug]) return TECHNIQUE_DATA[slug];
+
+  const stripPlural = (s: string) => s.replace(/(es|s)$/i, "");
+  const target = slug.toLowerCase();
+  const targetSingular = stripPlural(target);
+
+  return Object.values(TECHNIQUE_DATA).find((t) => {
+    const tSlug = t.slug.toLowerCase();
+    return (
+      tSlug === target ||
+      tSlug === targetSingular ||
+      stripPlural(tSlug) === target ||
+      stripPlural(tSlug) === targetSingular
+    );
+  });
 }
 
 /* ── Component ──────────────────────────────────────── */
