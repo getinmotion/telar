@@ -20,7 +20,8 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
         // Llamada al endpoint de login del backend NestJS
         const response = await telarApi.post<LoginSuccessResponse>(
             '/auth/login',
-            loginPayload
+            loginPayload,
+            { _suppressToast: true } as any
         );
 
         // Decodificar el JWT para extraer roles[] e isSuperAdmin

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ArtisanProfileData, LEARNED_FROM_OPTIONS, ETHNIC_RELATION_OPTIONS } from '@/types/artisanProfile';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
+import { VideoInput } from './Step1Identity';
 
 interface Props {
   data: ArtisanProfileData;
@@ -15,7 +16,7 @@ const labelClass = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-w
 const sectionTitle = "font-['Manrope'] text-[11px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-4";
 
 // Chips de "cuándo" con su mapeo a edad aproximada
-const WHEN_OPTIONS: { label: string; age: number }[] = [
+export const WHEN_OPTIONS: { label: string; age: number }[] = [
   { label: 'Desde niño/a',             age: 8  },
   { label: 'En mi juventud',            age: 17 },
   { label: 'Hace algunos años',         age: 30 },
@@ -67,6 +68,48 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
 
   return (
     <div className="flex flex-col gap-6">
+
+      {/* ── MÓDULO 0: Presentación pública ───────────────── */}
+      <section
+        className="p-5 rounded-xl"
+        style={{ background: '#ffffff', border: '1px solid rgba(226,213,207,0.2)', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}
+      >
+        <p className={sectionTitle}>Presentación pública</p>
+
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className={labelClass}>
+              Presentación breve
+              <span className="ml-2 text-[#54433e]/30 normal-case tracking-normal font-[500] text-[11px]">— Opcional</span>
+            </label>
+            <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+              Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones.
+            </p>
+            <SpeechTextarea
+              rows={4}
+              value={data.shortBio || ''}
+              onChange={(v) => onChange({ shortBio: v })}
+              placeholder="Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones."
+              className={textareaClass}
+              style={inputBg}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Video de presentación
+              <span className="ml-2 text-[#54433e]/30 normal-case tracking-normal font-[500] text-[11px]">— Opcional</span>
+            </label>
+            <VideoInput
+              value={data.artisanVideo || ''}
+              onChange={(url) => onChange({ artisanVideo: url })}
+            />
+            <p className="font-['Manrope'] text-[11px] text-[#54433e]/35 mt-2 italic">
+              Un video corto aumenta significativamente la conexión con compradores.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* ── MÓDULO 1: El origen del oficio ───────────────── */}
       <section
@@ -215,6 +258,24 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
               value={data.learnedFromDetail}
               onChange={(v) => onChange({ learnedFromDetail: v })}
               placeholder="Mi abuelo tejía desde que yo era pequeño y crecí viendo el telar en la casa. Años después decidí retomarlo y convertirlo en mi oficio…"
+              className={textareaClass}
+              style={inputBg}
+            />
+          </div>
+
+          {/* ── Parte 4: Significado del oficio ─────────── */}
+          <div>
+            <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
+              ¿Qué significa para ti lo que haces?
+            </p>
+            <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+              Más allá del producto, ¿qué representa este oficio en tu vida? Puede ser algo personal, cultural o filosófico.
+            </p>
+            <SpeechTextarea
+              rows={4}
+              value={data.culturalMeaning}
+              onChange={(v) => onChange({ culturalMeaning: v })}
+              placeholder="Para mí tejer es mantener viva una lengua que no se habla con palabras. Cada pieza es un puente entre lo que fui y lo que soy…"
               className={textareaClass}
               style={inputBg}
             />

@@ -1,11 +1,25 @@
+import React from 'react';
 import { Control, Controller } from 'react-hook-form';
-import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { OnboardingAnswers } from '@/types/telarData.types';
 
 interface Props {
   control: Control<OnboardingAnswers>;
 }
+
+const glassCard: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.78)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+  border: '1px solid rgba(255,255,255,0.65)',
+  boxShadow: '0 2px 10px -2px rgba(0,0,0,0.05)',
+};
+
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
+    {children}
+  </label>
+);
 
 const MONTHLY_CAPACITY = [
   { value: '<10',     label: 'Menos de 10' },
@@ -25,10 +39,10 @@ const LIMITATIONS = [
 ];
 
 const WORK_STRUCTURES = [
-  { value: 'solo',        label: 'Trabajo solo/a' },
-  { value: 'family',      label: 'Con mi familia' },
-  { value: 'small_team',  label: 'Equipo pequeño' },
-  { value: 'collective',  label: 'Colectivo' },
+  { value: 'solo',       label: 'Trabajo solo/a' },
+  { value: 'family',     label: 'Con mi familia' },
+  { value: 'small_team', label: 'Equipo pequeño' },
+  { value: 'collective', label: 'Colectivo' },
 ];
 
 const PRIMARY_GOALS = [
@@ -41,14 +55,10 @@ const PRIMARY_GOALS = [
 
 export function Block4Operations({ control }: Props) {
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold mb-1">Bloque 4 — Operaciones</h2>
-        <p className="text-sm text-muted-foreground">¿Cómo está organizado tu trabajo hoy?</p>
-      </div>
+    <div className="flex flex-col gap-5">
 
-      {/* Q13 — monthly_capacity */}
-      <div className="space-y-2">
+      {/* Capacidad mensual */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Cuántas piezas puedes producir al mes aproximadamente?</Label>
         <Controller
           name="monthly_capacity"
@@ -70,8 +80,8 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
-      {/* Q14 — main_limitation */}
-      <div className="space-y-2">
+      {/* Limitación principal */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Cuál es tu principal limitación para crecer?</Label>
         <Controller
           name="main_limitation"
@@ -93,8 +103,8 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
-      {/* Q15 — work_structure */}
-      <div className="space-y-2">
+      {/* Estructura de trabajo */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Cómo está estructurado tu trabajo?</Label>
         <Controller
           name="work_structure"
@@ -116,8 +126,8 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
-      {/* Q16 — primary_goal */}
-      <div className="space-y-2">
+      {/* Objetivo principal */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Cuál es tu objetivo principal en Telar?</Label>
         <Controller
           name="primary_goal"
@@ -138,6 +148,7 @@ export function Block4Operations({ control }: Props) {
           )}
         />
       </div>
+
     </div>
   );
 }

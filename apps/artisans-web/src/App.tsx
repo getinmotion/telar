@@ -243,9 +243,11 @@ function App() {
                           <Route
                             path="/growth/agent-form"
                             element={
-                              <Suspense fallback={<div>Cargando...</div>}>
-                                <AgentFormPage_lazy />
-                              </Suspense>
+                              <ProtectedRoute>
+                                <Suspense fallback={<div>Cargando...</div>}>
+                                  <AgentFormPage_lazy />
+                                </Suspense>
+                              </ProtectedRoute>
                             }
                           />
 
