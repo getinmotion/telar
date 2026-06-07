@@ -31,7 +31,6 @@ import { WizardHeader } from "@/components/shop/new-product-wizard/components/Wi
 import { WizardFooter } from "@/components/shop/new-product-wizard/components/WizardFooter";
 
 // Mapeo de LEARNED_FROM_OPTIONS.value → texto que se almacena en BD
-// (coincide con BORN_LABELS del sync service)
 const LEARNED_FROM_STORED_LABEL: Record<string, string> = {
   family:       'Lo heredé de mi familia o comunidad',
   community:    'Lo aprendí de mi comunidad',
@@ -41,6 +40,96 @@ const LEARNED_FROM_STORED_LABEL: Record<string, string> = {
   mixed:        'Mezclo tradición, exploración y práctica propia',
   other:        'Otro',
 };
+
+// ─── Option data con iconos (Steps 2–4) ───────────────────────────────────────
+
+const PRICE_RANGE_OPTIONS = [
+  { label: "Menos de $20.000 COP",            icon: "savings" },
+  { label: "Entre $20.000 y $80.000 COP",     icon: "attach_money" },
+  { label: "Entre $80.000 y $200.000 COP",    icon: "monetization_on" },
+  { label: "Más de $200.000 COP",             icon: "diamond" },
+  { label: "Aún no tengo precios definidos",  icon: "help_outline" },
+];
+
+const COST_KNOWLEDGE_OPTIONS = [
+  { label: "Sé exactamente cuánto me cuesta producir cada pieza y calculo mi ganancia.", desc: "Conozco materiales, tiempo de trabajo y otros costos.", icon: "calculate" },
+  { label: "Tengo una idea aproximada de mis costos, pero no hago el cálculo completo.", desc: "Sé cuánto gasto en algunas cosas, pero no en todas.", icon: "trending_flat" },
+  { label: "Miro precios de otros artesanos o negocios similares para orientarme.", desc: "Me apoyo en lo que veo en el mercado.", icon: "search" },
+  { label: "Pongo un precio según lo que considero justo por mi trabajo.", desc: "No sigo una fórmula específica.", icon: "balance" },
+  { label: "No tengo una forma clara de definir mis precios.", icon: "question_mark" },
+];
+
+const DEFINE_COST_OPTIONS = [
+  { label: "Lo tengo muy claro.", desc: "Sé cuánto gasto en materiales, tiempo y otros costos para producir cada pieza.", icon: "check_circle" },
+  { label: "Tengo claros algunos costos, pero no todos.", desc: "Conozco lo principal, como materiales, pero no siempre calculo tiempo, transporte, empaque u otros gastos.", icon: "pie_chart" },
+  { label: "Lo calculo de forma aproximada.", desc: "Más o menos sé cuánto gasto, pero no lo registro ni lo reviso con detalle.", icon: "tune" },
+  { label: "Trabajo por experiencia o costumbre.", desc: "Sé hacer mis productos, pero no suelo calcular exactamente cuánto cuesta producirlos.", icon: "history" },
+  { label: "No tengo claro cuánto me cuesta hacer mis productos.", icon: "help_outline" },
+];
+
+const PROFITABLE_OPTIONS = [
+  { label: "Lo tengo claro.", desc: "Sé cuánto gano aproximadamente por mis productos.", icon: "thumb_up" },
+  { label: "Tengo una idea general, pero no llevo un control constante.", icon: "trending_up" },
+  { label: "Vendo y recibo dinero, pero no sé realmente cuánto gano.", icon: "blur_on" },
+  { label: "Creo que gano muy poco o incluso pierdo dinero algunas veces.", icon: "trending_down" },
+  { label: "Nunca he analizado eso.", icon: "block" },
+];
+
+const BUYER_OPTIONS = [
+  { label: "Turistas",                 icon: "luggage" },
+  { label: "Amantes de lo artesanal", icon: "favorite" },
+  { label: "Compradores de regalos",  icon: "card_giftcard" },
+  { label: "Diseñadores",             icon: "draw" },
+  { label: "Clientes locales",        icon: "location_on" },
+  { label: "No lo tengo claro",       icon: "help_outline" },
+];
+
+const DIGITAL_PRESENCE_OPTIONS = [
+  { label: "Sí, activa",          icon: "wifi" },
+  { label: "Tengo pero no la uso", icon: "wifi_off" },
+  { label: "No tengo",            icon: "remove_circle_outline" },
+  { label: "Estoy empezando",     icon: "rocket_launch" },
+];
+
+const WHERE_SELL_OPTIONS = [
+  { label: "Ferias y mercados",      icon: "storefront" },
+  { label: "Redes sociales",         icon: "smartphone" },
+  { label: "WhatsApp",               icon: "chat" },
+  { label: "Tienda propia",          icon: "store" },
+  { label: "Marketplace online",     icon: "shopping_bag" },
+  { label: "Referidos / voz a voz",  icon: "record_voice_over" },
+];
+
+const SALES_ACTIVITY_OPTIONS = [
+  { label: "Constante",           icon: "show_chart" },
+  { label: "Irregular",           icon: "ssid_chart" },
+  { label: "Solo en temporadas",  icon: "event" },
+  { label: "Casi no vendo",       icon: "trending_down" },
+];
+
+const PRODUCTS_MONTH_OPTIONS = [
+  { label: "Menos de 10",  icon: "touch_app" },
+  { label: "10 – 30",      icon: "inventory_2" },
+  { label: "30 – 100",     icon: "stacked_bar_chart" },
+  { label: "Más de 100",   icon: "factory" },
+  { label: "Varía mucho",  icon: "sync_alt" },
+];
+
+const LIMIT_OPTIONS = [
+  { label: "Falta de tiempo",               icon: "schedule" },
+  { label: "Falta de dinero / capital",     icon: "money_off" },
+  { label: "Materiales o herramientas",     icon: "construction" },
+  { label: "Pocos clientes o ventas",       icon: "groups" },
+  { label: "Falta de conocimiento o apoyo", icon: "school" },
+  { label: "No lo sé",                      icon: "help_outline" },
+];
+
+const WORKERS_OPTIONS = [
+  { label: "Solo yo",                icon: "person" },
+  { label: "Con mi familia",         icon: "people" },
+  { label: "Pequeño equipo (2-5)",   icon: "group" },
+  { label: "Colectivo o taller",     icon: "groups" },
+];
 
 // ─── Oráculo content per step ─────────────────────────────────────────────────
 
@@ -55,11 +144,11 @@ const ORACLE: Record<number, { cards: { label: string; text: string }[]; next: s
   },
   2: {
     cards: [
-      { label: "¿Por qué los precios?", text: "Entender cómo defines tus precios ayuda al agente a detectar si estás sub-valorando tu trabajo y sugerirte ajustes concretos." },
-      { label: "Estructura de costos", text: "Con la información de costos el agente puede identificar oportunidades para mejorar tus márgenes sin sacrificar la calidad de tu oficio." },
-      { label: "Rentabilidad actual", text: "El agente diseñará estrategias distintas según si tu negocio genera excedentes hoy o necesita optimización urgente para ser sostenible." },
+      { label: "¿Por qué esta información?", text: "Entender cómo funciona hoy la parte comercial de tu taller permite al agente detectar oportunidades reales y darte recomendaciones que sí aplican a tu situación." },
+      { label: "Precios y costos", text: "Saber cómo defines tus precios y qué tan claro tienes tus costos ayuda al agente a identificar si estás sub-valorando tu trabajo y cómo mejorar tus márgenes." },
+      { label: "Claridad sobre ganancias", text: "El agente diseñará estrategias distintas según qué tan claro tienes si tu taller genera ganancias hoy. No buscamos perfección — buscamos tu realidad actual." },
     ],
-    next: "Con esta sección el agente podrá darte recomendaciones comerciales específicas para tu situación actual.",
+    next: "Con esta información el agente podrá darte recomendaciones comerciales específicas para tu situación actual.",
   },
   3: {
     cards: [
@@ -79,7 +168,7 @@ const ORACLE: Record<number, { cards: { label: string; text: string }[]; next: s
   },
 };
 
-// ─── Design tokens (matching ArtisanProfileWizard) ────────────────────────────
+// ─── Design tokens ─────────────────────────────────────────────────────────────
 
 const glassCard: React.CSSProperties = {
   background: "rgba(255,255,255,0.78)",
@@ -92,10 +181,6 @@ const glassCard: React.CSSProperties = {
 const inputCls =
   "w-full rounded-lg px-4 py-3 font-['Manrope'] text-[14px] text-[#151b2d] border border-[#e2d5cf]/50 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 placeholder:text-[#151b2d]/25 transition-all hover:border-[#e2d5cf]/80";
 const inputBg: React.CSSProperties = { background: "rgba(247,244,239,0.5)" };
-
-// Textarea class matching Step1Identity / Step2Origin
-const textareaCls =
-  "w-full border border-[#e2d5cf]/50 rounded-lg p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed hover:border-[#e2d5cf]/80";
 
 const Label: React.FC<{
   children: React.ReactNode;
@@ -113,49 +198,116 @@ const Label: React.FC<{
   </label>
 );
 
-// ─── OptionCard (Steps 2–4) ───────────────────────────────────────────────────
+// ─── QuestionHeader — numbered section inside a card ─────────────────────────
 
-const OptionCard: React.FC<{
+const QuestionHeader: React.FC<{
+  n: number;
+  question: React.ReactNode;
+  hint?: string;
+  required?: boolean;
+  multiSelect?: boolean;
+  maxSelect?: number;
+}> = ({ n, question, hint, required, multiSelect, maxSelect }) => (
+  <div className="flex items-start gap-3 mb-4">
+    <div
+      className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+      style={{ background: "rgba(236,109,19,0.12)" }}
+    >
+      <span className="font-['Manrope'] text-[10px] font-[800] text-[#ec6d13]">{n}</span>
+    </div>
+    <div className="flex-1">
+      <p className="font-['Manrope'] text-[14px] font-[700] text-[#151b2d] leading-snug">
+        {question}
+        {required && <span className="text-[#ef4444] ml-1">*</span>}
+      </p>
+      {hint && (
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 mt-1 leading-snug">{hint}</p>
+      )}
+      {multiSelect && maxSelect && (
+        <p className="font-['Manrope'] text-[10px] font-[600] text-[#ec6d13]/60 mt-1">
+          Selecciona hasta {maxSelect}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+// ─── IconOptionCard — opción con icono, label, desc + indicador selección ─────
+
+const IconOptionCard: React.FC<{
+  icon: string;
   label: string;
+  desc?: string;
   selected: boolean;
   onClick: () => void;
-}> = ({ label, selected, onClick }) => (
+  multiSelect?: boolean;
+}> = ({ icon, label, desc, selected, onClick, multiSelect = false }) => (
   <button
     type="button"
     onClick={onClick}
-    className={[
-      "w-full text-left px-4 py-3 rounded-xl border transition-all font-['Manrope'] text-[13px]",
-      selected
-        ? "border-[#ec6d13] bg-[#ec6d13]/5 text-[#ec6d13] font-[600]"
-        : "border-[#e2d5cf]/50 bg-[rgba(247,244,239,0.5)] text-[#151b2d]/70 hover:border-[#e2d5cf]",
-    ].join(" ")}
+    className="w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl transition-all font-['Manrope']"
+    style={{
+      background: selected ? "rgba(236,109,19,0.06)" : "rgba(247,244,239,0.5)",
+      border: selected ? "1.5px solid rgba(236,109,19,0.45)" : "1px solid rgba(226,213,207,0.5)",
+    }}
   >
-    {label}
+    <span
+      className="material-symbols-outlined text-[20px] shrink-0 mt-0.5"
+      style={{ color: selected ? "#ec6d13" : "rgba(84,67,62,0.32)" }}
+    >
+      {icon}
+    </span>
+    <div className="flex-1 min-w-0">
+      <span
+        className="text-[13px] font-[600] block leading-tight"
+        style={{ color: selected ? "#ec6d13" : "#151b2d" }}
+      >
+        {label}
+      </span>
+      {desc && (
+        <span className="text-[11px] text-[#54433e]/50 block mt-0.5 leading-snug">{desc}</span>
+      )}
+    </div>
+    {multiSelect ? (
+      <div
+        className="w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 transition-all"
+        style={{
+          border: selected ? "none" : "2px solid rgba(84,67,62,0.2)",
+          background: selected ? "#ec6d13" : "transparent",
+        }}
+      >
+        {selected && (
+          <span className="material-symbols-outlined text-white" style={{ fontSize: 11, fontVariationSettings: "'wght' 700" }}>
+            check
+          </span>
+        )}
+      </div>
+    ) : (
+      <div
+        className="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
+        style={{ borderColor: selected ? "#ec6d13" : "rgba(84,67,62,0.2)" }}
+      >
+        {selected && <div className="w-2 h-2 rounded-full bg-[#ec6d13]" />}
+      </div>
+    )}
   </button>
 );
 
-// ─── Step progress indicator ───────────────────────────────────────────────────
+// ─── StepSectionHeader — título visual del bloque ─────────────────────────────
 
-const StepDot: React.FC<{ n: number; current: number }> = ({ n, current }) => {
-  const done = n < current;
-  const active = n === current;
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div
-        className={[
-          "w-8 h-8 rounded-full flex items-center justify-center font-['Manrope'] text-[12px] font-[700] transition-all",
-          done
-            ? "bg-[#ec6d13] text-white"
-            : active
-              ? "bg-[#ec6d13]/10 border-2 border-[#ec6d13] text-[#ec6d13]"
-              : "bg-[#e2d5cf]/30 text-[#54433e]/40",
-        ].join(" ")}
-      >
-        {done ? "✓" : n}
-      </div>
-    </div>
-  );
-};
+const StepSectionHeader: React.FC<{
+  block: number;
+  title: string;
+  subtitle: string;
+}> = ({ block, title, subtitle }) => (
+  <div className="pb-1">
+    <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1.5">
+      Bloque {block} de 4
+    </p>
+    <h2 className="font-['Noto_Serif'] text-[22px] font-[600] text-[#151b2d] mb-1">{title}</h2>
+    <p className="font-['Manrope'] text-[13px] text-[#54433e]/55 leading-snug">{subtitle}</p>
+  </div>
+);
 
 // ─── Pre-fill banner ───────────────────────────────────────────────────────────
 
@@ -185,6 +337,7 @@ export const AgentFormPage: React.FC = () => {
   const [isPrefilled, setIsPrefilled] = useState(false);
   const [oraculoOpen, setOraculoOpen] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+  const [hasShop, setHasShop] = useState(false);
 
   // Slug config state (Step 1)
   const [shopSlug, setShopSlug] = useState("");
@@ -258,9 +411,9 @@ export const AgentFormPage: React.FC = () => {
 
         const knowledgeProfile = existingProfile.status === 'fulfilled' ? existingProfile.value : null;
         const shop = shopData.status === 'fulfilled' ? (shopData.value as any) : null;
+        setHasShop(!!shop);
         const wizardProfile = shop?.artisanProfile ?? null;
 
-        // Always compute wizard-derived values — used as fallback regardless of knowledge profile state
         const wizardCategoriesId = wizardProfile?.categoryIds?.length
           ? wizardProfile.categoryIds.join(',')
           : '';
@@ -282,8 +435,6 @@ export const AgentFormPage: React.FC = () => {
 
           const ki = knowledgeProfile.identityOne;
 
-          // Wizard wins for all identity fields — it's the canonical source of truth.
-          // Knowledge profile is only used as fallback when the wizard field is empty.
           setStep1Data({
             nameShop: wizardProfile?.artisticName || ki?.nameShop || "",
             artisanHistory: wizardProfile?.shortBio || ki?.artisanHistory || "",
@@ -341,10 +492,8 @@ export const AgentFormPage: React.FC = () => {
           else setCurrentStep(5);
 
         } else {
-          // No knowledge profile yet — first time opening the growth form
           setIsFirstTime(true);
           if (wizardProfile) {
-            // Prefill step 1 entirely from wizard data
             setStep1Data({
               nameShop: wizardProfile.artisticName || "",
               artisanHistory: wizardProfile.shortBio || "",
@@ -393,6 +542,10 @@ export const AgentFormPage: React.FC = () => {
 
   const handleSubmitStep2 = async () => {
     if (!user?.id) return;
+    if (!step2Data.shopRangePayment) { toast.error("Selecciona el rango de precio de tus productos (pregunta 1)"); return; }
+    if (!step2Data.shopKnowledgeCost) { toast.error("Indica cómo defines tus precios (pregunta 2)"); return; }
+    if (!step2Data.shopKnowledgeDefineCost) { toast.error("Indica qué tan claro tienes tus costos (pregunta 3)"); return; }
+    if (!step2Data.shopKnowledgeIsProfitable) { toast.error("Indica qué tan claro tienes si tu taller genera ganancias (pregunta 4)"); return; }
     setIsSaving(true);
     try {
       const updated = await submitStep2Commercial(user.id, step2Data);
@@ -406,6 +559,10 @@ export const AgentFormPage: React.FC = () => {
 
   const handleSubmitStep3 = async () => {
     if (!user?.id) return;
+    if (!step3Data.shopKnowledgeMainBuyerOne) { toast.error("Selecciona al menos un tipo de comprador (pregunta 1)"); return; }
+    if (!step3Data.shopKnowledgeDigitalPresence) { toast.error("Indica si tienes presencia digital (pregunta 2)"); return; }
+    if (!step3Data.shopKnowledgeWhereSaleOne) { toast.error("Selecciona al menos un canal de venta (pregunta 3)"); return; }
+    if (!step3Data.shopKnowledgeSalesActivity) { toast.error("Indica cómo es tu actividad de ventas (pregunta 4)"); return; }
     setIsSaving(true);
     try {
       const updated = await submitStep3ClientMarket(user.id, step3Data);
@@ -419,6 +576,10 @@ export const AgentFormPage: React.FC = () => {
 
   const handleSubmitStep4 = async () => {
     if (!user?.id) return;
+    if (!step4Data.shopKnowledgeProductsMakeMonth) { toast.error("Indica cuántos productos haces al mes (pregunta 1)"); return; }
+    if (!step4Data.shopKnowledgeLimitTodayOne) { toast.error("Selecciona al menos una limitación actual (pregunta 2)"); return; }
+    if (!step4Data.shopManyWorkers) { toast.error("Indica cuántas personas trabajan contigo (pregunta 3)"); return; }
+    if (!step4Data.shopFirstSolvingTelar.trim()) { toast.error("Cuéntanos cómo puede ayudarte TELAR (pregunta 4)"); return; }
     setIsSaving(true);
     try {
       const updated = await submitStep4OperationGrowth(user.id, step4Data);
@@ -431,7 +592,9 @@ export const AgentFormPage: React.FC = () => {
   };
 
   const handleCreateShopAndFinish = async () => {
-    if (!user?.id || !profile) return;
+    if (!user?.id) return;
+    if (hasShop) { navigate("/dashboard"); return; }
+    if (!profile) return;
     setIsSaving(true);
     try {
       const finalSlug = shopSlug || step1Data.nameShop
@@ -453,7 +616,8 @@ export const AgentFormPage: React.FC = () => {
       toast.success("¡Tu tienda ha sido creada exitosamente!");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error?.message || "Error al crear la tienda");
+      const msg = error?.message || error?.error || "Error al crear la tienda";
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
@@ -461,7 +625,6 @@ export const AgentFormPage: React.FC = () => {
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
-  // Resolved selected special/born values as arrays
   const selectedSpecial = [
     step1Data.shopSpecialDefinitionOne,
     step1Data.shopSpecialDefinitionTwo,
@@ -492,6 +655,29 @@ export const AgentFormPage: React.FC = () => {
     });
   };
 
+  // ─── Generic multi-select helpers for steps 3 & 4 ─────────────────────────
+
+  const toggleBuyerOption = (opt: string) => {
+    const sel = [step3Data.shopKnowledgeMainBuyerOne, step3Data.shopKnowledgeMainBuyerTwo, step3Data.shopKnowledgeMainBuyerThree].filter(Boolean) as string[];
+    const isSelected = sel.includes(opt);
+    const next = isSelected ? sel.filter(s => s !== opt) : sel.length < 3 ? [...sel, opt] : sel;
+    setStep3Data({ ...step3Data, shopKnowledgeMainBuyerOne: next[0] ?? "", shopKnowledgeMainBuyerTwo: next[1] ?? null, shopKnowledgeMainBuyerThree: next[2] ?? null });
+  };
+
+  const toggleWhereSaleOption = (opt: string) => {
+    const sel = [step3Data.shopKnowledgeWhereSaleOne, step3Data.shopKnowledgeWhereSaleTwo, step3Data.shopKnowledgeWhereSaleThree].filter(Boolean) as string[];
+    const isSelected = sel.includes(opt);
+    const next = isSelected ? sel.filter(s => s !== opt) : sel.length < 3 ? [...sel, opt] : sel;
+    setStep3Data({ ...step3Data, shopKnowledgeWhereSaleOne: next[0] ?? "", shopKnowledgeWhereSaleTwo: next[1] ?? null, shopKnowledgeWhereSaleThree: next[2] ?? null });
+  };
+
+  const toggleLimitOption = (opt: string) => {
+    const sel = [step4Data.shopKnowledgeLimitTodayOne, step4Data.shopKnowledgeLimitTodayTwo, step4Data.shopKnowledgeLimitTodayThree].filter(Boolean) as string[];
+    const isSelected = sel.includes(opt);
+    const next = isSelected ? sel.filter(s => s !== opt) : sel.length < 3 ? [...sel, opt] : sel;
+    setStep4Data({ ...step4Data, shopKnowledgeLimitTodayOne: next[0] ?? "", shopKnowledgeLimitTodayTwo: next[1] ?? null, shopKnowledgeLimitTodayThree: next[2] ?? null });
+  };
+
   // ─── Loading screen ────────────────────────────────────────────────────────
 
   if (isLoading) {
@@ -508,7 +694,7 @@ export const AgentFormPage: React.FC = () => {
     );
   }
 
-  // ─── Oráculo panel (shared across steps) ──────────────────────────────────
+  // ─── Oráculo panel ─────────────────────────────────────────────────────────
 
   const oracle = ORACLE[currentStep];
 
@@ -547,16 +733,22 @@ export const AgentFormPage: React.FC = () => {
     </section>
   ) : null;
 
-  // ─── Main render ───────────────────────────────────────────────────────────
+  // ─── Step meta ─────────────────────────────────────────────────────────────
 
   const STEP_META: Record<number, { icon: string; title: string; subtitle: string }> = {
     1: { icon: 'person', title: 'Identidad Artesanal', subtitle: 'Quién eres y qué hace especial tu trabajo' },
-    2: { icon: 'payments', title: 'Información Comercial', subtitle: 'Precios, costos y rentabilidad de tu negocio' },
+    2: { icon: 'payments', title: 'Realidad Comercial', subtitle: 'Cómo funciona hoy la parte comercial de tu taller' },
     3: { icon: 'groups', title: 'Clientes y Mercado', subtitle: 'Quiénes compran y dónde vendes' },
     4: { icon: 'trending_up', title: 'Operaciones y Crecimiento', subtitle: 'Capacidad, limitaciones y metas' },
   };
 
   const stepMeta = STEP_META[currentStep] ?? STEP_META[1];
+
+  // ─── Computed selected arrays ──────────────────────────────────────────────
+
+  const selectedBuyers = [step3Data.shopKnowledgeMainBuyerOne, step3Data.shopKnowledgeMainBuyerTwo, step3Data.shopKnowledgeMainBuyerThree].filter(Boolean) as string[];
+  const selectedWhereSale = [step3Data.shopKnowledgeWhereSaleOne, step3Data.shopKnowledgeWhereSaleTwo, step3Data.shopKnowledgeWhereSaleThree].filter(Boolean) as string[];
+  const selectedLimits = [step4Data.shopKnowledgeLimitTodayOne, step4Data.shopKnowledgeLimitTodayTwo, step4Data.shopKnowledgeLimitTodayThree].filter(Boolean) as string[];
 
   return (
     <div
@@ -587,668 +779,742 @@ export const AgentFormPage: React.FC = () => {
 
         {/* 2-column grid: content + oracle */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+
         {/* ── Content column ── */}
         <div className="lg:col-span-7">
 
-        {/* ── Step 1: Identidad Artesanal ──────────────────────────────────── */}
-        {currentStep === 1 && (
-          <div className="flex flex-col gap-5">
+          {/* ── Step 1: Identidad Artesanal ───────────────────────────────────── */}
+          {currentStep === 1 && (
+            <div className="flex flex-col gap-5">
 
-            {/* Contextual welcome/update message */}
-            {isFirstTime === true ? (
-              <div
-                className="rounded-xl p-5"
-                style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.2)' }}
-              >
-                <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-2">
-                  Bienvenido a TELAR
-                </p>
-                <h2 className="font-['Manrope'] text-[18px] font-[800] text-[#151b2d] mb-2">
-                  Cuéntanos sobre ti para activar tu agente
-                </h2>
-                <p className="font-['Manrope'] text-[13px] text-[#54433e]/70 leading-relaxed">
-                  Esta información es la base con la que tu agente de IA te representará en el marketplace, generará contenido y te hará recomendaciones personalizadas. Tómate unos minutos — vale la pena.
-                </p>
-              </div>
-            ) : isFirstTime === false ? (
-              <div
-                className="rounded-xl p-5"
-                style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.2)' }}
-              >
-                <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-2">
-                  Actualización de TELAR
-                </p>
-                <h2 className="font-['Manrope'] text-[18px] font-[800] text-[#151b2d] mb-2">
-                  Hemos actualizado la plataforma
-                </h2>
-                <p className="font-['Manrope'] text-[13px] text-[#54433e]/70 leading-relaxed">
-                  Para que tu agente pueda trabajar contigo necesitamos que completes este perfil. Hemos pre-llenado lo que ya teníamos — solo revisa y confirma.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
-                  Bloque 1 de 4
-                </p>
-                <h2 className="font-['Manrope'] text-[20px] font-[800] text-[#151b2d]">
-                  Identidad Artesanal
-                </h2>
-              </div>
-            )}
-
-            {/* 1 · Nombre del taller + URL config — igual que Step1Identity Módulo 2 */}
-            <div className="rounded-xl p-5" style={glassCard}>
-              <Label required>Nombre del taller</Label>
-              <input
-                type="text"
-                value={step1Data.nameShop}
-                onChange={(e) => setStep1Data({ ...step1Data, nameShop: e.target.value })}
-                placeholder="Ej. Tejidos Zenú, Taller del Barro…"
-                className={inputCls}
-                style={inputBg}
-              />
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mt-2 leading-snug">
-                Este es el nombre que aparecerá en el marketplace de TELAR, en tu tienda online y en todos los canales de venta.
-              </p>
-
-              {/* URL config toggle */}
-              <button
-                type="button"
-                onClick={() => setShowSlug(v => !v)}
-                className="mt-4 flex items-center gap-2 group"
-              >
+              {/* Contextual welcome/update message */}
+              {isFirstTime === true ? (
                 <div
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e2d5cf]/60 group-hover:border-[#ec6d13]/40 transition-colors"
-                  style={{ background: "rgba(84,67,62,0.04)" }}
+                  className="rounded-xl p-5"
+                  style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.2)' }}
                 >
-                  <span className="material-symbols-outlined text-[14px] text-[#ec6d13]/70">link</span>
-                  <span className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/55 group-hover:text-[#ec6d13] transition-colors">
-                    {showSlug ? "Cerrar configurador" : "Configurar tu URL"}
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-[12px] text-[#54433e]/35 group-hover:text-[#ec6d13] transition-all"
-                    style={{ transform: showSlug ? "rotate(180deg)" : "none" }}
-                  >
-                    expand_more
-                  </span>
+                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-2">
+                    Bienvenido a TELAR
+                  </p>
+                  <h2 className="font-['Manrope'] text-[18px] font-[800] text-[#151b2d] mb-2">
+                    Cuéntanos sobre ti para activar tu agente
+                  </h2>
+                  <p className="font-['Manrope'] text-[13px] text-[#54433e]/70 leading-relaxed">
+                    Esta información es la base con la que tu agente de IA te representará en el marketplace, generará contenido y te hará recomendaciones personalizadas. Tómate unos minutos — vale la pena.
+                  </p>
                 </div>
-                {shopSlug && !showSlug && (
-                  <span className="font-['Manrope'] text-[11px] text-[#54433e]/35 truncate max-w-[180px]">
-                    /{shopSlug}
-                  </span>
-                )}
-              </button>
-
-              {showSlug && (
-                <SlugCreator
-                  artisticName={step1Data.nameShop}
-                  currentSlug={shopSlug}
-                  onSave={async (slug) => { setShopSlug(slug); }}
-                />
+              ) : isFirstTime === false ? (
+                <div
+                  className="rounded-xl p-5"
+                  style={{ background: 'rgba(236,109,19,0.07)', border: '1px solid rgba(236,109,19,0.2)' }}
+                >
+                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-2">
+                    Actualización de TELAR
+                  </p>
+                  <h2 className="font-['Manrope'] text-[18px] font-[800] text-[#151b2d] mb-2">
+                    Hemos actualizado la plataforma
+                  </h2>
+                  <p className="font-['Manrope'] text-[13px] text-[#54433e]/70 leading-relaxed">
+                    Para que tu agente pueda trabajar contigo necesitamos que completes este perfil. Hemos pre-llenado lo que ya teníamos — solo revisa y confirma.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
+                    Bloque 1 de 4
+                  </p>
+                  <h2 className="font-['Manrope'] text-[20px] font-[800] text-[#151b2d]">
+                    Identidad Artesanal
+                  </h2>
+                </div>
               )}
-            </div>
 
-            {/* 2 · Presentación breve — mismo componente que Step2Origin Módulo 0, obligatorio */}
-            <section
-              className="p-5 rounded-xl"
-              style={glassCard}
-            >
-              <p className="font-['Manrope'] text-[11px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-4">
-                Presentación pública
-              </p>
-              <div>
-                <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
-                  Presentación breve <span className="text-[#ef4444]">*</span>
-                </label>
-                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
-                  Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones.
-                </p>
-                <SpeechTextarea
-                  rows={4}
-                  value={step1Data.artisanHistory}
-                  onChange={(v) => setStep1Data({ ...step1Data, artisanHistory: v })}
-                  placeholder="Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones."
-                  className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
-                  style={{ background: 'rgba(247,244,239,0.4)' }}
+              {/* Nombre del taller */}
+              <div className="rounded-xl p-5" style={glassCard}>
+                <Label required>Nombre del taller</Label>
+                <input
+                  type="text"
+                  value={step1Data.nameShop}
+                  onChange={(e) => setStep1Data({ ...step1Data, nameShop: e.target.value })}
+                  placeholder="Ej. Tejidos Zenú, Taller del Barro…"
+                  className={inputCls}
+                  style={inputBg}
                 />
-              </div>
-            </section>
-
-            {/* 3 · ¿Cuándo empezó este camino? — mismo componente que Step2Origin Parte 2 */}
-            <section
-              className="p-6 rounded-xl"
-              style={glassCard}
-            >
-              <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
-                ¿Cuándo empezó este camino para ti?
-                <span className="text-[#ef4444] ml-1">*</span>
-              </p>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
-                No necesitas ser exacto. Elige lo que más se acerque a tu historia.
-              </p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {WHEN_OPTIONS.map((opt) => {
-                  const isActive = step1Data.ageExperience === opt.age;
-                  return (
-                    <button
-                      key={opt.label}
-                      type="button"
-                      onClick={() => setStep1Data({ ...step1Data, ageExperience: isActive ? 0 : opt.age })}
-                      className="px-4 py-2 rounded-full font-['Manrope'] text-[12px] font-[600] transition-all"
-                      style={{
-                        background: isActive ? "#ec6d13" : "rgba(236,109,19,0.06)",
-                        color: isActive ? "#ffffff" : "#ec6d13",
-                        border: isActive ? "1.5px solid #ec6d13" : "1px solid rgba(236,109,19,0.3)",
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {!showPreciseAge ? (
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mt-2 leading-snug">
+                  Este es el nombre que aparecerá en el marketplace de TELAR, en tu tienda online y en todos los canales de venta.
+                </p>
                 <button
                   type="button"
-                  onClick={() => setShowPreciseAge(true)}
-                  className="font-['Manrope'] text-[11px] text-[#54433e]/35 hover:text-[#ec6d13] transition-colors underline-offset-2 hover:underline"
+                  onClick={() => setShowSlug(v => !v)}
+                  className="mt-4 flex items-center gap-2 group"
                 >
-                  Quiero añadir una edad aproximada
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e2d5cf]/60 group-hover:border-[#ec6d13]/40 transition-colors"
+                    style={{ background: "rgba(84,67,62,0.04)" }}
+                  >
+                    <span className="material-symbols-outlined text-[14px] text-[#ec6d13]/70">link</span>
+                    <span className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/55 group-hover:text-[#ec6d13] transition-colors">
+                      {showSlug ? "Cerrar configurador" : "Configurar tu URL"}
+                    </span>
+                    <span
+                      className="material-symbols-outlined text-[12px] text-[#54433e]/35 group-hover:text-[#ec6d13] transition-all"
+                      style={{ transform: showSlug ? "rotate(180deg)" : "none" }}
+                    >
+                      expand_more
+                    </span>
+                  </div>
+                  {shopSlug && !showSlug && (
+                    <span className="font-['Manrope'] text-[11px] text-[#54433e]/35 truncate max-w-[180px]">
+                      /{shopSlug}
+                    </span>
+                  )}
                 </button>
-              ) : (
-                <div className="flex items-center gap-3 mt-2">
-                  <label className="font-['Manrope'] text-[11px] text-[#54433e]/50 whitespace-nowrap">
-                    Edad aproximada:
+                {showSlug && (
+                  <SlugCreator
+                    artisticName={step1Data.nameShop}
+                    currentSlug={shopSlug}
+                    onSave={async (slug) => { setShopSlug(slug); }}
+                  />
+                )}
+              </div>
+
+              {/* Presentación breve */}
+              <section className="p-5 rounded-xl" style={glassCard}>
+                <p className="font-['Manrope'] text-[11px] font-[800] uppercase tracking-widest text-[#ec6d13] mb-4">
+                  Presentación pública
+                </p>
+                <div>
+                  <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
+                    Presentación breve <span className="text-[#ef4444]">*</span>
                   </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={step1Data.ageExperience || ''}
-                    onChange={(e) => setStep1Data({ ...step1Data, ageExperience: parseInt(e.target.value) || 0 })}
-                    placeholder="Ej. 12"
-                    className="w-24 rounded-lg px-3 py-2 font-['Manrope'] text-[13px] text-[#151b2d] border border-[#e2d5cf]/40 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+                  <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+                    Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones.
+                  </p>
+                  <SpeechTextarea
+                    rows={4}
+                    value={step1Data.artisanHistory}
+                    onChange={(v) => setStep1Data({ ...step1Data, artisanHistory: v })}
+                    placeholder="Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones."
+                    className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
                     style={{ background: 'rgba(247,244,239,0.4)' }}
                   />
+                </div>
+              </section>
+
+              {/* ¿Cuándo empezó este camino? */}
+              <section className="p-6 rounded-xl" style={glassCard}>
+                <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
+                  ¿Cuándo empezó este camino para ti?
+                  <span className="text-[#ef4444] ml-1">*</span>
+                </p>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
+                  No necesitas ser exacto. Elige lo que más se acerque a tu historia.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {WHEN_OPTIONS.map((opt) => {
+                    const isActive = step1Data.ageExperience === opt.age;
+                    return (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        onClick={() => setStep1Data({ ...step1Data, ageExperience: isActive ? 0 : opt.age })}
+                        className="px-4 py-2 rounded-full font-['Manrope'] text-[12px] font-[600] transition-all"
+                        style={{
+                          background: isActive ? "#ec6d13" : "rgba(236,109,19,0.06)",
+                          color: isActive ? "#ffffff" : "#ec6d13",
+                          border: isActive ? "1.5px solid #ec6d13" : "1px solid rgba(236,109,19,0.3)",
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {!showPreciseAge ? (
                   <button
                     type="button"
-                    onClick={() => setShowPreciseAge(false)}
-                    className="text-[#54433e]/30 hover:text-[#54433e]/60 transition-colors"
+                    onClick={() => setShowPreciseAge(true)}
+                    className="font-['Manrope'] text-[11px] text-[#54433e]/35 hover:text-[#ec6d13] transition-colors underline-offset-2 hover:underline"
                   >
-                    <span className="material-symbols-outlined text-[16px]">close</span>
+                    Quiero añadir una edad aproximada
                   </button>
-                </div>
-              )}
-            </section>
-
-            {/* 4 · Historia del taller — igual que Step2Origin "Cuéntanos cómo comenzó" */}
-            <section
-              className="p-6 rounded-xl"
-              style={glassCard}
-            >
-              <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
-                Cuéntanos cómo comenzó este camino
-              </p>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
-                Puedes contarnos quién influyó en ti, cómo aprendiste y qué hizo que este oficio se volviera importante para ti.
-              </p>
-              <SpeechTextarea
-                rows={5}
-                value={step1Data.shopHistory}
-                onChange={(v) => setStep1Data({ ...step1Data, shopHistory: v })}
-                placeholder="Mi abuelo tejía desde que yo era pequeño y crecí viendo el telar en la casa. Años después decidí retomarlo y convertirlo en mi oficio…"
-                className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
-                style={inputBg}
-              />
-            </section>
-
-            {/* 5 · Tipos de productos */}
-            <div className="rounded-xl p-5" style={glassCard}>
-              <Label required>¿Qué tipos de productos creas?</Label>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
-                Describe los objetos que produces: qué son, para qué sirven, en qué materiales, tamaños o formatos los haces. Entre más específico, mejor te representará el agente en el marketplace.
-              </p>
-              <SpeechTextarea
-                value={step1Data.shopDescription}
-                onChange={(v) => setStep1Data({ ...step1Data, shopDescription: v })}
-                className={inputCls}
-                style={inputBg}
-                placeholder="Ej. Bolsos tejidos en fique con asas de cuero, en tres tamaños. También hago individuales y portavasos para cocina. Todos son piezas únicas, sin patrones repetidos."
-                rows={4}
-              />
-            </div>
-
-            {/* 6 · ¿Qué significa para ti? — correcto, se mantiene igual */}
-            <div className="rounded-xl p-5" style={glassCard}>
-              <Label required>¿Qué significa para ti lo que haces?</Label>
-              <SpeechTextarea
-                value={step1Data.shopDefinition}
-                onChange={(v) => setStep1Data({ ...step1Data, shopDefinition: v })}
-                className={inputCls}
-                style={inputBg}
-                placeholder="¿Qué representa tu trabajo para ti?"
-                rows={3}
-              />
-            </div>
-
-            {/* 7 · Categorías — selección múltiple, se guarda como IDs separados por coma */}
-            <div className="rounded-xl p-5" style={glassCard}>
-              <Label required>Categorías de tu taller</Label>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-                ¿En qué tipos de productos trabaja tu taller? Puedes elegir varias categorías.
-              </p>
-              <CategoryMultiPicker
-                selectedIds={step1Data.shopCategoriesId ? step1Data.shopCategoriesId.split(",").filter(Boolean) : []}
-                onChange={(ids) => setStep1Data({ ...step1Data, shopCategoriesId: ids.join(",") })}
-                onNamesChange={() => {}}
-              />
-            </div>
-
-            {/* 8 · ¿Qué te hace especial? — fuente: DIFFERENTIATORS de Block1Artisan */}
-            <div className="rounded-xl p-5" style={glassCard}>
-              <Label required>¿Qué te hace especial?</Label>
-              <div className="flex flex-wrap gap-2">
-                {DIFFERENTIATORS.map((d) => {
-                  const storedVal = DIFFERENTIATOR_STORED_LABELS[d.value] ?? d.value;
-                  const isActive = selectedSpecial.includes(storedVal);
-                  return (
+                ) : (
+                  <div className="flex items-center gap-3 mt-2">
+                    <label className="font-['Manrope'] text-[11px] text-[#54433e]/50 whitespace-nowrap">
+                      Edad aproximada:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={step1Data.ageExperience || ''}
+                      onChange={(e) => setStep1Data({ ...step1Data, ageExperience: parseInt(e.target.value) || 0 })}
+                      placeholder="Ej. 12"
+                      className="w-24 rounded-lg px-3 py-2 font-['Manrope'] text-[13px] text-[#151b2d] border border-[#e2d5cf]/40 focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 transition-all"
+                      style={{ background: 'rgba(247,244,239,0.4)' }}
+                    />
                     <button
-                      key={d.value}
                       type="button"
-                      onClick={() => {
-                        const isExclusive = d.value === 'aun_no_lo_se';
-                        const exclusiveStored = DIFFERENTIATOR_STORED_LABELS['aun_no_lo_se'];
-                        const hasExclusive = selectedSpecial.includes(exclusiveStored);
-                        let next: string[];
-                        if (isActive) {
-                          next = selectedSpecial.filter(v => v !== storedVal);
-                        } else if (isExclusive) {
-                          next = [storedVal];
-                        } else if (hasExclusive) {
-                          next = [storedVal];
-                        } else if (selectedSpecial.length < 3) {
-                          next = [...selectedSpecial, storedVal];
-                        } else {
-                          return;
-                        }
-                        setStep1Data({
-                          ...step1Data,
-                          shopSpecialDefinitionOne: next[0] ?? "",
-                          shopSpecialDefinitionTwo: next[1] ?? null,
-                          shopSpecialDefinitionThree: next[2] ?? null,
-                        });
-                      }}
-                      className="px-4 py-2 rounded-full font-['Manrope'] text-[12px] font-[600] transition-all"
-                      style={{
-                        background: isActive ? "#ec6d13" : "rgba(236,109,19,0.06)",
-                        color: isActive ? "#ffffff" : "#ec6d13",
-                        border: isActive ? "1.5px solid #ec6d13" : "1px solid rgba(236,109,19,0.3)",
-                      }}
+                      onClick={() => setShowPreciseAge(false)}
+                      className="text-[#54433e]/30 hover:text-[#54433e]/60 transition-colors"
                     >
-                      {d.label}
+                      <span className="material-symbols-outlined text-[16px]">close</span>
                     </button>
-                  );
-                })}
-              </div>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-2">
-                Selecciona hasta 3 opciones
-              </p>
-            </div>
+                  </div>
+                )}
+              </section>
 
-            {/* 9 · ¿De dónde nace tu oficio? — mismo componente que Step2Origin Parte 1 */}
-            <section
-              className="p-6 rounded-xl"
-              style={glassCard}
-            >
-              <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
-                ¿Qué marcó el inicio de tu oficio?
-                <span className="text-[#ef4444] ml-1">*</span>
-              </p>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
-                Elige la opción que mejor describe cómo llegaste a este camino.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {LEARNED_FROM_OPTIONS.map((opt) => {
-                  const storedVal = LEARNED_FROM_STORED_LABEL[opt.value] ?? opt.label;
-                  const isActive = selectedBorn.includes(storedVal);
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => handleBornSelect(storedVal)}
-                      className="flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                      style={{
-                        background: isActive ? "rgba(236,109,19,0.06)" : "rgba(247,244,239,0.5)",
-                        border: isActive ? "1.5px solid rgba(236,109,19,0.45)" : "1px solid rgba(226,213,207,0.5)",
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined text-[20px] shrink-0 mt-0.5"
-                        style={{ color: isActive ? "#ec6d13" : "rgba(84,67,62,0.35)" }}
+              {/* Historia del taller */}
+              <section className="p-6 rounded-xl" style={glassCard}>
+                <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
+                  Cuéntanos cómo comenzó este camino
+                </p>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+                  Puedes contarnos quién influyó en ti, cómo aprendiste y qué hizo que este oficio se volviera importante para ti.
+                </p>
+                <SpeechTextarea
+                  rows={5}
+                  value={step1Data.shopHistory}
+                  onChange={(v) => setStep1Data({ ...step1Data, shopHistory: v })}
+                  placeholder="Mi abuelo tejía desde que yo era pequeño y crecí viendo el telar en la casa. Años después decidí retomarlo y convertirlo en mi oficio…"
+                  className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
+                  style={inputBg}
+                />
+              </section>
+
+              {/* Tipos de productos */}
+              <div className="rounded-xl p-5" style={glassCard}>
+                <Label required>¿Qué tipos de productos creas?</Label>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+                  Describe los objetos que produces: qué son, para qué sirven, en qué materiales, tamaños o formatos los haces. Entre más específico, mejor te representará el agente en el marketplace.
+                </p>
+                <SpeechTextarea
+                  value={step1Data.shopDescription}
+                  onChange={(v) => setStep1Data({ ...step1Data, shopDescription: v })}
+                  className={inputCls}
+                  style={inputBg}
+                  placeholder="Ej. Bolsos tejidos en fique con asas de cuero, en tres tamaños. También hago individuales y portavasos para cocina. Todos son piezas únicas, sin patrones repetidos."
+                  rows={4}
+                />
+              </div>
+
+              {/* ¿Qué significa para ti? */}
+              <div className="rounded-xl p-5" style={glassCard}>
+                <Label required>¿Qué significa para ti lo que haces?</Label>
+                <SpeechTextarea
+                  value={step1Data.shopDefinition}
+                  onChange={(v) => setStep1Data({ ...step1Data, shopDefinition: v })}
+                  className={inputCls}
+                  style={inputBg}
+                  placeholder="¿Qué representa tu trabajo para ti?"
+                  rows={3}
+                />
+              </div>
+
+              {/* Categorías */}
+              <div className="rounded-xl p-5" style={glassCard}>
+                <Label required>Categorías de tu taller</Label>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+                  ¿En qué tipos de productos trabaja tu taller? Puedes elegir varias categorías.
+                </p>
+                <CategoryMultiPicker
+                  selectedIds={step1Data.shopCategoriesId ? step1Data.shopCategoriesId.split(",").filter(Boolean) : []}
+                  onChange={(ids) => setStep1Data({ ...step1Data, shopCategoriesId: ids.join(",") })}
+                  onNamesChange={() => {}}
+                />
+              </div>
+
+              {/* ¿Qué te hace especial? */}
+              <div className="rounded-xl p-5" style={glassCard}>
+                <Label required>¿Qué te hace especial?</Label>
+                <div className="flex flex-wrap gap-2">
+                  {DIFFERENTIATORS.map((d) => {
+                    const storedVal = DIFFERENTIATOR_STORED_LABELS[d.value] ?? d.value;
+                    const isActive = selectedSpecial.includes(storedVal);
+                    return (
+                      <button
+                        key={d.value}
+                        type="button"
+                        onClick={() => {
+                          const isExclusive = d.value === 'aun_no_lo_se';
+                          const exclusiveStored = DIFFERENTIATOR_STORED_LABELS['aun_no_lo_se'];
+                          const hasExclusive = selectedSpecial.includes(exclusiveStored);
+                          let next: string[];
+                          if (isActive) {
+                            next = selectedSpecial.filter(v => v !== storedVal);
+                          } else if (isExclusive) {
+                            next = [storedVal];
+                          } else if (hasExclusive) {
+                            next = [storedVal];
+                          } else if (selectedSpecial.length < 3) {
+                            next = [...selectedSpecial, storedVal];
+                          } else {
+                            return;
+                          }
+                          setStep1Data({
+                            ...step1Data,
+                            shopSpecialDefinitionOne: next[0] ?? "",
+                            shopSpecialDefinitionTwo: next[1] ?? null,
+                            shopSpecialDefinitionThree: next[2] ?? null,
+                          });
+                        }}
+                        className="px-4 py-2 rounded-full font-['Manrope'] text-[12px] font-[600] transition-all"
+                        style={{
+                          background: isActive ? "#ec6d13" : "rgba(236,109,19,0.06)",
+                          color: isActive ? "#ffffff" : "#ec6d13",
+                          border: isActive ? "1.5px solid #ec6d13" : "1px solid rgba(236,109,19,0.3)",
+                        }}
                       >
-                        {opt.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
+                        {d.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-2">
+                  Selecciona hasta 3 opciones
+                </p>
+              </div>
+
+              {/* ¿De dónde nace tu oficio? */}
+              <section className="p-6 rounded-xl" style={glassCard}>
+                <p className="font-['Manrope'] text-[12px] font-[700] text-[#151b2d] mb-1">
+                  ¿Qué marcó el inicio de tu oficio?
+                  <span className="text-[#ef4444] ml-1">*</span>
+                </p>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
+                  Elige la opción que mejor describe cómo llegaste a este camino.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {LEARNED_FROM_OPTIONS.map((opt) => {
+                    const storedVal = LEARNED_FROM_STORED_LABEL[opt.value] ?? opt.label;
+                    const isActive = selectedBorn.includes(storedVal);
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleBornSelect(storedVal)}
+                        className="flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all"
+                        style={{
+                          background: isActive ? "rgba(236,109,19,0.06)" : "rgba(247,244,239,0.5)",
+                          border: isActive ? "1.5px solid rgba(236,109,19,0.45)" : "1px solid rgba(226,213,207,0.5)",
+                        }}
+                      >
                         <span
-                          className="font-['Manrope'] text-[13px] font-[700] block leading-tight mb-0.5"
-                          style={{ color: isActive ? "#ec6d13" : "#151b2d" }}
+                          className="material-symbols-outlined text-[20px] shrink-0 mt-0.5"
+                          style={{ color: isActive ? "#ec6d13" : "rgba(84,67,62,0.35)" }}
                         >
-                          {opt.label}
+                          {opt.icon}
                         </span>
-                        <span className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
-                          {opt.desc}
-                        </span>
-                      </div>
-                      <div
-                        className="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
-                        style={{ borderColor: isActive ? "#ec6d13" : "rgba(84,67,62,0.2)" }}
-                      >
-                        {isActive && <div className="w-2 h-2 rounded-full bg-[#ec6d13]" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-3">
-                Selecciona hasta 3 opciones
-              </p>
-            </section>
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className="font-['Manrope'] text-[13px] font-[700] block leading-tight mb-0.5"
+                            style={{ color: isActive ? "#ec6d13" : "#151b2d" }}
+                          >
+                            {opt.label}
+                          </span>
+                          <span className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
+                            {opt.desc}
+                          </span>
+                        </div>
+                        <div
+                          className="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
+                          style={{ borderColor: isActive ? "#ec6d13" : "rgba(84,67,62,0.2)" }}
+                        >
+                          {isActive && <div className="w-2 h-2 rounded-full bg-[#ec6d13]" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-3">
+                  Selecciona hasta 3 opciones
+                </p>
+              </section>
 
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* ── Steps 2–5: mantienen el card contenedor ───────────────────────── */}
-        {currentStep > 1 && (
-          <div className="rounded-2xl p-8" style={glassCard}>
+          {/* ── Step 2: Realidad Comercial ─────────────────────────────────────── */}
+          {currentStep === 2 && (
+            <div className="flex flex-col gap-5">
 
-            {/* ── Step 2: Comercial ──────────────────────────────────────────── */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
+              <StepSectionHeader
+                block={2}
+                title="Realidad Comercial"
+                subtitle="Cómo funciona hoy la parte comercial de tu taller"
+              />
+
+              {/* Intro */}
+              <div
+                className="rounded-xl px-5 py-4 flex items-start gap-3"
+                style={{ background: "rgba(236,109,19,0.05)", border: "1px solid rgba(236,109,19,0.15)" }}
+              >
+                <span className="material-symbols-outlined text-[18px] text-[#ec6d13] shrink-0 mt-0.5">info</span>
                 <div>
-                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
-                    Bloque 2 de 4
+                  <p className="font-['Manrope'] text-[13px] text-[#54433e] leading-relaxed">
+                    No buscamos respuestas perfectas ni conocimientos técnicos. Queremos entender cómo vendes, cómo calculas tus precios y qué tan claro tienes el funcionamiento económico de tu taller.
                   </p>
-                  <h2 className="font-['Manrope'] text-[20px] font-[800] text-[#151b2d]">
-                    Información Comercial
-                  </h2>
-                </div>
-
-                <div>
-                  <Label required>¿Cómo defines tus precios?</Label>
-                  <SpeechTextarea
-                    value={step2Data.shopRangePayment}
-                    onChange={(v) => setStep2Data({ ...step2Data, shopRangePayment: v })}
-                    className={inputCls}
-                    style={inputBg}
-                    placeholder="Describe tu modelo de precios..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label required>¿Conoces tus costos?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Sí, los conozco bien", "Los conozco parcialmente", "No, no los tengo claros"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step2Data.shopKnowledgeCost === opt}
-                        onClick={() => setStep2Data({ ...step2Data, shopKnowledgeCost: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label required>¿Cómo defines tus costos?</Label>
-                  <SpeechTextarea
-                    value={step2Data.shopKnowledgeDefineCost}
-                    onChange={(v) => setStep2Data({ ...step2Data, shopKnowledgeDefineCost: v })}
-                    className={inputCls}
-                    style={inputBg}
-                    placeholder="¿Qué incluyes en tus costos?"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label required>¿Tu negocio es rentable?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Sí, es rentable", "A veces", "No, no lo es", "No lo sé"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step2Data.shopKnowledgeIsProfitable === opt}
-                        onClick={() => setStep2Data({ ...step2Data, shopKnowledgeIsProfitable: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ── Step 3: Clientes y Mercado ─────────────────────────────────── */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
-                    Bloque 3 de 4
-                  </p>
-                  <h2 className="font-['Manrope'] text-[20px] font-[800] text-[#151b2d]">
-                    Clientes y Mercado
-                  </h2>
-                </div>
-
-                <div>
-                  <Label required>¿Quiénes son tus principales compradores?</Label>
-                  <div className="space-y-2">
-                    {["Turistas", "Amantes de lo artesanal", "Compradores de regalos", "Diseñadores", "Clientes locales", "No lo tengo claro"].map((opt) => {
-                      const selected = [
-                        step3Data.shopKnowledgeMainBuyerOne,
-                        step3Data.shopKnowledgeMainBuyerTwo,
-                        step3Data.shopKnowledgeMainBuyerThree,
-                      ].filter(Boolean) as string[];
-                      return (
-                        <OptionCard
-                          key={opt}
-                          label={opt}
-                          selected={selected.includes(opt)}
-                          onClick={() => {
-                            const isSelected = selected.includes(opt);
-                            if (isSelected) {
-                              const next = selected.filter((s) => s !== opt);
-                              setStep3Data({ ...step3Data, shopKnowledgeMainBuyerOne: next[0] ?? "", shopKnowledgeMainBuyerTwo: next[1] ?? null, shopKnowledgeMainBuyerThree: next[2] ?? null });
-                            } else if (selected.length < 3) {
-                              const next = [...selected, opt];
-                              setStep3Data({ ...step3Data, shopKnowledgeMainBuyerOne: next[0] ?? "", shopKnowledgeMainBuyerTwo: next[1] ?? null, shopKnowledgeMainBuyerThree: next[2] ?? null });
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-2">Selecciona hasta 3</p>
-                </div>
-
-                <div>
-                  <Label required>¿Tienes presencia digital?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Sí, activa", "Tengo pero no la uso", "No tengo", "Estoy empezando"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step3Data.shopKnowledgeDigitalPresence === opt}
-                        onClick={() => setStep3Data({ ...step3Data, shopKnowledgeDigitalPresence: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label required>¿Dónde vendes?</Label>
-                  <div className="space-y-2">
-                    {["Ferias y mercados", "Redes sociales", "WhatsApp", "Tienda propia", "Marketplace online", "Referidos / voz a voz"].map((opt) => {
-                      const selected = [
-                        step3Data.shopKnowledgeWhereSaleOne,
-                        step3Data.shopKnowledgeWhereSaleTwo,
-                        step3Data.shopKnowledgeWhereSaleThree,
-                      ].filter(Boolean) as string[];
-                      return (
-                        <OptionCard
-                          key={opt}
-                          label={opt}
-                          selected={selected.includes(opt)}
-                          onClick={() => {
-                            const isSelected = selected.includes(opt);
-                            if (isSelected) {
-                              const next = selected.filter((s) => s !== opt);
-                              setStep3Data({ ...step3Data, shopKnowledgeWhereSaleOne: next[0] ?? "", shopKnowledgeWhereSaleTwo: next[1] ?? null, shopKnowledgeWhereSaleThree: next[2] ?? null });
-                            } else if (selected.length < 3) {
-                              const next = [...selected, opt];
-                              setStep3Data({ ...step3Data, shopKnowledgeWhereSaleOne: next[0] ?? "", shopKnowledgeWhereSaleTwo: next[1] ?? null, shopKnowledgeWhereSaleThree: next[2] ?? null });
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-2">Selecciona hasta 3</p>
-                </div>
-
-                <div>
-                  <Label required>¿Cómo es tu actividad de ventas?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Constante", "Irregular", "Solo en temporadas", "Casi no vendo"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step3Data.shopKnowledgeSalesActivity === opt}
-                        onClick={() => setStep3Data({ ...step3Data, shopKnowledgeSalesActivity: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ── Step 4: Operaciones y Crecimiento ─────────────────────────── */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <p className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1">
-                    Bloque 4 de 4
-                  </p>
-                  <h2 className="font-['Manrope'] text-[20px] font-[800] text-[#151b2d]">
-                    Operaciones y Crecimiento
-                  </h2>
-                </div>
-
-                <div>
-                  <Label required>¿Cuántos productos haces al mes?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Menos de 10", "10 – 30", "30 – 100", "Más de 100", "Varía mucho"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step4Data.shopKnowledgeProductsMakeMonth === opt}
-                        onClick={() => setStep4Data({ ...step4Data, shopKnowledgeProductsMakeMonth: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label required>¿Cuáles son tus limitaciones hoy?</Label>
-                  <div className="space-y-2">
-                    {["Falta de tiempo", "Falta de dinero / capital", "Materiales o herramientas", "Pocos clientes o ventas", "Falta de conocimiento o apoyo", "No lo sé"].map((opt) => {
-                      const selected = [
-                        step4Data.shopKnowledgeLimitTodayOne,
-                        step4Data.shopKnowledgeLimitTodayTwo,
-                        step4Data.shopKnowledgeLimitTodayThree,
-                      ].filter(Boolean) as string[];
-                      return (
-                        <OptionCard
-                          key={opt}
-                          label={opt}
-                          selected={selected.includes(opt)}
-                          onClick={() => {
-                            const isSelected = selected.includes(opt);
-                            if (isSelected) {
-                              const next = selected.filter((s) => s !== opt);
-                              setStep4Data({ ...step4Data, shopKnowledgeLimitTodayOne: next[0] ?? "", shopKnowledgeLimitTodayTwo: next[1] ?? null, shopKnowledgeLimitTodayThree: next[2] ?? null });
-                            } else if (selected.length < 3) {
-                              const next = [...selected, opt];
-                              setStep4Data({ ...step4Data, shopKnowledgeLimitTodayOne: next[0] ?? "", shopKnowledgeLimitTodayTwo: next[1] ?? null, shopKnowledgeLimitTodayThree: next[2] ?? null });
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  <p className="font-['Manrope'] text-[11px] text-[#54433e]/40 mt-2">Selecciona hasta 3</p>
-                </div>
-
-                <div>
-                  <Label required>¿Cuántas personas trabajan contigo?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Solo yo", "Con mi familia", "Pequeño equipo (2-5)", "Colectivo o taller"].map((opt) => (
-                      <OptionCard
-                        key={opt}
-                        label={opt}
-                        selected={step4Data.shopManyWorkers === opt}
-                        onClick={() => setStep4Data({ ...step4Data, shopManyWorkers: opt })}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label required>¿Cómo puede TELAR ayudarte primero?</Label>
-                  <SpeechTextarea
-                    value={step4Data.shopFirstSolvingTelar}
-                    onChange={(v) => setStep4Data({ ...step4Data, shopFirstSolvingTelar: v })}
-                    className={inputCls}
-                    style={inputBg}
-                    placeholder="¿Qué esperas de TELAR?"
-                    rows={3}
-                  />
-                </div>
-
-              </div>
-            )}
-
-            {/* ── Step 5: Completado ─────────────────────────────────────────── */}
-            {currentStep === 5 && (
-              <div className="text-center space-y-6 py-4">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-                  style={{ background: "rgba(236,109,19,0.1)" }}
-                >
-                  <span className="text-[#ec6d13] text-[28px]">✓</span>
-                </div>
-
-                <div>
-                  <h2 className="font-['Manrope'] text-[22px] font-[800] text-[#151b2d] mb-2">
-                    ¡Perfecto! Has completado todos los bloques
-                  </h2>
-                  <p className="font-['Manrope'] text-[14px] text-[#54433e]/60">
-                    Ahora vamos a crear tu tienda en TELAR con toda la información que compartiste.
+                  <p className="font-['Manrope'] text-[12px] font-[600] text-[#ec6d13] mt-2">
+                    Responde según tu realidad actual.
                   </p>
                 </div>
-
-                <button
-                  onClick={handleCreateShopAndFinish}
-                  disabled={isSaving}
-                  className="px-8 py-3 rounded-xl font-['Manrope'] text-[15px] font-[700] text-white transition-all disabled:opacity-50"
-                  style={{ background: "#ec6d13" }}
-                >
-                  {isSaving ? "Creando tu tienda..." : "Crear mi tienda →"}
-                </button>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* P1 — Rango de precio */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={1}
+                  question="¿En qué rango de precio vendes la mayoría de tus productos?"
+                  hint="Esto nos ayuda a entender el tipo de mercado en el que compites y qué oportunidades comerciales podrían existir para tu taller."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {PRICE_RANGE_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={step2Data.shopRangePayment === opt.label}
+                      onClick={() => setStep2Data({ ...step2Data, shopRangePayment: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P2 — Cómo pone precios */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={2}
+                  question="Cuando pones precio a tus productos, ¿cómo lo haces normalmente?"
+                  hint="No existe una única forma correcta. Queremos entender cómo tomas esa decisión hoy."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {COST_KNOWLEDGE_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      desc={opt.desc}
+                      selected={step2Data.shopKnowledgeCost === opt.label}
+                      onClick={() => setStep2Data({ ...step2Data, shopKnowledgeCost: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P3 — Claridad sobre costos */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={3}
+                  question="¿Qué tan claro tienes cuánto te cuesta hacer cada producto?"
+                  hint="Para saber si un producto deja ganancia, primero hay que entender cuánto cuesta hacerlo. Incluye materiales, tiempo, transporte, empaques u otros gastos del taller."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {DEFINE_COST_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      desc={opt.desc}
+                      selected={step2Data.shopKnowledgeDefineCost === opt.label}
+                      onClick={() => setStep2Data({ ...step2Data, shopKnowledgeDefineCost: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P4 — Claridad sobre ganancias */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={4}
+                  question="¿Qué tan claro tienes si tu taller realmente genera ganancias?"
+                  hint="Muchas personas venden constantemente, pero no siempre saben cuánto dinero les queda después de cubrir sus costos."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {PROFITABLE_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      desc={opt.desc}
+                      selected={step2Data.shopKnowledgeIsProfitable === opt.label}
+                      onClick={() => setStep2Data({ ...step2Data, shopKnowledgeIsProfitable: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+            </div>
+          )}
+
+          {/* ── Step 3: Clientes y Mercado ─────────────────────────────────────── */}
+          {currentStep === 3 && (
+            <div className="flex flex-col gap-5">
+
+              <StepSectionHeader
+                block={3}
+                title="Clientes y Mercado"
+                subtitle="Quiénes compran tu trabajo y dónde lo vendes"
+              />
+
+              {/* P1 — Compradores */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={1}
+                  question="¿Quiénes son tus principales compradores?"
+                  hint="Saber quiénes son tus clientes permite al agente crear mensajes dirigidos exactamente a las personas que ya valoran tu trabajo."
+                  required
+                  multiSelect
+                  maxSelect={3}
+                />
+                <div className="flex flex-col gap-2">
+                  {BUYER_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={selectedBuyers.includes(opt.label)}
+                      onClick={() => toggleBuyerOption(opt.label)}
+                      multiSelect
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P2 — Presencia digital */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={2}
+                  question="¿Tienes presencia digital?"
+                  hint="Redes sociales, sitio web, tienda online o cualquier canal donde se pueda encontrar tu trabajo."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {DIGITAL_PRESENCE_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={step3Data.shopKnowledgeDigitalPresence === opt.label}
+                      onClick={() => setStep3Data({ ...step3Data, shopKnowledgeDigitalPresence: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P3 — Dónde vendes */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={3}
+                  question="¿Dónde vendes actualmente?"
+                  hint="Conocer dónde vendes permite al agente priorizar acciones donde ya tienes presencia y sugerir nuevos canales de expansión."
+                  required
+                  multiSelect
+                  maxSelect={3}
+                />
+                <div className="flex flex-col gap-2">
+                  {WHERE_SELL_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={selectedWhereSale.includes(opt.label)}
+                      onClick={() => toggleWhereSaleOption(opt.label)}
+                      multiSelect
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P4 — Actividad de ventas */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={4}
+                  question="¿Cómo es tu actividad de ventas a lo largo del año?"
+                  hint="El ritmo de ventas ayuda al agente a identificar estacionalidades y planificar campañas en los momentos de mayor oportunidad."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {SALES_ACTIVITY_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={step3Data.shopKnowledgeSalesActivity === opt.label}
+                      onClick={() => setStep3Data({ ...step3Data, shopKnowledgeSalesActivity: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+            </div>
+          )}
+
+          {/* ── Step 4: Operaciones y Crecimiento ────────────────────────────── */}
+          {currentStep === 4 && (
+            <div className="flex flex-col gap-5">
+
+              <StepSectionHeader
+                block={4}
+                title="Operaciones y Crecimiento"
+                subtitle="Capacidad productiva, limitaciones y tus metas con TELAR"
+              />
+
+              {/* P1 — Cuántos productos al mes */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={1}
+                  question="¿Cuántos productos haces aproximadamente al mes?"
+                  hint="El agente evitará recomendaciones que superen tu capacidad actual y te sugerirá formas de crecer de manera sostenible."
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {PRODUCTS_MONTH_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={step4Data.shopKnowledgeProductsMakeMonth === opt.label}
+                      onClick={() => setStep4Data({ ...step4Data, shopKnowledgeProductsMakeMonth: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P2 — Limitaciones */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={2}
+                  question="¿Cuáles son tus principales limitaciones hoy?"
+                  hint="El agente diseñará un plan de acción que atiende primero lo que más te frena, con pasos concretos y alcanzables desde donde estás."
+                  required
+                  multiSelect
+                  maxSelect={3}
+                />
+                <div className="flex flex-col gap-2">
+                  {LIMIT_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={selectedLimits.includes(opt.label)}
+                      onClick={() => toggleLimitOption(opt.label)}
+                      multiSelect
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P3 — Cuántas personas */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={3}
+                  question="¿Cuántas personas trabajan contigo en el taller?"
+                  required
+                />
+                <div className="flex flex-col gap-2">
+                  {WORKERS_OPTIONS.map((opt) => (
+                    <IconOptionCard
+                      key={opt.label}
+                      icon={opt.icon}
+                      label={opt.label}
+                      selected={step4Data.shopManyWorkers === opt.label}
+                      onClick={() => setStep4Data({ ...step4Data, shopManyWorkers: opt.label })}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* P4 — Cómo puede ayudar TELAR */}
+              <section className="rounded-xl p-5" style={glassCard}>
+                <QuestionHeader
+                  n={4}
+                  question="¿Qué es lo primero que quieres resolver con TELAR?"
+                  hint="Con todo el contexto completo, TELAR activará los agentes más relevantes para las necesidades reales de tu taller."
+                  required
+                />
+                <SpeechTextarea
+                  value={step4Data.shopFirstSolvingTelar}
+                  onChange={(v) => setStep4Data({ ...step4Data, shopFirstSolvingTelar: v })}
+                  className={inputCls}
+                  style={inputBg}
+                  placeholder="¿Qué esperas de TELAR? Puedes ser tan específico como quieras."
+                  rows={4}
+                />
+              </section>
+
+            </div>
+          )}
+
+          {/* ── Step 5: Completado ─────────────────────────────────────────── */}
+          {currentStep === 5 && (
+            <div className="rounded-2xl p-8 flex flex-col items-center gap-6 text-center" style={glassCard}>
+              {/* Icono */}
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(236,109,19,0.1)" }}
+              >
+                <span className="material-symbols-outlined text-[#ec6d13] text-[30px]">
+                  {hasShop ? "autorenew" : "check_circle"}
+                </span>
+              </div>
+
+              {hasShop ? (
+                /* ── Usuario ya tiene tienda: actualizó su perfil ── */
+                <>
+                  <div>
+                    <h2 className="font-['Noto_Serif'] text-[22px] font-[600] text-[#151b2d] mb-2">
+                      ¡Información actualizada!
+                    </h2>
+                    <p className="font-['Manrope'] text-[14px] text-[#54433e]/65 leading-relaxed max-w-sm mx-auto">
+                      Tu agente TELAR ya tiene los datos más recientes sobre tu taller para representarte mejor y darte recomendaciones más precisas.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl font-['Manrope'] text-[14px] font-[700] text-white transition-all hover:opacity-90"
+                    style={{ background: "#151b2d" }}
+                  >
+                    <span>Volver al dashboard</span>
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </button>
+                </>
+              ) : (
+                /* ── Primera vez: crear tienda y activar agente ── */
+                <>
+                  <div>
+                    <h2 className="font-['Noto_Serif'] text-[22px] font-[600] text-[#151b2d] mb-2">
+                      ¡Todo listo! Activando tu agente
+                    </h2>
+                    <p className="font-['Manrope'] text-[14px] text-[#54433e]/65 leading-relaxed max-w-sm mx-auto">
+                      Con la información que compartiste vamos a crear tu espacio en el marketplace de TELAR y activar tu agente de IA.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCreateShopAndFinish}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl font-['Manrope'] text-[14px] font-[700] text-white transition-all hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "#ec6d13" }}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                        <span>Creando tu tienda...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Crear mi tienda y entrar</span>
+                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
         </div>{/* end content column */}
 
@@ -1289,7 +1555,6 @@ export const AgentFormPage: React.FC = () => {
           className="lg:hidden fixed left-0 right-0 z-30"
           style={{ bottom: currentStep <= 4 ? 52 : 0 }}
         >
-          {/* Panel expandible */}
           <div style={{ overflow: 'hidden', maxHeight: oraculoOpen ? '55vh' : 0, transition: 'max-height 0.28s ease' }}>
             <div style={{ overflowY: 'auto', maxHeight: '55vh', background: '#151b2d', borderRadius: '16px 16px 0 0', padding: '20px' }}>
               <div className="flex flex-col gap-3 mb-5">
@@ -1309,7 +1574,6 @@ export const AgentFormPage: React.FC = () => {
               </div>
             </div>
           </div>
-          {/* Barra de activación */}
           <button
             onClick={() => setOraculoOpen(v => !v)}
             className="w-full flex items-center justify-between px-5"

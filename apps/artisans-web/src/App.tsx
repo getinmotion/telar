@@ -95,6 +95,9 @@ const BackofficeTerritoriosPage_lazy = lazy(
 const AgentFormPage_lazy = lazy(
   () => import("@/pages/growth/AgentFormPage"),
 );
+const TallerStatusPage_lazy = lazy(
+  () => import("@/pages/TallerStatusPage"),
+);
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Create a client for React Query
@@ -475,6 +478,14 @@ function App() {
                             <Route
                               path="/dashboard/activity"
                               element={<ActivityPage />}
+                            />
+                            <Route
+                              path="/dashboard/estado-taller"
+                              element={
+                                <Suspense fallback={<div />}>
+                                  <TallerStatusPage_lazy />
+                                </Suspense>
+                              }
                             />
                             <Route
                               path="/dashboard/inventory"
