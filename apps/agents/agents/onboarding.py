@@ -262,6 +262,156 @@ class OnboardingAgent(BaseAgent):
             logger.error(f"Failed to save onboarding profile: {str(e)}")
             # Don't raise - saving is optional
     
+    async def process_structured(
+        self,
+        onboarding_identity: Dict[str, Any],
+        artisan_name: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Process the new structured onboarding payload (flow='onboarding').
+
+        Maps the nested blocks format to the Q1-Q16 dict that the existing
+        assessment prompt understands, then transforms the result into the
+        new API response format:
+            { onboarding_response: { maturity_level, message, next_priority_action, ... } }
+
+        Args:
+            onboarding_identity: The payload.onboarding_identity object from the request
+            artisan_name: Optional artisan display name for personalised messages
+            context: Should contain session_id and user_id
+
+        Returns:
+            Dict with onboarding_response key per API spec
+        """
+        blocks = onboarding_identity.get("blocks") or {}
+        identity = blocks.get("identity") or {}
+        commercial = blocks.get("commercial_reality") or {}
+        clients = blocks.get("clients_market") or {}
+        operations = blocks.get("operations_growth") or {}
+
+        def _val(block: Dict[str, Any], key: str, default: str = "") -> Any:
+            """Extract the 'value' field from a question block dict."""
+            q = block.get(key) or {}
+            if isinstance(q, dict):
+                return q.get("value", default)
+            return q or default
+
+        # Build Q1 from the five open identity questions
+        q1_parts: list[str] = []
+        for label, field in [
+            ("Quién soy", "q1_who_you_are"),
+            ("Historia de la tienda", "q1_shop_story"),
+            ("Qué hago", "q1_what_you_do"),
+            ("Significado", "q1_meaning"),
+        ]:
+            v = _val(identity, field)
+            if v:
+                q1_parts.append(f"{label}: {v}")
+        exp = _val(identity, "q1_experience_range")
+        if exp:
+            q1_parts.append(f"Años de experiencia: {exp}")
+
+        responses: Dict[str, Any] = {
+            "Q1": " | ".join(q1_parts) if q1_parts else "No especificado",
+            "Q2": _val(identity, "q2_product_type"),
+            "Q3": _val(identity, "q3_differentiator"),
+            "Q4": _val(identity, "q4_tradition"),
+            "Q5": _val(commercial, "q5_price_range"),
+            "Q6": _val(commercial, "q6_cost_awareness"),
+            "Q7": _val(commercial, "q7_pricing_method"),
+            "Q8": _val(commercial, "q8_profitability"),
+            "Q9": _val(clients, "q9_main_client"),
+            "Q10": _val(clients, "q10_digital_presence"),
+            "Q11": _val(clients, "q11_sales_channels"),
+            "Q12": _val(clients, "q12_sales_frequency"),
+            "Q13": _val(operations, "q13_monthly_capacity"),
+            "Q14": _val(operations, "q14_main_limitation"),
+            "Q15": _val(operations, "q15_work_structure"),
+            "Q16": _val(operations, "q16_immediate_priority"),
+        }
+
+        q16_value: str = str(responses.get("Q16") or "")
+
+        # Run existing assessment using the Q1-Q16 dict
+        import json as _json
+        assessment_result = await self.process(
+            user_input=_json.dumps(responses),
+            context=context,
+            metadata=None,
+        )
+
+        assessment = assessment_result.get("assessment") or {}
+
+        # Map maturity level to the new enum values
+        maturity_raw = assessment.get("madurez_general", "Inicial")
+        maturity_map = {
+            "Inicial": "emergente",
+            "En Desarrollo": "en_desarrollo",
+            "Consolidado": "consolidado",
+            "Avanzado": "consolidado",
+        }
+        maturity_level = maturity_map.get(maturity_raw, "emergente")
+
+        # Build personalised message
+        name_part = f", {artisan_name}" if artisan_name else ""
+        title = f"¡Tu perfil está listo{name_part}!"
+        body = assessment.get("resumen") or "Tu perfil artesanal ha sido evaluado exitosamente."
+
+        # Derive recommendations from the dimension most relevant to q16
+        q16_to_dimension = {
+            "mostrar_mejor_productos": "identidad_artesanal",
+            "entender_precios": "realidad_comercial",
+            "conseguir_clientes_online": "clientes_y_mercado",
+            "mejorar_proceso_produccion": "operacion_y_crecimiento",
+            "conseguir_mas_ventas": "clientes_y_mercado",
+            "formalizar_negocio": "operacion_y_crecimiento",
+        }
+        dimension_key = q16_to_dimension.get(q16_value, "identidad_artesanal")
+        tasks_key = f"madurez_{dimension_key}_tareas"
+        raw_tasks = assessment.get(tasks_key, [])
+
+        if isinstance(raw_tasks, list):
+            recommendations = [str(t) for t in raw_tasks[:3]]
+        else:
+            recommendations = [
+                line.strip()
+                for line in str(raw_tasks).split("\n")
+                if line.strip()
+            ][:3]
+
+        if not recommendations:
+            recommendations = [
+                "Completa tu perfil con más detalles sobre tu artesanía",
+                "Agrega fotos de calidad a tus productos",
+                "Define los precios con nuestra calculadora",
+            ]
+
+        meta = onboarding_identity.get("metadata") or {}
+        from agents.helpers import format_timestamp
+        return {
+            "onboarding_response": {
+                "metadata": {
+                    "artisan_id": (context or {}).get("user_id"),
+                    "processed_at": format_timestamp(),
+                    "form_version": meta.get("form_version", "1.0.0"),
+                },
+                "status": {
+                    "code": "success",
+                    "onboarding_complete": True,
+                },
+                "maturity_level": maturity_level,
+                "message": {
+                    "title": title,
+                    "body": body,
+                },
+                "next_priority_action": {
+                    "based_on_q16": q16_value,
+                    "recommendations": recommendations,
+                },
+            }
+        }
+
     async def _store_onboarding_memory(
         self,
         context: Dict[str, Any],

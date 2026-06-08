@@ -75,6 +75,21 @@ def get_traductor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
     return render_prompt('traductor.md.j2', extract_template_vars(context))
 
 
+def get_product_creation_step1_prompt(context: Optional[Dict[str, Any]] = None) -> str:
+    """Get the product creation step 1 prompt (text improvement + categorisation)."""
+    return render_prompt('product_creation_step1.md.j2', extract_template_vars(context))
+
+
+def get_product_creation_step3_process_prompt(context: Optional[Dict[str, Any]] = None) -> str:
+    """Get the product creation step 3 process-analysis prompt."""
+    return render_prompt('product_creation_step3_process.md.j2', extract_template_vars(context))
+
+
+def get_product_creation_step3_pricing_prompt(context: Optional[Dict[str, Any]] = None) -> str:
+    """Get the product creation step 3 pricing-suggestion prompt."""
+    return render_prompt('product_creation_step3_pricing.md.j2', extract_template_vars(context))
+
+
 def get_supervisor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
     """
     Get the supervisor agent routing prompt.
@@ -147,4 +162,7 @@ __all__ = [
     'get_fotografia_prompt',
     'get_traductor_prompt',
     'get_supervisor_prompt',
+    'get_product_creation_step1_prompt',
+    'get_product_creation_step3_process_prompt',
+    'get_product_creation_step3_pricing_prompt',
 ]

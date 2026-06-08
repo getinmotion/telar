@@ -456,6 +456,69 @@ class AgentsDbClient:
             )
         return dict(row) if row else {}
 
+    # -----------------------------------------------------------------------
+    # Product Drafts
+    # -----------------------------------------------------------------------
+
+    async def create_product_draft(
+        self,
+        user_id: Optional[str],
+        session_id: Optional[str],
+        initial_snapshot: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Create a new product draft and return its product_draft_id (UUID string)."""
+        pool = await self._get_pool()
+        sql = """
+            INSERT INTO agents.product_drafts (user_id, session_id, current_step, accumulated_snapshot)
+            VALUES ($1::uuid, $2, 'step_1_initial_capture', $3::jsonb)
+            RETURNING product_draft_id::text
+        """
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                sql,
+                str(user_id) if user_id else None,
+                session_id,
+                json.dumps(initial_snapshot or {}),
+            )
+        return row["product_draft_id"]
+
+    async def update_product_draft(
+        self,
+        product_draft_id: str,
+        current_step: str,
+        step_snapshot: Dict[str, Any],
+    ) -> None:
+        """Merge step_snapshot into accumulated_snapshot and advance current_step."""
+        pool = await self._get_pool()
+        sql = """
+            UPDATE agents.product_drafts
+            SET
+                current_step         = $2,
+                accumulated_snapshot = accumulated_snapshot || $3::jsonb,
+                updated_at           = NOW()
+            WHERE product_draft_id = $1::uuid
+        """
+        async with pool.acquire() as conn:
+            await conn.execute(
+                sql,
+                str(product_draft_id),
+                current_step,
+                json.dumps(step_snapshot),
+            )
+
+    async def get_product_draft(self, product_draft_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a product draft by its product_draft_id."""
+        pool = await self._get_pool()
+        sql = """
+            SELECT product_draft_id::text, user_id::text, session_id,
+                   current_step, status, accumulated_snapshot, created_at, updated_at
+            FROM agents.product_drafts
+            WHERE product_draft_id = $1::uuid
+        """
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(sql, str(product_draft_id))
+        return dict(row) if row else None
+
 
 # ---------------------------------------------------------------------------
 # Singleton — drop-in replacement for the old `db = SupabaseClient.get_client()`

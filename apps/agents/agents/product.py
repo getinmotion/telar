@@ -402,6 +402,123 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
             logger.error(f"Product agent processing failed: {str(e)}")
             raise
     
+    async def process_creation_step1(
+        self,
+        product_name: str,
+        short_description: str,
+        history_context: str,
+        photos: Optional[Dict[str, Any]],
+        artisan_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Step 1 of product creation: improve text + suggest category/oficio/materials + photo feedback.
+        Uses GPT-4o vision when a main photo URL is provided.
+        """
+        from agents.prompts import get_product_creation_step1_prompt
+        from agents.helpers import parse_json_response
+
+        system_prompt = get_product_creation_step1_prompt(artisan_context)
+
+        user_msg = (
+            f"Producto: {product_name}\n"
+            f"Descripción corta: {short_description}\n"
+            f"Historia/contexto: {history_context}\n\n"
+            "Por favor analiza este producto y devuelve el JSON solicitado."
+        )
+
+        main_photo_url: Optional[str] = (photos or {}).get("main") if photos else None
+
+        if main_photo_url:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_msg},
+                        {"type": "image_url", "image_url": {"url": main_photo_url, "detail": "high"}},
+                    ],
+                },
+            ]
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=3000,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content
+        else:
+            raw = await self._call_llm(
+                user_message=user_msg,
+                system_prompt=system_prompt,
+                temperature=0.3,
+                max_tokens=3000,
+            )
+
+        return parse_json_response(raw)
+
+    async def process_creation_step3_process(
+        self,
+        process_description: str,
+        process_photos: Optional[Dict[str, Any]],
+        product_context: Optional[Dict[str, Any]] = None,
+        artisan_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Step 3 of product creation: analyse process description → structured process_analysis.
+        Uses GPT-4o vision when a process overview photo URL is provided.
+        """
+        from agents.prompts import get_product_creation_step3_process_prompt
+        from agents.helpers import parse_json_response
+
+        system_prompt = get_product_creation_step3_process_prompt(artisan_context)
+
+        product_info = ""
+        if product_context:
+            product_info = (
+                f"Nombre del producto: {product_context.get('product_name', 'N/A')}\n"
+                f"Categoría: {product_context.get('category', 'N/A')}\n"
+                f"Oficio: {product_context.get('oficio', 'N/A')}\n"
+                f"Materiales: {product_context.get('materials', 'N/A')}"
+            )
+
+        user_msg = (
+            f"Descripción del proceso:\n{process_description}\n\n"
+            f"{product_info}\n\n"
+            "Analiza este proceso y devuelve el JSON solicitado."
+        )
+
+        overview_url: Optional[str] = (process_photos or {}).get("overview") if process_photos else None
+
+        if overview_url:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_msg},
+                        {"type": "image_url", "image_url": {"url": overview_url, "detail": "high"}},
+                    ],
+                },
+            ]
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=3000,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content
+        else:
+            raw = await self._call_llm(
+                user_message=user_msg,
+                system_prompt=system_prompt,
+                temperature=0.3,
+                max_tokens=3000,
+            )
+
+        return parse_json_response(raw)
+
     def _extract_recommendations(self, answer: str) -> list:
         """
         Extract actionable recommendations from the answer.
