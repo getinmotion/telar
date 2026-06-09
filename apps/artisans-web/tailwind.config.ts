@@ -42,6 +42,7 @@ export default {
 
 				// TELAR Editorial Palette (DESIGN.md §2) — <alpha-value> permite bg-brand-orange/10 etc.
 				'brand-orange': 'hsl(var(--brand-orange) / <alpha-value>)',
+				'brand-orange-dark': 'hsl(var(--brand-orange-dark) / <alpha-value>)',
 				'on-surface': 'hsl(var(--on-surface) / <alpha-value>)',
 				'on-surface-variant': 'hsl(var(--on-surface-variant) / <alpha-value>)',
 				'brand-cream': 'hsl(var(--brand-cream) / <alpha-value>)',
