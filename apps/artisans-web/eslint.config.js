@@ -50,5 +50,26 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  // Áreas ya migradas: regresión de hex/fuentes es error.
+  // (cms/preview se excluye: replica fielmente el look de marketplace-web a propósito)
+  {
+    files: ["src/components/cms/**/*.tsx"],
+    ignores: ["src/components/cms/preview/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXAttribute[name.name='className'] Literal[value=/#[0-9a-fA-F]{3}/]",
+          message:
+            "Color hex hardcodeado en className. Usa un token del design system (ej. bg-brand-orange, text-on-surface). Ver DESIGN.md.",
+        },
+        {
+          selector: "JSXAttribute[name.name='className'] Literal[value=/font-\\['/]",
+          message:
+            "Familia tipográfica inline. Usa font-manrope o font-noto-serif del tailwind.config.",
+        },
+      ],
+    },
   }
 );

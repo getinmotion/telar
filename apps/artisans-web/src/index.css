@@ -59,6 +59,7 @@
     /* TELAR Editorial Palette (DESIGN.md §2) — tokens para migrar hex hardcodeados.
        NOTA: brand-orange (#ec6d13) NO es lo mismo que --accent (#d15a2e, oscurecido WCAG). */
     --brand-orange: 25 85.1% 50%; /* #ec6d13 */
+    --brand-orange-dark: 25.8 90.3% 40.4%; /* #c45a0a — texto naranja accesible sobre fondos claros */
     --on-surface: 225 36.4% 12.9%; /* #151b2d */
     --on-surface-variant: 13.6 15.1% 28.6%; /* #54433e */
     --brand-cream: 34.3 63.6% 97.8%; /* #fdfaf6 */
@@ -182,6 +183,7 @@
     /* TELAR Editorial Palette — dark mode (mismos valores por ahora; ajustar cuando
        el dark mode se diseñe formalmente) */
     --brand-orange: 25 85.1% 50%;
+    --brand-orange-dark: 25.8 90.3% 50%; /* aclarado para contraste en dark */
     --on-surface: 40 50% 98%; /* texto claro sobre superficie oscura */
     --on-surface-variant: 19 25% 75%;
     --brand-cream: 220 45% 15%;

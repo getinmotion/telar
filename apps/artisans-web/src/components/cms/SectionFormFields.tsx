@@ -19,8 +19,9 @@ import { ImageUploadField } from '@/components/cms/ImageUploadField';
 import { SANS } from '@/components/dashboard/dashboardStyles';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-export const ORANGE     = '#ec6d13';
-export const ORANGE_MID = '#c45a0a';
+// Consumen las CSS vars del design system: responden al Design System Editor.
+export const ORANGE     = 'hsl(var(--brand-orange))';      // #ec6d13
+export const ORANGE_MID = 'hsl(var(--brand-orange-dark))'; // #c45a0a
 
 // ─── Section type metadata ────────────────────────────────────────────────────
 export const SECTION_TYPE_META: Record<string, { icon: string; label: string; description: string }> = {
@@ -45,10 +46,7 @@ export const SECTION_TYPE_META: Record<string, { icon: string; label: string; de
 // ─── Sub-card helpers (wizard glass-morphism style) ───────────────────────────
 function SubCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div
-      className={`rounded-2xl p-4 space-y-3 ${className ?? ''}`}
-      style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.65)' }}
-    >
+    <div className={`glass-card rounded-2xl p-4 space-y-3 ${className ?? ''}`}>
       {children}
     </div>
   );
@@ -56,7 +54,7 @@ function SubCard({ children, className }: { children: React.ReactNode; className
 
 function SubCardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[9px] font-[800] uppercase tracking-widest mb-1.5" style={{ color: ORANGE_MID }}>
+    <p className="text-3xs font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ORANGE_MID }}>
       {children}
     </p>
   );
@@ -80,7 +78,7 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
         disabled ? 'cursor-not-allowed opacity-20' : 'cursor-pointer',
         danger
           ? 'text-red-600 hover:bg-red-50'
-          : 'text-[#54433e]/50 hover:bg-[#54433e]/[0.06]',
+          : 'text-on-surface-variant/50 hover:bg-on-surface-variant/[0.06]',
       ].join(' ')}
     >
       {children}
@@ -90,13 +88,13 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
 
 // ─── Shared field components ──────────────────────────────────────────────────
 const fieldInput = [
-  'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5',
-  'text-[13px] font-[500] text-[#151b2d] placeholder:text-[#151b2d]/30',
-  'focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10',
-  'hover:border-[#e2d5cf]/70 transition-all',
+  'w-full rounded-lg border border-brand-border/40 px-3 py-2.5 bg-background/40',
+  'text-[13px] font-medium text-on-surface placeholder:text-on-surface/30',
+  'focus:outline-none focus:border-brand-orange/50 focus:ring-2 focus:ring-brand-orange/10',
+  'hover:border-brand-border/70 transition-all',
 ].join(' ');
 
-const fieldLabel = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1.5";
+const fieldLabel = "font-manrope text-2xs font-extrabold uppercase tracking-widest text-on-surface-variant/60 block mb-1.5";
 
 export function FieldText({ label, value, onChange, placeholder }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string;
@@ -110,7 +108,6 @@ export function FieldText({ label, value, onChange, placeholder }: {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={fieldInput}
-        style={{ background: 'rgba(247,244,239,0.4)' }}
       />
     </div>
   );
@@ -127,7 +124,6 @@ export function FieldArea({ label, value, onChange, rows = 3 }: {
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         className={[fieldInput, 'resize-none leading-relaxed'].join(' ')}
-        style={{ background: 'rgba(247,244,239,0.4)' }}
       />
     </div>
   );
@@ -424,7 +420,7 @@ export function ContentPickForm({ draft, setField }: any) {
         <FieldText label="Label / pill (ej. Editorial)" value={draft.label ?? ''} onChange={(v) => setField('label', v)} />
         <FieldText label={`CTA texto (default: ${isBlog ? 'Leer historia' : 'Ver colección'})`} value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
       </div>
-      <div className="border-t border-[#ec6d13]/[0.08] pt-3">
+      <div className="border-t border-brand-orange/[0.08] pt-3">
         <p className="text-xs text-muted-foreground mb-3">
           Overrides opcionales — pisan los datos del doc referenciado.
         </p>
@@ -515,17 +511,16 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
             value={draft.autoplaySeconds ?? 6}
             onChange={(e) => setField('autoplaySeconds', parseInt(e.target.value, 10) || 6)}
             className={fieldInput}
-            style={{ background: 'rgba(247,244,239,0.4)' }}
           />
         </div>
       </SubCard>
 
       <div className="flex items-center justify-between">
-        <p className="text-[12px] font-bold text-[#151b2d]">Slides ({slides.length})</p>
+        <p className="text-xs font-bold text-on-surface">Slides ({slides.length})</p>
         <button
           type="button"
           onClick={addSlide}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border bg-[#ec6d13]/[0.08] text-[#c45a0a] border-[#ec6d13]/20 hover:bg-[#ec6d13]/[0.15] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-2xs-plus font-bold border bg-brand-orange/[0.08] text-brand-orange-dark border-brand-orange/20 hover:bg-brand-orange/[0.15] transition-colors"
         >
           <Plus className="w-3 h-3" /> Añadir slide
         </button>
@@ -559,7 +554,7 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
           </SubCard>
         ))}
         {slides.length === 0 && (
-          <p className="text-[12px] text-[#54433e]/40">
+          <p className="text-xs text-on-surface-variant/40">
             No hay slides. Añade al menos uno.
           </p>
         )}

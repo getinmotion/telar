@@ -6,23 +6,23 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 
 | Patrón | Instancias |
 |---|---:|
-| rgb()/rgba() inline en style | 1667 |
-| Hex hardcodeado en className | 1420 |
-| Tamaño arbitrario text-[Npx] | 992 |
-| Familia inline font-['...'] | 341 |
+| rgb()/rgba() inline en style | 1627 |
+| Hex hardcodeado en className | 1343 |
+| Tamaño arbitrario text-[Npx] | 918 |
+| Familia inline font-['...'] | 339 |
 | Glass inline (backdrop-blur + bg-white/N) | 89 |
-| **Total** | **4509** |
+| **Total** | **4316** |
 
-(263 coincidencias excluidas por ser SVG fills / datos de gráficos)
+(250 coincidencias excluidas por ser SVG fills / datos de gráficos)
 
 ## Top colores hex → token sugerido
 
 | Hex | Usos | Token sugerido |
 |---|---:|---|
-| `#54433e` | 353 | on-surface-variant |
-| `#ec6d13` | 341 | brand-orange |
-| `#151b2d` | 188 | on-surface |
-| `#e2d5cf` | 91 | brand-border |
+| `#54433e` | 329 | on-surface-variant |
+| `#ec6d13` | 316 | brand-orange |
+| `#151b2d` | 165 | on-surface |
+| `#e2d5cf` | 86 | brand-border |
 | `#ef4444` | 52 | destructive (ya existe) |
 | `#166534` | 30 | accent-green |
 | `#7c3aed` | 23 | domain-business |
@@ -62,7 +62,6 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/components/shop/new-product-wizard/components/TaxonomyPicker.tsx | 115 | 60 | 14 | 41 |  |  |
 | src/components/shop/wizards/artisan-profile/Step2Origin.tsx | 112 | 40 | 17 | 30 | 25 |  |
 | src/components/shop/new-product-wizard/steps/Step2ArtisanalIdentity.tsx | 111 | 38 | 22 | 40 | 11 |  |
-| src/pages/backoffice/BackofficeCmsPage.tsx | 106 | 26 | 33 | 47 |  |  |
 | src/components/shop/new-product-wizard/steps/Step5DigitalPassport.tsx | 105 | 35 | 13 | 29 | 28 |  |
 | src/components/shop/new-product-wizard/components/CraftPicker.tsx | 87 | 43 | 6 | 38 |  |  |
 | src/components/studio/StudioProductEditor.tsx | 87 | 24 | 3 | 44 | 16 |  |
@@ -70,7 +69,6 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/pages/InventoryPage.tsx | 63 | 13 | 46 | 4 |  |  |
 | src/pages/backoffice/BackofficeMarketplaceHealthPage.tsx | 61 | 6 | 55 |  |  |  |
 | src/pages/ShopSalesPage.tsx | 61 | 12 | 49 |  |  |  |
-| src/components/cms/SectionPreview.tsx | 58 | 28 | 3 | 27 |  |  |
 | src/pages/backoffice/BackofficeDashboardPage.tsx | 57 | 2 | 55 |  |  |  |
 | src/components/shop/wizards/artisan-profile/Step4Workshop.tsx | 54 | 24 | 7 | 17 | 6 |  |
 | src/pages/config-wizards/BrandIdentityWizardPage.tsx | 53 | 19 | 3 | 19 | 12 |  |
@@ -92,8 +90,6 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/pages/admin/ModerationOSPage.tsx | 28 |  | 20 | 8 |  |  |
 | src/components/moderation/ReviewerWorkspace/WorkspaceLeft.tsx | 27 |  | 27 |  |  |  |
 | src/pages/HeroSliderWizardPage.tsx | 27 | 27 |  |  |  |  |
-| src/components/cms/ImageUploadField.tsx | 26 | 17 | 2 | 6 | 1 |  |
-| src/components/cms/SectionFormFields.tsx | 26 | 15 | 5 | 5 | 1 |  |
 | src/components/moderation/IntelligentQueue/QueueCard.tsx | 26 | 9 |  | 17 |  |  |
 | src/components/onboarding/Block1Artisan.tsx | 24 | 15 |  | 5 | 4 |  |
 | src/pages/config-wizards/ContactLocationWizardPage.tsx | 24 |  | 12 | 12 |  |  |
@@ -109,24 +105,28 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/components/dashboard/sections/InventoryAlerts.tsx | 17 |  | 17 |  |  |  |
 | src/components/dashboard/sections/ProductsTable.tsx | 17 | 6 | 8 | 3 |  |  |
 | src/pages/PublicShopPageNew.tsx | 17 |  | 14 | 3 |  |  |
+| src/components/moderation/IntelligentQueue/QueueToolbar.tsx | 16 |  | 15 | 1 |  |  |
+| src/components/moderation/ReviewerWorkspace/modes/CorrectionMode.tsx | 16 | 1 | 13 | 2 |  |  |
+| src/components/shop/config-wizards/ConfigWizardShell.tsx | 16 | 3 | 4 | 8 | 1 |  |
+| src/pages/BioLinkPage.tsx | 16 | 15 |  | 1 |  |  |
 
-…y 143 archivos más.
+…y 142 archivos más.
 
 ## Resumen por carpeta
 
 | Carpeta | Total |
 |---|---:|
 | src/components/shop | 1831 |
-| src/pages/backoffice | 434 |
+| src/pages/backoffice | 341 |
 | src/components/dashboard | 289 |
 | src/components/moderation | 280 |
 | src/pages/growth | 251 |
 | src/components/backoffice | 221 |
-| src/components/cms | 181 |
 | src/pages/ShopConfigDashboard.tsx | 128 |
 | src/pages/config-wizards | 110 |
 | src/components/studio | 87 |
 | src/pages/admin | 82 |
+| src/components/cms | 81 |
 | src/pages/TallerStatusPage.tsx | 77 |
 | src/pages/InventoryPage.tsx | 63 |
 | src/pages/ShopSalesPage.tsx | 61 |
