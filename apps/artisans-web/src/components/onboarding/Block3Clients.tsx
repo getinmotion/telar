@@ -1,5 +1,5 @@
+import React from 'react';
 import { Control, Controller } from 'react-hook-form';
-import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { OnboardingAnswers, SalesChannel } from '@/types/telarData.types';
 
@@ -7,12 +7,26 @@ interface Props {
   control: Control<OnboardingAnswers>;
 }
 
+const glassCard: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.78)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+  border: '1px solid rgba(255,255,255,0.65)',
+  boxShadow: '0 2px 10px -2px rgba(0,0,0,0.05)',
+};
+
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
+    {children}
+  </label>
+);
+
 const TARGET_CUSTOMERS = [
-  { value: 'tourists',       label: 'Turistas' },
+  { value: 'tourists',        label: 'Turistas' },
   { value: 'handmade_lovers', label: 'Amantes de lo artesanal' },
-  { value: 'gift_buyers',    label: 'Compradores de regalos' },
-  { value: 'designers',      label: 'Diseñadores / marcas' },
-  { value: 'unclear',        label: 'Aún no lo sé' },
+  { value: 'gift_buyers',     label: 'Compradores de regalos' },
+  { value: 'designers',       label: 'Diseñadores / marcas' },
+  { value: 'unclear',         label: 'Aún no lo sé' },
 ];
 
 const DIGITAL_PRESENCE = [
@@ -40,14 +54,10 @@ const SALES_FREQUENCY = [
 
 export function Block3Clients({ control }: Props) {
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold mb-1">Bloque 3 — Clientes y mercado</h2>
-        <p className="text-sm text-muted-foreground">¿A quién le vendes y cómo llegas a ellos?</p>
-      </div>
+    <div className="flex flex-col gap-5">
 
-      {/* Q9 — target_customer */}
-      <div className="space-y-2">
+      {/* Cliente ideal */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Quién es tu cliente ideal?</Label>
         <Controller
           name="target_customer"
@@ -69,8 +79,8 @@ export function Block3Clients({ control }: Props) {
         />
       </div>
 
-      {/* Q10 — digital_presence */}
-      <div className="space-y-2">
+      {/* Presencia digital */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Cómo describirías tu presencia digital actualmente?</Label>
         <Controller
           name="digital_presence"
@@ -92,9 +102,12 @@ export function Block3Clients({ control }: Props) {
         />
       </div>
 
-      {/* Q11 — current_channels */}
-      <div className="space-y-2">
-        <Label>¿Dónde vendes hoy? (puedes elegir varios)</Label>
+      {/* Canales de venta */}
+      <div className="rounded-xl p-5" style={glassCard}>
+        <Label>¿Dónde vendes hoy?</Label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-3">
+          Puedes elegir varios.
+        </p>
         <Controller
           name="current_channels"
           control={control}
@@ -115,8 +128,8 @@ export function Block3Clients({ control }: Props) {
         />
       </div>
 
-      {/* Q12 — sales_frequency */}
-      <div className="space-y-2">
+      {/* Frecuencia de ventas */}
+      <div className="rounded-xl p-5" style={glassCard}>
         <Label>¿Con qué frecuencia realizas ventas?</Label>
         <Controller
           name="sales_frequency"
@@ -137,6 +150,7 @@ export function Block3Clients({ control }: Props) {
           )}
         />
       </div>
+
     </div>
   );
 }

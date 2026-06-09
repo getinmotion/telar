@@ -34,7 +34,7 @@ const CRAFT_ICON_MAP: { keywords: string[]; icon: string }[] = [
   { keywords: ['hilar', 'hilado', 'hilatura'], icon: 'sync_alt' },
 ];
 
-function getCraftIcon(name: string): string {
+export function getCraftIcon(name: string): string {
   const lower = name.toLowerCase();
   for (const { keywords, icon } of CRAFT_ICON_MAP) {
     if (keywords.some(kw => lower.includes(kw))) return icon;
@@ -117,18 +117,22 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
 }) => {
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
   const DEFAULT_LIMIT = isMobile ? 5 : 10;
 
-  useEffect(() => {
+  const loadCrafts = () => {
     setIsLoading(true);
+    setLoadError(false);
     getAllCrafts()
       .then(setAllCrafts)
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setIsLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadCrafts(); }, []);
 
   const categoryKeywords = getCraftKeywordsForCategory(categoryName);
 
@@ -156,6 +160,22 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
       <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
         <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
         Cargando oficios...
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center gap-3 py-3">
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">warning</span>
+        <p className="flex-1 text-[12px] text-[#54433e]/50">No se pudieron cargar los oficios.</p>
+        <button
+          onClick={loadCrafts}
+          className="flex items-center gap-1 text-[11px] font-[700] text-[#ec6d13] hover:underline shrink-0"
+        >
+          <span className="material-symbols-outlined text-[14px]">refresh</span>
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -256,27 +276,40 @@ interface CraftMultiPickerProps {
   /** Nombres de categorías para sugerir oficios relevantes. */
   suggestedCategoryNames?: string[];
   onChange: (craftIds: string[]) => void;
+  onNamesChange?: (craftNames: string[]) => void;
 }
 
 export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   selectedCraftIds,
   suggestedCategoryNames,
   onChange,
+  onNamesChange,
 }) => {
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
   const DEFAULT_LIMIT = isMobile ? 5 : 10;
 
-  useEffect(() => {
+  const loadCrafts = () => {
     setIsLoading(true);
+    setLoadError(false);
     getAllCrafts()
-      .then(setAllCrafts)
-      .catch(() => {})
+      .then(crafts => {
+        setAllCrafts(crafts);
+        // Propaga nombres de oficios preseleccionados en modo edición
+        if (selectedCraftIds.length > 0) {
+          const names = crafts.filter(c => selectedCraftIds.includes(c.id)).map(c => c.name);
+          if (names.length > 0) onNamesChange?.(names);
+        }
+      })
+      .catch(() => setLoadError(true))
       .finally(() => setIsLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadCrafts(); }, []);
 
   // Merge keywords from all suggested categories
   const categoryKeywords: string[] | null = (() => {
@@ -309,11 +342,11 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   const selectedCrafts = allCrafts.filter(c => selectedCraftIds.includes(c.id));
 
   const toggle = (craftId: string) => {
-    if (selectedCraftIds.includes(craftId)) {
-      onChange(selectedCraftIds.filter(id => id !== craftId));
-    } else {
-      onChange([...selectedCraftIds, craftId]);
-    }
+    const nextIds = selectedCraftIds.includes(craftId)
+      ? selectedCraftIds.filter(id => id !== craftId)
+      : [...selectedCraftIds, craftId];
+    onChange(nextIds);
+    onNamesChange?.(allCrafts.filter(c => nextIds.includes(c.id)).map(c => c.name));
   };
 
   if (isLoading) {
@@ -321,6 +354,22 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
       <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
         <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
         Cargando oficios...
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center gap-3 py-3">
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">warning</span>
+        <p className="flex-1 text-[12px] text-[#54433e]/50">No se pudieron cargar los oficios.</p>
+        <button
+          onClick={loadCrafts}
+          className="flex items-center gap-1 text-[11px] font-[700] text-[#ec6d13] hover:underline shrink-0"
+        >
+          <span className="material-symbols-outlined text-[14px]">refresh</span>
+          Reintentar
+        </button>
       </div>
     );
   }

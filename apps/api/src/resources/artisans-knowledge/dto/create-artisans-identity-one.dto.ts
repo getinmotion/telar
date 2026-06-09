@@ -17,30 +17,31 @@ export class CreateArtisansIdentityOneDto {
   @IsNotEmpty()
   ageExperience!: number;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  @IsNotEmpty()
-  shopHistory!: string;
+  @IsOptional()
+  shopHistory?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  @IsNotEmpty()
-  shopDescription!: string;
+  @IsOptional()
+  shopDescription?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  @IsNotEmpty()
-  shopDefinition!: string;
+  @IsOptional()
+  shopDefinition?: string;
 
-  @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty()
-  shopCategoriesId!: string;
-
-  @ApiProperty()
+  // Stores one or more category UUIDs separated by commas
+  @ApiProperty({ required: false })
   @IsString()
-  @IsNotEmpty()
-  shopSpecialDefinitionOne!: string;
+  @IsOptional()
+  shopCategoriesId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  shopSpecialDefinitionOne?: string;
 
   @ApiProperty({ required: false })
   @IsString()
@@ -52,10 +53,10 @@ export class CreateArtisansIdentityOneDto {
   @IsOptional()
   shopSpecialDefinitionThree?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsString()
-  @IsNotEmpty()
-  shopBornSpecialDefinitionOne!: string;
+  @IsOptional()
+  shopBornSpecialDefinitionOne?: string;
 
   @ApiProperty({ required: false })
   @IsString()

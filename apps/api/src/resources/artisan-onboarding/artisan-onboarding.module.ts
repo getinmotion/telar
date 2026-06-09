@@ -5,10 +5,12 @@ import { DatabaseModule } from 'src/config/configOrm.module';
 import { ArtisanOnboardingService } from './artisan-onboarding.service';
 import { ArtisanOnboardingController } from './artisan-onboarding.controller';
 import { artisanOnboardingProviders } from './artisan-onboarding.providers';
+import { ArtisansKnowledgeModule } from '../artisans-knowledge/artisans-knowledge.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    ArtisansKnowledgeModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

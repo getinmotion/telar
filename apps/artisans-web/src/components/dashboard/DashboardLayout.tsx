@@ -176,6 +176,7 @@ const DashboardContent: React.FC = () => {
             <NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])}  onClick={() => navigate('/dashboard/inventory')} />
             <NavItem icon="receipt_long" label="Ventas"     active={activeNav(['/mi-tienda/ventas'])}                   onClick={() => navigate('/mi-tienda/ventas')} />
             <NavItem icon="explore"      label="Misiones"   active={activeNav(['/dashboard/tasks'])}                    onClick={() => navigate('/dashboard/tasks')} />
+            <NavItem icon="monitoring"   label="Taller"     active={activeNav(['/dashboard/estado-taller'])}             onClick={() => navigate('/dashboard/estado-taller')} />
             <NavItem icon="notifications" label="Alertas"   active={activeNav(['/notifications'])}                      onClick={() => navigate('/notifications')} />
 
             {/* Divider */}

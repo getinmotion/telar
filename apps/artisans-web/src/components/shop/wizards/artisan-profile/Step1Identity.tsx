@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UploadFolder, uploadImage } from '@/services/fileUpload.actions';
 import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanShops.actions';
+import { getAllCategories, type Category } from '@/services/categories.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { buildMarketplaceStoreUrl, buildAppStoreUrl, MARKETPLACE_DOMAIN } from '@/config/urls';
-import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { CraftMultiPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
+import { TechniqueMultiPicker } from './Step5Craft';
 
 interface Props {
   data: ArtisanProfileData;
@@ -14,12 +15,11 @@ interface Props {
   shopName?: string;
   onShopUpdate?: (updates: { shopName?: string; shopSlug?: string }) => Promise<void>;
   userId?: string;
-  suggestedCategoryNames?: string[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function toSlug(name: string): string {
+export function toSlug(name: string): string {
   return name
     .toLowerCase()
     .normalize('NFD')
@@ -116,7 +116,7 @@ const AvatarUploader: React.FC<{ value: string; onChange: (url: string) => void 
 
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error';
 
-const SlugCreator: React.FC<{
+export const SlugCreator: React.FC<{
   artisticName: string;
   currentSlug: string;
   onSave: (slug: string, shopName: string) => Promise<void>;
@@ -287,11 +287,115 @@ const SlugCreator: React.FC<{
   );
 };
 
+// ─── Category Multi-Picker ────────────────────────────────────────────────────
+
+const TELAR_CATEGORY_DEFS: { name: string; icon: string }[] = [
+  { name: 'Textiles y Moda',                    icon: 'apparel' },
+  { name: 'Bolsos y Carteras',                   icon: 'shopping_bag' },
+  { name: 'Joyería y Accesorios',                icon: 'diamond' },
+  { name: 'Decoración del Hogar',                icon: 'home' },
+  { name: 'Muebles',                             icon: 'chair' },
+  { name: 'Vajillas y Cocina',                   icon: 'restaurant' },
+  { name: 'Arte y Esculturas',                   icon: 'palette' },
+  { name: 'Juguetes e Instrumentos Musicales',   icon: 'piano' },
+  { name: 'Cuidado Personal',                    icon: 'spa' },
+];
+
+function resolveCatIcon(name: string): string {
+  const def = TELAR_CATEGORY_DEFS.find(
+    d => d.name === name || name.toLowerCase().includes(d.name.split(' ')[0].toLowerCase()),
+  );
+  return def?.icon ?? 'category';
+}
+
+interface CategoryMultiPickerProps {
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  onNamesChange: (names: string[]) => void;
+}
+
+export const CategoryMultiPicker: React.FC<CategoryMultiPickerProps> = ({ selectedIds, onChange, onNamesChange }) => {
+  const [cats, setCats] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAllCategories()
+      .then(all => {
+        const roots = all
+          .filter(c => !c.parentId)
+          .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
+        setCats(roots);
+        // Resolve names for pre-selected IDs (edit mode)
+        const preselected = roots.filter(c => selectedIds.includes(c.id)).map(c => c.name);
+        if (preselected.length > 0) onNamesChange(preselected);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggle = (cat: Category) => {
+    const next = selectedIds.includes(cat.id)
+      ? selectedIds.filter(id => id !== cat.id)
+      : [...selectedIds, cat.id];
+    const names = cats.filter(c => next.includes(c.id)).map(c => c.name);
+    onChange(next);
+    onNamesChange(names);
+  };
+
+  if (loading) return (
+    <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
+      <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+      Cargando categorías…
+    </div>
+  );
+
+  if (cats.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {cats.map(cat => {
+        const isSelected = selectedIds.includes(cat.id);
+        return (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => toggle(cat)}
+            className="relative flex flex-col items-center justify-center p-3 rounded-xl transition-all text-center gap-1.5"
+            style={{
+              background: isSelected ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
+              border: isSelected ? '1.5px solid rgba(236,109,19,0.5)' : '1px solid rgba(226,213,207,0.4)',
+            }}
+          >
+            {isSelected && (
+              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#ec6d13] flex items-center justify-center">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: 10, fontVariationSettings: "'FILL' 1" }}>check</span>
+              </div>
+            )}
+            <span
+              className="material-symbols-outlined text-[22px] transition-colors"
+              style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
+            >
+              {resolveCatIcon(cat.name)}
+            </span>
+            <span
+              className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-wider leading-tight transition-colors"
+              style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
+            >
+              {cat.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 // ─── Video Input ─────────────────────────────────────────────────────────────
 
 type VideoMode = 'url' | 'file' | 'record';
 
-const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
+export const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
   value,
   onChange,
 }) => {
@@ -496,9 +600,11 @@ export const Step1Identity: React.FC<Props> = ({
   shopName: _shopName = '',
   onShopUpdate,
   userId,
-  suggestedCategoryNames,
 }) => {
   const [showSlug, setShowSlug] = useState(false);
+  const [catNames, setCatNames] = useState<string[]>([]);
+  const [craftNames, setCraftNames] = useState<string[]>([]);
+  const hasCraft = !!(data.craftIds?.length || data.craftId);
 
   return (
     <div className="flex flex-col gap-5">
@@ -586,46 +692,56 @@ export const Step1Identity: React.FC<Props> = ({
         )}
       </div>
 
-      {/* ── Módulo 3: Oficios ── */}
+      {/* ── Módulo 3: Categorías ── */}
+      <div className="rounded-xl p-5" style={glassCard}>
+        <Label>Categorías de tu taller</Label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+          ¿En qué tipos de productos trabaja tu taller? Selecciona las categorías y te sugeriremos los oficios más relevantes.
+        </p>
+        <CategoryMultiPicker
+          selectedIds={data.categoryIds ?? []}
+          onChange={ids => onChange({ categoryIds: ids })}
+          onNamesChange={setCatNames}
+        />
+      </div>
+
+      {/* ── Módulo 4: Oficios ── */}
       <div className="rounded-xl p-5" style={glassCard}>
         <Label required>Tus oficios</Label>
         <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-          Los oficios artesanales que practicas en tu taller. Puedes seleccionar varios.
+          {catNames.length > 0
+            ? `Oficios sugeridos para las categorías que elegiste. Puedes seleccionar varios.`
+            : 'Los oficios artesanales que practicas en tu taller. Puedes seleccionar varios.'}
         </p>
         <CraftMultiPicker
           selectedCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
-          suggestedCategoryNames={suggestedCategoryNames}
+          suggestedCategoryNames={catNames.length > 0 ? catNames : undefined}
           onChange={craftIds => {
             onChange({ craftIds, craftId: craftIds[0], techniqueIds: [] });
             if (userId) updateStoreArtisanalCraft(userId, craftIds[0] ?? null).catch(() => {});
           }}
+          onNamesChange={setCraftNames}
         />
       </div>
 
-      {/* ── Módulo 4: Bio ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <Label optional>Presentación breve</Label>
-        <SpeechTextarea
-          rows={4}
-          value={data.shortBio || ''}
-          onChange={(v) => onChange({ shortBio: v })}
-          placeholder="Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones."
-          className="w-full border border-[#e2d5cf]/50 rounded-lg p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed hover:border-[#e2d5cf]/80"
-          style={inputBg}
-        />
-      </div>
+      {/* ── Módulo 5: Técnicas ── */}
+      {hasCraft && (
+        <div className="rounded-xl p-5" style={glassCard}>
+          <Label required>Técnicas artesanales</Label>
+          <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+            Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
+          </p>
+          <TechniqueMultiPicker
+            craftId={data.craftId}
+            craftIds={data.craftIds}
+            craftNames={craftNames}
+            selectedIds={data.techniqueIds ?? []}
+            onChange={(ids) => onChange({ techniqueIds: ids })}
+            onSelectedNamesChange={(names) => onChange({ techniques: names })}
+          />
+        </div>
+      )}
 
-      {/* ── Módulo 5: Video ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <Label optional>Video de presentación</Label>
-        <VideoInput
-          value={data.artisanVideo || ''}
-          onChange={(url) => onChange({ artisanVideo: url })}
-        />
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/35 mt-2 italic">
-          Un video corto aumenta significativamente la conexión con compradores.
-        </p>
-      </div>
 
     </div>
   );

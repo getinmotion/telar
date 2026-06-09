@@ -145,12 +145,16 @@ const AI_PANEL: Record<
 function validate(step: number, data: ArtisanProfileData): boolean {
   switch (step) {
     case 1:
-      return !!data.artisanName && !!data.artisticName && !!data.craftId;
+      return (
+        !!data.artisanName &&
+        !!data.artisticName &&
+        !!data.craftId &&
+        ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0)
+      );
     case 2:
       return !!data.learnedFrom && data.startAge > 0;
     case 3:
       return (
-        ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
         ((data.materialIds ?? []).length > 0 || data.materials.length > 0) &&
         !!data.uniqueness
       );
@@ -193,6 +197,11 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState<any>(null);
 
+  // Evita que el useEffect sobreescriba ediciones locales del usuario cuando
+  // shopAny?.artisanProfile cambia de referencia en cada render del hook.
+  // El valor guarda el shopId + fase ('profile' | 'telar') con que se inicializó.
+  const initializedRef = React.useRef<string | null>(null);
+
   const telarData = useTelarDataStore();
   const shopAny = shop as any;
   const isProfileCompleted = shopAny?.artisanProfileCompleted === true;
@@ -206,6 +215,14 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   };
 
   useEffect(() => {
+    if (!shop?.id) return;
+
+    const profileKey = shop.id + (shopAny?.artisanProfile ? '-profile' : '-telar');
+    // Si ya inicializamos con perfil real, no sobreescribir ediciones locales.
+    // Solo volver a correr si cambia el shop o si aún estábamos en '-telar' y ahora hay perfil.
+    if (initializedRef.current === profileKey) return;
+    if (initializedRef.current === shop.id + '-profile') return;
+
     if (shopAny?.artisanProfile) {
       const profile = shopAny.artisanProfile as ArtisanProfileData;
       const meta = user?.user_metadata as Record<string, string> | undefined;
@@ -219,6 +236,8 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
           (telarData.name?.value as string) ||
           meta?.full_name ||
           "",
+        artisticName:
+          profile.artisticName || (shopAny?.shopName as string) || "",
         learnedFrom:
           profile.learnedFrom || LEARNING_ORIGIN_MAP[learningOrigin] || "",
         learnedFromDetail:
@@ -230,6 +249,7 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
       });
       if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
       if (shopAny.artisanProfileCompleted) setStep(5);
+      initializedRef.current = shop.id + '-profile';
 
       // Pre-cargar craftId, primaryTechniqueId y ubicación desde registro si el perfil aún no los tiene
       if (user?.id) {
@@ -272,6 +292,7 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
         }
       }
     } else if (telarData.hydrated) {
+      initializedRef.current = shop.id + '-telar';
       const meta = user?.user_metadata as Record<string, string> | undefined;
       const onboardingName = (telarData.name?.value as string) || "";
       const regName =
@@ -283,6 +304,7 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
       setData((prev) => ({
         ...prev,
         artisanName: prev.artisanName || onboardingName || regName,
+        artisticName: prev.artisticName || (shopAny?.shopName as string) || "",
         learnedFrom:
           prev.learnedFrom || LEARNING_ORIGIN_MAP[learningOrigin] || "",
         learnedFromDetail:

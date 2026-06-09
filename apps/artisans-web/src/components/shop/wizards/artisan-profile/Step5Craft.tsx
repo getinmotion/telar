@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ArtisanProfileData } from '@/types/artisanProfile';
-import { getTechniquesByCraftId, Technique } from '@/services/crafts.actions';
+import { getTechniquesByCraftId, getAllTechniques, Technique } from '@/services/crafts.actions';
 import { suggestTaxonomyItem } from '@/services/taxonomy.actions';
 import { useAuth } from '@/context/AuthContext';
 import { MaterialPicker } from '../../new-product-wizard/components/TaxonomyPicker';
+import { UNIQUENESS_OPTIONS, getNarrative, type UniquenessKey } from '@/constants/uniquenessOptions';
+import { SpeechTextarea } from '@/components/ui/speech-textarea';
 
 const CRAFT_STYLES: { id: string; label: string; desc: string }[] = [
   { id: 'Tradicional',   label: 'Tradicional',   desc: 'Sigue métodos y estéticas ancestrales fieles a su origen' },
@@ -36,7 +38,7 @@ const TECHNIQUE_ICON_MAP: { keywords: string[]; icon: string }[] = [
   { keywords: ['fundición', 'forja', 'metal', 'cincelado'], icon: 'hardware' },
 ];
 
-function getTechniqueIcon(name: string): string {
+export function getTechniqueIcon(name: string): string {
   const lower = name.toLowerCase();
   for (const { keywords, icon } of TECHNIQUE_ICON_MAP) {
     if (keywords.some(kw => lower.includes(kw))) return icon;
@@ -99,35 +101,107 @@ const TechniqueCard: React.FC<TechniqueCardProps> = ({ name, isSelected, isPendi
 
 // ── TechniqueMultiPicker ──────────────────────────────────────────────────────
 
+// Palabras funcionales que no aportan como keywords de búsqueda
+const STOP_WORDS = new Set(['a', 'de', 'en', 'el', 'la', 'los', 'las', 'y', 'e', 'o', 'u', 'con', 'del', 'al', 'por', 'para', 'su', 'un', 'una']);
+
+function extractKeywords(names: string[]): string[] {
+  const kws = new Set<string>();
+  for (const name of names) {
+    name.toLowerCase().split(/[\s,/]+/).forEach(w => {
+      if (w.length >= 3 && !STOP_WORDS.has(w)) kws.add(w);
+    });
+  }
+  return [...kws];
+}
+
+function filterByKeywords(techniques: Technique[], keywords: string[]): Technique[] {
+  if (!keywords.length) return techniques;
+  return techniques.filter(t => {
+    const lower = t.name.toLowerCase();
+    return keywords.some(kw => lower.includes(kw) || kw.includes(lower.split(' ')[0]));
+  });
+}
+
 interface TechniqueMultiPickerProps {
-  craftId?: string;
+  craftId?: string;       // craft principal (backwards compat)
+  craftIds?: string[];    // todos los oficios seleccionados (multi)
+  craftNames?: string[];  // nombres de los oficios para filtrado keyword client-side
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   onSelectedNamesChange?: (names: string[]) => void;
 }
 
-const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, selectedIds, onChange, onSelectedNamesChange }) => {
+const CATALOG_LIMIT = 20;
+
+export const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, craftIds, craftNames, selectedIds, onChange, onSelectedNamesChange }) => {
   const { user } = useAuth();
-  const [allTechniques, setAllTechniques] = useState<Technique[]>([]);
-  const [loading, setLoading]             = useState(false);
-  const [error, setError]                 = useState(false);
-  const [searchQuery, setSearchQuery]     = useState('');
-  const [showSuggest, setShowSuggest]     = useState(false);
-  const [suggestName, setSuggestName]     = useState('');
-  const [isSuggesting, setIsSuggesting]   = useState(false);
-  const [pendingNames, setPendingNames]   = useState<string[]>([]);
+  const [allTechniques, setAllTechniques]   = useState<Technique[]>([]);
+  const [usingFallback, setUsingFallback]   = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState(false);
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [showAllCatalog, setShowAllCatalog] = useState(false);
+  const [showSuggest, setShowSuggest]       = useState(false);
+  const [suggestName, setSuggestName]       = useState('');
+  const [isSuggesting, setIsSuggesting]     = useState(false);
+  const [pendingNames, setPendingNames]     = useState<string[]>([]);
+
+  // Resuelve el conjunto efectivo de oficios: usa craftIds si tiene valores, si no usa craftId
+  const craftIdsKey = React.useMemo(
+    () => (craftIds?.length ? [...craftIds].sort().join(',') : craftId ?? ''),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [craftId, craftIds?.join(',')],
+  );
+  const craftNamesKey = craftNames?.join(',') ?? '';
+  const effectiveCraftIds = craftIdsKey ? craftIdsKey.split(',') : [];
 
   useEffect(() => {
-    if (!craftId) { setAllTechniques([]); return; }
     let cancelled = false;
     setLoading(true);
     setError(false);
-    getTechniquesByCraftId(craftId)
-      .then(list => { if (!cancelled) setAllTechniques(list); })
-      .catch(() => { if (!cancelled) setError(true); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+    setUsingFallback(false);
+
+    const loadAll = async () => {
+      try {
+        const all = await getAllTechniques();
+        if (!cancelled) {
+          const keywords = extractKeywords(craftNames ?? []);
+          const filtered = keywords.length > 0 ? filterByKeywords(all, keywords) : all;
+          // Si el filtro es demasiado agresivo (menos de 3), mostrar todo
+          const result = filtered.length >= 3 ? filtered : all;
+          setAllTechniques(result);
+          setUsingFallback(result.length > 0);
+        }
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    // Sin oficio seleccionado: mostrar catálogo completo para no bloquear al artesano
+    if (effectiveCraftIds.length === 0) { loadAll(); return () => { cancelled = true; }; }
+
+    // 1. Carga técnicas de todos los oficios seleccionados y deduplica por ID
+    Promise.all(effectiveCraftIds.map(id => getTechniquesByCraftId(id)))
+      .then(async results => {
+        if (cancelled) return;
+        const seen = new Set<string>();
+        const merged: Technique[] = [];
+        results.flat().forEach(t => { if (!seen.has(t.id)) { seen.add(t.id); merged.push(t); } });
+
+        if (merged.length > 0) {
+          setAllTechniques(merged);
+          setLoading(false);
+        } else {
+          // 2. Fallback: si el oficio no tiene técnicas registradas, carga el catálogo completo
+          await loadAll();
+        }
+      })
+      .catch(loadAll);
     return () => { cancelled = true; };
-  }, [craftId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [craftIdsKey, craftNamesKey]);
 
   // Emit selected technique names whenever the catalog loads or selection changes
   useEffect(() => {
@@ -154,7 +228,7 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
     try {
       const newItem = await suggestTaxonomyItem('techniques', name, user?.id);
       // Add optimistic pending entry to local list and select it
-      const fakeEntry: Technique = { id: newItem.id, craftId: craftId ?? '', name: newItem.name, isActive: false };
+      const fakeEntry: Technique = { id: newItem.id, craftId: effectiveCraftIds[0] ?? '', name: newItem.name, isActive: false };
       setAllTechniques(prev => [...prev, fakeEntry]);
       onChange([...selectedIds, newItem.id]);
       setPendingNames(prev => [...prev, newItem.id]);
@@ -174,25 +248,6 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
         .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) && !selectedIds.includes(t.id))
         .slice(0, 14)
     : [];
-
-  if (!craftId) {
-    return (
-      <div
-        className="flex items-start gap-3 p-4 rounded-xl"
-        style={{ background: 'rgba(236,109,19,0.04)', border: '1px dashed rgba(236,109,19,0.25)' }}
-      >
-        <span className="material-symbols-outlined text-[20px] text-[#ec6d13]/50 shrink-0 mt-0.5">info</span>
-        <div>
-          <p className="font-['Manrope'] text-[13px] font-[700] text-[#54433e]/70 mb-0.5">
-            Elige tu oficio primero
-          </p>
-          <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug">
-            Para ver las técnicas disponibles, primero selecciona tu oficio en el paso 1.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -219,6 +274,21 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
 
   return (
     <div className="space-y-5">
+
+      {/* Aviso de catálogo completo cuando el oficio no tiene técnicas propias o no hay oficio seleccionado */}
+      {usingFallback && (
+        <div
+          className="flex items-start gap-2.5 px-4 py-3 rounded-xl"
+          style={{ background: 'rgba(84,67,62,0.04)', border: '1px solid rgba(84,67,62,0.08)' }}
+        >
+          <span className="material-symbols-outlined text-[15px] text-[#54433e]/40 shrink-0 mt-0.5">info</span>
+          <p className="font-['Manrope'] text-[11px] text-[#54433e]/50 leading-snug">
+            {effectiveCraftIds.length === 0
+              ? 'Selecciona las técnicas que aplicas. Para ver solo las de tu oficio, vuelve al paso 1 y elige un oficio primero.'
+              : 'Tu oficio aún no tiene técnicas propias registradas. Mostramos el catálogo completo — busca la tuya o sugiérela al equipo TELAR.'}
+          </p>
+        </div>
+      )}
 
       {/* Técnicas seleccionadas como cards */}
       {selectedTechniques.length > 0 && (
@@ -317,6 +387,43 @@ const TechniqueMultiPicker: React.FC<TechniqueMultiPickerProps> = ({ craftId, se
           </div>
         )}
 
+        {/* Grid de técnicas disponibles — visible cuando no hay búsqueda activa */}
+        {searchQuery.trim().length < 2 && (() => {
+          const available = allTechniques.filter(t => !selectedIds.includes(t.id));
+          if (available.length === 0) return null;
+          const visible = showAllCatalog ? available : available.slice(0, CATALOG_LIMIT);
+          return (
+            <div className="space-y-3">
+              {selectedIds.length > 0 && (
+                <p className="text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/40">
+                  Catálogo
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2.5">
+                {visible.map(t => (
+                  <TechniqueCard
+                    key={t.id}
+                    name={t.name}
+                    isSelected={false}
+                    onClick={() => toggle(t.id)}
+                  />
+                ))}
+              </div>
+              {available.length > CATALOG_LIMIT && (
+                <button
+                  onClick={() => setShowAllCatalog(v => !v)}
+                  className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[15px]">
+                    {showAllCatalog ? 'expand_less' : 'expand_more'}
+                  </span>
+                  {showAllCatalog ? 'Ver menos' : `Ver todas las técnicas (${available.length})`}
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Sugerir técnica */}
         {!showSuggest ? (
           <button
@@ -385,7 +492,6 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
   const [showCustomTime, setShowCustomTime] = useState(
     () => !!data.averageTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === data.averageTime),
   );
-  const [selectedTechniqueNames, setSelectedTechniqueNames] = useState<string[]>([]);
 
   const toggleItem = (field: 'craftStyle', value: string) => {
     const arr = data[field] as string[];
@@ -394,23 +500,6 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
 
   return (
     <div className="flex flex-col gap-8">
-
-      {/* Técnicas — filtradas por oficio */}
-      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
-          Técnicas artesanales
-          <span className="text-[#ef4444] ml-1">*</span>
-        </label>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-4 leading-snug">
-          Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
-        </p>
-        <TechniqueMultiPicker
-          craftId={data.craftId}
-          selectedIds={data.techniqueIds ?? []}
-          onChange={(ids) => onChange({ techniqueIds: ids })}
-          onSelectedNamesChange={setSelectedTechniqueNames}
-        />
-      </section>
 
       {/* Materiales */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
@@ -433,7 +522,7 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
           userId={user?.id ?? ''}
           selectedIds={data.materialIds ?? []}
           onChange={ids => onChange({ materialIds: ids })}
-          suggestFromTechniqueNames={selectedTechniqueNames}
+          suggestFromTechniqueNames={data.techniques}
         />
       </section>
 
@@ -496,19 +585,95 @@ export const Step5Craft: React.FC<Props> = ({ data, onChange }) => {
         )}
       </section>
 
-      {/* Diferenciación */}
+      {/* Tipos de productos */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
-        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
-          ¿Qué hace especial tu trabajo? <span className="text-[#ef4444]">*</span>
+        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
+          ¿Qué tipos de productos creas? <span className="text-[#ef4444]">*</span>
         </label>
-        <textarea
-          rows={5}
-          value={data.uniqueness}
-          onChange={(e) => onChange({ uniqueness: e.target.value })}
-          placeholder="Describe qué diferencia tu forma de crear: técnica, acabado, intención, detalle, tradición o mezcla de estilos."
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3 leading-snug">
+          Describe los objetos que produces: qué son, para qué sirven, en qué materiales, tamaños o formatos los haces. Entre más específico, mejor te representará el agente en el marketplace.
+        </p>
+        <SpeechTextarea
+          rows={4}
+          value={data.productDescription ?? ''}
+          onChange={(v) => onChange({ productDescription: v })}
+          placeholder="Ej. Bolsos tejidos en fique con asas de cuero, en tres tamaños. También hago individuales y portavasos para cocina. Todos son piezas únicas, sin patrones repetidos."
           className="w-full border border-[#e2d5cf]/40 p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed rounded-lg hover:border-[#e2d5cf]/70"
           style={{ background: 'rgba(247,244,239,0.4)' }}
         />
+      </section>
+
+      {/* Diferenciación */}
+      <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
+        <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
+          ¿Qué hace especial tu trabajo? <span className="text-[#ef4444]">*</span>
+        </label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 mb-3">
+          Elige hasta 3 opciones. "Aún no lo sé" es exclusiva.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {UNIQUENESS_OPTIONS.map(({ key, label }) => {
+            const selected = (data.uniquenessKeys ?? []).includes(key);
+            const isExclusive = key === 'aun_no_lo_se';
+            const atMax = (data.uniquenessKeys ?? []).length >= 3;
+            const disabled = !selected && atMax && !isExclusive;
+
+            const handleClick = () => {
+              const current = (data.uniquenessKeys ?? []) as UniquenessKey[];
+              let next: UniquenessKey[];
+
+              if (selected) {
+                next = current.filter((k) => k !== key);
+              } else if (isExclusive) {
+                next = [key];
+              } else if (current.includes('aun_no_lo_se')) {
+                next = [key];
+              } else if (atMax) {
+                return;
+              } else {
+                next = [...current, key];
+              }
+
+              const narrative = getNarrative(next);
+              onChange({ uniquenessKeys: next, uniqueness: narrative });
+            };
+
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={disabled}
+                onClick={handleClick}
+                className="px-4 py-2 rounded-full font-['Manrope'] text-[12px] font-[600] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: selected ? 'rgba(236,109,19,0.10)' : 'rgba(84,67,62,0.05)',
+                  border: selected ? '1.5px solid rgba(236,109,19,0.55)' : '1px solid rgba(226,213,207,0.5)',
+                  color: selected ? '#c45c0a' : '#54433e',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Narrativa generada */}
+        {data.uniqueness?.trim() && (
+          <div
+            className="mt-4 px-4 py-3 rounded-lg"
+            style={{
+              background: 'rgba(236,109,19,0.04)',
+              borderLeft: '2px solid #ec6d13',
+            }}
+          >
+            <p className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-widest text-[#ec6d13]/70 mb-1.5">
+              Tu historia artesanal
+            </p>
+            <p className="font-['Manrope'] text-[13px] text-[#54433e] leading-relaxed italic">
+              {data.uniqueness}
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Estilo artesanal */}

@@ -12,6 +12,7 @@ import {
   OnboardingFieldMeta,
   OnboardingSource,
 } from './interfaces/onboarding-business-context.interface';
+import { ArtisansKnowledgeSyncService } from '../artisans-knowledge/artisans-knowledge-sync.service';
 
 @Injectable()
 export class ArtisanOnboardingService {
@@ -27,6 +28,8 @@ export class ArtisanOnboardingService {
 
     @Inject('USER_MASTER_CONTEXT_REPOSITORY')
     private readonly contextRepo: Repository<UserMasterContext>,
+
+    private readonly syncService: ArtisansKnowledgeSyncService,
   ) {}
 
   // ─── Read ────────────────────────────────────────────────────────────────
@@ -94,6 +97,9 @@ export class ArtisanOnboardingService {
       this.upsertProfileFields(profile, dto, source, now),
       this.upsertContextFields(userId, dto, source, now),
     ]);
+
+    // Fire-and-forget sync to ArtisansKnowledge tables
+    this.syncService.syncToKnowledge(userId).catch(() => {});
 
     return this.getByUserId(userId);
   }

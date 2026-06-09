@@ -25,7 +25,6 @@ export interface ArtisansIdentityOne {
   updatedAt?: string;
   createdBy?: string;
   updatedBy?: string;
-  category?: ShopCategory;
 }
 
 export interface CreateArtisansIdentityOneDto {
@@ -145,6 +144,8 @@ export interface ArtisansIdentityProfile {
   commercialTwo?: ArtisansCommercialTwo | null;
   clientMarketThree?: ArtisansClientMarketThree | null;
   operationGrowthFour?: ArtisansOperationGrowthFour | null;
+  // Set to true when data was pre-filled from Identidad Artesanal (not yet saved in knowledge tables)
+  prefilled?: boolean;
 }
 
 // ─── Shop Category ───────────────────────────────────────────────────────────

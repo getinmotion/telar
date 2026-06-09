@@ -51,7 +51,12 @@ export class ArtisanProfileHistoryService {
       );
 
       if (dto.artisanId) {
-        await this.historyDbService.save(dto.artisanId, dto, storyData);
+        this.historyDbService.save(dto.artisanId, dto, storyData).catch((err) => {
+          this.logger.warn(
+            `No se pudo guardar el historial del perfil en DB para ${dto.shopName}`,
+            err?.message,
+          );
+        });
       }
 
       return storyData;
