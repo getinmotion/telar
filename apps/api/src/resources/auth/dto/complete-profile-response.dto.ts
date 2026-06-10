@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * DTO de respuesta para el perfil completo del usuario
- * Incluye: user, userMasterContext, artisanShop, userMaturityActions, access_token
+ * Incluye: user, userMasterContext, artisanShop, userMaturityActions, artisansIdentityProfile, access_token
  */
 export class CompleteProfileResponseDto {
   @ApiProperty({
@@ -65,6 +65,27 @@ export class CompleteProfileResponseDto {
     ],
   })
   userMaturityActions: any[];
+
+  @ApiPropertyOptional({
+    description: 'Perfil de identidad artesanal del usuario con relaciones (puede ser null)',
+    example: {
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      userId: '123e4567-e89b-12d3-a456-426614174000',
+      artisansIdentityId: '123e4567-e89b-12d3-a456-426614174000',
+      artisansCommercialId: '123e4567-e89b-12d3-a456-426614174000',
+      artisansClientMarketId: '123e4567-e89b-12d3-a456-426614174000',
+      artisansOperationGrowthId: '123e4567-e89b-12d3-a456-426614174000',
+      identityOne: {
+        nameShop: 'Mi Tienda Artesanal',
+        artisanHistory: 'Historia del artesano...',
+        ageExperience: 5,
+      },
+      commercialTwo: { salesChannels: ['online', 'physical'] },
+      clientMarketThree: { targetMarket: 'nacional' },
+      operationGrowthFour: { productionCapacity: 100 },
+    },
+  })
+  artisansIdentityProfile: any | null;
 
   @ApiProperty({
     description: 'Token JWT de acceso (refreshed)',
