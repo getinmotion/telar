@@ -1,36 +1,15 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { HelpCircle, MessageCircle, Mail, FileText, ExternalLink, BookOpen } from 'lucide-react';
+import { HelpCircle, Mail, ExternalLink } from 'lucide-react';
 
 export const SupportSection: React.FC = () => {
   const supportLinks = [
     {
-      icon: BookOpen,
-      title: 'Centro de Ayuda',
-      description: 'Guías y tutoriales para usar la plataforma',
-      href: '/ayuda',
-      external: false,
-    },
-    {
-      icon: FileText,
-      title: 'Preguntas Frecuentes',
-      description: 'Respuestas a las dudas más comunes',
-      href: '/faq',
-      external: false,
-    },
-    {
-      icon: MessageCircle,
-      title: 'WhatsApp',
-      description: 'Escríbenos directamente',
-      href: 'https://wa.me/573001234567',
-      external: true,
-    },
-    {
       icon: Mail,
       title: 'Correo Electrónico',
-      description: 'g2technology@getinmotion.io',
-      href: 'mailto:g2technology@getinmotion.io',
+      description: 'soporte@telar.co',
+      href: 'mailto:soporte@telar.co',
       external: true,
     },
   ];
@@ -38,11 +17,11 @@ export const SupportSection: React.FC = () => {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <HelpCircle className="h-5 w-5 text-primary" />
-          Soporte y Ayuda
+        <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+          <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          Soporte
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           ¿Necesitas ayuda? Estamos aquí para ti
         </CardDescription>
       </CardHeader>

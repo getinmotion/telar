@@ -1,21 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, Loader2, ShieldCheck, Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2, ShieldCheck, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useUnifiedUserData } from '@/hooks/user';
-import { useArtisanShop } from '@/hooks/useArtisanShop';
-import { useEmailPreferences } from '@/hooks/useEmailPreferences';
-import { useMasterAgent } from '@/context/MasterAgentContext';
 import { useIsModerator } from '@/hooks/useIsModerator';
-import { supabase } from '@/integrations/supabase/client';
 
 import { ProfileNavigation, ProfileSection } from '@/components/profile/ProfileNavigation';
-import { ProfileHeaderCompact } from '@/components/profile/ProfileHeaderCompact';
+import { ProfileHeaderCompact, RutStatus } from '@/components/profile/ProfileHeaderCompact';
 import { PersonalInfoSection } from '@/components/profile/sections/PersonalInfoSection';
-import { ShopInfoSection } from '@/components/profile/sections/ShopInfoSection';
-import { PreferencesSection } from '@/components/profile/sections/PreferencesSection';
-import { NotificationsSection } from '@/components/profile/sections/NotificationsSection';
 import { SecuritySection } from '@/components/profile/sections/SecuritySection';
 import { SupportSection } from '@/components/profile/sections/SupportSection';
 import {
@@ -33,22 +25,15 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useUnifiedUserData();
-  const { shop, loading: shopLoading } = useArtisanShop();
-  const { preferences, loading: prefsLoading, saving: prefsSaving, updateCategory } = useEmailPreferences();
-  const { masterState } = useMasterAgent();
 
   const { isModerator, isAdmin } = useIsModerator();
 
   const [activeSection, setActiveSection] = useState<ProfileSection>('personal');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  // Calculate maturity level
-  const maturityLevel = useMemo(() => {
-    const nivel = masterState?.growth?.nivel_madurez;
-    if (nivel && typeof nivel === 'object' && 'overall' in nivel) {
-      return Math.round((nivel as any).overall);
-    }
-    return 0;
-  }, [masterState]);
+
+  const rutStatus: RutStatus = profile?.rut
+    ? (profile.rutPendiente ? 'pending' : 'verified')
+    : 'none';
 
   const handleLogout = async () => {
     await signOut();
@@ -57,11 +42,6 @@ const ProfilePage: React.FC = () => {
 
   const handleSavePersonalInfo = async (data: any) => {
     await updateProfile(data);
-  };
-
-
-  const handleNotificationToggle = async (category: string, value: boolean) => {
-    await updateCategory(category as any, value);
   };
 
   // Loading state
@@ -83,26 +63,9 @@ const ProfilePage: React.FC = () => {
             phone={profile?.whatsappE164}
             department={profile?.department}
             city={profile?.city}
+            rut={profile?.rut}
+            rutPendiente={profile?.rutPendiente}
             onSave={handleSavePersonalInfo}
-          />
-        );
-      case 'shop':
-        return (
-          <ShopInfoSection
-            shop={shop}
-            isLoading={shopLoading}
-            userId={user?.id}
-          />
-        );
-      case 'preferences':
-        return <PreferencesSection />;
-      case 'notifications':
-        return (
-          <NotificationsSection
-            preferences={preferences}
-            loading={prefsLoading}
-            saving={prefsSaving}
-            onToggle={handleNotificationToggle}
           />
         );
       case 'security':
@@ -121,10 +84,9 @@ const ProfilePage: React.FC = () => {
         <div className="mb-4 sm:mb-6">
           <ProfileHeaderCompact
             fullName={profile?.fullName || ''}
-            brandName={profile?.brandName || shop?.shopName}
-            avatarUrl={profile?.avatarUrl || shop?.logoUrl}
-            maturityLevel={maturityLevel}
-            isVerified={!!profile?.rut && !profile?.rutPendiente}
+            brandName={profile?.brandName}
+            avatarUrl={profile?.avatarUrl}
+            rutStatus={rutStatus}
             email={user?.email}
           />
         </div>
@@ -141,7 +103,7 @@ const ProfilePage: React.FC = () => {
 
             {/* Admin / Moderator access panel */}
             {(isAdmin || isModerator) && (
-              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+              <div className="glass-card-sm rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
                   Acceso privilegiado
                 </p>
@@ -150,7 +112,7 @@ const ProfilePage: React.FC = () => {
                     onClick={() => navigate('/admin')}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors hover:bg-muted"
                   >
-                    <ShieldCheck className="h-4 w-4 text-[#ec6d13] shrink-0" />
+                    <ShieldCheck className="h-4 w-4 text-brand-orange shrink-0" />
                     Panel de administración
                   </button>
                 )}
@@ -159,7 +121,7 @@ const ProfilePage: React.FC = () => {
                     onClick={() => navigate('/moderacion')}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors hover:bg-muted"
                   >
-                    <Shield className="h-4 w-4 text-[#2563eb] shrink-0" />
+                    <Shield className="h-4 w-4 text-success shrink-0" />
                     Panel de moderación
                   </button>
                 )}

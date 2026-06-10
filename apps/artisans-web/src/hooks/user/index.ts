@@ -13,10 +13,6 @@ export { useUserProgress } from './useUserProgress';
 export { useUserBusinessProfile } from './useUserBusinessProfile';
 export { useProfileSync } from './useProfileSync';
 
-// Deprecated adapters (for gradual migration)
-export { useUserBusinessProfileDeprecated } from './useUserBusinessProfile.deprecated';
-export { useUserBusinessContextDeprecated } from './useUserBusinessContext.deprecated';
-
 export type { 
   BusinessProfile, 
   TaskGenerationContext, 

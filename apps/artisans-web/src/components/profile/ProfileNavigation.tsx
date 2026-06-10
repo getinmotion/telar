@@ -2,9 +2,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import {
   User,
-  Store,
-  Settings,
-  Bell,
   Shield,
   HelpCircle,
   LogOut,
@@ -13,9 +10,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export type ProfileSection =
   | 'personal'
-  | 'shop'
-  | 'preferences'
-  | 'notifications'
   | 'security'
   | 'support';
 
@@ -28,9 +22,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'personal', label: 'Información Personal', shortLabel: 'Personal', icon: User },
-  { id: 'shop', label: 'Mi Taller', shortLabel: 'Taller', icon: Store },
-  { id: 'preferences', label: 'Preferencias', shortLabel: 'Ajustes', icon: Settings },
-  { id: 'notifications', label: 'Notificaciones', shortLabel: 'Alertas', icon: Bell },
   { id: 'security', label: 'Seguridad', shortLabel: 'Seguridad', icon: Shield },
   { id: 'support', label: 'Soporte', shortLabel: 'Ayuda', icon: HelpCircle },
 ];
@@ -49,7 +40,7 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
   return (
     <>
       {/* Desktop Navigation - Sidebar */}
-      <nav className="hidden lg:flex flex-col w-64 shrink-0 sticky top-24 h-fit">
+      <nav className="hidden lg:flex flex-col w-64 shrink-0 sticky top-6 h-fit">
         <div className="glass-card rounded-2xl p-2 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -62,8 +53,8 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200",
                   isActive
-                    ? "bg-[#ec6d13] text-white font-semibold shadow-sm"
-                    : "text-[#54433e]/70 hover:bg-white/60 hover:text-[#151b2d]"
+                    ? "bg-brand-orange text-white font-semibold shadow-sm"
+                    : "text-muted-foreground hover:bg-white/60 hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -85,7 +76,7 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
       </nav>
 
       {/* Mobile/Tablet Navigation - Icon + Short Label */}
-      <div className="lg:hidden sticky top-[57px] z-10 glass-header border-b border-white/40 -mx-3 sm:-mx-4 px-2">
+      <div className="lg:hidden sticky top-0 z-10 glass-header border-b border-white/40 -mx-3 sm:-mx-4 px-2">
         <ScrollArea className="w-full">
           <div className="flex gap-0.5 py-2">
             {navItems.map((item) => {
@@ -99,8 +90,8 @@ export const ProfileNavigation: React.FC<ProfileNavigationProps> = ({
                   className={cn(
                     "flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg min-w-[52px] transition-all duration-200",
                     isActive
-                      ? "bg-[#ec6d13] text-white"
-                      : "text-[#54433e]/70 hover:bg-white/60"
+                      ? "bg-brand-orange text-white"
+                      : "text-muted-foreground hover:bg-white/60"
                   )}
                 >
                   <Icon className="h-4 w-4" />

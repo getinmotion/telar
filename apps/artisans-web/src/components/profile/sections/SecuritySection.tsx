@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Key, Smartphone, Eye, EyeOff, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Shield, Key, Eye, EyeOff, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -40,10 +40,10 @@ export const SecuritySection: React.FC = () => {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
+    if (passwordForm.newPassword.length < 8) {
       toast({
         title: 'Error',
-        description: 'La contraseña debe tener al menos 6 caracteres.',
+        description: 'La contraseña debe tener al menos 8 caracteres.',
         variant: 'destructive',
       });
       return;
@@ -79,15 +79,15 @@ export const SecuritySection: React.FC = () => {
       <CardHeader className="pb-4">
         <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
           <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          Seguridad y Privacidad
+          Seguridad
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
-          Protege tu cuenta y gestiona tu privacidad
+          Gestiona el acceso a tu cuenta
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4">
         {/* Password Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="p-1.5 sm:p-2 bg-muted rounded-lg shrink-0">
               <Key className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -95,7 +95,7 @@ export const SecuritySection: React.FC = () => {
             <div>
               <p className="font-medium text-sm sm:text-base">Contraseña</p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Última actualización: No disponible
+                Cámbiala periódicamente para mantener tu cuenta segura
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ export const SecuritySection: React.FC = () => {
               <DialogHeader>
                 <DialogTitle>Cambiar Contraseña</DialogTitle>
                 <DialogDescription>
-                  Introduce tu nueva contraseña. Debe tener al menos 6 caracteres.
+                  Introduce tu nueva contraseña. Debe tener al menos 8 caracteres.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -121,7 +121,7 @@ export const SecuritySection: React.FC = () => {
                       type={showPasswords.new ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres"
                     />
                     <button
                       type="button"
@@ -173,31 +173,6 @@ export const SecuritySection: React.FC = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-
-        {/* 2FA Section - Placeholder */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4 border-b border-border">
-          <div className="flex items-start gap-3 sm:gap-4">
-            <div className="p-1.5 sm:p-2 bg-muted rounded-lg shrink-0">
-              <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium text-sm sm:text-base">Autenticación de dos factores</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Añade una capa extra de seguridad a tu cuenta
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" disabled className="w-full sm:w-auto">
-            Próximamente
-          </Button>
-        </div>
-
-        {/* Session Info */}
-        <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border border-dashed border-border">
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Gestión de sesiones activas disponible próximamente
-          </p>
         </div>
       </CardContent>
     </Card>

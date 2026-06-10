@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Mail, Phone, MapPin, Pencil, Check, X, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, FileText, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useColombiaLocations } from '@/hooks/useColombiaLocations';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,8 @@ interface PersonalInfoSectionProps {
   phone?: string;
   department?: string;
   city?: string;
+  rut?: string;
+  rutPendiente?: boolean;
   onSave: (data: Partial<PersonalData>) => Promise<void>;
 }
 
@@ -133,6 +135,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   phone,
   department,
   city,
+  rut,
+  rutPendiente,
   onSave,
 }) => {
   const { toast } = useToast();
@@ -305,7 +309,14 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           isEditing={isEditing}
           isLoading={isEditing && isLoadingLocations}
         />
-        
+
+        {/* RUT — read-only, captured at registration */}
+        <InfoRow
+          icon={FileText}
+          label="RUT"
+          value={rut ? (rutPendiente ? `${rut} (en verificación)` : rut) : 'Pendiente por registrar'}
+          isEditing={false}
+        />
       </CardContent>
     </Card>
   );
