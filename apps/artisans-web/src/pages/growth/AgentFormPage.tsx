@@ -10,6 +10,7 @@ import {
   checkProfileCompletion,
 } from "@/services/artisansKnowledge.actions";
 import { createArtisanShop, getArtisanShopByUserId } from "@/services/artisanShops.actions";
+import { logout } from "@/pages/auth/actions/login.actions";
 import type {
   ArtisansIdentityProfile,
   CreateArtisansIdentityOneDto,
@@ -329,6 +330,11 @@ const PrefillBanner: React.FC = () => (
 export const AgentFormPage: React.FC = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -768,6 +774,7 @@ export const AgentFormPage: React.FC = () => {
             title={stepMeta.title}
             subtitle={stepMeta.subtitle}
             onBack={currentStep === 1 ? () => navigate(-1) : () => setCurrentStep(prev => prev - 1)}
+            onLogout={handleLogout}
           />
         </div>
       )}

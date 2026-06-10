@@ -20,7 +20,7 @@ import type {
 /**
  * Get artisan knowledge profile by user ID
  * Returns the profile with all 4 steps eagerly loaded
- * Returns null if profile doesn't exist yet
+ * Returns null if profile doesn't exist yet (backend now returns null directly)
  *
  * Endpoint: GET /artisans-knowledge/user/:userId
  */
@@ -28,16 +28,14 @@ export const getArtisansKnowledgeProfile = async (
   userId: string
 ): Promise<ArtisansIdentityProfile | null> => {
   try {
-    const response = await telarApi.get<ArtisansIdentityProfile>(
+    // El backend ahora retorna null directamente cuando no hay datos
+    // en lugar de lanzar un error 404
+    const response = await telarApi.get<ArtisansIdentityProfile | null>(
       `/artisans-knowledge/user/${userId}`
     );
     return response.data;
   } catch (error: any) {
-    // 404 means no profile exists yet (valid for new users)
-    if (error.response?.status === 404) {
-      return null;
-    }
-
+    // Solo lanzar errores reales (red, servidor, etc.)
     if (error.response?.data) {
       throw error.response.data as ArtisansKnowledgeErrorResponse;
     }

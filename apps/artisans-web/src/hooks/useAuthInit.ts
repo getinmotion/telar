@@ -26,7 +26,6 @@ export function useAuthInit(): void {
 
     const store = useAuthStore.getState();
 
-    console.log('Store de la auth', store)
 
     // ✅ MIGRATION: If Zustand persist has no data, try loading from legacy keys
     // This handles users who logged in before we implemented Zustand persist

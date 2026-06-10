@@ -92,13 +92,12 @@ export class ArtisansKnowledgeController {
   @ApiOperation({ summary: 'Get artisan knowledge profile by user ID' })
   @ApiResponse({
     status: 200,
-    description: 'Profile found',
+    description: 'Profile found or null if not found',
     type: ArtisansIdentityProfile,
   })
-  @ApiResponse({ status: 404, description: 'Profile not found' })
   async getByUserId(
     @Param('userId') userId: string,
-  ): Promise<ArtisansIdentityProfile> {
+  ): Promise<ArtisansIdentityProfile | null> {
     return await this.artisansKnowledgeService.getByUserId(userId);
   }
 
