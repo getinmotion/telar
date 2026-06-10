@@ -519,6 +519,66 @@ class AgentsDbClient:
             row = await conn.fetchrow(sql, str(product_draft_id))
         return dict(row) if row else None
 
+    # ------------------------------------------------------------------
+    # Taxonomy (categories, crafts, materials, techniques)
+    # ------------------------------------------------------------------
+
+    _taxonomy_cache: Optional[Dict[str, Any]] = None
+
+    async def get_taxonomy_options(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Return the canonical taxonomy (categories, crafts, materials, techniques)
+        used to ground LLM suggestions during product creation.
+
+        Cached in-process since taxonomy changes infrequently. Pass
+        force_refresh=True to bypass the cache.
+        """
+        if self._taxonomy_cache is not None and not force_refresh:
+            return self._taxonomy_cache
+
+        pool = await self._get_pool()
+        async with pool.acquire() as conn:
+            categories = await conn.fetch(
+                """
+                SELECT id::text, name, slug, parent_id::text
+                FROM taxonomy.categories
+                WHERE is_active = true
+                ORDER BY parent_id NULLS FIRST, display_order
+                """
+            )
+            crafts = await conn.fetch(
+                """
+                SELECT id::text, name, category_id::text
+                FROM taxonomy.crafts
+                WHERE status = 'approved' AND is_active = true
+                ORDER BY name
+                """
+            )
+            materials = await conn.fetch(
+                """
+                SELECT id::text, name
+                FROM taxonomy.materials
+                WHERE status = 'approved'
+                ORDER BY name
+                """
+            )
+            techniques = await conn.fetch(
+                """
+                SELECT id::text, name, craft_id::text
+                FROM taxonomy.techniques
+                WHERE status = 'approved'
+                ORDER BY name
+                """
+            )
+
+        self._taxonomy_cache = {
+            "categories": [dict(r) for r in categories],
+            "crafts": [dict(r) for r in crafts],
+            "materials": [dict(r) for r in materials],
+            "techniques": [dict(r) for r in techniques],
+        }
+        return self._taxonomy_cache
+
 
 # ---------------------------------------------------------------------------
 # Singleton — drop-in replacement for the old `db = SupabaseClient.get_client()`

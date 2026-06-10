@@ -76,8 +76,19 @@ def get_traductor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
 
 
 def get_product_creation_step1_prompt(context: Optional[Dict[str, Any]] = None) -> str:
-    """Get the product creation step 1 prompt (text improvement + categorisation)."""
-    return render_prompt('product_creation_step1.md.j2', extract_template_vars(context))
+    """
+    Get the product creation step 1 prompt (text improvement + categorisation).
+
+    `context` may include `taxonomy_categories` / `taxonomy_crafts` / `taxonomy_materials`
+    (lists of {id, name, ...} dicts from the DB). These are passed through as-is since
+    extract_template_vars() doesn't know about them.
+    """
+    context = context or {}
+    template_vars = extract_template_vars(context)
+    for key in ("taxonomy_categories", "taxonomy_crafts", "taxonomy_materials"):
+        if key in context:
+            template_vars[key] = context[key]
+    return render_prompt('product_creation_step1.md.j2', template_vars)
 
 
 def get_product_creation_step3_process_prompt(context: Optional[Dict[str, Any]] = None) -> str:
@@ -88,6 +99,18 @@ def get_product_creation_step3_process_prompt(context: Optional[Dict[str, Any]] 
 def get_product_creation_step3_pricing_prompt(context: Optional[Dict[str, Any]] = None) -> str:
     """Get the product creation step 3 pricing-suggestion prompt."""
     return render_prompt('product_creation_step3_pricing.md.j2', extract_template_vars(context))
+
+
+def get_onboarding_welcome_message_prompt(template_vars: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Get the onboarding welcome/motivational message prompt.
+
+    Unlike the other prompt getters, this renders `template_vars` directly
+    (artisan_name, maturity_level, resumen_tecnico, next_priority_label,
+    recommendations_list) rather than going through extract_template_vars(),
+    which expects a different (artisan_profile-shaped) context.
+    """
+    return render_prompt('onboarding_welcome_message.md.j2', template_vars or {})
 
 
 def get_supervisor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
@@ -165,4 +188,5 @@ __all__ = [
     'get_product_creation_step1_prompt',
     'get_product_creation_step3_process_prompt',
     'get_product_creation_step3_pricing_prompt',
+    'get_onboarding_welcome_message_prompt',
 ]

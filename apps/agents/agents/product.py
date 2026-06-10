@@ -416,17 +416,35 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
         """
         from agents.prompts import get_product_creation_step1_prompt
         from agents.helpers import parse_json_response
+        from src.database.supabase_client import db
 
-        system_prompt = get_product_creation_step1_prompt(artisan_context)
+        taxonomy = await db.get_taxonomy_options()
+
+        prompt_context = dict(artisan_context or {})
+        prompt_context["taxonomy_categories"] = taxonomy["categories"]
+        prompt_context["taxonomy_crafts"] = taxonomy["crafts"]
+        prompt_context["taxonomy_materials"] = taxonomy["materials"]
+
+        system_prompt = get_product_creation_step1_prompt(prompt_context)
+
+        main_photo_url: Optional[str] = (photos or {}).get("main") if photos else None
+
+        photo_note = (
+            "El artesano todavía no subió una foto principal. "
+            "No analices ni inventes una foto: en photo_feedback.main_photo, "
+            "usa quality=\"no_disponible\", highlights=[] y suggestions con "
+            "recomendaciones generales de fotografía para artesanías."
+            if not main_photo_url
+            else "Se incluye la foto principal del producto para que la analices."
+        )
 
         user_msg = (
             f"Producto: {product_name}\n"
             f"Descripción corta: {short_description}\n"
-            f"Historia/contexto: {history_context}\n\n"
+            f"Historia/contexto: {history_context}\n"
+            f"Foto principal: {photo_note}\n\n"
             "Por favor analiza este producto y devuelve el JSON solicitado."
         )
-
-        main_photo_url: Optional[str] = (photos or {}).get("main") if photos else None
 
         if main_photo_url:
             messages = [
@@ -455,7 +473,48 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
                 max_tokens=3000,
             )
 
-        return parse_json_response(raw)
+        result = parse_json_response(raw)
+        self._validate_identity_suggestions(result, taxonomy)
+        return result
+
+    @staticmethod
+    def _validate_identity_suggestions(result: Dict[str, Any], taxonomy: Dict[str, Any]) -> None:
+        """
+        Drop any category/oficio/material suggestion whose "value" doesn't match
+        a real taxonomy id, so the frontend never receives an out-of-DB option.
+        """
+        identity = result.get("identity_suggestions")
+        if not isinstance(identity, dict):
+            return
+
+        categories_by_id = {c["id"]: c["name"] for c in taxonomy["categories"]}
+        crafts_by_id = {c["id"]: c["name"] for c in taxonomy["crafts"]}
+        materials_by_id = {m["id"]: m["name"] for m in taxonomy["materials"]}
+
+        category = identity.get("category")
+        if isinstance(category, dict):
+            if category.get("value") in categories_by_id:
+                category["label"] = categories_by_id[category["value"]]
+            else:
+                logger.warning(f"Discarding out-of-taxonomy category suggestion: {category}")
+                identity["category"] = None
+
+        oficio = identity.get("oficio")
+        if isinstance(oficio, dict):
+            if oficio.get("value") in crafts_by_id:
+                oficio["label"] = crafts_by_id[oficio["value"]]
+            else:
+                logger.warning(f"Discarding out-of-taxonomy oficio suggestion: {oficio}")
+                identity["oficio"] = None
+
+        materials = identity.get("materials")
+        if isinstance(materials, list):
+            valid_materials = []
+            for m in materials:
+                if isinstance(m, dict) and m.get("value") in materials_by_id:
+                    m["label"] = materials_by_id[m["value"]]
+                    valid_materials.append(m)
+            identity["materials"] = valid_materials
 
     async def process_creation_step3_process(
         self,
