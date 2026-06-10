@@ -334,11 +334,17 @@ class OnboardingAgent(BaseAgent):
         q16_value: str = str(responses.get("Q16") or "")
 
         # Run existing assessment using the Q1-Q16 dict
+        meta = onboarding_identity.get("metadata") or {}
+        user_profile = {
+            "nombre": artisan_name,
+            "ubicacion": meta.get("ubicacion") or meta.get("location"),
+        }
+
         import json as _json
         assessment_result = await self.process(
             user_input=_json.dumps(responses),
             context=context,
-            metadata=None,
+            metadata={"user_profile": user_profile},
         )
 
         assessment = assessment_result.get("assessment") or {}
@@ -352,11 +358,6 @@ class OnboardingAgent(BaseAgent):
             "Avanzado": "consolidado",
         }
         maturity_level = maturity_map.get(maturity_raw, "emergente")
-
-        # Build personalised message
-        name_part = f", {artisan_name}" if artisan_name else ""
-        title = f"¡Tu perfil está listo{name_part}!"
-        body = assessment.get("resumen") or "Tu perfil artesanal ha sido evaluado exitosamente."
 
         # Derive recommendations from the dimension most relevant to q16
         q16_to_dimension = {
@@ -387,7 +388,15 @@ class OnboardingAgent(BaseAgent):
                 "Define los precios con nuestra calculadora",
             ]
 
-        meta = onboarding_identity.get("metadata") or {}
+        # Build a friendly, motivational welcome message via a dedicated prompt
+        title, body = await self._generate_welcome_message(
+            artisan_name=artisan_name,
+            maturity_level=maturity_level,
+            assessment=assessment,
+            q16_value=q16_value,
+            recommendations=recommendations,
+        )
+
         from agents.helpers import format_timestamp
         return {
             "onboarding_response": {
@@ -411,6 +420,65 @@ class OnboardingAgent(BaseAgent):
                 },
             }
         }
+
+    _Q16_LABELS = {
+        "mostrar_mejor_productos": "mostrar mejor tus productos",
+        "entender_precios": "entender y definir tus precios",
+        "conseguir_clientes_online": "conseguir clientes en internet",
+        "mejorar_proceso_produccion": "mejorar tu proceso de producción",
+        "conseguir_mas_ventas": "conseguir más ventas",
+        "formalizar_negocio": "formalizar tu negocio",
+    }
+
+    async def _generate_welcome_message(
+        self,
+        artisan_name: Optional[str],
+        maturity_level: str,
+        assessment: Dict[str, Any],
+        q16_value: str,
+        recommendations: list[str],
+    ) -> tuple[str, str]:
+        """
+        Generate a friendly, motivational welcome message (title + body) for the
+        onboarding result screen, based on the technical assessment.
+
+        Falls back to a simple templated message if the LLM call fails.
+        """
+        from agents.prompts import get_onboarding_welcome_message_prompt
+        from agents.helpers import parse_json_response
+
+        name_part = f", {artisan_name}" if artisan_name else ""
+        fallback_title = f"¡Tu perfil está listo{name_part}!"
+        fallback_body = (
+            assessment.get("resumen")
+            or "Tu perfil artesanal ha sido evaluado exitosamente."
+        )
+
+        try:
+            next_priority_label = self._Q16_LABELS.get(q16_value, q16_value or "hacer crecer tu negocio")
+            recommendations_list = "\n".join(f"- {r}" for r in recommendations)
+
+            system_prompt = get_onboarding_welcome_message_prompt({
+                "artisan_name": artisan_name,
+                "maturity_level": maturity_level,
+                "resumen_tecnico": assessment.get("resumen", ""),
+                "next_priority_label": next_priority_label,
+                "recommendations_list": recommendations_list,
+            })
+
+            raw = await self._call_llm(
+                user_message="Genera el mensaje de bienvenida según las instrucciones del sistema.",
+                system_prompt=system_prompt,
+                temperature=0.5,
+                max_tokens=500,
+            )
+            parsed = parse_json_response(raw)
+            title = parsed.get("title") or fallback_title
+            body = parsed.get("body") or fallback_body
+            return title, body
+        except Exception as e:
+            logger.error(f"Failed to generate onboarding welcome message: {str(e)}")
+            return fallback_title, fallback_body
 
     async def _store_onboarding_memory(
         self,
