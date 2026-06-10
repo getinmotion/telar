@@ -25,6 +25,8 @@ from agents.core.state import ConversationRecord, KnowledgeDocument
 from agents.tools.vector_search import rag_service
 from agents.tools.storage import upload_image_to_storage
 from agents.helpers import format_timestamp
+from agents.flows.onboarding_flow import process_onboarding_flow
+from agents.flows.product_creation import process_product_creation_flow
 from src.database.supabase_client import db
 
 # Create router
@@ -37,20 +39,45 @@ router = APIRouter(prefix="/agents", tags=["Agents System"])
 
 class AgentRequest(BaseModel):
     """Request model for agent processing."""
-    
+
     session_id: str = Field(..., description="Unique session identifier", example="session-12345")
-    user_input: str = Field(..., description="User's input message or query", min_length=1)
+
+    # Conversational mode: required when flow is None.
+    # Structured flows (onboarding, product_creation): may be null.
+    user_input: Optional[str] = Field(
+        default=None,
+        description="User's input message or query (required for conversational mode, null for structured flows)",
+    )
+
+    # Structured flow fields
+    flow: Optional[str] = Field(
+        default=None,
+        description="Flow identifier: 'onboarding' | 'product_creation' | null (conversational)",
+    )
+    step: Optional[str] = Field(
+        default=None,
+        description="Step within a flow, e.g. 'step_1_initial_capture'",
+    )
+    product_draft_id: Optional[str] = Field(
+        default=None,
+        description="UUID of an existing product draft (required from step 2 onwards)",
+    )
+    payload: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Structured payload for flow steps (onboarding_identity, product fields, etc.)",
+    )
+
     context: Optional[Dict[str, Any]] = Field(
         default=None,
-        description="Contextual information (previous agent data, onboarding, etc.)"
+        description="Contextual information (previous agent data, onboarding, etc.)",
     )
     metadata: Optional[Dict[str, Any]] = Field(
         default=None,
-        description="Additional metadata (language, user profile, etc.)"
+        description="Additional metadata (language, user profile, etc.)",
     )
     user_id: Optional[str] = Field(
         default=None,
-        description="Optional user ID for authenticated requests"
+        description="Optional user ID for authenticated requests",
     )
 
 
@@ -97,44 +124,98 @@ class HealthCheck(BaseModel):
 # AGENT ENDPOINTS
 # ============================================================
 
-@router.post("/process", response_model=AgentResponse, status_code=status.HTTP_200_OK)
+@router.post("/process", response_model=None, status_code=status.HTTP_200_OK)
 async def process_agent_request(request: AgentRequest):
     """
-    Main agent processing endpoint. Routes user requests to specialized agents.
-    
-    This endpoint:
-    1. Analyzes the user's input using the supervisor
-    2. Routes to the appropriate specialized agent (legal, pricing, product, etc.)
-    3. Returns the agent's response with routing metadata
-    4. Stores the conversation in hierarchical memory
-    
-    **Available Agents:**
-    - `onboarding`: Maturity assessment (16 questions)
-    - `legal`: Legal, tax, and accounting guidance
-    - `producto`: Product catalog and inventory management
-    - `pricing`: Pricing strategies and market research
-    - `presencia_digital`: Digital marketing and social media
-    - `faq`: General business questions
-    
-    **Example Request:**
+    Main agent processing endpoint.
+
+    **Modes:**
+
+    1. **Conversational** (`flow` omitted) — Routes through the LangGraph supervisor to
+       a specialised agent (legal, pricing, producto, etc.).  `user_input` is required.
+
+    2. **Onboarding flow** (`flow: "onboarding"`) — Processes the structured
+       `payload.onboarding_identity` form and returns a streamlined onboarding response.
+
+    3. **Product creation flow** (`flow: "product_creation"`) — Runs one step of the
+       6-step product wizard.  The `step` field selects which handler to invoke.
+
+    **Example — conversational:**
     ```json
     {
         "session_id": "user-123",
         "user_input": "¿Qué impuestos debo pagar?",
-        "user_id": "artisan-456",
-        "context": {
-            "ubicacion": "Bogotá",
-            "tipo_artesania": "Cerámica"
+        "user_id": "artisan-456"
+    }
+    ```
+
+    **Example — onboarding:**
+    ```json
+    {
+        "session_id": "sess-abc",
+        "user_id": "artisan-uuid",
+        "flow": "onboarding",
+        "payload": {
+            "onboarding_identity": {
+                "metadata": { "artisan_id": "...", "form_version": "1.0.0" },
+                "blocks": { "identity": { "q1_who_you_are": { "value": "..." }, ... }, ... }
+            }
+        }
+    }
+    ```
+
+    **Example — product creation step 1:**
+    ```json
+    {
+        "session_id": "sess-abc",
+        "user_id": "artisan-uuid",
+        "flow": "product_creation",
+        "step": "step_1_initial_capture",
+        "payload": {
+            "product_name": "Vasija de barro",
+            "short_description": "...",
+            "history_context": "...",
+            "photos": { "main": "https://cdn.telar.co/..." }
         }
     }
     ```
     """
     start_time = time.time()
-    
+
+    # ── Structured flows ──────────────────────────────────────────────────────
+    if request.flow == "onboarding":
+        try:
+            return await process_onboarding_flow(request)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Onboarding flow failed: {str(e)}",
+            )
+
+    if request.flow == "product_creation":
+        try:
+            return await process_product_creation_flow(request)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Product creation flow failed: {str(e)}",
+            )
+
+    # ── Conversational mode (existing orchestrator, unchanged) ────────────────
+    if not request.user_input or not request.user_input.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="user_input is required when flow is not specified (conversational mode).",
+        )
+
     try:
         # Get supervisor instance
         supervisor = get_supervisor()
-        
+
         # Process through supervisor
         result = await supervisor.process(
             session_id=request.session_id,
@@ -143,7 +224,7 @@ async def process_agent_request(request: AgentRequest):
             metadata=request.metadata,
             user_id=request.user_id
         )
-        
+
         # Build response
         response = AgentResponse(
             supervisor=result['supervisor_agent'],
@@ -153,7 +234,7 @@ async def process_agent_request(request: AgentRequest):
             timestamp=format_timestamp(),
             execution_time_ms=result.get('execution_time_ms')
         )
-        
+
         # Save conversation to database (async, don't block response)
         try:
             user_id_uuid = UUID(request.user_id) if request.user_id else None
@@ -174,9 +255,9 @@ async def process_agent_request(request: AgentRequest):
         except Exception:
             # Don't fail the request if DB save fails
             pass
-        
+
         return response
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

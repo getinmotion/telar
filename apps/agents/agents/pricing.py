@@ -283,6 +283,54 @@ Sé específico, práctico y educativo. Tu respuesta debe ser tan útil como la 
             logger.error(f"Pricing Agent Processing failed: {str(e)} | query={user_input[:100]} | duration_ms={total_duration:.0f}")
             raise
     
+    async def suggest_product_price(
+        self,
+        process_analysis: Dict[str, Any],
+        product_context: Optional[Dict[str, Any]] = None,
+        artisan_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Step 3 of product creation: suggest price + packaging + weight based on process analysis.
+        """
+        from agents.prompts import get_product_creation_step3_pricing_prompt
+        from agents.helpers import parse_json_response
+
+        system_prompt = get_product_creation_step3_pricing_prompt(artisan_context)
+
+        sp = process_analysis or {}
+        structured = sp.get("structured_process") or {}
+        process_str = (
+            f"Método de producción: {(sp.get('production_method') or {}).get('value', 'N/A')}\n"
+            f"Tiempo de elaboración: {(sp.get('elaboration_time') or {}).get('value', 'N/A')}\n"
+            f"Capacidad mensual: {(sp.get('monthly_capacity') or {}).get('value', 'N/A')} uds/mes\n"
+            f"Fases: {', '.join(structured.get('phases') or [])}\n"
+            f"Herramientas: {', '.join(structured.get('tools') or [])}"
+        )
+
+        product_info = ""
+        if product_context:
+            product_info = (
+                f"Nombre: {product_context.get('product_name', 'N/A')}\n"
+                f"Categoría: {product_context.get('category', 'N/A')}\n"
+                f"Oficio: {product_context.get('oficio', 'N/A')}\n"
+                f"Materiales: {product_context.get('materials', 'N/A')}"
+            )
+
+        user_msg = (
+            f"Análisis del proceso de producción:\n{process_str}\n\n"
+            f"Información del producto:\n{product_info}\n\n"
+            "Sugiere el precio y logística para este producto. Devuelve el JSON solicitado."
+        )
+
+        raw = await self._call_llm(
+            user_message=user_msg,
+            system_prompt=system_prompt,
+            temperature=0.3,
+            max_tokens=2000,
+        )
+
+        return parse_json_response(raw)
+
     def _extract_pricing_insights(self, answer: str) -> Dict[str, Any]:
         """
         Extract structured pricing insights from the answer.
