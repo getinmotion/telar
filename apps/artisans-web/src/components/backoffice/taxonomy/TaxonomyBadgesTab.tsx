@@ -6,8 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 import { getBadges, createBadge, updateBadge, deleteBadge, type TaxonomyBadge } from '@/services/badges.actions';
 import { TaxonomyDeleteConfirm } from './TaxonomyDeleteConfirm';
 import { TaxonomyItemFormModal } from './TaxonomyItemFormModal';
+import { SPARTAN, GREEN_MOD, RED, GRAY_100, GRAY_300, GRAY_400, GRAY_500, greenA } from '@/components/dashboard/dashboardStyles';
 
-const GREEN = '#15803d';
+const GREEN = GREEN_MOD;
 
 export function TaxonomyBadgesTab() {
   const { toast } = useToast();
@@ -64,27 +65,27 @@ export function TaxonomyBadgesTab() {
         </Button>
       </div>
 
-      <div style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(12px)', borderRadius: 16, border: '1px solid rgba(21,128,61,0.12)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--glass-fill)', backdropFilter: 'blur(12px)', borderRadius: 16, border: `1px solid ${greenA(0.12)}`, overflow: 'hidden' }}>
         <Table>
           <TableHeader>
-            <TableRow style={{ background: 'rgba(21,128,61,0.06)' }}>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Código</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Nombre</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Destino</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Asignación</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Activo</TableHead>
+            <TableRow style={{ background: greenA(0.06) }}>
+              <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Código</TableHead>
+              <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Nombre</TableHead>
+              <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Destino</TableHead>
+              <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Asignación</TableHead>
+              <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Activo</TableHead>
               <TableHead style={{ width: 80 }} />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Cargando…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} style={{ textAlign: 'center', color: GRAY_400, padding: '32px 0' }}>Cargando…</TableCell></TableRow>
             ) : badges.length === 0 ? (
-              <TableRow><TableCell colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>No hay badges</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} style={{ textAlign: 'center', color: GRAY_400, padding: '32px 0' }}>No hay badges</TableCell></TableRow>
             ) : (
               badges.map((badge) => (
                 <TableRow key={badge.id}>
-                  <TableCell style={{ fontFamily: 'monospace', fontSize: 13, color: '#6b7280' }}>{badge.code}</TableCell>
+                  <TableCell style={{ fontFamily: 'monospace', fontSize: 13, color: GRAY_500 }}>{badge.code}</TableCell>
                   <TableCell style={{ fontWeight: 500 }}>{badge.name}</TableCell>
                   <TableCell style={{ fontSize: 13 }}>{TARGET_LABEL[badge.targetType] ?? badge.targetType}</TableCell>
                   <TableCell style={{ fontSize: 13 }}>{ASSIGN_LABEL[badge.assignmentType] ?? badge.assignmentType}</TableCell>
@@ -94,9 +95,9 @@ export function TaxonomyBadgesTab() {
                       padding: '2px 8px',
                       fontSize: 12,
                       fontWeight: 600,
-                      background: badge.isActive ? '#dcfce7' : '#f3f4f6',
-                      color: badge.isActive ? GREEN : '#6b7280',
-                      border: `1px solid ${badge.isActive ? '#bbf7d0' : '#d1d5db'}`,
+                      background: badge.isActive ? '#dcfce7' : GRAY_100, // green-100: sin token aún
+                      color: badge.isActive ? GREEN : GRAY_500,
+                      border: `1px solid ${badge.isActive ? '#bbf7d0' : GRAY_300}`, // green-200: sin token aún
                     }}>
                       {badge.isActive ? 'Sí' : 'No'}
                     </span>
@@ -104,7 +105,7 @@ export function TaxonomyBadgesTab() {
                   <TableCell>
                     <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                       <Button variant="ghost" size="sm" onClick={() => { setEditTarget(badge); setModalOpen(true); }} style={{ padding: '4px 8px' }}><Pencil size={14} /></Button>
-                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(badge)} style={{ padding: '4px 8px', color: '#dc2626' }}><Trash2 size={14} /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(badge)} style={{ padding: '4px 8px', color: RED }}><Trash2 size={14} /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -113,7 +114,7 @@ export function TaxonomyBadgesTab() {
           </TableBody>
         </Table>
         {!loading && badges.length > 0 && (
-          <div style={{ padding: '8px 16px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#9ca3af' }}>
+          <div style={{ padding: '8px 16px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: GRAY_400 }}>
             {badges.length} badge{badges.length !== 1 ? 's' : ''}
           </div>
         )}

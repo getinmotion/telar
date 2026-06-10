@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { RED, amberA } from '@/components/dashboard/dashboardStyles';
 
 interface Props {
   open: boolean;
@@ -32,8 +33,8 @@ export function TaxonomyDeleteConfirm({ open, itemName, onConfirm, onCancel, loa
         </AlertDialogHeader>
         {(usageCount ?? 0) > 0 && (
           <div style={{
-            background: 'rgba(245,158,11,0.1)',
-            border: '1px solid rgba(245,158,11,0.4)',
+            background: amberA(0.1),
+            border: `1px solid ${amberA(0.4)}`,
             borderRadius: 10,
             padding: '10px 14px',
             display: 'flex',
@@ -54,7 +55,7 @@ export function TaxonomyDeleteConfirm({ open, itemName, onConfirm, onCancel, loa
           <AlertDialogAction
             disabled={loading}
             onClick={onConfirm}
-            style={{ background: '#dc2626', color: '#fff' }}
+            style={{ background: RED, color: '#fff' }}
           >
             {loading ? 'Eliminando…' : 'Eliminar'}
           </AlertDialogAction>

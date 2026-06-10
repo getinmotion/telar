@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { TaxonomyType, TaxonomyItemAdmin } from '@/services/taxonomy.actions';
 import type { Category } from '@/services/categories.actions';
 import type { TaxonomyBadge } from '@/services/badges.actions';
+import { SPARTAN, GREEN_MOD, PURPLE, RED, GRAY_200, GRAY_400, GRAY_500, purpleA } from '@/components/dashboard/dashboardStyles';
 
 type Variant = 'taxonomy' | 'category' | 'badge' | 'curatorial';
 
@@ -171,7 +172,7 @@ export function TaxonomyItemFormModal({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent style={{ maxWidth: 480, borderRadius: 20 }}>
         <DialogHeader>
-          <DialogTitle style={{ fontFamily: "'League Spartan', sans-serif", fontSize: 18 }}>
+          <DialogTitle style={{ fontFamily: SPARTAN, fontSize: 18 }}>
             {TITLE[variant][mode]}
           </DialogTitle>
         </DialogHeader>
@@ -188,7 +189,7 @@ export function TaxonomyItemFormModal({
                 placeholder="ej. ECO_BADGE"
                 style={{ marginTop: 4 }}
               />
-              {codeError && <p style={{ color: '#dc2626', fontSize: 12, marginTop: 4 }}>{codeError}</p>}
+              {codeError && <p style={{ color: RED, fontSize: 12, marginTop: 4 }}>{codeError}</p>}
             </div>
           )}
 
@@ -272,12 +273,12 @@ export function TaxonomyItemFormModal({
           {variant === 'taxonomy' && taxonomyType === 'techniques' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Label>Oficios asociados <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opcional)</span></Label>
+                <Label>Oficios asociados <span style={{ color: GRAY_400, fontWeight: 400 }}>(opcional)</span></Label>
                 {selectedCraftIds.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setSelectedCraftIds([])}
-                    style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    style={{ fontSize: 11, color: GRAY_400, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
                     Quitar todos
                   </button>
@@ -294,15 +295,15 @@ export function TaxonomyItemFormModal({
                         active ? prev.filter((id) => id !== c.id) : [...prev, c.id],
                       )}
                       style={{
-                        border: `1.5px solid ${active ? '#7c3aed' : '#e5e7eb'}`,
+                        border: `1.5px solid ${active ? PURPLE : GRAY_200}`,
                         borderRadius: 20,
                         padding: '4px 12px',
                         fontSize: 12,
                         fontWeight: 600,
                         cursor: 'pointer',
-                        background: active ? 'rgba(124,58,237,0.1)' : 'white',
-                        color: active ? '#7c3aed' : '#6b7280',
-                        fontFamily: "'League Spartan', system-ui, sans-serif",
+                        background: active ? purpleA(0.1) : 'white',
+                        color: active ? PURPLE : GRAY_500,
+                        fontFamily: SPARTAN,
                         transition: 'all 0.15s',
                       }}
                     >
@@ -311,7 +312,7 @@ export function TaxonomyItemFormModal({
                   );
                 })}
                 {crafts.length === 0 && (
-                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Sin oficios disponibles</span>
+                  <span style={{ fontSize: 12, color: GRAY_400 }}>Sin oficios disponibles</span>
                 )}
               </div>
             </div>
@@ -433,7 +434,7 @@ export function TaxonomyItemFormModal({
           <Button
             disabled={!canSave || saving}
             onClick={handleSave}
-            style={{ background: '#15803d', color: '#fff' }}
+            style={{ background: GREEN_MOD, color: '#fff' }}
           >
             {saving ? 'Guardando…' : mode === 'create' ? 'Crear' : 'Guardar'}
           </Button>
