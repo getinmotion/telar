@@ -172,9 +172,6 @@ const Index = () => {
               </div>
               {/* Quote area */}
               <div className="col-span-3 border-t border-[#2c2c2c]/10 pt-4">
-                <p className="text-[10px] uppercase tracking-widest text-[#ec6d13] font-bold mb-2">
-                  Origen: San Jacinto
-                </p>
                 <p className="font-serif italic text-lg leading-snug">
                   "Cada puntada es un susurro de nuestros ancestros."
                 </p>
