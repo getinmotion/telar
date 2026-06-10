@@ -111,7 +111,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
 
   if (isFinalStep) {
     return (
-      <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
+      <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
         <ProgressBar />
         <div className={innerClass}>
           <BackButton />
@@ -134,13 +134,15 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   }
 
   return (
-    <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
+    <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
       <ProgressBar />
       <div className={innerClass}>
         <BackButton />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
           <SaveDraftButton />
-          <SaveAndExitButton />
+          <div className="hidden md:block">
+            <SaveAndExitButton />
+          </div>
           {disabledReason && (
             <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">{disabledReason}</span>
           )}

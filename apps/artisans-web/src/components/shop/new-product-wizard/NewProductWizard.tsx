@@ -26,8 +26,8 @@ const WizardOraculoDrawer: React.FC = () => {
   const content = node ?? <AICopilotCard />;
   return (
     <div
-      className="md:hidden fixed left-0 right-0 z-50"
-      style={{ bottom: 'calc(59px + env(safe-area-inset-bottom))' }}
+      className="md:hidden fixed left-0 right-0 z-40"
+      style={{ bottom: 'calc(119px + env(safe-area-inset-bottom))' }}
     >
       <div style={{ overflow: 'hidden', maxHeight: open ? '55vh' : 0, transition: 'max-height 0.28s ease' }}>
         <div style={{ overflowY: 'auto', maxHeight: '55vh', background: '#151b2d', borderRadius: '16px 16px 0 0' }}>
@@ -397,8 +397,8 @@ export const NewProductWizard: React.FC = () => {
             onPublished={handlePublished}
           />
         )}
-        {/* Spacer mobile: footer (~59px) + oráculo trigger bar (46px) + safe area */}
-        <div className="shrink-0 md:hidden" style={{ height: 'calc(105px + env(safe-area-inset-bottom))' }} />
+        {/* Spacer mobile: footer (~60px) + oráculo (119px) + safe area */}
+        <div className="shrink-0 md:hidden" style={{ height: 'calc(180px + env(safe-area-inset-bottom))' }} />
       </div>
 
       <WizardOraculoDrawer />
