@@ -10,6 +10,7 @@ import { getOnboardingAnswers } from '@/services/onboarding.actions';
 import { OnboardingApiResponse } from '@/types/telarData.types';
 import { useTelarDataStore } from './telarDataStore';
 import { parseJwtPayload } from '@/utils/jwt.utils';
+import type { ArtisansIdentityProfile } from '@/types/artisansKnowledge.types';
 
 // Tipos
 interface RawUserMetaData {
@@ -92,6 +93,7 @@ interface AuthState {
   user: User | null;
   userMasterContext: UserMasterContext | null;
   artisanShop: ArtisanShop | null;
+  artisansIdentityProfile: ArtisansIdentityProfile | null;
   userMaturityActions: UserMaturityAction[];
 
   // Token
@@ -104,18 +106,21 @@ interface AuthState {
   hasCompletedMaturityTest: boolean;
   hasShop: boolean;
   isShopComplete: boolean;
+  hasArtisanIdentity: boolean;
 
   // Acciones
   setAuthData: (data: {
     user: User;
     userMasterContext: UserMasterContext | null;
     artisanShop: ArtisanShop | null;
+    artisansIdentityProfile: ArtisansIdentityProfile | null;
     userMaturityActions: UserMaturityAction[];
     access_token: string;
   }) => void;
 
   updateUserMasterContext: (context: UserMasterContext) => void;
   updateArtisanShop: (shop: ArtisanShop) => void;
+  updateArtisansIdentityProfile: (profile: ArtisansIdentityProfile) => void;
 
   clearAuth: () => void;
 
@@ -131,6 +136,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       userMasterContext: null,
       artisanShop: null,
+      artisansIdentityProfile: null,
       userMaturityActions: [],
       access_token: null,
       isAuthenticated: false,
@@ -155,12 +161,17 @@ export const useAuthStore = create<AuthState>()(
         return shop?.creationStatus === 'complete';
       },
 
+      get hasArtisanIdentity() {
+        return !!get().artisansIdentityProfile;
+      },
+
       // Acciones
       setAuthData: (data) => {
         set({
           user: data.user,
           userMasterContext: data.userMasterContext,
           artisanShop: data.artisanShop,
+          artisansIdentityProfile: data.artisansIdentityProfile,
           userMaturityActions: data.userMaturityActions,
           access_token: data.access_token,
           isAuthenticated: !!data.user && !!data.access_token, // ✅ Actualizar estado derivado
@@ -187,11 +198,16 @@ export const useAuthStore = create<AuthState>()(
         set({ artisanShop: shop });
       },
 
+      updateArtisansIdentityProfile: (profile) => {
+        set({ artisansIdentityProfile: profile });
+      },
+
       clearAuth: () => {
         set({
           user: null,
           userMasterContext: null,
           artisanShop: null,
+          artisansIdentityProfile: null,
           userMaturityActions: [],
           access_token: null,
           isAuthenticated: false, // ✅ Actualizar estado derivado
@@ -210,15 +226,17 @@ export const useAuthStore = create<AuthState>()(
       getRedirectPath: () => {
         const state = get();
         const shop = state.artisanShop;
+        const artisansIdentityProfile = state.artisansIdentityProfile;
 
         // ✅ Si NO tiene shop, redirigir al formulario de onboarding
         if (!shop) {
           return '/growth/agent-form';
         }
 
-        // Si tiene tienda pero está incompleta, continuar creación
-        if (shop && shop.creationStatus !== 'complete') {
-          return '/dashboard/create-shop';
+        // ✅ Si tiene shop PERO NO tiene artisans_identity_profile, redirigir al formulario
+        // Es obligatorio que complete el registro de identidad artesanal
+        if (shop && !artisansIdentityProfile) {
+          return '/growth/agent-form';
         }
 
         // Siempre redirigir al dashboard (se eliminó maturity-calculator onboarding)
@@ -232,6 +250,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         userMasterContext: state.userMasterContext,
         artisanShop: state.artisanShop,
+        artisansIdentityProfile: state.artisansIdentityProfile,
         userMaturityActions: state.userMaturityActions,
         access_token: state.access_token,
         // Persistir isAuthenticated para que el refresh no pierda la sesión.

@@ -12,6 +12,7 @@ import { EmailVerificationsService } from '../email-verifications/email-verifica
 import { UserMasterContextService } from '../user-master-context/user-master-context.service';
 import { ArtisanShopsService } from '../artisan-shops/artisan-shops.service';
 import { UserMaturityActionsService } from '../user-maturity-actions/user-maturity-actions.service';
+import { ArtisansKnowledgeService } from '../artisans-knowledge/artisans-knowledge.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
 import { IdTypeUserService } from '../id-type-user/id-type-user.service';
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly userMasterContextService: UserMasterContextService,
     private readonly artisanShopsService: ArtisanShopsService,
     private readonly userMaturityActionsService: UserMaturityActionsService,
+    private readonly artisansKnowledgeService: ArtisansKnowledgeService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly idTypeUserService: IdTypeUserService,
@@ -231,6 +233,7 @@ export class AuthService {
     userMasterContext: any | null;
     artisanShop: any | null;
     userMaturityActions: any[];
+    artisansIdentityProfile: any | null;
     access_token: string;
   }> {
     // Validar credenciales
@@ -273,6 +276,11 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
+    // Obtener artisans_identity_profile (relación 1:1 con subrelaciones)
+    const artisansIdentityProfile = await this.artisansKnowledgeService
+      .getByUserId(user.id)
+      .catch(() => null);
+
     // Generar el token JWT con isSuperAdmin y roles[]
     const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
@@ -285,6 +293,7 @@ export class AuthService {
       userMasterContext,
       artisanShop,
       userMaturityActions,
+      artisansIdentityProfile,
       access_token,
     };
   }
@@ -416,13 +425,14 @@ export class AuthService {
 
   /**
    * Obtener perfil completo del usuario autenticado
-   * Retorna: user, userMasterContext, artisanShop, userMaturityActions, access_token
+   * Retorna: user, userMasterContext, artisanShop, userMaturityActions, artisansIdentityProfile, access_token
    */
   async getCompleteProfile(userId: string): Promise<{
     user: Partial<User>;
     userMasterContext: any | null;
     artisanShop: any | null;
     userMaturityActions: any[];
+    artisansIdentityProfile: any | null;
     access_token: string;
   }> {
     // Obtener usuario
@@ -456,6 +466,11 @@ export class AuthService {
       .getByUserId(user.id)
       .catch(() => []);
 
+    // Obtener artisans_identity_profile (relación 1:1 con subrelaciones)
+    const artisansIdentityProfile = await this.artisansKnowledgeService
+      .getByUserId(user.id)
+      .catch(() => null);
+
     // Generar nuevo token JWT con isSuperAdmin y roles[]
     const payload = await this.buildJwtPayload(user);
     const access_token = await this.jwtService.signAsync(payload);
@@ -468,6 +483,7 @@ export class AuthService {
       userMasterContext,
       artisanShop,
       userMaturityActions,
+      artisansIdentityProfile,
       access_token,
     };
   }
@@ -606,6 +622,7 @@ export class AuthService {
     userMasterContext: any | null;
     artisanShop: any | null;
     userMaturityActions: any[];
+    artisansIdentityProfile: any | null;
     access_token: string;
   }> {
     const normalizedEmail = googleAuthDto.email.toLowerCase().trim();
@@ -691,6 +708,11 @@ export class AuthService {
         .getByUserId(user.id)
         .catch(() => []);
 
+      // Obtener artisans_identity_profile (relación 1:1 con subrelaciones)
+      const artisansIdentityProfile = await this.artisansKnowledgeService
+        .getByUserId(user.id)
+        .catch(() => null);
+
       // Generar token JWT con isSuperAdmin y roles[]
       const payload = await this.buildJwtPayload(user);
       const access_token = await this.jwtService.signAsync(payload);
@@ -703,6 +725,7 @@ export class AuthService {
         userMasterContext,
         artisanShop,
         userMaturityActions,
+        artisansIdentityProfile,
         access_token,
       };
     } catch (error) {

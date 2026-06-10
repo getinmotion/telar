@@ -84,6 +84,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
 import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-info.module';
 import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
 import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
+import { UsersIdAgreementModule } from './resources/users-id-agreement/users-id-agreement.module';
 
 @Module({
   imports: [
@@ -213,6 +214,7 @@ import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans
     PayoutUserInfoModule,
     AchievementsCatalogModule,
     ArtisansKnowledgeModule,
+    UsersIdAgreementModule,
   ],
   controllers: [],
   providers: [],
