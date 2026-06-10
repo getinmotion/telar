@@ -1,17 +1,17 @@
 # Auditoría de design tokens — artisans-web
 
-Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
+Generado: 2026-06-10 · `node scripts/audit-design-tokens.mjs`
 
 ## Totales
 
 | Patrón | Instancias |
 |---|---:|
-| rgb()/rgba() inline en style | 1627 |
-| Hex hardcodeado en className | 1343 |
-| Tamaño arbitrario text-[Npx] | 918 |
+| rgb()/rgba() inline en style | 1540 |
+| Hex hardcodeado en className | 1268 |
+| Tamaño arbitrario text-[Npx] | 916 |
 | Familia inline font-['...'] | 339 |
 | Glass inline (backdrop-blur + bg-white/N) | 89 |
-| **Total** | **4316** |
+| **Total** | **4152** |
 
 (250 coincidencias excluidas por ser SVG fills / datos de gráficos)
 
@@ -20,30 +20,30 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | Hex | Usos | Token sugerido |
 |---|---:|---|
 | `#54433e` | 329 | on-surface-variant |
-| `#ec6d13` | 316 | brand-orange |
-| `#151b2d` | 165 | on-surface |
+| `#ec6d13` | 315 | brand-orange |
+| `#151b2d` | 166 | on-surface |
 | `#e2d5cf` | 86 | brand-border |
-| `#ef4444` | 52 | destructive (ya existe) |
-| `#166534` | 30 | accent-green |
-| `#7c3aed` | 23 | domain-business |
-| `#15803d` | 18 | domain-moderation |
+| `#ef4444` | 51 | destructive (ya existe) |
+| `#166534` | 28 | accent-green |
 | `#3b82f6` | 17 | — |
-| `#dc2626` | 15 | — |
-| `#6b7280` | 14 | — |
-| `#b45309` | 12 | — |
-| `#0369a1` | 11 | — |
-| `#d97706` | 10 | — |
-| `#142239` | 9 | navy / primary (ya existe) |
-| `#e5e7eb` | 9 | — |
-| `#374151` | 8 | — |
-| `#9ca3af` | 8 | — |
+| `#142239` | 10 | navy / primary (ya existe) |
+| `#dc2626` | 10 | status-error |
+| `#7c3aed` | 9 | domain-business |
+| `#d97706` | 9 | status-warning |
+| `#f59e0b` | 8 | status-warning-light |
 | `#8b5cf6` | 8 | — |
 | `#22c55e` | 7 | — |
 | `#6366f1` | 7 | — |
 | `#ffffff` | 7 | white (usar bg-white) |
-| `#f59e0b` | 7 | — |
+| `#b45309` | 7 | status-warning-dark |
 | `#2563eb` | 7 | — |
 | `#eab308` | 6 | — |
+| `#2c2c2c` | 6 | — |
+| `#15803d` | 6 | domain-moderation |
+| `#9ca3af` | 6 | — |
+| `#6b7280` | 6 | — |
+| `#be185d` | 5 | — |
+| `#fbbf24` | 5 | — |
 
 ## Archivos con más violaciones
 
@@ -77,7 +77,6 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/pages/backoffice/BackofficeConveniosPage.tsx | 46 | 6 | 40 |  |  |  |
 | src/pages/backoffice/BackofficeHomePage.tsx | 45 | 3 | 42 |  |  |  |
 | src/pages/admin/ProductStudioPage.tsx | 37 | 17 | 11 | 8 | 1 |  |
-| src/components/backoffice/taxonomy/TaxonomyModeracionTab.tsx | 35 | 11 | 24 |  |  |  |
 | src/components/shop/wizards/artisan-profile/ArtisanStepShell.tsx | 35 | 7 | 10 | 16 | 2 |  |
 | src/pages/CmsAdminPage.tsx | 35 | 3 | 32 |  |  |  |
 | src/components/moderation/ModerationShopDetailView.tsx | 34 |  | 33 | 1 |  |  |
@@ -85,8 +84,7 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/components/shop/mobile/MobileShopConfig.tsx | 33 | 2 | 31 |  |  |  |
 | src/pages/backoffice/BackofficeTaxonomiaPage.tsx | 33 | 12 | 21 |  |  |  |
 | src/pages/NotificationsPage.tsx | 33 | 9 | 24 |  |  |  |
-| src/components/backoffice/taxonomy/TaxonomyTecnicasTab.tsx | 29 | 26 | 3 |  |  |  |
-| src/components/backoffice/taxonomy/TaxonomyCrudTab.tsx | 28 | 26 | 2 |  |  |  |
+| src/components/dashboard/dashboardStyles.tsx | 28 | 28 |  |  |  |  |
 | src/pages/admin/ModerationOSPage.tsx | 28 |  | 20 | 8 |  |  |
 | src/components/moderation/ReviewerWorkspace/WorkspaceLeft.tsx | 27 |  | 27 |  |  |  |
 | src/pages/HeroSliderWizardPage.tsx | 27 | 27 |  |  |  |  |
@@ -95,13 +93,9 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/pages/config-wizards/ContactLocationWizardPage.tsx | 24 |  | 12 | 12 |  |  |
 | src/components/moderation/ReviewerWorkspace/AIInsightsPanel.tsx | 23 | 2 | 21 |  |  |  |
 | src/components/shop/public/ShopPublicShell.tsx | 23 | 8 | 13 | 2 |  |  |
-| src/components/backoffice/taxonomy/TaxonomyCulturaTab.tsx | 22 | 2 | 20 |  |  |  |
 | src/pages/config-wizards/HeroImagesWizardPage.tsx | 21 |  | 21 |  |  |  |
-| src/components/backoffice/taxonomy/TaxonomyHealthDashboard.tsx | 19 | 5 | 14 |  |  |  |
 | src/components/moderation/ReviewerWorkspace/modes/RejectionMode.tsx | 19 | 1 | 17 | 1 |  |  |
-| src/components/dashboard/dashboardStyles.tsx | 18 | 14 | 4 |  |  |  |
 | src/components/moderation/ReviewerWorkspace/WorkspaceRight.tsx | 18 | 10 | 8 |  |  |  |
-| src/components/backoffice/taxonomy/TaxonomyImpactoTab.tsx | 17 | 5 | 12 |  |  |  |
 | src/components/dashboard/sections/InventoryAlerts.tsx | 17 |  | 17 |  |  |  |
 | src/components/dashboard/sections/ProductsTable.tsx | 17 | 6 | 8 | 3 |  |  |
 | src/pages/PublicShopPageNew.tsx | 17 |  | 14 | 3 |  |  |
@@ -109,8 +103,14 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/components/moderation/ReviewerWorkspace/modes/CorrectionMode.tsx | 16 | 1 | 13 | 2 |  |  |
 | src/components/shop/config-wizards/ConfigWizardShell.tsx | 16 | 3 | 4 | 8 | 1 |  |
 | src/pages/BioLinkPage.tsx | 16 | 15 |  | 1 |  |  |
+| src/utils/colorUtils.ts | 16 | 16 |  |  |  |  |
+| src/components/dashboard/DashboardLayout.tsx | 15 | 2 | 13 |  |  |  |
+| src/components/shop/new-product-wizard/components/AiBadge.tsx | 15 | 12 |  | 3 |  |  |
+| src/components/shop/new-product-wizard/components/WizardHeader.tsx | 15 | 6 |  | 6 | 3 |  |
+| src/pages/backoffice/BackofficeLoginPage.tsx | 15 | 2 | 13 |  |  |  |
+| src/components/moderation/ReviewerWorkspace/CorrectionTypeSelector.tsx | 14 | 5 | 5 | 4 |  |  |
 
-…y 142 archivos más.
+…y 137 archivos más.
 
 ## Resumen por carpeta
 
@@ -118,10 +118,9 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 |---|---:|
 | src/components/shop | 1831 |
 | src/pages/backoffice | 341 |
-| src/components/dashboard | 289 |
+| src/components/dashboard | 299 |
 | src/components/moderation | 280 |
 | src/pages/growth | 251 |
-| src/components/backoffice | 221 |
 | src/pages/ShopConfigDashboard.tsx | 128 |
 | src/pages/config-wizards | 110 |
 | src/components/studio | 87 |
@@ -130,6 +129,7 @@ Generado: 2026-06-09 · `node scripts/audit-design-tokens.mjs`
 | src/pages/TallerStatusPage.tsx | 77 |
 | src/pages/InventoryPage.tsx | 63 |
 | src/pages/ShopSalesPage.tsx | 61 |
+| src/components/backoffice | 47 |
 | src/components/onboarding | 42 |
 | src/components/ui | 39 |
 | src/pages/CmsAdminPage.tsx | 35 |

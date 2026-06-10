@@ -43,6 +43,7 @@ export default {
 				// TELAR Editorial Palette (DESIGN.md §2) — <alpha-value> permite bg-brand-orange/10 etc.
 				'brand-orange': 'hsl(var(--brand-orange) / <alpha-value>)',
 				'brand-orange-dark': 'hsl(var(--brand-orange-dark) / <alpha-value>)',
+				'brand-orange-darker': 'hsl(var(--brand-orange-darker) / <alpha-value>)',
 				'on-surface': 'hsl(var(--on-surface) / <alpha-value>)',
 				'on-surface-variant': 'hsl(var(--on-surface-variant) / <alpha-value>)',
 				'brand-cream': 'hsl(var(--brand-cream) / <alpha-value>)',
@@ -53,7 +54,17 @@ export default {
 				domain: {
 					moderation: 'hsl(var(--domain-moderation) / <alpha-value>)',
 					content: 'hsl(var(--domain-content) / <alpha-value>)',
-					business: 'hsl(var(--domain-business) / <alpha-value>)'
+					business: 'hsl(var(--domain-business) / <alpha-value>)',
+					'business-dark': 'hsl(var(--domain-business-dark) / <alpha-value>)'
+				},
+
+				// Status colors — backoffice (aprobado reusa domain-moderation/accent-green)
+				status: {
+					warning: 'hsl(var(--status-warning) / <alpha-value>)',
+					'warning-dark': 'hsl(var(--status-warning-dark) / <alpha-value>)',
+					'warning-light': 'hsl(var(--status-warning-light) / <alpha-value>)',
+					error: 'hsl(var(--status-error) / <alpha-value>)',
+					info: 'hsl(var(--status-info) / <alpha-value>)'
 				},
 				
 				// Navy Blue Palette (Primary)

@@ -54,7 +54,11 @@ export default tseslint.config(
   // Áreas ya migradas: regresión de hex/fuentes es error.
   // (cms/preview se excluye: replica fielmente el look de marketplace-web a propósito)
   {
-    files: ["src/components/cms/**/*.tsx"],
+    files: [
+      "src/components/cms/**/*.tsx",
+      "src/components/backoffice/taxonomy/**/*.tsx",
+      "src/components/backoffice/BackofficeSidebar.tsx",
+    ],
     ignores: ["src/components/cms/preview/**"],
     rules: {
       "no-restricted-syntax": [

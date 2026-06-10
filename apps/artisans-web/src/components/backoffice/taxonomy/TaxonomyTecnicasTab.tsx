@@ -13,8 +13,9 @@ import {
 import { TaxonomyStatusBadge } from './TaxonomyStatusBadge';
 import { TaxonomyDeleteConfirm } from './TaxonomyDeleteConfirm';
 import { TaxonomyItemFormModal } from './TaxonomyItemFormModal';
+import { GRAY_50, GRAY_100, GRAY_200, GRAY_400, GRAY_500, GRAY_700, GRAY_900 } from '@/components/dashboard/dashboardStyles';
 
-const PURPLE = '#7c3aed';
+const PURPLE = 'hsl(var(--domain-business))';
 
 type StatusFilter = 'all' | 'approved' | 'pending' | 'rejected';
 
@@ -27,26 +28,26 @@ const STATUS_PILLS: {
   {
     value: 'all',
     label: 'Todos',
-    activeStyle: { background: '#111827', color: 'white', borderColor: '#111827' },
-    inactiveStyle: { background: 'white', color: '#374151', borderColor: '#e5e7eb' },
+    activeStyle: { background: GRAY_900, color: 'white', borderColor: GRAY_900 },
+    inactiveStyle: { background: 'white', color: GRAY_700, borderColor: GRAY_200 },
   },
   {
     value: 'approved',
     label: '✓ Aprobados',
-    activeStyle: { background: '#dcfce7', color: '#15803d', borderColor: '#bbf7d0' },
-    inactiveStyle: { background: 'white', color: '#6b7280', borderColor: '#e5e7eb' },
+    activeStyle: { background: '#dcfce7', color: 'hsl(var(--domain-moderation))', borderColor: '#bbf7d0' },
+    inactiveStyle: { background: 'white', color: GRAY_500, borderColor: GRAY_200 },
   },
   {
     value: 'pending',
     label: '⏳ Pendientes',
     activeStyle: { background: '#fef9c3', color: '#a16207', borderColor: '#fde68a' },
-    inactiveStyle: { background: 'white', color: '#6b7280', borderColor: '#e5e7eb' },
+    inactiveStyle: { background: 'white', color: GRAY_500, borderColor: GRAY_200 },
   },
   {
     value: 'rejected',
     label: '✗ Rechazados',
-    activeStyle: { background: '#fee2e2', color: '#dc2626', borderColor: '#fecaca' },
-    inactiveStyle: { background: 'white', color: '#6b7280', borderColor: '#e5e7eb' },
+    activeStyle: { background: '#fee2e2', color: 'hsl(var(--status-error))', borderColor: '#fecaca' },
+    inactiveStyle: { background: 'white', color: GRAY_500, borderColor: GRAY_200 },
   },
 ];
 
@@ -145,13 +146,13 @@ export function TaxonomyTecnicasTab() {
       }}>
         <div>
           <h2 style={{
-            margin: 0, fontSize: 20, fontWeight: 800, color: '#111827',
+            margin: 0, fontSize: 20, fontWeight: 800, color: GRAY_900,
             fontFamily: "'League Spartan', system-ui, sans-serif",
           }}>
             Técnicas
           </h2>
           {!loading && (
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: '#9ca3af' }}>
+            <p style={{ margin: '3px 0 0', fontSize: 12, color: GRAY_400 }}>
               {items.length} técnica{items.length !== 1 ? 's' : ''}
               {craftFilter !== 'all' && craftMap.get(craftFilter)
                 ? ` en ${craftMap.get(craftFilter)}`
@@ -166,7 +167,7 @@ export function TaxonomyTecnicasTab() {
             borderRadius: 9, padding: '9px 18px',
             fontSize: 13, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
-            boxShadow: '0 3px 12px rgba(124,58,237,0.3)',
+            boxShadow: '0 3px 12px hsl(var(--domain-business) / 0.3)',
             fontFamily: "'League Spartan', system-ui, sans-serif",
           }}
         >
@@ -179,7 +180,7 @@ export function TaxonomyTecnicasTab() {
         <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 160 }}>
           <Search size={14} style={{
             position: 'absolute', left: 10, top: '50%',
-            transform: 'translateY(-50%)', color: '#9ca3af',
+            transform: 'translateY(-50%)', color: GRAY_400,
           }} />
           <input
             value={search}
@@ -187,8 +188,8 @@ export function TaxonomyTecnicasTab() {
             placeholder="Buscar técnicas…"
             style={{
               width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8,
-              background: 'white', border: '1px solid #e5e7eb', borderRadius: 9,
-              fontSize: 13, color: '#374151', outline: 'none',
+              background: 'white', border: `1px solid ${GRAY_200}`, borderRadius: 9,
+              fontSize: 13, color: GRAY_700, outline: 'none',
               fontFamily: "'League Spartan', system-ui, sans-serif",
               boxSizing: 'border-box',
             }}
@@ -232,13 +233,13 @@ export function TaxonomyTecnicasTab() {
       {/* Table */}
       <div style={{
         background: 'white', borderRadius: 14,
-        border: '1px solid #e5e7eb',
+        border: `1px solid ${GRAY_200}`,
         boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
         overflow: 'hidden',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
+            <tr style={{ borderBottom: `2px solid ${GRAY_100}` }}>
               <th style={thStyle}>Nombre</th>
               <th style={thStyle}>Oficio</th>
               <th style={thStyle}>Estado</th>
@@ -250,13 +251,13 @@ export function TaxonomyTecnicasTab() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0', fontSize: 13 }}>
+                <td colSpan={6} style={{ textAlign: 'center', color: GRAY_400, padding: '40px 0', fontSize: 13 }}>
                   Cargando…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0', fontSize: 13 }}>
+                <td colSpan={6} style={{ textAlign: 'center', color: GRAY_400, padding: '40px 0', fontSize: 13 }}>
                   Sin técnicas{search ? ` con "${search}"` : ''}
                 </td>
               </tr>
@@ -265,24 +266,24 @@ export function TaxonomyTecnicasTab() {
                 <tr
                   key={item.id}
                   style={{
-                    borderBottom: '1px solid #f9fafb',
+                    borderBottom: `1px solid ${GRAY_50}`,
                     background: item.status === 'pending' ? '#fefce8' : 'white',
                     transition: 'background 0.1s',
                   }}
                 >
-                  <td style={{ ...tdStyle, fontWeight: 700, color: '#111827' }}>{item.name}</td>
+                  <td style={{ ...tdStyle, fontWeight: 700, color: GRAY_900 }}>{item.name}</td>
                   <td style={{ ...tdStyle, fontSize: 12 }}>
                     {(() => {
                       const ids = item.craftIds?.length
                         ? item.craftIds
                         : item.craftId ? [item.craftId] : [];
-                      if (!ids.length) return <span style={{ color: '#9ca3af' }}>—</span>;
+                      if (!ids.length) return <span style={{ color: GRAY_400 }}>—</span>;
                       return (
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                           {ids.map((cid) => (
                             <span key={cid} style={{
                               display: 'inline-block',
-                              background: 'rgba(124,58,237,0.08)',
+                              background: 'hsl(var(--domain-business) / 0.08)',
                               color: PURPLE,
                               borderRadius: 20,
                               padding: '2px 9px',
@@ -303,14 +304,14 @@ export function TaxonomyTecnicasTab() {
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4,
                       padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                      background: (item.productCount ?? 0) > 0 ? '#f0fdf4' : '#f9fafb',
-                      color: (item.productCount ?? 0) > 0 ? '#15803d' : '#9ca3af',
+                      background: (item.productCount ?? 0) > 0 ? '#f0fdf4' : GRAY_50,
+                      color: (item.productCount ?? 0) > 0 ? 'hsl(var(--domain-moderation))' : GRAY_400,
                     }}>
                       <Package size={10} />
                       {item.productCount ?? 0}
                     </span>
                   </td>
-                  <td style={{ ...tdStyle, color: '#9ca3af', fontSize: 12 }}>
+                  <td style={{ ...tdStyle, color: GRAY_400, fontSize: 12 }}>
                     {item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-CL') : '—'}
                   </td>
                   <td style={tdStyle}>
@@ -337,7 +338,7 @@ export function TaxonomyTecnicasTab() {
           </tbody>
         </table>
         {!loading && items.length > 0 && (
-          <div style={{ padding: '8px 16px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#9ca3af' }}>
+          <div style={{ padding: '8px 16px', borderTop: `1px solid ${GRAY_100}`, fontSize: 11, color: GRAY_400 }}>
             {items.length} técnica{items.length !== 1 ? 's' : ''}
           </div>
         )}
@@ -368,18 +369,18 @@ export function TaxonomyTecnicasTab() {
 }
 
 const thStyle: React.CSSProperties = {
-  textAlign: 'left', fontSize: 10, fontWeight: 800, color: '#9ca3af',
+  textAlign: 'left', fontSize: 10, fontWeight: 800, color: GRAY_400,
   letterSpacing: 1, textTransform: 'uppercase', padding: '8px 12px',
   fontFamily: "'League Spartan', system-ui, sans-serif",
 };
 const tdStyle: React.CSSProperties = {
-  padding: '11px 12px', fontSize: 13, color: '#374151', verticalAlign: 'middle',
+  padding: '11px 12px', fontSize: 13, color: GRAY_700, verticalAlign: 'middle',
 };
 const btnEditStyle: React.CSSProperties = {
-  background: '#f3f4f6', border: 'none', borderRadius: 6,
-  padding: '5px 8px', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center',
+  background: GRAY_100, border: 'none', borderRadius: 6,
+  padding: '5px 8px', cursor: 'pointer', color: GRAY_700, display: 'flex', alignItems: 'center',
 };
 const btnDeleteStyle: React.CSSProperties = {
   background: '#fef2f2', border: 'none', borderRadius: 6,
-  padding: '5px 8px', cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center',
+  padding: '5px 8px', cursor: 'pointer', color: 'hsl(var(--status-error))', display: 'flex', alignItems: 'center',
 };
