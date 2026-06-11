@@ -1,5 +1,12 @@
 import React from 'react';
+<<<<<<< HEAD
 import { SANS } from '@/components/dashboard/dashboardStyles';
+=======
+import {
+  SANS, GREEN_MOD, AMBER, AMBER_DARK, RED, SKY, GRAY_500,
+  greenA, amberA, amberDarkA, redA, skyA,
+} from '@/components/dashboard/dashboardStyles';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Props {
   status: 'approved' | 'pending' | 'rejected' | string;
@@ -14,6 +21,7 @@ const LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, { color: string; bg: string; border: string; icon: string }> = {
+<<<<<<< HEAD
   approved:  { color: '#15803d', bg: 'rgba(21,128,61,0.08)',   border: 'rgba(21,128,61,0.2)',    icon: 'check_circle'  },
   pending:   { color: '#d97706', bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.2)',   icon: 'schedule'      },
   rejected:  { color: '#dc2626', bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',    icon: 'cancel'        },
@@ -22,6 +30,16 @@ const STATUS_STYLES: Record<string, { color: string; bg: string; border: string;
 };
 
 const fallback = { color: '#6b7280', bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.18)', icon: 'circle' };
+=======
+  approved:  { color: GREEN_MOD,  bg: greenA(0.08),     border: greenA(0.2),     icon: 'check_circle'  },
+  pending:   { color: AMBER,      bg: amberA(0.08),     border: amberA(0.2),     icon: 'schedule'      },
+  rejected:  { color: RED,        bg: redA(0.08),       border: redA(0.2),       icon: 'cancel'        },
+  emergente: { color: AMBER_DARK, bg: amberDarkA(0.08), border: amberDarkA(0.2), icon: 'trending_up'   },
+  regional:  { color: SKY,        bg: skyA(0.08),       border: skyA(0.2),       icon: 'map'           },
+};
+
+const fallback = { color: GRAY_500, bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.18)', icon: 'circle' };
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 export function TaxonomyStatusBadge({ status }: Props) {
   const s = STATUS_STYLES[status] ?? fallback;

@@ -24,10 +24,48 @@ export default {
 			display: ['League Spartan', 'Arial', 'sans-serif'],
 			heading: ['League Spartan', 'Arial', 'sans-serif'],
 			body: ['Open Sans', 'system-ui', 'sans-serif'],
-			artisan: ['League Spartan', 'Arial', 'sans-serif']
+			artisan: ['League Spartan', 'Arial', 'sans-serif'],
+			// TELAR editorial (DESIGN.md) — reemplazan font-['Manrope'] / font-['Noto_Serif'] inline
+			manrope: ['Manrope', 'system-ui', 'sans-serif'],
+			'noto-serif': ['Noto Serif', 'Georgia', 'serif']
+		},
+		// Escala tipográfica TELAR (DESIGN.md §3) — mapeo exacto px→token, sin cambio visual.
+		// Reemplazan text-[8px]..text-[11px] arbitrarios. 12px+ usar text-xs/sm estándar.
+		fontSize: {
+			'micro': ['8px', { lineHeight: '1.2' }],
+			'3xs': ['9px', { lineHeight: '1.25' }],
+			'2xs': ['10px', { lineHeight: '1.3' }],
+			'2xs-plus': ['11px', { lineHeight: '1.35' }]
 		},
 			colors: {
 				border: 'hsl(var(--border))',
+
+				// TELAR Editorial Palette (DESIGN.md §2) — <alpha-value> permite bg-brand-orange/10 etc.
+				'brand-orange': 'hsl(var(--brand-orange) / <alpha-value>)',
+				'brand-orange-dark': 'hsl(var(--brand-orange-dark) / <alpha-value>)',
+				'brand-orange-darker': 'hsl(var(--brand-orange-darker) / <alpha-value>)',
+				'on-surface': 'hsl(var(--on-surface) / <alpha-value>)',
+				'on-surface-variant': 'hsl(var(--on-surface-variant) / <alpha-value>)',
+				'brand-cream': 'hsl(var(--brand-cream) / <alpha-value>)',
+				'brand-border': 'hsl(var(--brand-border) / <alpha-value>)',
+				'accent-green': 'hsl(var(--accent-green) / <alpha-value>)',
+
+				// Domain colors — backoffice (DESIGN.md §26.1)
+				domain: {
+					moderation: 'hsl(var(--domain-moderation) / <alpha-value>)',
+					content: 'hsl(var(--domain-content) / <alpha-value>)',
+					business: 'hsl(var(--domain-business) / <alpha-value>)',
+					'business-dark': 'hsl(var(--domain-business-dark) / <alpha-value>)'
+				},
+
+				// Status colors — backoffice (aprobado reusa domain-moderation/accent-green)
+				status: {
+					warning: 'hsl(var(--status-warning) / <alpha-value>)',
+					'warning-dark': 'hsl(var(--status-warning-dark) / <alpha-value>)',
+					'warning-light': 'hsl(var(--status-warning-light) / <alpha-value>)',
+					error: 'hsl(var(--status-error) / <alpha-value>)',
+					info: 'hsl(var(--status-info) / <alpha-value>)'
+				},
 				
 				// Navy Blue Palette (Primary)
 				'navy': {

@@ -108,6 +108,88 @@ const WorkshopImageSlot: React.FC<WorkshopImageSlotProps> = ({
   );
 };
 
+<<<<<<< HEAD
+=======
+// ── MobileWorkshopSlot ───────────────────────────────────────────────────────
+
+interface MobileWorkshopSlotProps {
+  icon: string;
+  label: string;
+  required?: boolean;
+  value?: string;
+  onChange: (url: string) => void;
+}
+
+const MobileWorkshopSlot: React.FC<MobileWorkshopSlotProps> = ({ icon, label, required, value, onChange }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setUploading(true);
+    try {
+      const optimized = await optimizeImage(file, ImageOptimizePresets.product);
+      const result = await uploadImage(optimized, UploadFolder.PROFILES);
+      onChange(result.url);
+    } catch {
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange('');
+  };
+
+  return (
+    <div className="flex-shrink-0 flex flex-col items-center gap-1.5">
+      <div
+        onClick={() => inputRef.current?.click()}
+        className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
+        style={{ background: value ? undefined : 'rgba(255,255,255,0.8)' }}
+      >
+        {uploading ? (
+          <span className="material-symbols-outlined text-[24px] text-[#ec6d13] animate-spin">progress_activity</span>
+        ) : value ? (
+          <>
+            <img src={value} className="w-full h-full object-cover" alt={label} />
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(0,0,0,0.55)' }}
+            >
+              <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>close</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined text-[26px]" style={{ color: 'rgba(84,67,62,0.28)' }}>
+              {icon}
+            </span>
+            {required && (
+              <div className="absolute bottom-1 left-0 w-full flex justify-center">
+                <span className="text-[8px] font-[800] uppercase tracking-wider text-[#ef4444]/70">Req.</span>
+              </div>
+            )}
+          </>
+        )}
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+      </div>
+      <span
+        className="text-[9px] font-['Manrope'] font-[800] uppercase tracking-wider text-center leading-tight"
+        style={{ color: 'rgba(84,67,62,0.5)', width: 80 }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+};
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
 
   return (
@@ -116,8 +198,41 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
       {/* Registro visual */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <p className={sectionTitle}>Registro visual del taller</p>
+<<<<<<< HEAD
         <div className="flex gap-3">
           {/* Foto principal grande */}
+=======
+
+        {/* Mobile: tira horizontal scrollable */}
+        <div className="md:hidden">
+          <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' as any }}>
+            {WORKSHOP_SLOTS.map((slot, i) => {
+              const value = i === 0 ? data.workshopPhoto : (data.workshopPhotos ?? [])[i - 1];
+              return (
+                <MobileWorkshopSlot
+                  key={slot.label}
+                  icon={slot.icon}
+                  label={slot.label}
+                  required={'required' in slot ? slot.required : false}
+                  value={value}
+                  onChange={(url) => {
+                    if (i === 0) {
+                      onChange({ workshopPhoto: url });
+                    } else {
+                      const next = [...(data.workshopPhotos ?? [])];
+                      next[i - 1] = url;
+                      onChange({ workshopPhotos: next });
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop: foto principal grande + 2×2 */}
+        <div className="hidden md:flex gap-3">
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <div className="flex-1 min-w-0">
             <WorkshopImageSlot
               {...WORKSHOP_SLOTS[0]}
@@ -126,7 +241,10 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
               height="h-full min-h-[270px]"
             />
           </div>
+<<<<<<< HEAD
           {/* 4 fotos secundarias en 2×2 */}
+=======
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <div className="grid grid-cols-2 gap-3 w-[45%] shrink-0">
             {WORKSHOP_SLOTS.slice(1).map((slot, i) => {
               const photos = data.workshopPhotos ?? [];
@@ -188,6 +306,10 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
           userId={userId}
           selected={data.workshopTools}
           onChange={(names) => onChange({ workshopTools: names })}
+<<<<<<< HEAD
+=======
+          suggestFromCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         />
       </section>
     </div>

@@ -402,6 +402,182 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
             logger.error(f"Product agent processing failed: {str(e)}")
             raise
     
+    async def process_creation_step1(
+        self,
+        product_name: str,
+        short_description: str,
+        history_context: str,
+        photos: Optional[Dict[str, Any]],
+        artisan_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Step 1 of product creation: improve text + suggest category/oficio/materials + photo feedback.
+        Uses GPT-4o vision when a main photo URL is provided.
+        """
+        from agents.prompts import get_product_creation_step1_prompt
+        from agents.helpers import parse_json_response
+        from src.database.supabase_client import db
+
+        taxonomy = await db.get_taxonomy_options()
+
+        prompt_context = dict(artisan_context or {})
+        prompt_context["taxonomy_categories"] = taxonomy["categories"]
+        prompt_context["taxonomy_crafts"] = taxonomy["crafts"]
+        prompt_context["taxonomy_materials"] = taxonomy["materials"]
+
+        system_prompt = get_product_creation_step1_prompt(prompt_context)
+
+        main_photo_url: Optional[str] = (photos or {}).get("main") if photos else None
+
+        photo_note = (
+            "El artesano todavía no subió una foto principal. "
+            "No analices ni inventes una foto: en photo_feedback.main_photo, "
+            "usa quality=\"no_disponible\", highlights=[] y suggestions con "
+            "recomendaciones generales de fotografía para artesanías."
+            if not main_photo_url
+            else "Se incluye la foto principal del producto para que la analices."
+        )
+
+        user_msg = (
+            f"Producto: {product_name}\n"
+            f"Descripción corta: {short_description}\n"
+            f"Historia/contexto: {history_context}\n"
+            f"Foto principal: {photo_note}\n\n"
+            "Por favor analiza este producto y devuelve el JSON solicitado."
+        )
+
+        if main_photo_url:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_msg},
+                        {"type": "image_url", "image_url": {"url": main_photo_url, "detail": "high"}},
+                    ],
+                },
+            ]
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=3000,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content
+        else:
+            raw = await self._call_llm(
+                user_message=user_msg,
+                system_prompt=system_prompt,
+                temperature=0.3,
+                max_tokens=3000,
+            )
+
+        result = parse_json_response(raw)
+        self._validate_identity_suggestions(result, taxonomy)
+        return result
+
+    @staticmethod
+    def _validate_identity_suggestions(result: Dict[str, Any], taxonomy: Dict[str, Any]) -> None:
+        """
+        Drop any category/oficio/material suggestion whose "value" doesn't match
+        a real taxonomy id, so the frontend never receives an out-of-DB option.
+        """
+        identity = result.get("identity_suggestions")
+        if not isinstance(identity, dict):
+            return
+
+        categories_by_id = {c["id"]: c["name"] for c in taxonomy["categories"]}
+        crafts_by_id = {c["id"]: c["name"] for c in taxonomy["crafts"]}
+        materials_by_id = {m["id"]: m["name"] for m in taxonomy["materials"]}
+
+        category = identity.get("category")
+        if isinstance(category, dict):
+            if category.get("value") in categories_by_id:
+                category["label"] = categories_by_id[category["value"]]
+            else:
+                logger.warning(f"Discarding out-of-taxonomy category suggestion: {category}")
+                identity["category"] = None
+
+        oficio = identity.get("oficio")
+        if isinstance(oficio, dict):
+            if oficio.get("value") in crafts_by_id:
+                oficio["label"] = crafts_by_id[oficio["value"]]
+            else:
+                logger.warning(f"Discarding out-of-taxonomy oficio suggestion: {oficio}")
+                identity["oficio"] = None
+
+        materials = identity.get("materials")
+        if isinstance(materials, list):
+            valid_materials = []
+            for m in materials:
+                if isinstance(m, dict) and m.get("value") in materials_by_id:
+                    m["label"] = materials_by_id[m["value"]]
+                    valid_materials.append(m)
+            identity["materials"] = valid_materials
+
+    async def process_creation_step3_process(
+        self,
+        process_description: str,
+        process_photos: Optional[Dict[str, Any]],
+        product_context: Optional[Dict[str, Any]] = None,
+        artisan_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Step 3 of product creation: analyse process description → structured process_analysis.
+        Uses GPT-4o vision when a process overview photo URL is provided.
+        """
+        from agents.prompts import get_product_creation_step3_process_prompt
+        from agents.helpers import parse_json_response
+
+        system_prompt = get_product_creation_step3_process_prompt(artisan_context)
+
+        product_info = ""
+        if product_context:
+            product_info = (
+                f"Nombre del producto: {product_context.get('product_name', 'N/A')}\n"
+                f"Categoría: {product_context.get('category', 'N/A')}\n"
+                f"Oficio: {product_context.get('oficio', 'N/A')}\n"
+                f"Materiales: {product_context.get('materials', 'N/A')}"
+            )
+
+        user_msg = (
+            f"Descripción del proceso:\n{process_description}\n\n"
+            f"{product_info}\n\n"
+            "Analiza este proceso y devuelve el JSON solicitado."
+        )
+
+        overview_url: Optional[str] = (process_photos or {}).get("overview") if process_photos else None
+
+        if overview_url:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": user_msg},
+                        {"type": "image_url", "image_url": {"url": overview_url, "detail": "high"}},
+                    ],
+                },
+            ]
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=3000,
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content
+        else:
+            raw = await self._call_llm(
+                user_message=user_msg,
+                system_prompt=system_prompt,
+                temperature=0.3,
+                max_tokens=3000,
+            )
+
+        return parse_json_response(raw)
+
     def _extract_recommendations(self, answer: str) -> list:
         """
         Extract actionable recommendations from the answer.

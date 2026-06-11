@@ -7,7 +7,13 @@ export interface ArtisanProfileData {
   shortBio?: string;
   artisanPhoto?: string;
   artisanVideo?: string;
+<<<<<<< HEAD
   craftId?: string;             // UUID del oficio principal (FK → crafts)
+=======
+  categoryIds?: string[];        // UUIDs de categorías del taller (multi-select, guía filtrado de oficios)
+  craftId?: string;             // UUID del oficio principal (FK → crafts)
+  craftIds?: string[];          // UUIDs de oficios (multi-select, craftId = craftIds[0])
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   primaryTechniqueId?: string;   // UUID de la técnica principal (FK → techniques)
   secondaryTechniqueId?: string; // UUID de la técnica secundaria (FK → techniques)
   materialIds?: string[];       // UUIDs de materiales del perfil (artisan_materials)
@@ -30,6 +36,12 @@ export interface ArtisanProfileData {
   ethnicRelation?: string;
   regionalHistory?: string;
 
+<<<<<<< HEAD
+=======
+  // Step 3: Arte y productos
+  productDescription?: string;  // tipos de productos que crea (wizard step 3)
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   // Step 3: Taller y proceso
   workshopPhoto?: string;       // foto taller (obligatorio, single)
   workshopActionPhoto?: string; // foto trabajando (recomendado)
@@ -42,7 +54,12 @@ export interface ArtisanProfileData {
   techniques: string[];       // legacy: nombres hardcoded (backwards compat)
   techniqueIds?: string[];    // new: UUIDs de técnicas filtradas por oficio
   materials: string[];
+<<<<<<< HEAD
   uniqueness: string;
+=======
+  uniqueness: string;         // texto narrativo generado por combinación de claves
+  uniquenessKeys?: string[];  // claves seleccionadas: ['tecnica_unica', ...]
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   craftStyle: string[];
 
   // Legacy fields — kept for backwards compatibility
@@ -106,6 +123,10 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   artisanName: '',
   artisticName: '',
   shortBio: '',
+<<<<<<< HEAD
+=======
+  categoryIds: [],
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   maestros: [],
   noMaestro: false,
   learnedFrom: '',
@@ -131,5 +152,9 @@ export const DEFAULT_ARTISAN_PROFILE: ArtisanProfileData = {
   techniqueIds: [],
   materials: [],
   uniqueness: '',
+<<<<<<< HEAD
+=======
+  uniquenessKeys: [],
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   craftStyle: [],
 };

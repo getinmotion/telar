@@ -12,6 +12,7 @@ import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
 import { UserMaturityActionsModule } from '../user-maturity-actions/user-maturity-actions.module';
 import { IdTypeUserModule } from '../id-type-user/id-type-user.module';
 import { UserRolesModule } from '../user-roles/user-roles.module';
+import { ArtisansKnowledgeModule } from '../artisans-knowledge/artisans-knowledge.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -31,6 +32,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
     forwardRef(() => UserMaturityActionsModule),
     IdTypeUserModule,
     forwardRef(() => UserRolesModule),
+    forwardRef(() => ArtisansKnowledgeModule),
     ConfigModule,
     PassportModule.register({
       defaultStrategy: 'jwt',

@@ -1,4 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
+<<<<<<< HEAD
+=======
+import { toast } from 'sonner';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
@@ -20,6 +24,10 @@ interface Props {
   totalSteps: number;
   artisanId?: string;
   userId?: string;
+<<<<<<< HEAD
+=======
+  leftOffset?: number;
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 const IMAGE_SLOTS = [
@@ -33,7 +41,11 @@ const IMAGE_SLOTS = [
 const hasSpeechSupport = typeof window !== 'undefined' &&
   ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
+<<<<<<< HEAD
 export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '' }) => {
+=======
+export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '', leftOffset }) => {
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const [isRecordingDesc, setIsRecordingDesc] = useState(false);
   const [isRecordingHistory, setIsRecordingHistory] = useState(false);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -117,7 +129,11 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
       setSaveTitle('');
       setShowSaveDialog(false);
     } catch {
+<<<<<<< HEAD
       // toast de error por interceptor
+=======
+      toast.error('No se pudo guardar la historia. Intenta de nuevo.');
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     } finally {
       setIsSavingStory(false);
     }
@@ -191,6 +207,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
+<<<<<<< HEAD
       <main className="w-full max-w-[1200px] mx-auto pt-10 pb-32 px-6 md:px-10">
         <WizardHeader
           step={step}
@@ -200,6 +217,19 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
           title="Nueva pieza"
           subtitle="Captura inicial para que TELAR entienda qué estás creando"
         />
+=======
+      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-10 pb-[188px] md:pb-32 px-6 md:px-10">
+        <div className="hidden md:block">
+          <WizardHeader
+            step={step}
+            totalSteps={totalSteps}
+            onBack={onBack}
+            icon="add_photo_alternate"
+            title="Nueva pieza"
+            subtitle="Captura inicial para que TELAR entienda qué estás creando"
+          />
+        </div>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -268,7 +298,24 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
               <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
                 Registro Visual
               </label>
+<<<<<<< HEAD
               <div className="flex gap-3">
+=======
+
+              {/* Mobile: tira horizontal scrollable */}
+              <div className="md:hidden">
+                <MobileImageStrip
+                  images={state.images}
+                  fileInputRefs={fileInputRefs}
+                  onFileChange={handleFileChange}
+                  onDelete={handleDeleteImage}
+                  getPreviewUrl={getPreviewUrl}
+                />
+              </div>
+
+              {/* Desktop: grid de slots original */}
+              <div className="hidden md:flex gap-3">
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 <div className="flex-1 min-w-0">
                   <ImageSlot
                     slot={IMAGE_SLOTS[0]}
@@ -340,10 +387,29 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
 
             {/* Historia y contexto */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
+<<<<<<< HEAD
               <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1">
                 Historia y contexto
                 <span className="ml-2 text-[#54433e]/30 normal-case font-[500] tracking-normal">— Opcional</span>
               </label>
+=======
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60">
+                  Historia y contexto
+                  <span className="ml-2 text-[#54433e]/30 normal-case font-[500] tracking-normal">— Opcional</span>
+                </label>
+                {!showSaveDialog && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowSaveDialog(true); setSaveTitle(state.name ? `Historia: ${state.name}` : ''); }}
+                    className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/50 hover:text-[#ec6d13] transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">bookmark_add</span>
+                    Guardar historia
+                  </button>
+                )}
+              </div>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               <p className="text-[11px] text-[#54433e]/40 leading-snug mb-3">
                 No es la descripción del producto — es el origen. ¿De quién aprendiste? ¿Qué representa esta pieza para tu comunidad? Esta historia aparece en el pasaporte digital de la obra.
               </p>
@@ -381,8 +447,12 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
               </div>
 
               {/* ── Story library actions ───────────────────────────────── */}
+<<<<<<< HEAD
               <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
                 {/* Cargar historia guardada */}
+=======
+              <div className="mt-3">
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 <button
                   type="button"
                   onClick={handleOpenPicker}
@@ -393,6 +463,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                   </span>
                   {showPicker ? 'Cerrar biblioteca' : 'Usar historia guardada'}
                 </button>
+<<<<<<< HEAD
 
                 {/* Guardar historia actual */}
                 {(state.artisanalHistory ?? '').trim().length > 10 && !showSaveDialog && (
@@ -405,6 +476,8 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                     Guardar para futuros productos
                   </button>
                 )}
+=======
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               </div>
 
               {/* Save dialog */}
@@ -416,6 +489,7 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                   <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/80">
                     Guardar en tu biblioteca de historias
                   </p>
+<<<<<<< HEAD
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -430,6 +504,22 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                       onClick={handleSaveStory}
                       disabled={!saveTitle.trim() || isSavingStory}
                       className="px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center gap-1.5 shrink-0"
+=======
+                  <input
+                    type="text"
+                    value={saveTitle}
+                    onChange={e => setSaveTitle(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !isSavingStory && handleSaveStory()}
+                    placeholder="Dale un nombre a esta historia..."
+                    autoFocus
+                    className="w-full border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveStory}
+                      disabled={!saveTitle.trim() || isSavingStory}
+                      className="flex-1 px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     >
                       {isSavingStory && (
                         <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
@@ -438,7 +528,11 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
                     </button>
                     <button
                       onClick={() => { setShowSaveDialog(false); setSaveTitle(''); }}
+<<<<<<< HEAD
                       className="px-3 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors shrink-0"
+=======
+                      className="px-4 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors"
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     >
                       Cancelar
                     </button>
@@ -509,7 +603,11 @@ export const Step1NewPiece: React.FC<Props> = ({ state, update, onNext, onBack, 
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
         disabledReason={!canContinue ? 'Faltan datos obligatorios.' : undefined}
+<<<<<<< HEAD
         leftOffset={80}
+=======
+        leftOffset={leftOffset}
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );
@@ -593,3 +691,75 @@ const ImageSlot: React.FC<ImageSlotProps> = ({
     </div>
   );
 };
+<<<<<<< HEAD
+=======
+
+// ── MobileImageStrip ───────────────────────────────────────────────────────────
+
+interface MobileImageStripProps {
+  images: NewWizardState['images'];
+  fileInputRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  onDelete: (index: number, e: React.MouseEvent) => void;
+  getPreviewUrl: (img: File | string | undefined) => string | null;
+}
+
+const MobileImageStrip: React.FC<MobileImageStripProps> = ({
+  images,
+  fileInputRefs,
+  onFileChange,
+  onDelete,
+  getPreviewUrl,
+}) => (
+  <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' as any }}>
+    {IMAGE_SLOTS.map(slot => {
+      const preview = getPreviewUrl(images[slot.index]);
+      return (
+        <div key={slot.index} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+          {/* Slot cuadrado */}
+          <div
+            onClick={() => fileInputRefs.current[slot.index]?.click()}
+            className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
+            style={{ background: preview ? undefined : 'rgba(255,255,255,0.8)' }}
+          >
+            {preview ? (
+              <>
+                <img src={preview} className="w-full h-full object-cover" alt={slot.label} />
+                <button
+                  type="button"
+                  onClick={e => onDelete(slot.index, e)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.55)' }}
+                >
+                  <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>close</span>
+                </button>
+              </>
+            ) : (
+              <span
+                className="material-symbols-outlined text-[26px]"
+                style={{ color: 'rgba(84,67,62,0.28)' }}
+              >
+                {slot.icon}
+              </span>
+            )}
+            <input
+              ref={el => { fileInputRefs.current[slot.index] = el; }}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => onFileChange(e, slot.index)}
+            />
+          </div>
+          {/* Label del slot */}
+          <span
+            className="text-[9px] font-['Manrope'] font-[800] uppercase tracking-wider text-center leading-tight"
+            style={{ color: 'rgba(84,67,62,0.5)', width: 80 }}
+          >
+            {slot.label}
+          </span>
+        </div>
+      );
+    })}
+  </div>
+);
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119

@@ -1,4 +1,8 @@
 import React from 'react';
+<<<<<<< HEAD
+=======
+import { useIsMobile } from '@/hooks/use-mobile';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 export interface WizardFooterProps {
   step: number;
@@ -41,6 +45,10 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   showSaveDraftOnAllSteps,
   saveDraftLabel,
 }) => {
+<<<<<<< HEAD
+=======
+  const isMobile = useIsMobile();
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const progress = Math.round((step / totalSteps) * 100);
 
   const ProgressBar = () => (
@@ -90,13 +98,37 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
 
   const innerClass = "max-w-[1200px] mx-auto px-6 py-3 flex items-center justify-between w-full";
 
+<<<<<<< HEAD
   if (isFinalStep) {
     return (
       <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
+=======
+  const SaveDraftButton = ({ disabled: extraDisabled }: { disabled?: boolean }) =>
+    onSaveDraft ? (
+      <button
+        onClick={onSaveDraft}
+        disabled={isSavingDraft || extraDisabled}
+        title="Guardar"
+        className="flex items-center gap-1.5 text-[#54433e]/50 hover:text-[#ec6d13] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <span className="material-symbols-outlined text-[16px]">
+          {isSavingDraft ? 'progress_activity' : 'save'}
+        </span>
+        <span className="text-[10px] font-[700] uppercase tracking-widest">
+          {isSavingDraft ? 'Guardando…' : 'Guardar'}
+        </span>
+      </button>
+    ) : null;
+
+  if (isFinalStep) {
+    return (
+      <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <ProgressBar />
         <div className={innerClass}>
           <BackButton />
           <div className="flex items-center gap-4">
+<<<<<<< HEAD
             {onSaveDraft && (
               <button
                 onClick={onSaveDraft}
@@ -106,12 +138,22 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
                 {isSavingDraft ? 'Guardando...' : (saveDraftLabel ?? 'Guardar borrador')}
               </button>
             )}
+=======
+            <SaveDraftButton disabled={isSubmitting} />
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             <button
               onClick={onSubmit}
               disabled={isSubmitting || isSavingDraft}
               className="flex items-center gap-2 bg-[#ec6d13] text-white px-6 py-2 rounded-full font-[700] text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
+<<<<<<< HEAD
               {isSubmitting ? 'Guardando...' : (submitLabel ?? 'Enviar a curaduría')}
+=======
+              {isSubmitting
+                ? <><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span> Enviando…</>
+                : <>{submitLabel ?? 'Enviar a curaduría'}</>
+              }
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             </button>
           </div>
         </div>
@@ -120,6 +162,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   }
 
   return (
+<<<<<<< HEAD
     <footer className="fixed bottom-0 right-0 z-40 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0 }}>
       <ProgressBar />
       <div className={innerClass}>
@@ -134,6 +177,17 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
             </button>
           )}
           <SaveAndExitButton />
+=======
+    <footer className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]" style={{ left: leftOffset ?? 0, bottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom))' : 0 }}>
+      <ProgressBar />
+      <div className={innerClass}>
+        <BackButton />
+        <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
+          <SaveDraftButton />
+          <div className="hidden md:block">
+            <SaveAndExitButton />
+          </div>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           {disabledReason && (
             <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">{disabledReason}</span>
           )}

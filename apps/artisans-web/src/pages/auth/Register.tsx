@@ -28,6 +28,10 @@ import { register } from './actions/register.actions';
 import { getAllIdTypes, type IdTypeUser } from '@/services/idTypeUser.actions';
 import { getAllCountries, type Country } from '@/services/countries.actions';
 import { getAllAgreements, type Agreement } from '@/services/agreements.actions';
+<<<<<<< HEAD
+=======
+import { validateIdAgreement } from '@/services/usersIdAgreement.actions';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Municipio {
   municipio: string;
@@ -59,6 +63,16 @@ export const Register = () => {
   const [departamentos, setDepartamentos] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
+<<<<<<< HEAD
+=======
+  // Estado para validación de ID + Convenio
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    checked: boolean;
+    exists: boolean;
+  }>({ checked: false, exists: false });
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const form = useForm<RegisterFormData>({
     defaultValues: REGISTER_FORM_INITIAL_VALUES,
     mode: 'onChange',
@@ -110,6 +124,68 @@ export const Register = () => {
       setMunicipios([]);
     }
   }, [department, ciudadesDane]);
+<<<<<<< HEAD
+=======
+
+  // Watch campos para validación de artesano aprobado
+  const idTypeId = form.watch('idTypeId');
+  const idNumber = form.watch('idNumber');
+  const agreementId = form.watch('agreementId');
+
+  // Validar si el usuario está en la lista de artesanos aprobados
+  useEffect(() => {
+    const validateArtisan = async () => {
+      // Solo validar si los 3 campos están llenos
+      if (!idTypeId || !idNumber || !agreementId) {
+        setValidationResult({ checked: false, exists: false });
+        return;
+      }
+
+      // Validar que idNumber no esté vacío después de trim
+      if (idNumber.trim() === '') {
+        setValidationResult({ checked: false, exists: false });
+        return;
+      }
+
+      try {
+        setIsValidating(true);
+        const result = await validateIdAgreement({
+          idType: idTypeId,
+          numId: idNumber.trim(),
+          agreementId: agreementId,
+        });
+
+        setValidationResult({
+          checked: true,
+          exists: result.exists,
+        });
+
+        // Mostrar alert si no está en la lista
+        if (!result.exists) {
+          toast({
+            title: "Acceso denegado",
+            description: "No estás en el listado de artesanos aprobados para usar la plataforma TELAR. Por favor verifica tus datos o contacta al administrador.",
+            variant: "destructive",
+            duration: 8000,
+          });
+        }
+      } catch (error) {
+        console.error('Error validating artisan:', error);
+        toast({
+          title: "Error de validación",
+          description: "No se pudo verificar tus datos. Por favor intenta de nuevo.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        setValidationResult({ checked: false, exists: false });
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateArtisan();
+  }, [idTypeId, idNumber, agreementId, toast]);
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   const password = form.watch('password');
   const hasRUT = form.watch('hasRUT');
@@ -150,6 +226,17 @@ export const Register = () => {
           firstName: data.firstName
         }
       });
+<<<<<<< HEAD
+=======
+    } catch (error: any) {
+      console.error('Error creating account:', error);
+      toast({
+        title: "Error al crear la cuenta",
+        description: error?.message || "Hubo un problema al crear tu cuenta. Por favor intenta de nuevo.",
+        variant: "destructive",
+        duration: 5000,
+      });
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     } finally {
       setIsLoading(false);
     }
@@ -304,6 +391,29 @@ export const Register = () => {
                           )}
                         </SelectContent>
                       </Select>
+<<<<<<< HEAD
+=======
+                      {/* Indicador de validación */}
+                      {idTypeId && idNumber && agreementId && (
+                        <FormDescription className="text-xs mt-2">
+                          {isValidating ? (
+                            <span className="flex items-center text-muted-foreground">
+                              <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              Verificando artesano...
+                            </span>
+                          ) : validationResult.checked && validationResult.exists ? (
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              ✓ Estás en la lista de artesanos aprobados
+                            </span>
+                          ) : validationResult.checked && !validationResult.exists ? (
+                            <span className="text-destructive">
+                              ✗ No estás en el listado de artesanos aprobados
+                            </span>
+                          ) : null}
+                        </FormDescription>
+                      )}
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       <FormMessage />
                     </FormItem>
                   )}
@@ -729,10 +839,19 @@ export const Register = () => {
                 <div className="flex justify-start pt-2">
                   <Button
                     type="submit"
+<<<<<<< HEAD
                     disabled={isLoading}
+=======
+                    disabled={
+                      isLoading ||
+                      isValidating ||
+                      (idTypeId && idNumber && agreementId && !validationResult.checked) ||
+                      (validationResult.checked && !validationResult.exists)
+                    }
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     className="w-[220px] h-12 rounded-[12px] bg-accent hover:bg-accent/90 text-white text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                    {isLoading ? 'Creando cuenta...' : isValidating ? 'Validando...' : 'Crear cuenta'}
                   </Button>
                 </div>
 

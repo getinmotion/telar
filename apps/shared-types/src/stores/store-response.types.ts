@@ -4,7 +4,6 @@
  */
 
 import type {
-  StoreArtisanalProfile,
   StoreContacts,
   StoreAward,
   StoreBadge,
@@ -15,7 +14,7 @@ import type { LegacyShopData } from './store-legacy.types';
  * Respuesta combinada del backend /stores
  * Incluye:
  * - Datos de shop.stores (nuevos)
- * - Relaciones normalizadas (artisanalProfile, contacts, awards, badges)
+ * - Relaciones normalizadas (contacts, awards, badges)
  * - Datos legacy de public.artisan_shops (si existe legacyId)
  */
 export interface StoreResponse {
@@ -30,7 +29,6 @@ export interface StoreResponse {
   updatedAt?: string;
 
   // Relaciones normalizadas
-  artisanalProfile?: StoreArtisanalProfile;
   contacts?: StoreContacts;
   awards?: StoreAward[];
   badges?: StoreBadge[];

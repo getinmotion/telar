@@ -91,6 +91,15 @@ export const MobileBottomNav: React.FC = () => {
         active={isActive(['/dashboard/tasks'])}
         onClick={() => navigate('/dashboard/tasks')}
       />
+<<<<<<< HEAD
+=======
+      <BottomNavItem
+        icon="monitoring"
+        label="Taller"
+        active={isActive(['/dashboard/estado-taller'])}
+        onClick={() => navigate('/dashboard/estado-taller')}
+      />
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     </div>
   );
 };

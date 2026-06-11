@@ -55,7 +55,39 @@
     --coral: 17 75% 52%; /* #d15a2e Darkened for WCAG AA contrast 4.5:1 */
     --cream: 40 50% 98%; /* #fcf7ec */
     --dark-gray: 0 0% 15%; /* #282828 */
-    
+
+    /* TELAR Editorial Palette (DESIGN.md §2) — tokens para migrar hex hardcodeados.
+       NOTA: brand-orange (#ec6d13) NO es lo mismo que --accent (#d15a2e, oscurecido WCAG). */
+    --brand-orange: 25 85.1% 50%; /* #ec6d13 */
+    --brand-orange-dark: 25.8 90.3% 40.4%; /* #c45a0a — texto naranja accesible sobre fondos claros */
+    --on-surface: 225 36.4% 12.9%; /* #151b2d */
+    --on-surface-variant: 13.6 15.1% 28.6%; /* #54433e */
+    --brand-cream: 34.3 63.6% 97.8%; /* #fdfaf6 */
+    --brand-border: 18.9 24.7% 84.9%; /* #e2d5cf */
+    --accent-green: 142.8 64.2% 24.1%; /* #166534 */
+
+    /* Domain colors — backoffice (DESIGN.md §26.1) */
+    --domain-moderation: 142.4 71.8% 29.2%; /* #15803d */
+    --domain-content: 25 85.1% 50%; /* #ec6d13 */
+    --domain-business: 262.1 83.3% 57.8%; /* #7c3aed */
+    --domain-business-dark: 263.4 69.3% 42.2%; /* #5b21b6 — texto activo / hover negocio */
+    --brand-orange-darker: 24.2 100% 30.6%; /* #9c3f00 — texto naranja sobre fondos tintados */
+
+    /* Status colors — backoffice (estados aprobado/pendiente/rechazado/info).
+       "Aprobado" reusa --domain-moderation / --accent-green. */
+    --status-warning: 32.1 94.6% 43.7%; /* #d97706 — texto pendiente */
+    --status-warning-dark: 26 90.5% 37.1%; /* #b45309 — texto emergente / énfasis */
+    --status-warning-light: 37.7 92.1% 50.2%; /* #f59e0b — fondos/bordes con alpha */
+    --status-error: 0 72.2% 50.6%; /* #dc2626 — texto rechazado / acciones destructivas */
+    --status-info: 201.3 96.3% 32.2%; /* #0369a1 — texto informativo / regional */
+
+    /* Glass system — consumidos por .glass-card / .glass-card-sm / .glass-header */
+    --glass-fill: rgba(255, 255, 255, 0.82);
+    --glass-fill-sm: rgba(255, 255, 255, 0.68);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-header-fill: rgba(249, 247, 242, 0.88);
+    --glass-header-border: rgba(255, 255, 255, 0.5);
+
     /* Gradients - Navy/Golden/Coral */
     --gradient-primary: linear-gradient(135deg, hsl(220 50% 15%), hsl(220 45% 25%));
     --gradient-secondary: linear-gradient(135deg, hsl(45 100% 54%), hsl(45 95% 64%));
@@ -157,6 +189,35 @@
     --coral: 17 75% 60%; /* Adjusted for dark mode contrast */
     --cream: 40 50% 98%;
     --dark-gray: 0 0% 20%;
+
+    /* TELAR Editorial Palette — dark mode (mismos valores por ahora; ajustar cuando
+       el dark mode se diseñe formalmente) */
+    --brand-orange: 25 85.1% 50%;
+    --brand-orange-dark: 25.8 90.3% 50%; /* aclarado para contraste en dark */
+    --on-surface: 40 50% 98%; /* texto claro sobre superficie oscura */
+    --on-surface-variant: 19 25% 75%;
+    --brand-cream: 220 45% 15%;
+    --brand-border: 220 40% 25%;
+    --accent-green: 142.8 64.2% 40%;
+    --domain-moderation: 142.4 71.8% 40%;
+    --domain-content: 25 85.1% 55%;
+    --domain-business: 262.1 83.3% 68%;
+    --domain-business-dark: 263.4 69.3% 55%; /* aclarado para contraste en dark */
+    --brand-orange-darker: 24.2 100% 42%;
+
+    /* Status colors — dark (aclarados para contraste) */
+    --status-warning: 32.1 94.6% 52%;
+    --status-warning-dark: 26 90.5% 46%;
+    --status-warning-light: 37.7 92.1% 55%;
+    --status-error: 0 72.2% 60%;
+    --status-info: 201.3 96.3% 45%;
+
+    /* Glass system — dark */
+    --glass-fill: rgba(20, 27, 45, 0.82);
+    --glass-fill-sm: rgba(20, 27, 45, 0.68);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-header-fill: rgba(15, 20, 35, 0.88);
+    --glass-header-border: rgba(255, 255, 255, 0.08);
 
     /* Dark mode - Gradients optimized */
     --gradient-primary: linear-gradient(135deg, hsl(45 100% 54%), hsl(45 95% 64%));
@@ -382,26 +443,26 @@
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.82);
+    background: var(--glass-fill);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: 0 4px 20px rgba(21, 27, 45, 0.03);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 20px hsl(var(--on-surface) / 0.03);
   }
 
   .glass-card-sm {
-    background: rgba(255, 255, 255, 0.68);
+    background: var(--glass-fill-sm);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: 0 2px 15px rgba(21, 27, 45, 0.02);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 15px hsl(var(--on-surface) / 0.02);
   }
 
   .glass-header {
-    background: rgba(249, 247, 242, 0.88);
+    background: var(--glass-header-fill);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid var(--glass-header-border);
   }
 
   /* Custom scrollbar — TELAR */
@@ -411,4 +472,11 @@
     border-radius: 10px;
   }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* Prevent iOS Safari auto-zoom on input focus */
+@media screen and (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }

@@ -10,8 +10,16 @@
       "cwd": "apps/marketplace-web"
     },
     {
+      "name": "storybook-artisans",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules/storybook/bin/index.cjs", "dev", "-p", "6006", "--no-open"],
+      "port": 6006,
+      "autoPort": true,
+      "cwd": "apps/artisans-web"
+    },
+    {
       "name": "artisans-web",
-      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
       "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "8081"],
       "port": 8081,
       "autoPort": true,

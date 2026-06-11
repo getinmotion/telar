@@ -16,10 +16,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const user = storeUser || authContextUser;
   const isUserAuthenticated = isAuthenticated || !!authContextUser;
 
-  console.log("user", user);
-  console.log("isUserAuthenticated", isUserAuthenticated);
-  console.log("isInizializate", isInitialized);
-
   // ✅ Wait for Zustand to finish rehydrating from localStorage
   // loading = !isInitialized, so we wait until initialization completes
   if (loading || !isInitialized) {

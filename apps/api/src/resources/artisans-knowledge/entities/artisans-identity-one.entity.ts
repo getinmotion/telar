@@ -4,10 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
-import { Category } from '../../categories/entities/category.entity';
 
 @Entity({ schema: 'artisans_knowledge', name: 'artisans_identity_one' })
 export class ArtisansIdentityOne {
@@ -20,23 +17,23 @@ export class ArtisansIdentityOne {
   @Column({ name: 'artisan_history', type: 'text' })
   artisanHistory!: string;
 
-  @Column({ name: 'age_experience', type: 'smallint' })
-  ageExperience!: number;
+  @Column({ name: 'age_experience', type: 'text' })
+  ageExperience!: string;
 
-  @Column({ name: 'shop_history', type: 'text' })
-  shopHistory!: string;
+  @Column({ name: 'shop_history', type: 'text', nullable: true })
+  shopHistory?: string;
 
-  @Column({ name: 'shop_description', type: 'text' })
-  shopDescription!: string;
+  @Column({ name: 'shop_description', type: 'text', nullable: true })
+  shopDescription?: string;
 
-  @Column({ name: 'shop_definition', type: 'text' })
-  shopDefinition!: string;
+  @Column({ name: 'shop_definition', type: 'text', nullable: true })
+  shopDefinition?: string;
 
-  @Column({ name: 'shop_categories_id', type: 'uuid' })
-  shopCategoriesId!: string;
+  @Column({ name: 'shop_categories_id', type: 'text', nullable: true })
+  shopCategoriesId?: string;
 
-  @Column({ name: 'shop_special_definition_one', type: 'text' })
-  shopSpecialDefinitionOne!: string;
+  @Column({ name: 'shop_special_definition_one', type: 'text', nullable: true })
+  shopSpecialDefinitionOne?: string;
 
   @Column({ name: 'shop_special_definition_two', type: 'text', nullable: true })
   shopSpecialDefinitionTwo?: string;
@@ -44,8 +41,8 @@ export class ArtisansIdentityOne {
   @Column({ name: 'shop_special_definition_three', type: 'text', nullable: true })
   shopSpecialDefinitionThree?: string;
 
-  @Column({ name: 'shop_born_special_definition_one', type: 'text' })
-  shopBornSpecialDefinitionOne!: string;
+  @Column({ name: 'shop_born_special_definition_one', type: 'text', nullable: true })
+  shopBornSpecialDefinitionOne?: string;
 
   @Column({ name: 'shop_born_special_definition_two', type: 'text', nullable: true })
   shopBornSpecialDefinitionTwo?: string;
@@ -64,8 +61,4 @@ export class ArtisansIdentityOne {
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy?: string;
-
-  @ManyToOne(() => Category)
-  @JoinColumn({ name: 'shop_categories_id' })
-  category?: Category;
 }

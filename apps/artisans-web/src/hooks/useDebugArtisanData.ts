@@ -5,12 +5,10 @@ import { UserProfileData } from '@/components/cultural/types/wizardTypes';
 import { EventBus } from '@/utils/eventBus';
 import { useUserLocalStorage } from './useUserLocalStorage';
 import { useUnifiedUserData } from './user';
-import { MATURITY_TEST_CONFIG, getProgressPercentage } from '@/config/maturityTest';
 import { artisanAgentsDatabase } from '@/data/artisanAgentsDatabase';
 import { getUserProfileByUserId, hasUserProfile, createUserProfile, updateUserProfile } from '@/services/userProfiles.actions';
 import { upsertUserMasterContext } from '@/services/userMasterContext.actions';
 import { upsertUserProgress } from '@/services/userProgress.actions';
-import { getLatestMaturityScore, deleteUserMaturityScores } from '@/services/userMaturityScores.actions';
 
 export interface DebugArtisanData {
   // Process status
@@ -80,9 +78,9 @@ export const useDebugArtisanData = (autoRefresh = false) => {
   const { context } = useUnifiedUserData();
   const [data, setData] = useState<DebugArtisanData>({
     currentBlock: 0,
-    totalBlocks: MATURITY_TEST_CONFIG.TOTAL_BLOCKS,
+    totalBlocks: 0,
     answeredQuestions: 0,
-    totalQuestions: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
+    totalQuestions: 0,
     checkpointActive: false,
     currentCheckpoint: 0,
     isProcessing: false,
@@ -91,7 +89,7 @@ export const useDebugArtisanData = (autoRefresh = false) => {
     databaseContext: null,
     executiveSummary: null,
     metrics: {
-      totalQuestions: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
+      totalQuestions: 0,
       answeredQuestions: 0,
       progressPercentage: 0,
       checkpointsReached: 0,
@@ -166,24 +164,24 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       const executiveSummary = await fetchExecutiveSummary();
 
       // Calcular métricas consolidadas
-      const checkpointsReached = Math.floor(answeredQuestions.length / MATURITY_TEST_CONFIG.CHECKPOINT_FREQUENCY);
-      const agentsUnlocked = answeredQuestions.length >= MATURITY_TEST_CONFIG.TOTAL_QUESTIONS ?
+      const checkpointsReached = Math.floor(answeredQuestions.length / 1);
+      const agentsUnlocked = answeredQuestions.length >= 0 ?
         artisanAgentsDatabase.length :
         Math.floor(answeredQuestions.length / 3);
 
       const metrics = {
-        totalQuestions: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
+        totalQuestions: 0,
         answeredQuestions: answeredQuestions.length,
-        progressPercentage: getProgressPercentage(answeredQuestions.length, MATURITY_TEST_CONFIG.TOTAL_QUESTIONS),
+        progressPercentage: 0,
         checkpointsReached,
         agentsUnlocked
       };
 
       setData({
         currentBlock: checkpointData.number || 0,
-        totalBlocks: MATURITY_TEST_CONFIG.TOTAL_BLOCKS,
+        totalBlocks: 0,
         answeredQuestions: answeredQuestions.length,
-        totalQuestions: MATURITY_TEST_CONFIG.TOTAL_QUESTIONS,
+        totalQuestions: 0,
         checkpointActive: checkpointData.isActive || false,
         currentCheckpoint: checkpointData.number || 0,
         isProcessing: progress?.isProcessing || false,
@@ -233,8 +231,8 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       // ✅ Obtener perfil desde NestJS backend
       const userProfile = await getUserProfileByUserId(user.id).catch(() => null);
 
-      // ✅ Migrado a endpoint NestJS (GET /user-maturity-scores/user/{user_id})
-      const maturityScores = await getLatestMaturityScore(user.id);
+      // ✅ Maturity scores stubbed out (removed dependency)
+      const maturityScores = null;
 
       // 4. Calcular Business Readiness Score
       const profileFields = [
@@ -247,9 +245,9 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       const profileCompleteness = (profileFields.filter(Boolean).length / profileFields.length) * 100;
 
       // Calcular total de respuestas desde profileData si existe
-      const profileDataObj = maturityScores?.profileData as any;
-      const totalAnswered = profileDataObj?.answeredQuestions?.length || 0;
-      const assessmentProgress = (totalAnswered / MATURITY_TEST_CONFIG.TOTAL_QUESTIONS) * 100;
+      const profileDataObj = null;
+      const totalAnswered = 0;
+      const assessmentProgress = 0;
 
       const businessReadiness = Math.round((profileCompleteness + assessmentProgress) / 2);
 
@@ -285,8 +283,8 @@ export const useDebugArtisanData = (autoRefresh = false) => {
       // 6. Determinar próximas acciones recomendadas
       const nextRecommendedActions: string[] = [];
 
-      if (totalAnswered < MATURITY_TEST_CONFIG.TOTAL_QUESTIONS) {
-        nextRecommendedActions.push(`Completar el test de madurez (${totalAnswered}/${MATURITY_TEST_CONFIG.TOTAL_QUESTIONS})`);
+      if (totalAnswered < 0) {
+        nextRecommendedActions.push(`Completar el test de madurez (${totalAnswered}/${0})`);
       }
 
       if (activeTasks.length === 0 && completedTasks.length === 0) {
@@ -480,10 +478,8 @@ export const useDebugArtisanData = (autoRefresh = false) => {
         .eq('user_id', user.id);
       if (agentsError) console.error('Error deleting agents:', agentsError);
 
-      // Delete user_maturity_scores
-      // ✅ Migrado a endpoint NestJS (DELETE /user-maturity-scores/user/{user_id})
-      // TODO: Este endpoint podría no existir aún. Si falla, se logea pero no se lanza error.
-      await deleteUserMaturityScores(user.id);
+      // Delete user_maturity_scores (stubbed out - no-op)
+      // Maturity scores functionality removed
 
       // Delete user_onboarding_profiles
       const { error: onboardingError } = await supabase

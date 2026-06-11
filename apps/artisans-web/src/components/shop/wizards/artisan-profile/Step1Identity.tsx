@@ -1,10 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UploadFolder, uploadImage } from '@/services/fileUpload.actions';
 import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanShops.actions';
+<<<<<<< HEAD
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { SpeechTextarea } from '@/components/ui/speech-textarea';
 import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
+=======
+import { getAllCategories, type Category } from '@/services/categories.actions';
+import { ArtisanProfileData } from '@/types/artisanProfile';
+import { useToast } from '@/components/ui/use-toast';
+import { buildMarketplaceStoreUrl, buildAppStoreUrl, MARKETPLACE_DOMAIN } from '@/config/urls';
+import { CraftMultiPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
+import { TechniqueMultiPicker } from './Step5Craft';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Props {
   data: ArtisanProfileData;
@@ -17,7 +26,11 @@ interface Props {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 function toSlug(name: string): string {
+=======
+export function toSlug(name: string): string {
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   return name
     .toLowerCase()
     .normalize('NFD')
@@ -114,7 +127,11 @@ const AvatarUploader: React.FC<{ value: string; onChange: (url: string) => void 
 
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error';
 
+<<<<<<< HEAD
 const SlugCreator: React.FC<{
+=======
+export const SlugCreator: React.FC<{
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   artisticName: string;
   currentSlug: string;
   onSave: (slug: string, shopName: string) => Promise<void>;
@@ -125,9 +142,12 @@ const SlugCreator: React.FC<{
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
+<<<<<<< HEAD
   const MARKETPLACE_DOMAIN = 'telar.co';
   const STORE_DOMAIN = 'telar.co';
 
+=======
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   // Sync initial slug when artisticName changes and no current slug
   useEffect(() => {
     if (!currentSlug && artisticName) {
@@ -182,13 +202,21 @@ const SlugCreator: React.FC<{
     {
       icon: 'storefront',
       label: 'Marketplace',
+<<<<<<< HEAD
       value: `${MARKETPLACE_DOMAIN}/tienda/${slug || '…'}`,
+=======
+      value: buildMarketplaceStoreUrl(slug || '…'),
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       live: true,
     },
     {
       icon: 'language',
       label: 'Tu tienda online',
+<<<<<<< HEAD
       value: `${slug || '…'}.${STORE_DOMAIN}`,
+=======
+      value: buildAppStoreUrl(slug || '…'),
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       live: true,
     },
     {
@@ -224,7 +252,11 @@ const SlugCreator: React.FC<{
       {/* Slug input */}
       <div className="px-5 py-4 border-b border-white/8">
         <div className="flex items-center gap-2 rounded-lg px-4 py-2.5" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+<<<<<<< HEAD
           <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">telar.co/tienda/</span>
+=======
+          <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">{MARKETPLACE_DOMAIN}/tienda/</span>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <input
             type="text"
             value={slug}
@@ -288,11 +320,122 @@ const SlugCreator: React.FC<{
   );
 };
 
+<<<<<<< HEAD
+=======
+// ─── Category Multi-Picker ────────────────────────────────────────────────────
+
+const TELAR_CATEGORY_DEFS: { name: string; icon: string }[] = [
+  { name: 'Textiles y Moda',                    icon: 'apparel' },
+  { name: 'Bolsos y Carteras',                   icon: 'shopping_bag' },
+  { name: 'Joyería y Accesorios',                icon: 'diamond' },
+  { name: 'Decoración del Hogar',                icon: 'home' },
+  { name: 'Muebles',                             icon: 'chair' },
+  { name: 'Vajillas y Cocina',                   icon: 'restaurant' },
+  { name: 'Arte y Esculturas',                   icon: 'palette' },
+  { name: 'Juguetes e Instrumentos Musicales',   icon: 'piano' },
+  { name: 'Cuidado Personal',                    icon: 'spa' },
+];
+
+function resolveCatIcon(name: string): string {
+  const def = TELAR_CATEGORY_DEFS.find(
+    d => d.name === name || name.toLowerCase().includes(d.name.split(' ')[0].toLowerCase()),
+  );
+  return def?.icon ?? 'category';
+}
+
+interface CategoryMultiPickerProps {
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  onNamesChange: (names: string[]) => void;
+}
+
+export const CategoryMultiPicker: React.FC<CategoryMultiPickerProps> = ({ selectedIds, onChange, onNamesChange }) => {
+  const [cats, setCats] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAllCategories()
+      .then(all => {
+        const roots = all
+          .filter(c => !c.parentId)
+          .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99));
+        setCats(roots);
+        // Resolve names for pre-selected IDs (edit mode)
+        const preselected = roots.filter(c => selectedIds.includes(c.id)).map(c => c.name);
+        if (preselected.length > 0) onNamesChange(preselected);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggle = (cat: Category) => {
+    const next = selectedIds.includes(cat.id)
+      ? selectedIds.filter(id => id !== cat.id)
+      : [...selectedIds, cat.id];
+    const names = cats.filter(c => next.includes(c.id)).map(c => c.name);
+    onChange(next);
+    onNamesChange(names);
+  };
+
+  if (loading) return (
+    <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
+      <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+      Cargando categorías…
+    </div>
+  );
+
+  if (cats.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {cats.map(cat => {
+        const isSelected = selectedIds.includes(cat.id);
+        return (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => toggle(cat)}
+            className="relative flex flex-col items-center justify-center p-3 rounded-xl transition-all text-center gap-1.5"
+            style={{
+              background: isSelected ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
+              border: isSelected ? '1.5px solid rgba(236,109,19,0.5)' : '1px solid rgba(226,213,207,0.4)',
+            }}
+          >
+            {isSelected && (
+              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#ec6d13] flex items-center justify-center">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: 10, fontVariationSettings: "'FILL' 1" }}>check</span>
+              </div>
+            )}
+            <span
+              className="material-symbols-outlined text-[22px] transition-colors"
+              style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
+            >
+              {resolveCatIcon(cat.name)}
+            </span>
+            <span
+              className="font-['Manrope'] text-[9px] font-[800] uppercase tracking-wider leading-tight transition-colors"
+              style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
+            >
+              {cat.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ─── Video Input ─────────────────────────────────────────────────────────────
 
 type VideoMode = 'url' | 'file' | 'record';
 
+<<<<<<< HEAD
 const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
+=======
+export const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   value,
   onChange,
 }) => {
@@ -499,6 +642,12 @@ export const Step1Identity: React.FC<Props> = ({
   userId,
 }) => {
   const [showSlug, setShowSlug] = useState(false);
+<<<<<<< HEAD
+=======
+  const [catNames, setCatNames] = useState<string[]>([]);
+  const [craftNames, setCraftNames] = useState<string[]>([]);
+  const hasCraft = !!(data.craftIds?.length || data.craftId);
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   return (
     <div className="flex flex-col gap-5">
@@ -586,6 +735,7 @@ export const Step1Identity: React.FC<Props> = ({
         )}
       </div>
 
+<<<<<<< HEAD
       {/* ── Módulo 3: Oficio + Técnica ── */}
       <div className="rounded-xl p-5" style={glassCard}>
         <Label required>Tu oficio</Label>
@@ -626,6 +776,58 @@ export const Step1Identity: React.FC<Props> = ({
           Un video corto aumenta significativamente la conexión con compradores.
         </p>
       </div>
+=======
+      {/* ── Módulo 3: Categorías ── */}
+      <div className="rounded-xl p-5" style={glassCard}>
+        <Label>Categorías de tu taller</Label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+          ¿En qué tipos de productos trabaja tu taller? Selecciona las categorías y te sugeriremos los oficios más relevantes.
+        </p>
+        <CategoryMultiPicker
+          selectedIds={data.categoryIds ?? []}
+          onChange={ids => onChange({ categoryIds: ids })}
+          onNamesChange={setCatNames}
+        />
+      </div>
+
+      {/* ── Módulo 4: Oficios ── */}
+      <div className="rounded-xl p-5" style={glassCard}>
+        <Label required>Tus oficios</Label>
+        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+          {catNames.length > 0
+            ? `Oficios sugeridos para las categorías que elegiste. Puedes seleccionar varios.`
+            : 'Los oficios artesanales que practicas en tu taller. Puedes seleccionar varios.'}
+        </p>
+        <CraftMultiPicker
+          selectedCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
+          suggestedCategoryNames={catNames.length > 0 ? catNames : undefined}
+          onChange={craftIds => {
+            onChange({ craftIds, craftId: craftIds[0], techniqueIds: [] });
+            if (userId) updateStoreArtisanalCraft(userId, craftIds[0] ?? null).catch(() => {});
+          }}
+          onNamesChange={setCraftNames}
+        />
+      </div>
+
+      {/* ── Módulo 5: Técnicas ── */}
+      {hasCraft && (
+        <div className="rounded-xl p-5" style={glassCard}>
+          <Label required>Técnicas artesanales</Label>
+          <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
+            Selecciona las técnicas que aplicas en tu oficio. Puedes elegir varias.
+          </p>
+          <TechniqueMultiPicker
+            craftId={data.craftId}
+            craftIds={data.craftIds}
+            craftNames={craftNames}
+            selectedIds={data.techniqueIds ?? []}
+            onChange={(ids) => onChange({ techniqueIds: ids })}
+            onSelectedNamesChange={(names) => onChange({ techniques: names })}
+          />
+        </div>
+      )}
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
     </div>
   );

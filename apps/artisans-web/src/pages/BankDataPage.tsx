@@ -9,7 +9,6 @@ import {
   Building2,
   User,
   FileText,
-  Hash,
   Pencil,
   X,
 } from "lucide-react";
@@ -30,8 +29,10 @@ import { EventBus } from "@/utils/eventBus";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationTemplates } from "@/services/notificationService";
 import { BANKS_DATA } from "@/data/cobreBankData";
-import { getCounterparty } from "@/services/cobre.actions";
-import { getArtisanShopByUserId } from "@/services/artisanShops.actions";
+import { getPayoutUserInfoByUserId } from "@/services/payoutUserInfo.actions";
+import { PayoutUserInfo } from "@/types/payoutUserInfo.types";
+import { getAllCountries } from "@/services/countries.actions";
+import { Country } from "@/types/country.types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,25 +43,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-export interface CounterpartyData {
-  id: string;
-  geo: string;
-  type: string;
-  alias: string;
-  metadata: Metadata;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Metadata {
-  account_number: string;
-  beneficiary_institution: string;
-  counterparty_fullname: string;
-  counterparty_id_number: string;
-  counterparty_id_type: string;
-  registered_account: string;
-}
 
 export const BankDataPage: React.FC = () => {
   const navigate = useNavigate();
@@ -79,46 +61,76 @@ export const BankDataPage: React.FC = () => {
   });
 
   const [saving, setSaving] = useState(false);
-  const [counterpartyData, setCounterpartyData] = useState<Metadata | null>(
-    null
-  );
-  const [loadingCounterparty, setLoadingCounterparty] = useState(true);
-  const [hasCounterparty, setHasCounterparty] = useState(false);
+  const [payoutData, setPayoutData] = useState<PayoutUserInfo | null>(null);
+  const [loadingPayoutData, setLoadingPayoutData] = useState(true);
+  const [hasPayoutData, setHasPayoutData] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(true);
 
-  // Verificar si la tienda tiene id_contraparty y cargar datos de la contraparte
+  /**
+   * ✅ MIGRATED: Obtiene los datos de payout desde NestJS
+   * Endpoint: GET /payout-user-info/user/:userId
+   */
   useEffect(() => {
-    const fetchCounterpartyData = async () => {
+    const fetchPayoutData = async () => {
       if (!user?.id) {
-        setLoadingCounterparty(false);
+        setLoadingPayoutData(false);
         return;
       }
 
       try {
-        const shop = await getArtisanShopByUserId(user.id);
+        const data = await getPayoutUserInfoByUserId(user.id);
 
-        if (!shop?.idContraparty) {
-          setHasCounterparty(false);
-          setLoadingCounterparty(false);
-          return;
+        if (data && data.length > 0) {
+          setHasPayoutData(true);
+          setPayoutData(data[0]); // Tomamos el primer registro
+        } else {
+          setHasPayoutData(false);
+          setPayoutData(null);
         }
-
-        setHasCounterparty(true);
-        const data = await getCounterparty(shop.idContraparty);
-        setCounterpartyData(data.metadata as Metadata);
       } catch {
-        // Sin datos de contraparte disponibles
+        // Sin datos de payout disponibles
+        setHasPayoutData(false);
+        setPayoutData(null);
       } finally {
-        setLoadingCounterparty(false);
+        setLoadingPayoutData(false);
       }
     };
 
-    fetchCounterpartyData();
+    fetchPayoutData();
   }, [user?.id]);
 
+  /**
+   * Carga los países disponibles
+   * Endpoint: GET /countries
+   */
   useEffect(() => {
-    if (bankData && !hasCounterparty) {
+    const fetchCountries = async () => {
+      try {
+        const countriesData = await getAllCountries();
+        setCountries(countriesData);
+
+        // Pre-seleccionar el primer país si existe
+        if (countriesData && countriesData.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            country: countriesData[0].id, // UUID del primer país
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading countries:', error);
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (bankData && !hasPayoutData) {
       setFormData({
         holder_name: bankData.holder_name || "",
         document_type: bankData.document_type || "cc",
@@ -130,51 +142,39 @@ export const BankDataPage: React.FC = () => {
         currency: bankData.currency || "COP",
       });
     }
-  }, [bankData, hasCounterparty]);
+  }, [bankData, hasPayoutData]);
 
-  // Map account type from Cobre API to form values
-  const mapAccountType = (type: string | undefined): string => {
-    if (!type) return "ch";
-    const normalizedType = type.toLowerCase();
-    const map: Record<string, string> = {
-      'ahorros': 'ch',
-      'ch': 'ch',
-      'corriente': 'cc',
-      'cc': 'cc',
-      'r2p': 'r2p',
-      'dp': 'dp',
-      'breb-key': 'breb-key',
-      'r2p_breb': 'r2p_breb',
-    };
-    return map[normalizedType] || "ch";
-  };
 
-  // Pre-fill form when entering edit mode
+  /**
+   * ✅ MIGRATED: Pre-cargar formulario en modo edición con datos de PayoutUserInfo
+   * Nota: bankName y numAccount vienen DESENCRIPTADOS del backend
+   * idType e idNumber vienen del perfil del usuario
+   */
   useEffect(() => {
-    if (isEditing && counterpartyData) {
+    if (isEditing && payoutData) {
       // Find bank code from bank name
       const bank = BANKS_DATA.find(
-        (b) => b.name === counterpartyData.beneficiary_institution || b.code === counterpartyData.beneficiary_institution
+        (b) => b.name === payoutData.bankName || b.code === payoutData.bankName
       );
 
       setFormData({
-        holder_name: counterpartyData.counterparty_fullname || "",
-        document_type: counterpartyData.counterparty_id_type || "cc",
-        document_number: counterpartyData.counterparty_id_number || "",
-        bank_code: bank?.code || counterpartyData.beneficiary_institution || "",
-        account_type: mapAccountType(counterpartyData.registered_account),
-        account_number: counterpartyData.account_number || "",
-        country: "Colombia",
-        currency: "COP",
+        holder_name: payoutData.namePayoutMain || "",
+        document_type: payoutData.idType || "cc", // Viene del perfil del usuario
+        document_number: payoutData.idNumber || "", // Viene del perfil del usuario (desencriptado)
+        bank_code: bank?.code || payoutData.bankName || "",
+        account_type: payoutData.typeAccount || "ch",
+        account_number: payoutData.numAccount || "", // Desencriptado
+        country: payoutData.countryId || "Colombia", // UUID del país
+        currency: payoutData.currency || "COP",
       });
     }
-  }, [isEditing, counterpartyData]);
+  }, [isEditing, payoutData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // If editing, show confirmation dialog first
-    if (hasCounterparty && isEditing) {
+    if (hasPayoutData && isEditing) {
       setShowConfirmDialog(true);
       return;
     }
@@ -182,6 +182,9 @@ export const BankDataPage: React.FC = () => {
     await performSave();
   };
 
+  /**
+   * ✅ MIGRATED: Guardar o actualizar datos de payout
+   */
   const performSave = async () => {
     // Validate required fields before saving
     if (!formData.account_type) {
@@ -191,7 +194,7 @@ export const BankDataPage: React.FC = () => {
     setSaving(true);
 
     let result;
-    if (hasCounterparty && isEditing) {
+    if (hasPayoutData && isEditing) {
       // Update existing data
       result = await updateBankData({
         ...formData,
@@ -218,14 +221,15 @@ export const BankDataPage: React.FC = () => {
 
       if (isEditing) {
         setIsEditing(false);
-        setLoadingCounterparty(true);
+        setLoadingPayoutData(true);
         try {
-          const data = await getCounterparty(result.id_contraparty);
-          if (data?.metadata) {
-            setCounterpartyData(data.metadata as Metadata);
+          // Recargar datos actualizados
+          const data = await getPayoutUserInfoByUserId(user.id);
+          if (data && data.length > 0) {
+            setPayoutData(data[0]);
           }
         } finally {
-          setLoadingCounterparty(false);
+          setLoadingPayoutData(false);
         }
       } else {
         // Redirect to dashboard for new creation
@@ -240,16 +244,6 @@ export const BankDataPage: React.FC = () => {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const getDocumentTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      cc: "Cédula de Ciudadanía",
-      pa: "Pasaporte",
-      nit: "NIT",
-      ce: "Cédula de Extranjería",
-    };
-    return types[type] || type;
   };
 
   const getAccountTypeLabel = (type: string) => {
@@ -269,7 +263,7 @@ export const BankDataPage: React.FC = () => {
     return bank?.name || code;
   };
 
-  if (loading || loadingCounterparty) {
+  if (loading || loadingPayoutData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse">
@@ -279,10 +273,8 @@ export const BankDataPage: React.FC = () => {
     );
   }
 
-  // publicacion 
-
-  // Display counterparty data as read-only labels if exists (and not editing)
-  if (hasCounterparty && counterpartyData && !isEditing) {
+  // Display payout data as read-only labels if exists (and not editing)
+  if (hasPayoutData && payoutData && !isEditing) {
     return (
       <div className="min-h-screen p-4">
         <div className="max-w-3xl mx-auto py-8">
@@ -338,31 +330,19 @@ export const BankDataPage: React.FC = () => {
                     <div>
                       <Label className="text-sm text-muted-foreground">Nombre del Titular</Label>
                       <p className="text-base font-medium text-foreground">
-                        {counterpartyData.counterparty_fullname || "-"}
+                        {payoutData.namePayoutMain || "-"}
                       </p>
                     </div>
                   </div>
 
-                  {/* Document Info */}
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <Label className="text-sm text-muted-foreground">Tipo de Documento</Label>
-                        <p className="text-base font-medium text-foreground">
-                          {getDocumentTypeLabel(counterpartyData.counterparty_id_type || "")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Hash className="w-5 h-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <Label className="text-sm text-muted-foreground">Número de Documento</Label>
-                        <p className="text-base font-medium text-foreground">
-                          {counterpartyData.counterparty_id_number || "-"}
-                        </p>
-                      </div>
+                  {/* Account Type */}
+                  <div className="flex items-start gap-3">
+                    <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Tipo de Cuenta</Label>
+                      <p className="text-base font-medium text-foreground">
+                        {getAccountTypeLabel(payoutData.typeAccount || "")}
+                      </p>
                     </div>
                   </div>
 
@@ -373,7 +353,7 @@ export const BankDataPage: React.FC = () => {
                       <div>
                         <Label className="text-sm text-muted-foreground">Banco</Label>
                         <p className="text-base font-medium text-foreground">
-                          {counterpartyData.beneficiary_institution || "-"}
+                          {payoutData.bankName || "-"}
                         </p>
                       </div>
                     </div>
@@ -383,8 +363,8 @@ export const BankDataPage: React.FC = () => {
                       <div>
                         <Label className="text-sm text-muted-foreground">Número de Cuenta</Label>
                         <p className="text-base font-medium text-foreground">
-                          {counterpartyData.account_number
-                            ? `****${counterpartyData.account_number.slice(-4)}`
+                          {payoutData.numAccount
+                            ? `****${payoutData.numAccount.slice(-4)}`
                             : "-"}
                         </p>
                       </div>
@@ -417,7 +397,7 @@ export const BankDataPage: React.FC = () => {
   }
 
   // Show form for new creation or editing
-  const isEditMode = hasCounterparty && isEditing;
+  const isEditMode = hasPayoutData && isEditing;
 
   return (
     <>
@@ -616,12 +596,22 @@ export const BankDataPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="country">País</Label>
-                    <Input
-                      id="country"
+                    <Select
                       value={formData.country}
-                      onChange={(e) => handleChange("country", e.target.value)}
+                      onValueChange={(value) => handleChange("country", value)}
                       disabled
-                    />
+                    >
+                      <SelectTrigger id="country">
+                        <SelectValue placeholder="Selecciona un país" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((country) => (
+                          <SelectItem key={country.id} value={country.id}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">

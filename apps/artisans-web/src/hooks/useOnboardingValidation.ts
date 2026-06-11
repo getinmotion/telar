@@ -1,22 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useUnifiedUserData } from '@/hooks/user/useUnifiedUserData';
-import { MATURITY_TEST_CONFIG } from '@/config/maturityTest';
 
 /**
- * Hook to validate Maturity Test status with THREE distinct states:
- * 1. hasCompletedOnboarding (3+ questions) - Can access dashboard
- * 2. isInProgress (3-35 questions) - Show banner to continue
- * 3. hasCompletedMaturityTest (36 questions) - Fully completed
- * 
+ * Hook to validate onboarding status based on profile completion
+ * Checks if user has completed basic business profile information
+ *
  * OPTIMIZATION: Uses useRef guard to prevent infinite validation loops
  */
 
 interface OnboardingStatus {
-  hasCompletedOnboarding: boolean; // 3+ preguntas = puede acceder dashboard
-  hasCompletedMaturityTest: boolean; // 36 preguntas = test completo
-  totalAnswered: number;
-  isInProgress: boolean; // 3-35 preguntas = en progreso
+  hasCompletedOnboarding: boolean; // Has business description = can access dashboard
+  hasCompletedMaturityTest: boolean; // Deprecated - always false (maturity test removed)
+  totalAnswered: number; // Deprecated - always 0
+  isInProgress: boolean; // Deprecated - always false
   isValidating: boolean;
 }
 
@@ -53,67 +50,34 @@ export const useOnboardingValidation = (): OnboardingStatus => {
       
 
       try {
-        // 1️⃣ Verificar progreso en base de datos (fuente primaria)
-        const dbTotalAnswered = context?.taskGenerationContext?.maturity_test_progress?.total_answered || 0;
-        
-        // 2️⃣ Cargar progreso de localStorage (fuente secundaria) - acceso directo sin hook
-        let localStorageAnswered = 0;
-        const storageKey = user?.id ? `user_${user.id}_fused_maturity_calculator_progress` : 'fused_maturity_calculator_progress';
-        const progressData = localStorage.getItem(storageKey);
-        
-        if (progressData) {
-          try {
-            const parsed = JSON.parse(progressData);
-            localStorageAnswered = parsed.answeredQuestionIds?.length || 0;
-            console.log('📊 [OnboardingValidation] LocalStorage progress:', { parsed, localStorageAnswered });
-          } catch (e) {
-            console.warn('⚠️ [OnboardingValidation] Error parsing progress:', e);
-          }
-        } else {
-          console.log('📭 [OnboardingValidation] No progress data found in localStorage');
-        }
-        
-        // 3️⃣ Usar el máximo entre ambas fuentes (priorizar DB)
-        const totalAnswered = Math.max(dbTotalAnswered, localStorageAnswered);
-        
-        console.log('🔍 [OnboardingValidation] Total answered:', {
-          dbTotalAnswered,
-          localStorageAnswered,
-          totalAnswered
-        });
-        
-        // 4️⃣ Verificar si tiene business_description (completó al menos Q1)
-        const hasBusinessDescription = 
-          !!context?.businessProfile?.businessDescription || 
-          !!context?.businessProfile?.business_description || 
-          !!(context as any)?.business_profile?.businessDescription || 
+        // Verificar si tiene business_description (completó onboarding básico)
+        const hasBusinessDescription =
+          !!context?.businessProfile?.businessDescription ||
+          !!context?.businessProfile?.business_description ||
+          !!(context as any)?.business_profile?.businessDescription ||
           !!(context as any)?.business_profile?.business_description;
-        
-        // 5️⃣ Determinar estados
-        const hasCompletedOnboarding = totalAnswered >= 3 || hasBusinessDescription;
-        const hasCompletedMaturityTest = totalAnswered >= MATURITY_TEST_CONFIG.TOTAL_QUESTIONS;
-        const isInProgress = totalAnswered >= 3 && totalAnswered < MATURITY_TEST_CONFIG.TOTAL_QUESTIONS;
-        
+
+        // Determinar estado de onboarding basado solo en business profile
+        // Maturity test fue removido, estos campos quedan para compatibilidad
+        const hasCompletedOnboarding = hasBusinessDescription;
+
         console.log('✅ [OnboardingValidation] Status calculated:', {
-          totalAnswered,
           hasBusinessDescription,
           hasCompletedOnboarding,
-          hasCompletedMaturityTest,
-          isInProgress,
           userId: user?.id
         });
-        
+
         // ✅ Mark as validated
         hasValidatedRef.current = true;
-        
+
         setStatus({
           hasCompletedOnboarding,
-          hasCompletedMaturityTest,
-          totalAnswered,
-          isInProgress,
+          hasCompletedMaturityTest: false, // Deprecated - maturity test removed
+          totalAnswered: 0, // Deprecated
+          isInProgress: false, // Deprecated
           isValidating: false
         });
-        
+
       } catch (error) {
         console.error('❌ [OnboardingValidation] Error:', error);
         hasValidatedRef.current = true;

@@ -17,11 +17,17 @@ const AdminPage = lazy(() => import("@/pages/Admin"));
 const BackofficeDashboardPage = lazy(
   () => import("@/pages/backoffice/BackofficeDashboardPage"),
 );
+const BackofficeHomePage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeHomePage"),
+);
 const BackofficeMarketplaceHealthPage = lazy(
   () => import("@/pages/backoffice/BackofficeMarketplaceHealthPage"),
 );
 const BackofficeConveniosPage = lazy(
   () => import("@/pages/backoffice/BackofficeConveniosPage"),
+);
+const BackofficeComercialPage_lazy = lazy(
+  () => import("@/pages/backoffice/BackofficeComercialPage"),
 );
 const BackofficeTiendaDetailPage = lazy(
   () => import("@/pages/backoffice/BackofficeTiendaDetailPage"),
@@ -57,6 +63,9 @@ const ProductStudioPage_lazy = lazy(
 const MarketplaceCurationPage_lazy = lazy(
   () => import("@/pages/admin/MarketplaceCurationPage"),
 );
+const ModerationOSPage_lazy = lazy(
+  () => import("@/pages/admin/ModerationOSPage"),
+);
 const DesignSystemEditorPage_lazy = lazy(
   () => import("@/pages/admin/DesignSystemEditorPage"),
 );
@@ -80,6 +89,14 @@ const BackofficePaymentsSvcPage_lazy = lazy(
 );
 const BackofficeTerritoriosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeTerritoriosPage"),
+);
+
+// ─── Growth/Onboarding ────────────────────────────────────────────────────────
+const AgentFormPage_lazy = lazy(
+  () => import("@/pages/growth/AgentFormPage"),
+);
+const TallerStatusPage_lazy = lazy(
+  () => import("@/pages/TallerStatusPage"),
 );
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -112,7 +129,6 @@ const TaskAutoCompletionWrapper = ({
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardHome from "./pages/DashboardHome";
 import AgentDetails from "./pages/AgentDetails";
-import MaturityCalculator from "./pages/MaturityCalculator";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
 import UserProgress from "./pages/UserProgress";
 import Login from "./pages/auth/Login";
@@ -224,6 +240,18 @@ function App() {
                           <Route
                             path="/verify-email"
                             element={<VerifyEmail />}
+                          />
+
+                          {/* Growth/Onboarding - Usuario sin shop */}
+                          <Route
+                            path="/growth/agent-form"
+                            element={
+                              <ProtectedRoute>
+                                <Suspense fallback={<div>Cargando...</div>}>
+                                  <AgentFormPage_lazy />
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
                           />
 
                           {/* Legal pages */}
@@ -343,22 +371,6 @@ function App() {
                             }
                           />
                           <Route
-                            path="/maturity-calculator"
-                            element={
-                              <ProtectedRoute>
-                                <MaturityCalculator />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/notifications"
-                            element={
-                              <ProtectedRoute>
-                                <NotificationsPage />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
                             path="/dashboard/progress"
                             element={
                               <ProtectedRoute>
@@ -454,6 +466,10 @@ function App() {
                               path="/dashboard"
                               element={<DashboardHome />}
                             />
+                            <Route
+                              path="/notifications"
+                              element={<NotificationsPage />}
+                            />
                             <Route path="/profile" element={<Profile />} />
                             <Route
                               path="/dashboard/tasks"
@@ -462,6 +478,14 @@ function App() {
                             <Route
                               path="/dashboard/activity"
                               element={<ActivityPage />}
+                            />
+                            <Route
+                              path="/dashboard/estado-taller"
+                              element={
+                                <Suspense fallback={<div />}>
+                                  <TallerStatusPage_lazy />
+                                </Suspense>
+                              }
                             />
                             <Route
                               path="/dashboard/inventory"
@@ -644,28 +668,28 @@ function App() {
                               />
 
                               {/* HOME — Panel de Operaciones (todos los roles) */}
-                              {/* <Route
-                                  path="/backoffice/home"
-                                  element={
-                                    <BackofficeProtectedRoute section="home">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <BackofficeHomePage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/home"
+                                element={
+                                  <BackofficeProtectedRoute section="home">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <BackofficeHomePage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
 
                               {/* COLA INTELIGENTE — nuevo sistema operativo de moderación */}
-                              {/* <Route
-                                  path="/backoffice/moderacion-os"
-                                  element={
-                                    <BackofficeProtectedRoute section="moderation">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <ModerationOSPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/moderacion-os"
+                                element={
+                                  <BackofficeProtectedRoute section="moderation">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <ModerationOSPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
                               <Route
                                 path="/backoffice/revisor"
                                 element={
@@ -827,16 +851,16 @@ function App() {
                               />
 
                               {/* COMERCIAL (admin+) */}
-                              {/* <Route
-                                  path="/backoffice/comercial"
-                                  element={
-                                    <BackofficeProtectedRoute section="comercial">
-                                      <Suspense fallback={<BackofficePageSkeleton />}>
-                                        <BackofficeComercialPage_lazy />
-                                      </Suspense>
-                                    </BackofficeProtectedRoute>
-                                  }
-                                /> */}
+                              <Route
+                                path="/backoffice/comercial"
+                                element={
+                                  <BackofficeProtectedRoute section="comercial">
+                                    <Suspense fallback={<BackofficePageSkeleton />}>
+                                      <BackofficeComercialPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
 
                               {/* OPERACIONES + SISTEMA (super_admin) */}
                               <Route

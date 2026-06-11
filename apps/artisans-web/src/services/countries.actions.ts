@@ -1,4 +1,5 @@
 import { telarApi } from '@/integrations/api/telarApi';
+<<<<<<< HEAD
 
 export interface Country {
   id: string;
@@ -6,6 +7,9 @@ export interface Country {
   createdAt: string;
   updatedAt: string;
 }
+=======
+import type { Country } from '@/types/country.types';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 /**
  * Obtiene todos los países

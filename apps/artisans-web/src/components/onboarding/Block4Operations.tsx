@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { Control, Controller } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
+=======
+import React from 'react';
+import { Control, Controller } from 'react-hook-form';
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { OnboardingAnswers } from '@/types/telarData.types';
 
@@ -7,6 +12,23 @@ interface Props {
   control: Control<OnboardingAnswers>;
 }
 
+<<<<<<< HEAD
+=======
+const glassCard: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.78)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
+  border: '1px solid rgba(255,255,255,0.65)',
+  boxShadow: '0 2px 10px -2px rgba(0,0,0,0.05)',
+};
+
+const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
+    {children}
+  </label>
+);
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 const MONTHLY_CAPACITY = [
   { value: '<10',     label: 'Menos de 10' },
   { value: '10-30',  label: '10 – 30' },
@@ -25,10 +47,17 @@ const LIMITATIONS = [
 ];
 
 const WORK_STRUCTURES = [
+<<<<<<< HEAD
   { value: 'solo',        label: 'Trabajo solo/a' },
   { value: 'family',      label: 'Con mi familia' },
   { value: 'small_team',  label: 'Equipo pequeño' },
   { value: 'collective',  label: 'Colectivo' },
+=======
+  { value: 'solo',       label: 'Trabajo solo/a' },
+  { value: 'family',     label: 'Con mi familia' },
+  { value: 'small_team', label: 'Equipo pequeño' },
+  { value: 'collective', label: 'Colectivo' },
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 ];
 
 const PRIMARY_GOALS = [
@@ -41,6 +70,7 @@ const PRIMARY_GOALS = [
 
 export function Block4Operations({ control }: Props) {
   return (
+<<<<<<< HEAD
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-1">Bloque 4 — Operaciones</h2>
@@ -49,6 +79,12 @@ export function Block4Operations({ control }: Props) {
 
       {/* Q13 — monthly_capacity */}
       <div className="space-y-2">
+=======
+    <div className="flex flex-col gap-5">
+
+      {/* Capacidad mensual */}
+      <div className="rounded-xl p-5" style={glassCard}>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <Label>¿Cuántas piezas puedes producir al mes aproximadamente?</Label>
         <Controller
           name="monthly_capacity"
@@ -70,8 +106,13 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
+<<<<<<< HEAD
       {/* Q14 — main_limitation */}
       <div className="space-y-2">
+=======
+      {/* Limitación principal */}
+      <div className="rounded-xl p-5" style={glassCard}>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <Label>¿Cuál es tu principal limitación para crecer?</Label>
         <Controller
           name="main_limitation"
@@ -93,8 +134,13 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
+<<<<<<< HEAD
       {/* Q15 — work_structure */}
       <div className="space-y-2">
+=======
+      {/* Estructura de trabajo */}
+      <div className="rounded-xl p-5" style={glassCard}>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <Label>¿Cómo está estructurado tu trabajo?</Label>
         <Controller
           name="work_structure"
@@ -116,8 +162,13 @@ export function Block4Operations({ control }: Props) {
         />
       </div>
 
+<<<<<<< HEAD
       {/* Q16 — primary_goal */}
       <div className="space-y-2">
+=======
+      {/* Objetivo principal */}
+      <div className="rounded-xl p-5" style={glassCard}>
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <Label>¿Cuál es tu objetivo principal en Telar?</Label>
         <Controller
           name="primary_goal"
@@ -138,6 +189,10 @@ export function Block4Operations({ control }: Props) {
           )}
         />
       </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     </div>
   );
 }

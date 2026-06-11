@@ -20,18 +20,20 @@ interface NavItem {
 interface NavGroup {
   title: string;
   items: NavItem[];
-  titleColor?: string;
-  activeBg?: string;
-  activeColor?: string;
+  /** Clases completas y literales (no interpolar: el purge de Tailwind escanea el fuente como texto) */
+  titleClass?: string;
+  activeClass?: string;
 }
+
+// Activo por defecto (Home + sección MÁS) — dominio negocio
+const BUSINESS_ACTIVE = 'bg-domain-business/[0.08] text-domain-business-dark';
 
 // ─── Grupos principales ───────────────────────────────────────────────────────
 const MAIN_GROUPS: NavGroup[] = [
   {
     title: 'MODERACIÓN',
-    titleColor: '#15803d',
-    activeBg: 'rgba(21,128,61,0.08)',
-    activeColor: '#166534',
+    titleClass: 'text-domain-moderation',
+    activeClass: 'bg-domain-moderation/[0.08] text-accent-green',
     items: [
       { label: 'Lista de aprobación', to: '/backoffice/moderacion-os', section: 'moderation', icon: Shield   },
       { label: 'Product Studio', to: '/backoffice/studio',        section: 'revisor',    icon: Wand2    },
@@ -41,9 +43,8 @@ const MAIN_GROUPS: NavGroup[] = [
   },
   {
     title: 'CONTENIDO',
-    titleColor: '#c45a0a',
-    activeBg: 'rgba(236,109,19,0.08)',
-    activeColor: '#9c3f00',
+    titleClass: 'text-brand-orange-dark',
+    activeClass: 'bg-domain-content/[0.08] text-brand-orange-darker',
     items: [
       { label: 'Historias',   to: '/backoffice/historias',   section: 'historias',   icon: BookOpen },
       { label: 'Colecciones', to: '/backoffice/colecciones', section: 'colecciones', icon: Grid2X2  },
@@ -52,9 +53,8 @@ const MAIN_GROUPS: NavGroup[] = [
   },
   {
     title: 'NEGOCIO',
-    titleColor: '#7c3aed',
-    activeBg: 'rgba(124,58,237,0.08)',
-    activeColor: '#5b21b6',
+    titleClass: 'text-domain-business',
+    activeClass: 'bg-domain-business/[0.08] text-domain-business-dark',
     items: [
       { label: 'Dashboard',  to: '/backoffice/dashboard',          section: 'dashboard',          icon: LayoutDashboard },
       { label: 'Salud mkt.', to: '/backoffice/marketplace-health', section: 'marketplace-health', icon: HeartPulse      },
@@ -91,10 +91,10 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
 
   const visibleExtra = EXTRA_ITEMS.filter(i => canAccess(i.section));
 
-  const navLinkClass = (isActive: boolean, activeBg?: string) =>
+  const navLinkClass = (isActive: boolean, activeClass: string = BUSINESS_ACTIVE) =>
     `flex items-center gap-2 px-3 py-2 mx-1 rounded-md text-sm transition-colors
     ${isActive
-      ? `font-medium${!activeBg ? ' bg-primary/10 text-primary' : ''}`
+      ? `font-medium ${activeClass}`
       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
     }`;
 
@@ -144,7 +144,6 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
             to="/backoffice/home"
             title={collapsed ? 'Inicio' : undefined}
             className={({ isActive }) => navLinkClass(isActive)}
-            style={({ isActive }) => isActive ? { backgroundColor: 'rgba(124,58,237,0.08)', color: '#5b21b6' } : {}}
           >
             <Home size={16} className="shrink-0" />
             {!collapsed && <span className="truncate">Inicio</span>}
@@ -158,10 +157,7 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
           return (
             <div key={group.title} className="mb-4">
               {!collapsed && (
-                <p
-                  className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase"
-                  style={{ color: group.titleColor }}
-                >
+                <p className={`px-3 py-1 text-2xs font-semibold tracking-widest uppercase ${group.titleClass ?? ''}`}>
                   {group.title}
                 </p>
               )}
@@ -170,12 +166,7 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
                   key={item.to}
                   to={item.to}
                   title={collapsed ? item.label : undefined}
-                  style={({ isActive }) =>
-                    isActive && group.activeBg
-                      ? { backgroundColor: group.activeBg, color: group.activeColor }
-                      : {}
-                  }
-                  className={({ isActive }) => navLinkClass(isActive, group.activeBg)}
+                  className={({ isActive }) => navLinkClass(isActive, group.activeClass)}
                 >
                   <item.icon size={16} className="shrink-0" />
                   {!collapsed && <span className="truncate">{item.label}</span>}
@@ -192,7 +183,7 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
         {visibleExtra.length > 0 && (
           <div className="mt-2 border-t border-border pt-2">
             {!collapsed && (
-              <p className="px-3 py-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+              <p className="px-3 py-1 text-2xs font-semibold tracking-widest uppercase text-muted-foreground">
                 MÁS
               </p>
             )}
@@ -202,7 +193,6 @@ export const BackofficeSidebar: React.FC<BackofficeSidebarProps> = ({
                 to={item.to}
                 title={collapsed ? item.label : undefined}
                 className={({ isActive }) => navLinkClass(isActive)}
-                style={({ isActive }) => isActive ? { backgroundColor: 'rgba(124,58,237,0.08)', color: '#5b21b6' } : {}}
               >
                 <item.icon size={16} className="shrink-0" />
                 {!collapsed && <span className="truncate">{item.label}</span>}

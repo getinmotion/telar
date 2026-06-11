@@ -8,6 +8,7 @@ import { PriceInput } from '@/components/ui/price-input';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
+import { buildMarketplaceStoreUrl } from '@/config/urls';
 import { useToast } from '@/components/ui/use-toast';
 import { useArtisanShop } from '@/hooks/useArtisanShop';
 import {
@@ -574,7 +575,7 @@ export const AIProductUpload: React.FC = () => {
           Crear otro producto
         </Button>
         <Button
-          onClick={() => window.open(`/tienda/${shop?.shopSlug}`, '_blank')}
+          onClick={() => shop?.shopSlug && window.open(buildMarketplaceStoreUrl(shop.shopSlug), '_blank')}
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           Ver mi tienda

@@ -19,6 +19,7 @@ import { AgentTasksModule } from './resources/agent-tasks/agent-tasks.module';
 import { UserMaturityScoresModule } from './resources/user-maturity-scores/user-maturity-scores.module';
 import { MasterCoordinatorContextModule } from './resources/master-coordinator-context/master-coordinator-context.module';
 import { AiModule } from './resources/ai/ai.module';
+import { AgentModule } from './resources/agent/agent.module';
 import { AnalyticsEventsModule } from './resources/analytics-events/analytics-events.module';
 import { AgentDeliverablesModule } from './resources/agent-deliverables/agent-deliverables.module';
 import { UserAchievementsModule } from './resources/user-achievements/user-achievements.module';
@@ -84,6 +85,7 @@ import { StoreHealthScoresModule } from './resources/store-health-scores/store-h
 import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-info.module';
 import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
 import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
+import { UsersIdAgreementModule } from './resources/users-id-agreement/users-id-agreement.module';
 
 @Module({
   imports: [
@@ -149,6 +151,7 @@ import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans
     UserMaturityScoresModule,
     MasterCoordinatorContextModule,
     AiModule,
+    AgentModule,
     AnalyticsEventsModule,
     AgentDeliverablesModule,
     UserAchievementsModule,
@@ -213,6 +216,7 @@ import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans
     PayoutUserInfoModule,
     AchievementsCatalogModule,
     ArtisansKnowledgeModule,
+    UsersIdAgreementModule,
   ],
   controllers: [],
   providers: [],

@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
+=======
+>>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { ArtisanOriginDisplay, type ArtisanOriginData } from '@/components/profile/ArtisanOriginDisplay';
 import type { ArtisanShop } from '@/types/artisanShop.types';
 
@@ -167,15 +170,14 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
           </Button>
         </div>
 
-        {/* Tarjetas de Perfil Artesanal - Solo se muestran en el perfil */}
-        {shop.craftType && (
+        {/* Origen artesanal */}
+        {userId && (
           <div className="pt-6 border-t border-border mt-4">
-            <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-              Tu Perfil Artesanal
-            </h4>
-            <ArtisanProfileCards
-              craftType={shop.craftType}
-              language="es"
+            <ArtisanOriginDisplay
+              userId={userId}
+              origin={shopOrigin}
+              artisanProfileRaw={(shop.artisanProfile as Record<string, any>) ?? undefined}
+              onUpdated={setOriginData}
             />
           </div>
         )}

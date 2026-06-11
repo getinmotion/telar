@@ -19,11 +19,6 @@ export interface Store {
 
 // ============= Related Entities =============
 
-export interface StoreArtisanalProfile {
-  primaryCraftId?: string;
-  isCollaborationStudio: boolean;
-}
-
 export interface StoreContacts {
   email?: string;
   phone?: string;
