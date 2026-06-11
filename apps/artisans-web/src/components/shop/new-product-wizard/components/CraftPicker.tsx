@@ -10,10 +10,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllCrafts, getTechniquesByCraftId, type Craft, type Technique } from '@/services/crafts.actions';
-<<<<<<< HEAD
-=======
 import { useIsMobile } from '@/hooks/use-mobile';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
 
@@ -37,11 +34,7 @@ const CRAFT_ICON_MAP: { keywords: string[]; icon: string }[] = [
   { keywords: ['hilar', 'hilado', 'hilatura'], icon: 'sync_alt' },
 ];
 
-<<<<<<< HEAD
-function getCraftIcon(name: string): string {
-=======
 export function getCraftIcon(name: string): string {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const lower = name.toLowerCase();
   for (const { keywords, icon } of CRAFT_ICON_MAP) {
     if (keywords.some(kw => lower.includes(kw))) return icon;
@@ -113,35 +106,13 @@ interface CraftPickerProps {
   categoryName?: string;
   selectedCraftId?: string;
   onChange: (craftId: string | undefined) => void;
-<<<<<<< HEAD
-=======
   onNameChange?: (name: string | undefined) => void;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 export const CraftPicker: React.FC<CraftPickerProps> = ({
   categoryName,
   selectedCraftId,
   onChange,
-<<<<<<< HEAD
-}) => {
-  const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showAll, setShowAll] = useState(false);
-
-  useEffect(() => {
-    setIsLoading(true);
-    getAllCrafts()
-      .then(setAllCrafts)
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  const categoryKeywords = getCraftKeywordsForCategory(categoryName);
-
-  // Crafts visibles según filtro de categoría o búsqueda
-=======
   onNameChange,
 }) => {
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
@@ -165,22 +136,12 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
 
   const categoryKeywords = getCraftKeywordsForCategory(categoryName);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const visibleCrafts: Craft[] = (() => {
     if (searchQuery.trim().length >= 2) {
       return allCrafts.filter(c =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
-<<<<<<< HEAD
-    if (!categoryKeywords || showAll) return allCrafts;
-    return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
-  })();
-
-  const hiddenCount = categoryKeywords && !showAll && !searchQuery
-    ? allCrafts.length - visibleCrafts.length
-    : 0;
-=======
     if (showAll) return allCrafts;
     if (!categoryKeywords) return allCrafts.slice(0, DEFAULT_LIMIT);
     return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
@@ -191,7 +152,6 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
     if (!categoryKeywords) return Math.max(0, allCrafts.length - DEFAULT_LIMIT);
     return allCrafts.length - visibleCrafts.length;
   })();
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   const selectedCraft = allCrafts.find(c => c.id === selectedCraftId);
 
@@ -204,8 +164,6 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
     );
   }
 
-<<<<<<< HEAD
-=======
   if (loadError) {
     return (
       <div className="flex items-center gap-3 py-3">
@@ -222,7 +180,6 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
     );
   }
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   return (
     <div className="space-y-4">
       {/* Search */}
@@ -266,14 +223,10 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
                 name={craft.name}
                 icon={getCraftIcon(craft.name)}
                 isSelected={isSelected}
-<<<<<<< HEAD
-                onClick={() => onChange(isSelected ? undefined : craft.id)}
-=======
                 onClick={() => {
                   onChange(isSelected ? undefined : craft.id);
                   onNameChange?.(isSelected ? undefined : craft.name);
                 }}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               />
             );
           })}
@@ -294,21 +247,13 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
-<<<<<<< HEAD
-      {showAll && !searchQuery && categoryKeywords && (
-=======
       {showAll && !searchQuery && (
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <button
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
           <span className="material-symbols-outlined text-[15px]">expand_less</span>
-<<<<<<< HEAD
-          Ver solo los de {categoryName}
-=======
           {categoryKeywords ? `Ver solo los de ${categoryName}` : 'Ver menos'}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         </button>
       )}
 
@@ -323,8 +268,6 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
   );
 };
 
-<<<<<<< HEAD
-=======
 // ── CraftMultiPicker ──────────────────────────────────────────────────────────
 
 interface CraftMultiPickerProps {
@@ -520,7 +463,6 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   );
 };
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ── TechniquePicker ───────────────────────────────────────────────────────────
 
 interface TechniquePickerProps {
@@ -528,10 +470,7 @@ interface TechniquePickerProps {
   craftName?: string;
   selectedTechniqueId?: string;
   onChange: (techniqueId: string | undefined) => void;
-<<<<<<< HEAD
-=======
   onNameChange?: (name: string | undefined) => void;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 export const TechniquePicker: React.FC<TechniquePickerProps> = ({
@@ -539,10 +478,7 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   craftName,
   selectedTechniqueId,
   onChange,
-<<<<<<< HEAD
-=======
   onNameChange,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }) => {
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -595,14 +531,10 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
               name={tech.name}
               icon={getCraftIcon(tech.name)}
               isSelected={isSelected}
-<<<<<<< HEAD
-              onClick={() => onChange(isSelected ? undefined : tech.id)}
-=======
               onClick={() => {
                 onChange(isSelected ? undefined : tech.id);
                 onNameChange?.(isSelected ? undefined : tech.name);
               }}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               small
             />
           );

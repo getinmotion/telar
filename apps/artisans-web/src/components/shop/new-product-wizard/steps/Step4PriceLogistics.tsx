@@ -4,10 +4,7 @@ import type { AvailabilityType } from '@/services/products-new.types';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
-<<<<<<< HEAD
-=======
 import { useOraculo } from '@/components/oraculo/OraculoContext';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Props {
   state: NewWizardState;
@@ -18,10 +15,7 @@ interface Props {
   isSavingDraft?: boolean;
   step: number;
   totalSteps: number;
-<<<<<<< HEAD
-=======
   leftOffset?: number;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 const AVAILABILITY_OPTIONS: { id: AvailabilityType; label: string; icon: string; desc: string }[] = [
@@ -96,19 +90,13 @@ const WeightField: React.FC<WeightFieldProps> = ({ label, valueKg, unit, onUnitC
   </div>
 );
 
-<<<<<<< HEAD
-export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps }) => {
-=======
 export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, leftOffset }) => {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   // Weight unit states with smart defaults based on materials
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
   const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
 
   const canContinue = !!state.price && !!state.availabilityType;
 
-<<<<<<< HEAD
-=======
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
     setNode(
@@ -159,7 +147,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     return clearNode;
   }, [canContinue]);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
 
@@ -186,21 +173,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-<<<<<<< HEAD
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="payments"
-          title="Precio y logística"
-          subtitle="Define cómo se comercializa y despacha esta pieza"
-        />
-
-        <div className="grid grid-cols-12 gap-6 items-start">
-          {/* AI Sidebar */}
-          <aside className="col-span-12 lg:col-span-3 sticky top-8">
-=======
       <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
         <div className="hidden md:block">
           <WizardHeader
@@ -216,7 +188,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             <div className="p-5 text-white rounded-2xl" style={{ background: '#151b2d' }}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-[#ec6d13] text-lg">auto_awesome</span>
@@ -605,11 +576,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
-<<<<<<< HEAD
-        leftOffset={80}
-=======
         leftOffset={leftOffset}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );

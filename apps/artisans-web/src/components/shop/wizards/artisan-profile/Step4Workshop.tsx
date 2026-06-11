@@ -108,8 +108,6 @@ const WorkshopImageSlot: React.FC<WorkshopImageSlotProps> = ({
   );
 };
 
-<<<<<<< HEAD
-=======
 // ── MobileWorkshopSlot ───────────────────────────────────────────────────────
 
 interface MobileWorkshopSlotProps {
@@ -189,7 +187,6 @@ const MobileWorkshopSlot: React.FC<MobileWorkshopSlotProps> = ({ icon, label, re
   );
 };
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
 
   return (
@@ -198,10 +195,6 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
       {/* Registro visual */}
       <section className="p-5 rounded-lg border border-[#e2d5cf]/20" style={{ background: '#ffffff', boxShadow: '0 2px 12px -2px rgba(0,0,0,0.02)' }}>
         <p className={sectionTitle}>Registro visual del taller</p>
-<<<<<<< HEAD
-        <div className="flex gap-3">
-          {/* Foto principal grande */}
-=======
 
         {/* Mobile: tira horizontal scrollable */}
         <div className="md:hidden">
@@ -232,7 +225,6 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
 
         {/* Desktop: foto principal grande + 2×2 */}
         <div className="hidden md:flex gap-3">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <div className="flex-1 min-w-0">
             <WorkshopImageSlot
               {...WORKSHOP_SLOTS[0]}
@@ -241,10 +233,6 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
               height="h-full min-h-[270px]"
             />
           </div>
-<<<<<<< HEAD
-          {/* 4 fotos secundarias en 2×2 */}
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <div className="grid grid-cols-2 gap-3 w-[45%] shrink-0">
             {WORKSHOP_SLOTS.slice(1).map((slot, i) => {
               const photos = data.workshopPhotos ?? [];
@@ -306,10 +294,7 @@ export const Step4Workshop: React.FC<Props> = ({ data, onChange, userId }) => {
           userId={userId}
           selected={data.workshopTools}
           onChange={(names) => onChange({ workshopTools: names })}
-<<<<<<< HEAD
-=======
           suggestFromCraftIds={data.craftIds?.length ? data.craftIds : (data.craftId ? [data.craftId] : [])}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         />
       </section>
     </div>

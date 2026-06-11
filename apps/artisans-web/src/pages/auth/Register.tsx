@@ -28,10 +28,7 @@ import { register } from './actions/register.actions';
 import { getAllIdTypes, type IdTypeUser } from '@/services/idTypeUser.actions';
 import { getAllCountries, type Country } from '@/services/countries.actions';
 import { getAllAgreements, type Agreement } from '@/services/agreements.actions';
-<<<<<<< HEAD
-=======
 import { validateIdAgreement } from '@/services/usersIdAgreement.actions';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Municipio {
   municipio: string;
@@ -63,8 +60,6 @@ export const Register = () => {
   const [departamentos, setDepartamentos] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
-<<<<<<< HEAD
-=======
   // Estado para validación de ID + Convenio
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{
@@ -72,7 +67,6 @@ export const Register = () => {
     exists: boolean;
   }>({ checked: false, exists: false });
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const form = useForm<RegisterFormData>({
     defaultValues: REGISTER_FORM_INITIAL_VALUES,
     mode: 'onChange',
@@ -124,8 +118,6 @@ export const Register = () => {
       setMunicipios([]);
     }
   }, [department, ciudadesDane]);
-<<<<<<< HEAD
-=======
 
   // Watch campos para validación de artesano aprobado
   const idTypeId = form.watch('idTypeId');
@@ -185,7 +177,6 @@ export const Register = () => {
 
     validateArtisan();
   }, [idTypeId, idNumber, agreementId, toast]);
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   const password = form.watch('password');
   const hasRUT = form.watch('hasRUT');
@@ -226,8 +217,6 @@ export const Register = () => {
           firstName: data.firstName
         }
       });
-<<<<<<< HEAD
-=======
     } catch (error: any) {
       console.error('Error creating account:', error);
       toast({
@@ -236,7 +225,6 @@ export const Register = () => {
         variant: "destructive",
         duration: 5000,
       });
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     } finally {
       setIsLoading(false);
     }
@@ -391,8 +379,6 @@ export const Register = () => {
                           )}
                         </SelectContent>
                       </Select>
-<<<<<<< HEAD
-=======
                       {/* Indicador de validación */}
                       {idTypeId && idNumber && agreementId && (
                         <FormDescription className="text-xs mt-2">
@@ -413,7 +399,6 @@ export const Register = () => {
                           ) : null}
                         </FormDescription>
                       )}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       <FormMessage />
                     </FormItem>
                   )}
@@ -839,16 +824,12 @@ export const Register = () => {
                 <div className="flex justify-start pt-2">
                   <Button
                     type="submit"
-<<<<<<< HEAD
-                    disabled={isLoading}
-=======
                     disabled={
                       isLoading ||
                       isValidating ||
                       (idTypeId && idNumber && agreementId && !validationResult.checked) ||
                       (validationResult.checked && !validationResult.exists)
                     }
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     className="w-[220px] h-12 rounded-[12px] bg-accent hover:bg-accent/90 text-white text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? 'Creando cuenta...' : isValidating ? 'Validando...' : 'Crear cuenta'}

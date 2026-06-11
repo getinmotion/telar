@@ -5,10 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { getTaxonomyAliases, deleteTaxonomyAlias, type TaxonomyAlias } from '@/services/curation.actions';
 import { TaxonomyDeleteConfirm } from './TaxonomyDeleteConfirm';
-<<<<<<< HEAD
-=======
 import { SPARTAN, RED, GRAY_400, GRAY_500, greenA, orangeA } from '@/components/dashboard/dashboardStyles';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 const TYPE_LABELS: Record<string, string> = {
   craft: 'Oficio',
@@ -51,13 +48,8 @@ export function TaxonomyAliasTab() {
       {/* Info note */}
       <div
         style={{
-<<<<<<< HEAD
-          background: 'rgba(236,109,19,0.08)',
-          border: '1px solid rgba(236,109,19,0.25)',
-=======
           background: orangeA(0.08),
           border: `1px solid ${orangeA(0.25)}`,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           borderRadius: 12,
           padding: '12px 16px',
           marginBottom: 20,
@@ -77,16 +69,6 @@ export function TaxonomyAliasTab() {
         </a>
       </div>
 
-<<<<<<< HEAD
-      <div style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(12px)', borderRadius: 16, border: '1px solid rgba(21,128,61,0.12)', overflow: 'hidden' }}>
-        <Table>
-          <TableHeader>
-            <TableRow style={{ background: 'rgba(21,128,61,0.06)' }}>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Alias</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Tipo</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>ID Canónico</TableHead>
-              <TableHead style={{ fontFamily: "'League Spartan', sans-serif", fontWeight: 700 }}>Creado</TableHead>
-=======
       <div style={{ background: 'var(--glass-fill)', backdropFilter: 'blur(12px)', borderRadius: 16, border: `1px solid ${greenA(0.12)}`, overflow: 'hidden' }}>
         <Table>
           <TableHeader>
@@ -95,41 +77,25 @@ export function TaxonomyAliasTab() {
               <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Tipo</TableHead>
               <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>ID Canónico</TableHead>
               <TableHead style={{ fontFamily: SPARTAN, fontWeight: 700 }}>Creado</TableHead>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               <TableHead style={{ width: 60 }} />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-<<<<<<< HEAD
-              <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>Cargando…</TableCell></TableRow>
-            ) : aliases.length === 0 ? (
-              <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>No hay aliases registrados</TableCell></TableRow>
-=======
               <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: GRAY_400, padding: '32px 0' }}>Cargando…</TableCell></TableRow>
             ) : aliases.length === 0 ? (
               <TableRow><TableCell colSpan={5} style={{ textAlign: 'center', color: GRAY_400, padding: '32px 0' }}>No hay aliases registrados</TableCell></TableRow>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             ) : (
               aliases.map((alias) => (
                 <TableRow key={alias.id}>
                   <TableCell style={{ fontWeight: 500 }}>{alias.aliasName}</TableCell>
                   <TableCell style={{ fontSize: 13 }}>{TYPE_LABELS[alias.canonicalType] ?? alias.canonicalType}</TableCell>
-<<<<<<< HEAD
-                  <TableCell style={{ fontFamily: 'monospace', fontSize: 12, color: '#6b7280' }}>{alias.canonicalId.slice(0, 8)}…</TableCell>
-                  <TableCell style={{ color: '#9ca3af', fontSize: 13 }}>
-                    {new Date(alias.createdAt).toLocaleDateString('es-CL')}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(alias)} style={{ padding: '4px 8px', color: '#dc2626' }}>
-=======
                   <TableCell style={{ fontFamily: 'monospace', fontSize: 12, color: GRAY_500 }}>{alias.canonicalId.slice(0, 8)}…</TableCell>
                   <TableCell style={{ color: GRAY_400, fontSize: 13 }}>
                     {new Date(alias.createdAt).toLocaleDateString('es-CL')}
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(alias)} style={{ padding: '4px 8px', color: RED }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       <Trash2 size={14} />
                     </Button>
                   </TableCell>
@@ -139,11 +105,7 @@ export function TaxonomyAliasTab() {
           </TableBody>
         </Table>
         {!loading && aliases.length > 0 && (
-<<<<<<< HEAD
-          <div style={{ padding: '8px 16px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: '#9ca3af' }}>
-=======
           <div style={{ padding: '8px 16px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 12, color: GRAY_400 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             {aliases.length} alias{aliases.length !== 1 ? 'es' : ''}
           </div>
         )}

@@ -4,10 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Store, MapPin, Palette, ExternalLink, ImageIcon, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-import { ArtisanProfileCards } from '@/components/cultural/conversational/components/ArtisanProfileCards';
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { ArtisanOriginDisplay, type ArtisanOriginData } from '@/components/profile/ArtisanOriginDisplay';
 import type { ArtisanShop } from '@/types/artisanShop.types';
 

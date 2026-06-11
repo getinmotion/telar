@@ -12,10 +12,6 @@ import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { mapNewStateToDto, extractApiError } from '../hooks/useWizardDraft';
 import { WizardFooter } from '../components/WizardFooter';
-<<<<<<< HEAD
-import { WizardHeader } from '../components/WizardHeader';
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Props {
   state: NewWizardState;
@@ -26,10 +22,7 @@ interface Props {
   shopId: string;
   step: number;
   totalSteps: number;
-<<<<<<< HEAD
-=======
   leftOffset?: number;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 
@@ -89,10 +82,7 @@ export const Step6FinalReview: React.FC<Props> = ({
   shopId,
   step,
   totalSteps,
-<<<<<<< HEAD
-=======
   leftOffset,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -251,22 +241,6 @@ export const Step6FinalReview: React.FC<Props> = ({
       : '—';
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen pb-32" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="fact_check"
-          title="Revisión final"
-          subtitle="Verifica la información antes de enviar a curaduría"
-        />
-
-        {/* Info block */}
-        <div
-          className="rounded-lg p-6 mb-8 flex items-start gap-4"
-=======
     <div className="pb-32" style={{ background: 'transparent' }}>
 
       {/* ══ MOBILE: Revisión compacta ════════════════════════════════════════ */}
@@ -366,7 +340,6 @@ export const Step6FinalReview: React.FC<Props> = ({
         {/* Info block */}
         <div
           className="hidden md:flex rounded-lg p-6 mb-8 items-start gap-4"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           style={glassCard}
         >
           <span className="material-symbols-outlined text-[#166534] mt-1">info</span>
@@ -376,11 +349,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         </div>
 
         {/* Review grid */}
-<<<<<<< HEAD
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-=======
         <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           {/* Card 1: La pieza */}
           <div className="rounded-lg p-6 flex flex-col justify-between" style={glassCard}>
             <div>
@@ -601,11 +570,7 @@ export const Step6FinalReview: React.FC<Props> = ({
         isSubmitting={isSubmitting}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
-<<<<<<< HEAD
-        leftOffset={80}
-=======
         leftOffset={leftOffset}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );

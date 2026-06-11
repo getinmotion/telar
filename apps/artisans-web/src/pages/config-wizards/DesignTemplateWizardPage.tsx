@@ -6,10 +6,7 @@ import { updateArtisanShop } from '@/services/artisanShops.actions';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
 import { T } from '@/lib/telar-design';
-<<<<<<< HEAD
-=======
 import { MARKETPLACE_DOMAIN } from '@/config/urls';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 interface PreviewProps {
@@ -47,11 +44,7 @@ const EcommercePreview: React.FC<PreviewProps> = ({ shopName, brandClaim, craftT
     </div>
     {slug && (
       <div style={{ background: `${T.dark}04`, borderTop: `1px solid ${T.dark}06`, padding: '5px 12px' }}>
-<<<<<<< HEAD
-        <span style={{ fontFamily: T.sans, fontSize: 9, color: `${T.muted}40` }}>telar.co/tienda/{slug}</span>
-=======
         <span style={{ fontFamily: T.sans, fontSize: 9, color: `${T.muted}40` }}>{MARKETPLACE_DOMAIN}/tienda/{slug}</span>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       </div>
     )}
   </div>

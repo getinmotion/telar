@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-import React, { useRef, useState } from 'react';
-=======
 import React, { useRef, useState, useEffect } from 'react';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
-<<<<<<< HEAD
-=======
 import { useOraculo } from '@/components/oraculo/OraculoContext';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { ToolPicker } from '../components/TaxonomyPicker';
 import {
   getStoriesByArtisan,
@@ -28,10 +21,7 @@ interface Props {
   step: number;
   totalSteps: number;
   artisanId?: string;
-<<<<<<< HEAD
-=======
   leftOffset?: number;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 const DRYING_TIMES = ['N/A', '24-48 horas', '3 a 5 días', '1 semana'];
@@ -61,8 +51,6 @@ const cardStyle = {
 const inputClass =
   'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5 text-[13px] font-[500] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 hover:border-[#e2d5cf]/70 transition-all';
 
-<<<<<<< HEAD
-=======
 // ── MobileProcessStrip ────────────────────────────────────────────────────────
 
 interface MobileProcessStripProps {
@@ -142,7 +130,6 @@ const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
   </div>
 );
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ── ProcessSlot ────────────────────────────────────────────────────────────────
 
 interface ProcessSlotProps {
@@ -228,11 +215,7 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
   );
 };
 
-<<<<<<< HEAD
-export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '' }) => {
-=======
 export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', leftOffset }) => {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const [isRecording, setIsRecording] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(
     () => !!state.elaborationTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === state.elaborationTime),
@@ -249,8 +232,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
   const [saveTitle, setSaveTitle] = useState('');
   const [isSavingProcess, setIsSavingProcess] = useState(false);
 
-<<<<<<< HEAD
-=======
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
     setNode(
@@ -286,7 +267,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
     return clearNode;
   }, [state.elaborationTime, state.monthlyCapacity, state.processMethod]);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const loadProcesses = () => {
     if (!artisanId || loadingProcesses) return;
     setLoadingProcesses(true);
@@ -381,21 +361,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-<<<<<<< HEAD
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="history_edu"
-          title="Proceso y tiempo"
-          subtitle="Evidencia y descripción para la trazabilidad TELAR"
-        />
-
-        <div className="grid grid-cols-12 gap-6 items-start">
-          {/* AI Sidebar */}
-          <aside className="col-span-12 lg:col-span-3 sticky top-8">
-=======
       <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
         <div className="hidden md:block">
           <WizardHeader
@@ -411,7 +376,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             <div className="p-5 text-white rounded-2xl" style={{ background: '#151b2d' }}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-[#ec6d13] text-lg">auto_awesome</span>
@@ -469,10 +433,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                 Sube fotos o videos del proceso. Esto fortalece la trazabilidad de la pieza y permite que la IA detecte fases, herramientas y tiempos.
               </p>
 
-<<<<<<< HEAD
-              {/* Evidence gallery: 1 large + 4 small */}
-              <div className="flex gap-3">
-=======
               {/* Mobile: tira horizontal scrollable */}
               <div className="md:hidden">
                 <MobileProcessStrip
@@ -486,7 +446,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
 
               {/* Desktop: 1 grande + 4 pequeñas */}
               <div className="hidden md:flex gap-3">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 <div className="flex-1 min-w-0">
                   <ProcessSlot
                     slot={PROCESS_SLOTS[0]}
@@ -601,22 +560,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                   <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/80">
                     Guardar en tu biblioteca de procesos
                   </p>
-<<<<<<< HEAD
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={saveTitle}
-                      onChange={e => setSaveTitle(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && !isSavingProcess && handleSaveProcess()}
-                      placeholder="Dale un nombre a este proceso..."
-                      autoFocus
-                      className="flex-1 border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
-                    />
-                    <button
-                      onClick={handleSaveProcess}
-                      disabled={!saveTitle.trim() || isSavingProcess}
-                      className="px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center gap-1.5 shrink-0"
-=======
                   <input
                     type="text"
                     value={saveTitle}
@@ -631,7 +574,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                       onClick={handleSaveProcess}
                       disabled={!saveTitle.trim() || isSavingProcess}
                       className="flex-1 px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     >
                       {isSavingProcess && (
                         <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
@@ -640,11 +582,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                     </button>
                     <button
                       onClick={() => { setShowSaveDialog(false); setSaveTitle(''); }}
-<<<<<<< HEAD
-                      className="px-3 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors shrink-0"
-=======
                       className="px-4 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     >
                       Cancelar
                     </button>
@@ -832,11 +770,8 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                 <ToolPicker
                   selected={state.tools ?? []}
                   onChange={tools => update({ tools })}
-<<<<<<< HEAD
-=======
                   suggestFromCraftIds={state.craftId ? [state.craftId] : undefined}
                   suggestFromTechniqueIds={[state.primaryTechniqueId, state.secondaryTechniqueId].filter(Boolean) as string[]}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 />
               </section>
             </div>
@@ -872,11 +807,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
         onNext={onNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-<<<<<<< HEAD
-        leftOffset={80}
-=======
         leftOffset={leftOffset}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );

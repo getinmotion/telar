@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
-<<<<<<< HEAD
-import { WizardHeader } from '../components/WizardHeader';
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import { getAllCrafts, getTechniquesByCraftId } from '@/services/crafts.actions';
 import { getAllMaterials } from '@/services/materials.actions';
 
@@ -18,10 +14,7 @@ interface Props {
   step: number;
   totalSteps: number;
   onGoToStep?: (step: number) => void;
-<<<<<<< HEAD
-=======
   leftOffset?: number;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 const softGlass = {
@@ -30,11 +23,7 @@ const softGlass = {
   border: '0.5px solid rgba(0,0,0,0.08)',
 };
 
-<<<<<<< HEAD
-export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, onGoToStep }) => {
-=======
 export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, onGoToStep, leftOffset }) => {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const [craftName, setCraftName] = useState<string | null>(null);
   const [techniqueName, setTechniqueName] = useState<string | null>(null);
   const [materialNames, setMaterialNames] = useState<string[]>([]);
@@ -85,21 +74,6 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
   const passportId = `TLR-PV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`;
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen pb-32" style={{ background: 'transparent' }}>
-      <main
-        className="flex flex-col gap-8"
-        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}
-      >
-        <WizardHeader
-          step={step}
-          totalSteps={totalSteps}
-          onBack={onBack}
-          icon="verified"
-          title="Pasaporte digital"
-          subtitle="Vista previa del pasaporte de trazabilidad"
-        />
-=======
     <div className="pb-32" style={{ background: 'transparent' }}>
 
       {/* ══ MOBILE: Pasaporte compacto ══════════════════════════════════════ */}
@@ -191,7 +165,6 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
         className="hidden md:flex flex-col gap-8 pt-6"
         style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px 0' }}
       >
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
         <div className="grid grid-cols-12 gap-4">
           {/* Main passport display */}
@@ -445,11 +418,7 @@ export const Step5DigitalPassport: React.FC<Props> = ({ state, update, onNext, o
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextLabel="Continuar a revisión final"
-<<<<<<< HEAD
-        leftOffset={80}
-=======
         leftOffset={leftOffset}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );

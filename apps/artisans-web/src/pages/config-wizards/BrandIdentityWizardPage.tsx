@@ -7,11 +7,7 @@ import { uploadImage, UploadFolder } from '@/services/fileUpload.actions';
 import { ImageUploadSlot } from '@/components/ui/ImageUploadSlot';
 import { UnsavedChangesDialog } from '@/components/ui/UnsavedChangesDialog';
 import { ConfigWizardShell } from '@/components/shop/config-wizards/ConfigWizardShell';
-<<<<<<< HEAD
-import { T, inputStyle } from '@/lib/telar-design';
-=======
 import { T } from '@/lib/telar-design';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 // ── Datos del panel de IA ─────────────────────────────────────────────────────
 const AI_CARDS = [
@@ -137,49 +133,6 @@ export default function BrandIdentityWizardPage() {
       >
 
         {/* ── Logo ────────────────────────────────────────────────────── */}
-<<<<<<< HEAD
-        <div>
-          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
-            Logo de tu tienda
-          </p>
-          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 20 }}>
-            Primera imagen que ven los compradores. Imagen cuadrada en fondo transparente o blanco.
-          </p>
-          <div className="w-1/3 md:w-1/4">
-            <ImageUploadSlot
-              label="Logo de la tienda" hint="Imagen cuadrada recomendada"
-              url={logoUrl} uploading={uploadingLogo}
-              onFile={handleLogoFile}
-              onRemove={() => { setLogoUrl(''); updateArtisanShop(shop!.id, { logoUrl: '' } as any); }}
-              aspect="aspect-square" icon="storefront"
-            />
-          </div>
-        </div>
-
-        <div style={{ height: 1, background: 'rgba(84,67,62,0.08)' }} />
-
-        {/* ── Tagline ─────────────────────────────────────────────────── */}
-        <div>
-          <p style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 700, color: T.dark, marginBottom: 4 }}>
-            Tagline de tu marca
-          </p>
-          <p style={{ fontFamily: T.sans, fontSize: 12, color: `${T.muted}60`, lineHeight: 1.5, marginBottom: 16 }}>
-            Una frase corta que capture la esencia de tu taller. Aparece en tu tienda y en el marketplace.
-          </p>
-          <label style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: `${T.muted}65`, display: 'block', marginBottom: 6 }}>
-            Tagline / Claim
-          </label>
-          <input
-            value={brandClaim}
-            onChange={e => setBrandClaim(e.target.value)}
-            placeholder="Ej. Tejidos que cuentan historias ancestrales"
-            style={inputStyle}
-            maxLength={120}
-          />
-          <p style={{ fontFamily: T.sans, fontSize: 10, color: `${T.muted}40`, marginTop: 6, textAlign: 'right' }}>
-            {brandClaim.length}/120
-          </p>
-=======
         <div className="flex flex-col gap-4">
           <div>
             <p className="font-['Noto_Serif'] text-[18px] md:text-[17px] font-[700] text-[#151b2d] leading-snug">
@@ -269,7 +222,6 @@ export default function BrandIdentityWizardPage() {
               </div>
             </div>
           )}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         </div>
 
       </ConfigWizardShell>

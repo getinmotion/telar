@@ -2,52 +2,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 // ── Typography ────────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-export const SERIF = "'Noto Serif', serif";
-export const SANS  = "'Manrope', sans-serif";
-
-// ── Domain color tokens ───────────────────────────────────────────────────────
-// Negocio (business admin) — purple
-export const PURPLE      = '#7c3aed';
-export const PURPLE_DARK = '#3b0764';
-export const PURPLE_MID  = '#4c1d95';
-
-// Moderación — forest green
-export const GREEN_MOD   = '#15803d';
-export const GREEN_DARK  = '#052e16';
-export const GREEN_MID   = '#166534';
-
-// ── Glass surfaces ────────────────────────────────────────────────────────────
-export const glassPrimary: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.82)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-  boxShadow: '0 4px 20px rgba(21,27,45,0.02)',
-};
-
-export const glassSecondary: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.68)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-};
-
-export const glassPurple: React.CSSProperties = {
-  background: 'rgba(124,58,237,0.05)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(124,58,237,0.15)',
-  boxShadow: '0 4px 20px rgba(124,58,237,0.04)',
-};
-
-export const glassGreen: React.CSSProperties = {
-  background: 'rgba(21,128,61,0.05)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
-  border: '1px solid rgba(21,128,61,0.15)',
-  boxShadow: '0 4px 20px rgba(21,128,61,0.04)',
-=======
 export const SERIF   = "'Noto Serif', serif";
 export const SANS    = "'Manrope', sans-serif";
 export const SPARTAN = "'League Spartan', sans-serif";
@@ -142,7 +96,6 @@ export const glassGreen: React.CSSProperties = {
   WebkitBackdropFilter: 'blur(12px)',
   border: `1px solid ${greenA(0.15)}`,
   boxShadow: `0 4px 20px ${greenA(0.04)}`,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 };
 
 // ── Currency formatter ────────────────────────────────────────────────────────
@@ -159,11 +112,7 @@ export const lc = (opacity = 0.4): React.CSSProperties => ({
   fontWeight: 800,
   letterSpacing: '0.15em',
   textTransform: 'uppercase',
-<<<<<<< HEAD
-  color: `rgba(84,67,62,${opacity})`,
-=======
   color: inkSoftA(opacity),
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   display: 'block',
 });
 
@@ -171,16 +120,6 @@ export const lc = (opacity = 0.4): React.CSSProperties => ({
 export type PillVariant = 'success' | 'warning' | 'error' | 'draft' | 'orange' | 'info' | 'purple' | 'green_mod';
 
 const PILL_STYLES: Record<PillVariant, React.CSSProperties> = {
-<<<<<<< HEAD
-  success:   { background: 'rgba(22,101,52,0.1)',   color: '#166534' },
-  warning:   { background: 'rgba(236,109,19,0.1)',  color: '#ec6d13' },
-  error:     { background: 'rgba(239,68,68,0.1)',   color: '#ef4444' },
-  draft:     { background: 'rgba(21,27,45,0.06)',   color: '#54433e' },
-  orange:    { background: '#ec6d13',               color: 'white'   },
-  info:      { background: 'rgba(59,130,246,0.1)',  color: '#3b82f6' },
-  purple:    { background: 'rgba(124,58,237,0.1)',  color: '#7c3aed' },
-  green_mod: { background: 'rgba(21,128,61,0.1)',   color: '#15803d' },
-=======
   success:   { background: greenMidA(0.1),         color: GREEN_MID   },
   warning:   { background: orangeA(0.1),           color: ORANGE      },
   error:     { background: redA(0.1),              color: DESTRUCTIVE },
@@ -189,7 +128,6 @@ const PILL_STYLES: Record<PillVariant, React.CSSProperties> = {
   info:      { background: 'rgba(59,130,246,0.1)', color: '#3b82f6'   }, // blue-500: sin token aún
   purple:    { background: purpleA(0.1),           color: PURPLE      },
   green_mod: { background: greenA(0.1),            color: GREEN_MOD   },
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 };
 
 export const Pill: React.FC<{ children: React.ReactNode; variant?: PillVariant }> = ({
@@ -224,20 +162,12 @@ export const OrangeBtn: React.FC<{
     onClick={onClick}
     className={cn('flex items-center gap-2 px-5 py-2.5 rounded-full transition-all hover:opacity-90 hover:scale-[1.02]', className)}
     style={{
-<<<<<<< HEAD
-      background: '#ec6d13',
-=======
       background: ORANGE,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       color: 'white',
       fontFamily: SANS,
       fontSize: 13,
       fontWeight: 700,
-<<<<<<< HEAD
-      boxShadow: '0 4px 12px rgba(236,109,19,0.3)',
-=======
       boxShadow: `0 4px 12px ${orangeA(0.3)}`,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     }}
   >
     {children}
@@ -254,13 +184,8 @@ export const OutlineBtn: React.FC<{
     onClick={onClick}
     className={cn('flex items-center gap-2 px-5 py-2.5 rounded-full transition-all hover:bg-white/60', className)}
     style={{
-<<<<<<< HEAD
-      border: '1px solid rgba(21,27,45,0.1)',
-      color: '#151b2d',
-=======
       border: `1px solid ${inkA(0.1)}`,
       color: INK,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       fontFamily: SANS,
       fontSize: 13,
       fontWeight: 700,
@@ -280,20 +205,6 @@ export const MetricCard: React.FC<{
   <div style={{ ...glassPrimary, borderRadius: 24 }} className="p-5 h-32 flex flex-col justify-between">
     <div className="flex justify-between items-start">
       <div>
-<<<<<<< HEAD
-        <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.5)' }}>
-          {label}
-        </span>
-        <p style={{ fontFamily: SANS, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(84,67,62,0.4)', marginTop: 2 }}>
-          {sub}
-        </p>
-      </div>
-      <span className="material-symbols-outlined" style={{ color: 'rgba(21,27,45,0.15)', fontSize: 20 }}>
-        {icon}
-      </span>
-    </div>
-    <div style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#151b2d', lineHeight: 1.1 }}>
-=======
         <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: inkSoftA(0.5) }}>
           {label}
         </span>
@@ -306,7 +217,6 @@ export const MetricCard: React.FC<{
       </span>
     </div>
     <div style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: INK, lineHeight: 1.1 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       {value}
     </div>
   </div>

@@ -72,11 +72,6 @@ import {
   HistoriasStoryTypesGridForm,
   HistoriasCapsuleQuoteForm,
   HistoriasFinalCtaForm,
-<<<<<<< HEAD
-  ColeccionesSeasonalGridForm,
-  ColeccionesArchiveNavHeaderForm,
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   RawJsonForm,
 } from '@/components/cms/SectionFormFields';
 
@@ -129,11 +124,6 @@ const SECTION_TYPES: { value: CmsSectionType; label: string }[] = [
   { value: 'historias_story_types_grid', label: 'Historias — Grid de 4 tarjetas (navegar archivo)' },
   { value: 'historias_capsule_quote',  label: 'Historias — Cápsula de cita centrada'                 },
   { value: 'historias_final_cta',      label: 'Historias — CTA final oscuro (N botones)'             },
-<<<<<<< HEAD
-  { value: 'colecciones_seasonal_grid',     label: 'Colecciones — Grid de Selecciones de Temporada (4 cards)' },
-  { value: 'colecciones_archive_nav_header', label: 'Colecciones — Header del Archivo del Saber' },
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 ];
 
 function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
@@ -268,27 +258,6 @@ function emptyPayloadFor(type: CmsSectionType): Record<string, any> {
       };
     case 'historias_capsule_quote':
       return { body: '' };
-<<<<<<< HEAD
-    case 'colecciones_seasonal_grid':
-      return {
-        slot: 'colecciones_seasonal',
-        kicker: 'Actualidad',
-        title: 'Selecciones de temporada',
-        cards: [
-          { title: '', description: '', cta: '', href: '', imageUrl: '', imageAlt: '' },
-          { title: '', description: '', cta: '', href: '', imageUrl: '', imageAlt: '' },
-          { title: '', description: '', cta: '', href: '', imageUrl: '', imageAlt: '' },
-          { title: '', description: '', cta: '', href: '', imageUrl: '', imageAlt: '' },
-        ],
-      };
-    case 'colecciones_archive_nav_header':
-      return {
-        slot: 'colecciones_archive_nav',
-        kicker: 'El Archivo del Saber',
-        title: 'Navegar por la esencia',
-      };
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     case 'historias_final_cta':
       return {
         kicker: '', titleLineTop: '', titleLineBottom: '',

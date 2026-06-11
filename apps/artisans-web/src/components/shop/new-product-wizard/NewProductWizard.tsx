@@ -12,13 +12,6 @@ import { Step3ProcessTime } from './steps/Step3ProcessTime';
 import { Step4PriceLogistics } from './steps/Step4PriceLogistics';
 import { Step5DigitalPassport } from './steps/Step5DigitalPassport';
 import { Step6FinalReview } from './steps/Step6FinalReview';
-<<<<<<< HEAD
-import { toast } from 'sonner';
-
-const TOTAL_STEPS = 6;
-
-export const NewProductWizard: React.FC = () => {
-=======
 import { WizardHeader } from './components/WizardHeader';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
@@ -87,7 +80,6 @@ const STEP_CONFIGS = [
 
 export const NewProductWizard: React.FC = () => {
   const isMobile = useIsMobile();
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const urlParamsInit = new URLSearchParams(window.location.search);
   const [currentStep, setCurrentStep] = useState(urlParamsInit.get('edit') === 'true' ? TOTAL_STEPS : 1);
   const [hasShop, setHasShop] = useState<boolean | null>(null);
@@ -366,27 +358,6 @@ export const NewProductWizard: React.FC = () => {
     isEditMode,
     artisanId: user?.id ?? '',
     userId: user?.id ?? '',
-<<<<<<< HEAD
-  };
-
-  return (
-    <div
-      className="flex-1 overflow-y-auto"
-    >
-      {currentStep === 1 && <Step1NewPiece {...stepProps} />}
-      {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
-      {currentStep === 3 && <Step3ProcessTime {...stepProps} />}
-      {currentStep === 4 && <Step4PriceLogistics {...stepProps} />}
-      {currentStep === 5 && <Step5DigitalPassport {...stepProps} onGoToStep={goToStep} />}
-      {currentStep === 6 && (
-        <Step6FinalReview
-          {...stepProps}
-          shopId={shopId}
-          onGoToStep={goToStep}
-          onPublished={handlePublished}
-        />
-      )}
-=======
     leftOffset: isMobile ? 0 : 80,
   };
 
@@ -431,7 +402,6 @@ export const NewProductWizard: React.FC = () => {
       </div>
 
       <WizardOraculoDrawer />
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     </div>
   );
 };

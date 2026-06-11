@@ -1,15 +1,8 @@
-<<<<<<< HEAD
-import React, { useEffect } from 'react';
-import { WizardHeader } from '../../new-product-wizard/components/WizardHeader';
-import { WizardFooter } from '../../new-product-wizard/components/WizardFooter';
-import { useOraculo } from '@/components/oraculo/OraculoContext';
-=======
 import React, { useState, useEffect, useRef } from 'react';
 import { WizardHeader } from '../../new-product-wizard/components/WizardHeader';
 import { WizardFooter } from '../../new-product-wizard/components/WizardFooter';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { useIsMobile } from '@/hooks/use-mobile';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface AiCard { label: string; text: string; }
 
@@ -42,9 +35,6 @@ export const ArtisanStepShell: React.FC<Props> = ({
   isFinalStep, onSubmit, isSubmitting, submitLabel,
   children,
 }) => {
-<<<<<<< HEAD
-  const { setNode, clearNode } = useOraculo();
-=======
   const isMobile = useIsMobile();
   const { setNode, clearNode, node } = useOraculo();
   const [oraculoOpen, setOraculoOpen] = useState(false);
@@ -54,7 +44,6 @@ export const ArtisanStepShell: React.FC<Props> = ({
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   }, [step]);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   useEffect(() => {
     setNode(
       <section className="text-white flex flex-col relative overflow-hidden p-5" style={{ background: '#151b2d', borderRadius: 16 }}>
@@ -91,15 +80,6 @@ export const ArtisanStepShell: React.FC<Props> = ({
   }, [aiCards, aiNext]);
 
   return (
-<<<<<<< HEAD
-    <div className="flex-1 overflow-y-auto flex flex-col pb-24 box-border">
-      <WizardHeader step={step} totalSteps={totalSteps} icon={icon} title={title} subtitle={subtitle} onBack={onBack} />
-
-      <main className="w-full max-w-[1200px] mx-auto px-4 py-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
-
-            {/* Form content */}
-=======
     <div className="flex-1 flex flex-col min-h-0">
 
       {/* Header: fixed en mobile, sticky en desktop — Guardar movido aquí */}
@@ -125,16 +105,11 @@ export const ArtisanStepShell: React.FC<Props> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
 
             {/* Formulario */}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             <div className="lg:col-span-7 flex flex-col gap-8">
               {children}
             </div>
 
-<<<<<<< HEAD
-            {/* AI observation panel — desktop only */}
-=======
             {/* Panel IA — solo desktop */}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             <div className="hidden lg:block lg:col-span-5">
               <section
                 className="h-full text-white flex flex-col relative overflow-hidden border border-white/10 shadow-lg rounded-xl p-5 min-h-[480px]"
@@ -180,10 +155,6 @@ export const ArtisanStepShell: React.FC<Props> = ({
             </div>
 
           </div>
-<<<<<<< HEAD
-      </main>
-
-=======
         </main>
       </div>
 
@@ -232,16 +203,11 @@ export const ArtisanStepShell: React.FC<Props> = ({
       </div>
 
       {/* Footer — sin onSaveDraft (movido al header) */}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       <WizardFooter
         step={step}
         totalSteps={totalSteps}
         onBack={onBack}
         onNext={onNext}
-<<<<<<< HEAD
-        onSaveDraft={onSaveDraft}
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         isSavingDraft={isSavingDraft}
         nextDisabled={nextDisabled}
         disabledReason={disabledReason}
@@ -249,11 +215,7 @@ export const ArtisanStepShell: React.FC<Props> = ({
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         submitLabel={submitLabel}
-<<<<<<< HEAD
-        leftOffset={80}
-=======
         leftOffset={isMobile ? 0 : 80}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );

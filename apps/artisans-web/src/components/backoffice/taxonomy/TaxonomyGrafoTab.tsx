@@ -3,11 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getAllTaxonomyItems, type TaxonomyItemWithCount } from '@/services/taxonomy.actions';
 import { SANS, SERIF, glassPrimary } from '@/components/dashboard/dashboardStyles';
 
-<<<<<<< HEAD
-const CRAFT_COLOR  = '#7c3aed';
-=======
 const CRAFT_COLOR  = 'hsl(var(--domain-business))';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 const TECH_COLOR   = '#38bdf8';
 const CRAFT_RADIUS = 18;
 const TECH_MIN_R   = 12;
@@ -151,17 +147,10 @@ export function TaxonomyGrafoTab() {
       <div style={{ ...glassPrimary, borderRadius: 20, padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
-<<<<<<< HEAD
-            <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d' }}>
-              Mapa de relaciones
-            </h2>
-            <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.5)' }}>
-=======
             <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: 'hsl(var(--on-surface))' }}>
               Mapa de relaciones
             </h2>
             <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: 12, color: 'hsl(var(--on-surface-variant) / 0.5)' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               {loading
                 ? 'Cargando…'
                 : `${craftNodes.length} oficio${craftNodes.length !== 1 ? 's' : ''} → ${techNodes.length} técnica${techNodes.length !== 1 ? 's' : ''} conectadas`
@@ -186,19 +175,11 @@ export function TaxonomyGrafoTab() {
               <button
                 onClick={() => setShowOrphans((v) => !v)}
                 style={{
-<<<<<<< HEAD
-                  border: `1px solid ${showOrphans ? 'rgba(124,58,237,0.25)' : 'rgba(21,27,45,0.1)'}`,
-                  borderRadius: 20, padding: '5px 14px',
-                  fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: SANS,
-                  background: showOrphans ? 'rgba(124,58,237,0.07)' : 'transparent',
-                  color: showOrphans ? '#7c3aed' : 'rgba(84,67,62,0.45)',
-=======
                   border: `1px solid ${showOrphans ? 'hsl(var(--domain-business) / 0.25)' : 'hsl(var(--on-surface) / 0.1)'}`,
                   borderRadius: 20, padding: '5px 14px',
                   fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: SANS,
                   background: showOrphans ? 'hsl(var(--domain-business) / 0.07)' : 'transparent',
                   color: showOrphans ? 'hsl(var(--domain-business))' : 'hsl(var(--on-surface-variant) / 0.45)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                   transition: 'all 0.15s',
                 }}
               >
@@ -208,11 +189,7 @@ export function TaxonomyGrafoTab() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        <div style={{ display: 'flex', gap: 16, marginTop: 12, fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.45)', alignItems: 'center' }}>
-=======
         <div style={{ display: 'flex', gap: 16, marginTop: 12, fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.45)', alignItems: 'center' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <svg width="10" height="10"><circle cx="5" cy="5" r="4" fill={CRAFT_COLOR} /></svg>
             Oficio
@@ -229,11 +206,7 @@ export function TaxonomyGrafoTab() {
         ref={containerRef}
         style={{
           background: '#0f172a',
-<<<<<<< HEAD
-          border: '1px solid rgba(124,58,237,0.15)',
-=======
           border: '1px solid hsl(var(--domain-business) / 0.15)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           borderRadius: 20, overflow: 'auto', maxHeight: 580,
         }}
       >
@@ -255,11 +228,7 @@ export function TaxonomyGrafoTab() {
           <svg width={svgWidth} height={height} style={{ display: 'block', fontFamily: SANS }}>
             <defs>
               <filter id="glow-craft" x="-50%" y="-50%" width="200%" height="200%">
-<<<<<<< HEAD
-                <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#7c3aed" floodOpacity="0.7" />
-=======
                 <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="hsl(var(--domain-business))" floodOpacity="0.7" />
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               </filter>
               <filter id="glow-tech" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#38bdf8" floodOpacity="0.6" />

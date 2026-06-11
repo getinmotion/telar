@@ -1,19 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UploadFolder, uploadImage } from '@/services/fileUpload.actions';
 import { isSlugAvailable, updateStoreArtisanalCraft } from '@/services/artisanShops.actions';
-<<<<<<< HEAD
-import { ArtisanProfileData } from '@/types/artisanProfile';
-import { useToast } from '@/components/ui/use-toast';
-import { SpeechTextarea } from '@/components/ui/speech-textarea';
-import { CraftPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
-=======
 import { getAllCategories, type Category } from '@/services/categories.actions';
 import { ArtisanProfileData } from '@/types/artisanProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { buildMarketplaceStoreUrl, buildAppStoreUrl, MARKETPLACE_DOMAIN } from '@/config/urls';
 import { CraftMultiPicker } from '@/components/shop/new-product-wizard/components/CraftPicker';
 import { TechniqueMultiPicker } from './Step5Craft';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 interface Props {
   data: ArtisanProfileData;
@@ -26,11 +19,7 @@ interface Props {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-<<<<<<< HEAD
-function toSlug(name: string): string {
-=======
 export function toSlug(name: string): string {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   return name
     .toLowerCase()
     .normalize('NFD')
@@ -127,11 +116,7 @@ const AvatarUploader: React.FC<{ value: string; onChange: (url: string) => void 
 
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error';
 
-<<<<<<< HEAD
-const SlugCreator: React.FC<{
-=======
 export const SlugCreator: React.FC<{
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   artisticName: string;
   currentSlug: string;
   onSave: (slug: string, shopName: string) => Promise<void>;
@@ -142,12 +127,6 @@ export const SlugCreator: React.FC<{
   const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
 
-<<<<<<< HEAD
-  const MARKETPLACE_DOMAIN = 'telar.co';
-  const STORE_DOMAIN = 'telar.co';
-
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   // Sync initial slug when artisticName changes and no current slug
   useEffect(() => {
     if (!currentSlug && artisticName) {
@@ -202,21 +181,13 @@ export const SlugCreator: React.FC<{
     {
       icon: 'storefront',
       label: 'Marketplace',
-<<<<<<< HEAD
-      value: `${MARKETPLACE_DOMAIN}/tienda/${slug || '…'}`,
-=======
       value: buildMarketplaceStoreUrl(slug || '…'),
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       live: true,
     },
     {
       icon: 'language',
       label: 'Tu tienda online',
-<<<<<<< HEAD
-      value: `${slug || '…'}.${STORE_DOMAIN}`,
-=======
       value: buildAppStoreUrl(slug || '…'),
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       live: true,
     },
     {
@@ -252,11 +223,7 @@ export const SlugCreator: React.FC<{
       {/* Slug input */}
       <div className="px-5 py-4 border-b border-white/8">
         <div className="flex items-center gap-2 rounded-lg px-4 py-2.5" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-<<<<<<< HEAD
-          <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">telar.co/tienda/</span>
-=======
           <span className="font-['Manrope'] text-[13px] text-white/30 shrink-0">{MARKETPLACE_DOMAIN}/tienda/</span>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           <input
             type="text"
             value={slug}
@@ -320,8 +287,6 @@ export const SlugCreator: React.FC<{
   );
 };
 
-<<<<<<< HEAD
-=======
 // ─── Category Multi-Picker ────────────────────────────────────────────────────
 
 const TELAR_CATEGORY_DEFS: { name: string; icon: string }[] = [
@@ -426,16 +391,11 @@ export const CategoryMultiPicker: React.FC<CategoryMultiPickerProps> = ({ select
   );
 };
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ─── Video Input ─────────────────────────────────────────────────────────────
 
 type VideoMode = 'url' | 'file' | 'record';
 
-<<<<<<< HEAD
-const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
-=======
 export const VideoInput: React.FC<{ value: string; onChange: (url: string) => void }> = ({
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   value,
   onChange,
 }) => {
@@ -642,12 +602,9 @@ export const Step1Identity: React.FC<Props> = ({
   userId,
 }) => {
   const [showSlug, setShowSlug] = useState(false);
-<<<<<<< HEAD
-=======
   const [catNames, setCatNames] = useState<string[]>([]);
   const [craftNames, setCraftNames] = useState<string[]>([]);
   const hasCraft = !!(data.craftIds?.length || data.craftId);
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   return (
     <div className="flex flex-col gap-5">
@@ -735,48 +692,6 @@ export const Step1Identity: React.FC<Props> = ({
         )}
       </div>
 
-<<<<<<< HEAD
-      {/* ── Módulo 3: Oficio + Técnica ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <Label required>Tu oficio</Label>
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/45 leading-snug mb-4">
-          El oficio artesanal principal de tu taller. Se sincroniza con tu catálogo de productos.
-        </p>
-        <CraftPicker
-          selectedCraftId={data.craftId}
-          onChange={craftId => {
-            onChange({ craftId, primaryTechniqueId: undefined });
-            if (userId) updateStoreArtisanalCraft(userId, craftId ?? null).catch(() => {});
-          }}
-        />
-
-      </div>
-
-      {/* ── Módulo 4: Bio ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <Label optional>Presentación breve</Label>
-        <SpeechTextarea
-          rows={4}
-          value={data.shortBio || ''}
-          onChange={(v) => onChange({ shortBio: v })}
-          placeholder="Quién eres, qué haces y qué hace especial tu oficio. Máximo 2–3 oraciones."
-          className="w-full border border-[#e2d5cf]/50 rounded-lg p-4 text-[14px] font-['Manrope'] text-[#54433e] focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10 resize-none transition-all leading-relaxed hover:border-[#e2d5cf]/80"
-          style={inputBg}
-        />
-      </div>
-
-      {/* ── Módulo 5: Video ── */}
-      <div className="rounded-xl p-5" style={glassCard}>
-        <Label optional>Video de presentación</Label>
-        <VideoInput
-          value={data.artisanVideo || ''}
-          onChange={(url) => onChange({ artisanVideo: url })}
-        />
-        <p className="font-['Manrope'] text-[11px] text-[#54433e]/35 mt-2 italic">
-          Un video corto aumenta significativamente la conexión con compradores.
-        </p>
-      </div>
-=======
       {/* ── Módulo 3: Categorías ── */}
       <div className="rounded-xl p-5" style={glassCard}>
         <Label>Categorías de tu taller</Label>
@@ -827,7 +742,6 @@ export const Step1Identity: React.FC<Props> = ({
         </div>
       )}
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
     </div>
   );

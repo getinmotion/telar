@@ -450,7 +450,7 @@ const PrefillBanner: React.FC = () => (
 // ─── Page component ───────────────────────────────────────────────────────────
 
 export const AgentFormPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, artisanShop, artisansIdentityProfile } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -525,6 +525,24 @@ export const AgentFormPage: React.FC = () => {
     shopManyWorkers: "",
     shopFirstSolvingTelar: "",
   });
+
+  // ─── Redirect if already completed ────────────────────────────────────────
+
+  useEffect(() => {
+    // Si el usuario ya tiene tienda y perfil artesanal completo, redirigir al dashboard
+    if (artisanShop && artisansIdentityProfile) {
+      // Verificar si el perfil tiene todos los pasos completos
+      const hasAllSteps =
+        artisansIdentityProfile.identityOne &&
+        artisansIdentityProfile.commercialTwo &&
+        artisansIdentityProfile.clientMarketThree &&
+        artisansIdentityProfile.operationGrowthFour;
+
+      if (hasAllSteps) {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [artisanShop, artisansIdentityProfile, navigate]);
 
   // ─── Load Profile ──────────────────────────────────────────────────────────
 

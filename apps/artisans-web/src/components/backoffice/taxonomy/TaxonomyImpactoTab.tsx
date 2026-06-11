@@ -3,15 +3,6 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
 import { getAllTaxonomyItems, type TaxonomyItemWithCount, type TaxonomyType } from '@/services/taxonomy.actions';
-<<<<<<< HEAD
-import { SANS, SERIF, glassPrimary, lc } from '@/components/dashboard/dashboardStyles';
-
-const TYPE_CONFIG = [
-  { type: 'crafts'       as TaxonomyType, label: 'Oficios',      color: '#7c3aed' },
-  { type: 'techniques'   as TaxonomyType, label: 'Técnicas',     color: '#0369a1' },
-  { type: 'materials'    as TaxonomyType, label: 'Materiales',   color: '#15803d' },
-  { type: 'styles'       as TaxonomyType, label: 'Estilos',      color: '#b45309' },
-=======
 import { SANS, SERIF, glassPrimary, lc, GRAY_700 } from '@/components/dashboard/dashboardStyles';
 
 const TYPE_CONFIG = [
@@ -19,7 +10,6 @@ const TYPE_CONFIG = [
   { type: 'techniques'   as TaxonomyType, label: 'Técnicas',     color: 'hsl(var(--status-info))' },
   { type: 'materials'    as TaxonomyType, label: 'Materiales',   color: 'hsl(var(--domain-moderation))' },
   { type: 'styles'       as TaxonomyType, label: 'Estilos',      color: 'hsl(var(--status-warning-dark))' },
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   { type: 'herramientas' as TaxonomyType, label: 'Herramientas', color: '#be185d' },
 ] as const;
 
@@ -84,17 +74,10 @@ export function TaxonomyImpactoTab() {
 
       {/* Header */}
       <div>
-<<<<<<< HEAD
-        <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: '#151b2d' }}>
-          Impacto en Marketplace
-        </h2>
-        <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.5)', maxWidth: 540 }}>
-=======
         <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: 22, fontWeight: 700, color: 'hsl(var(--on-surface))' }}>
           Impacto en Marketplace
         </h2>
         <p style={{ margin: '4px 0 0', fontFamily: SANS, fontSize: 12, color: 'hsl(var(--on-surface-variant) / 0.5)', maxWidth: 540 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           Cómo la ontología artesanal se traduce en rendimiento comercial.
           Algunas métricas están disponibles hoy; otras requieren endpoints analíticos pendientes de implementar.
         </p>
@@ -104,16 +87,6 @@ export function TaxonomyImpactoTab() {
       <div style={{
         ...glassPrimary,
         borderRadius: 20, padding: '20px 24px',
-<<<<<<< HEAD
-        borderTop: '3px solid #15803d',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div>
-            <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#151b2d' }}>
-              Cobertura activa de la ontología
-            </div>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.45)', marginTop: 2 }}>
-=======
         borderTop: '3px solid hsl(var(--domain-moderation))',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -122,7 +95,6 @@ export function TaxonomyImpactoTab() {
               Cobertura activa de la ontología
             </div>
             <div style={{ fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.45)', marginTop: 2 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
               Cuántos términos están efectivamente vinculados a productos o talleres
             </div>
           </div>
@@ -130,11 +102,7 @@ export function TaxonomyImpactoTab() {
             marginLeft: 'auto',
             fontFamily: SANS,
             fontSize: 9, fontWeight: 800,
-<<<<<<< HEAD
-            background: 'rgba(21,128,61,0.1)', color: '#166534',
-=======
             background: 'hsl(var(--domain-moderation) / 0.1)', color: 'hsl(var(--accent-green))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             borderRadius: 999, padding: '4px 12px',
             letterSpacing: '0.08em', textTransform: 'uppercase',
             flexShrink: 0,
@@ -146,11 +114,7 @@ export function TaxonomyImpactoTab() {
         {loading ? (
           <div style={{
             height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-<<<<<<< HEAD
-            fontFamily: SANS, color: 'rgba(84,67,62,0.35)', fontSize: 13,
-=======
             fontFamily: SANS, color: 'hsl(var(--on-surface-variant) / 0.35)', fontSize: 13,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           }}>
             Cargando…
           </div>
@@ -171,11 +135,7 @@ export function TaxonomyImpactoTab() {
               <Tooltip
                 contentStyle={{
                   fontSize: 11, fontFamily: SANS,
-<<<<<<< HEAD
-                  border: '1px solid rgba(255,255,255,0.65)',
-=======
                   border: '1px solid var(--glass-border)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                   borderRadius: 10,
                   background: 'rgba(255,255,255,0.92)',
                   backdropFilter: 'blur(8px)',
@@ -214,30 +174,13 @@ export function TaxonomyImpactoTab() {
 function ScaffoldCard({ title, desc, needs }: { title: string; desc: string; needs: string }) {
   return (
     <div style={{
-<<<<<<< HEAD
-      background: 'rgba(20,34,57,0.03)',
-      border: '1px solid rgba(20,34,57,0.05)',
-=======
       background: 'hsl(var(--navy) / 0.03)',
       border: '1px solid hsl(var(--navy) / 0.05)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       borderRadius: 20, padding: '16px 18px',
       opacity: 0.88,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <span style={{ fontSize: 14 }}>🔒</span>
-<<<<<<< HEAD
-        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#374151' }}>{title}</span>
-      </div>
-      <p style={{ margin: '0 0 12px', fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', lineHeight: 1.5 }}>{desc}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 12 }}>
-        {[70, 52, 43, 31].map((w, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 60, height: 5, background: 'rgba(20,34,57,0.05)', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ width: `${w}%`, height: '100%', background: 'rgba(20,34,57,0.1)', borderRadius: 999 }} />
-            </div>
-            <div style={{ width: 40, height: 5, background: 'rgba(20,34,57,0.05)', borderRadius: 999 }} />
-=======
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: GRAY_700 }}>{title}</span>
       </div>
       <p style={{ margin: '0 0 12px', fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.5)', lineHeight: 1.5 }}>{desc}</p>
@@ -248,18 +191,12 @@ function ScaffoldCard({ title, desc, needs }: { title: string; desc: string; nee
               <div style={{ width: `${w}%`, height: '100%', background: 'hsl(var(--navy) / 0.1)', borderRadius: 999 }} />
             </div>
             <div style={{ width: 40, height: 5, background: 'hsl(var(--navy) / 0.05)', borderRadius: 999 }} />
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           </div>
         ))}
       </div>
       <span style={{
-<<<<<<< HEAD
-        fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.4)', fontWeight: 700,
-        padding: '4px 10px', background: 'rgba(20,34,57,0.06)', borderRadius: 9999,
-=======
         fontFamily: SANS, fontSize: 9, color: 'hsl(var(--on-surface-variant) / 0.4)', fontWeight: 700,
         padding: '4px 10px', background: 'hsl(var(--navy) / 0.06)', borderRadius: 9999,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         letterSpacing: '0.06em',
       }}>
         Requiere: {needs}

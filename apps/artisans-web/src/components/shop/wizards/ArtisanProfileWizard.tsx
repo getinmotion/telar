@@ -42,30 +42,18 @@ const STEPS = [
   },
   {
     n: 3,
-<<<<<<< HEAD
-    icon: "storefront",
-    title: "Tu taller y proceso",
-    subtitle: "Muéstranos dónde trabajas y cómo nace una pieza.",
-  },
-  {
-    n: 4,
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     icon: "auto_fix_high",
     title: "Tu arte y estilo",
     subtitle:
       "Define las técnicas, materiales y rasgos que identifican tu trabajo.",
   },
   {
-<<<<<<< HEAD
-=======
     n: 4,
     icon: "storefront",
     title: "Tu taller y proceso",
     subtitle: "Muéstranos dónde trabajas y cómo nace una pieza.",
   },
   {
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     n: 5,
     icon: "visibility",
     title: "Vista previa",
@@ -114,26 +102,6 @@ const AI_PANEL: Record<
   3: {
     cards: [
       {
-<<<<<<< HEAD
-        label: "Lectura visual del taller",
-        text: "Sube una foto para detectar automáticamente el tipo de entorno artesanal.",
-      },
-      {
-        label: "Señales del proceso",
-        text: "Cuando describas tu proceso, TELAR podrá sugerir fases y tiempos de oficio.",
-      },
-      {
-        label: "Herramientas detectadas",
-        text: "Las herramientas que cites ayudarán a categorizar tu perfil con mayor precisión.",
-      },
-    ],
-    next: "En el siguiente paso definiremos tu estética y las técnicas que identifican tu trabajo.",
-  },
-  4: {
-    cards: [
-      {
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         label: "Técnica detectada",
         text: "Esperando selección de técnica para identificar oficio principal y señales de especialización.",
       },
@@ -146,8 +114,6 @@ const AI_PANEL: Record<
         text: "TELAR sugerirá etiquetas curatoriales cuando describas qué hace especial tu trabajo.",
       },
     ],
-<<<<<<< HEAD
-=======
     next: "En el siguiente paso nos mostrarás tu taller y el proceso de creación.",
   },
   4: {
@@ -165,7 +131,6 @@ const AI_PANEL: Record<
         text: "Las herramientas que cites ayudarán a categorizar tu perfil con mayor precisión.",
       },
     ],
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     next: "En el siguiente paso revisaremos cómo se verá tu perfil antes de publicarlo.",
   },
   5: {
@@ -180,30 +145,16 @@ const AI_PANEL: Record<
 function validate(step: number, data: ArtisanProfileData): boolean {
   switch (step) {
     case 1:
-<<<<<<< HEAD
-      return !!data.artisanName && !!data.artisticName && !!data.craftId;
-=======
       return (
         !!data.artisanName &&
         !!data.artisticName &&
         !!data.craftId &&
         ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0)
       );
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     case 2:
       return !!data.learnedFrom && data.startAge > 0;
     case 3:
       return (
-<<<<<<< HEAD
-        (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) &&
-        !!data.workshopDescription
-      );
-    case 4:
-      return (
-        ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
-        data.materials.length > 0 &&
-        !!data.uniqueness
-=======
         ((data.materialIds ?? []).length > 0 || data.materials.length > 0) &&
         !!data.uniqueness
       );
@@ -211,7 +162,6 @@ function validate(step: number, data: ArtisanProfileData): boolean {
       return (
         (!!data.workshopPhoto || (data.workshopPhotos ?? []).length > 0) &&
         !!data.workshopDescription
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       );
     case 5:
       return true;
@@ -226,11 +176,7 @@ function isPublishReady(data: ArtisanProfileData): boolean {
     !!data.artisticName &&
     !!data.artisanPhoto &&
     !!data.learnedFromDetail &&
-<<<<<<< HEAD
-    data.techniques.length > 0 &&
-=======
     ((data.techniqueIds ?? []).length > 0 || data.techniques.length > 0) &&
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     ((data.materialIds ?? []).length > 0 || data.materials.length > 0)
   );
 }
@@ -251,14 +197,11 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState<any>(null);
 
-<<<<<<< HEAD
-=======
   // Evita que el useEffect sobreescriba ediciones locales del usuario cuando
   // shopAny?.artisanProfile cambia de referencia en cada render del hook.
   // El valor guarda el shopId + fase ('profile' | 'telar') con que se inicializó.
   const initializedRef = React.useRef<string | null>(null);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const telarData = useTelarDataStore();
   const shopAny = shop as any;
   const isProfileCompleted = shopAny?.artisanProfileCompleted === true;
@@ -272,114 +215,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (shopAny?.artisanProfile) {
-      const profile = shopAny.artisanProfile as ArtisanProfileData;
-      const meta = user?.user_metadata as Record<string, string> | undefined;
-      const learningOrigin = (telarData.learning_origin?.value as string) || "";
-      setData({
-        ...DEFAULT_ARTISAN_PROFILE,
-        ...profile,
-        // Fallback to registration/shop data for fields that may be empty in saved profile
-        artisanName:
-          profile.artisanName ||
-          (telarData.name?.value as string) ||
-          meta?.full_name ||
-          "",
-        learnedFrom:
-          profile.learnedFrom || LEARNING_ORIGIN_MAP[learningOrigin] || "",
-        learnedFromDetail:
-          profile.learnedFromDetail || (telarData.story?.value as string) || "",
-        department: profile.department || (shopAny?.department as string) || "",
-        municipality:
-          profile.municipality || (shopAny?.municipality as string) || "",
-        country: profile.country || "Colombia",
-      });
-      if (profile.generatedStory) setGeneratedStory(profile.generatedStory);
-      if (shopAny.artisanProfileCompleted) setStep(5);
-
-      // Pre-cargar craftId, primaryTechniqueId y ubicación desde registro si el perfil aún no los tiene
-      if (user?.id) {
-        if (!profile.craftId) {
-          getStoreByUserId(user.id)
-            .then((store) => {
-              const craftId = (store as any)?.artisanalProfile?.primaryCraftId;
-              if (craftId)
-                setData((prev) => ({
-                  ...prev,
-                  craftId: prev.craftId ?? craftId,
-                }));
-            })
-            .catch(() => {});
-        }
-        if (!profile.primaryTechniqueId) {
-          getArtisanIdentityByUserId(user.id)
-            .then((identity) => {
-              if (identity?.techniquePrimaryId)
-                setData((prev) => ({
-                  ...prev,
-                  primaryTechniqueId:
-                    prev.primaryTechniqueId ?? identity.techniquePrimaryId!,
-                }));
-            })
-            .catch(() => {});
-        }
-        // Leer department y city del perfil de registro (artisan_profile table)
-        // si el wizard aún no tiene esos datos. city en registro = municipality en wizard.
-        if (!profile.department || !profile.municipality) {
-          getUserProfileByUserId(user.id)
-            .then((regProfile) => {
-              setData((prev) => ({
-                ...prev,
-                department: prev.department || regProfile.department || "",
-                municipality: prev.municipality || regProfile.city || "",
-              }));
-            })
-            .catch(() => {});
-        }
-      }
-    } else if (telarData.hydrated) {
-      const meta = user?.user_metadata as Record<string, string> | undefined;
-      const onboardingName = (telarData.name?.value as string) || "";
-      const regName =
-        meta?.full_name ||
-        [meta?.first_name, meta?.last_name].filter(Boolean).join(" ") ||
-        "";
-      const learningOrigin = (telarData.learning_origin?.value as string) || "";
-
-      setData((prev) => ({
-        ...prev,
-        artisanName: prev.artisanName || onboardingName || regName,
-        learnedFrom:
-          prev.learnedFrom || LEARNING_ORIGIN_MAP[learningOrigin] || "",
-        learnedFromDetail:
-          prev.learnedFromDetail || (telarData.story?.value as string) || "",
-        department: prev.department || (shopAny?.department as string) || "",
-        municipality:
-          prev.municipality || (shopAny?.municipality as string) || "",
-        country: prev.country || "Colombia",
-      }));
-      // Complementar con datos de ubicación del registro si el wizard no los tiene
-      if (user?.id) {
-        getUserProfileByUserId(user.id)
-          .then((regProfile) => {
-            setData((prev) => ({
-              ...prev,
-              department: prev.department || regProfile.department || "",
-              municipality: prev.municipality || regProfile.city || "",
-            }));
-          })
-          .catch(() => {});
-      }
-    }
-  }, [shopAny?.artisanProfile, telarData.hydrated, shop?.id]);
-
-  const updateData = (updates: Partial<ArtisanProfileData>) =>
-    setData((prev) => ({ ...prev, ...updates }));
-
-  const saveDraft = async (quiet = false) => {
-    if (!shop?.id) return;
-=======
     if (!shop?.id) return;
 
     const profileKey = shop.id + (shopAny?.artisanProfile ? '-profile' : '-telar');
@@ -499,7 +334,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
 
   const saveDraft = async (quiet = false) => {
     if (!shop?.id) return;
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     setIsSaving(true);
     try {
       await updateArtisanShop(shop.id, {
@@ -641,11 +475,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
     <ArtisanStepShell
       {...shellProps}
       onNext={handleNext}
-<<<<<<< HEAD
-      nextDisabled={!canAdvance}
-      disabledReason={
-        !canAdvance ? "Completa los campos obligatorios." : undefined
-=======
       nextDisabled={!canAdvance || isGenerating || isSaving}
       disabledReason={
         isGenerating
@@ -655,7 +484,6 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
             : !canAdvance
               ? "Completa los campos obligatorios."
               : undefined
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       }
     >
       {step === 1 && (
@@ -674,17 +502,10 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
         />
       )}
       {step === 2 && <Step2Origin data={data} onChange={updateData} />}
-<<<<<<< HEAD
-      {step === 3 && (
-        <Step4Workshop data={data} onChange={updateData} userId={user?.id} />
-      )}
-      {step === 4 && <Step5Craft data={data} onChange={updateData} />}
-=======
       {step === 3 && <Step5Craft data={data} onChange={updateData} />}
       {step === 4 && (
         <Step4Workshop data={data} onChange={updateData} userId={user?.id} />
       )}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     </ArtisanStepShell>
   );
 };

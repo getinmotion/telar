@@ -19,14 +19,9 @@ import { ImageUploadField } from '@/components/cms/ImageUploadField';
 import { SANS } from '@/components/dashboard/dashboardStyles';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-export const ORANGE     = '#ec6d13';
-export const ORANGE_MID = '#c45a0a';
-=======
 // Consumen las CSS vars del design system: responden al Design System Editor.
 export const ORANGE     = 'hsl(var(--brand-orange))';      // #ec6d13
 export const ORANGE_MID = 'hsl(var(--brand-orange-dark))'; // #c45a0a
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 // ─── Section type metadata ────────────────────────────────────────────────────
 export const SECTION_TYPE_META: Record<string, { icon: string; label: string; description: string }> = {
@@ -51,14 +46,7 @@ export const SECTION_TYPE_META: Record<string, { icon: string; label: string; de
 // ─── Sub-card helpers (wizard glass-morphism style) ───────────────────────────
 function SubCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-<<<<<<< HEAD
-    <div
-      className={`rounded-2xl p-4 space-y-3 ${className ?? ''}`}
-      style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.65)' }}
-    >
-=======
     <div className={`glass-card rounded-2xl p-4 space-y-3 ${className ?? ''}`}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       {children}
     </div>
   );
@@ -66,11 +54,7 @@ function SubCard({ children, className }: { children: React.ReactNode; className
 
 function SubCardLabel({ children }: { children: React.ReactNode }) {
   return (
-<<<<<<< HEAD
-    <p className="text-[9px] font-[800] uppercase tracking-widest mb-1.5" style={{ color: ORANGE_MID }}>
-=======
     <p className="text-3xs font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ORANGE_MID }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       {children}
     </p>
   );
@@ -94,11 +78,7 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
         disabled ? 'cursor-not-allowed opacity-20' : 'cursor-pointer',
         danger
           ? 'text-red-600 hover:bg-red-50'
-<<<<<<< HEAD
-          : 'text-[#54433e]/50 hover:bg-[#54433e]/[0.06]',
-=======
           : 'text-on-surface-variant/50 hover:bg-on-surface-variant/[0.06]',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       ].join(' ')}
     >
       {children}
@@ -108,15 +88,6 @@ function IconBtn({ onClick, disabled, title, danger, children }: {
 
 // ─── Shared field components ──────────────────────────────────────────────────
 const fieldInput = [
-<<<<<<< HEAD
-  'w-full rounded-lg border border-[#e2d5cf]/40 px-3 py-2.5',
-  'text-[13px] font-[500] text-[#151b2d] placeholder:text-[#151b2d]/30',
-  'focus:outline-none focus:border-[#ec6d13]/50 focus:ring-2 focus:ring-[#ec6d13]/10',
-  'hover:border-[#e2d5cf]/70 transition-all',
-].join(' ');
-
-const fieldLabel = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-1.5";
-=======
   'w-full rounded-lg border border-brand-border/40 px-3 py-2.5 bg-background/40',
   'text-[13px] font-medium text-on-surface placeholder:text-on-surface/30',
   'focus:outline-none focus:border-brand-orange/50 focus:ring-2 focus:ring-brand-orange/10',
@@ -124,7 +95,6 @@ const fieldLabel = "font-['Manrope'] text-[10px] font-[800] uppercase tracking-w
 ].join(' ');
 
 const fieldLabel = "font-manrope text-2xs font-extrabold uppercase tracking-widest text-on-surface-variant/60 block mb-1.5";
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 export function FieldText({ label, value, onChange, placeholder }: {
   label: string; value: string; onChange: (v: string) => void; placeholder?: string;
@@ -138,10 +108,6 @@ export function FieldText({ label, value, onChange, placeholder }: {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={fieldInput}
-<<<<<<< HEAD
-        style={{ background: 'rgba(247,244,239,0.4)' }}
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );
@@ -158,10 +124,6 @@ export function FieldArea({ label, value, onChange, rows = 3 }: {
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         className={[fieldInput, 'resize-none leading-relaxed'].join(' ')}
-<<<<<<< HEAD
-        style={{ background: 'rgba(247,244,239,0.4)' }}
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       />
     </div>
   );
@@ -458,11 +420,7 @@ export function ContentPickForm({ draft, setField }: any) {
         <FieldText label="Label / pill (ej. Editorial)" value={draft.label ?? ''} onChange={(v) => setField('label', v)} />
         <FieldText label={`CTA texto (default: ${isBlog ? 'Leer historia' : 'Ver colección'})`} value={draft.ctaLabel ?? ''} onChange={(v) => setField('ctaLabel', v)} />
       </div>
-<<<<<<< HEAD
-      <div className="border-t border-[#ec6d13]/[0.08] pt-3">
-=======
       <div className="border-t border-brand-orange/[0.08] pt-3">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <p className="text-xs text-muted-foreground mb-3">
           Overrides opcionales — pisan los datos del doc referenciado.
         </p>
@@ -553,28 +511,16 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
             value={draft.autoplaySeconds ?? 6}
             onChange={(e) => setField('autoplaySeconds', parseInt(e.target.value, 10) || 6)}
             className={fieldInput}
-<<<<<<< HEAD
-            style={{ background: 'rgba(247,244,239,0.4)' }}
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           />
         </div>
       </SubCard>
 
       <div className="flex items-center justify-between">
-<<<<<<< HEAD
-        <p className="text-[12px] font-bold text-[#151b2d]">Slides ({slides.length})</p>
-        <button
-          type="button"
-          onClick={addSlide}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border bg-[#ec6d13]/[0.08] text-[#c45a0a] border-[#ec6d13]/20 hover:bg-[#ec6d13]/[0.15] transition-colors"
-=======
         <p className="text-xs font-bold text-on-surface">Slides ({slides.length})</p>
         <button
           type="button"
           onClick={addSlide}
           className="flex items-center gap-1.5 px-3 py-1 rounded-full text-2xs-plus font-bold border bg-brand-orange/[0.08] text-brand-orange-dark border-brand-orange/20 hover:bg-brand-orange/[0.15] transition-colors"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         >
           <Plus className="w-3 h-3" /> Añadir slide
         </button>
@@ -608,11 +554,7 @@ export function HomeHeroCarouselForm({ draft, setField, setNested, setDraft }: a
           </SubCard>
         ))}
         {slides.length === 0 && (
-<<<<<<< HEAD
-          <p className="text-[12px] text-[#54433e]/40">
-=======
           <p className="text-xs text-on-surface-variant/40">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             No hay slides. Añade al menos uno.
           </p>
         )}
@@ -860,48 +802,6 @@ export function HistoriasFinalCtaForm({ draft, setField, setNested, setDraft }: 
   );
 }
 
-<<<<<<< HEAD
-export function ColeccionesSeasonalGridForm({ draft, setField, setNested }: any) {
-  const cards = draft.cards ?? [];
-  return (
-    <div className="space-y-4">
-      <FieldText label="Slot (interno, no cambiar)" value={draft.slot} onChange={(v) => setField('slot', v)} placeholder="colecciones_seasonal" />
-      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="Actualidad" />
-      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Selecciones de temporada" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[0, 1, 2, 3].map((i) => (
-          <SubCard key={i}>
-            <SubCardLabel>Card {i + 1}</SubCardLabel>
-            <FieldText label="Título" value={cards[i]?.title ?? ''} onChange={(v) => setNested(['cards', i, 'title'], v)} />
-            <FieldText label="Descripción" value={cards[i]?.description ?? ''} onChange={(v) => setNested(['cards', i, 'description'], v)} />
-            <FieldText label="CTA texto" value={cards[i]?.cta ?? ''} onChange={(v) => setNested(['cards', i, 'cta'], v)} placeholder="Adquirir piezas" />
-            <FieldText label="Href" value={cards[i]?.href ?? ''} onChange={(v) => setNested(['cards', i, 'href'], v)} placeholder="/productos" />
-            <ImageUploadField
-              label="Imagen"
-              value={cards[i]?.imageUrl ?? ''}
-              onChange={(v) => setNested(['cards', i, 'imageUrl'], v)}
-              altValue={cards[i]?.imageAlt ?? ''}
-              onAltChange={(v) => setNested(['cards', i, 'imageAlt'], v)}
-            />
-          </SubCard>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function ColeccionesArchiveNavHeaderForm({ draft, setField }: any) {
-  return (
-    <div className="space-y-4">
-      <FieldText label="Slot (interno, no cambiar)" value={draft.slot} onChange={(v) => setField('slot', v)} placeholder="colecciones_archive_nav" />
-      <FieldText label="Kicker" value={draft.kicker} onChange={(v) => setField('kicker', v)} placeholder="El Archivo del Saber" />
-      <FieldText label="Título" value={draft.title} onChange={(v) => setField('title', v)} placeholder="Navegar por la esencia" />
-    </div>
-  );
-}
-
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 export function RawJsonForm({
   draft, onChange,
 }: {
@@ -966,11 +866,6 @@ export function renderSectionForm(
     case 'historias_story_types_grid': return <HistoriasStoryTypesGridForm draft={draft} setField={setField} setNested={setNested} />;
     case 'historias_capsule_quote':    return <HistoriasCapsuleQuoteForm draft={draft} setField={setField} />;
     case 'historias_final_cta':        return <HistoriasFinalCtaForm draft={draft} setField={setField} setNested={setNested} setDraft={setDraft} />;
-<<<<<<< HEAD
-    case 'colecciones_seasonal_grid':      return <ColeccionesSeasonalGridForm draft={draft} setField={setField} setNested={setNested} />;
-    case 'colecciones_archive_nav_header': return <ColeccionesArchiveNavHeaderForm draft={draft} setField={setField} />;
-=======
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     default:                   return <RawJsonForm draft={draft} onChange={(v) => { setDraft(v); }} />;
   }
 }

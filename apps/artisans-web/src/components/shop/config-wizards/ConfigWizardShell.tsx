@@ -137,11 +137,7 @@ export const ConfigWizardShell: React.FC<ConfigWizardShellProps> = ({
       </div>
 
       {/* ── Contenido principal scrolleable ───────────────────────────────── */}
-<<<<<<< HEAD
-      <main className="flex-1 overflow-y-auto pb-24">
-=======
       <main className="flex-1 overflow-y-auto pb-[160px] md:pb-24">
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         <div className="max-w-[1200px] mx-auto px-4 py-4">
           <div
             className="p-4 md:p-8 w-full rounded-xl"

@@ -155,18 +155,6 @@ const NotifItem: React.FC<NotifItemProps> = ({
   });
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen">
-      <NotificationsHeader 
-        unreadCount={unreadCount} 
-        onMarkAllAsRead={markAllAsRead}
-      />
-      
-      <div className="max-w-4xl mx-auto px-4 pt-24 pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-=======
     <div
       onClick={notification.metadata?.actionUrl ? onClick : undefined}
       className="group relative flex items-start gap-3 px-5 py-4 transition-colors hover:bg-white/40"
@@ -191,7 +179,6 @@ const NotifItem: React.FC<NotifItemProps> = ({
         <span
           className="material-symbols-outlined"
           style={{ fontSize: 16, color: accentColor }}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         >
           {icon}
         </span>

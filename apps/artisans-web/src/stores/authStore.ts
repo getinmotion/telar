@@ -10,10 +10,7 @@ import { getOnboardingAnswers } from '@/services/onboarding.actions';
 import { OnboardingApiResponse } from '@/types/telarData.types';
 import { useTelarDataStore } from './telarDataStore';
 import { parseJwtPayload } from '@/utils/jwt.utils';
-<<<<<<< HEAD
-=======
 import type { ArtisansIdentityProfile } from '@/types/artisansKnowledge.types';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 // Tipos
 interface RawUserMetaData {

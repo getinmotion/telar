@@ -9,11 +9,7 @@
  * una vez que esos endpoints de perfil estén disponibles.
  */
 
-<<<<<<< HEAD
-import React, { useEffect, useState } from 'react';
-=======
 import React, { useEffect, useMemo, useState } from 'react';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 import {
   getArtisanMaterials,
   addArtisanMaterial,
@@ -48,8 +44,6 @@ function getIcon(name: string): string {
   return 'texture';
 }
 
-<<<<<<< HEAD
-=======
 // ── Technique → material keyword mapping ──────────────────────────────────────
 
 const TECHNIQUE_MATERIAL_MAP: { techniqueKeywords: string[]; materialKeywords: string[] }[] = [
@@ -81,7 +75,6 @@ function getSuggestedMaterialKeywords(techniqueNames: string[]): string[] {
   return [...keywords];
 }
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface MaterialPickerProps {
@@ -92,11 +85,8 @@ interface MaterialPickerProps {
   /** IDs de materiales seleccionados para este producto. */
   selectedIds: string[];
   onChange: (ids: string[]) => void;
-<<<<<<< HEAD
-=======
   /** Nombres de técnicas seleccionadas para sugerir materiales afines. */
   suggestFromTechniqueNames?: string[];
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -106,10 +96,7 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
   userId,
   selectedIds,
   onChange,
-<<<<<<< HEAD
-=======
   suggestFromTechniqueNames,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 }) => {
   const [profileItems, setProfileItems] = useState<ArtisanMaterialItem[]>([]);
   const [approvedCatalog, setApprovedCatalog] = useState<Material[]>([]);
@@ -122,8 +109,6 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
 
   const profileIds = profileItems.map(p => p.materialId);
 
-<<<<<<< HEAD
-=======
   // Materials suggested from selected techniques (approved catalog, not yet in profile)
   const suggestedMaterials = useMemo(() => {
     if (!suggestFromTechniqueNames?.length || !approvedCatalog.length) return [];
@@ -137,7 +122,6 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
       .slice(0, 10);
   }, [suggestFromTechniqueNames, approvedCatalog, profileIds]);
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const searchResults = searchQuery.trim().length >= 2
     ? approvedCatalog
         .filter(m =>
@@ -295,8 +279,6 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
         </p>
       )}
 
-<<<<<<< HEAD
-=======
       {/* ── Sugeridos por técnicas ───────────────────────────────────────── */}
       {suggestedMaterials.length > 0 && (
         <div
@@ -326,7 +308,6 @@ export const MaterialPicker: React.FC<MaterialPickerProps> = ({
         </div>
       )}
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       {/* ── Agregar desde catálogo ────────────────────────────────────────── */}
       <div
         className="pt-4 space-y-3"
@@ -527,8 +508,6 @@ const MaterialCard: React.FC<MaterialCardProps> = ({ name, icon, isSelected, isP
   </button>
 );
 
-<<<<<<< HEAD
-=======
 // ── Craft → tool keyword mapping ─────────────────────────────────────────────
 
 const CRAFT_TOOL_MAP: { craftKeywords: string[]; toolKeywords: string[] }[] = [
@@ -559,7 +538,6 @@ function getSuggestedToolKeywords(craftNames: string[]): string[] {
   return [...keywords];
 }
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 // ── ToolPicker ────────────────────────────────────────────────────────────────
 
 const TOOL_ICON_MAP: { keywords: string[]; icon: string }[] = [
@@ -591,12 +569,6 @@ interface ToolPickerProps {
   userId?: string;
   selected: string[];
   onChange: (names: string[]) => void;
-<<<<<<< HEAD
-}
-
-export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChange }) => {
-  const [catalog, setCatalog] = useState<TaxonomyItem[]>([]);
-=======
   /** IDs de oficios del paso 2, para sugerir herramientas afines. */
   suggestFromCraftIds?: string[];
   /** IDs de técnicas del paso 2, para sugerir herramientas afines. */
@@ -607,7 +579,6 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
   const [catalog, setCatalog] = useState<TaxonomyItem[]>([]);
   const [craftNames, setCraftNames] = useState<string[]>([]);
   const [techniqueNames, setTechniqueNames] = useState<string[]>([]);
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showSuggest, setShowSuggest] = useState(false);
@@ -621,8 +592,6 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
       .finally(() => setIsLoading(false));
   }, []);
 
-<<<<<<< HEAD
-=======
   // Resolución de nombres de oficio desde IDs
   const craftIdsKey = suggestFromCraftIds?.join(',') ?? '';
   useEffect(() => {
@@ -663,7 +632,6 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
     ? 'Sugeridas para tu oficio y técnicas'
     : 'Sugeridas para tu oficio';
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   const searchResults = searchQuery.trim().length >= 2
     ? catalog
         .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) && !selected.includes(t.name))
@@ -733,8 +701,6 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
         </p>
       )}
 
-<<<<<<< HEAD
-=======
       {/* Sugeridas por oficio */}
       {suggestedTools.length > 0 && (
         <div
@@ -763,7 +729,6 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
         </div>
       )}
 
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       {/* Catálogo / búsqueda */}
       <div
         className="pt-4 space-y-3"

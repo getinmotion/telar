@@ -75,12 +75,6 @@ export const BackofficeLoginPage: React.FC = () => {
         navigate('/backoffice/studio', { replace: true });
       }
     } catch (error: any) {
-<<<<<<< HEAD
-      toast({
-        title: 'Error de autenticación',
-        description:
-          error?.response?.data?.message ?? 'Credenciales incorrectas o acceso denegado.',
-=======
       console.error('Login error:', error);
 
       // Extraer el mensaje de error de forma segura
@@ -97,7 +91,6 @@ export const BackofficeLoginPage: React.FC = () => {
       toast({
         title: 'Error de autenticación',
         description: String(errorMessage), // Asegurarse de que sea un string
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         variant: 'destructive',
       });
     } finally {

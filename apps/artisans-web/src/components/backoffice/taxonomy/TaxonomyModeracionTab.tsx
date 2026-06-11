@@ -8,15 +8,6 @@ import {
   type TaxonomyType,
 } from '@/services/taxonomy.actions';
 import { useToast } from '@/hooks/use-toast';
-<<<<<<< HEAD
-import { SANS, SERIF, glassPrimary, glassPurple, glassGreen, lc } from '@/components/dashboard/dashboardStyles';
-
-const TYPE_CONFIG = [
-  { type: 'crafts'       as TaxonomyType, label: 'Oficio',      plural: 'Oficios',      color: '#7c3aed' },
-  { type: 'techniques'   as TaxonomyType, label: 'Técnica',     plural: 'Técnicas',     color: '#0369a1' },
-  { type: 'materials'    as TaxonomyType, label: 'Material',    plural: 'Materiales',   color: '#15803d' },
-  { type: 'styles'       as TaxonomyType, label: 'Estilo',      plural: 'Estilos',      color: '#b45309' },
-=======
 import { SANS, SERIF, glassPrimary, glassPurple, glassGreen, lc, GRAY_700, PURPLE_DARK } from '@/components/dashboard/dashboardStyles';
 
 const TYPE_CONFIG = [
@@ -24,7 +15,6 @@ const TYPE_CONFIG = [
   { type: 'techniques'   as TaxonomyType, label: 'Técnica',     plural: 'Técnicas',     color: 'hsl(var(--status-info))' },
   { type: 'materials'    as TaxonomyType, label: 'Material',    plural: 'Materiales',   color: 'hsl(var(--domain-moderation))' },
   { type: 'styles'       as TaxonomyType, label: 'Estilo',      plural: 'Estilos',      color: 'hsl(var(--status-warning-dark))' },
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   { type: 'herramientas' as TaxonomyType, label: 'Herramienta', plural: 'Herramientas', color: '#be185d' },
 ] as const;
 
@@ -157,21 +147,12 @@ export function TaxonomyModeracionTab() {
             <>
               <div style={{
                 fontFamily: SERIF, fontSize: 52, fontWeight: 700,
-<<<<<<< HEAD
-                color: '#7c3aed', lineHeight: 1,
-                textShadow: '0 0 20px rgba(124,58,237,0.2)',
-              }}>
-                {loading ? '…' : items.length}
-              </div>
-              <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: '#3b0764', marginTop: 6 }}>
-=======
                 color: 'hsl(var(--domain-business))', lineHeight: 1,
                 textShadow: '0 0 20px hsl(var(--domain-business) / 0.2)',
               }}>
                 {loading ? '…' : items.length}
               </div>
               <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 700, color: PURPLE_DARK, marginTop: 6 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 término{items.length !== 1 ? 's' : ''} esperan revisión curatorial
               </div>
               <div style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(59,7,100,0.5)', marginTop: 3 }}>
@@ -181,17 +162,10 @@ export function TaxonomyModeracionTab() {
           ) : (
             <>
               <div style={{ fontSize: 28, marginBottom: 6 }}>✨</div>
-<<<<<<< HEAD
-              <div style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: '#15803d' }}>
-                {loading ? 'Cargando…' : 'Ontología al día'}
-              </div>
-              <div style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(21,128,61,0.65)', marginTop: 3 }}>
-=======
               <div style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: 'hsl(var(--domain-moderation))' }}>
                 {loading ? 'Cargando…' : 'Ontología al día'}
               </div>
               <div style={{ fontFamily: SANS, fontSize: 12, color: 'hsl(var(--domain-moderation) / 0.65)', marginTop: 3 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 No hay términos pendientes de revisión curatorial.
               </div>
             </>
@@ -211,11 +185,7 @@ export function TaxonomyModeracionTab() {
                 <Tooltip
                   contentStyle={{
                     fontSize: 11, fontFamily: SANS,
-<<<<<<< HEAD
-                    border: '1px solid rgba(255,255,255,0.65)',
-=======
                     border: '1px solid var(--glass-border)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     borderRadius: 10,
                     background: 'rgba(255,255,255,0.92)',
                     backdropFilter: 'blur(8px)',
@@ -245,24 +215,14 @@ export function TaxonomyModeracionTab() {
                   key={t}
                   onClick={() => setTypeFilter(t)}
                   style={{
-<<<<<<< HEAD
-                    border: `1px solid ${active ? (cfg?.color ?? '#7c3aed') + '55' : 'rgba(21,27,45,0.1)'}`,
-=======
                     border: `1px solid ${active ? (cfg?.color ?? 'hsl(var(--domain-business))') + '55' : 'hsl(var(--on-surface) / 0.1)'}`,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                     borderRadius: 20, padding: '4px 12px',
                     fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: SANS,
                     transition: 'all 0.15s',
                     background: active
-<<<<<<< HEAD
-                      ? (cfg?.color ?? '#7c3aed') + '14'
-                      : 'rgba(255,255,255,0.7)',
-                    color: active ? (cfg?.color ?? '#7c3aed') : 'rgba(84,67,62,0.55)',
-=======
                       ? (cfg?.color ?? 'hsl(var(--domain-business))') + '14'
                       : 'rgba(255,255,255,0.7)',
                     color: active ? (cfg?.color ?? 'hsl(var(--domain-business))') : 'hsl(var(--on-surface-variant) / 0.55)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                   }}
                 >
                   {t === 'all' ? 'Todos' : cfg!.plural} ({count})
@@ -276,19 +236,11 @@ export function TaxonomyModeracionTab() {
                 key={mode}
                 onClick={() => setSortMode(mode)}
                 style={{
-<<<<<<< HEAD
-                  border: `1px solid ${sortMode === mode ? 'rgba(124,58,237,0.2)' : 'rgba(21,27,45,0.08)'}`,
-                  borderRadius: 8, padding: '4px 10px',
-                  fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: SANS,
-                  background: sortMode === mode ? 'rgba(124,58,237,0.07)' : 'rgba(255,255,255,0.7)',
-                  color: sortMode === mode ? '#7c3aed' : 'rgba(84,67,62,0.45)',
-=======
                   border: `1px solid ${sortMode === mode ? 'hsl(var(--domain-business) / 0.2)' : 'hsl(var(--on-surface) / 0.08)'}`,
                   borderRadius: 8, padding: '4px 10px',
                   fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: SANS,
                   background: sortMode === mode ? 'hsl(var(--domain-business) / 0.07)' : 'rgba(255,255,255,0.7)',
                   color: sortMode === mode ? 'hsl(var(--domain-business))' : 'hsl(var(--on-surface-variant) / 0.45)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 }}
               >
                 {lbl}
@@ -300,11 +252,7 @@ export function TaxonomyModeracionTab() {
 
       {/* Item list */}
       {loading ? (
-<<<<<<< HEAD
-        <div style={{ textAlign: 'center', fontFamily: SANS, color: 'rgba(84,67,62,0.4)', padding: '40px 0', fontSize: 13 }}>
-=======
         <div style={{ textAlign: 'center', fontFamily: SANS, color: 'hsl(var(--on-surface-variant) / 0.4)', padding: '40px 0', fontSize: 13 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           Cargando…
         </div>
       ) : filtered.length === 0 ? (
@@ -313,17 +261,10 @@ export function TaxonomyModeracionTab() {
           borderRadius: 20, padding: '48px 24px', textAlign: 'center',
         }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>✨</div>
-<<<<<<< HEAD
-          <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, color: '#151b2d' }}>
-            {items.length === 0 ? 'Ontología al día' : 'Sin términos en este filtro'}
-          </div>
-          <div style={{ fontFamily: SANS, fontSize: 12, color: 'rgba(84,67,62,0.45)', marginTop: 4 }}>
-=======
           <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, color: 'hsl(var(--on-surface))' }}>
             {items.length === 0 ? 'Ontología al día' : 'Sin términos en este filtro'}
           </div>
           <div style={{ fontFamily: SANS, fontSize: 12, color: 'hsl(var(--on-surface-variant) / 0.45)', marginTop: 4 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
             {items.length === 0
               ? 'No hay términos pendientes de revisión curatorial.'
               : 'Prueba con otro filtro de tipo.'}
@@ -353,11 +294,7 @@ export function TaxonomyModeracionTab() {
                 <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-<<<<<<< HEAD
-                      <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 800, color: '#151b2d' }}>
-=======
                       <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 800, color: 'hsl(var(--on-surface))' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                         {item.name}
                       </span>
                       <span style={{
@@ -369,21 +306,13 @@ export function TaxonomyModeracionTab() {
                         {item._label}
                       </span>
                     </div>
-<<<<<<< HEAD
-                    <div style={{ display: 'flex', gap: 12, fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.5)', flexWrap: 'wrap' }}>
-=======
                     <div style={{ display: 'flex', gap: 12, fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.5)', flexWrap: 'wrap' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       {item.suggestedBy && (
                         <span>👤 Sugerido por artesano</span>
                       )}
                       {impact > 0 ? (
                         <span style={{
-<<<<<<< HEAD
-                          background: 'rgba(21,128,61,0.1)', color: '#15803d',
-=======
                           background: 'hsl(var(--domain-moderation) / 0.1)', color: 'hsl(var(--domain-moderation))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                           borderRadius: 999, padding: '2px 10px', fontWeight: 700,
                         }}>
                           📦 {impact} producto{impact !== 1 ? 's' : ''} ya usan este término
@@ -401,31 +330,19 @@ export function TaxonomyModeracionTab() {
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0 }}>
                     <TintedBtn
                       label="✓ Oficial"
-<<<<<<< HEAD
-                      bg="rgba(21,128,61,0.1)" color="#15803d"
-=======
                       bg="hsl(var(--domain-moderation) / 0.1)" color="hsl(var(--domain-moderation))"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       disabled={isActing}
                       onClick={() => handleAction(item, 'oficial')}
                     />
                     <TintedBtn
                       label="↑ Emergente"
-<<<<<<< HEAD
-                      bg="rgba(180,83,9,0.1)" color="#b45309"
-=======
                       bg="hsl(var(--status-warning-dark) / 0.1)" color="hsl(var(--status-warning-dark))"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       disabled={isActing}
                       onClick={() => handleAction(item, 'emergente')}
                     />
                     <TintedBtn
                       label="◉ Regional"
-<<<<<<< HEAD
-                      bg="rgba(3,105,161,0.1)" color="#0369a1"
-=======
                       bg="hsl(var(--status-info) / 0.1)" color="hsl(var(--status-info))"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       disabled={isActing}
                       onClick={() => handleAction(item, 'regional')}
                     />
@@ -442,11 +359,7 @@ export function TaxonomyModeracionTab() {
                     />
                     <TintedBtn
                       label="✗ Rechazar"
-<<<<<<< HEAD
-                      bg="rgba(239,68,68,0.07)" color="#ef4444"
-=======
                       bg="hsl(var(--destructive) / 0.07)" color="hsl(var(--destructive))"
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       disabled={isActing}
                       onClick={() => handleAction(item, 'rejected')}
                     />
@@ -457,29 +370,17 @@ export function TaxonomyModeracionTab() {
                 {isMerging && mergeState && (
                   <div style={{
                     marginTop: 12, padding: '14px 16px',
-<<<<<<< HEAD
-                    background: 'rgba(20,34,57,0.04)',
-                    borderRadius: 14,
-                    border: '1px solid rgba(20,34,57,0.06)',
-                  }}>
-                    <div style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
-=======
                     background: 'hsl(var(--navy) / 0.04)',
                     borderRadius: 14,
                     border: '1px solid hsl(var(--navy) / 0.06)',
                   }}>
                     <div style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: GRAY_700, marginBottom: 8 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       Fusionar "{item.name}" como alias de:
                     </div>
                     <div style={{ position: 'relative' }}>
                       <Search size={13} style={{
                         position: 'absolute', left: 10, top: '50%',
-<<<<<<< HEAD
-                        transform: 'translateY(-50%)', color: 'rgba(84,67,62,0.4)',
-=======
                         transform: 'translateY(-50%)', color: 'hsl(var(--on-surface-variant) / 0.4)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       }} />
                       <input
                         autoFocus
@@ -493,11 +394,7 @@ export function TaxonomyModeracionTab() {
                         style={{
                           width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8,
                           background: 'rgba(255,255,255,0.9)',
-<<<<<<< HEAD
-                          border: '1px solid rgba(21,27,45,0.1)',
-=======
                           border: '1px solid hsl(var(--on-surface) / 0.1)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                           borderRadius: 10,
                           fontSize: 12, outline: 'none', boxSizing: 'border-box', fontFamily: SANS,
                         }}
@@ -505,11 +402,7 @@ export function TaxonomyModeracionTab() {
                     </div>
 
                     {mergeState.searching && (
-<<<<<<< HEAD
-                      <div style={{ fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.4)', padding: '6px 2px', fontStyle: 'italic' }}>
-=======
                       <div style={{ fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.4)', padding: '6px 2px', fontStyle: 'italic' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                         Buscando…
                       </div>
                     )}
@@ -524,15 +417,9 @@ export function TaxonomyModeracionTab() {
                               textAlign: 'left', padding: '7px 12px', borderRadius: 8,
                               border: '1px solid',
                               cursor: 'pointer', fontSize: 12, fontFamily: SANS,
-<<<<<<< HEAD
-                              background: mergeState.selectedId === r.id ? 'rgba(124,58,237,0.08)' : 'rgba(255,255,255,0.8)',
-                              color: mergeState.selectedId === r.id ? '#7c3aed' : '#374151',
-                              borderColor: mergeState.selectedId === r.id ? 'rgba(124,58,237,0.25)' : 'rgba(21,27,45,0.08)',
-=======
                               background: mergeState.selectedId === r.id ? 'hsl(var(--domain-business) / 0.08)' : 'rgba(255,255,255,0.8)',
                               color: mergeState.selectedId === r.id ? 'hsl(var(--domain-business))' : GRAY_700,
                               borderColor: mergeState.selectedId === r.id ? 'hsl(var(--domain-business) / 0.25)' : 'hsl(var(--on-surface) / 0.08)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                             }}
                           >
                             {r.name}
@@ -556,11 +443,7 @@ export function TaxonomyModeracionTab() {
                         <button
                           onClick={() => setMergeState(null)}
                           style={{
-<<<<<<< HEAD
-                            background: 'rgba(21,27,45,0.05)', color: 'rgba(84,67,62,0.65)',
-=======
                             background: 'hsl(var(--on-surface) / 0.05)', color: 'hsl(var(--on-surface-variant) / 0.65)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                             border: 'none',
                             borderRadius: 10, padding: '8px 14px',
                             fontSize: 12, cursor: 'pointer', fontFamily: SANS,

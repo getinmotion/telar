@@ -8,10 +8,7 @@ import { useTelarSync } from '@/hooks/useTelarSync';
 import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 import { AICopilotCard } from '@/components/dashboard/AICopilotCard';
 import { OraculoProvider, useOraculo } from '@/components/oraculo/OraculoContext';
-<<<<<<< HEAD
-=======
 import { useIsWizardRoute } from '@/hooks/useIsWizardRoute';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
 const SANS = "'Manrope', sans-serif";
 
@@ -23,14 +20,6 @@ const NavItem: React.FC<{
 }> = ({ icon, label, active, onClick }) => (
   <button
     onClick={onClick}
-<<<<<<< HEAD
-    className={cn(
-      'w-full flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all',
-      active
-        ? 'bg-[#151b2d] text-white'
-        : 'text-[#54433e]/50 hover:bg-white/60 hover:text-[#151b2d]',
-    )}
-=======
     className="w-full flex flex-col items-center gap-1 py-2.5 px-2 transition-all"
     style={{
       borderRadius: 9999,
@@ -52,7 +41,6 @@ const NavItem: React.FC<{
         (e.currentTarget as HTMLElement).style.boxShadow = 'none';
       }
     }}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
   >
     <span
       className="material-symbols-outlined"
@@ -132,10 +120,7 @@ const DashboardContent: React.FC = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { masterState } = useMasterAgent();
-<<<<<<< HEAD
-=======
   const isWizardRoute = useIsWizardRoute();
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
 
   useTelarSync();
 
@@ -161,55 +146,6 @@ const DashboardContent: React.FC = () => {
     >
       {/* Sidebar — hidden on mobile, visible on md+ */}
       <aside
-<<<<<<< HEAD
-        className="hidden md:flex w-20 shrink-0 flex-col items-center py-8 gap-8 sticky top-0 h-screen z-[60]"
-        style={{
-          background: 'rgba(247,246,242,0.45)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRight: '1px solid rgba(255,255,255,0.4)',
-        }}
-      >
-        <a href="/dashboard" className="flex items-center justify-center">
-          <img src="/iso.svg" alt="Telar" className="w-8 h-8 object-contain" />
-        </a>
-
-        <nav className="flex flex-col gap-4 items-center flex-1">
-          <NavItem icon="grid_view"    label="Inicio"     active={activeNav(['/dashboard'])}               onClick={() => navigate('/dashboard')} />
-          <NavItem icon="storefront"   label="Tienda"     active={activeNav(['/mi-tienda/configurar'])}    onClick={() => navigate('/mi-tienda/configurar')} />
-          <NavItem icon="bar_chart"    label="Inventario" active={activeNav(['/dashboard/inventory', '/inventario'])} onClick={() => navigate('/dashboard/inventory')} />
-          <NavItem icon="receipt_long" label="Ventas"     active={activeNav(['/mi-tienda/ventas'])}        onClick={() => navigate('/mi-tienda/ventas')} />
-          <NavItem icon="explore"      label="Misiones"   active={activeNav(['/dashboard/tasks'])}         onClick={() => navigate('/dashboard/tasks')} />
-        </nav>
-
-        <div className="flex flex-col items-center gap-3">
-          <button
-            onClick={() => navigate('/profile')}
-            className={cn(
-              'w-10 h-10 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80',
-              activeNav(['/profile']) && 'ring-2 ring-[#151b2d] ring-offset-1',
-            )}
-            style={{
-              background: 'white',
-              border: '1px solid rgba(21,27,45,0.06)',
-              fontFamily: SANS,
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#54433e',
-            }}
-          >
-            {(masterState as any).perfil?.avatarUrl ? (
-              <img
-                src={(masterState as any).perfil.avatarUrl}
-                alt={userName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              userName.charAt(0).toUpperCase()
-            )}
-          </button>
-          <NavItem icon="logout" label="Salir" onClick={handleSignOut} />
-=======
         className="hidden md:flex w-[76px] shrink-0 flex-col items-center py-5 sticky top-0 h-screen z-[60]"
         style={{ marginLeft: 8 }}
       >
@@ -271,7 +207,6 @@ const DashboardContent: React.FC = () => {
             {/* Logout */}
             <NavItem icon="logout" onClick={handleSignOut} />
           </nav>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
         </div>
       </aside>
 
@@ -287,25 +222,14 @@ const DashboardContent: React.FC = () => {
             className="flex-1 flex flex-col min-h-0"
           >
             <Outlet />
-<<<<<<< HEAD
-            {/* Spacer: mobile bottom nav (60px) + agent trigger bar (46px) */}
-            <div className="h-[106px] shrink-0 md:hidden" />
-=======
             {/* Spacer: mobile bottom nav (60px) + agent trigger bar (46px). Hidden during wizards. */}
             {!isWizardRoute && <div className="h-[106px] shrink-0 md:hidden" />}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
           </motion.div>
         </AnimatePresence>
       </main>
 
-<<<<<<< HEAD
-      {/* Mobile agent drawer — sits above bottom nav */}
-      <MobileAgentDrawer />
-      {/* Mobile bottom navigation */}
-=======
       {/* Agent drawer hidden during wizard routes; bottom nav always visible */}
       {!isWizardRoute && <MobileAgentDrawer />}
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
       <MobileBottomNav />
     </div>
   );

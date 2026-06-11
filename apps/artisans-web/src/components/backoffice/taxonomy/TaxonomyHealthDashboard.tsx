@@ -19,44 +19,28 @@ const TYPE_CONFIG: {
   {
     type: 'crafts',
     label: 'Oficios',
-<<<<<<< HEAD
-    color: '#7c3aed',
-=======
     color: 'hsl(var(--domain-business))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     navTarget: 'oficios',
     phrase: (n) => `${n} oficio${n !== 1 ? 's' : ''} estructuran el conocimiento artesanal de TELAR`,
   },
   {
     type: 'techniques',
     label: 'Técnicas',
-<<<<<<< HEAD
-    color: '#0369a1',
-=======
     color: 'hsl(var(--status-info))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     navTarget: 'tecnicas',
     phrase: (n) => `${n} técnica${n !== 1 ? 's' : ''} documentan el saber hacer artesanal`,
   },
   {
     type: 'materials',
     label: 'Materiales',
-<<<<<<< HEAD
-    color: '#15803d',
-=======
     color: 'hsl(var(--domain-moderation))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     navTarget: 'materiales',
     phrase: (n) => `${n} material${n !== 1 ? 'es' : ''} del mundo artesanal catalogados`,
   },
   {
     type: 'styles',
     label: 'Estilos',
-<<<<<<< HEAD
-    color: '#b45309',
-=======
     color: 'hsl(var(--status-warning-dark))',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
     navTarget: 'estilos',
     phrase: (n) => `${n} estilo${n !== 1 ? 's' : ''} definen la identidad visual artesanal`,
   },
@@ -186,13 +170,8 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
               },
             ].map((pill) => (
               <div key={pill.label} style={{
-<<<<<<< HEAD
-                background: pill.alert ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.1)',
-                border: `1px solid ${pill.alert ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.18)'}`,
-=======
                 background: pill.alert ? 'hsl(var(--status-warning-light) / 0.2)' : 'rgba(255,255,255,0.1)',
                 border: `1px solid ${pill.alert ? 'hsl(var(--status-warning-light) / 0.4)' : 'rgba(255,255,255,0.18)'}`,
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 borderRadius: 999, padding: '9px 18px',
               }}>
                 <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: 'white' }}>
@@ -252,11 +231,7 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
-<<<<<<< HEAD
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(21,27,45,0.02)';
-=======
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px hsl(var(--on-surface) / 0.02)';
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -267,11 +242,7 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                     {cfg.label}
                   </span>
                   {onNavigate && (
-<<<<<<< HEAD
-                    <span style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.35)' }}>
-=======
                     <span style={{ fontFamily: SANS, fontSize: 9, color: 'hsl(var(--on-surface-variant) / 0.35)' }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       ver →
                     </span>
                   )}
@@ -280,33 +251,15 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <HealthScoreRing score={loading ? 0 : score} size="sm" />
                   <div>
-<<<<<<< HEAD
-                    <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 700, color: '#151b2d', lineHeight: 1 }}>
-                      {loading ? '…' : total}
-                    </div>
-                    <div style={{ fontFamily: SANS, fontSize: 9, color: 'rgba(84,67,62,0.45)', marginTop: 2 }}>
-=======
                     <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 700, color: 'hsl(var(--on-surface))', lineHeight: 1 }}>
                       {loading ? '…' : total}
                     </div>
                     <div style={{ fontFamily: SANS, fontSize: 9, color: 'hsl(var(--on-surface-variant) / 0.45)', marginTop: 2 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                       {inUse} en uso activo
                     </div>
                   </div>
                 </div>
 
-<<<<<<< HEAD
-                <div style={{ fontFamily: SANS, fontSize: 10, color: 'rgba(84,67,62,0.5)', lineHeight: 1.45 }}>
-                  {cfg.phrase(total)}
-                </div>
-
-                <div style={{ height: 5, background: 'rgba(20,34,57,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', height: '100%' }}>
-                    <div style={{ width: `${approvedW}%`, background: '#15803d', transition: 'width 0.6s ease' }} />
-                    <div style={{ width: `${pendingW}%`,  background: '#f59e0b', transition: 'width 0.6s ease' }} />
-                    <div style={{ width: `${rejectedW}%`, background: '#ef4444', transition: 'width 0.6s ease' }} />
-=======
                 <div style={{ fontFamily: SANS, fontSize: 10, color: 'hsl(var(--on-surface-variant) / 0.5)', lineHeight: 1.45 }}>
                   {cfg.phrase(total)}
                 </div>
@@ -316,20 +269,13 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                     <div style={{ width: `${approvedW}%`, background: 'hsl(var(--domain-moderation))', transition: 'width 0.6s ease' }} />
                     <div style={{ width: `${pendingW}%`,  background: 'hsl(var(--status-warning-light))', transition: 'width 0.6s ease' }} />
                     <div style={{ width: `${rejectedW}%`, background: 'hsl(var(--destructive))', transition: 'width 0.6s ease' }} />
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-<<<<<<< HEAD
-                  <span style={{ fontFamily: SANS, fontSize: 9, color: '#15803d', fontWeight: 700 }}>✓ {approved}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 9, color: '#d97706', fontWeight: 700 }}>⏳ {pending}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 9, color: '#dc2626', fontWeight: 700 }}>✗ {rejected}</span>
-=======
                   <span style={{ fontFamily: SANS, fontSize: 9, color: 'hsl(var(--domain-moderation))', fontWeight: 700 }}>✓ {approved}</span>
                   <span style={{ fontFamily: SANS, fontSize: 9, color: 'hsl(var(--status-warning))', fontWeight: 700 }}>⏳ {pending}</span>
                   <span style={{ fontFamily: SANS, fontSize: 9, color: 'hsl(var(--status-error))', fontWeight: 700 }}>✗ {rejected}</span>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 </div>
               </div>
             );
@@ -348,20 +294,12 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '8px 0',
                 borderBottom: idx < recentActivity.length - 1
-<<<<<<< HEAD
-                  ? '1px solid rgba(84,67,62,0.05)'
-=======
                   ? '1px solid hsl(var(--on-surface-variant) / 0.05)'
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                   : 'none',
               }}
             >
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-<<<<<<< HEAD
-              <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: '#151b2d', flex: 1 }}>
-=======
               <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: 'hsl(var(--on-surface))', flex: 1 }}>
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 {item.name}
               </span>
               <span style={{
@@ -374,11 +312,7 @@ export function TaxonomyHealthDashboard({ onNavigate }: Props) {
                 {item.label}
               </span>
               <span style={{
-<<<<<<< HEAD
-                fontFamily: SANS, fontSize: 11, color: 'rgba(84,67,62,0.4)',
-=======
                 fontFamily: SANS, fontSize: 11, color: 'hsl(var(--on-surface-variant) / 0.4)',
->>>>>>> 55b6c814fec72ddbe13ae07fd096a2d1354fc119
                 fontStyle: 'italic', minWidth: 60, textAlign: 'right',
               }}>
                 {daysSince(item.createdAt) === 0 ? 'hoy' : `hace ${daysSince(item.createdAt)}d`}
