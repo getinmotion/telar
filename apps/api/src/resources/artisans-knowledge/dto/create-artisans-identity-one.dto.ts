@@ -13,9 +13,9 @@ export class CreateArtisansIdentityOneDto {
   artisanHistory!: string;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  ageExperience!: number;
+  ageExperience!: string;
 
   @ApiProperty({ required: false })
   @IsString()
