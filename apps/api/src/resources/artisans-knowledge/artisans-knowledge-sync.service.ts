@@ -220,7 +220,7 @@ export class ArtisansKnowledgeSyncService {
       }
       if (bc.years_experience) {
         // Mapear a valores de WHEN_OPTIONS: 8=niño, 17=juventud, 30=hace algunos años, 40=recientemente
-        step1.ageExperience = bc.years_experience === '0-2' ? 40 : bc.years_experience === '2-4' ? 30 : 17;
+        step1.ageExperience = bc.years_experience === '0-2' ? '40' : bc.years_experience === '2-4' ? '30' : '17';
       }
       if (origin?.learnedFrom) {
         step1.shopBornSpecialDefinitionOne = this.label(ArtisansKnowledgeSyncService.BORN_LABELS, origin.learnedFrom);
@@ -371,7 +371,8 @@ export class ArtisansKnowledgeSyncService {
       if (profile.identityOne?.ageExperience) {
         const exp = profile.identityOne.ageExperience;
         // WHEN_OPTIONS: 8=niño(4+años exp), 17=juventud(4+), 30=hace algunos años(2-4), 40=recientemente(0-2)
-        const mapped = exp >= 35 ? '0-2' : exp >= 25 ? '2-4' : '4+';
+        const expNum = Number(exp);
+        const mapped = expNum >= 35 ? '0-2' : expNum >= 25 ? '2-4' : '4+';
         newValues.years_experience = mapped as OnboardingBusinessContext['years_experience'];
         newMeta['years_experience'] = { source, lastUpdated: now };
       }
@@ -521,7 +522,7 @@ export class ArtisansKnowledgeSyncService {
           if (cats.length > 0) updates.shopCategoriesId = cats.map(c => c.id).join(',');
         }
         if (bc.years_experience) {
-          updates.ageExperience = bc.years_experience === '0-2' ? 40 : bc.years_experience === '2-4' ? 30 : 17;
+          updates.ageExperience = bc.years_experience === '0-2' ? '40' : bc.years_experience === '2-4' ? '30' : '17';
         }
         if (origin?.learnedFrom) {
           updates.shopBornSpecialDefinitionOne = this.label(ArtisansKnowledgeSyncService.BORN_LABELS, origin.learnedFrom);

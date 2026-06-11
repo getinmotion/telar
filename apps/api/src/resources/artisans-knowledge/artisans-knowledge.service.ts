@@ -62,6 +62,10 @@ export class ArtisansKnowledgeService {
 
     const full = await this.getByUserId(userId);
 
+    if (!full) {
+      throw new Error('Failed to retrieve profile after creation');
+    }
+
     // Fire-and-forget sync to Identidad Artesanal
     this.syncService.syncToIdentidad(userId, full).catch(() => {});
 
@@ -98,6 +102,10 @@ export class ArtisansKnowledgeService {
 
     const full = await this.getByUserId(userId);
 
+    if (!full) {
+      throw new Error('Failed to retrieve profile after creation');
+    }
+
     this.syncService.syncToIdentidad(userId, full).catch(() => {});
 
     return full;
@@ -132,6 +140,10 @@ export class ArtisansKnowledgeService {
     }
 
     const full = await this.getByUserId(userId);
+
+    if (!full) {
+      throw new Error('Failed to retrieve profile after creation');
+    }
 
     this.syncService.syncToIdentidad(userId, full).catch(() => {});
 
@@ -168,6 +180,10 @@ export class ArtisansKnowledgeService {
 
     const full = await this.getByUserId(userId);
 
+    if (!full) {
+      throw new Error('Failed to retrieve profile after creation');
+    }
+
     this.syncService.syncToIdentidad(userId, full).catch(() => {});
 
     return full;
@@ -179,7 +195,7 @@ export class ArtisansKnowledgeService {
   // para garantizar que el growth form nunca muestre datos obsoletos de IA.
   // Los campos propios del knowledge form (shopHistory, shopDescription, shopDefinition,
   // shopSpecialDefinition*) se mantienen tal como el usuario los guardó.
-  async getByUserId(userId: string): Promise<ArtisansKnowledgeProfileResponse> {
+  async getByUserId(userId: string): Promise<ArtisansKnowledgeProfileResponse | null> {
     const [profile, prefill] = await Promise.all([
       this.profileRepo.findOne({
         where: { userId },
@@ -234,7 +250,7 @@ export class ArtisansKnowledgeService {
 
     // Sin perfil guardado — devolver datos de Identidad Artesanal como prefill virtual
     if (!prefill.prefilled) {
-      throw new NotFoundException(`Profile not found for user ID: ${userId}`);
+      return null;
     }
 
     const virtual = {

@@ -17,8 +17,8 @@ export class ArtisansIdentityOne {
   @Column({ name: 'artisan_history', type: 'text' })
   artisanHistory!: string;
 
-  @Column({ name: 'age_experience', type: 'smallint' })
-  ageExperience!: number;
+  @Column({ name: 'age_experience', type: 'text' })
+  ageExperience!: string;
 
   @Column({ name: 'shop_history', type: 'text', nullable: true })
   shopHistory?: string;

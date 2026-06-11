@@ -608,7 +608,7 @@ export const ToolPicker: React.FC<ToolPickerProps> = ({ userId, selected, onChan
   const techniqueIdsKey = suggestFromTechniqueIds?.join(',') ?? '';
   useEffect(() => {
     if (!suggestFromTechniqueIds?.length) { setTechniqueNames([]); return; }
-    searchTaxonomy('tecnicas', undefined, 'approved')
+    searchTaxonomy('techniques', undefined, 'approved')
       .then(items => {
         setTechniqueNames(
           items.filter(t => suggestFromTechniqueIds.includes(t.id)).map(t => t.name),

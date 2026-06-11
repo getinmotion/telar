@@ -30,7 +30,7 @@ export interface ArtisansIdentityOne {
 export interface CreateArtisansIdentityOneDto {
   nameShop: string;
   artisanHistory: string;
-  ageExperience: number;
+  ageExperience: string;
   shopHistory: string;
   shopDescription: string;
   shopDefinition: string;

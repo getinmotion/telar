@@ -475,9 +475,15 @@ export const ArtisanProfileWizard: React.FC<Props> = ({ onComplete }) => {
     <ArtisanStepShell
       {...shellProps}
       onNext={handleNext}
-      nextDisabled={!canAdvance}
+      nextDisabled={!canAdvance || isGenerating || isSaving}
       disabledReason={
-        !canAdvance ? "Completa los campos obligatorios." : undefined
+        isGenerating
+          ? "Generando tu historia artesanal con IA..."
+          : isSaving
+            ? "Guardando borrador..."
+            : !canAdvance
+              ? "Completa los campos obligatorios."
+              : undefined
       }
     >
       {step === 1 && (
