@@ -13,6 +13,8 @@ knowledge_base/
   servicio_cliente/ → Agente Servicio al Cliente (devoluciones, PQRS)
   fotografia/      → Agente Fotografía (técnicas, composición, iluminación)
   producto/        → Agente Producto (catálogo, descripciones, inventario)
+  capacitaciones/  → Copiloto Artesanos (bot WhatsApp de apoyo a estudiantes
+                     de las capacitaciones: marketing, finanzas, legal, etc.)
 ```
 
 ## Formato de archivos
@@ -41,6 +43,9 @@ python scripts/seed_knowledge_base.py
 
 # Solo una categoría
 python scripts/seed_knowledge_base.py --category legal
+
+# Capacitaciones (Copiloto Artesanos)
+python scripts/seed_knowledge_base.py --category capacitaciones
 
 # Un archivo específico
 python scripts/seed_knowledge_base.py --file knowledge_base/legal/registro.md
