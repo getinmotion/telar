@@ -123,25 +123,122 @@ apps/admin-rag/
    Conocimiento → Chat → Resumen sin recargar la página — no debe haber
    pantallas de carga eternas ni `InterfaceError`.
 
-## Despliegue en `experiments-telar` (pendiente)
+## Despliegue en `experiments-telar`
 
-Pasos sugeridos para el siguiente avance:
+La app se conecta directamente a la base de datos de `telar-stage`
+(`52.7.98.126:5432`) por su IP pública. Para eso hay que abrir ese puerto en
+el Security Group de `telar-stage`, solo para la IP de `experiments-telar`.
 
-1. **Build de imagen**: `docker build -f apps/admin-rag/Dockerfile -t
-   gim-knowledge-admin:dev apps/` (el contexto debe ser `apps/` porque el
-   Dockerfile copia `agents/`, `src/` y `admin-rag/` como hermanos).
-2. **Variables de entorno en `experiments-telar`**: las mismas de `.env`
-   local, pero `AGENTS_DB_URL` debe apuntar a la IP de `telar-stage`
-   (`52.7.98.126`) en el puerto 5432. Confirmar que el Security Group de
-   Lightsail permite esa conexión desde `experiments-telar` (instancia a
-   instancia, no público).
-3. **docker-compose**: crear `infra/experiments/docker-compose.yml` con el
-   servicio `knowledge-admin`, puerto `8501:8501`, healthcheck
-   `curl -f http://localhost:8501/_stcore/health`.
-4. **Despliegue**: copiar compose + `.env` a `experiments-telar`, `docker
-   compose up -d`, verificar `http://<ip-experiments-telar>:8501`.
-5. **(Opcional) CI**: job en `build-and-push.yml` filtrado por
-   `apps/admin-rag/**` para construir y subir `gim-knowledge-admin` a GHCR.
+### 1. Abrir el puerto 5432 en el Security Group de `telar-stage`
+
+1. En la consola de **Lightsail**, entra a la instancia `telar-stage` →
+   pestaña **Networking**.
+2. En **Firewall**, agrega una regla:
+   - Application: **Custom**
+   - Protocol: **TCP**
+   - Port: **5432**
+   - Restrict to IP address: la **IP pública de `experiments-telar`**
+     (no dejar "Any IPv4" — solo esa IP puntual).
+3. Guarda la regla. Esto permite que `experiments-telar` llegue al Postgres
+   de `telar-stage`, sin exponerlo a todo internet.
+
+### 2. Generar y subir la imagen a GHCR
+
+La imagen `gim-knowledge-admin` se construye automáticamente por CI
+(`.github/workflows/build-and-push.yml`) en cada push a `develop` que
+modifique `apps/admin-rag/**`, `apps/agents/**` o `apps/src/**`. También se
+puede disparar manualmente:
+
+```bash
+gh workflow run build-and-push.yml -f service=admin-rag
+```
+
+Verifica que la imagen quedó publicada en
+`ghcr.io/getinmotion/gim-knowledge-admin:develop`.
+
+### 3. Preparar `experiments-telar`
+
+Conéctate por SSH a `experiments-telar` y asegúrate de tener Docker y Docker
+Compose instalados (igual que en `telar-stage`).
+
+```bash
+ssh -i ~/Downloads/LightsailDefaultKey-us-east-1.pem ubuntu@<ip-experiments-telar>
+
+# Si Docker no está instalado:
+sudo apt-get update && sudo apt-get install -y docker.io docker-compose-plugin
+sudo usermod -aG docker $USER   # cerrar sesión y volver a entrar después de esto
+```
+
+### 4. Copiar el docker-compose y configurar `.env`
+
+Desde tu máquina local (en la raíz del repo):
+
+```bash
+scp -i ~/Downloads/LightsailDefaultKey-us-east-1.pem \
+    infra/experiments/docker-compose.yml \
+    infra/experiments/.env.example \
+    ubuntu@<ip-experiments-telar>:~/knowledge-admin/
+```
+
+En `experiments-telar`:
+
+```bash
+cd ~/knowledge-admin
+cp .env.example .env
+nano .env   # completar AGENTS_DB_URL, OPENAI_API_KEY, ADMIN_RAG_PASSWORD_HASH, etc.
+```
+
+Valores clave de `.env`:
+
+- `AGENTS_DB_URL=postgresql://postgres:<password_real>@52.7.98.126:5432/getinmotion`
+  (la misma password que usa `telar-stage` para `POSTGRES_PASSWORD`).
+- `OPENAI_API_KEY`, `OPENAI_MODEL`, `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`:
+  copiar de `apps/agents/.env` en stage.
+- `ADMIN_RAG_USERNAME` / `ADMIN_RAG_PASSWORD_HASH`: definir credenciales del
+  equipo (generar el hash con
+  `python3 -c "import hashlib; print(hashlib.sha256(b'tu_password').hexdigest())"`).
+
+### 5. Autenticarse en GHCR y levantar el contenedor
+
+Si el paquete de GHCR es privado, primero autenticarse (usar un GitHub
+Personal Access Token con scope `read:packages`):
+
+```bash
+echo "<GHCR_TOKEN>" | docker login ghcr.io -u <tu_usuario_github> --password-stdin
+```
+
+Luego:
+
+```bash
+cd ~/knowledge-admin
+docker compose pull
+docker compose up -d
+```
+
+### 6. Verificar
+
+```bash
+docker compose ps          # debe mostrar gim-knowledge-admin "healthy"
+docker compose logs -f      # revisar que no haya errores de conexión a la DB
+```
+
+Abrir `http://<ip-experiments-telar>:8501` en el navegador y repetir el
+[plan de pruebas funcionales](#plan-de-pruebas-funcionales) descrito arriba.
+
+> Si el firewall de Lightsail bloquea el puerto 8501 desde afuera, agrega una
+> regla similar a la del paso 1 (Custom TCP, puerto 8501) en el Security
+> Group de `experiments-telar`, restringida a las IPs del equipo.
+
+### 7. Actualizaciones futuras
+
+```bash
+cd ~/knowledge-admin
+docker compose pull
+docker compose up -d
+```
+
+Esto descarga la última imagen `develop` (o el tag que se configure en
+`IMAGE_TAG`) y recrea el contenedor.
 
 ## Notas de seguridad
 

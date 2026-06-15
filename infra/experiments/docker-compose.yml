@@ -1,0 +1,32 @@
+version: '3.8'
+
+# ========================================
+# Telar Knowledge Admin — experiments-telar
+# Connects directly to the telar-stage Postgres (pgvector) over its public
+# IP. The image is pulled from GHCR — built by CI on push to develop.
+# To deploy: docker compose pull && docker compose up -d
+# ========================================
+
+services:
+  knowledge-admin:
+    image: ghcr.io/getinmotion/gim-knowledge-admin:${IMAGE_TAG:-develop}
+    container_name: gim-knowledge-admin
+    environment:
+      AGENTS_DB_URL: ${AGENTS_DB_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1536}
+      CHUNK_SIZE: ${CHUNK_SIZE:-1000}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-200}
+      RAG_TOP_K: ${RAG_TOP_K:-5}
+      ADMIN_RAG_USERNAME: ${ADMIN_RAG_USERNAME}
+      ADMIN_RAG_PASSWORD_HASH: ${ADMIN_RAG_PASSWORD_HASH}
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
