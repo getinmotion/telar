@@ -222,12 +222,14 @@ docker compose ps          # debe mostrar gim-knowledge-admin "healthy"
 docker compose logs -f      # revisar que no haya errores de conexión a la DB
 ```
 
-Abrir `http://<ip-experiments-telar>:8501` en el navegador y repetir el
+Abrir `http://<ip-experiments-telar>:8090` en el navegador y repetir el
 [plan de pruebas funcionales](#plan-de-pruebas-funcionales) descrito arriba.
 
-> Si el firewall de Lightsail bloquea el puerto 8501 desde afuera, agrega una
-> regla similar a la del paso 1 (Custom TCP, puerto 8501) en el Security
-> Group de `experiments-telar`, restringida a las IPs del equipo.
+> El puerto host es **8090** (no 8501) porque `experiments-telar` ya tiene
+> otro contenedor Streamlit usando 8501 (ver `infra/experiments/docker-compose.yml`).
+> Si el firewall de Lightsail bloquea el puerto 8090 desde afuera, agrega una
+> regla Custom TCP 8090 en el Security Group de `experiments-telar`,
+> restringida a las IPs del equipo.
 
 ### 7. Actualizaciones futuras
 

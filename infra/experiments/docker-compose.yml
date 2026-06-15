@@ -23,7 +23,9 @@ services:
       ADMIN_RAG_USERNAME: ${ADMIN_RAG_USERNAME}
       ADMIN_RAG_PASSWORD_HASH: ${ADMIN_RAG_PASSWORD_HASH}
     ports:
-      - "8501:8501"
+      # 8501 ya está en uso por otro contenedor en experiments-telar
+      # (telar_streamlit / products_shop_manager). Usamos 8090.
+      - "8090:8501"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
