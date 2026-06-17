@@ -177,6 +177,18 @@ export const ShopInfoSection: React.FC<ShopInfoSectionProps> = ({
             />
           </div>
         )}
+
+        {/* Origen artesanal */}
+        {userId && (
+          <div className="pt-6 border-t border-border mt-4">
+            <ArtisanOriginDisplay
+              userId={userId}
+              origin={shopOrigin}
+              artisanProfileRaw={(shop.artisanProfile as Record<string, any>) ?? undefined}
+              onUpdated={setOriginData}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -450,7 +450,7 @@ const PrefillBanner: React.FC = () => (
 // ─── Page component ───────────────────────────────────────────────────────────
 
 export const AgentFormPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, artisanShop, artisansIdentityProfile } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -525,6 +525,24 @@ export const AgentFormPage: React.FC = () => {
     shopManyWorkers: "",
     shopFirstSolvingTelar: "",
   });
+
+  // ─── Redirect if already completed ────────────────────────────────────────
+
+  useEffect(() => {
+    // Si el usuario ya tiene tienda y perfil artesanal completo, redirigir al dashboard
+    if (artisanShop && artisansIdentityProfile) {
+      // Verificar si el perfil tiene todos los pasos completos
+      const hasAllSteps =
+        artisansIdentityProfile.identityOne &&
+        artisansIdentityProfile.commercialTwo &&
+        artisansIdentityProfile.clientMarketThree &&
+        artisansIdentityProfile.operationGrowthFour;
+
+      if (hasAllSteps) {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [artisanShop, artisansIdentityProfile, navigate]);
 
   // ─── Load Profile ──────────────────────────────────────────────────────────
 
@@ -698,6 +716,43 @@ export const AgentFormPage: React.FC = () => {
     loadProfile();
   }, [user?.id]);
 
+  // ─── Validation per step ──────────────────────────────────────────────────
+
+  const canContinueStep1 =
+    !!step1Data.nameShop.trim() &&
+    !!step1Data.shopDescription.trim() &&
+    !!step1Data.shopDefinition.trim() &&
+    !!step1Data.artisanHistory.trim() &&
+    !!step1Data.shopCategoriesId.trim() &&
+    !!step1Data.shopSpecialDefinitionOne.trim() &&
+    !!step1Data.ageExperience &&
+    step1Data.ageExperience !== "0" &&
+    !!step1Data.shopBornSpecialDefinitionOne.trim();
+
+  const canContinueStep2 =
+    !!step2Data.shopRangePayment &&
+    !!step2Data.shopKnowledgeCost &&
+    !!step2Data.shopKnowledgeDefineCost &&
+    !!step2Data.shopKnowledgeIsProfitable;
+
+  const canContinueStep3 =
+    !!step3Data.shopKnowledgeMainBuyerOne &&
+    !!step3Data.shopKnowledgeDigitalPresence &&
+    !!step3Data.shopKnowledgeWhereSaleOne &&
+    !!step3Data.shopKnowledgeSalesActivity;
+
+  const canContinueStep4 =
+    !!step4Data.shopKnowledgeProductsMakeMonth &&
+    !!step4Data.shopKnowledgeLimitTodayOne &&
+    !!step4Data.shopManyWorkers &&
+    !!step4Data.shopFirstSolvingTelar.trim();
+
+  const canContinue =
+    currentStep === 1 ? canContinueStep1 :
+    currentStep === 2 ? canContinueStep2 :
+    currentStep === 3 ? canContinueStep3 :
+    currentStep === 4 ? canContinueStep4 : false;
+
   // ─── Submit handlers ───────────────────────────────────────────────────────
 
   const handleSubmitStep1 = async () => {
@@ -706,12 +761,32 @@ export const AgentFormPage: React.FC = () => {
       toast.error("El nombre del taller es requerido");
       return;
     }
+    if (!step1Data.shopDescription.trim()) {
+      toast.error("Indica qué tipos de productos creas");
+      return;
+    }
+    if (!step1Data.shopDefinition.trim()) {
+      toast.error("Indica qué significa para ti lo que haces");
+      return;
+    }
     if (!step1Data.artisanHistory.trim()) {
       toast.error("La presentación breve es requerida");
       return;
     }
+    if (!step1Data.shopCategoriesId.trim()) {
+      toast.error("Selecciona las categorías de tu taller");
+      return;
+    }
+    if (!step1Data.shopSpecialDefinitionOne.trim()) {
+      toast.error("Indica qué te hace especial");
+      return;
+    }
     if (!step1Data.ageExperience || step1Data.ageExperience === "0") {
       toast.error("Indica cuántos años de experiencia tienes");
+      return;
+    }
+    if (!step1Data.shopBornSpecialDefinitionOne.trim()) {
+      toast.error("Indica qué marcó el inicio de tu oficio");
       return;
     }
     setIsSaving(true);
@@ -2135,7 +2210,20 @@ export const AgentFormPage: React.FC = () => {
                   : handleSubmitStep4
           }
           nextLabel={currentStep === 4 ? "Finalizar" : "Guardar y continuar"}
-          nextDisabled={isSaving}
+          nextDisabled={!canContinue || isSaving}
+          disabledReason={
+            isSaving
+              ? "Guardando..."
+              : currentStep === 1 && !canContinueStep1
+                ? "Completa todos los campos requeridos del Bloque 1"
+                : currentStep === 2 && !canContinueStep2
+                  ? "Responde todas las preguntas del Bloque 2"
+                  : currentStep === 3 && !canContinueStep3
+                    ? "Responde todas las preguntas del Bloque 3"
+                    : currentStep === 4 && !canContinueStep4
+                      ? "Responde todas las preguntas del Bloque 4"
+                      : undefined
+          }
           isFinalStep={currentStep === 4}
           onSubmit={handleSubmitStep4}
           isSubmitting={isSaving}
