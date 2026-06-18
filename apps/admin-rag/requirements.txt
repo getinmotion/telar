@@ -1,0 +1,8 @@
+# Telar Knowledge Admin — Streamlit app
+# Reuses apps/agents and apps/src directly, so this list complements
+# (and assumes) apps/agents/requirements.txt is also installed.
+
+streamlit>=1.32.0,<2.0
+pandas>=2.0,<3.0
+pdfplumber>=0.10,<1.0
+openpyxl>=3.1,<4.0

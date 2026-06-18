@@ -167,36 +167,10 @@ export function useDesignSystem() {
     }
   }, [loadConfig, toast]);
 
-  // Subscribe to real-time changes
+  // Load config on mount
   useEffect(() => {
     loadConfig();
-
-    const channel = supabase
-      .channel('design_system_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'design_system_config',
-          filter: 'user_id=is.null'
-        },
-        (payload) => {
-          console.log('[Design System] Real-time update received:', payload);
-          if (payload.new && 'color_variables' in payload.new) {
-            const newConfig = (payload.new as DesignSystemConfig).color_variables as unknown as ColorVariables;
-            setConfig(newConfig);
-            applyCSSVariables(newConfig);
-            localStorage.setItem(CACHE_KEY, JSON.stringify(newConfig));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loadConfig, applyCSSVariables]);
+  }, [loadConfig]);
 
   return {
     config,
