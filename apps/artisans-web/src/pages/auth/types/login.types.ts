@@ -134,6 +134,7 @@ export interface LoginSuccessResponse {
   user: AuthUser;
   userMasterContext: UserMasterContext | null;
   artisanShop: ArtisanShop | null;
+  artisansIdentityProfile: any | null;
   userMaturityActions: UserMaturityAction[];
   access_token: string;
 }

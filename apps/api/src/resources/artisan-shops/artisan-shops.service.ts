@@ -106,6 +106,7 @@ export class ArtisanShopsService {
     const {
       page = 1,
       limit = 20,
+      agreementId,
       active,
       publishStatus,
       marketplaceApproved,
@@ -165,10 +166,18 @@ export class ArtisanShopsService {
       paramIndex++;
     }
 
+    // Filtro obligatorio por agreementId
+    if (agreementId) {
+      whereConditions.push(`ap.agreement_id = $${paramIndex}`);
+      parameters.push(agreementId);
+      paramIndex++;
+    }
+
     // Manejo especial para hasApprovedProducts
-    let fromClause = 'shop.artisan_shops s';
+    let fromClause = `shop.artisan_shops s
+      INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id`;
     if (hasApprovedProducts === true) {
-      fromClause = `shop.artisan_shops s
+      fromClause += `
         INNER JOIN shop.products p ON p.shop_id = s.id`;
       whereConditions.push(
         `p.moderation_status IN ('approved', 'approved_with_edits')`,
@@ -439,15 +448,17 @@ export class ArtisanShopsService {
    * - Ordenadas por fecha de creación (más recientes primero)
    * @param limit Cantidad máxima de tiendas a retornar (default: 8)
    */
-  async getFeatured(limit: number = 8): Promise<ArtisanShop[]> {
+  async getFeatured(limit: number = 8, agreementId?: string): Promise<ArtisanShop[]> {
     // Paso 1: Obtener IDs de tiendas que tienen productos aprobados usando query raw
     const shopIdsResult = await this.artisanShopsRepository.query(
       `
       SELECT s.id
       FROM shop.artisan_shops s
+      INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
       WHERE s.active = $1
         AND s.publish_status = $2
         AND s.marketplace_approved = $3
+        AND ($5::uuid IS NULL OR ap.agreement_id = $5)
         AND EXISTS (
           SELECT 1 FROM shop.products p
           WHERE p.shop_id = s.id
@@ -455,7 +466,7 @@ export class ArtisanShopsService {
         )
       LIMIT $4
       `,
-      [true, 'published', true, limit],
+      [true, 'published', true, limit, agreementId || null],
     );
 
     const shopIds = shopIdsResult.map((row: { id: string }) => row.id);

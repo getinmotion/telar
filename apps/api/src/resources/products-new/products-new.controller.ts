@@ -177,6 +177,7 @@ export class ProductsNewController {
     description: 'Lista de productos de marketplace obtenida exitosamente',
   })
   async getMarketplaceProducts(
+    @Query('agreementId') agreementId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('categoryId') categoryId?: string,
@@ -189,6 +190,7 @@ export class ProductsNewController {
     const featuredBool = featured === 'true' ? true : undefined;
 
     return await this.productsNewService.getMarketplaceProducts({
+      agreementId,
       page: pageNum,
       limit: limitNum,
       categoryId,
@@ -212,8 +214,10 @@ export class ProductsNewController {
     status: 200,
     description: 'Lista de productos destacados obtenida exitosamente',
   })
-  async getMarketplaceFeaturedProducts() {
-    return await this.productsNewService.getMarketplaceFeaturedProducts();
+  async getMarketplaceFeaturedProducts(
+    @Query('agreementId') agreementId: string,
+  ) {
+    return await this.productsNewService.getMarketplaceFeaturedProducts(agreementId);
   }
 
   /**
@@ -231,8 +235,11 @@ export class ProductsNewController {
     status: 200,
     description: 'Lista de productos de la tienda obtenida exitosamente',
   })
-  async getMarketplaceProductsByShop(@Param('shopId') shopId: string) {
-    return await this.productsNewService.getMarketplaceProductsByShop(shopId);
+  async getMarketplaceProductsByShop(
+    @Param('shopId') shopId: string,
+    @Query('agreementId') agreementId: string,
+  ) {
+    return await this.productsNewService.getMarketplaceProductsByShop(shopId, agreementId);
   }
 
    /**
@@ -240,8 +247,11 @@ export class ProductsNewController {
    * Obtener productos de una tienda específica
    */
   @Get('marketplace/store/:storeId')
-  findByStoreIdForMarketplace(@Param('storeId') storeId: string) {
-    return this.productsNewService.findByStoreIdForMarketplace(storeId);
+  findByStoreIdForMarketplace(
+    @Param('storeId') storeId: string,
+    @Query('agreementId') agreementId: string,
+  ) {
+    return this.productsNewService.findByStoreIdForMarketplace(storeId, agreementId);
   }
 
   /**
@@ -261,8 +271,11 @@ export class ProductsNewController {
     status: 200,
     description: 'Lista de productos del usuario obtenida exitosamente',
   })
-  async getMarketplaceProductsByUser(@Param('userId') userId: string) {
-    return await this.productsNewService.getMarketplaceProductsByUser(userId);
+  async getMarketplaceProductsByUser(
+    @Param('userId') userId: string,
+    @Query('agreementId') agreementId: string,
+  ) {
+    return await this.productsNewService.getMarketplaceProductsByUser(userId, agreementId);
   }
 
   /**
@@ -281,8 +294,11 @@ export class ProductsNewController {
     description: 'Producto obtenido exitosamente',
   })
   @ApiResponse({ status: 404, description: 'Producto no encontrado' })
-  async getMarketplaceProductById(@Param('id') id: string) {
-    return await this.productsNewService.getMarketplaceProductById(id);
+  async getMarketplaceProductById(
+    @Param('id') id: string,
+    @Query('agreementId') agreementId: string,
+  ) {
+    return await this.productsNewService.getMarketplaceProductById(id, agreementId);
   }
 
   /**

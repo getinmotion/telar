@@ -18,14 +18,14 @@ telarApi.interceptors.request.use((config) => {
 telarApi.interceptors.response.use(
   (response) => {
     const method = response.config.method?.toLowerCase() ?? '';
-    // if (MUTATION_METHODS.has(method)) {
-    //   toastSuccess(response);
-    // }
+    if (MUTATION_METHODS.has(method)) {
+      toastSuccess(response);
+    }
     return response;
   },
   (error) => {
     if (!error?.config?._suppressToast) {
-      // toastError(error);
+      toastError(error);
     }
     return Promise.reject(error);
   },
