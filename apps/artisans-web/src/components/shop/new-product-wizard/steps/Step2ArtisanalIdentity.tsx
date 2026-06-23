@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { NewWizardState, PiecePurpose, PieceStyle, ProductionType } from '../hooks/useNewWizardState';
+import type { FieldSource, IdentityFieldMetadata, MaterialFieldMetadata, Step1ConfirmRequest } from '@/types/agent.types';
+import { step1Confirm } from '@/services/agent.actions';
 import { WizardFooter } from '../components/WizardFooter';
 import { AiBadge } from '../components/AiBadge';
 import { MaterialPicker } from '../components/TaxonomyPicker';
@@ -65,6 +68,71 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
   const [techniqueName, setTechniqueName] = useState<string | undefined>();
 
   const canContinue = !!state.categoryId && !!state.craftId && !!state.primaryTechniqueId;
+  const identitySuggestions = state.agentStep1Response?.identity_suggestions;
+  const hasSuggestions = !!(identitySuggestions?.category || identitySuggestions?.oficio || identitySuggestions?.materials?.length);
+
+  const handleAcceptCategory = useCallback(() => {
+    if (!identitySuggestions?.category) return;
+    const { value: rawValue, label } = identitySuggestions.category;
+    const resolvedId = allCategories.find(c => c.id === rawValue)
+      ? rawValue
+      : allCategories.find(
+          c => c.name.toLowerCase() === rawValue.toLowerCase()
+            || c.name.toLowerCase() === label.toLowerCase(),
+        )?.id ?? rawValue;
+    console.log('[Step2] Accept category suggestion:', { rawValue, label, resolvedId });
+    const meta: IdentityFieldMetadata = { value: resolvedId, label, source: 'ia_accepted' };
+    update({
+      categoryId: resolvedId,
+      subcategoryId: undefined,
+      fieldMetadata: { ...state.fieldMetadata, category: meta },
+    });
+  }, [identitySuggestions?.category, allCategories, state.fieldMetadata, update]);
+
+  const handleAcceptOficio = useCallback(() => {
+    if (!identitySuggestions?.oficio) return;
+    const { value, label } = identitySuggestions.oficio;
+    const meta: IdentityFieldMetadata = { value, label, source: 'ia_accepted' };
+    update({
+      craftId: value,
+      primaryTechniqueId: undefined,
+      secondaryTechniqueId: undefined,
+      fieldMetadata: { ...state.fieldMetadata, oficio: meta },
+    });
+    setCraftName(undefined);
+    setTechniqueName(undefined);
+  }, [identitySuggestions?.oficio, state.fieldMetadata, update]);
+
+  const handleAcceptMaterials = useCallback(() => {
+    if (!identitySuggestions?.materials?.length) return;
+    const materialsMeta: MaterialFieldMetadata[] = identitySuggestions.materials.map(m => ({
+      value: m.value,
+      label: m.label,
+      source: 'ia_accepted' as FieldSource,
+    }));
+    update({
+      materials: identitySuggestions.materials.map(m => m.value),
+      fieldMetadata: { ...state.fieldMetadata, materials: materialsMeta },
+    });
+  }, [identitySuggestions?.materials, state.fieldMetadata, update]);
+
+  const handleRejectSuggestion = useCallback(
+    (field: 'category' | 'oficio' | 'materials') => {
+      if (field === 'materials') {
+        update({
+          fieldMetadata: { ...state.fieldMetadata, materials: [] },
+        });
+      } else {
+        const meta: IdentityFieldMetadata = { value: '', label: '', source: 'manual' };
+        update({
+          fieldMetadata: { ...state.fieldMetadata, [field]: meta },
+        });
+      }
+    },
+    [state.fieldMetadata, update],
+  );
+
+  const canContinue = !!state.categoryId && !!state.craftId;
 
   const telarCategories = allCategories
     .filter(c => !c.parentId)
@@ -97,6 +165,58 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
     update({ isCollaboration: val });
   };
 
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const handleNext = async () => {
+    // Strict validation with user feedback
+    if (!state.categoryId) {
+      toast.error("Por favor selecciona una categoría para la pieza");
+      return;
+    }
+
+    if (!state.craftId) {
+      toast.error("Por favor selecciona el oficio artesanal");
+      return;
+    }
+
+    // Build the confirm payload
+    const confirmPayload: Step1ConfirmRequest = {
+      userId: userId || '',
+      productDraftId: state.productId ?? '',
+      shortDescription: {
+        source: state.fieldMetadata?.shortDescription?.source ?? 'manual',
+        originalAiValue: state.fieldMetadata?.shortDescription?.originalAiValue ?? '',
+        timestamp: state.fieldMetadata?.shortDescription?.timestamp ?? new Date().toISOString(),
+      },
+      artisanalHistory: {
+        source: state.fieldMetadata?.artisanalHistory?.source ?? 'manual',
+        originalAiValue: state.fieldMetadata?.artisanalHistory?.originalAiValue ?? '',
+        timestamp: state.fieldMetadata?.artisanalHistory?.timestamp ?? new Date().toISOString(),
+      },
+      category: state.fieldMetadata?.category ?? { value: state.categoryId, label: selectedCategoryName ?? '', source: 'manual' },
+      oficio: state.fieldMetadata?.oficio ?? { value: state.craftId, label: craftName ?? '', source: 'manual' },
+      materials: state.fieldMetadata?.materials ?? state.materials.map(id => ({ value: id, label: '', source: 'manual' as const })),
+    };
+
+    console.log('[Step2] fieldMetadata state on next:', confirmPayload);
+
+    // Call step-1-confirm endpoint
+    if (confirmPayload.userId && confirmPayload.productDraftId) {
+      setIsConfirming(true);
+      try {
+        const confirmResponse = await step1Confirm(confirmPayload);
+        console.log('[Step2] step1Confirm response:', confirmResponse);
+        update({ agentStep1ConfirmResponse: confirmResponse });
+      } catch (error) {
+        console.error('[Step2] Error calling step1Confirm:', error);
+      } finally {
+        setIsConfirming(false);
+      }
+    }
+
+    onNext();
+  };
+
   return (
     <div style={{ background: 'transparent' }}>
       <main className="w-full max-w-[1200px] mx-auto pt-6 pb-32 px-4 md:px-10">
@@ -115,37 +235,146 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   </h2>
                 </div>
                 <p className="text-[11px] text-white/50">
-                  Esto lo sugirió el sistema. Tú decides qué confirmar.
+                  {hasSuggestions
+                    ? 'Esto lo sugirió el sistema. Tú decides qué confirmar.'
+                    : 'No hay sugerencias de identidad disponibles aún.'}
                 </p>
               </div>
 
-              {[
-                { label: 'Posible Categoría', value: 'Vajillas y Cocina' },
-                { label: 'Posible Técnica', value: 'Modelado a mano' },
-                { label: 'Materiales frecuentes', value: 'Barro negro, óxidos' },
-              ].map(({ label, value }) => (
+              {/* Category suggestion */}
+              {identitySuggestions?.category && (
                 <div
-                  key={label}
                   className="p-3 rounded-xl"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[9px] text-white/40 font-[800] uppercase tracking-widest">{label}</p>
+                    <p className="text-[9px] text-white/40 font-[800] uppercase tracking-widest">Posible Categoría</p>
                     <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">
                       IA
                     </span>
                   </div>
-                  <p className="text-[13px] text-white/80 font-[500] mb-2">{value}</p>
-                  <div className="flex gap-1.5">
-                    <button className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase">
-                      Confirmar
-                    </button>
-                    <button className="flex-1 bg-white/5 hover:bg-white/10 text-white/80 text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase">
-                      Cambiar
-                    </button>
-                  </div>
+                  <p className="text-[13px] text-white/80 font-[500] mb-1">{identitySuggestions.category.label}</p>
+                  {identitySuggestions.category.reasoning && (
+                    <p className="text-[10px] text-white/40 mb-2 leading-snug">{identitySuggestions.category.reasoning}</p>
+                  )}
+                  {state.fieldMetadata?.category?.source === 'ia_accepted' ? (
+                    <p className="text-[10px] text-green-400 font-[700] uppercase tracking-widest flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      Aceptada
+                    </p>
+                  ) : state.fieldMetadata?.category?.source === 'manual' ? (
+                    <p className="text-[10px] text-white/40 font-[700] uppercase tracking-widest">Descartada</p>
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={handleAcceptCategory}
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        onClick={() => handleRejectSuggestion('category')}
+                        className="flex-1 bg-white/5 hover:bg-white/10 text-white/80 text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
+
+              {/* Oficio suggestion */}
+              {identitySuggestions?.oficio && (
+                <div
+                  className="p-3 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[9px] text-white/40 font-[800] uppercase tracking-widest">Posible Oficio</p>
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">
+                      IA
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-white/80 font-[500] mb-1">{identitySuggestions.oficio.label}</p>
+                  {identitySuggestions.oficio.reasoning && (
+                    <p className="text-[10px] text-white/40 mb-2 leading-snug">{identitySuggestions.oficio.reasoning}</p>
+                  )}
+                  {state.fieldMetadata?.oficio?.source === 'ia_accepted' ? (
+                    <p className="text-[10px] text-green-400 font-[700] uppercase tracking-widest flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      Aceptada
+                    </p>
+                  ) : state.fieldMetadata?.oficio?.source === 'manual' ? (
+                    <p className="text-[10px] text-white/40 font-[700] uppercase tracking-widest">Descartada</p>
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={handleAcceptOficio}
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        onClick={() => handleRejectSuggestion('oficio')}
+                        className="flex-1 bg-white/5 hover:bg-white/10 text-white/80 text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Materials suggestion */}
+              {identitySuggestions?.materials && identitySuggestions.materials.length > 0 && (
+                <div
+                  className="p-3 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[9px] text-white/40 font-[800] uppercase tracking-widest">Materiales frecuentes</p>
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">
+                      IA
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-white/80 font-[500] mb-2">
+                    {identitySuggestions.materials.map(m => m.label).join(', ')}
+                  </p>
+                  {state.fieldMetadata?.materials && state.fieldMetadata.materials.length > 0 && state.fieldMetadata.materials[0].source === 'ia_accepted' ? (
+                    <p className="text-[10px] text-green-400 font-[700] uppercase tracking-widest flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      Aceptados
+                    </p>
+                  ) : state.fieldMetadata?.materials && state.fieldMetadata.materials.length === 0 ? (
+                    <p className="text-[10px] text-white/40 font-[700] uppercase tracking-widest">Descartados</p>
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={handleAcceptMaterials}
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        onClick={() => handleRejectSuggestion('materials')}
+                        className="flex-1 bg-white/5 hover:bg-white/10 text-white/80 text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* No suggestions fallback */}
+              {!hasSuggestions && (
+                <div className="flex flex-col items-center gap-2 py-4">
+                  <span className="material-symbols-outlined text-white/20 text-[28px]">psychology</span>
+                  <p className="text-[11px] text-white/30 text-center">
+                    Completa el paso 1 para recibir sugerencias de identidad artesanal.
+                  </p>
+                </div>
+              )}
             </div>
           </aside>
 
@@ -487,10 +716,17 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
         step={step}
         totalSteps={totalSteps}
         onBack={onBack}
-        onNext={onNext}
+        onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue}
+        nextDisabled={!canContinue || isConfirming}
+        disabledReason={
+          !state.categoryId
+            ? "Selecciona una categoría"
+            : !state.craftId
+              ? "Selecciona el oficio artesanal"
+              : undefined
+        }
         nextLabel="Confirmar y continuar"
         leftOffset={leftOffset}
       />

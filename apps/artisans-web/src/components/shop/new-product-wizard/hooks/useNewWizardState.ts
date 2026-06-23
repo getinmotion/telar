@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useUserLocalStorage } from '@/hooks/useUserLocalStorage';
 import type { ProductStatus, AvailabilityType } from '@/services/products-new.types';
+import type { FieldMetadata, IdentityFieldMetadata, MaterialFieldMetadata, Step1InitialCaptureResponse, Step1ConfirmResponse, Step2CaptureResponse } from '@/types/agent.types';
 
 export type PieceStyle = 'tradicional' | 'contemporaneo' | 'fusion';
 export type PiecePurpose = 'funcional' | 'decorativa' | 'ritual' | 'coleccionable';
@@ -92,6 +93,26 @@ export interface NewWizardState {
   // ── META ──────────────────────────────────────────────────
   status?: ProductStatus;
   productId?: string; // set when editing
+
+  // ── AI SUGGESTION TRACKING ─────────────────────────────────
+  fieldMetadata?: {
+    shortDescription?: FieldMetadata;
+    artisanalHistory?: FieldMetadata;
+    category?: IdentityFieldMetadata;
+    oficio?: IdentityFieldMetadata;
+    materials?: MaterialFieldMetadata[];
+    // Step 3 fields
+    processDescription?: FieldMetadata;
+    elaborationTime?: FieldMetadata;
+    monthlyCapacity?: FieldMetadata;
+    careNotes?: FieldMetadata;
+    // Step 4 fields
+    price?: FieldMetadata;
+    weightKg?: FieldMetadata;
+  };
+  agentStep1Response?: Step1InitialCaptureResponse;
+  agentStep1ConfirmResponse?: Step1ConfirmResponse;
+  agentStep2Response?: Step2CaptureResponse;
 }
 
 const STORAGE_KEY = 'new-product-wizard-state';
