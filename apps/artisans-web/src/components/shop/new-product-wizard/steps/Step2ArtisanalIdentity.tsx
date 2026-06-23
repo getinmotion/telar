@@ -64,7 +64,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
   const [craftName, setCraftName] = useState<string | undefined>();
   const [techniqueName, setTechniqueName] = useState<string | undefined>();
 
-  const canContinue = !!state.categoryId && !!state.craftId;
+  const canContinue = !!state.categoryId && !!state.craftId && !!state.primaryTechniqueId;
 
   const telarCategories = allCategories
     .filter(c => !c.parentId)
@@ -267,7 +267,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                       Técnica
                     </label>
                     <AiBadge />
-                    <span className="text-[10px] text-[#54433e]/35 font-[500]">— Opcional</span>
+                    <span className="text-[10px] text-[#ec6d13]/60 font-[500]">— Obligatorio</span>
                   </div>
                   <TechniquePicker
                     craftId={state.craftId}

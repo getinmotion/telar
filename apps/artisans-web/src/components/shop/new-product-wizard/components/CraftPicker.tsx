@@ -8,80 +8,222 @@
  * TechniquePicker — single-select, aparece solo cuando hay oficio seleccionado.
  */
 
-import React, { useEffect, useState } from 'react';
-import { getAllCrafts, getTechniquesByCraftId, type Craft, type Technique } from '@/services/crafts.actions';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React, { useEffect, useState } from "react";
+import {
+  getAllCrafts,
+  getTechniquesByCraftId,
+  type Craft,
+  type Technique,
+} from "@/services/crafts.actions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // ── Icon mapping ──────────────────────────────────────────────────────────────
 
 const CRAFT_ICON_MAP: { keywords: string[]; icon: string }[] = [
-  { keywords: ['tejer', 'tejido', 'tejedor', 'crochet', 'tricot', 'ganchillo', 'calceta'], icon: 'texture' },
-  { keywords: ['bordar', 'bordado', 'bordaduría', 'zurcir'], icon: 'texture' },
-  { keywords: ['orfebrería', 'platería', 'filigrana', 'joyería', 'repujado', 'fundición', 'soldadura'], icon: 'diamond' },
-  { keywords: ['alfarería', 'cerámica', 'torno', 'barro', 'arcilla', 'loza', 'porcelana', 'greda'], icon: 'water_drop' },
-  { keywords: ['carpintería', 'ebanistería', 'madera', 'marquetería', 'lutería', 'tallado', 'talla'], icon: 'forest' },
-  { keywords: ['cuero', 'marroquinería', 'talabartería', 'peletería'], icon: 'pets' },
-  { keywords: ['vidrio', 'vitrería', 'vitral', 'soplado'], icon: 'light_mode' },
-  { keywords: ['forja', 'herrería', 'metalurgia', 'metal'], icon: 'hardware' },
-  { keywords: ['macramé', 'trenzado', 'cestería', 'canastería', 'esparto', 'mimbre', 'fique'], icon: 'grass' },
-  { keywords: ['pintura', 'ilustración', 'grabado', 'serigrafía'], icon: 'palette' },
-  { keywords: ['chaquira', 'mostacilla', 'bisutería', 'abalorios'], icon: 'scatter_plot' },
-  { keywords: ['tinte', 'teñido', 'batik', 'serigrafía'], icon: 'colorize' },
-  { keywords: ['papel', 'origami', 'papelería', 'encuadernación'], icon: 'description' },
-  { keywords: ['jabonería', 'cosmética', 'aromaterapia', 'velas'], icon: 'spa' },
-  { keywords: ['escultura', 'modelado', 'moldeado'], icon: 'category' },
-  { keywords: ['tapicería', 'tapizado', 'relleno'], icon: 'chair' },
-  { keywords: ['hilar', 'hilado', 'hilatura'], icon: 'sync_alt' },
+  {
+    keywords: [
+      "tejer",
+      "tejido",
+      "tejedor",
+      "crochet",
+      "tricot",
+      "ganchillo",
+      "calceta",
+    ],
+    icon: "texture",
+  },
+  { keywords: ["bordar", "bordado", "bordaduría", "zurcir"], icon: "texture" },
+  {
+    keywords: [
+      "orfebrería",
+      "platería",
+      "filigrana",
+      "joyería",
+      "repujado",
+      "fundición",
+      "soldadura",
+    ],
+    icon: "diamond",
+  },
+  {
+    keywords: [
+      "alfarería",
+      "cerámica",
+      "torno",
+      "barro",
+      "arcilla",
+      "loza",
+      "porcelana",
+      "greda",
+    ],
+    icon: "water_drop",
+  },
+  {
+    keywords: [
+      "carpintería",
+      "ebanistería",
+      "madera",
+      "marquetería",
+      "lutería",
+      "tallado",
+      "talla",
+    ],
+    icon: "forest",
+  },
+  {
+    keywords: ["cuero", "marroquinería", "talabartería", "peletería"],
+    icon: "pets",
+  },
+  { keywords: ["vidrio", "vitrería", "vitral", "soplado"], icon: "light_mode" },
+  { keywords: ["forja", "herrería", "metalurgia", "metal"], icon: "hardware" },
+  {
+    keywords: [
+      "macramé",
+      "trenzado",
+      "cestería",
+      "canastería",
+      "esparto",
+      "mimbre",
+      "fique",
+    ],
+    icon: "grass",
+  },
+  {
+    keywords: ["pintura", "ilustración", "grabado", "serigrafía"],
+    icon: "palette",
+  },
+  {
+    keywords: ["chaquira", "mostacilla", "bisutería", "abalorios"],
+    icon: "scatter_plot",
+  },
+  { keywords: ["tinte", "teñido", "batik", "serigrafía"], icon: "colorize" },
+  {
+    keywords: ["papel", "origami", "papelería", "encuadernación"],
+    icon: "description",
+  },
+  {
+    keywords: ["jabonería", "cosmética", "aromaterapia", "velas"],
+    icon: "spa",
+  },
+  { keywords: ["escultura", "modelado", "moldeado"], icon: "category" },
+  { keywords: ["tapicería", "tapizado", "relleno"], icon: "chair" },
+  { keywords: ["hilar", "hilado", "hilatura"], icon: "sync_alt" },
 ];
 
 export function getCraftIcon(name: string): string {
   const lower = name.toLowerCase();
   for (const { keywords, icon } of CRAFT_ICON_MAP) {
-    if (keywords.some(kw => lower.includes(kw))) return icon;
+    if (keywords.some((kw) => lower.includes(kw))) return icon;
   }
-  return 'construction';
+  return "construction";
 }
 
 // ── Category → craft keyword filter ──────────────────────────────────────────
 // Mapea el nombre de la categoría TELAR a palabras clave de oficios relevantes.
 // Si la categoría no tiene match, se muestran todos los oficios.
 
-const CATEGORY_CRAFT_KEYWORDS: { catKeywords: string[]; craftKeywords: string[] }[] = [
+const CATEGORY_CRAFT_KEYWORDS: {
+  catKeywords: string[];
+  craftKeywords: string[];
+}[] = [
   {
-    catKeywords: ['textiles', 'moda'],
-    craftKeywords: ['tejer', 'bordar', 'hilar', 'teñir', 'batik', 'macramé', 'crochet', 'ganchillo', 'costura', 'confección', 'tejido'],
+    catKeywords: ["textiles", "moda"],
+    craftKeywords: [
+      "tejer",
+      "bordar",
+      "hilar",
+      "teñir",
+      "batik",
+      "macramé",
+      "crochet",
+      "ganchillo",
+      "costura",
+      "confección",
+      "tejido",
+    ],
   },
   {
-    catKeywords: ['bolsos', 'carteras'],
-    craftKeywords: ['tejer', 'cuero', 'trenzado', 'macramé', 'cestería', 'marroquinería', 'bordado'],
+    catKeywords: ["bolsos", "carteras"],
+    craftKeywords: [
+      "tejer",
+      "cuero",
+      "trenzado",
+      "macramé",
+      "cestería",
+      "marroquinería",
+      "bordado",
+    ],
   },
   {
-    catKeywords: ['joyería', 'accesorios'],
-    craftKeywords: ['orfebrería', 'filigrana', 'platería', 'chaquira', 'bisutería', 'repujado', 'fundición', 'joyería'],
+    catKeywords: ["joyería", "accesorios"],
+    craftKeywords: [
+      "orfebrería",
+      "filigrana",
+      "platería",
+      "chaquira",
+      "bisutería",
+      "repujado",
+      "fundición",
+      "joyería",
+    ],
   },
   {
-    catKeywords: ['decoración', 'hogar'],
-    craftKeywords: ['cerámica', 'alfarería', 'talla', 'ebanistería', 'vidrio', 'cestería', 'macramé', 'loza'],
+    catKeywords: ["decoración", "hogar"],
+    craftKeywords: [
+      "cerámica",
+      "alfarería",
+      "talla",
+      "ebanistería",
+      "vidrio",
+      "cestería",
+      "macramé",
+      "loza",
+    ],
   },
   {
-    catKeywords: ['muebles'],
-    craftKeywords: ['ebanistería', 'carpintería', 'talla', 'forja', 'tapicería', 'marquetería', 'tallado'],
+    catKeywords: ["muebles"],
+    craftKeywords: [
+      "ebanistería",
+      "carpintería",
+      "talla",
+      "forja",
+      "tapicería",
+      "marquetería",
+      "tallado",
+    ],
   },
   {
-    catKeywords: ['vajillas', 'cocina'],
-    craftKeywords: ['cerámica', 'alfarería', 'torno', 'vidrio', 'talla', 'loza', 'porcelana'],
+    catKeywords: ["vajillas", "cocina"],
+    craftKeywords: [
+      "cerámica",
+      "alfarería",
+      "torno",
+      "vidrio",
+      "talla",
+      "loza",
+      "porcelana",
+    ],
   },
   {
-    catKeywords: ['arte', 'esculturas'],
-    craftKeywords: ['talla', 'cerámica', 'pintura', 'grabado', 'escultura', 'forja', 'modelado', 'ilustración'],
+    catKeywords: ["arte", "esculturas"],
+    craftKeywords: [
+      "talla",
+      "cerámica",
+      "pintura",
+      "grabado",
+      "escultura",
+      "forja",
+      "modelado",
+      "ilustración",
+    ],
   },
   {
-    catKeywords: ['juguetes', 'instrumentos'],
-    craftKeywords: ['talla', 'carpintería', 'torno', 'lutería', 'ebanistería'],
+    catKeywords: ["juguetes", "instrumentos"],
+    craftKeywords: ["talla", "carpintería", "torno", "lutería", "ebanistería"],
   },
   {
-    catKeywords: ['cuidado', 'personal'],
-    craftKeywords: ['jabonería', 'cosmética', 'aromaterapia', 'velas'],
+    catKeywords: ["cuidado", "personal"],
+    craftKeywords: ["jabonería", "cosmética", "aromaterapia", "velas"],
   },
 ];
 
@@ -89,14 +231,14 @@ function getCraftKeywordsForCategory(categoryName?: string): string[] | null {
   if (!categoryName) return null;
   const lower = categoryName.toLowerCase();
   for (const { catKeywords, craftKeywords } of CATEGORY_CRAFT_KEYWORDS) {
-    if (catKeywords.some(kw => lower.includes(kw))) return craftKeywords;
+    if (catKeywords.some((kw) => lower.includes(kw))) return craftKeywords;
   }
   return null;
 }
 
 function matchesCategoryFilter(craftName: string, keywords: string[]): boolean {
   const lower = craftName.toLowerCase();
-  return keywords.some(kw => lower.includes(kw));
+  return keywords.some((kw) => lower.includes(kw));
 }
 
 // ── CraftPicker ───────────────────────────────────────────────────────────────
@@ -118,7 +260,7 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
   const DEFAULT_LIMIT = isMobile ? 5 : 10;
@@ -132,19 +274,23 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => { loadCrafts(); }, []);
+  useEffect(() => {
+    loadCrafts();
+  }, []);
 
   const categoryKeywords = getCraftKeywordsForCategory(categoryName);
 
   const visibleCrafts: Craft[] = (() => {
     if (searchQuery.trim().length >= 2) {
-      return allCrafts.filter(c =>
+      return allCrafts.filter((c) =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
     if (showAll) return allCrafts;
     if (!categoryKeywords) return allCrafts.slice(0, DEFAULT_LIMIT);
-    return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    return allCrafts.filter((c) =>
+      matchesCategoryFilter(c.name, categoryKeywords),
+    );
   })();
 
   const hiddenCount = (() => {
@@ -153,12 +299,14 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
     return allCrafts.length - visibleCrafts.length;
   })();
 
-  const selectedCraft = allCrafts.find(c => c.id === selectedCraftId);
+  const selectedCraft = allCrafts.find((c) => c.id === selectedCraftId);
 
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
-        <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+        <span className="material-symbols-outlined text-[15px] animate-spin">
+          progress_activity
+        </span>
         Cargando oficios...
       </div>
     );
@@ -167,8 +315,12 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
   if (loadError) {
     return (
       <div className="flex items-center gap-3 py-3">
-        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">warning</span>
-        <p className="flex-1 text-[12px] text-[#54433e]/50">No se pudieron cargar los oficios.</p>
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">
+          warning
+        </span>
+        <p className="flex-1 text-[12px] text-[#54433e]/50">
+          No se pudieron cargar los oficios.
+        </p>
         <button
           onClick={loadCrafts}
           className="flex items-center gap-1 text-[11px] font-[700] text-[#ec6d13] hover:underline shrink-0"
@@ -190,14 +342,17 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
         <input
           type="text"
           value={searchQuery}
-          onChange={e => { setSearchQuery(e.target.value); setShowAll(false); }}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setShowAll(false);
+          }}
           placeholder="Buscar oficio..."
           className="w-full border border-[#e2d5cf]/40 rounded-xl px-4 pl-9 py-2 text-[13px] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/40 focus:ring-2 focus:ring-[#ec6d13]/8 transition-all hover:border-[#e2d5cf]/70"
-          style={{ background: 'rgba(247,244,239,0.4)' }}
+          style={{ background: "rgba(247,244,239,0.4)" }}
         />
         {searchQuery && (
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={() => setSearchQuery("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#54433e]/30 hover:text-[#54433e]/60"
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
@@ -208,14 +363,14 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
       {/* Category label */}
       {categoryKeywords && !searchQuery && (
         <p className="text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/40">
-          {showAll ? 'Todos los oficios' : `Oficios para ${categoryName}`}
+          {showAll ? "Todos los oficios" : `Oficios para ${categoryName}`}
         </p>
       )}
 
       {/* Cards grid */}
       {visibleCrafts.length > 0 ? (
         <div className="flex flex-wrap gap-2.5">
-          {visibleCrafts.map(craft => {
+          {visibleCrafts.map((craft) => {
             const isSelected = craft.id === selectedCraftId;
             return (
               <TaxonomyCard
@@ -233,7 +388,9 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
         </div>
       ) : (
         <p className="text-[12px] text-[#54433e]/40 italic py-1">
-          {searchQuery ? `Sin resultados para "${searchQuery}"` : 'No hay oficios disponibles.'}
+          {searchQuery
+            ? `Sin resultados para "${searchQuery}"`
+            : "No hay oficios disponibles."}
         </p>
       )}
 
@@ -243,7 +400,9 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
           onClick={() => setShowAll(true)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
-          <span className="material-symbols-outlined text-[15px]">expand_more</span>
+          <span className="material-symbols-outlined text-[15px]">
+            expand_more
+          </span>
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
@@ -252,16 +411,22 @@ export const CraftPicker: React.FC<CraftPickerProps> = ({
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
-          <span className="material-symbols-outlined text-[15px]">expand_less</span>
-          {categoryKeywords ? `Ver solo los de ${categoryName}` : 'Ver menos'}
+          <span className="material-symbols-outlined text-[15px]">
+            expand_less
+          </span>
+          {categoryKeywords ? `Ver solo los de ${categoryName}` : "Ver menos"}
         </button>
       )}
 
       {/* Selected label */}
       {selectedCraft && (
         <div className="flex items-center gap-1.5 pt-1">
-          <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">check_circle</span>
-          <span className="text-[11px] font-[700] text-[#ec6d13]">{selectedCraft.name}</span>
+          <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">
+            check_circle
+          </span>
+          <span className="text-[11px] font-[700] text-[#ec6d13]">
+            {selectedCraft.name}
+          </span>
         </div>
       )}
     </div>
@@ -288,7 +453,7 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
   const DEFAULT_LIMIT = isMobile ? 5 : 10;
@@ -297,11 +462,13 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
     setIsLoading(true);
     setLoadError(false);
     getAllCrafts()
-      .then(crafts => {
+      .then((crafts) => {
         setAllCrafts(crafts);
         // Propaga nombres de oficios preseleccionados en modo edición
         if (selectedCraftIds.length > 0) {
-          const names = crafts.filter(c => selectedCraftIds.includes(c.id)).map(c => c.name);
+          const names = crafts
+            .filter((c) => selectedCraftIds.includes(c.id))
+            .map((c) => c.name);
           if (names.length > 0) onNamesChange?.(names);
         }
       })
@@ -309,7 +476,9 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => { loadCrafts(); }, []);
+  useEffect(() => {
+    loadCrafts();
+  }, []);
 
   // Merge keywords from all suggested categories
   const categoryKeywords: string[] | null = (() => {
@@ -317,19 +486,22 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
     const merged = new Set<string>();
     for (const name of suggestedCategoryNames) {
       const kws = getCraftKeywordsForCategory(name);
-      kws?.forEach(k => merged.add(k));
+      kws?.forEach((k) => merged.add(k));
     }
     return merged.size > 0 ? [...merged] : null;
   })();
 
   const visibleCrafts: Craft[] = (() => {
     if (searchQuery.trim().length >= 2) {
-      return allCrafts.filter(c =>
+      return allCrafts.filter((c) =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
     if (showAll) return allCrafts;
-    if (categoryKeywords) return allCrafts.filter(c => matchesCategoryFilter(c.name, categoryKeywords));
+    if (categoryKeywords)
+      return allCrafts.filter((c) =>
+        matchesCategoryFilter(c.name, categoryKeywords),
+      );
     return allCrafts.slice(0, DEFAULT_LIMIT);
   })();
 
@@ -339,20 +511,26 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
     return allCrafts.length - visibleCrafts.length;
   })();
 
-  const selectedCrafts = allCrafts.filter(c => selectedCraftIds.includes(c.id));
+  const selectedCrafts = allCrafts.filter((c) =>
+    selectedCraftIds.includes(c.id),
+  );
 
   const toggle = (craftId: string) => {
     const nextIds = selectedCraftIds.includes(craftId)
-      ? selectedCraftIds.filter(id => id !== craftId)
+      ? selectedCraftIds.filter((id) => id !== craftId)
       : [...selectedCraftIds, craftId];
     onChange(nextIds);
-    onNamesChange?.(allCrafts.filter(c => nextIds.includes(c.id)).map(c => c.name));
+    onNamesChange?.(
+      allCrafts.filter((c) => nextIds.includes(c.id)).map((c) => c.name),
+    );
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-4 text-[12px] text-[#54433e]/40">
-        <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+        <span className="material-symbols-outlined text-[15px] animate-spin">
+          progress_activity
+        </span>
         Cargando oficios...
       </div>
     );
@@ -361,8 +539,12 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
   if (loadError) {
     return (
       <div className="flex items-center gap-3 py-3">
-        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">warning</span>
-        <p className="flex-1 text-[12px] text-[#54433e]/50">No se pudieron cargar los oficios.</p>
+        <span className="material-symbols-outlined text-[18px] text-[#ef4444]/60">
+          warning
+        </span>
+        <p className="flex-1 text-[12px] text-[#54433e]/50">
+          No se pudieron cargar los oficios.
+        </p>
         <button
           onClick={loadCrafts}
           className="flex items-center gap-1 text-[11px] font-[700] text-[#ec6d13] hover:underline shrink-0"
@@ -384,14 +566,17 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
         <input
           type="text"
           value={searchQuery}
-          onChange={e => { setSearchQuery(e.target.value); setShowAll(false); }}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setShowAll(false);
+          }}
           placeholder="Buscar oficio..."
           className="w-full border border-[#e2d5cf]/40 rounded-xl px-4 pl-9 py-2 text-[13px] text-[#151b2d] focus:outline-none focus:border-[#ec6d13]/40 focus:ring-2 focus:ring-[#ec6d13]/8 transition-all hover:border-[#e2d5cf]/70"
-          style={{ background: 'rgba(247,244,239,0.4)' }}
+          style={{ background: "rgba(247,244,239,0.4)" }}
         />
         {searchQuery && (
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={() => setSearchQuery("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#54433e]/30 hover:text-[#54433e]/60"
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
@@ -402,7 +587,7 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
       {/* Cards grid */}
       {visibleCrafts.length > 0 ? (
         <div className="flex flex-wrap gap-2.5">
-          {visibleCrafts.map(craft => (
+          {visibleCrafts.map((craft) => (
             <TaxonomyCard
               key={craft.id}
               name={craft.name}
@@ -414,7 +599,9 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
         </div>
       ) : (
         <p className="text-[12px] text-[#54433e]/40 italic py-1">
-          {searchQuery ? `Sin resultados para "${searchQuery}"` : 'No hay oficios disponibles.'}
+          {searchQuery
+            ? `Sin resultados para "${searchQuery}"`
+            : "No hay oficios disponibles."}
         </p>
       )}
 
@@ -424,7 +611,9 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
           onClick={() => setShowAll(true)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
-          <span className="material-symbols-outlined text-[15px]">expand_more</span>
+          <span className="material-symbols-outlined text-[15px]">
+            expand_more
+          </span>
           Ver los {hiddenCount} oficios restantes
         </button>
       )}
@@ -433,27 +622,38 @@ export const CraftMultiPicker: React.FC<CraftMultiPickerProps> = ({
           onClick={() => setShowAll(false)}
           className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/40 hover:text-[#ec6d13] transition-colors"
         >
-          <span className="material-symbols-outlined text-[15px]">expand_less</span>
-          {categoryKeywords ? 'Mostrar solo los sugeridos' : 'Ver menos'}
+          <span className="material-symbols-outlined text-[15px]">
+            expand_less
+          </span>
+          {categoryKeywords ? "Mostrar solo los sugeridos" : "Ver menos"}
         </button>
       )}
 
       {/* Selected chips */}
       {selectedCrafts.length > 0 && (
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {selectedCrafts.map(c => (
+          {selectedCrafts.map((c) => (
             <div
               key={c.id}
               className="flex items-center gap-1 px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(236,109,19,0.08)', border: '1px solid rgba(236,109,19,0.25)' }}
+              style={{
+                background: "rgba(236,109,19,0.08)",
+                border: "1px solid rgba(236,109,19,0.25)",
+              }}
             >
-              <span className="material-symbols-outlined text-[12px] text-[#ec6d13]">check_circle</span>
-              <span className="text-[11px] font-[700] text-[#ec6d13]">{c.name}</span>
+              <span className="material-symbols-outlined text-[12px] text-[#ec6d13]">
+                check_circle
+              </span>
+              <span className="text-[11px] font-[700] text-[#ec6d13]">
+                {c.name}
+              </span>
               <button
                 onClick={() => toggle(c.id)}
                 className="ml-0.5 text-[#ec6d13]/50 hover:text-[#ec6d13] transition-colors"
               >
-                <span className="material-symbols-outlined text-[12px]">close</span>
+                <span className="material-symbols-outlined text-[12px]">
+                  close
+                </span>
               </button>
             </div>
           ))}
@@ -484,7 +684,10 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!craftId) { setTechniques([]); return; }
+    if (!craftId) {
+      setTechniques([]);
+      return;
+    }
     setIsLoading(true);
     getTechniquesByCraftId(craftId)
       .then(setTechniques)
@@ -495,7 +698,9 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   if (!craftId) {
     return (
       <div className="flex items-center gap-2 py-3 text-[12px] text-[#54433e]/30 italic">
-        <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+        <span className="material-symbols-outlined text-[16px]">
+          arrow_upward
+        </span>
         Selecciona un oficio para ver sus técnicas
       </div>
     );
@@ -504,7 +709,9 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-3 text-[12px] text-[#54433e]/40">
-        <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
+        <span className="material-symbols-outlined text-[15px] animate-spin">
+          progress_activity
+        </span>
         Cargando técnicas de {craftName}...
       </div>
     );
@@ -513,17 +720,19 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
   if (techniques.length === 0) {
     return (
       <p className="text-[12px] text-[#54433e]/35 italic py-2">
-        No hay subtécnicas registradas para {craftName ?? 'este oficio'}.
+        No hay subtécnicas registradas para {craftName ?? "este oficio"}.
       </p>
     );
   }
 
-  const selectedTechnique = techniques.find(t => t.id === selectedTechniqueId);
+  const selectedTechnique = techniques.find(
+    (t) => t.id === selectedTechniqueId,
+  );
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2.5">
-        {techniques.map(tech => {
+        {techniques.map((tech) => {
           const isSelected = tech.id === selectedTechniqueId;
           return (
             <TaxonomyCard
@@ -542,9 +751,12 @@ export const TechniquePicker: React.FC<TechniquePickerProps> = ({
       </div>
       {selectedTechnique && (
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">check_circle</span>
-          <span className="text-[11px] font-[700] text-[#ec6d13]">{selectedTechnique.name}</span>
-          <span className="text-[10px] text-[#54433e]/40">— Opcional</span>
+          <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">
+            check_circle
+          </span>
+          <span className="text-[11px] font-[700] text-[#ec6d13]">
+            {selectedTechnique.name}
+          </span>
         </div>
       )}
     </div>
@@ -562,24 +774,39 @@ interface TaxonomyCardProps {
   small?: boolean;
 }
 
-const TaxonomyCard: React.FC<TaxonomyCardProps> = ({ name, icon, isSelected, onClick, small }) => (
+const TaxonomyCard: React.FC<TaxonomyCardProps> = ({
+  name,
+  icon,
+  isSelected,
+  onClick,
+  small,
+}) => (
   <button
     type="button"
     onClick={onClick}
     title={name}
     className={`relative flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ec6d13]/40 ${
-      small ? 'w-[82px] h-[70px]' : 'w-[96px] h-[82px]'
+      small ? "w-[82px] h-[70px]" : "w-[96px] h-[82px]"
     } ${
       isSelected
-        ? 'border-[#ec6d13] shadow-sm'
-        : 'border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm'
+        ? "border-[#ec6d13] shadow-sm"
+        : "border-[#e2d5cf]/40 bg-white hover:border-[#ec6d13]/35 hover:shadow-sm"
     }`}
-    style={isSelected ? { background: 'rgba(236,109,19,0.06)' } : { background: '#ffffff' }}
+    style={
+      isSelected
+        ? { background: "rgba(236,109,19,0.06)" }
+        : { background: "#ffffff" }
+    }
   >
     {/* Checkmark */}
     {isSelected && (
       <div className="absolute top-1.5 right-1.5 w-[18px] h-[18px] rounded-full bg-[#ec6d13] flex items-center justify-center shadow-sm">
-        <span className="material-symbols-outlined text-white" style={{ fontSize: 11 }}>check</span>
+        <span
+          className="material-symbols-outlined text-white"
+          style={{ fontSize: 11 }}
+        >
+          check
+        </span>
       </div>
     )}
 
@@ -588,7 +815,7 @@ const TaxonomyCard: React.FC<TaxonomyCardProps> = ({ name, icon, isSelected, onC
       className="material-symbols-outlined transition-colors"
       style={{
         fontSize: small ? 18 : 22,
-        color: isSelected ? '#ec6d13' : 'rgba(84,67,62,0.38)',
+        color: isSelected ? "#ec6d13" : "rgba(84,67,62,0.38)",
       }}
     >
       {icon}
@@ -599,11 +826,11 @@ const TaxonomyCard: React.FC<TaxonomyCardProps> = ({ name, icon, isSelected, onC
       className="text-center leading-tight px-1.5 font-[700] transition-colors"
       style={{
         fontSize: small ? 9 : 10,
-        display: '-webkit-box',
+        display: "-webkit-box",
         WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-        color: isSelected ? '#ec6d13' : 'rgba(84,67,62,0.65)',
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+        color: isSelected ? "#ec6d13" : "rgba(84,67,62,0.65)",
       }}
     >
       {name}
