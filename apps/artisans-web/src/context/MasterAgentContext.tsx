@@ -266,6 +266,18 @@ export const MasterAgentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
   }, [userId, queryClient, invalidateCache, eventsInProgress]);
 
+  // ─── Supabase realtime: productos ─────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel('products-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+        EventBus.publish('inventory.updated', payload);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
+
   return (
     <MasterAgentContext.Provider
       value={{ masterState, refreshModule, invokeAgent, getModuleState, syncAll, updateTaskStep, isLoading, error }}
