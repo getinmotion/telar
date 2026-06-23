@@ -1168,7 +1168,7 @@ export const AgentFormPage: React.FC = () => {
         {/* 2-column grid: content + oracle */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* ── Content column ── */}
-          <div className="lg:col-span-7">
+          <div className={currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-7'}>
             {/* ── Step 1: Identidad Artesanal ───────────────────────────────────── */}
             {currentStep === 1 && (
               <div className="flex flex-col gap-5">
