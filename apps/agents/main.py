@@ -24,7 +24,6 @@ from agents.api import router as agents_router
 from agents.search_api import router as search_router
 from agents.joyitas_search_api import router as joyitas_search_router
 from agents.whatsapp_api import router as whatsapp_router
-from agents.artisan_support_api import router as artisan_support_router
 from agents.tracing import init_langsmith
 from src.api.config import settings
 from src.database.pg_client import get_pool, close_pool
@@ -61,18 +60,6 @@ async def lifespan(app: FastAPI):
         logger.info("WhatsApp bot: configured (phone_number_id=%s...)", settings.whatsapp_phone_number_id[:10])
     else:
         logger.warning("WhatsApp bot: NOT configured (WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID missing)")
-
-    # Log Artisan Support (Copiloto) bot status
-    if settings.artisan_whatsapp_access_token and settings.artisan_whatsapp_phone_number_id:
-        logger.info(
-            "Artisan Support bot: configured (phone_number_id=%s...)",
-            settings.artisan_whatsapp_phone_number_id[:10],
-        )
-    else:
-        logger.warning(
-            "Artisan Support bot: NOT configured (ARTISAN_WHATSAPP_ACCESS_TOKEN or "
-            "ARTISAN_WHATSAPP_PHONE_NUMBER_ID missing)"
-        )
 
     # Check Tavily API for pricing agent
     if settings.tavily_api_key:
@@ -181,7 +168,6 @@ app.include_router(agents_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(joyitas_search_router, prefix="/api")
 app.include_router(whatsapp_router, prefix="/api")
-app.include_router(artisan_support_router, prefix="/api")
 
 # Serve uploaded product photos as static files
 _uploads_dir = os.path.join(os.path.dirname(__file__), "uploads", "product-photos")

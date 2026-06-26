@@ -113,11 +113,6 @@ def get_onboarding_welcome_message_prompt(template_vars: Optional[Dict[str, Any]
     return render_prompt('onboarding_welcome_message.md.j2', template_vars or {})
 
 
-def get_artisan_tutor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
-    """Get the artisan support/tutor (capacitaciones RAG bot) system prompt."""
-    return render_prompt('artisan_tutor_system.md.j2', extract_template_vars(context))
-
-
 def get_supervisor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
     """
     Get the supervisor agent routing prompt.
@@ -189,7 +184,6 @@ __all__ = [
     'get_servicio_cliente_prompt',
     'get_fotografia_prompt',
     'get_traductor_prompt',
-    'get_artisan_tutor_prompt',
     'get_supervisor_prompt',
     'get_product_creation_step1_prompt',
     'get_product_creation_step3_process_prompt',

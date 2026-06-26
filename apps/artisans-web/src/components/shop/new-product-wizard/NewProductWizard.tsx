@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { getArtisanShopByUserId, getStoreByUserId } from '@/services/artisanShops.actions';
 import { getArtisanIdentityByUserId } from '@/services/artisan-identity.actions';
-import { getProductNewById, createProductNew } from '@/services/products-new.actions';
+import { getProductNewById } from '@/services/products-new.actions';
 import { useNewWizardState } from './hooks/useNewWizardState';
-import { useWizardDraft, mapNewStateToDto } from './hooks/useWizardDraft';
+import { useWizardDraft } from './hooks/useWizardDraft';
 import { Step1NewPiece } from './steps/Step1NewPiece';
 import { Step2ArtisanalIdentity } from './steps/Step2ArtisanalIdentity';
 import { Step3ProcessTime } from './steps/Step3ProcessTime';
@@ -17,7 +17,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { AICopilotCard } from '@/components/dashboard/AICopilotCard';
-import { upsertSuggestProductsDraft, getSuggestProductsDraft } from '@/services/suggest-products-draft.actions';
 
 const SANS = "'Manrope', sans-serif";
 
@@ -203,25 +202,6 @@ export const NewProductWizard: React.FC = () => {
           sku: primaryVariant?.sku || undefined,
           inventory: primaryVariant?.stockQuantity || undefined,
         });
-
-        // Also restore agent suggestions from backend
-        getSuggestProductsDraft(product.id).then(suggestions => {
-          const updates: Partial<typeof state> = {};
-          if (suggestions?.suggestAgentStep12) {
-            const { agentResponse: restored, fieldMetadata: restoredMeta } = suggestions.suggestAgentStep12;
-            if (restored) updates.agentStep1Response = restored;
-            if (restoredMeta) updates.fieldMetadata = { ...updates.fieldMetadata, ...restoredMeta };
-          }
-          if (suggestions?.suggestAgentStep34) {
-            const { agentResponse: restored34, fieldMetadata: restoredMeta34 } = suggestions.suggestAgentStep34;
-            if (restored34) updates.agentStep2Response = restored34;
-            if (restoredMeta34) updates.fieldMetadata = { ...updates.fieldMetadata, ...restoredMeta34 };
-          }
-          if (Object.keys(updates).length > 0) {
-            update(updates);
-            console.log('[EditMode] Restored agent suggestions for product:', product.id);
-          }
-        }).catch(() => { /* suggestions not found, ok */ });
       })
       .catch(err => {
         console.error('[EditMode] Error cargando producto:', err);
@@ -230,85 +210,10 @@ export const NewProductWizard: React.FC = () => {
       .finally(() => setIsLoadingEdit(false));
   }, [isEditMode, productIdToEdit]);
 
-  // Restore agent suggestions for continue mode (product already exists in localStorage state)
-  useEffect(() => {
-    if (isEditMode || !shouldContinue || !state.productId || state.agentStep1Response) return;
-    getSuggestProductsDraft(state.productId).then(suggestions => {
-      const updates: Partial<typeof state> = {};
-      if (suggestions?.suggestAgentStep12) {
-        const { agentResponse: restored, fieldMetadata: restoredMeta } = suggestions.suggestAgentStep12;
-        if (restored) updates.agentStep1Response = restored;
-        if (restoredMeta) updates.fieldMetadata = { ...updates.fieldMetadata, ...restoredMeta };
-      }
-      if (suggestions?.suggestAgentStep34) {
-        const { agentResponse: restored34, fieldMetadata: restoredMeta34 } = suggestions.suggestAgentStep34;
-        if (restored34) updates.agentStep2Response = restored34;
-        if (restoredMeta34) updates.fieldMetadata = { ...updates.fieldMetadata, ...restoredMeta34 };
-      }
-      if (Object.keys(updates).length > 0) {
-        update(updates);
-        console.log('[ContinueMode] Restored agent suggestions for product:', state.productId);
-      }
-    }).catch(() => { /* suggestions not found, ok */ });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldContinue, state.productId]);
-
-  const goNext = async () => {
-    let productWasJustCreated = false;
-
-    // When moving from Step 1 to Step 2, create the product in draft if it doesn't exist
-    if (currentStep === 1 && !state.productId && shopId) {
-      try {
-        // Filter images to only get URLs (images already uploaded to S3)
-        const imageUrls = state.images.filter((img): img is string => typeof img === 'string');
-
-        // Create product DTO with status "draft"
-        const dto = mapNewStateToDto(state, shopId, imageUrls, false);
-
-        console.log('[NewProductWizard] Creating product in draft from Step 1');
-        const result = await createProductNew(dto, { suppressToast: true });
-        const newProductId = (result as any)?.id ?? (result as any)?.productId;
-
-        if (newProductId) {
-          update({ productId: newProductId });
-          console.log('[NewProductWizard] Product created with ID:', newProductId);
-          toast.success('Producto creado en borrador');
-          productWasJustCreated = true;
-
-          // Persist agent suggestions to backend
-          if (state.agentStep1Response) {
-            upsertSuggestProductsDraft(newProductId, {
-              suggestAgentStep12: {
-                agentResponse: state.agentStep1Response,
-                fieldMetadata: state.fieldMetadata,
-              },
-            }).catch(err => console.error('[Wizard] Error saving suggestions:', err));
-          }
-        }
-      } catch (error) {
-        console.error('[NewProductWizard] Error creating product:', error);
-        toast.error('No se pudo crear el producto. Intenta de nuevo.');
-        return; // Don't advance to next step if product creation failed
-      }
-    }
-
+  const goNext = () => {
     setCurrentStep(s => Math.min(s + 1, TOTAL_STEPS));
-
-    // Persist Step 3/4 agent suggestions when leaving Step 3 or Step 4
-    if ((currentStep === 3 || currentStep === 4) && state.productId && state.agentStep2Response) {
-      upsertSuggestProductsDraft(state.productId, {
-        suggestAgentStep34: {
-          agentResponse: state.agentStep2Response,
-          fieldMetadata: state.fieldMetadata,
-        },
-      }).catch(err => console.error('[Wizard] Error saving step3/4 suggestions:', err));
-    }
-
-    // Only auto-save if we didn't just create the product
-    // (to avoid race condition creating duplicate products)
-    if (!productWasJustCreated) {
-      void autoSave();
-    }
+    // Auto-save silently on every step advance (fire-and-forget)
+    void autoSave();
   };
 
   const goBack = () => {
@@ -479,7 +384,7 @@ export const NewProductWizard: React.FC = () => {
 
       {/* Contenido scrollable */}
       <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
-        {currentStep === 1 && <Step1NewPiece {...stepProps} shopId={shopId} />}
+        {currentStep === 1 && <Step1NewPiece {...stepProps} />}
         {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
         {currentStep === 3 && <Step3ProcessTime {...stepProps} />}
         {currentStep === 4 && <Step4PriceLogistics {...stepProps} />}

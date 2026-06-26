@@ -86,7 +86,6 @@ import { PayoutUserInfoModule } from './resources/payout-user-info/payout-user-i
 import { AchievementsCatalogModule } from './resources/achievements-catalog/achievements-catalog.module';
 import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
 import { UsersIdAgreementModule } from './resources/users-id-agreement/users-id-agreement.module';
-import { SuggestProductsDraftModule } from './resources/suggest-products-draft/suggest-products-draft.module';
 
 @Module({
   imports: [
@@ -218,7 +217,6 @@ import { SuggestProductsDraftModule } from './resources/suggest-products-draft/s
     AchievementsCatalogModule,
     ArtisansKnowledgeModule,
     UsersIdAgreementModule,
-    SuggestProductsDraftModule,
   ],
   controllers: [],
   providers: [],

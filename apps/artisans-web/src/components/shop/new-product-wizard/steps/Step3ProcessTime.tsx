@@ -1,13 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import React, { useRef, useState, useEffect } from 'react';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { ToolPicker } from '../components/TaxonomyPicker';
-import { useImageUpload } from '@/components/shop/ai-upload/hooks/useImageUpload';
-import { step2Capture } from '@/services/agent.actions';
 import {
   getStoriesByArtisan,
   createStory,
@@ -24,7 +21,6 @@ interface Props {
   step: number;
   totalSteps: number;
   artisanId?: string;
-  userId?: string;
   leftOffset?: number;
 }
 
@@ -63,7 +59,6 @@ interface MobileProcessStripProps {
   evidenceRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   onDelete: (index: number, e: React.MouseEvent) => void;
-  uploadingSlots: Set<number>;
 }
 
 const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
@@ -72,25 +67,19 @@ const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
   evidenceRefs,
   onFileChange,
   onDelete,
-  uploadingSlots,
 }) => (
   <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' as any }}>
     {PROCESS_SLOTS.map(slot => {
       const preview = evidenceUrls[slot.index] ?? null;
       const isVideo = videoIndices.has(slot.index);
-      const isUploading = uploadingSlots.has(slot.index);
       return (
         <div key={slot.index} className="flex-shrink-0 flex flex-col items-center gap-1.5">
           <div
-            onClick={() => !isUploading && evidenceRefs.current[slot.index]?.click()}
-            className={`relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 ${isUploading ? 'cursor-wait' : 'cursor-pointer'} overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95`}
+            onClick={() => evidenceRefs.current[slot.index]?.click()}
+            className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
             style={{ background: preview ? undefined : 'rgba(255,255,255,0.8)' }}
           >
-            {isUploading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95">
-                <div className="w-6 h-6 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin" />
-              </div>
-            ) : preview ? (
+            {preview ? (
               <>
                 {isVideo ? (
                   <video
@@ -152,7 +141,6 @@ interface ProcessSlotProps {
   onDelete: (e: React.MouseEvent) => void;
   height: string;
   small?: boolean;
-  isUploading?: boolean;
 }
 
 const ProcessSlot: React.FC<ProcessSlotProps> = ({
@@ -164,23 +152,17 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
   onDelete,
   height,
   small,
-  isUploading = false,
 }) => {
   const inputEl = useRef<HTMLInputElement | null>(null);
-  const handleClick = () => { if (!isUploading) inputEl.current?.click(); };
+  const handleClick = () => inputEl.current?.click();
 
   return (
     <div
       onClick={handleClick}
-      className={`relative flex flex-col items-center justify-center border border-[#e2d5cf]/40 ${isUploading ? 'cursor-wait' : 'cursor-pointer'} overflow-hidden rounded-lg ${height} group transition-all hover:border-[#ec6d13]/30 hover:shadow-sm`}
+      className={`relative flex flex-col items-center justify-center border border-[#e2d5cf]/40 cursor-pointer overflow-hidden rounded-lg ${height} group transition-all hover:border-[#ec6d13]/30 hover:shadow-sm`}
       style={{ background: '#ffffff' }}
     >
-      {isUploading ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95">
-          <div className={`${small ? 'w-6 h-6' : 'w-8 h-8'} border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-2`} />
-          <span className="text-[11px] font-[700] text-[#54433e]/60">Subiendo...</span>
-        </div>
-      ) : preview ? (
+      {preview ? (
         <>
           {isVideo ? (
             <video
@@ -233,7 +215,7 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
   );
 };
 
-export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', userId = '', leftOffset }) => {
+export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, artisanId = '', leftOffset }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [showCustomTime, setShowCustomTime] = useState(
     () => !!state.elaborationTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === state.elaborationTime),
@@ -241,65 +223,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
   const [videoIndices, setVideoIndices] = useState<Set<number>>(new Set());
   const evidenceRefs = useRef<(HTMLInputElement | null)[]>([]);
   const recognitionRef = useRef<any>(null);
-
-  // Image upload state
-  const { uploadImages } = useImageUpload();
-  const [uploadingSlots, setUploadingSlots] = useState<Set<number>>(new Set());
-
-  // Agent step 2 state
-  const [agentLoading, setAgentLoading] = useState(false);
-  const agentCallDone = useRef(!!state.agentStep2Response);
-
-  // ── Accept / Reject handlers for agent suggestions ──────────────
-  type Step3Field = 'processDescription' | 'elaborationTime' | 'monthlyCapacity' | 'careNotes';
-
-  const handleAcceptSuggestion = useCallback(
-    (field: Step3Field, value: string) => {
-      const fieldUpdates: Partial<NewWizardState> = {};
-
-      if (field === 'processDescription') {
-        fieldUpdates.processDescription = value;
-      } else if (field === 'elaborationTime') {
-        fieldUpdates.elaborationTime = value;
-        const isPreset = TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === value);
-        setShowCustomTime(!isPreset);
-      } else if (field === 'monthlyCapacity') {
-        fieldUpdates.monthlyCapacity = Number(value);
-      } else if (field === 'careNotes') {
-        fieldUpdates.careNotes = value;
-      }
-
-      update({
-        ...fieldUpdates,
-        fieldMetadata: {
-          ...state.fieldMetadata,
-          [field]: {
-            source: 'ia_accepted' as const,
-            originalAiValue: value,
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-      toast.success('Sugerencia aplicada');
-    },
-    [update, state.fieldMetadata],
-  );
-
-  const handleRejectSuggestion = useCallback(
-    (field: Step3Field) => {
-      update({
-        fieldMetadata: {
-          ...state.fieldMetadata,
-          [field]: {
-            source: 'manual' as const,
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-      toast.info('Puedes escribir tu propia versión');
-    },
-    [update, state.fieldMetadata],
-  );
 
   // Process library state
   const [processes, setProcesses] = useState<Story[]>([]);
@@ -309,151 +232,40 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
   const [saveTitle, setSaveTitle] = useState('');
   const [isSavingProcess, setIsSavingProcess] = useState(false);
 
-  // Validation: require at least elaboration time + agent not loading
-  const canContinue = !!state.elaborationTime && state.elaborationTime.trim().length > 0 && !agentLoading;
-
-  const handleNext = () => {
-    // Strict validation with user feedback
-    if (!state.elaborationTime || state.elaborationTime.trim().length === 0) {
-      toast.error("Por favor ingresa el tiempo de elaboración de la pieza");
-      return;
-    }
-
-    console.log('[Step3] fieldMetadata:', JSON.stringify(state.fieldMetadata, null, 2));
-
-    // All validation passed, proceed to next step
-    onNext();
-  };
-
-  // Prefer step2 oráculo when available, fall back to step1Confirm
-  const oraculo = state.agentStep2Response?.oraculo ?? state.agentStep1ConfirmResponse?.oraculo;
-
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
-    if (!oraculo && !agentLoading) return;
-
-    if (agentLoading) {
-      setNode(
-        <div className="p-5 flex flex-col gap-4" style={{ background: '#151b2d', borderRadius: 16 }}>
-          <div className="flex items-center gap-2 border-b border-white/10 pb-4">
-            <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>psychology</span>
-            <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Oráculo</h3>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
-            <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-              Esperando respuesta del agente...
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center py-6">
-            <div className="w-10 h-10 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
-            <p className="text-[11px] text-white/60">Analizando proceso...</p>
-          </div>
-        </div>
-      );
-      return clearNode;
-    }
-
-    if (!oraculo) return;
-    const pa = state.agentStep2Response?.process_analysis;
     setNode(
       <div className="p-5 flex flex-col gap-4" style={{ background: '#151b2d', borderRadius: 16 }}>
-        <div className="flex items-center gap-2 border-b border-white/10 pb-4">
-          <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>auto_awesome</span>
-          <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Oráculo</h3>
-        </div>
-        <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <p className="text-[10px] font-[800] text-[#ec6d13] uppercase tracking-widest mb-2">{oraculo.title}</p>
-          <p className="text-[12px] text-white/70 leading-relaxed">{oraculo.body}</p>
-        </div>
-
-        {/* Suggestion cards */}
-        {pa?.structured_process?.content && (
-          <Step3SuggestionCard
-            label="Descripción del proceso"
-            value={pa.structured_process.content}
-            fieldKey="processDescription"
-            onAccept={handleAcceptSuggestion}
-            onReject={handleRejectSuggestion}
-            isAccepted={state.fieldMetadata?.processDescription?.source === 'ia_accepted'}
-            isRejected={state.fieldMetadata?.processDescription?.source === 'manual'}
-          />
-        )}
-        {pa?.elaboration_time?.value && (
-          <Step3SuggestionCard
-            label="Tiempo de elaboración"
-            value={pa.elaboration_time.value}
-            fieldKey="elaborationTime"
-            onAccept={handleAcceptSuggestion}
-            onReject={handleRejectSuggestion}
-            isAccepted={state.fieldMetadata?.elaborationTime?.source === 'ia_accepted'}
-            isRejected={state.fieldMetadata?.elaborationTime?.source === 'manual'}
-          />
-        )}
-        {pa?.monthly_capacity?.value && (
-          <Step3SuggestionCard
-            label="Capacidad mensual"
-            value={pa.monthly_capacity.value}
-            fieldKey="monthlyCapacity"
-            onAccept={handleAcceptSuggestion}
-            onReject={handleRejectSuggestion}
-            isAccepted={state.fieldMetadata?.monthlyCapacity?.source === 'ia_accepted'}
-            isRejected={state.fieldMetadata?.monthlyCapacity?.source === 'manual'}
-          />
-        )}
-        {pa?.structured_process?.care_instructions && (
-          <Step3SuggestionCard
-            label="Cuidados del producto"
-            value={pa.structured_process.care_instructions}
-            fieldKey="careNotes"
-            onAccept={handleAcceptSuggestion}
-            onReject={handleRejectSuggestion}
-            isAccepted={state.fieldMetadata?.careNotes?.source === 'ia_accepted'}
-            isRejected={state.fieldMetadata?.careNotes?.source === 'manual'}
-          />
-        )}
-
-        {oraculo.next_step_hint && (
-          <div className="pt-2 border-t border-white/10">
-            <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">Próximo paso</p>
-            <p className="text-[11px] text-white/60 leading-relaxed">{oraculo.next_step_hint}</p>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>auto_awesome</span>
+            <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Sugerido por IA</h3>
           </div>
-        )}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ec6d13' }} />
+            <span className="text-[9px] font-[800] tracking-widest text-white/60 uppercase">Analizando</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-white/50">Basado en las fotos, descripción y técnica seleccionada.</p>
+        <div className="flex flex-col gap-3">
+          {([
+            { label: 'Tiempo estimado', value: state.elaborationTime ?? '1 semana' },
+            { label: 'Capacidad sugerida', value: `${state.monthlyCapacity ?? 4} piezas / mes` },
+            { label: 'Método detectado', value: state.processMethod ?? 'Hecho a mano' },
+          ] as { label: string; value: string }[]).map(({ label, value }) => (
+            <div key={label} className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">{label}</p>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest" style={{ background: 'rgba(236,109,19,0.2)', color: '#ec6d13' }}>IA</span>
+              </div>
+              <p className="text-[13px] text-white/80 font-[500]">{value}</p>
+            </div>
+          ))}
+        </div>
       </div>
     );
     return clearNode;
-  }, [oraculo, agentLoading, state.agentStep2Response, state.fieldMetadata]);
-
-  // Auto-detect when process description + main evidence photo are ready → call agent
-  const hasProcessDescription = (state.processDescription ?? '').trim().length > 0;
-  const hasMainEvidence = !!(state.processEvidenceUrls?.[0] && state.processEvidenceUrls[0].startsWith('http'));
-  const step3FieldsReady = hasProcessDescription && hasMainEvidence;
-
-  useEffect(() => {
-    if (!step3FieldsReady || agentCallDone.current) return;
-    if (!userId || !state.productId) return;
-
-    const debounceTimer = setTimeout(async () => {
-      setAgentLoading(true);
-      try {
-        const response = await step2Capture({
-          userId,
-          productId: state.productId!,
-          processDescription: state.processDescription ?? '',
-          processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(Boolean),
-        });
-        console.log('[Step3] step2Capture response:', response);
-        agentCallDone.current = true;
-        update({ agentStep2Response: response });
-      } catch (error) {
-        console.error('[Step3] Error calling step2Capture:', error);
-      } finally {
-        setAgentLoading(false);
-      }
-    }, 2000);
-
-    return () => clearTimeout(debounceTimer);
-  }, [step3FieldsReady, userId, state.productId, state.processDescription, state.processEvidenceUrls, update]);
+  }, [state.elaborationTime, state.monthlyCapacity, state.processMethod]);
 
   const loadProcesses = () => {
     if (!artisanId || loadingProcesses) return;
@@ -496,35 +308,18 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
     }
   };
 
-  const handleSlotChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleSlotChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Mark slot as uploading
-    setUploadingSlots(prev => new Set(prev).add(index));
-
-    try {
-      const [url] = await uploadImages([file]);
-      const urls = [...(state.processEvidenceUrls ?? [])];
-      urls[index] = url;
-      update({ processEvidenceUrls: urls });
-      setVideoIndices(prev => {
-        const s = new Set(prev);
-        file.type.startsWith('video/') ? s.add(index) : s.delete(index);
-        return s;
-      });
-      toast.success('Evidencia subida correctamente');
-    } catch (error) {
-      console.error('[Step3] Error uploading evidence:', error);
-      toast.error('No se pudo subir la evidencia. Intenta de nuevo.');
-    } finally {
-      setUploadingSlots(prev => {
-        const next = new Set(prev);
-        next.delete(index);
-        return next;
-      });
-      e.target.value = '';
-    }
+    const urls = [...(state.processEvidenceUrls ?? [])];
+    urls[index] = URL.createObjectURL(file);
+    update({ processEvidenceUrls: urls });
+    setVideoIndices(prev => {
+      const s = new Set(prev);
+      file.type.startsWith('video/') ? s.add(index) : s.delete(index);
+      return s;
+    });
+    e.target.value = '';
   };
 
   const removeEvidence = (index: number, e: React.MouseEvent) => {
@@ -579,150 +374,47 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
         </div>
 
         <div className="grid grid-cols-12 gap-6 items-start">
-          {/* AI Sidebar — Oráculo */}
+          {/* AI Sidebar */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
-            <div className="p-5 text-white rounded-2xl flex flex-col gap-4" style={{ background: '#151b2d' }}>
-              <div className="flex items-center gap-2 pb-3 border-b border-white/10">
+            <div className="p-5 text-white rounded-2xl" style={{ background: '#151b2d' }}>
+              <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-outlined text-[#ec6d13] text-lg">auto_awesome</span>
                 <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase">
-                  Oráculo
+                  Sugerido por IA
                 </h3>
               </div>
-
-              {/* Loading state */}
-              {agentLoading && (
-                <>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
-                    <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-                      Esperando respuesta del agente...
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center py-6">
-                    <div className="w-10 h-10 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
-                    <p className="text-[11px] text-white/60">Analizando proceso...</p>
-                  </div>
-                </>
-              )}
-
-              {/* Oráculo content + suggestion cards */}
-              {!agentLoading && oraculo && (
-                <>
+              <p className="text-[11px] text-white/50 mb-5">
+                Basado en las fotos, descripción y técnica seleccionada.
+              </p>
+              <div className="space-y-3">
+                {[
+                  { label: 'Tiempo estimado', value: state.elaborationTime ?? '1 semana' },
+                  { label: 'Capacidad sugerida', value: `${state.monthlyCapacity ?? 4} piezas / mes` },
+                  { label: 'Método detectado', value: state.processMethod ?? 'Hecho a mano' },
+                ].map(({ label, value }) => (
                   <div
+                    key={label}
                     className="p-3 rounded-xl"
                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    <p className="text-[10px] font-[800] text-[#ec6d13] uppercase tracking-widest mb-2">
-                      {oraculo.title}
-                    </p>
-                    <p className="text-[12px] text-white/70 leading-relaxed">
-                      {oraculo.body}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">{label}</p>
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">
+                        IA
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-white/80 font-[500] mb-2">{value}</p>
+                    <div className="flex gap-1.5">
+                      <button className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase">
+                        Confirmar
+                      </button>
+                      <button className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 text-[9px] py-1.5 rounded-md transition-colors font-[800] uppercase">
+                        Cambiar
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Process description suggestion */}
-                  {state.agentStep2Response?.process_analysis?.structured_process?.content && (
-                    <Step3SuggestionCard
-                      label="Descripción del proceso"
-                      value={state.agentStep2Response.process_analysis.structured_process.content}
-                      fieldKey="processDescription"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={state.fieldMetadata?.processDescription?.source === 'ia_accepted'}
-                      isRejected={state.fieldMetadata?.processDescription?.source === 'manual'}
-                    />
-                  )}
-
-                  {/* Elaboration time suggestion */}
-                  {state.agentStep2Response?.process_analysis?.elaboration_time?.value && (
-                    <Step3SuggestionCard
-                      label="Tiempo de elaboración"
-                      value={state.agentStep2Response.process_analysis.elaboration_time.value}
-                      fieldKey="elaborationTime"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={state.fieldMetadata?.elaborationTime?.source === 'ia_accepted'}
-                      isRejected={state.fieldMetadata?.elaborationTime?.source === 'manual'}
-                    />
-                  )}
-
-                  {/* Monthly capacity suggestion */}
-                  {state.agentStep2Response?.process_analysis?.monthly_capacity?.value && (
-                    <Step3SuggestionCard
-                      label="Capacidad mensual"
-                      value={state.agentStep2Response.process_analysis.monthly_capacity.value}
-                      fieldKey="monthlyCapacity"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={state.fieldMetadata?.monthlyCapacity?.source === 'ia_accepted'}
-                      isRejected={state.fieldMetadata?.monthlyCapacity?.source === 'manual'}
-                    />
-                  )}
-
-                  {/* Care notes suggestion */}
-                  {state.agentStep2Response?.process_analysis?.structured_process?.care_instructions && (
-                    <Step3SuggestionCard
-                      label="Cuidados del producto"
-                      value={state.agentStep2Response.process_analysis.structured_process.care_instructions}
-                      fieldKey="careNotes"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={state.fieldMetadata?.careNotes?.source === 'ia_accepted'}
-                      isRejected={state.fieldMetadata?.careNotes?.source === 'manual'}
-                    />
-                  )}
-
-                  {/* Pricing suggestion from step2 */}
-                  {state.agentStep2Response?.pricing_suggestions?.suggested_price && (
-                    <div
-                      className="p-3 rounded-xl"
-                      style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)' }}
-                    >
-                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
-                        Precio sugerido
-                      </p>
-                      <p className="text-[18px] font-[800] text-[#22c55e]">
-                        ${state.agentStep2Response.pricing_suggestions.suggested_price.value.toLocaleString('es-CO')}{' '}
-                        <span className="text-[10px] font-[600] text-white/40">
-                          {state.agentStep2Response.pricing_suggestions.suggested_price.currency ?? 'COP'}
-                        </span>
-                      </p>
-                      {state.agentStep2Response.pricing_suggestions.suggested_price.range && (
-                        <p className="text-[10px] text-white/40 mt-1">
-                          Rango: ${state.agentStep2Response.pricing_suggestions.suggested_price.range.min.toLocaleString('es-CO')} – ${state.agentStep2Response.pricing_suggestions.suggested_price.range.max.toLocaleString('es-CO')}
-                        </p>
-                      )}
-                      {state.agentStep2Response.pricing_suggestions.suggested_price.reasoning && (
-                        <p className="text-[10px] text-white/35 mt-2 leading-snug">
-                          {state.agentStep2Response.pricing_suggestions.suggested_price.reasoning}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Next step hint */}
-                  {oraculo.next_step_hint && (
-                    <div className="pt-2 border-t border-white/10">
-                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">
-                        Próximo paso
-                      </p>
-                      <p className="text-[11px] text-white/60 leading-snug">
-                        {oraculo.next_step_hint}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Default empty state */}
-              {!agentLoading && !oraculo && (
-                <div className="flex flex-col items-center gap-2 py-4">
-                  <span className="material-symbols-outlined text-white/20 text-[28px]">psychology</span>
-                  <p className="text-[11px] text-white/30 text-center">
-                    Completa los pasos anteriores para recibir el mensaje del Oráculo.
-                  </p>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </aside>
 
@@ -749,7 +441,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                   evidenceRefs={evidenceRefs}
                   onFileChange={handleSlotChange}
                   onDelete={removeEvidence}
-                  uploadingSlots={uploadingSlots}
                 />
               </div>
 
@@ -764,7 +455,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                     onFileChange={e => handleSlotChange(e, 0)}
                     onDelete={e => removeEvidence(0, e)}
                     height="h-full min-h-[270px]"
-                    isUploading={uploadingSlots.has(0)}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-[45%] shrink-0">
@@ -779,7 +469,6 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                       onDelete={e => removeEvidence(slot.index, e)}
                       height="h-[130px]"
                       small
-                      isUploading={uploadingSlots.has(slot.index)}
                     />
                   ))}
                 </div>
@@ -950,7 +639,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
               )}
             </section>
 
-            {/* 3. IA interpretation */}
+            {/* 3. IA interpretation placeholder */}
             <section
               className="p-5 rounded-2xl border border-[#ec6d13]/15"
               style={{ background: 'rgba(236,109,19,0.03)' }}
@@ -960,74 +649,13 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#ec6d13] uppercase tracking-widest">
                   Interpretación IA del proceso
                 </label>
-                {agentLoading && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#22c55e]/15 text-[#22c55e]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-                    Analizando
-                  </span>
-                )}
-                {!agentLoading && state.agentStep2Response && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#22c55e]/15 text-[#22c55e]">
-                    <span className="material-symbols-outlined text-[10px]">check_circle</span>
-                    Completado
-                  </span>
-                )}
-                {!agentLoading && !state.agentStep2Response && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/15 text-[#ec6d13]">
-                    Pendiente
-                  </span>
-                )}
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/15 text-[#ec6d13]">
+                  Próximamente
+                </span>
               </div>
-
-              {agentLoading && (
-                <div className="flex items-center gap-3 py-4">
-                  <div className="w-6 h-6 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin" />
-                  <p className="text-[12px] text-[#54433e]/60">Analizando evidencia y descripción del proceso...</p>
-                </div>
-              )}
-
-              {!agentLoading && state.agentStep2Response?.process_analysis?.structured_process?.phases?.length > 0 && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/40 mb-2">Fases detectadas</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {state.agentStep2Response.process_analysis.structured_process.phases.map((phase, i) => (
-                        <span
-                          key={i}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-[700] capitalize"
-                          style={{ background: 'rgba(236,109,19,0.08)', color: '#ec6d13', border: '1px solid rgba(236,109,19,0.15)' }}
-                        >
-                          {phase.replace(/_/g, ' ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {state.agentStep2Response.process_analysis.structured_process.tools &&
-                    state.agentStep2Response.process_analysis.structured_process.tools.length > 0 && (
-                    <div>
-                      <p className="text-[9px] font-[800] uppercase tracking-widest text-[#54433e]/40 mb-2">Herramientas detectadas</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {state.agentStep2Response.process_analysis.structured_process.tools.map((tool, i) => (
-                          <span
-                            key={i}
-                            className="px-2.5 py-1 rounded-full text-[10px] font-[700] capitalize"
-                            style={{ background: 'rgba(21,27,45,0.05)', color: '#54433e', border: '1px solid rgba(21,27,45,0.1)' }}
-                          >
-                            {tool.replace(/_/g, ' ')}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!agentLoading && !state.agentStep2Response && (
-                <p className="text-[11px] text-[#54433e]/60">
-                  Cuando subas evidencia y describas el proceso, el sistema analizará las imágenes para sugerir fases, herramientas y estructura productiva automáticamente.
-                </p>
-              )}
+              <p className="text-[11px] text-[#54433e]/60">
+                Cuando subas evidencia y describas el proceso, el sistema analizará las imágenes para sugerir fases, herramientas y estructura productiva automáticamente.
+              </p>
             </section>
 
             {/* 4. Times + capacity */}
@@ -1176,93 +804,11 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
         step={step}
         totalSteps={totalSteps}
         onBack={onBack}
-        onNext={handleNext}
+        onNext={onNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue}
-        disabledReason={
-          agentLoading
-            ? "Analizando proceso con IA..."
-            : !state.elaborationTime || state.elaborationTime.trim().length === 0
-              ? "Ingresa el tiempo de elaboración"
-              : undefined
-        }
         leftOffset={leftOffset}
       />
-    </div>
-  );
-};
-
-// ── Step3SuggestionCard ───────────────────────────────────────────────────────
-
-interface Step3SuggestionCardProps {
-  label: string;
-  value: string;
-  fieldKey: 'processDescription' | 'elaborationTime' | 'monthlyCapacity' | 'careNotes';
-  onAccept: (field: any, value: string) => void;
-  onReject: (field: any) => void;
-  isAccepted: boolean;
-  isRejected: boolean;
-}
-
-const Step3SuggestionCard: React.FC<Step3SuggestionCardProps> = ({
-  label,
-  value,
-  fieldKey,
-  onAccept,
-  onReject,
-  isAccepted,
-  isRejected,
-}) => {
-  return (
-    <div
-      className="p-3 rounded-xl"
-      style={{
-        background: isAccepted
-          ? 'rgba(34,197,94,0.05)'
-          : 'rgba(255,255,255,0.05)',
-        border: isAccepted
-          ? '1px solid rgba(34,197,94,0.2)'
-          : '1px solid rgba(255,255,255,0.08)',
-      }}
-    >
-      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
-        {label}
-      </p>
-      <p className="text-[12px] text-white/85 leading-snug mb-3 line-clamp-4">
-        {value}
-      </p>
-
-      {isAccepted && (
-        <div className="flex items-center gap-1 text-[10px] text-green-400 mb-2">
-          <span className="material-symbols-outlined text-[14px]">check_circle</span>
-          <span>Sugerencia aceptada</span>
-        </div>
-      )}
-
-      {isRejected && (
-        <div className="flex items-center gap-1 text-[10px] text-white/40 mb-2">
-          <span className="material-symbols-outlined text-[14px]">cancel</span>
-          <span>Sugerencia rechazada</span>
-        </div>
-      )}
-
-      {!isAccepted && !isRejected && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => onAccept(fieldKey, value)}
-            className="flex-1 px-3 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] transition-all"
-          >
-            Aceptar
-          </button>
-          <button
-            onClick={() => onReject(fieldKey)}
-            className="px-3 py-2 rounded-lg border border-white/20 text-white/60 text-[10px] font-[700] hover:text-white hover:border-white/40 transition-all"
-          >
-            Rechazar
-          </button>
-        </div>
-      )}
     </div>
   );
 };

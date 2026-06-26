@@ -226,6 +226,31 @@ export function useTaskSteps(taskId: string) {
     fetchSteps();
   }, [fetchSteps]);
 
+  // Subscribe to real-time updates
+  useEffect(() => {
+    if (!taskId) return;
+
+    const channel = supabase
+      .channel(`task-steps-${taskId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_steps',
+          filter: `task_id=eq.${taskId}`,
+        },
+        () => {
+          fetchSteps();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [taskId, fetchSteps]);
+
   return {
     steps,
     loading,
