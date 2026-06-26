@@ -164,22 +164,27 @@ export const Step6FinalReview: React.FC<Props> = ({
         return;
       }
 
-      // Images are already uploaded to S3 from Step1, just filter URLs
-      const imageUrls = state.images.filter((img): img is string => typeof img === 'string');
+      const imageFiles = state.images.filter((img): img is File => img instanceof File);
+      const existingUrls = state.images.filter((img): img is string => typeof img === 'string');
 
-      // Create DTO with publish=true to change status to "pending_review"
-      const dto = mapNewStateToDto(state, storeId, imageUrls, true);
-      console.log('[Step6] Enviando DTO final:', JSON.stringify(dto, null, 2));
-
-      // Product should already exist from Step2, but handle both cases
-      if (state.productId) {
-        await updateProductNew(state.productId, dto, { suppressToast: true });
-        console.log('[Step6] Product updated to pending_review:', state.productId);
-      } else {
-        const result = await createProductNew(dto, { suppressToast: true });
-        console.log('[Step6] Product created (fallback):', result);
+      let newUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        try {
+          newUrls = await uploadImages(imageFiles);
+        } catch (uploadErr) {
+          console.warn('[Step6] Falló subida de imágenes, continuando sin ellas:', uploadErr);
+          toast.warning('No se pudieron subir algunas imágenes. La pieza se guardará sin ellas.');
+        }
       }
 
+      const allUrls = [...existingUrls, ...newUrls];
+      const dto = mapNewStateToDto(state, storeId, allUrls, true);
+      console.log('[Step6] Enviando DTO:', JSON.stringify(dto, null, 2));
+      if (state.productId) {
+        await updateProductNew(state.productId, dto, { suppressToast: true });
+      } else {
+        await createProductNew(dto, { suppressToast: true });
+      }
       onPublished();
     } catch (err: any) {
       const status = err?.response?.status;

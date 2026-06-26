@@ -402,46 +402,6 @@ class AgentsDbClient:
             result.append(d)
         return result
 
-    async def list_knowledge_documents(
-        self, category: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
-        """List knowledge documents, optionally filtered by category."""
-        pool = await self._get_pool()
-        sql = """
-            SELECT id::text, filename, file_type, knowledge_category, tags,
-                   uploaded_by, processing_status, chunk_count,
-                   created_at, updated_at
-            FROM agents.agent_knowledge_documents
-            WHERE ($1::text IS NULL OR knowledge_category = $1)
-            ORDER BY created_at DESC
-        """
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(sql, category)
-        return [dict(r) for r in rows]
-
-    async def delete_knowledge_document(self, document_id: UUID) -> None:
-        """Delete a knowledge document. Embeddings cascade via FK."""
-        pool = await self._get_pool()
-        sql = "DELETE FROM agents.agent_knowledge_documents WHERE id = $1::uuid"
-        async with pool.acquire() as conn:
-            await conn.execute(sql, str(document_id))
-
-    async def list_knowledge_categories(self) -> List[Dict[str, Any]]:
-        """Aggregate document/chunk counts per knowledge category."""
-        pool = await self._get_pool()
-        sql = """
-            SELECT knowledge_category,
-                   COUNT(*) AS doc_count,
-                   COALESCE(SUM(chunk_count), 0) AS total_chunks,
-                   MAX(created_at) AS last_uploaded_at
-            FROM agents.agent_knowledge_documents
-            GROUP BY knowledge_category
-            ORDER BY knowledge_category
-        """
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(sql)
-        return [dict(r) for r in rows]
-
     # ------------------------------------------------------------------
     # Onboarding profiles  (agents.user_onboarding_profiles)
     # ------------------------------------------------------------------

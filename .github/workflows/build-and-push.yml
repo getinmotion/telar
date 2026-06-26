@@ -8,14 +8,13 @@ on:
       - 'apps/api/**'
       - 'apps/agents/**'
       - 'apps/src/**'
-      - 'apps/admin-rag/**'
       - 'apps/artisans-web/**'
       - 'apps/marketplace-web/**'
       - 'apps/payment-svc/**'
   workflow_dispatch:
     inputs:
       service:
-        description: 'Service to build (api | agents | admin-rag | artisans-web | marketplace-web | payment-svc | all)'
+        description: 'Service to build (api | agents | artisans-web | marketplace-web | payment-svc | all)'
         required: false
         default: 'all'
 
@@ -33,24 +32,19 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       agents: ${{ steps.filter.outputs.agents }}
-      admin-rag: ${{ steps.filter.outputs.admin-rag }}
       artisans-web: ${{ steps.filter.outputs.artisans-web }}
       marketplace-web: ${{ steps.filter.outputs.marketplace-web }}
       payment-svc: ${{ steps.filter.outputs.payment-svc }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
             api:
               - 'apps/api/**'
             agents:
-              - 'apps/agents/**'
-              - 'apps/src/**'
-            admin-rag:
-              - 'apps/admin-rag/**'
               - 'apps/agents/**'
               - 'apps/src/**'
             artisans-web:
@@ -157,55 +151,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=gim-agents
           cache-to: type=gha,scope=gim-agents,mode=max
-
-  # ============================================================
-  # Knowledge Admin — Streamlit (internal RAG admin tool)
-  # ============================================================
-  build-admin-rag:
-    name: Build Knowledge Admin (Streamlit)
-    needs: changes
-    if: |
-      needs.changes.outputs['admin-rag'] == 'true' ||
-      (github.event_name == 'workflow_dispatch' &&
-       (github.event.inputs.service == 'admin-rag' || github.event.inputs.service == 'all'))
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-knowledge-admin
-          tags: |
-            type=raw,value=develop
-            type=sha,prefix=sha-,format=short
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: apps
-          file: apps/admin-rag/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gim-knowledge-admin
-          cache-to: type=gha,scope=gim-knowledge-admin,mode=max
 
   # ============================================================
   # Artisans Web — Vite / React

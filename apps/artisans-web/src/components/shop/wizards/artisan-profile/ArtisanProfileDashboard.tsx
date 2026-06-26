@@ -218,9 +218,6 @@ export const ArtisanProfileDashboard: React.FC<ArtisanProfileDashboardProps> = (
           <div className="space-y-2 text-sm">
             <p><span className="font-medium">Nombre:</span> {data.artisanName}</p>
             <p><span className="font-medium">Nombre artístico:</span> {data.artisticName}</p>
-            {data.artisanVideo && (
-              <p><span className="font-medium">Video:</span> <a href={data.artisanVideo} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ver video</a></p>
-            )}
           </div>
         </SectionCard>
 

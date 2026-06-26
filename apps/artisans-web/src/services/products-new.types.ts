@@ -56,12 +56,6 @@ export interface CreateProductsNewDto {
   badges?: CreateProductBadgeDto[];
   materials?: CreateProductMaterialLinkDto[];
   variants?: CreateProductVariantDto[];
-
-  // Metadata de contenido (opcional, para analytics)
-  contentMetadata?: {
-    shortDescriptionSource?: 'ia_accepted' | 'manual' | 'ia_modified';
-    historySource?: 'ia_accepted' | 'manual' | 'ia_modified';
-  };
 }
 
 /**

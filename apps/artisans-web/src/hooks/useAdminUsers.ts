@@ -40,6 +40,24 @@ export const useAdminUsers = () => {
     refetchInterval: 120000, // 2 minutes
   });
 
+  // Realtime subscription for user_profiles changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-users-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_profiles' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const getStats = () => {
     const users = query.data || [];
     return {

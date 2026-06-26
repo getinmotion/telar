@@ -47,7 +47,7 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
 
         return response.data;
     } catch (error) {
-        toastError(error);
+        // toastError(error);
         throw error;
     }
 }
