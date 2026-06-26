@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, ExternalLink, MapPin, Package, CreditCard, Globe, Instagram, Facebook } from 'lucide-react';
 import { getArtisanShopById } from '@/services/artisanShops.actions';
 import { ArtisanShop } from '@/types/artisanShop.types';
+import { useAuth } from '@/context/AuthContext';
 import { useModerationStats } from '@/hooks/useModerationStats';
 import {
   toggleShopMarketplaceApproval,
@@ -66,6 +67,7 @@ const ActionBtn: React.FC<{ label: string; icon: string; onClick: () => void; va
 const BackofficeTiendaDetailPage: React.FC = () => {
   const { shopId } = useParams<{ shopId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [shop, setShop]       = useState<ArtisanShop | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ const BackofficeTiendaDetailPage: React.FC = () => {
     if (!shopId) return;
     setActionLoading('approve');
     try {
-      await toggleShopMarketplaceApproval(shopId, true);
+      await toggleShopMarketplaceApproval(shopId, true, { userId: user?.id });
       setShop(s => s ? { ...s, marketplaceApproved: true, marketplaceApprovalStatus: 'approved' } : s);
       toast.success('Tienda aprobada para el marketplace');
     } catch { toast.error('Error al aprobar la tienda'); }
@@ -119,7 +121,7 @@ const BackofficeTiendaDetailPage: React.FC = () => {
     if (!shopId) return;
     setActionLoading('reject');
     try {
-      await toggleShopMarketplaceApproval(shopId, false);
+      await toggleShopMarketplaceApproval(shopId, false, { userId: user?.id });
       setShop(s => s ? { ...s, marketplaceApproved: false, marketplaceApprovalStatus: 'rejected' } : s);
       toast.success('Tienda rechazada del marketplace');
     } catch { toast.error('Error al rechazar la tienda'); }
@@ -131,7 +133,7 @@ const BackofficeTiendaDetailPage: React.FC = () => {
     const willPublish = shop.publishStatus !== 'published';
     setActionLoading('publish');
     try {
-      await publishShopAdmin(shopId, willPublish ? 'publish' : 'unpublish');
+      await publishShopAdmin(shopId, willPublish ? 'publish' : 'unpublish', { userId: user?.id });
       setShop(s => s ? { ...s, publishStatus: willPublish ? 'published' : 'pending_publish' } : s);
       toast.success(willPublish ? 'Tienda publicada' : 'Tienda despublicada');
     } catch { toast.error('Error al cambiar estado de publicación'); }

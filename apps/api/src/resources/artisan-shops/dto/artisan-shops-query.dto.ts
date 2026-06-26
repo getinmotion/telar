@@ -133,6 +133,14 @@ export class ArtisanShopsQueryDto {
   @IsString()
   craftType?: string;
 
+  @ApiPropertyOptional({
+    description: 'ID del usuario para filtrar por agreement',
+    example: 'b3ec84c6-948a-4a73-81bb-bcd2ae66b708',
+  })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
   // Ordenamiento
   @ApiPropertyOptional({
     description: 'Ordenar por',

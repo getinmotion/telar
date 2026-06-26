@@ -483,7 +483,7 @@ const ModerationOSPage: React.FC = () => {
     kanbanLoadedRef.current = true;
 
     const statuses = ['pending_moderation', 'changes_requested', 'rejected', 'approved_with_edits'];
-    Promise.all(statuses.map(status => getModerationQueue({ status, page: 1, pageSize: 30 })))
+    Promise.all(statuses.map(status => getModerationQueue({ userId: user?.id, status, page: 1, pageSize: 30 })))
       .then(results => {
         const grouped: Record<string, QueueCardItem[]> = {};
         statuses.forEach((status, i) => {

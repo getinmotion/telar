@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 import {
   getModerationShops,
   getShopProductCounts,
@@ -69,6 +70,7 @@ export interface ShopAdvancedFilters {
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
 export const useShopModeration = () => {
+  const { user } = useAuth();
   const [shops, setShops] = useState<ModerationShop[]>([]);
   const [counts, setCounts] = useState<ShopFilterCounts>({
     all: 0,
@@ -96,6 +98,7 @@ export const useShopModeration = () => {
     setLoading(true);
     try {
       const result = await getModerationShops({
+        userId: user?.id,
         filter,
         page,
         pageSize,
@@ -110,7 +113,7 @@ export const useShopModeration = () => {
       // Enriquecer con conteos de productos y campo hasBankData calculado
       const shopsEnriched = await Promise.all(
         rawShops.map(async (shop) => {
-          const productCounts = await getShopProductCounts(shop.id);
+          const productCounts = await getShopProductCounts(shop.id, user?.id);
           const enriched: ModerationShop = {
             id: shop.id,
             userId: shop.userId,
@@ -159,13 +162,13 @@ export const useShopModeration = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   const toggleMarketplaceApproval: (shopId: string, approved: boolean, comment?: string) => Promise<boolean> =
     useCallback(async (shopId: string, approved: boolean, comment?: string) => {
       setUpdating(true);
       try {
-        await toggleShopMarketplaceApproval(shopId, approved, { comment });
+        await toggleShopMarketplaceApproval(shopId, approved, { comment, userId: user?.id });
         toast.success(
           approved
             ? 'Tienda aprobada para marketplace'
@@ -178,7 +181,7 @@ export const useShopModeration = () => {
       } finally {
         setUpdating(false);
       }
-    }, []);
+    }, [user?.id]);
 
   const bulkToggleMarketplaceApproval = useCallback(async (
     shopIds: string[],
@@ -206,7 +209,7 @@ export const useShopModeration = () => {
       void reason;
       setUpdating(true);
       try {
-        await deleteShopAdmin(shopId);
+        await deleteShopAdmin(shopId, user?.id);
         toast.success('Tienda eliminada correctamente');
         return true;
       } catch {
@@ -215,7 +218,7 @@ export const useShopModeration = () => {
       } finally {
         setUpdating(false);
       }
-    }, []);
+    }, [user?.id]);
 
   const bulkDeleteShops = useCallback(async (
     shopIds: string[],
@@ -245,7 +248,7 @@ export const useShopModeration = () => {
   ): Promise<boolean> => {
     setUpdating(true);
     try {
-      await publishShopAdminApi(shopId, action, { comment });
+      await publishShopAdminApi(shopId, action, { comment, userId: user?.id });
       toast.success(action === 'publish' ? 'Tienda publicada' : 'Tienda despublicada');
       return true;
     } catch {
@@ -254,7 +257,7 @@ export const useShopModeration = () => {
     } finally {
       setUpdating(false);
     }
-  }, []);
+  }, [user?.id]);
 
   return {
     shops,

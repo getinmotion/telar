@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 import { getModerationStats, ModerationShopApi } from '@/services/moderation.actions';
 import type { ProductResponse } from '@telar/shared-types';
 
@@ -142,13 +143,14 @@ function mapProductSummary(p: ProductResponse): ProductSummary {
 }
 
 export const useModerationStats = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState<ModerationStats>(defaultStats);
   const [loading, setLoading] = useState(false);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getModerationStats();
+      const data = await getModerationStats(user?.id);
 
       const productCounts: ProductCounts = {
         pending_moderation: data.productCounts.pending_moderation ?? 0,
@@ -196,7 +198,7 @@ export const useModerationStats = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   return { stats, loading, fetchStats };
 };

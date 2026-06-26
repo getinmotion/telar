@@ -114,6 +114,7 @@ export class ArtisanShopsService {
       shopSlug,
       region,
       craftType,
+      userId,
       sortBy = 'created_at',
       order = 'DESC',
     } = query;
@@ -163,6 +164,25 @@ export class ArtisanShopsService {
       whereConditions.push(`s.craft_type = $${paramIndex}`);
       parameters.push(craftType);
       paramIndex++;
+    }
+
+    // Filtrar por agreement_id si el usuario pertenece al agreement controlado
+    if (userId) {
+      const envAgreementId = process.env.AGREEMENT_ID;
+      if (envAgreementId) {
+        const artisanProfile = await this.dataSource.query(
+          `SELECT agreement_id FROM artesanos.artisan_profile WHERE user_id = $1 LIMIT 1`,
+          [userId],
+        );
+
+        if (artisanProfile.length > 0 && artisanProfile[0].agreement_id === envAgreementId) {
+          whereConditions.push(
+            `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = s.user_id AND ap.agreement_id = $${paramIndex})`,
+          );
+          parameters.push(envAgreementId);
+          paramIndex++;
+        }
+      }
     }
 
     // Manejo especial para hasApprovedProducts

@@ -165,6 +165,7 @@ export const useProductModeration = () => {
     setLoading(true);
     try {
       const result = await getModerationQueue({
+        userId: user?.id,
         status,
         page,
         pageSize,
@@ -186,14 +187,14 @@ export const useProductModeration = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   const fetchCounts = useCallback(async () => {
     try {
       const statuses = ['pending_moderation', 'approved', 'approved_with_edits', 'changes_requested', 'rejected', 'draft'] as const;
       const results = await Promise.all(
         statuses.map((s) =>
-          getModerationQueue({ status: s, page: 1, pageSize: 1 })
+          getModerationQueue({ userId: user?.id, status: s, page: 1, pageSize: 1 })
             .then((r) => ({ status: s, total: r.total }))
             .catch(() => ({ status: s, total: 0 }))
         )
@@ -206,7 +207,7 @@ export const useProductModeration = () => {
     } catch {
       // counts are non-critical, fail silently
     }
-  }, []);
+  }, [user?.id]);
 
   const moderateProduct = useCallback(async (
     productId: string,
@@ -243,7 +244,7 @@ export const useProductModeration = () => {
     approved: boolean,
   ) => {
     try {
-      await updateShopMarketplaceApproval(shopId, approved);
+      await updateShopMarketplaceApproval(shopId, approved, { userId: user?.id });
       setProducts((prev) =>
         prev.map((p) => {
           if (p.artisan_shops?.id === shopId) {
@@ -259,18 +260,18 @@ export const useProductModeration = () => {
       toast.error('Error al actualizar la aprobación de la tienda');
       throw new Error('approval update failed');
     }
-  }, []);
+  }, [user?.id]);
 
   const fetchProductHistory: (productId?: string) => Promise<ModerationHistory[]> =
     useCallback(async (productId?: string) => {
       if (!productId) return [];
       try {
-        const history = await getProductHistoryByProductId(productId);
+        const history = await getProductHistoryByProductId(productId, user?.id);
         return history.map(mapHistory);
       } catch {
         return [];
       }
-    }, []);
+    }, [user?.id]);
 
   const bulkModerateProducts = useCallback(async (
     productIds: string[],

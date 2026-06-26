@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { telarApi } from '@/integrations/api/telarApi';
+import { useAuth } from '@/context/AuthContext';
 import { getActiveCategories } from '@/services/categories.actions';
 import { moderateProduct } from '@/services/moderation.actions';
 import type { ProductResponse, CreateProductsNewDto, ProductStatus } from '@/services/products-new.types';
@@ -67,6 +68,7 @@ function computeHealthScore(shop: {
 // ─── Hook ───────────────────────────────────────────────────────────────────────
 
 export const useProductStudio = () => {
+  const { user } = useAuth();
   const [shops, setShops] = useState<StudioShop[]>([]);
   const [loadingShops, setLoadingShops] = useState(false);
 
@@ -101,7 +103,7 @@ export const useProductStudio = () => {
 
       do {
         const res = await telarApi.get<{ data: StudioShop[]; total: number }>('/artisan-shops', {
-          params: { page: String(page), limit: String(PAGE_SIZE), order: 'DESC' },
+          params: { page: String(page), limit: String(PAGE_SIZE), order: 'DESC', ...(user?.id && { userId: user.id }) },
         });
         const raw: StudioShop[] = res.data.data ?? [];
         total = res.data.total ?? 0;
@@ -120,7 +122,7 @@ export const useProductStudio = () => {
     } finally {
       setLoadingShops(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ── Select shop → fetch its products ─────────────────────────────────────────
 
@@ -129,7 +131,9 @@ export const useProductStudio = () => {
     setSelectedProduct(null);
     setLoadingProducts(true);
     try {
-      const res = await telarApi.get<ProductResponse[]>(`/products-new/store/${shop.id}`);
+      const res = await telarApi.get<ProductResponse[]>(`/products-new/store/${shop.id}`, {
+        params: user?.id ? { userId: user.id } : undefined,
+      });
       setProducts(res.data ?? []);
     } catch {
       toast.error('Error al cargar productos');
@@ -137,14 +141,16 @@ export const useProductStudio = () => {
     } finally {
       setLoadingProducts(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ── Select product → fetch full detail ───────────────────────────────────────
 
   const selectProduct = useCallback(async (productId: string) => {
     setLoadingProduct(true);
     try {
-      const res = await telarApi.get<ProductResponse>(`/products-new/${productId}`);
+      const res = await telarApi.get<ProductResponse>(`/products-new/${productId}`, {
+        params: user?.id ? { userId: user.id } : undefined,
+      });
       setSelectedProduct(res.data);
       return res.data;
     } catch {
@@ -153,7 +159,7 @@ export const useProductStudio = () => {
     } finally {
       setLoadingProduct(false);
     }
-  }, []);
+  }, [user?.id]);
 
   const clearProduct = useCallback(() => {
     setSelectedProduct(null);
@@ -164,7 +170,9 @@ export const useProductStudio = () => {
   const updateProduct = useCallback(async (dto: CreateProductsNewDto): Promise<boolean> => {
     setSaving(true);
     try {
-      const res = await telarApi.post<ProductResponse>('/products-new', dto);
+      const res = await telarApi.post<ProductResponse>('/products-new', dto, {
+        params: user?.id ? { userId: user.id } : undefined,
+      });
       setSelectedProduct(res.data);
       setProducts((prev) => prev.map((p) => (p.id === res.data.id ? res.data : p)));
       toast.success('Producto actualizado');
@@ -175,7 +183,7 @@ export const useProductStudio = () => {
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ── Moderate product ─────────────────────────────────────────────────────────
 
@@ -188,7 +196,7 @@ export const useProductStudio = () => {
     setModerating(true);
     try {
       const previousStatus = selectedProduct?.status;
-      await moderateProduct(productId, action, comment, edits, undefined, previousStatus);
+      await moderateProduct(productId, action, comment, edits, user?.id, previousStatus);
 
       const actionLabels: Record<ModerationAction, string> = {
         approve: 'Producto aprobado',
@@ -199,7 +207,9 @@ export const useProductStudio = () => {
       toast.success(actionLabels[action]);
 
       // Refresh selected product
-      const updated = await telarApi.get<ProductResponse>(`/products-new/${productId}`);
+      const updated = await telarApi.get<ProductResponse>(`/products-new/${productId}`, {
+        params: user?.id ? { userId: user.id } : undefined,
+      });
       setSelectedProduct(updated.data);
       setProducts((prev) => prev.map((p) => (p.id === productId ? updated.data : p)));
       return true;
@@ -209,7 +219,7 @@ export const useProductStudio = () => {
     } finally {
       setModerating(false);
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, user?.id]);
 
   // ── Load taxonomy ────────────────────────────────────────────────────────────
 

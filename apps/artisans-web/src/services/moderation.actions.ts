@@ -38,6 +38,7 @@ export interface ModerationProductApi {
 }
 
 export interface ModerationQueueParams {
+  userId?: string;
   status?: string;
   page?: number;
   pageSize?: number;
@@ -82,6 +83,7 @@ export interface ModerationShopApi {
 }
 
 export interface ModerationShopsParams {
+  userId?: string;
   filter?: string;
   page?: number;
   pageSize?: number;
@@ -162,6 +164,7 @@ export async function getModerationQueue(
   params: ModerationQueueParams,
 ): Promise<ModerationQueueResponse> {
   const {
+    userId,
     status = 'pending_moderation',
     page = 1,
     pageSize = 20,
@@ -175,6 +178,8 @@ export async function getModerationQueue(
     page: String(page),
     limit: String(pageSize),
   };
+
+  if (userId) queryParams.userId = userId;
 
   // Usar products-new endpoint en lugar de products legacy
   if (status !== 'all') queryParams.status = status;
@@ -341,7 +346,7 @@ export async function moderateProduct(
     // 1. Actualizar status del producto usando products-new
     await telarApi.patch(`/products-new/${productId}/status`, {
       status: newStatus,
-    });
+    }, { params: moderatorId ? { userId: moderatorId } : undefined });
 
     // 2. Si hay edits adicionales (para approve_with_edits), aplicarlos
     if (edits && Object.keys(edits).length > 0) {
@@ -351,7 +356,9 @@ export async function moderateProduct(
       // Si hay edits de variante, obtener el producto para conseguir el ID de la variante
       let variantId: string | undefined;
       if (hasVariantEdits) {
-        const product = await telarApi.get<ProductResponse>(`/products-new/${productId}`);
+        const product = await telarApi.get<ProductResponse>(`/products-new/${productId}`, {
+          params: moderatorId ? { userId: moderatorId } : undefined,
+        });
         variantId = product.data.variants?.[0]?.id;
 
         if (!variantId) {
@@ -377,7 +384,9 @@ export async function moderateProduct(
 
       // Aplicar edits del producto core usando products-new endpoint
       if (Object.keys(productsNewEdits).length > 0) {
-        await telarApi.patch(`/products-new/${productId}`, productsNewEdits);
+        await telarApi.patch(`/products-new/${productId}`, productsNewEdits, {
+          params: moderatorId ? { userId: moderatorId } : undefined,
+        });
       }
     }
 
@@ -389,6 +398,7 @@ export async function moderateProduct(
       comment,
       moderatorId,
       editsMade: edits,
+      userId: moderatorId,
     });
   } catch (error) {
     console.error('[moderateProduct] Error:', error);
@@ -410,9 +420,11 @@ export interface ProductModerationHistoryApi {
 
 export async function getProductHistoryByProductId(
   productId: string,
+  userId?: string,
 ): Promise<ProductModerationHistoryApi[]> {
   const response = await telarApi.get<ProductModerationHistoryApi[]>(
     `/product-moderation-history/product/${productId}`,
+    { params: userId ? { userId } : undefined },
   );
   return response.data;
 }
@@ -425,8 +437,12 @@ export async function createProductModerationHistory(payload: {
   artisanId?: string;
   comment?: string;
   editsMade?: Record<string, unknown>;
+  userId?: string;
 }): Promise<void> {
-  await telarApi.post('/product-moderation-history', payload);
+  const { userId, ...body } = payload;
+  await telarApi.post('/product-moderation-history', body, {
+    params: userId ? { userId } : undefined,
+  });
 }
 
 // ─── Tiendas ──────────────────────────────────────────────────────────────────
@@ -435,6 +451,7 @@ export async function getModerationShops(
   params: ModerationShopsParams,
 ): Promise<ModerationShopsResponse> {
   const {
+    userId,
     filter = 'all',
     page = 1,
     pageSize = 20,
@@ -449,6 +466,8 @@ export async function getModerationShops(
     limit: String(pageSize),
     order: 'DESC',
   };
+
+  if (userId) queryParams.userId = userId;
 
   if (filter === 'approved') queryParams.marketplaceApproved = 'true';
   if (filter === 'not_approved') queryParams.marketplaceApproved = 'false';
@@ -468,17 +487,18 @@ export async function getModerationShops(
 
 export async function getShopProductCounts(
   shopId: string,
+  userId?: string,
 ): Promise<{ total: number; approved: number; pending: number }> {
   try {
     const [allRes, approvedRes, pendingRes] = await Promise.all([
       telarApi.get<{ total: number }>('/products-new', {
-        params: { storeId: shopId, limit: 1, page: 1, status: 'pending_moderation' },
+        params: { storeId: shopId, limit: 1, page: 1, status: 'pending_moderation', ...(userId && { userId }) },
       }),
       telarApi.get<{ total: number }>('/products-new', {
-        params: { storeId: shopId, limit: 1, page: 1, status: 'approved' },
+        params: { storeId: shopId, limit: 1, page: 1, status: 'approved', ...(userId && { userId }) },
       }),
       telarApi.get<{ total: number }>('/products-new', {
-        params: { storeId: shopId, limit: 1, page: 1, status: 'approved_with_edits' },
+        params: { storeId: shopId, limit: 1, page: 1, status: 'approved_with_edits', ...(userId && { userId }) },
       }),
     ]);
 
@@ -495,12 +515,12 @@ export async function getShopProductCounts(
 export async function toggleShopMarketplaceApproval(
   shopId: string,
   approved: boolean,
-  options?: { previousStatus?: string; moderatorId?: string; comment?: string },
+  options?: { previousStatus?: string; moderatorId?: string; comment?: string; userId?: string },
 ): Promise<void> {
   await telarApi.patch(`/artisan-shops/${shopId}`, {
     marketplaceApproved: approved,
     marketplaceApprovalStatus: approved ? 'approved' : 'rejected',
-  });
+  }, { params: options?.userId ? { userId: options.userId } : undefined });
   await createShopModerationHistory({
     shopId,
     previousStatus: options?.previousStatus,
@@ -508,21 +528,22 @@ export async function toggleShopMarketplaceApproval(
     actionType: 'marketplace_approval',
     moderatorId: options?.moderatorId,
     comment: options?.comment,
+    userId: options?.userId,
   });
 }
 
-export async function deleteShopAdmin(shopId: string): Promise<void> {
-  await telarApi.delete(`/artisan-shops/${shopId}`);
+export async function deleteShopAdmin(shopId: string, userId?: string): Promise<void> {
+  await telarApi.delete(`/artisan-shops/${shopId}`, { params: userId ? { userId } : undefined });
 }
 
 export async function publishShopAdmin(
   shopId: string,
   action: 'publish' | 'unpublish',
-  options?: { previousStatus?: string; moderatorId?: string; comment?: string },
+  options?: { previousStatus?: string; moderatorId?: string; comment?: string; userId?: string },
 ): Promise<void> {
   await telarApi.patch(`/artisan-shops/${shopId}`, {
     publishStatus: action === 'publish' ? 'published' : 'pending_publish',
-  });
+  }, { params: options?.userId ? { userId: options.userId } : undefined });
   await createShopModerationHistory({
     shopId,
     previousStatus: options?.previousStatus,
@@ -530,6 +551,7 @@ export async function publishShopAdmin(
     actionType: 'publish',
     moderatorId: options?.moderatorId,
     comment: options?.comment,
+    userId: options?.userId,
   });
 }
 
@@ -549,9 +571,11 @@ export interface ShopModerationHistoryApi {
 
 export async function getShopHistoryByShopId(
   shopId: string,
+  userId?: string,
 ): Promise<ShopModerationHistoryApi[]> {
   const response = await telarApi.get<ShopModerationHistoryApi[]>(
     `/shop-moderation-history/shop/${shopId}`,
+    { params: userId ? { userId } : undefined },
   );
   return response.data;
 }
@@ -564,8 +588,12 @@ export async function createShopModerationHistory(payload: {
   moderatorId?: string;
   comment?: string;
   editsMade?: Record<string, unknown>;
+  userId?: string;
 }): Promise<void> {
-  await telarApi.post('/shop-moderation-history', payload);
+  const { userId, ...body } = payload;
+  await telarApi.post('/shop-moderation-history', body, {
+    params: userId ? { userId } : undefined,
+  });
 }
 
 // ─── Queue Scores ─────────────────────────────────────────────────────────────
@@ -580,10 +608,11 @@ export interface QueueScoreApi {
   computedAt: string;
 }
 
-export async function getQueueScore(itemId: string): Promise<QueueScoreApi | null> {
+export async function getQueueScore(itemId: string, userId?: string): Promise<QueueScoreApi | null> {
   try {
     const response = await telarApi.get<QueueScoreApi>(
       `/moderation-queue/scores/${itemId}`,
+      { params: userId ? { userId } : undefined },
     );
     return response.data;
   } catch {
@@ -593,10 +622,11 @@ export async function getQueueScore(itemId: string): Promise<QueueScoreApi | nul
 
 export async function getQueueScoresBatch(
   itemIds: string[],
+  userId?: string,
 ): Promise<Record<string, QueueScoreApi>> {
   if (itemIds.length === 0) return {};
   const results = await Promise.allSettled(
-    itemIds.map((id) => getQueueScore(id)),
+    itemIds.map((id) => getQueueScore(id, userId)),
   );
   const map: Record<string, QueueScoreApi> = {};
   results.forEach((result, i) => {
@@ -629,10 +659,10 @@ export interface ModerationStatsData {
   shops: ModerationShopApi[];
 }
 
-export async function getPendingModerationCount(): Promise<number> {
+export async function getPendingModerationCount(userId?: string): Promise<number> {
   try {
     const response = await telarApi.get<{ total: number }>('/products-new', {
-      params: { status: 'pending_moderation', limit: 1, page: 1 },
+      params: { status: 'pending_moderation', limit: 1, page: 1, ...(userId && { userId }) },
     });
     return response.data.total || 0;
   } catch {
@@ -640,13 +670,13 @@ export async function getPendingModerationCount(): Promise<number> {
   }
 }
 
-export async function getModerationStats(): Promise<ModerationStatsData> {
+export async function getModerationStats(userId?: string): Promise<ModerationStatsData> {
   const [productResults, firstShopsRes] = await Promise.all([
     Promise.all(
       MODERATION_STATUSES.map((status) =>
         telarApi
           .get<{ data: ProductResponse[]; total: number }>('/products-new', {
-            params: { status, limit: 50, page: 1 },
+            params: { status, limit: 50, page: 1, ...(userId && { userId }) },
           })
           .then((r) => ({ status, total: r.data.total || 0, data: r.data.data || [] }))
           .catch(() => ({ status, total: 0, data: [] as ProductResponse[] })),
@@ -654,7 +684,7 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
     ),
     telarApi
       .get<ModerationShopsResponse>('/artisan-shops', {
-        params: { limit: 100, page: 1 },
+        params: { limit: 100, page: 1, ...(userId && { userId }) },
       })
       .catch(() => ({ data: { data: [], total: 0 } })),
   ]);
@@ -677,7 +707,7 @@ export async function getModerationStats(): Promise<ModerationStatsData> {
       Array.from({ length: extraPages }, (_, i) =>
         telarApi
           .get<ModerationShopsResponse>('/artisan-shops', {
-            params: { limit: 100, page: i + 2 },
+            params: { limit: 100, page: i + 2, ...(userId && { userId }) },
           })
           .catch(() => ({ data: { data: [] } }))
       )

@@ -1378,6 +1378,7 @@ export class ProductsNewService {
       categoryId?: string;
       status?: string;
       search?: string;
+      userId?: string;
     },
   ): Promise<{
     data: ProductCore[];
@@ -1434,6 +1435,26 @@ export class ProductsNewService {
       queryBuilder.andWhere('product.name ILIKE :search', {
         search: `%${filters.search.trim()}%`,
       });
+    }
+
+    if (filters?.userId) {
+
+      // Verificar si el usuario pertenece al agreement controlado por AGREEMENT_ID
+      const envAgreementId = this.configService.get<string>('AGREEMENT_ID');
+      if (envAgreementId) {
+        const artisanProfile = await this.dataSource.query(
+          `SELECT agreement_id FROM artesanos.artisan_profile WHERE user_id = $1 LIMIT 1`,
+          [filters.userId],
+        );
+
+        if (artisanProfile.length > 0 && artisanProfile[0].agreement_id === envAgreementId) {
+          queryBuilder
+            .andWhere(
+              `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = "artisanShop"."user_id" AND ap.agreement_id = :envAgreementId)`,
+              { envAgreementId },
+            );
+        }
+      }
     }
 
     // Ordenar por fecha de creación (usar nombre de propiedad de entidad, no de columna SQL)

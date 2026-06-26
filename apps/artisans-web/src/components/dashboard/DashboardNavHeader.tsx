@@ -12,7 +12,7 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 
 export const DashboardNavHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { masterState } = useMasterAgent();
   const { isModerator } = useIsModerator();
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -24,14 +24,14 @@ export const DashboardNavHeader: React.FC = () => {
     if (!isModerator) return;
 
     const refresh = () => {
-      getPendingModerationCount().then(setPendingCount);
+      getPendingModerationCount(user?.id).then(setPendingCount);
     };
 
     refresh();
     const interval = setInterval(refresh, 60_000);
 
     return () => clearInterval(interval);
-  }, [isModerator]);
+  }, [isModerator, user?.id]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border shadow-sm">
