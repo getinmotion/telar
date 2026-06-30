@@ -28,8 +28,7 @@ import { register } from './actions/register.actions';
 import { getAllIdTypes, type IdTypeUser } from '@/services/idTypeUser.actions';
 import { getAllCountries, type Country } from '@/services/countries.actions';
 import { getAllAgreements, type Agreement } from '@/services/agreements.actions';
-// TODO: Temporalmente deshabilitado
-// import { validateIdAgreement } from '@/services/usersIdAgreement.actions';
+import { validateIdAgreement } from '@/services/usersIdAgreement.actions';
 
 interface Municipio {
   municipio: string;
@@ -61,12 +60,12 @@ export const Register = () => {
   const [departamentos, setDepartamentos] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
 
-  // TODO: Temporalmente deshabilitado - Estado para validación de ID + Convenio
-  // const [isValidating, setIsValidating] = useState(false);
-  // const [validationResult, setValidationResult] = useState<{
-  //   checked: boolean;
-  //   exists: boolean;
-  // }>({ checked: false, exists: false });
+  // Estado para validación de ID + Convenio
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    checked: boolean;
+    exists: boolean;
+  }>({ checked: false, exists: false });
 
   const form = useForm<RegisterFormData>({
     defaultValues: REGISTER_FORM_INITIAL_VALUES,
@@ -120,53 +119,64 @@ export const Register = () => {
     }
   }, [department, ciudadesDane]);
 
-  // TODO: Temporalmente deshabilitado - Watch campos para validación de artesano aprobado
-  // const idTypeId = form.watch('idTypeId');
-  // const idNumber = form.watch('idNumber');
-  // const agreementId = form.watch('agreementId');
+  // Watch campos para validación de artesano aprobado
+  const idTypeId = form.watch('idTypeId');
+  const idNumber = form.watch('idNumber');
+  const agreementId = form.watch('agreementId');
 
-  // TODO: Temporalmente deshabilitado - Validación de artesano aprobado
-  // useEffect(() => {
-  //   const validateArtisan = async () => {
-  //     if (!idTypeId || !idNumber || !agreementId) {
-  //       setValidationResult({ checked: false, exists: false });
-  //       return;
-  //     }
-  //     if (idNumber.trim() === '') {
-  //       setValidationResult({ checked: false, exists: false });
-  //       return;
-  //     }
-  //     try {
-  //       setIsValidating(true);
-  //       const result = await validateIdAgreement({
-  //         idType: idTypeId,
-  //         numId: idNumber.trim(),
-  //         agreementId: agreementId,
-  //       });
-  //       setValidationResult({ checked: true, exists: result.exists });
-  //       if (!result.exists) {
-  //         toast({
-  //           title: "Acceso denegado",
-  //           description: "No estás en el listado de artesanos aprobados para usar la plataforma TELAR. Por favor verifica tus datos o contacta al administrador.",
-  //           variant: "destructive",
-  //           duration: 8000,
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('Error validating artisan:', error);
-  //       toast({
-  //         title: "Error de validación",
-  //         description: "No se pudo verificar tus datos. Por favor intenta de nuevo.",
-  //         variant: "destructive",
-  //         duration: 5000,
-  //       });
-  //       setValidationResult({ checked: false, exists: false });
-  //     } finally {
-  //       setIsValidating(false);
-  //     }
-  //   };
-  //   validateArtisan();
-  // }, [idTypeId, idNumber, agreementId, toast]);
+  // Validar si el usuario está en la lista de artesanos aprobados
+  useEffect(() => {
+    const validateArtisan = async () => {
+      // Solo validar si los 3 campos están llenos
+      if (!idTypeId || !idNumber || !agreementId) {
+        setValidationResult({ checked: false, exists: false });
+        return;
+      }
+
+      // Validar que idNumber no esté vacío después de trim
+      if (idNumber.trim() === '') {
+        setValidationResult({ checked: false, exists: false });
+        return;
+      }
+
+      try {
+        setIsValidating(true);
+        const result = await validateIdAgreement({
+          idType: idTypeId,
+          numId: idNumber.trim(),
+          agreementId: agreementId,
+        });
+
+        setValidationResult({
+          checked: true,
+          exists: result.exists,
+        });
+
+        // Mostrar alert si no está en la lista
+        if (!result.exists) {
+          toast({
+            title: "Acceso denegado",
+            description: "No estás en el listado de artesanos aprobados para usar la plataforma TELAR. Por favor verifica tus datos o contacta al administrador.",
+            variant: "destructive",
+            duration: 8000,
+          });
+        }
+      } catch (error) {
+        console.error('Error validating artisan:', error);
+        toast({
+          title: "Error de validación",
+          description: "No se pudo verificar tus datos. Por favor intenta de nuevo.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        setValidationResult({ checked: false, exists: false });
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateArtisan();
+  }, [idTypeId, idNumber, agreementId, toast]);
 
   const password = form.watch('password');
   const hasRUT = form.watch('hasRUT');
@@ -369,7 +379,26 @@ export const Register = () => {
                           )}
                         </SelectContent>
                       </Select>
-                      {/* TODO: Temporalmente deshabilitado - Indicador de validación */}
+                      {/* Indicador de validación */}
+                      {idTypeId && idNumber && agreementId && (
+                        <FormDescription className="text-xs mt-2">
+                          {isValidating ? (
+                            <span className="flex items-center text-muted-foreground">
+                              <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              Verificando artesano...
+                            </span>
+                          ) : validationResult.checked && validationResult.exists ? (
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              ✓ Estás en la lista de artesanos aprobados
+                            </span>
+                          ) : validationResult.checked && !validationResult.exists ? (
+                            <span className="text-destructive">
+                              ✗ No estás en el listado de artesanos aprobados
+                            </span>
+                          ) : null}
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -795,10 +824,15 @@ export const Register = () => {
                 <div className="flex justify-start pt-2">
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={
+                      isLoading ||
+                      isValidating ||
+                      (idTypeId && idNumber && agreementId && !validationResult.checked) ||
+                      (validationResult.checked && !validationResult.exists)
+                    }
                     className="w-[220px] h-12 rounded-[12px] bg-accent hover:bg-accent/90 text-white text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                    {isLoading ? 'Creando cuenta...' : isValidating ? 'Validando...' : 'Crear cuenta'}
                   </Button>
                 </div>
 

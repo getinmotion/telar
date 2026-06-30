@@ -25,7 +25,7 @@ telarApi.interceptors.response.use(
   },
   (error) => {
     if (!error?.config?._suppressToast) {
-      // toastError(error);
+      toastError(error);
     }
     return Promise.reject(error);
   },

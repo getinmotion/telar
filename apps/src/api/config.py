@@ -55,12 +55,19 @@ class Settings(BaseSettings):
     profile_update_interval: int = int(os.getenv("PROFILE_UPDATE_INTERVAL", "5"))
     conversation_summary_interval: int = int(os.getenv("CONVERSATION_SUMMARY_INTERVAL", "10"))
 
-    # WhatsApp Business API
+    # WhatsApp Business API (sales/marketplace bot)
     whatsapp_access_token: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
     whatsapp_phone_number_id: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
     whatsapp_webhook_verify_token: str = os.getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
     whatsapp_webhook_secret: str = os.getenv("WHATSAPP_WEBHOOK_SECRET", "")
     whatsapp_api_url: str = os.getenv("WHATSAPP_API_URL", "https://graph.facebook.com/v21.0")
+
+    # WhatsApp Business API — Copiloto Artesanos (capacitaciones RAG bot)
+    artisan_whatsapp_access_token: str = os.getenv("ARTISAN_WHATSAPP_ACCESS_TOKEN", "")
+    artisan_whatsapp_phone_number_id: str = os.getenv("ARTISAN_WHATSAPP_PHONE_NUMBER_ID", "")
+    artisan_whatsapp_webhook_verify_token: str = os.getenv("ARTISAN_WHATSAPP_WEBHOOK_VERIFY_TOKEN", "")
+    artisan_whatsapp_webhook_secret: str = os.getenv("ARTISAN_WHATSAPP_WEBHOOK_SECRET", "")
+    artisan_whatsapp_api_url: str = os.getenv("ARTISAN_WHATSAPP_API_URL", "https://graph.facebook.com/v21.0")
 
     class Config:
         env_file = ".env"

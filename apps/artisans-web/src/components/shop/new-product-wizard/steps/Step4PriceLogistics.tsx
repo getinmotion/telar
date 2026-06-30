@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import type { AvailabilityType } from '@/services/products-new.types';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
+import { step2Confirm } from '@/services/agent.actions';
+import type { Step2ConfirmRequest } from '@/types/agent.types';
 
 interface Props {
   state: NewWizardState;
@@ -16,6 +19,7 @@ interface Props {
   step: number;
   totalSteps: number;
   leftOffset?: number;
+  userId?: string;
 }
 
 const AVAILABILITY_OPTIONS: { id: AvailabilityType; label: string; icon: string; desc: string }[] = [
@@ -90,43 +94,208 @@ const WeightField: React.FC<WeightFieldProps> = ({ label, valueKg, unit, onUnitC
   </div>
 );
 
-export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, leftOffset }) => {
+export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, onBack, onSaveDraft, isSavingDraft, step, totalSteps, leftOffset, userId }) => {
   // Weight unit states with smart defaults based on materials
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
   const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
 
   const canContinue = !!state.price && !!state.availabilityType;
 
+  // ── Accept / Reject handlers for pricing suggestions ──────────────
+  type Step4Field = 'price' | 'weightKg';
+
+  const handleAcceptSuggestion = useCallback(
+    (field: Step4Field, value: string) => {
+      const fieldUpdates: Partial<NewWizardState> = {};
+
+      if (field === 'price') {
+        fieldUpdates.price = Number(value);
+      } else if (field === 'weightKg') {
+        fieldUpdates.weightKg = Number(value);
+      }
+
+      update({
+        ...fieldUpdates,
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          [field]: {
+            source: 'ia_accepted' as const,
+            originalAiValue: value,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+      toast.success('Sugerencia aplicada');
+    },
+    [update, state.fieldMetadata],
+  );
+
+  const handleRejectSuggestion = useCallback(
+    (field: Step4Field) => {
+      update({
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          [field]: {
+            source: 'manual' as const,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+      toast.info('Puedes escribir tu propio valor');
+    },
+    [update, state.fieldMetadata],
+  );
+
+  const pricing = state.agentStep2Response?.pricing_suggestions;
+  const oraculo = state.agentStep2Response?.oraculo;
+
+  const handleNext = () => {
+    if (!state.price || state.price <= 0) {
+      toast.error("Por favor ingresa el precio de la pieza");
+      return;
+    }
+
+    if (!state.availabilityType) {
+      toast.error("Por favor selecciona el tipo de disponibilidad");
+      return;
+    }
+
+    // Build default field value for fields without metadata
+    const defaultField = (originalAiValue = '') => ({
+      source: 'manual' as const,
+      originalAiValue,
+      timestamp: new Date().toISOString(),
+    });
+
+    const fm = state.fieldMetadata;
+    const payload: Step2ConfirmRequest = {
+      userId: userId ?? '',
+      productId: state.productId ?? '',
+      shortDescription: fm?.shortDescription
+        ? { source: fm.shortDescription.source, originalAiValue: fm.shortDescription.originalAiValue ?? '', timestamp: fm.shortDescription.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      artisanalHistory: fm?.artisanalHistory
+        ? { source: fm.artisanalHistory.source, originalAiValue: fm.artisanalHistory.originalAiValue ?? '', timestamp: fm.artisanalHistory.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      careNotes: fm?.careNotes
+        ? { source: fm.careNotes.source, originalAiValue: fm.careNotes.originalAiValue ?? '', timestamp: fm.careNotes.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      elaborationTime: fm?.elaborationTime
+        ? { source: fm.elaborationTime.source, originalAiValue: fm.elaborationTime.originalAiValue ?? '', timestamp: fm.elaborationTime.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      monthlyCapacity: fm?.monthlyCapacity
+        ? { source: fm.monthlyCapacity.source, originalAiValue: fm.monthlyCapacity.originalAiValue ?? '', timestamp: fm.monthlyCapacity.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      processDescription: fm?.processDescription
+        ? { source: fm.processDescription.source, originalAiValue: fm.processDescription.originalAiValue ?? '', timestamp: fm.processDescription.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      price: fm?.price
+        ? { source: fm.price.source, originalAiValue: fm.price.originalAiValue ?? '', timestamp: fm.price.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+      weightKg: fm?.weightKg
+        ? { source: fm.weightKg.source, originalAiValue: fm.weightKg.originalAiValue ?? '', timestamp: fm.weightKg.timestamp ?? new Date().toISOString() }
+        : defaultField(),
+    };
+
+    step2Confirm(payload)
+      .then(res => console.log('[Step4] step2Confirm response:', res))
+      .catch(err => console.error('[Step4] step2Confirm error:', err));
+
+    onNext();
+  };
+
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
     setNode(
       <div className="p-5 flex flex-col gap-4" style={{ background: '#151b2d', borderRadius: 16 }}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>auto_awesome</span>
-            <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Sugerido por IA</h3>
-          </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ec6d13' }} />
-            <span className="text-[9px] font-[800] tracking-widest text-white/60 uppercase">Analizando</span>
-          </div>
+        <div className="flex items-center gap-2 border-b border-white/10 pb-4">
+          <span className="material-symbols-outlined text-[16px]" style={{ color: '#ec6d13' }}>auto_awesome</span>
+          <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase text-white">Oráculo</h3>
         </div>
-        <p className="text-[11px] text-white/50">Basado en técnica, materiales y categoría.</p>
-        <div className="flex flex-col gap-3">
-          {([
-            { label: 'Precio sugerido', value: 'COP 280.000' },
-            { label: 'Empaque', value: 'Reforzado' },
-            { label: 'Peso estimado', value: '2.5 kg' },
-          ] as { label: string; value: string }[]).map(({ label, value }) => (
-            <div key={label} className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">{label}</p>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest" style={{ background: 'rgba(236,109,19,0.2)', color: '#ec6d13' }}>IA</span>
-              </div>
-              <p className="text-[13px] text-white/80 font-[500]">{value}</p>
+
+        {oraculo && (
+          <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-[10px] font-[800] text-[#ec6d13] uppercase tracking-widest mb-2">{oraculo.title}</p>
+            <p className="text-[12px] text-white/70 leading-relaxed">{oraculo.body}</p>
+          </div>
+        )}
+
+        {/* Price suggestion */}
+        {pricing?.suggested_price && (
+          <Step4SuggestionCard
+            label="Precio sugerido"
+            value={String(pricing.suggested_price.value)}
+            displayValue={`$${pricing.suggested_price.value.toLocaleString('es-CO')} ${pricing.suggested_price.currency ?? 'COP'}`}
+            fieldKey="price"
+            onAccept={handleAcceptSuggestion}
+            onReject={handleRejectSuggestion}
+            isAccepted={state.fieldMetadata?.price?.source === 'ia_accepted'}
+            isRejected={state.fieldMetadata?.price?.source === 'manual'}
+            extra={
+              <>
+                {pricing.suggested_price.range && (
+                  <p className="text-[10px] text-white/40 mt-1">
+                    Rango: ${pricing.suggested_price.range.min.toLocaleString('es-CO')} – ${pricing.suggested_price.range.max.toLocaleString('es-CO')}
+                  </p>
+                )}
+                {pricing.suggested_price.reasoning && (
+                  <p className="text-[10px] text-white/35 mt-2 leading-snug">{pricing.suggested_price.reasoning}</p>
+                )}
+              </>
+            }
+          />
+        )}
+
+        {/* Weight suggestion */}
+        {pricing?.estimated_weight && (
+          <Step4SuggestionCard
+            label="Peso estimado"
+            value={String(pricing.estimated_weight.value)}
+            displayValue={`${pricing.estimated_weight.value} ${pricing.estimated_weight.unit ?? 'kg'}`}
+            fieldKey="weightKg"
+            onAccept={handleAcceptSuggestion}
+            onReject={handleRejectSuggestion}
+            isAccepted={state.fieldMetadata?.weightKg?.source === 'ia_accepted'}
+            isRejected={state.fieldMetadata?.weightKg?.source === 'manual'}
+          />
+        )}
+
+        {/* Packaging — informational */}
+        {pricing?.packaging && (
+          <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">Empaque</p>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
             </div>
-          ))}
-        </div>
+            <p className="text-[13px] text-white/80 font-[600]">{pricing.packaging.label}</p>
+            {pricing.packaging.reasoning && (
+              <p className="text-[10px] text-white/35 mt-2 leading-snug">{pricing.packaging.reasoning}</p>
+            )}
+          </div>
+        )}
+
+        {/* Dimensions guidance — informational */}
+        {pricing?.dimensions_guidance && (
+          <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">Guía de dimensiones</p>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
+            </div>
+            <p className="text-[11px] text-white/60 leading-snug whitespace-pre-line">{pricing.dimensions_guidance.content}</p>
+          </div>
+        )}
+
+        {/* No agent data fallback */}
+        {!pricing && (
+          <div className="flex flex-col items-center gap-2 py-4">
+            <span className="material-symbols-outlined text-white/20 text-[28px]">psychology</span>
+            <p className="text-[11px] text-white/30 text-center">
+              Completa los pasos anteriores para recibir sugerencias del Oráculo.
+            </p>
+          </div>
+        )}
+
+        {/* Readiness */}
         <div className="pt-3 border-t border-white/10">
           <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest mb-2">Estado de publicación</p>
           <div
@@ -145,7 +314,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       </div>
     );
     return clearNode;
-  }, [canContinue]);
+  }, [canContinue, pricing, oraculo, state.fieldMetadata]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
@@ -186,38 +355,99 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         </div>
 
         <div className="grid grid-cols-12 gap-6 items-start">
-          {/* AI Sidebar */}
+          {/* AI Sidebar — Oráculo */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
-            <div className="p-5 text-white rounded-2xl" style={{ background: '#151b2d' }}>
-              <div className="flex items-center gap-2 mb-1">
+            <div className="p-5 text-white rounded-2xl flex flex-col gap-4" style={{ background: '#151b2d' }}>
+              <div className="flex items-center gap-2 pb-3 border-b border-white/10">
                 <span className="material-symbols-outlined text-[#ec6d13] text-lg">auto_awesome</span>
-                <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase">Sugerido por IA</h3>
-              </div>
-              <p className="text-[11px] text-white/50 mb-5">
-                Basado en técnica, materiales y categoría.
-              </p>
-              <div className="space-y-3">
-                {[
-                  { label: 'Precio sugerido', value: 'COP 280.000' },
-                  { label: 'Empaque', value: 'Reforzado' },
-                  { label: 'Peso estimado', value: '2.5 kg' },
-                ].map(({ label, value }) => (
-                  <div
-                    key={label}
-                    className="p-3 rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">{label}</p>
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
-                    </div>
-                    <p className="text-[13px] text-white/80 font-[500]">{value}</p>
-                  </div>
-                ))}
+                <h3 className="font-['Manrope'] text-[10px] font-[800] tracking-widest uppercase">Oráculo</h3>
               </div>
 
+              {/* Oráculo message */}
+              {oraculo && (
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <p className="text-[10px] font-[800] text-[#ec6d13] uppercase tracking-widest mb-2">{oraculo.title}</p>
+                  <p className="text-[12px] text-white/70 leading-relaxed">{oraculo.body}</p>
+                </div>
+              )}
+
+              {/* Price suggestion — accept/reject */}
+              {pricing?.suggested_price && (
+                <Step4SuggestionCard
+                  label="Precio sugerido"
+                  value={String(pricing.suggested_price.value)}
+                  displayValue={`$${pricing.suggested_price.value.toLocaleString('es-CO')} ${pricing.suggested_price.currency ?? 'COP'}`}
+                  fieldKey="price"
+                  onAccept={handleAcceptSuggestion}
+                  onReject={handleRejectSuggestion}
+                  isAccepted={state.fieldMetadata?.price?.source === 'ia_accepted'}
+                  isRejected={state.fieldMetadata?.price?.source === 'manual'}
+                  extra={
+                    <>
+                      {pricing.suggested_price.range && (
+                        <p className="text-[10px] text-white/40 mt-1">
+                          Rango: ${pricing.suggested_price.range.min.toLocaleString('es-CO')} – ${pricing.suggested_price.range.max.toLocaleString('es-CO')}
+                        </p>
+                      )}
+                      {pricing.suggested_price.reasoning && (
+                        <p className="text-[10px] text-white/35 mt-2 leading-snug">{pricing.suggested_price.reasoning}</p>
+                      )}
+                    </>
+                  }
+                />
+              )}
+
+              {/* Weight suggestion — accept/reject */}
+              {pricing?.estimated_weight && (
+                <Step4SuggestionCard
+                  label="Peso estimado"
+                  value={String(pricing.estimated_weight.value)}
+                  displayValue={`${pricing.estimated_weight.value} ${pricing.estimated_weight.unit ?? 'kg'}`}
+                  fieldKey="weightKg"
+                  onAccept={handleAcceptSuggestion}
+                  onReject={handleRejectSuggestion}
+                  isAccepted={state.fieldMetadata?.weightKg?.source === 'ia_accepted'}
+                  isRejected={state.fieldMetadata?.weightKg?.source === 'manual'}
+                />
+              )}
+
+              {/* Packaging — informational */}
+              {pricing?.packaging && (
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">Empaque</p>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
+                  </div>
+                  <p className="text-[13px] text-white/80 font-[600]">{pricing.packaging.label}</p>
+                  {pricing.packaging.reasoning && (
+                    <p className="text-[10px] text-white/35 mt-2 leading-snug">{pricing.packaging.reasoning}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Dimensions guidance — informational */}
+              {pricing?.dimensions_guidance && (
+                <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest">Guía de dimensiones</p>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
+                  </div>
+                  <p className="text-[11px] text-white/60 leading-snug whitespace-pre-line">{pricing.dimensions_guidance.content}</p>
+                </div>
+              )}
+
+              {/* No agent data fallback */}
+              {!pricing && (
+                <div className="flex flex-col items-center gap-2 py-4">
+                  <span className="material-symbols-outlined text-white/20 text-[28px]">psychology</span>
+                  <p className="text-[11px] text-white/30 text-center">
+                    Completa los pasos anteriores para recibir sugerencias del Oráculo.
+                  </p>
+                </div>
+              )}
+
               {/* Readiness */}
-              <div className="mt-5 pt-4 border-t border-white/10 space-y-2">
+              <div className="pt-3 border-t border-white/10">
                 <p className="text-[9px] font-[800] text-white/40 uppercase tracking-widest mb-2">Estado de publicación</p>
                 <div
                   className="flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-[800] uppercase tracking-widest"
@@ -572,12 +802,98 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         step={step}
         totalSteps={totalSteps}
         onBack={onBack}
-        onNext={onNext}
+        onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
+        disabledReason={
+          !state.price || state.price <= 0
+            ? "Ingresa el precio de la pieza"
+            : !state.availabilityType
+              ? "Selecciona el tipo de disponibilidad"
+              : undefined
+        }
         leftOffset={leftOffset}
       />
+    </div>
+  );
+};
+
+// ── Step4SuggestionCard ───────────────────────────────────────────────────────
+
+interface Step4SuggestionCardProps {
+  label: string;
+  value: string;
+  displayValue: string;
+  fieldKey: 'price' | 'weightKg';
+  onAccept: (field: any, value: string) => void;
+  onReject: (field: any) => void;
+  isAccepted: boolean;
+  isRejected: boolean;
+  extra?: React.ReactNode;
+}
+
+const Step4SuggestionCard: React.FC<Step4SuggestionCardProps> = ({
+  label,
+  value,
+  displayValue,
+  fieldKey,
+  onAccept,
+  onReject,
+  isAccepted,
+  isRejected,
+  extra,
+}) => {
+  return (
+    <div
+      className="p-3 rounded-xl"
+      style={{
+        background: isAccepted
+          ? 'rgba(34,197,94,0.05)'
+          : 'rgba(255,255,255,0.05)',
+        border: isAccepted
+          ? '1px solid rgba(34,197,94,0.2)'
+          : '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+        {label}
+      </p>
+      <p className="text-[16px] font-[800] text-white/90 mb-1">
+        {displayValue}
+      </p>
+      {extra}
+
+      {isAccepted && (
+        <div className="flex items-center gap-1 text-[10px] text-green-400 mt-2">
+          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+          <span>Sugerencia aceptada</span>
+        </div>
+      )}
+
+      {isRejected && (
+        <div className="flex items-center gap-1 text-[10px] text-white/40 mt-2">
+          <span className="material-symbols-outlined text-[14px]">cancel</span>
+          <span>Sugerencia rechazada</span>
+        </div>
+      )}
+
+      {!isAccepted && !isRejected && (
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => onAccept(fieldKey, value)}
+            className="flex-1 px-3 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] transition-all"
+          >
+            Aceptar
+          </button>
+          <button
+            onClick={() => onReject(fieldKey)}
+            className="px-3 py-2 rounded-lg border border-white/20 text-white/60 text-[10px] font-[700] hover:text-white hover:border-white/40 transition-all"
+          >
+            Rechazar
+          </button>
+        </div>
+      )}
     </div>
   );
 };
