@@ -95,7 +95,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
   const [pkgWeightUnit, setPkgWeightUnit] = useState<WeightUnit>(() => suggestWeightUnit(state.materials ?? []));
 
-  const canContinue = !!state.price && !!state.availabilityType;
+  const hasProductDimensions = !!state.heightCm && !!state.widthCm && !!state.lengthCm && !!state.weightKg;
+  const hasPackageDimensions = !!state.packagedWidthCm && !!state.packagedHeightCm && !!state.packagedLengthCm && !!state.packagedWeightKg;
+  const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions;
 
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
@@ -449,7 +451,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">straighten</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones de la pieza
+                  Dimensiones de la pieza *
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -490,7 +492,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#ec6d13] text-xl">local_shipping</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones del paquete
+                  Dimensiones del paquete *
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">

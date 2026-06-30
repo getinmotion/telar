@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createProductNew, updateProductNew } from '@/services/products-new.actions';
 import type { CreateProductsNewDto } from '@/services/products-new.types';
@@ -55,6 +55,7 @@ export const mapNewStateToDto = (
         : firstStyle === 'fusion' ? 'fusion'
         : undefined,
       isCollaboration: state.isCollaboration ?? false,
+      collaborationName: state.collaboration?.name?.trim() || undefined,
       estimatedElaborationTime: state.elaborationTime || undefined,
     };
   }
@@ -79,10 +80,14 @@ export const mapNewStateToDto = (
     };
   }
 
-  if (state.availabilityType) {
+  if (state.availabilityType || state.processDescription || state.processEvidenceUrls?.length) {
     dto.production = {
-      availabilityType: state.availabilityType,
+      availabilityType: state.availabilityType!,
       monthlyCapacity: state.monthlyCapacity,
+      processDescription: state.processDescription?.trim() || undefined,
+      processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(Boolean).length > 0
+        ? (state.processEvidenceUrls ?? []).filter(Boolean)
+        : undefined,
     };
   }
 
@@ -113,21 +118,46 @@ export const useWizardDraft = (
   state: NewWizardState,
   update: (u: Partial<NewWizardState>) => void,
   shopId: string,
-  silent = false,
 ) => {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  const saveDraft = useCallback(async () => {
+  // Ref para rastrear el productId de forma inmediata (evita race conditions entre renders)
+  const productIdRef = useRef<string | undefined>(state.productId);
+  // Mutex: evita que dos llamadas concurrentes creen productos duplicados
+  const creatingRef = useRef(false);
+
+  // Mantener el ref sincronizado cuando el state cambia (ej. modo edición)
+  if (state.productId && state.productId !== productIdRef.current) {
+    productIdRef.current = state.productId;
+  }
+
+  const saveDraft = useCallback(async (silent = false) => {
     if (!shopId || !state.name.trim() || !state.shortDescription.trim()) return;
     setIsSavingDraft(true);
     try {
-      const dto = mapNewStateToDto(state, shopId, [], false);
-      if (state.productId) {
-        await updateProductNew(state.productId, dto, { suppressToast: true });
+      // Extraer URLs ya subidas desde state.images (las que son string, no File)
+      const uploadedUrls = (state.images ?? []).filter((img): img is string => typeof img === 'string');
+      const dto = mapNewStateToDto(state, shopId, uploadedUrls, false);
+      const existingId = productIdRef.current ?? state.productId;
+
+      if (existingId) {
+        await updateProductNew(existingId, dto, { suppressToast: true });
       } else {
-        const result = await createProductNew(dto, { suppressToast: true });
-        const newId = (result as any)?.id ?? (result as any)?.productId;
-        if (newId) update({ productId: newId });
+        // Evitar creates concurrentes
+        if (creatingRef.current) return;
+        creatingRef.current = true;
+        try {
+          // En el primer create (Step 1) solo enviar datos básicos, sin artisanalIdentity
+          delete dto.artisanalIdentity;
+          const result = await createProductNew(dto, { suppressToast: true });
+          const newId = (result as any)?.id ?? (result as any)?.productId;
+          if (newId) {
+            productIdRef.current = newId;
+            update({ productId: newId });
+          }
+        } finally {
+          creatingRef.current = false;
+        }
       }
       if (!silent) toast.success('Borrador guardado');
     } catch (err: any) {
@@ -135,7 +165,7 @@ export const useWizardDraft = (
     } finally {
       setIsSavingDraft(false);
     }
-  }, [state, shopId, update, silent]);
+  }, [state, shopId, update]);
 
   return { saveDraft, isSavingDraft };
 };

@@ -70,6 +70,7 @@ export interface CreateProductArtisanalIdentityDto {
   pieceType?: PieceType;
   style?: StyleType;
   isCollaboration?: boolean;
+  collaborationName?: string;
   processType?: ProcessType;
   estimatedElaborationTime?: string;
 }
@@ -109,6 +110,8 @@ export interface CreateProductProductionDto {
   productionTimeDays?: number;
   monthlyCapacity?: number;
   requirementsToStart?: string;
+  processDescription?: string;
+  processEvidenceUrls?: string[];
 }
 
 /**
@@ -203,6 +206,7 @@ export interface ProductArtisanalIdentityResponse {
   pieceType?: string;
   style?: string;
   isCollaboration: boolean;
+  collaborationName?: string;
   processType?: string;
   estimatedElaborationTime?: string;
 }
@@ -233,6 +237,8 @@ export interface ProductProductionResponse {
   productionTimeDays?: number;
   monthlyCapacity?: number;
   requirementsToStart?: string;
+  processDescription?: string;
+  processEvidenceUrls?: string[];
 }
 
 export interface ProductMediaResponse {
