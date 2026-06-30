@@ -29,6 +29,12 @@ export class ProductProduction {
   @Column({ name: 'requirements_to_start', type: 'text', nullable: true })
   requirementsToStart: string;
 
+  @Column({ name: 'process_description', type: 'text', nullable: true })
+  processDescription: string;
+
+  @Column({ name: 'process_evidence_urls', type: 'jsonb', nullable: true })
+  processEvidenceUrls: string[];
+
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date;
 

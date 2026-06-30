@@ -133,6 +133,17 @@ export const Step6FinalReview: React.FC<Props> = ({
     }
   }, [state.materials]);
 
+  // ── Validación global: todas las secciones obligatorias ──
+  const isStep1Complete = !!(state.name?.trim() && state.shortDescription?.trim());
+  const isStep2Complete = !!(state.categoryId && state.craftId && state.primaryTechniqueId);
+  const isStep4Complete = !!(
+    state.price && state.availabilityType &&
+    state.heightCm && state.widthCm && state.lengthCm && state.weightKg &&
+    state.packagedWidthCm && state.packagedHeightCm && state.packagedLengthCm && state.packagedWeightKg
+  );
+  const isDraft = !state.status || state.status === 'draft';
+  const canSubmit = isStep1Complete && isStep2Complete && isStep4Complete && isDraft;
+
   const mainPreview =
     state.images[0]
       ? typeof state.images[0] === 'string'
@@ -261,7 +272,7 @@ export const Step6FinalReview: React.FC<Props> = ({
             title: 'La pieza',
             value: state.name || '—',
             sub: state.shortDescription ? state.shortDescription.slice(0, 55) + (state.shortDescription.length > 55 ? '…' : '') : null,
-            ready: !!(state.name && state.shortDescription),
+            ready: isStep1Complete,
             step: 1,
           },
           {
@@ -269,7 +280,7 @@ export const Step6FinalReview: React.FC<Props> = ({
             title: 'Identidad y origen',
             value: categoryName ?? (state.categoryId ? '…' : 'Sin categoría'),
             sub: originText !== '—' ? originText : null,
-            ready: !!state.categoryId,
+            ready: isStep2Complete,
             step: 2,
           },
           {
@@ -288,7 +299,7 @@ export const Step6FinalReview: React.FC<Props> = ({
               : state.availabilityType === 'bajo_pedido' ? 'Bajo pedido'
               : state.availabilityType === 'edicion_limitada' ? `Ed. limitada · ${state.inventory ?? 0} un.`
               : null,
-            ready: !!(state.price && state.inventory && state.availabilityType),
+            ready: isStep4Complete,
             step: 4,
           },
           {
@@ -481,7 +492,7 @@ export const Step6FinalReview: React.FC<Props> = ({
           <div className="rounded-lg p-6 flex flex-col justify-between md:col-span-2" style={glassCard}>
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-['Noto_Serif'] text-2xl font-bold text-[#151b2d]">Precio y logística</h3>
-              <StatusBadge status={state.price && state.inventory && state.availabilityType ? 'ready' : 'pending'} />
+              <StatusBadge status={isStep4Complete ? 'ready' : 'pending'} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-4">
@@ -568,6 +579,8 @@ export const Step6FinalReview: React.FC<Props> = ({
         isFinalStep
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+        submitDisabled={!canSubmit}
+        submitDisabledReason={!canSubmit ? (isDraft ? 'Faltan datos obligatorios en pasos anteriores.' : 'El producto ya fue enviado a curaduría.') : undefined}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         leftOffset={leftOffset}
