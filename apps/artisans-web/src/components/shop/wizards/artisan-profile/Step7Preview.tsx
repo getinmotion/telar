@@ -343,6 +343,26 @@ export const Step7Preview: React.FC<Props> = ({ data, isGenerating, onEditStep }
             <Row icon="format_quote" label="Presentación breve" value={data.shortBio} color="#7c3aed" />
           )}
 
+          {/* Video de presentación */}
+          {data.artisanVideo?.trim() && (
+            <div className="flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-[14px] mt-0.5 shrink-0" style={{ color: 'rgba(124,58,237,0.6)' }}>smart_display</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-['Manrope'] text-[8px] font-[900] uppercase tracking-widest mb-1" style={{ color: 'rgba(124,58,237,0.45)' }}>Video de presentación</p>
+                <a
+                  href={data.artisanVideo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-['Manrope'] text-[11px] font-[700] transition-opacity hover:opacity-80"
+                  style={{ background: 'rgba(124,58,237,0.07)', border: '1px solid rgba(124,58,237,0.15)', color: '#7c3aed' }}
+                >
+                  <span className="material-symbols-outlined text-[13px]">play_circle</span>
+                  Ver video
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Origen del oficio */}
           {learnedFromLabel && (
             <div className="flex items-start gap-2.5">

@@ -106,6 +106,14 @@ export const mapNewStateToDto = (
     ];
   }
 
+  // Add content metadata if available (for analytics)
+  if (state.fieldMetadata) {
+    dto.contentMetadata = {
+      shortDescriptionSource: state.fieldMetadata.shortDescription?.source,
+      historySource: state.fieldMetadata.artisanalHistory?.source,
+    };
+  }
+
   return dto;
 };
 
