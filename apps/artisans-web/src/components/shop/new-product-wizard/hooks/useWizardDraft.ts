@@ -80,9 +80,9 @@ export const mapNewStateToDto = (
     };
   }
 
-  if (state.availabilityType || state.processDescription || state.processEvidenceUrls?.length) {
+  if (state.availabilityType) {
     dto.production = {
-      availabilityType: state.availabilityType!,
+      availabilityType: state.availabilityType,
       monthlyCapacity: state.monthlyCapacity,
       processDescription: state.processDescription?.trim() || undefined,
       processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(Boolean).length > 0
