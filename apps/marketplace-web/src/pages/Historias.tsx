@@ -39,7 +39,7 @@ const FALLBACK_HISTORIAS_SECTIONS: CmsSection[] = [
     type: "historias_hero",
     published: true,
     payload: {
-      kicker: "El Telar Digital",
+      kicker: "El Taller Digital",
       title: "Historias hechas a mano",
       body: "Detrás de cada pieza hay una historia humana. Crónicas de origen, saberes ancestrales y los rostros que dan vida a la artesanía colombiana.",
       ctaLabel: "Explorar historias",
@@ -176,7 +176,7 @@ const Historias = () => {
   return (
     <>
       <Helmet>
-        <title>Historias — Crónicas del Territorio | TELAR</title>
+        <title>Historias — Crónicas del Territorio | COCREA</title>
         <meta
           name="description"
           content="Descubre las historias, tradiciones y técnicas detrás de las artesanías colombianas. Relatos de vida, oficio y territorio."

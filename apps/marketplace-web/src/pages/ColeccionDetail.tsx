@@ -134,12 +134,12 @@ const COLLECTION_META: CollectionMeta[] = [
       {
         eyebrow: "Educación y futuro",
         title: "El relevo generacional",
-        body: "Desde 1972, con la creación de la Institución Educativa Técnica La Chamba, los niños y jóvenes reciben formación especializada. En Telar potenciamos esta base educativa integrando herramientas digitales y de comercialización directa, asegurando que el talento de estos jóvenes se convierta en una empresa global sin tener que abandonar su vereda.",
+        body: "Desde 1972, con la creación de la Institución Educativa Técnica La Chamba, los niños y jóvenes reciben formación especializada. En Cocrea potenciamos esta base educativa integrando herramientas digitales y de comercialización directa, asegurando que el talento de estos jóvenes se convierta en una empresa global sin tener que abandonar su vereda.",
       },
       {
         eyebrow: "De la utilidad al culto",
         title: "Denominación de origen",
-        body: "Lo que comenzó en 1937 como la creación de ollas y platos para las cocinas típicas de Colombia, hoy es una Denominación de Origen reconocida mundialmente. En Telar eliminamos los intermediarios para que el valor de estas piezas —que llevan el alma, la vida y el corazón de los artesanos del Tolima— regrese de manera justa y transparente al territorio.",
+        body: "Lo que comenzó en 1937 como la creación de ollas y platos para las cocinas típicas de Colombia, hoy es una Denominación de Origen reconocida mundialmente. En Cocrea eliminamos los intermediarios para que el valor de estas piezas —que llevan el alma, la vida y el corazón de los artesanos del Tolima— regrese de manera justa y transparente al territorio.",
       },
     ],
     stories: [
@@ -278,7 +278,7 @@ function CmsCollectionView({ collection }: { collection: import('@/services/coll
   return (
     <div className="min-h-screen bg-[#f9f7f2]">
       <Helmet>
-        <title>{collection.title} · Telar</title>
+        <title>{collection.title} · Cocrea</title>
         {collection.excerpt && <meta name="description" content={collection.excerpt} />}
       </Helmet>
       <header
@@ -390,7 +390,7 @@ function LegacyColeccionDetail() {
   return (
     <>
       <Helmet>
-        <title>{displayTitle} — Colecciones TELAR</title>
+        <title>{displayTitle} — Colecciones COCREA</title>
         <meta name="description" content={displayDescription} />
       </Helmet>
 

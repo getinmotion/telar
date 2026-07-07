@@ -26,7 +26,7 @@ import { useCart } from "@/contexts/CartContext";
 import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
 import { CartDrawer } from "@/components/CartDrawer";
 import GuestAuthModal from "@/components/GuestAuthModal";
-import telarHorizontal from "@/assets/telar-horizontal.svg";
+import cocreaHorizontal from "@/assets/cocrea-horizontal.svg";
 
 interface NavbarV2Props {
   searchQuery?: string;
@@ -44,7 +44,7 @@ const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[]
   { to: "/giftcards", label: "Regalos" },
   { to: "/tiendas", label: "Talleres" },
   { to: "/historias", label: "Historias" },
-  { to: "/sobre-telar", label: "Sobre Telar" },
+  { to: "/sobre-cocrea", label: "Sobre Cocrea" },
 ];
 
 export const NavbarV2 = ({
@@ -139,16 +139,16 @@ export const NavbarV2 = ({
             {onHomeClick ? (
               <button onClick={onHomeClick} className="flex items-center">
                 <img
-                  src={telarHorizontal}
-                  alt="TELAR"
+                  src={cocreaHorizontal}
+                  alt="CO·CREA"
                   className="h-7"
                 />
               </button>
             ) : (
               <Link to="/?reset=true" className="flex items-center">
                 <img
-                  src={telarHorizontal}
-                  alt="TELAR"
+                  src={cocreaHorizontal}
+                  alt="CO·CREA"
                   className="h-7"
                 />
               </Link>
@@ -285,8 +285,8 @@ export const NavbarV2 = ({
                   className="flex flex-col items-center gap-1"
                 >
                   <img
-                    src={telarHorizontal}
-                    alt="TELAR"
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
                     className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
                   />
                 </button>
@@ -296,8 +296,8 @@ export const NavbarV2 = ({
                   className="flex flex-col items-center gap-1"
                 >
                   <img
-                    src={telarHorizontal}
-                    alt="TELAR"
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
                     className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
                   />
                 </Link>
@@ -415,11 +415,11 @@ export const NavbarV2 = ({
                   >
                     <Link
                       to={link.to}
-                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-[#ec6d13]" : ""}`}
+                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-primary" : ""}`}
                     >
                       {link.label}
                       {megaMenuOpen && (
-                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-[#ec6d13]" />
+                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-primary" />
                       )}
                     </Link>
                   </div>
@@ -471,7 +471,7 @@ export const NavbarV2 = ({
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-5 border-b border-border/20">
               <Link to="/?reset=true" onClick={closeMobileMenu}>
-                <img src={telarHorizontal} alt="TELAR" className="h-7" />
+                <img src={cocreaHorizontal} alt="CO·CREA" className="h-7" />
               </Link>
               <button
                 onClick={closeMobileMenu}

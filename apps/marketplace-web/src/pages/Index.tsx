@@ -116,7 +116,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>TELAR — Artesanía Colombiana</title>
+        <title>COCREA — Artesanía Colombiana</title>
         <meta
           name="description"
           content="Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean."
@@ -260,14 +260,14 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-16">
               <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
                 <p className="text-2xl font-serif italic opacity-90">
-                  Telar conecta a compradores con talleres artesanales reales.
+                  Cocrea conecta a compradores con talleres artesanales reales.
                   Cada pieza tiene origen, autor y proceso documentado.
                 </p>
                 <Link
                   to="/newsletter"
                   className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
                 >
-                  Descubrir cómo funciona Telar
+                  Descubrir cómo funciona Cocrea
                 </Link>
               </div>
             </div>
@@ -297,7 +297,7 @@ const Index = () => {
                 Cada pieza tiene una huella digital
               </h2>
               <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light mb-8">
-                Cada objeto en Telar conserva un registro que documenta su
+                Cada objeto en Cocrea conserva un registro que documenta su
                 origen cultural, el taller que lo creó y su proceso artesanal.
               </p>
               <div className="space-y-8">
@@ -433,7 +433,7 @@ const Index = () => {
               <div className="flex-1 space-y-8">
                 <h2 className="text-5xl font-serif">Regalos con historia</h2>
                 <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
-                  En Telar puedes encontrar piezas especiales para regalar en
+                  En Cocrea puedes encontrar piezas especiales para regalar en
                   momentos importantes. Cada objeto hecho a mano lleva consigo
                   tradición, conocimiento y dedicación.
                 </p>

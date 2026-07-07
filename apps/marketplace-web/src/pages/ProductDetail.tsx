@@ -186,7 +186,7 @@ const ProductDetail = () => {
                     onClick={() => setShowComingSoon(true)}
                     className="bg-[#ec6d13] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#ec6d13]/80 transition-colors"
                   >
-                    Certificado de autenticidad TELAR
+                    Certificado de autenticidad COCREA
                   </button>
                 </div>
               </div>
@@ -496,7 +496,7 @@ const ProductDetail = () => {
         <section className="mb-24 bg-[#2c2c2c] text-white py-16 px-6 rounded-3xl">
           <h3 className="text-center mb-12">
             <span className="text-xs text-white/70 mb-4 block italic max-w-lg mx-auto leading-relaxed">
-              Cada pieza en TELAR cuenta con una huella digital que preserva su
+              Cada pieza en COCREA cuenta con una huella digital que preserva su
               origen, su proceso artesanal y el taller que la creó.
             </span>
             <span className="text-4xl font-serif text-white">
@@ -701,7 +701,7 @@ const ProductDetail = () => {
               to="/newsletter"
               className="inline-block bg-[#ec6d13] text-white px-8 py-4 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#2c2c2c] transition-all"
             >
-              Conoce más de Telar
+              Conoce más de Cocrea
             </Link>
           </div>
         </section>

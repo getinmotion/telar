@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 770 120" role="img" aria-label="CO·CREA">
+  <g fill="none" stroke="#2E5424" stroke-width="14">
+    <!-- C -->
+    <path d="M 92.1 21.7 A 50 50 0 1 0 92.1 98.3" />
+    <!-- R -->
+    <path d="M 462 10 V 110" />
+    <path d="M 462 17 H 492 A 25.5 25.5 0 0 1 492 68 H 462" />
+    <path d="M 488 64 L 518 110" />
+    <!-- E -->
+    <path d="M 560 10 V 110" />
+    <path d="M 560 17 H 618" />
+    <path d="M 560 58 H 610" />
+    <path d="M 560 103 H 618" />
+  </g>
+  <g fill="#2E5424">
+    <!-- O -->
+    <circle cx="185" cy="60" r="52" />
+    <!-- dot separator -->
+    <circle cx="278" cy="60" r="12" />
+    <!-- A (solid triangle) -->
+    <path d="M 648 110 L 700 10 L 752 110 Z" />
+  </g>
+  <g fill="none" stroke="#2E5424" stroke-width="14">
+    <!-- second C -->
+    <path d="M 404.1 21.7 A 50 50 0 1 0 404.1 98.3" />
+  </g>
+</svg>

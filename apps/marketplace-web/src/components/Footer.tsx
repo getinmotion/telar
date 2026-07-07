@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
-import telarFooterLogo from "@/assets/telar-footer-logo.svg";
+import cocreaFooterLogo from "@/assets/cocrea-footer-logo.svg";
 
 export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean }) => {
   const [email, setEmail] = useState("");
@@ -67,8 +67,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
           <FooterLink to="/colecciones">Colecciones</FooterLink>
         </FooterNav>
 
-        <FooterNav title="Telar">
-          <FooterLink to="/sobre-telar">Sobre Telar</FooterLink>
+        <FooterNav title="Cocrea">
+          <FooterLink to="/sobre-cocrea">Sobre Cocrea</FooterLink>
           <FooterLink to="/historias">Historias</FooterLink>
           <FooterLink to="/talleres">Talleres</FooterLink>
           <FooterLink to="/trazabilidad">Trazabilidad</FooterLink>
@@ -108,13 +108,13 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
           <div className="max-w-2xl">
             <div className="mb-10">
               <img
-                src={telarFooterLogo}
-                alt="TELAR"
-                className="h-16 w-auto"
+                src={cocreaFooterLogo}
+                alt="CO·CREA"
+                className="h-10 w-auto"
               />
             </div>
             <p className="font-serif text-4xl md:text-5xl italic text-white leading-tight">
-              Historias hechas a mano que conectan oficio, territorio y personas.
+              Saberes y oficios de las Escuelas Taller de Colombia: herramientas de paz.
             </p>
           </div>
           <div className="flex flex-col items-start md:items-end gap-3 text-white/40 text-[10px] font-bold tracking-[0.3em] uppercase">
@@ -127,11 +127,11 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       <div className="max-w-7xl mx-auto px-8 py-10 border-t border-white/10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
           <div className="flex flex-col gap-2 text-white/30 text-[9px] font-bold tracking-[0.2em] uppercase">
-            <p>Artesanías hechas con amor en Latinoamérica</p>
-            <p>telar está orgullosamente desarrollado en Colombia</p>
+            <p>Programa Nacional Escuelas Taller de Colombia</p>
+            <p>Ministerio de las Culturas, las Artes y los Saberes</p>
           </div>
           <div className="text-white/20 text-[9px] font-bold tracking-[0.2em] uppercase">
-            <p>&copy; {new Date().getFullYear()} TELAR. TODOS LOS DERECHOS RESERVADOS.</p>
+            <p>&copy; {new Date().getFullYear()} COCREA. TODOS LOS DERECHOS RESERVADOS.</p>
           </div>
         </div>
       </div>

@@ -29,14 +29,14 @@ const DataTreatment = () => {
               <p><strong>Sitio web:</strong> www.telar.co</p>
             </div>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              GET IN MOTION S.A.S., en adelante "TELAR" o "la Empresa", actúa como Responsable del Tratamiento de los datos personales recolectados a través de su plataforma de comercio electrónico y demás canales de contacto.
+              GET IN MOTION S.A.S., en adelante "COCREA" o "la Empresa", actúa como Responsable del Tratamiento de los datos personales recolectados a través de su plataforma de comercio electrónico y demás canales de contacto.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">2. Objeto de la Política</h2>
             <p className="text-muted-foreground leading-relaxed">
-              La presente Política tiene por objeto establecer los lineamientos, principios, derechos y procedimientos que rigen el tratamiento de datos personales recolectados por TELAR, en cumplimiento de lo establecido en la Ley 1581 de 2012, el Decreto 1377 de 2013, y demás normas que las modifiquen, adicionen o complementen.
+              La presente Política tiene por objeto establecer los lineamientos, principios, derechos y procedimientos que rigen el tratamiento de datos personales recolectados por COCREA, en cumplimiento de lo establecido en la Ley 1581 de 2012, el Decreto 1377 de 2013, y demás normas que las modifiquen, adicionen o complementen.
             </p>
           </section>
 
@@ -61,7 +61,7 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">4. Principios del Tratamiento</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR aplicará los siguientes principios en el tratamiento de datos personales:
+              COCREA aplicará los siguientes principios en el tratamiento de datos personales:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li><strong>Principio de legalidad:</strong> El tratamiento de datos personales es una actividad reglada que debe sujetarse a lo establecido en la ley y demás disposiciones que la desarrollen.</li>
@@ -78,7 +78,7 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">5. Datos Personales Recolectados</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR recolecta los siguientes tipos de datos personales:
+              COCREA recolecta los siguientes tipos de datos personales:
             </p>
             <h3 className="text-lg font-medium mb-3">5.1. De Compradores:</h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
@@ -144,7 +144,7 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">7. Autorización del Titular</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR obtendrá la autorización previa, expresa e informada de los titulares para el tratamiento de sus datos personales. Dicha autorización se obtendrá a través de:
+              COCREA obtendrá la autorización previa, expresa e informada de los titulares para el tratamiento de sus datos personales. Dicha autorización se obtendrá a través de:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>Formularios de registro en la Plataforma (marcación de casilla de aceptación).</li>
@@ -194,14 +194,14 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">10. Seguridad de la Información</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR implementa medidas técnicas, humanas y administrativas para proteger los datos personales frente a accesos no autorizados, pérdida, alteración, destrucción o uso indebido. Dichas medidas incluyen cifrado de datos, controles de acceso, auditorías de seguridad y capacitación del personal.
+              COCREA implementa medidas técnicas, humanas y administrativas para proteger los datos personales frente a accesos no autorizados, pérdida, alteración, destrucción o uso indebido. Dichas medidas incluyen cifrado de datos, controles de acceso, auditorías de seguridad y capacitación del personal.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">11. Transferencia y Transmisión de Datos</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR podrá transferir o transmitir datos personales a terceros encargados del tratamiento, tales como:
+              COCREA podrá transferir o transmitir datos personales a terceros encargados del tratamiento, tales como:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>Pasarelas de pago para el procesamiento de transacciones.</li>
@@ -224,7 +224,7 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">13. Datos de Menores de Edad</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR no recolecta datos personales de menores de edad sin el consentimiento previo, expreso y verificable de los padres o representantes legales. En caso de que se detecte que se han recolectado datos de menores sin autorización, estos serán eliminados de forma inmediata.
+              COCREA no recolecta datos personales de menores de edad sin el consentimiento previo, expreso y verificable de los padres o representantes legales. En caso de que se detecte que se han recolectado datos de menores sin autorización, estos serán eliminados de forma inmediata.
             </p>
           </section>
 
@@ -238,14 +238,14 @@ const DataTreatment = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">15. Modificaciones a la Política</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR se reserva el derecho de modificar esta política en cualquier momento. Los cambios serán comunicados a los titulares mediante publicación en la Plataforma o por correo electrónico.
+              COCREA se reserva el derecho de modificar esta política en cualquier momento. Los cambios serán comunicados a los titulares mediante publicación en la Plataforma o por correo electrónico.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">16. Contacto</h2>
             <div className="text-muted-foreground leading-relaxed">
-              <p>Para cualquier consulta, petición, queja o reclamo relacionado con el tratamiento de datos personales, el titular puede contactar a TELAR a través de:</p>
+              <p>Para cualquier consulta, petición, queja o reclamo relacionado con el tratamiento de datos personales, el titular puede contactar a COCREA a través de:</p>
               <ul className="list-disc pl-6 space-y-2 mt-4">
                 <li>Correo electrónico: datospersonales@telar.co</li>
                 <li>Teléfono: +57 300 123 4567</li>

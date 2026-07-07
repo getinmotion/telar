@@ -116,7 +116,7 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     heroDescription:
       "La filigrana es joyería convertida en encaje. Hilos finísimos de plata u oro se enrollan, sueldan y ensamblan a mano sin moldes, dando vida a piezas que parecen bordadas sobre el aire.",
     longDescription:
-      "Heredera del encuentro entre la orfebrería precolombina —Quimbaya, Tayrona, Zenú— y la técnica morisca llegada a América con la Colonia, la filigrana colombiana es una cartografía de maestrías regionales: la escuela momposina (Bolívar), declarada Patrimonio Cultural Inmaterial de la Nación; la tradición antioqueña de Santa Fe de Antioquia; el pulso del Zenú en Ciénaga de Oro (Córdoba); la orfebrería afro del Pacífico en Quibdó (Chocó); y la tradición pastusa en Barbacoas (Nariño). En Telar acompañamos a cada taller con trazabilidad del metal, pago directo a la maestra o maestro orfebre y apoyo a la recuperación de plata reciclada.",
+      "Heredera del encuentro entre la orfebrería precolombina —Quimbaya, Tayrona, Zenú— y la técnica morisca llegada a América con la Colonia, la filigrana colombiana es una cartografía de maestrías regionales: la escuela momposina (Bolívar), declarada Patrimonio Cultural Inmaterial de la Nación; la tradición antioqueña de Santa Fe de Antioquia; el pulso del Zenú en Ciénaga de Oro (Córdoba); la orfebrería afro del Pacífico en Quibdó (Chocó); y la tradición pastusa en Barbacoas (Nariño). En Cocrea acompañamos a cada taller con trazabilidad del metal, pago directo a la maestra o maestro orfebre y apoyo a la recuperación de plata reciclada.",
     explanationCards: [
       {
         title: "Encuentro de dos mundos",
@@ -127,8 +127,8 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
         text: "Mompox, Santa Fe de Antioquia, Ciénaga de Oro, Quibdó y Barbacoas. Cinco escuelas regionales, cinco gramáticas del hilo, un mismo respeto por el metal hecho encaje.",
       },
       {
-        title: "Impacto Telar",
-        text: "Transparencia de origen, inclusión financiera para artesanos sin banca y materias primas sostenibles (plata reciclada, oro libre de mercurio). Comprar filigrana en Telar es financiar un linaje.",
+        title: "Impacto Cocrea",
+        text: "Transparencia de origen, inclusión financiera para artesanos sin banca y materias primas sostenibles (plata reciclada, oro libre de mercurio). Comprar filigrana en Cocrea es financiar un linaje.",
       },
     ],
     culturalQuote:

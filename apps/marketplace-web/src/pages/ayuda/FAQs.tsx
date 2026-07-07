@@ -11,16 +11,16 @@ import {
 
 const faqs = [
   {
-    question: "¿Qué es TELAR?",
-    answer: "TELAR es una plataforma que conecta directamente a artesanos colombianos con compradores. Cada producto es único, hecho a mano y cuenta la historia de la comunidad que lo creó."
+    question: "¿Qué es COCREA?",
+    answer: "COCREA es una plataforma que conecta directamente a artesanos colombianos con compradores. Cada producto es único, hecho a mano y cuenta la historia de la comunidad que lo creó."
   },
   {
     question: "¿Los productos son 100% artesanales?",
-    answer: "Sí, todos los productos en TELAR son hechos a mano por artesanos colombianos. Verificamos la autenticidad y origen de cada pieza antes de publicarla en la plataforma."
+    answer: "Sí, todos los productos en COCREA son hechos a mano por artesanos colombianos. Verificamos la autenticidad y origen de cada pieza antes de publicarla en la plataforma."
   },
   {
     question: "¿Cómo sé que mi compra llega al artesano?",
-    answer: "TELAR garantiza que el 85% del precio de venta va directamente al artesano. Solo cobramos una comisión del 15% para mantener la plataforma funcionando. No hay intermediarios."
+    answer: "COCREA garantiza que el 85% del precio de venta va directamente al artesano. Solo cobramos una comisión del 15% para mantener la plataforma funcionando. No hay intermediarios."
   },
   {
     question: "¿Puedo comprar directamente desde la tienda del artesano?",
@@ -48,7 +48,7 @@ const faqs = [
   },
   {
     question: "¿Qué métodos de pago aceptan?",
-    answer: "Aceptamos tarjetas de crédito, débito, PSE, Nequi y gift cards de TELAR. Todos los pagos son seguros y procesados a través de plataformas certificadas."
+    answer: "Aceptamos tarjetas de crédito, débito, PSE, Nequi y gift cards de COCREA. Todos los pagos son seguros y procesados a través de plataformas certificadas."
   },
   {
     question: "¿Puedo comprar varios productos de diferentes artesanos?",
@@ -56,7 +56,7 @@ const faqs = [
   },
   {
     question: "¿Ofrecen gift cards?",
-    answer: "Sí, puedes comprar gift cards digitales de TELAR. Son perfectas para regalar y apoyar a los artesanos colombianos."
+    answer: "Sí, puedes comprar gift cards digitales de COCREA. Son perfectas para regalar y apoyar a los artesanos colombianos."
   }
 ];
 
@@ -93,7 +93,7 @@ export default function FAQs() {
             <span className="italic text-primary">frecuentes</span>
           </h1>
           <p className="text-base md:text-lg text-charcoal/70 max-w-2xl font-sans leading-relaxed">
-            Encuentra respuestas a las preguntas más comunes sobre TELAR
+            Encuentra respuestas a las preguntas más comunes sobre COCREA
           </p>
         </div>
       </section>

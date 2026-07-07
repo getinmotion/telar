@@ -51,7 +51,7 @@ const DEFAULT_EDITORIAL: ArtisanEditorial = {
   originDescription:
     "Reconocido como cuna de la artesania colombiana. Una tierra donde la tradicion y la creatividad se encuentran en cada rincon.",
   registryId: "TLR-00000-2024",
-  registryLabel: "Certificado de Autenticidad TELAR",
+  registryLabel: "Certificado de Autenticidad COCREA",
 };
 
 // ── Component ────────────────────────────────────────────

@@ -13,7 +13,7 @@ const ARTESANA_TEJIENDO_URL =
   "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/artisan_capture.png";
 
 /* ── Fallback editorial — se renderiza solo si CMS no responde ────────── */
-const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
+const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
   {
     id: "fallback-about-hero",
     pageKey: "sobre-telar",
@@ -22,12 +22,12 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
     published: true,
     payload: {
       bgImageUrl: ABOUT_1_URL,
-      bgImageAlt: "Artesanía colombiana",
+      bgImageAlt: "Oficios y saberes de las Escuelas Taller de Colombia",
       bgObjectPosition: "center 30%",
-      titleLineTop: "TELAR ES EL",
-      titleLineItalic: "PUENTE DIGITAL",
-      titleLineBottom: "DE LA ARTESANÍA",
-      body: "Somos una plataforma que conecta directamente a artesanos colombianos con personas que valoran el trabajo manual, la tradición y el impacto social. Cada producto cuenta una historia, cada compra transforma una vida.",
+      titleLineTop: "COCREA ES LA VITRINA",
+      titleLineItalic: "DEL PATRIMONIO VIVO",
+      titleLineBottom: "DE COLOMBIA",
+      body: "Somos el marketplace de las Escuelas Taller de Colombia, una iniciativa del Programa Nacional Escuelas Taller (PNET) del Ministerio de las Culturas, las Artes y los Saberes. Conectamos los productos elaborados por egresados y egresadas, maestras y maestros de los oficios culturales con personas que valoran el trabajo hecho a mano, la tradición y la construcción de paz.",
     },
     createdAt: "",
     updatedAt: "",
@@ -40,17 +40,17 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
     published: true,
     payload: {
       imageSide: "right",
-      kicker: "Nuestro propósito",
-      titleLineTop: "Preservar tradiciones,",
-      titleLineItalic: "dignificar oficios",
+      kicker: "Nuestra historia",
+      titleLineTop: "Tres décadas salvaguardando",
+      titleLineItalic: "los oficios",
       paragraphs: [
-        "Colombia tiene una riqueza artesanal milenaria que se pierde entre intermediarios, bajos precios y falta de visibilidad. Muchos artesanos abandonan sus oficios porque no encuentran un canal justo para vender su trabajo.",
-        "Creamos TELAR para que cada artesano tenga su propia vitrina digital, controle sus precios, cuente su historia y construya un negocio sostenible desde su comunidad.",
+        "El modelo de Escuelas Taller llegó a Colombia en 1992 gracias a la cooperación entre la Agencia Española de Cooperación Internacional para el Desarrollo (AECID) y el Gobierno de Colombia. Entre 2005 y 2009 el Ministerio de Cultura lo transformó en el Programa Nacional Escuelas Taller, ampliando su alcance hacia la salvaguardia del patrimonio cultural inmaterial, los oficios tradicionales y las economías culturales.",
+        "En 2019, la estrategia “Salvaguardia de los oficios tradicionales para la construcción de paz” fue inscrita por la UNESCO en el Registro de Buenas Prácticas de Salvaguardia del Patrimonio Cultural Inmaterial. Hoy el Programa sigue evolucionando bajo el Plan Nacional de Cultura 2024–2038, con enfoque de Patrimonio Vivo, economías populares y comunitarias y Talleres Escuela.",
       ],
       imageUrl: ABOUT_2_URL,
-      imageAlt: "Artesanos conectados a Telar",
-      statValue: "1.500+",
-      statLabel: "Artesanos conectados",
+      imageAlt: "Aprendices y maestros de las Escuelas Taller",
+      statValue: "2019",
+      statLabel: "Reconocimiento UNESCO como buena práctica de salvaguardia",
     },
     createdAt: "",
     updatedAt: "",
@@ -62,12 +62,12 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
     type: "about_wide_block",
     published: true,
     payload: {
-      kicker: "Comercio justo",
-      titleLineTop: "Honestidad en",
-      titleLineItalic: "cada fibra",
+      kicker: "Misión y visión",
+      titleLineTop: "Herramientas",
+      titleLineItalic: "de paz",
       paragraphs: [
-        "En Telar eliminamos las barreras entre el territorio y tú. Nuestra plataforma habilita el comercio directo para que el beneficio económico llegue íntegramente a los verdaderos protagonistas: comunidades indígenas, afrodescendientes, campesinos y mujeres cabeza de familia que lideran la economía popular desde la Colombia profunda.",
-        "Comprar aquí es una inversión social: es garantizar un pago justo, respaldar el liderazgo de líderes sociales en sus comunidades y asegurar que el saber ancestral sea una oportunidad real para las nuevas generaciones. Sin intermediarios y con trazabilidad total, conectamos tu compra con la fuerza y la cultura de cada territorio.",
+        "Nuestra misión es la salvaguardia de los saberes y oficios culturales, patrimoniales y artísticos, a través de procesos formativos orientados a la educación para el trabajo, la gestión cultural y el desarrollo humano, impulsando la dinamización de las economías culturales, populares y comunitarias, la circulación de la oferta artística y cultural, el ejercicio de derechos culturales, la sostenibilidad y la gestión del conocimiento.",
+        "Buscamos consolidarnos como referente en la salvaguardia de los saberes y oficios culturales, reconocidos por fortalecer el patrimonio vivo, impulsar las economías culturales y populares, promover el desarrollo territorial y contribuir a la construcción de paz mediante la formación, la innovación social y la gestión del conocimiento.",
       ],
     },
     createdAt: "",
@@ -81,21 +81,22 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
     published: true,
     payload: {
       imageSide: "left",
-      kicker: "Inteligencia artesanal",
-      titleLineTop: "Tecnología al servicio",
-      titleLineItalic: "de la tradición",
-      intro: "No reemplazamos el trabajo artesanal con máquinas. Usamos tecnología para que los artesanos puedan:",
+      kicker: "Nuestro modelo",
+      titleLineTop: "Cinco ejes que articulan",
+      titleLineItalic: "el ecosistema cultural",
+      intro: "El modelo integral del Programa Nacional Escuelas Taller se desarrolla a partir de cinco ejes estratégicos:",
       bullets: [
-        "Crear su tienda en minutos sin conocimientos técnicos",
-        "Gestionar inventarios, pedidos y pagos desde su celular",
-        "Contar su historia y conectar con compradores de todo el país",
-        "Recibir pagos seguros directamente en su cuenta bancaria",
+        "Formación para el trabajo",
+        "Gestión del conocimiento",
+        "Incidencia local y regional",
+        "Economías culturales, populares y comunitarias",
+        "Integración al ecosistema cultural y territorial",
       ],
-      outro: "La tecnología amplifica su alcance, pero el corazón sigue siendo el trabajo manual, la dedicación y el conocimiento transmitido por generaciones.",
+      outro: "Nuestro trabajo se guía por la diversidad cultural, la inclusión social, la construcción de paz, la innovación, el desarrollo territorial, la gestión colaborativa del conocimiento y la sostenibilidad.",
       imageUrl: ARTESANA_TEJIENDO_URL,
       imageAlt: "Artesana tejiendo con lanas de colores",
-      overlayKicker: "Tecnología al servicio",
-      overlayTitle: "de la tradición",
+      overlayKicker: "Saberes que se transmiten",
+      overlayTitle: "de generación en generación",
     },
     createdAt: "",
     updatedAt: "",
@@ -107,9 +108,9 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
     type: "about_cta",
     published: true,
     payload: {
-      titleLineTop: "Cada compra es un voto",
-      titleLineItalic: "por un futuro más justo",
-      body: "Explora el trabajo de cientos de artesanos colombianos y lleva a casa piezas únicas que cuentan historias de tradición, dedicación y esperanza.",
+      titleLineTop: "Cada compra fortalece",
+      titleLineItalic: "el patrimonio vivo",
+      body: "Explora los productos elaborados por artesanas, artesanos, Escuelas Taller y emprendimientos culturales de todo el país, conoce las historias y los saberes detrás de cada pieza y conecta directamente con sus creadores.",
       ctas: [
         { label: "Explorar productos", href: "/productos", variant: "secondary" },
         { label: "Ver categorías", href: "/categorias", variant: "outline" },
@@ -123,7 +124,7 @@ const FALLBACK_SOBRE_TELAR_SECTIONS: CmsSection[] = [
 export default function SobreTelar() {
   const { data: cmsSections } = useCmsSections("sobre-telar");
   const sections =
-    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_SOBRE_TELAR_SECTIONS;
+    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_SOBRE_COCREA_SECTIONS;
 
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">
@@ -134,7 +135,7 @@ export default function SobreTelar() {
             Inicio
           </Link>
           <span>/</span>
-          <span className="text-primary font-bold">Sobre Telar</span>
+          <span className="text-primary font-bold">Sobre Cocrea</span>
         </nav>
       </div>
 

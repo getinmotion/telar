@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import telarLogo from '@/assets/telar-vertical.svg';
+import cocreaLogo from '@/assets/cocrea-vertical.svg';
 import { NavLink } from '@/components/NavLink';
 
 const ResetPassword = () => {
@@ -87,7 +87,7 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <NavLink to="/" className="mx-auto">
-            <img src={telarLogo} alt="TELAR" className="h-16" />
+            <img src={cocreaLogo} alt="CO·CREA" className="h-16" />
           </NavLink>
           <div>
             <CardTitle className="text-2xl">Nueva contraseña</CardTitle>

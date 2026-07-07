@@ -21,7 +21,7 @@ const Privacy = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">1. Ámbito de Aplicación</h2>
             <p className="text-muted-foreground leading-relaxed">
-              La presente Política de Privacidad (Publicidad) tiene como finalidad establecer las condiciones bajo las cuales GET IN MOTION S.A.S., en adelante "la Empresa" o "TELAR", protege y gestiona los datos personales de los usuarios que interactúan con su plataforma de comercio electrónico denominada TELAR y/o sus servicios de marketing, publicidad y comunicaciones comerciales.
+              La presente Política de Privacidad (Publicidad) tiene como finalidad establecer las condiciones bajo las cuales GET IN MOTION S.A.S., en adelante "la Empresa" o "COCREA", protege y gestiona los datos personales de los usuarios que interactúan con su plataforma de comercio electrónico denominada COCREA y/o sus servicios de marketing, publicidad y comunicaciones comerciales.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
               Esta política se encuentra en concordancia con lo dispuesto por la Ley 1581 de 2012, el Decreto 1377 de 2013, y demás normatividad aplicable en materia de protección de datos personales en Colombia.
@@ -72,7 +72,7 @@ const Privacy = () => {
               La Empresa podrá utilizar los datos personales de los titulares para:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Enviar comunicaciones comerciales, promociones, ofertas y descuentos relacionados con los productos y servicios de TELAR.</li>
+              <li>Enviar comunicaciones comerciales, promociones, ofertas y descuentos relacionados con los productos y servicios de COCREA.</li>
               <li>Informar sobre lanzamientos de nuevos productos o funcionalidades.</li>
               <li>Compartir contenidos de interés, como blogs, noticias o eventos relacionados con la artesanía colombiana.</li>
               <li>Realizar estudios de mercado, encuestas de satisfacción o análisis de comportamiento de compra.</li>
@@ -85,7 +85,7 @@ const Privacy = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">6. Canales de Comunicación Publicitaria</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR podrá contactar a los titulares a través de los siguientes medios:
+              COCREA podrá contactar a los titulares a través de los siguientes medios:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>Correo electrónico.</li>
@@ -108,7 +108,7 @@ const Privacy = () => {
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>Solicitud escrita enviada al correo: datospersonales@telar.co</li>
               <li>Opción de "Cancelar suscripción" en los correos electrónicos recibidos.</li>
-              <li>Solicitud formal a través de la plataforma TELAR.</li>
+              <li>Solicitud formal a través de la plataforma COCREA.</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
               La revocación se hará efectiva en un plazo máximo de diez (10) días hábiles.
@@ -132,14 +132,14 @@ const Privacy = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">9. Seguridad de la Información</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR implementa medidas de seguridad técnicas, administrativas y físicas para proteger los datos personales frente a accesos no autorizados, pérdida, alteración o destrucción.
+              COCREA implementa medidas de seguridad técnicas, administrativas y físicas para proteger los datos personales frente a accesos no autorizados, pérdida, alteración o destrucción.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">10. Uso de Cookies y Tecnologías Similares</h2>
             <p className="text-muted-foreground leading-relaxed">
-              La plataforma TELAR puede utilizar cookies, píxeles de seguimiento y herramientas analíticas para mejorar la experiencia del usuario y personalizar la publicidad. El usuario podrá configurar su navegador para aceptar o rechazar el uso de cookies.
+              La plataforma COCREA puede utilizar cookies, píxeles de seguimiento y herramientas analíticas para mejorar la experiencia del usuario y personalizar la publicidad. El usuario podrá configurar su navegador para aceptar o rechazar el uso de cookies.
             </p>
           </section>
 

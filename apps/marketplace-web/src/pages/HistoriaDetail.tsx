@@ -200,7 +200,7 @@ const HistoriaDetail = () => {
   return (
     <>
       <Helmet>
-        <title>{article.title} | Historias TELAR</title>
+        <title>{article.title} | Historias COCREA</title>
         {article.excerpt && (
           <meta name="description" content={article.excerpt} />
         )}
@@ -434,7 +434,7 @@ const HistoriaDetail = () => {
             </Link>
             <div className="pt-24 opacity-30">
               <p className="text-[9px] tracking-[0.5em] uppercase font-bold">
-                El Telar Digital · Crónicas de Origen
+                El Taller Digital · Crónicas de Origen
               </p>
             </div>
           </div>

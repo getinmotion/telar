@@ -56,7 +56,7 @@ const COLLECTION_EDITORIAL: CollectionEditorial[] = [
   {
     slug: "tejeduria-wayuu",
     title: "Ancestría Geométrica",
-    subtitle: "Curada por TELAR",
+    subtitle: "Curada por COCREA",
     description:
       "El mapa de una cultura trazado en hilos. Una gramática de simetría y cosmogonía ancestral donde cada rombo cuenta una historia de territorio.",
     layout: "centered",
@@ -74,7 +74,7 @@ const COLLECTION_EDITORIAL: CollectionEditorial[] = [
   {
     slug: "sombrero-vueltiao",
     title: "Trenzados del Sinú",
-    subtitle: "Curada por TELAR",
+    subtitle: "Curada por COCREA",
     description:
       "La caña flecha se convierte en arte a través de las manos del pueblo Zenú. Geometría precisa que codifica cosmovisiones ancestrales en cada trenzado.",
     layout: "dark",
@@ -195,7 +195,7 @@ export default function Colecciones() {
   return (
     <>
       <Helmet>
-        <title>Colecciones — TELAR</title>
+        <title>Colecciones — COCREA</title>
         <meta
           name="description"
           content="Selecciones curadas que exploran la materialidad y el alma de la artesanía colombiana."

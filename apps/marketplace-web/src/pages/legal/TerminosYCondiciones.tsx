@@ -52,13 +52,13 @@ export default function TerminosYCondiciones() {
                     <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2.5 flex-shrink-0" />
                     <div>
                       <strong className="text-charcoal">Plataforma:</strong>
-                      <span className="text-charcoal/70 font-sans"> El sitio web, aplicación móvil y cualquier otro medio digital operado por TELAR, donde se prestan los servicios de comercio electrónico.</span>
+                      <span className="text-charcoal/70 font-sans"> El sitio web, aplicación móvil y cualquier otro medio digital operado por COCREA, donde se prestan los servicios de comercio electrónico.</span>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2.5 flex-shrink-0" />
                     <div>
-                      <strong className="text-charcoal">TELAR:</strong>
+                      <strong className="text-charcoal">COCREA:</strong>
                       <span className="text-charcoal/70 font-sans"> GET IN MOTION S.A.S., sociedad colombiana, identificada con NIT 901.777.707-1, con domicilio en Bogotá, D.C.</span>
                     </div>
                   </li>
@@ -96,7 +96,7 @@ export default function TerminosYCondiciones() {
               <section>
                 <h2 className="text-2xl font-serif mb-4 text-charcoal">2. Objeto de la Plataforma</h2>
                 <p className="text-charcoal/70 font-sans leading-relaxed">
-                  TELAR es un marketplace que conecta compradores con artesanos colombianos, facilitando la comercialización de productos artesanales. TELAR actúa como intermediario tecnológico, proporcionando el espacio digital para la publicación, promoción y gestión de transacciones, sin ser parte de los contratos de compraventa celebrados entre compradores y vendedores.
+                  COCREA es un marketplace que conecta compradores con artesanos colombianos, facilitando la comercialización de productos artesanales. COCREA actúa como intermediario tecnológico, proporcionando el espacio digital para la publicación, promoción y gestión de transacciones, sin ser parte de los contratos de compraventa celebrados entre compradores y vendedores.
                 </p>
               </section>
 
@@ -106,7 +106,7 @@ export default function TerminosYCondiciones() {
                   El acceso y uso de la Plataforma implica la aceptación plena e incondicional de estos términos y condiciones. Si el usuario no está de acuerdo con alguna de las disposiciones aquí contenidas, deberá abstenerse de usar la Plataforma.
                 </p>
                 <p className="text-charcoal/70 font-sans leading-relaxed">
-                  TELAR se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a los usuarios mediante publicación en la Plataforma o por correo electrónico.
+                  COCREA se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a los usuarios mediante publicación en la Plataforma o por correo electrónico.
                 </p>
               </section>
 

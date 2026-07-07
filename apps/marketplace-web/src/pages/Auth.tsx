@@ -14,7 +14,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import telarLogo from "@/assets/telar-vertical.svg";
+import cocreaLogo from "@/assets/cocrea-vertical.svg";
 import { NavLink } from "@/components/NavLink";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
@@ -59,7 +59,7 @@ const Auth = () => {
           </NavLink>
 
           <div className="flex justify-center">
-            <img src={telarLogo} alt="Telar" className="h-12" />
+            <img src={cocreaLogo} alt="CO·CREA" className="h-12" />
           </div>
 
           <div>

@@ -296,7 +296,7 @@ const FALLBACK_TECNICAS_SECTIONS: CmsSection[] = [
   fb("fb-muestra", 6, "muestra_intro", {
     kicker: "Muestra de Técnicas",
     title: "Técnicas con piezas disponibles ahora.",
-    body: "Solo aparecen técnicas que tienen al menos un producto publicado en Telar. Cada tarjeta abre el detalle de la técnica.",
+    body: "Solo aparecen técnicas que tienen al menos un producto publicado en Cocrea. Cada tarjeta abre el detalle de la técnica.",
   }),
   fb("fb-archive-label", 7, "archive_label", {
     kicker: "Exploración del Archivo",
@@ -313,7 +313,7 @@ const FALLBACK_TECNICAS_SECTIONS: CmsSection[] = [
     asideTitle: "Colabora",
     asideBody: "¿Conoces una técnica que aún no hemos documentado? Ayúdanos a expandir el archivo maestro.",
     asideCtaLabel: "Postular Técnica",
-    copyright: "TELAR © 2025 · Colombia",
+    copyright: "COCREA © 2025 · Colombia",
     edition: "Edición 01: El gesto primordial",
   }),
 ];

@@ -397,7 +397,7 @@ const GiftCards = () => {
       {recommendations.length > 0 && (
         <section className="py-20 px-6 md:px-12 max-w-7xl mx-auto">
           <div className="flex justify-between items-baseline mb-16">
-            <h2 className="font-serif text-4xl">Recomendaciones de Telar</h2>
+            <h2 className="font-serif text-4xl">Recomendaciones de Cocrea</h2>
             <Link
               to="/productos"
               className="text-sm uppercase tracking-tight border-b border-[#1b1c19] font-bold hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
@@ -685,11 +685,11 @@ const GiftCards = () => {
           {[
             {
               q: "Como funciona la Gift Card?",
-              a: "Al completar la compra, el destinatario recibira un codigo unico por correo electronico. Este codigo se puede usar en el checkout de cualquier compra en el Marketplace de Telar.",
+              a: "Al completar la compra, el destinatario recibira un codigo unico por correo electronico. Este codigo se puede usar en el checkout de cualquier compra en el Marketplace de Cocrea.",
             },
             {
               q: "La Gift Card tiene fecha de vencimiento?",
-              a: "Las Gift Cards de Telar no tienen fecha de vencimiento. El saldo permanece disponible hasta que se utilice por completo.",
+              a: "Las Gift Cards de Cocrea no tienen fecha de vencimiento. El saldo permanece disponible hasta que se utilice por completo.",
             },
             {
               q: "Puedo usar la Gift Card en varias compras?",

@@ -125,7 +125,7 @@ const BlogArticle = () => {
   return (
     <>
       <Helmet>
-        <title>{article.title} | Historias TELAR</title>
+        <title>{article.title} | Historias COCREA</title>
         <meta name="description" content={article.description} />
         {coverImageUrl && (
           <meta property="og:image" content={coverImageUrl} />
@@ -352,7 +352,7 @@ const BlogArticle = () => {
             </Link>
             <div className="pt-24 opacity-30">
               <p className="text-[9px] tracking-[0.5em] uppercase font-bold">
-                El Telar Digital · Cronicas de Origen
+                El Taller Digital · Cronicas de Origen
               </p>
             </div>
           </div>

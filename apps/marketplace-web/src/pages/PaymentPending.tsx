@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import telarLogo from "@/assets/telar-vertical.svg";
+import cocreaLogo from "@/assets/cocrea-vertical.svg";
 import { useCart } from "@/contexts/CartContext";
 import { getCheckoutById, type CheckoutStatus } from "@/services/checkouts.actions";
 
@@ -176,8 +176,8 @@ const PaymentPending = () => {
       <div className="max-w-md w-full text-center space-y-8">
         {/* Telar Logo */}
         <img 
-          src={telarLogo} 
-          alt="Telar" 
+          src={cocreaLogo} 
+          alt="CO·CREA" 
           className="h-16 mx-auto"
         />
         

@@ -261,7 +261,7 @@ const Products = () => {
       setSyncing(true);
       toast({
         title: "Productos actualizados",
-        description: "Sincronizando cambios desde telar.co...",
+        description: "Sincronizando cambios...",
       });
       fetchProducts().finally(() => setSyncing(false));
     },

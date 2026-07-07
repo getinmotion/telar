@@ -10,8 +10,8 @@ import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
 import { CartDrawer } from "@/components/CartDrawer";
 import { MobileMenu } from "@/components/MobileMenu";
 import GuestAuthModal from "@/components/GuestAuthModal";
-import telarHorizontal from '@/assets/telar-horizontal.svg';
-import telarIsotipo from '@/assets/telar-isotipo.svg';
+import cocreaHorizontal from '@/assets/cocrea-horizontal.svg';
+
 
 interface NavbarProps {
   searchQuery?: string;
@@ -62,16 +62,16 @@ export const Navbar = ({
           {onHomeClick ? (
             <button onClick={onHomeClick} className="flex items-center gap-2 shrink-0">
               <img 
-                src={telarHorizontal}
-                alt="TELAR" 
+                src={cocreaHorizontal}
+                alt="CO·CREA" 
                 className="h-6 sm:h-8 md:h-12"
               />
             </button>
           ) : (
             <Link to="/?reset=true" className="flex items-center gap-2 shrink-0">
               <img 
-                src={telarHorizontal}
-                alt="TELAR" 
+                src={cocreaHorizontal}
+                alt="CO·CREA" 
                 className="h-6 sm:h-8 md:h-12"
               />
             </Link>

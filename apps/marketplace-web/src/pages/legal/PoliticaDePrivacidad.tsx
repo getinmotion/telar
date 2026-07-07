@@ -48,7 +48,7 @@ export default function PoliticaDePrivacidad() {
               <section>
                 <h2 className="text-2xl font-serif mb-4 text-charcoal">1. Ámbito de Aplicación</h2>
                 <p className="text-charcoal/70 font-sans leading-relaxed mb-4">
-                  La presente Política de Privacidad (Publicidad) tiene como finalidad establecer las condiciones bajo las cuales GET IN MOTION S.A.S., en adelante "la Empresa" o "TELAR", protege y gestiona los datos personales de los usuarios que interactúan con su plataforma de comercio electrónico denominada TELAR y/o sus servicios de marketing, publicidad y comunicaciones comerciales.
+                  La presente Política de Privacidad (Publicidad) tiene como finalidad establecer las condiciones bajo las cuales GET IN MOTION S.A.S., en adelante "la Empresa" o "COCREA", protege y gestiona los datos personales de los usuarios que interactúan con su plataforma de comercio electrónico denominada COCREA y/o sus servicios de marketing, publicidad y comunicaciones comerciales.
                 </p>
                 <p className="text-charcoal/70 font-sans leading-relaxed">
                   Esta política se encuentra en concordancia con lo dispuesto por la Ley 1581 de 2012, el Decreto 1377 de 2013, y demás normatividad aplicable en materia de protección de datos personales en Colombia.

@@ -60,7 +60,7 @@ const Blog = () => {
   return (
     <>
       <Helmet>
-        <title>Historias - Cronicas del Territorio | TELAR</title>
+        <title>Historias - Cronicas del Territorio | COCREA</title>
         <meta
           name="description"
           content="Descubre las historias, tradiciones y tecnicas detras de las artesanias colombianas."
@@ -72,7 +72,7 @@ const Blog = () => {
         <header className="max-w-[1400px] mx-auto px-6 py-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
             <span className="text-[10px] uppercase tracking-[0.4em] text-[#2c2c2c]/40 font-bold">
-              El Telar Digital
+              El Taller Digital
             </span>
             <h1 className="text-6xl md:text-8xl font-serif italic leading-[0.9] tracking-tight">
               Historias
