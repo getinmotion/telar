@@ -547,7 +547,7 @@ const ProductDetail = () => {
         </section>
 
         {/* ═══════════════ CULTURAL RECORD + MAP ═══════════════ */}
-        {/* {(shop?.region || shop?.municipality) && (
+        {(shop?.region || shop?.municipality) && (
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#2c2c2c]/5 shadow-sm">
             <div className="p-12 lg:p-20 flex flex-col justify-center">
               <span className="text-[#ec6d13] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
@@ -595,7 +595,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </section>
-        )} */}
+        )}
 
         {/* ═══════════════ ARTISAN PROFILE ═══════════════ */}
         {/*
