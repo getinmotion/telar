@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
 import type { NewWizardState } from "../hooks/useNewWizardState";
@@ -9,8 +9,15 @@ import {
   createStory,
   type Story,
 } from "@/services/story-library.actions";
-import { uploadImage, UploadFolder } from "@/services/fileUpload.actions";
-import { optimizeImage, ImageOptimizePresets } from "@/lib/imageOptimizer";
+import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
+import { step1InitialCapture } from "@/services/agent.actions";
+import type {
+  Step1InitialCaptureRequest,
+  Step1InitialCaptureResponse,
+  ContentImprovement,
+  PhotoFeedback,
+  FieldSource,
+} from "@/types/agent.types";
 
 interface Props {
   state: NewWizardState;
@@ -24,6 +31,7 @@ interface Props {
   artisanId?: string;
   userId?: string;
   leftOffset?: number;
+  shopId?: string;
 }
 
 const IMAGE_SLOTS = [
@@ -67,15 +75,13 @@ export const Step1NewPiece: React.FC<Props> = ({
   artisanId = "",
   userId = "",
   leftOffset,
+  shopId = "",
 }) => {
   const [isRecordingDesc, setIsRecordingDesc] = useState(false);
   const [isRecordingHistory, setIsRecordingHistory] = useState(false);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const descRecognitionRef = useRef<any>(null);
   const historyRecognitionRef = useRef<any>(null);
-
-  // Instant image upload state
-  const [uploadingSlots, setUploadingSlots] = useState<Record<number, boolean>>({});
 
   // Story library state
   const [stories, setStories] = useState<Story[]>([]);
@@ -85,16 +91,182 @@ export const Step1NewPiece: React.FC<Props> = ({
   const [saveTitle, setSaveTitle] = useState("");
   const [isSavingStory, setIsSavingStory] = useState(false);
 
-  const canContinue =
-    state.name.trim().length > 0 && state.shortDescription.trim().length > 0;
+  // Image upload state - track uploading status per slot
+  const { uploadImages } = useImageUpload();
+  const [uploadingSlots, setUploadingSlots] = useState<Set<number>>(new Set());
+
+  // Agent state - track loading and response
+  // Initialize from restored state if available (e.g., when returning to wizard)
+  const [isCallingAgent, setIsCallingAgent] = useState(false);
+  const [agentResponse, setAgentResponse] =
+    useState<Step1InitialCaptureResponse | null>(
+      state.agentStep1Response ?? null,
+    );
+  const [agentCallAttempted, setAgentCallAttempted] = useState(
+    !!state.agentStep1Response,
+  );
+  const [agentCallCompleted, setAgentCallCompleted] = useState(
+    !!state.agentStep1Response,
+  );
+
+  // Validation: require name, description, main photo, and history
+  const hasMainPhoto = state.images[0] && typeof state.images[0] === "string";
+  const hasHistory = (state.artisanalHistory?.trim() || "").length > 0;
+  const allFieldsComplete =
+    state.name.trim().length > 0 &&
+    state.shortDescription.trim().length > 0 &&
+    hasMainPhoto &&
+    hasHistory;
+
+  // Can only continue if fields are complete AND agent has responded
+  const canContinue = allFieldsComplete && agentResponse !== null;
+
+  /**
+   * Handle accepting an AI suggestion
+   * Copies the AI value to the field and marks as ia_accepted
+   */
+  const handleAcceptSuggestion = useCallback(
+    (field: "shortDescription" | "artisanalHistory", value: string) => {
+      update({
+        [field]: value,
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          [field]: {
+            source: "ia_accepted" as const,
+            originalAiValue: value,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+      toast.success("Sugerencia aplicada");
+    },
+    [update, state.fieldMetadata],
+  );
+
+  /**
+   * Handle rejecting an AI suggestion
+   * Marks the field as manual (user wants to write their own)
+   */
+  const handleRejectSuggestion = useCallback(
+    (field: "shortDescription" | "artisanalHistory") => {
+      update({
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          [field]: {
+            source: "manual" as const,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+      toast.info("Puedes escribir tu propia versión");
+    },
+    [update, state.fieldMetadata],
+  );
 
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
+    // ── STATE 1: Default waiting ──────────────────────────────────────────────
+    if (!agentResponse && !isCallingAgent) {
+      setNode(
+        <div
+          className="p-5 flex flex-col gap-4 rounded-2xl"
+          style={{ background: "#151b2d" }}
+        >
+          <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
+                psychology
+              </span>
+              <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">
+                ORÁCULO
+              </h2>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
+              <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                Esperando señales...
+              </span>
+            </div>
+          </div>
+          {[
+            {
+              label: "Lectura visual",
+              text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
+            },
+            {
+              label: "Historia detectada",
+              text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
+            },
+            {
+              label: "Próximo paso",
+              text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
+            },
+          ].map(({ label, text }) => (
+            <div
+              key={label}
+              className="p-3 rounded-xl"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+                {label}
+              </p>
+              <p className="text-[12px] text-white/75 leading-snug">{text}</p>
+            </div>
+          ))}
+          <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
+            Las sugerencias aparecen al agregar foto, descripción o historia.
+          </p>
+        </div>,
+      );
+      return clearNode;
+    }
+
+    // ── STATE 2: Loading (GREEN ping) ─────────────────────────────────────────
+    if (isCallingAgent) {
+      setNode(
+        <div
+          className="p-5 flex flex-col gap-4 rounded-2xl"
+          style={{ background: "#151b2d" }}
+        >
+          <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
+                psychology
+              </span>
+              <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">
+                ORÁCULO
+              </h2>
+            </div>
+            {/* GREEN ping when calling agent */}
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
+              <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                Esperando respuesta por parte del agente...
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="w-12 h-12 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
+            <p className="text-[11px] text-white/60">Analizando contenido...</p>
+          </div>
+        </div>,
+      );
+      return clearNode;
+    }
+
+    // ── STATE 3: Suggestions available ────────────────────────────────────────
+    const improvements = agentResponse?.content_improvements;
+    const oraculo = agentResponse?.oraculo;
+
     setNode(
       <div
         className="p-5 flex flex-col gap-4 rounded-2xl"
         style={{ background: "#151b2d" }}
       >
+        {/* Header */}
         <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
@@ -105,47 +277,213 @@ export const Step1NewPiece: React.FC<Props> = ({
             </h2>
           </div>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
+            <span className="material-symbols-outlined text-[#22c55e] text-[14px]">
+              check_circle
+            </span>
             <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-              Esperando señales...
+              Análisis completado
             </span>
           </div>
         </div>
-        {[
-          {
-            label: "Lectura visual",
-            text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
-          },
-          {
-            label: "Historia detectada",
-            text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
-          },
-          {
-            label: "Próximo paso",
-            text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
-          },
-        ].map(({ label, text }) => (
+
+        {/* Oraculo message */}
+        {oraculo && (
           <div
-            key={label}
             className="p-3 rounded-xl"
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(236,109,19,0.1)",
+              border: "1px solid rgba(236,109,19,0.2)",
             }}
           >
-            <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
-              {label}
+            <p className="text-[11px] font-[800] text-[#ec6d13] mb-1">
+              {oraculo.title}
             </p>
-            <p className="text-[12px] text-white/75 leading-snug">{text}</p>
+            <p className="text-[12px] text-white/75 leading-snug">
+              {oraculo.body}
+            </p>
           </div>
-        ))}
-        <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
-          Las sugerencias aparecen al agregar foto, descripción o historia.
-        </p>
+        )}
+
+        {/* Improved description suggestion */}
+        {improvements?.improved_description && (
+          <SuggestionCard
+            label="Descripción sugerida"
+            suggestion={improvements.improved_description}
+            fieldKey="shortDescription"
+            onAccept={handleAcceptSuggestion}
+            onReject={handleRejectSuggestion}
+            isAccepted={
+              state.fieldMetadata?.shortDescription?.source === "ia_accepted"
+            }
+            isRejected={
+              state.fieldMetadata?.shortDescription?.source === "manual"
+            }
+          />
+        )}
+
+        {/* Improved history suggestion */}
+        {improvements?.improved_history && (
+          <SuggestionCard
+            label="Historia sugerida"
+            suggestion={improvements.improved_history}
+            fieldKey="artisanalHistory"
+            onAccept={handleAcceptSuggestion}
+            onReject={handleRejectSuggestion}
+            isAccepted={
+              state.fieldMetadata?.artisanalHistory?.source === "ia_accepted"
+            }
+            isRejected={
+              state.fieldMetadata?.artisanalHistory?.source === "manual"
+            }
+          />
+        )}
+
+        {/* Photo feedback (read-only) */}
+        {improvements?.photo_feedback && (
+          <PhotoFeedbackCard feedback={improvements.photo_feedback} />
+        )}
+
+        {/* Next step hint */}
+        {oraculo?.next_step_hint && (
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">
+              Próximo paso
+            </p>
+            <p className="text-[11px] text-white/60 leading-snug">
+              {oraculo.next_step_hint}
+            </p>
+          </div>
+        )}
       </div>,
     );
+
     return clearNode;
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isCallingAgent,
+    agentResponse,
+    state.fieldMetadata,
+    // Note: handleAcceptSuggestion, handleRejectSuggestion, setNode, clearNode
+    // are intentionally excluded to prevent infinite re-render loops
+  ]);
+
+  // Auto-call agent when all required fields are complete (with debounce)
+  useEffect(() => {
+    // Only proceed if all fields are complete, we have shopId, and agent hasn't responded yet
+    if (
+      !allFieldsComplete ||
+      !shopId ||
+      agentCallAttempted ||
+      isCallingAgent ||
+      agentCallCompleted
+    ) {
+      return;
+    }
+
+    // Debounce: wait 1.5 seconds after user stops typing
+    const debounceTimer = setTimeout(() => {
+      setAgentCallAttempted(true);
+      setIsCallingAgent(true);
+
+      const imageUrls = state.images.filter(
+        (img): img is string => typeof img === "string",
+      );
+
+      const payload: Step1InitialCaptureRequest = {
+        storeId: shopId,
+        name: state.name.trim(),
+        shortDescription: state.shortDescription.trim(),
+        history: state.artisanalHistory?.trim() || "",
+        status: "draft",
+        media: imageUrls.map((url, index) => ({
+          mediaUrl: url,
+          mediaType: "image",
+          isPrimary: index === 0,
+          displayOrder: index,
+        })),
+        artisanalIdentity: {
+          primaryCraftId:
+            state.craftId || "00000000-0000-0000-0000-000000000000",
+          isCollaboration: state.isCollaboration ?? false,
+        },
+      };
+
+      step1InitialCapture(payload)
+        .then((response) => {
+          console.log("[Step1] Agent response:", response);
+          setAgentResponse(response);
+          setAgentCallCompleted(true);
+          // Persist agent response to wizard state for backend storage
+          update({ agentStep1Response: response });
+        })
+        .catch((error) => {
+          console.error("[Step1] Error calling agent:", error);
+          // Reset so user can try again
+          setAgentCallAttempted(false);
+        })
+        .finally(() => {
+          setIsCallingAgent(false);
+        });
+    }, 2000); // Wait 1.5 seconds after user stops typing
+
+    // Cleanup: cancel timer if user keeps typing
+    return () => clearTimeout(debounceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    allFieldsComplete,
+    shopId,
+    agentCallAttempted,
+    agentCallCompleted,
+    isCallingAgent,
+  ]);
+
+  /**
+   * Modification Detection: Detect when user edits an accepted AI suggestion
+   * Changes state from 'ia_accepted' to 'ia_modified'
+   *
+   * IMPORTANT: Only depends on field VALUES, not on fieldMetadata itself.
+   * This prevents unnecessary re-runs when accepting/rejecting suggestions.
+   */
+  useEffect(() => {
+    // Check shortDescription
+    const descMeta = state.fieldMetadata?.shortDescription;
+    if (
+      descMeta?.source === "ia_accepted" &&
+      descMeta.originalAiValue &&
+      state.shortDescription !== descMeta.originalAiValue
+    ) {
+      update({
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          shortDescription: {
+            ...descMeta,
+            source: "ia_modified" as const,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+    }
+
+    // Check artisanalHistory
+    const historyMeta = state.fieldMetadata?.artisanalHistory;
+    if (
+      historyMeta?.source === "ia_accepted" &&
+      historyMeta.originalAiValue &&
+      state.artisanalHistory !== historyMeta.originalAiValue
+    ) {
+      update({
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          artisanalHistory: {
+            ...historyMeta,
+            source: "ia_modified" as const,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.shortDescription, state.artisanalHistory]);
 
   const loadStories = () => {
     if (!artisanId || loadingStories) return;
@@ -243,44 +581,53 @@ export const Step1NewPiece: React.FC<Props> = ({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = "";
 
-    // Mostrar preview local mientras se sube
-    const images = [...state.images];
-    images[index] = file;
-    update({ images });
+    // Mark slot as uploading
+    setUploadingSlots((prev) => new Set(prev).add(index));
 
-    // Upload instantáneo a S3
-    setUploadingSlots((prev) => ({ ...prev, [index]: true }));
     try {
-      let optimized: File;
-      try {
-        optimized = await optimizeImage(file, ImageOptimizePresets.product);
-      } catch {
-        optimized = file;
-      }
-      const result = await uploadImage(optimized, UploadFolder.PRODUCTS, undefined, { suppressToast: true });
-      // Reemplazar File por URL string en el state
-      const updated = [...state.images];
-      updated[index] = result.url;
-      update({ images: updated });
-    } catch (err) {
-      console.error(`[Step1] Error subiendo imagen slot ${index}:`, err);
+      // Upload to S3 immediately
+      const [url] = await uploadImages([file]);
+
+      // Update state with URL instead of File object
+      const images = [...state.images];
+      images[index] = url;
+      update({ images });
+
+      toast.success("Imagen subida correctamente");
+    } catch (error) {
+      console.error("[Step1] Error uploading image:", error);
       toast.error("No se pudo subir la imagen. Intenta de nuevo.");
-      // Remover la imagen que falló
-      const cleaned = [...state.images];
-      cleaned.splice(index, 1, undefined as unknown as File);
-      while (cleaned.length > 0 && !cleaned[cleaned.length - 1]) cleaned.pop();
-      update({ images: cleaned });
     } finally {
-      setUploadingSlots((prev) => ({ ...prev, [index]: false }));
+      // Remove uploading status
+      setUploadingSlots((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+      e.target.value = "";
     }
   };
 
-  const handleDeleteImage = (index: number, e: React.MouseEvent) => {
+  const handleDeleteImage = async (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
+
     const images = [...state.images];
-    images.splice(index, 1, undefined as unknown as File);
+    const imageUrl = images[index];
+
+    // If it's a URL (already uploaded to S3), delete it from S3
+    if (typeof imageUrl === "string" && imageUrl.startsWith("http")) {
+      try {
+        // await handleDeleteImage(imageUrl);
+        toast.success("Imagen eliminada");
+      } catch (error) {
+        console.error("[Step1] Error deleting image from S3:", error);
+        toast.error("No se pudo eliminar la imagen del servidor");
+      }
+    }
+
+    // Remove from state
+    images.splice(index, 1, undefined as unknown as File | string);
     while (images.length > 0 && !images[images.length - 1]) images.pop();
     update({ images });
   };
@@ -288,6 +635,49 @@ export const Step1NewPiece: React.FC<Props> = ({
   const getPreviewUrl = (img: File | string | undefined): string | null => {
     if (!img) return null;
     return typeof img === "string" ? img : URL.createObjectURL(img);
+  };
+
+  /**
+   * Handle next step - agent call happens automatically in useEffect
+   * This just proceeds to the next step
+   */
+  const handleNext = () => {
+    // Strict validation with user feedback
+    if (!state.name || state.name.trim().length === 0) {
+      toast.error("Por favor ingresa el nombre de la pieza");
+      return;
+    }
+
+    if (!state.shortDescription || state.shortDescription.trim().length === 0) {
+      toast.error("Por favor ingresa una descripción de la pieza");
+      return;
+    }
+
+    if (!hasMainPhoto) {
+      toast.error("Por favor sube la foto principal de la pieza");
+      return;
+    }
+
+    if (!state.artisanalHistory || state.artisanalHistory.trim().length === 0) {
+      toast.error("Por favor ingresa la historia artesanal de la pieza");
+      return;
+    }
+
+    if (!agentResponse) {
+      toast.error(
+        "Esperando análisis del agente. Por favor espera unos segundos.",
+      );
+      return;
+    }
+
+    // Log field metadata state for debugging
+    console.log("[Step1] fieldMetadata state on next:", {
+      shortDescription: state.fieldMetadata?.shortDescription ?? "no metadata",
+      artisanalHistory: state.fieldMetadata?.artisanalHistory ?? "no metadata",
+    });
+
+    // All validation passed, proceed to next step
+    onNext();
   };
 
   const cardStyle = {
@@ -317,6 +707,7 @@ export const Step1NewPiece: React.FC<Props> = ({
               className="p-5 sticky top-8 flex flex-col gap-4 rounded-2xl"
               style={{ background: "#151b2d" }}
             >
+              {/* Header */}
               <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
@@ -327,48 +718,168 @@ export const Step1NewPiece: React.FC<Props> = ({
                   </h2>
                 </div>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
-                  <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-                    Esperando señales...
-                  </span>
+                  {agentResponse ? (
+                    <>
+                      <span className="material-symbols-outlined text-[#22c55e] text-[14px]">
+                        check_circle
+                      </span>
+                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                        Análisis completado
+                      </span>
+                    </>
+                  ) : isCallingAgent ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
+                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                        Esperando respuesta por parte del agente...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
+                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                        Esperando señales...
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {[
-                {
-                  label: "Lectura visual",
-                  text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
-                },
-                {
-                  label: "Historia detectada",
-                  text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
-                },
-                {
-                  label: "Próximo paso",
-                  text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
-                },
-              ].map(({ label, text }) => (
-                <div
-                  key={label}
-                  className="p-3 rounded-xl"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
-                    {label}
-                  </p>
-                  <p className="text-[12px] text-white/75 leading-snug">
-                    {text}
+              {/* STATE: Loading */}
+              {isCallingAgent && !agentResponse && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-12 h-12 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
+                  <p className="text-[11px] text-white/60">
+                    Analizando contenido...
                   </p>
                 </div>
-              ))}
+              )}
 
-              <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
-                Las sugerencias aparecen al agregar foto, descripción o
-                historia.
-              </p>
+              {/* STATE: Suggestions available */}
+              {agentResponse && (
+                <>
+                  {/* Oraculo message */}
+                  {agentResponse.oraculo && (
+                    <div
+                      className="p-3 rounded-xl"
+                      style={{
+                        background: "rgba(236,109,19,0.1)",
+                        border: "1px solid rgba(236,109,19,0.2)",
+                      }}
+                    >
+                      <p className="text-[11px] font-[800] text-[#ec6d13] mb-1">
+                        {agentResponse.oraculo.title}
+                      </p>
+                      <p className="text-[12px] text-white/75 leading-snug">
+                        {agentResponse.oraculo.body}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Improved description suggestion */}
+                  {agentResponse.content_improvements?.improved_description && (
+                    <SuggestionCard
+                      label="Descripción sugerida"
+                      suggestion={
+                        agentResponse.content_improvements.improved_description
+                      }
+                      fieldKey="shortDescription"
+                      onAccept={handleAcceptSuggestion}
+                      onReject={handleRejectSuggestion}
+                      isAccepted={
+                        state.fieldMetadata?.shortDescription?.source ===
+                        "ia_accepted"
+                      }
+                      isRejected={
+                        state.fieldMetadata?.shortDescription?.source ===
+                        "manual"
+                      }
+                    />
+                  )}
+
+                  {/* Improved history suggestion */}
+                  {agentResponse.content_improvements?.improved_history && (
+                    <SuggestionCard
+                      label="Historia sugerida"
+                      suggestion={
+                        agentResponse.content_improvements.improved_history
+                      }
+                      fieldKey="artisanalHistory"
+                      onAccept={handleAcceptSuggestion}
+                      onReject={handleRejectSuggestion}
+                      isAccepted={
+                        state.fieldMetadata?.artisanalHistory?.source ===
+                        "ia_accepted"
+                      }
+                      isRejected={
+                        state.fieldMetadata?.artisanalHistory?.source ===
+                        "manual"
+                      }
+                    />
+                  )}
+
+                  {/* Photo feedback (read-only) */}
+                  {agentResponse.content_improvements?.photo_feedback && (
+                    <PhotoFeedbackCard
+                      feedback={
+                        agentResponse.content_improvements.photo_feedback
+                      }
+                    />
+                  )}
+
+                  {/* Next step hint */}
+                  {agentResponse.oraculo?.next_step_hint && (
+                    <div className="pt-2 border-t border-white/10">
+                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">
+                        Próximo paso
+                      </p>
+                      <p className="text-[11px] text-white/60 leading-snug">
+                        {agentResponse.oraculo.next_step_hint}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* STATE: Default waiting */}
+              {!isCallingAgent && !agentResponse && (
+                <>
+                  {[
+                    {
+                      label: "Lectura visual",
+                      text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
+                    },
+                    {
+                      label: "Historia detectada",
+                      text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
+                    },
+                    {
+                      label: "Próximo paso",
+                      text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
+                    },
+                  ].map(({ label, text }) => (
+                    <div
+                      key={label}
+                      className="p-3 rounded-xl"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+                        {label}
+                      </p>
+                      <p className="text-[12px] text-white/75 leading-snug">
+                        {text}
+                      </p>
+                    </div>
+                  ))}
+                  <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
+                    Las sugerencias aparecen al agregar foto, descripción o
+                    historia.
+                  </p>
+                </>
+              )}
             </div>
           </aside>
 
@@ -419,7 +930,7 @@ export const Step1NewPiece: React.FC<Props> = ({
                     onFileChange={(e) => handleFileChange(e, 0)}
                     onDelete={(e) => handleDeleteImage(0, e)}
                     height="h-full min-h-[270px]"
-                    uploading={uploadingSlots[0]}
+                    isUploading={uploadingSlots.has(0)}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-[45%] shrink-0">
@@ -435,7 +946,7 @@ export const Step1NewPiece: React.FC<Props> = ({
                       onDelete={(e) => handleDeleteImage(slot.index, e)}
                       height="h-[130px]"
                       small
-                      uploading={uploadingSlots[slot.index]}
+                      isUploading={uploadingSlots.has(slot.index)}
                     />
                   ))}
                 </div>
@@ -555,11 +1066,19 @@ export const Step1NewPiece: React.FC<Props> = ({
       <WizardFooter
         step={step}
         totalSteps={totalSteps}
-        onNext={onNext}
+        onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={!canContinue}
-        disabledReason={!canContinue ? "Faltan datos obligatorios." : undefined}
+        disabledReason={
+          isCallingAgent
+            ? "Procesando información con IA..."
+            : !allFieldsComplete
+              ? "Completa: nombre, descripción, foto principal e historia."
+              : agentResponse === null
+                ? "Esperando respuesta del agente..."
+                : undefined
+        }
         leftOffset={leftOffset}
       />
     </div>
@@ -576,7 +1095,7 @@ interface ImageSlotProps {
   onDelete: (e: React.MouseEvent) => void;
   height: string;
   small?: boolean;
-  uploading?: boolean;
+  isUploading?: boolean;
 }
 
 const ImageSlot: React.FC<ImageSlotProps> = ({
@@ -587,45 +1106,47 @@ const ImageSlot: React.FC<ImageSlotProps> = ({
   onDelete,
   height,
   small,
-  uploading,
+  isUploading = false,
 }) => {
   const inputEl = useRef<HTMLInputElement | null>(null);
-  const handleClick = () => { if (!uploading) inputEl.current?.click(); };
+  const handleClick = () => {
+    if (!isUploading) inputEl.current?.click();
+  };
 
   return (
     <div
       onClick={handleClick}
-      className={`relative flex flex-col items-center justify-center border border-[#e2d5cf]/40 cursor-pointer overflow-hidden rounded-lg ${height} group transition-all hover:border-[#ec6d13]/30 hover:shadow-sm`}
+      className={`relative flex flex-col items-center justify-center border border-[#e2d5cf]/40 ${isUploading ? "cursor-wait" : "cursor-pointer"} overflow-hidden rounded-lg ${height} group transition-all hover:border-[#ec6d13]/30 hover:shadow-sm`}
       style={{ background: "#ffffff" }}
     >
-      {preview ? (
+      {isUploading ? (
+        /* Loading state */
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95">
+          <div className="w-8 h-8 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-2" />
+          <span className="text-[11px] font-[700] text-[#54433e]/60">
+            Subiendo...
+          </span>
+        </div>
+      ) : preview ? (
         <>
           <img
             src={preview}
             className="w-full h-full object-cover"
             alt={slot.label}
           />
-          {uploading && (
-            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-white text-[24px] animate-spin">progress_activity</span>
-              <span className="text-white text-[9px] font-[800] uppercase tracking-widest">Subiendo...</span>
-            </div>
-          )}
-          {!uploading && (
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <button
-                onClick={onDelete}
-                className="absolute top-2 right-2 bg-white/90 rounded-full p-1 hover:bg-[#ef4444] hover:text-white text-[#54433e] transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">
-                  close
-                </span>
-              </button>
-              <span className="text-white text-[10px] font-[700] uppercase tracking-widest">
-                Cambiar foto
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <button
+              onClick={onDelete}
+              className="absolute top-2 right-2 bg-white/90 rounded-full p-1 hover:bg-[#ef4444] hover:text-white text-[#54433e] transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                close
               </span>
-            </div>
-          )}
+            </button>
+            <span className="text-white text-[10px] font-[700] uppercase tracking-widest">
+              Cambiar foto
+            </span>
+          </div>
         </>
       ) : (
         <>
@@ -675,7 +1196,7 @@ interface MobileImageStripProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   onDelete: (index: number, e: React.MouseEvent) => void;
   getPreviewUrl: (img: File | string | undefined) => string | null;
-  uploadingSlots?: Record<number, boolean>;
+  uploadingSlots: Set<number>;
 }
 
 const MobileImageStrip: React.FC<MobileImageStripProps> = ({
@@ -684,7 +1205,7 @@ const MobileImageStrip: React.FC<MobileImageStripProps> = ({
   onFileChange,
   onDelete,
   getPreviewUrl,
-  uploadingSlots = {},
+  uploadingSlots,
 }) => (
   <div
     className="flex gap-3 overflow-x-auto pb-1"
@@ -692,6 +1213,7 @@ const MobileImageStrip: React.FC<MobileImageStripProps> = ({
   >
     {IMAGE_SLOTS.map((slot) => {
       const preview = getPreviewUrl(images[slot.index]);
+      const isUploading = uploadingSlots.has(slot.index);
       return (
         <div
           key={slot.index}
@@ -699,38 +1221,39 @@ const MobileImageStrip: React.FC<MobileImageStripProps> = ({
         >
           {/* Slot cuadrado */}
           <div
-            onClick={() => { if (!uploadingSlots[slot.index]) fileInputRefs.current[slot.index]?.click(); }}
-            className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
+            onClick={() =>
+              !isUploading && fileInputRefs.current[slot.index]?.click()
+            }
+            className={`relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 ${isUploading ? "cursor-wait" : "cursor-pointer"} overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95`}
             style={{
               background: preview ? undefined : "rgba(255,255,255,0.8)",
             }}
           >
-            {preview ? (
+            {isUploading ? (
+              /* Loading state */
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95">
+                <div className="w-6 h-6 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin" />
+              </div>
+            ) : preview ? (
               <>
                 <img
                   src={preview}
                   className="w-full h-full object-cover"
                   alt={slot.label}
                 />
-                {uploadingSlots[slot.index] ? (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-white text-[20px] animate-spin">progress_activity</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={(e) => onDelete(slot.index, e)}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(0,0,0,0.55)" }}
+                <button
+                  type="button"
+                  onClick={(e) => onDelete(slot.index, e)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(0,0,0,0.55)" }}
+                >
+                  <span
+                    className="material-symbols-outlined text-white"
+                    style={{ fontSize: 12 }}
                   >
-                    <span
-                      className="material-symbols-outlined text-white"
-                      style={{ fontSize: 12 }}
-                    >
-                      close
-                    </span>
-                  </button>
-                )}
+                    close
+                  </span>
+                </button>
               </>
             ) : (
               <span
@@ -762,3 +1285,184 @@ const MobileImageStrip: React.FC<MobileImageStripProps> = ({
     })}
   </div>
 );
+
+// ── SuggestionCard ─────────────────────────────────────────────────────────────
+
+interface SuggestionCardProps {
+  label: string;
+  suggestion: ContentImprovement;
+  fieldKey: "shortDescription" | "artisanalHistory";
+  onAccept: (field: string, value: string) => void;
+  onReject: (field: string) => void;
+  isAccepted: boolean;
+  isRejected: boolean;
+}
+
+const SuggestionCard: React.FC<SuggestionCardProps> = ({
+  label,
+  suggestion,
+  fieldKey,
+  onAccept,
+  onReject,
+  isAccepted,
+  isRejected,
+}) => {
+  return (
+    <div
+      className="p-3 rounded-xl"
+      style={{
+        background: isAccepted
+          ? "rgba(34,197,94,0.05)"
+          : "rgba(255,255,255,0.05)",
+        border: isAccepted
+          ? "1px solid rgba(34,197,94,0.2)"
+          : "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+        {label}
+      </p>
+      <p className="text-[12px] text-white/85 leading-snug mb-3">
+        {suggestion.value}
+      </p>
+
+      {/* Status indicators */}
+      {isAccepted && (
+        <div className="flex items-center gap-1 text-[10px] text-green-400 mb-2">
+          <span className="material-symbols-outlined text-[14px]">
+            check_circle
+          </span>
+          <span>Sugerencia aceptada</span>
+        </div>
+      )}
+
+      {isRejected && (
+        <div className="flex items-center gap-1 text-[10px] text-white/40 mb-2">
+          <span className="material-symbols-outlined text-[14px]">cancel</span>
+          <span>Sugerencia rechazada</span>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      {!isAccepted && !isRejected && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => onAccept(fieldKey, suggestion.value)}
+            className="flex-1 px-3 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] transition-all"
+          >
+            Aceptar
+          </button>
+          <button
+            onClick={() => onReject(fieldKey)}
+            className="px-3 py-2 rounded-lg border border-white/20 text-white/60 text-[10px] font-[700] hover:text-white hover:border-white/40 transition-all"
+          >
+            Rechazar
+          </button>
+        </div>
+      )}
+
+      {/* Changes summary */}
+      {suggestion.changes_summary && (
+        <p className="text-[10px] text-white/30 mt-2 leading-snug">
+          {suggestion.changes_summary}
+        </p>
+      )}
+    </div>
+  );
+};
+
+// ── PhotoFeedbackCard ──────────────────────────────────────────────────────────
+
+interface PhotoFeedbackCardProps {
+  feedback: PhotoFeedback;
+}
+
+const PhotoFeedbackCard: React.FC<PhotoFeedbackCardProps> = ({ feedback }) => {
+  const mainPhoto = feedback.main_photo;
+  if (!mainPhoto) return null;
+
+  return (
+    <div
+      className="p-3 rounded-xl"
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+        Análisis de foto principal
+      </p>
+
+      {/* Quality indicator with colored icon */}
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="material-symbols-outlined text-[16px]"
+          style={{
+            color:
+              mainPhoto.quality === "excellent" ||
+              mainPhoto.quality === "excelente"
+                ? "#22c55e"
+                : mainPhoto.quality === "good" || mainPhoto.quality === "buena"
+                  ? "#eab308"
+                  : "#ef4444",
+          }}
+        >
+          {mainPhoto.quality === "excellent" ||
+          mainPhoto.quality === "excelente"
+            ? "verified"
+            : mainPhoto.quality === "good" || mainPhoto.quality === "buena"
+              ? "info"
+              : "warning"}
+        </span>
+        <span className="text-[11px] text-white/70 capitalize">
+          {mainPhoto.quality === "excellent" ||
+          mainPhoto.quality === "excelente"
+            ? "Excelente"
+            : mainPhoto.quality === "good" || mainPhoto.quality === "buena"
+              ? "Buena"
+              : "Mejorable"}
+        </span>
+      </div>
+
+      {/* Highlights with green bullets */}
+      {mainPhoto.highlights && mainPhoto.highlights.length > 0 && (
+        <div className="mb-2">
+          <p className="text-[9px] font-[700] uppercase text-white/50 mb-1">
+            Aspectos positivos
+          </p>
+          <ul className="space-y-1">
+            {mainPhoto.highlights.map((h, i) => (
+              <li
+                key={i}
+                className="text-[11px] text-white/60 leading-snug flex gap-1.5"
+              >
+                <span className="text-green-400">•</span>
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Suggestions with yellow bullets */}
+      {mainPhoto.suggestions && mainPhoto.suggestions.length > 0 && (
+        <div>
+          <p className="text-[9px] font-[700] uppercase text-white/50 mb-1">
+            Sugerencias
+          </p>
+          <ul className="space-y-1">
+            {mainPhoto.suggestions.map((s, i) => (
+              <li
+                key={i}
+                className="text-[11px] text-white/60 leading-snug flex gap-1.5"
+              >
+                <span className="text-yellow-400">•</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -48,6 +48,7 @@ build/
 eggs/
 .eggs/
 lib/
+!apps/admin-rag/lib/
 lib64/
 parts/
 sdist/

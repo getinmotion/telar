@@ -5,6 +5,7 @@ import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { UserProfilesModule } from '../user-profiles/user-profiles.module';
 import { CategoriesModule } from '../categories/categories.module';
+import { ArtisanShopsModule } from '../artisan-shops/artisan-shops.module';
 
 /**
  * Módulo puente para comunicación con el servicio de agentes
@@ -19,6 +20,7 @@ import { CategoriesModule } from '../categories/categories.module';
     ConfigModule,
     forwardRef(() => UserProfilesModule),
     forwardRef(() => CategoriesModule),
+    forwardRef(() => ArtisanShopsModule),
   ],
   controllers: [AgentController],
   providers: [AgentService],
