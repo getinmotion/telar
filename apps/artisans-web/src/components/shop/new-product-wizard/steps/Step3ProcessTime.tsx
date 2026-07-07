@@ -10,6 +10,10 @@ import {
   createStory,
   type Story,
 } from '@/services/story-library.actions';
+import { uploadImage } from '@/services/fileUpload.actions';
+import { UploadFolder } from '@/services/fileUpload.actions';
+import { optimizeImage, ImageOptimizePresets } from '@/lib/imageOptimizer';
+import { toast } from 'sonner';
 
 interface Props {
   state: NewWizardState;
@@ -59,6 +63,7 @@ interface MobileProcessStripProps {
   evidenceRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   onDelete: (index: number, e: React.MouseEvent) => void;
+  uploadingSlots?: Record<number, boolean>;
 }
 
 const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
@@ -67,15 +72,17 @@ const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
   evidenceRefs,
   onFileChange,
   onDelete,
+  uploadingSlots = {},
 }) => (
   <div className="flex gap-3 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' as any }}>
     {PROCESS_SLOTS.map(slot => {
       const preview = evidenceUrls[slot.index] ?? null;
       const isVideo = videoIndices.has(slot.index);
+      const isUploading = uploadingSlots[slot.index];
       return (
         <div key={slot.index} className="flex-shrink-0 flex flex-col items-center gap-1.5">
           <div
-            onClick={() => evidenceRefs.current[slot.index]?.click()}
+            onClick={() => { if (!isUploading) evidenceRefs.current[slot.index]?.click(); }}
             className="relative w-[80px] h-[80px] rounded-xl border border-[#e2d5cf]/50 cursor-pointer overflow-hidden flex flex-col items-center justify-center transition-all active:border-[#ec6d13]/50 active:scale-95"
             style={{ background: preview ? undefined : 'rgba(255,255,255,0.8)' }}
           >
@@ -93,14 +100,20 @@ const MobileProcessStrip: React.FC<MobileProcessStripProps> = ({
                 ) : (
                   <img src={preview} className="w-full h-full object-cover" alt={slot.label} />
                 )}
-                <button
-                  type="button"
-                  onClick={e => onDelete(slot.index, e)}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(0,0,0,0.55)' }}
-                >
-                  <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>close</span>
-                </button>
+                {isUploading ? (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={e => onDelete(slot.index, e)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(0,0,0,0.55)' }}
+                  >
+                    <span className="material-symbols-outlined text-white" style={{ fontSize: 12 }}>close</span>
+                  </button>
+                )}
               </>
             ) : (
               <span
@@ -141,6 +154,7 @@ interface ProcessSlotProps {
   onDelete: (e: React.MouseEvent) => void;
   height: string;
   small?: boolean;
+  uploading?: boolean;
 }
 
 const ProcessSlot: React.FC<ProcessSlotProps> = ({
@@ -152,9 +166,10 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
   onDelete,
   height,
   small,
+  uploading,
 }) => {
   const inputEl = useRef<HTMLInputElement | null>(null);
-  const handleClick = () => inputEl.current?.click();
+  const handleClick = () => { if (!uploading) inputEl.current?.click(); };
 
   return (
     <div
@@ -176,17 +191,23 @@ const ProcessSlot: React.FC<ProcessSlotProps> = ({
           ) : (
             <img src={preview} className="w-full h-full object-cover" alt={slot.label} />
           )}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <button
-              onClick={onDelete}
-              className="absolute top-2 right-2 bg-white/90 rounded-full p-1 hover:bg-[#ef4444] hover:text-white text-[#54433e] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">close</span>
-            </button>
-            <span className="text-white text-[10px] font-[700] uppercase tracking-widest">
-              {isVideo ? 'Cambiar video' : 'Cambiar foto'}
-            </span>
-          </div>
+          {uploading ? (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <button
+                onClick={onDelete}
+                className="absolute top-2 right-2 bg-white/90 rounded-full p-1 hover:bg-[#ef4444] hover:text-white text-[#54433e] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+              <span className="text-white text-[10px] font-[700] uppercase tracking-widest">
+                {isVideo ? 'Cambiar video' : 'Cambiar foto'}
+              </span>
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -221,6 +242,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
     () => !!state.elaborationTime && !TIME_OPTIONS.some(o => o.value !== '__custom' && o.value === state.elaborationTime),
   );
   const [videoIndices, setVideoIndices] = useState<Set<number>>(new Set());
+  const [uploadingSlots, setUploadingSlots] = useState<Record<number, boolean>>({});
   const evidenceRefs = useRef<(HTMLInputElement | null)[]>([]);
   const recognitionRef = useRef<any>(null);
 
@@ -308,9 +330,12 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
     }
   };
 
-  const handleSlotChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleSlotChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
+
+    // Mostrar preview local inmediata
     const urls = [...(state.processEvidenceUrls ?? [])];
     urls[index] = URL.createObjectURL(file);
     update({ processEvidenceUrls: urls });
@@ -319,7 +344,26 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
       file.type.startsWith('video/') ? s.add(index) : s.delete(index);
       return s;
     });
-    e.target.value = '';
+
+    // Subir a S3 en background
+    setUploadingSlots(prev => ({ ...prev, [index]: true }));
+    try {
+      let optimized: File;
+      try { optimized = await optimizeImage(file, ImageOptimizePresets.product); } catch { optimized = file; }
+      const result = await uploadImage(optimized, UploadFolder.PRODUCTS, undefined, { suppressToast: true });
+      const updated = [...(state.processEvidenceUrls ?? [])];
+      updated[index] = result.url;
+      update({ processEvidenceUrls: updated });
+    } catch (err) {
+      console.error(`[Step3] Error subiendo evidencia slot ${index}:`, err);
+      toast.error('No se pudo subir la imagen. Intenta de nuevo.');
+      const cleaned = [...(state.processEvidenceUrls ?? [])];
+      cleaned.splice(index, 1, undefined as unknown as string);
+      while (cleaned.length > 0 && !cleaned[cleaned.length - 1]) cleaned.pop();
+      update({ processEvidenceUrls: cleaned });
+    } finally {
+      setUploadingSlots(prev => ({ ...prev, [index]: false }));
+    }
   };
 
   const removeEvidence = (index: number, e: React.MouseEvent) => {
@@ -441,6 +485,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                   evidenceRefs={evidenceRefs}
                   onFileChange={handleSlotChange}
                   onDelete={removeEvidence}
+                  uploadingSlots={uploadingSlots}
                 />
               </div>
 
@@ -455,6 +500,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                     onFileChange={e => handleSlotChange(e, 0)}
                     onDelete={e => removeEvidence(0, e)}
                     height="h-full min-h-[270px]"
+                    uploading={uploadingSlots[0]}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-[45%] shrink-0">
@@ -469,6 +515,7 @@ export const Step3ProcessTime: React.FC<Props> = ({ state, update, onNext, onBac
                       onDelete={e => removeEvidence(slot.index, e)}
                       height="h-[130px]"
                       small
+                      uploading={uploadingSlots[slot.index]}
                     />
                   ))}
                 </div>
