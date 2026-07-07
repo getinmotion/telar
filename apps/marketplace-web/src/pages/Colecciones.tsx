@@ -202,27 +202,27 @@ export default function Colecciones() {
         />
       </Helmet>
 
-      <div className="bg-[#f9f7f2] text-[#2c2c2c] min-h-screen">
+      <div className="bg-[#f5f1e6] text-[#2b2f26] min-h-screen">
         {/* ═══════════════ HERO ═══════════════ */}
         <header className="max-w-[1400px] mx-auto px-6 pt-12 pb-16 md:pb-24">
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
+                <p className="text-[10px] uppercase tracking-[0.4em] text-[#2e5424] font-bold">
                   {hero.kicker}
                 </p>
                 <h1 className="text-5xl md:text-6xl font-serif leading-[0.95] italic tracking-tight">
                   {hero.title}
                 </h1>
               </div>
-              <p className="text-lg md:text-xl text-[#2c2c2c]/70 leading-relaxed font-light italic max-w-lg">
+              <p className="text-lg md:text-xl text-[#2b2f26]/70 leading-relaxed font-light italic max-w-lg">
                 {hero.subtitle}
               </p>
               {hero.ctaLabel && (
                 <div className="pt-2">
                   <Link
                     to={hero.ctaHref || '/productos'}
-                    className="inline-block px-8 py-4 bg-[#ec6d13] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors duration-300"
+                    className="inline-block px-8 py-4 bg-[#2e5424] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#2b2f26] transition-colors duration-300"
                   >
                     {hero.ctaLabel}
                   </Link>
@@ -249,7 +249,7 @@ export default function Colecciones() {
         {/* ═══════════════ CMS COLLECTIONS (curadas desde el admin) ═══════════════ */}
         {cmsCollections.length > 0 && (
           <section className="max-w-[1400px] mx-auto px-6 pb-16">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold mb-3">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-[#2e5424] font-bold mb-3">
               Colecciones curadas
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -265,13 +265,13 @@ export default function Colecciones() {
                   />
                   <div className="space-y-2 p-5">
                     {c.region && (
-                      <p className="text-[10px] uppercase tracking-widest text-[#ec6d13]">{c.region}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-[#2e5424]">{c.region}</p>
                     )}
                     <h3 className="font-serif text-2xl">{c.title}</h3>
                     {c.excerpt && (
-                      <p className="line-clamp-3 text-sm text-[#2c2c2c]/70">{c.excerpt}</p>
+                      <p className="line-clamp-3 text-sm text-[#2b2f26]/70">{c.excerpt}</p>
                     )}
-                    <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#ec6d13]">
+                    <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#2e5424]">
                       Ver colección <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
@@ -305,20 +305,20 @@ export default function Colecciones() {
                   )}
                   <div className="max-w-4xl">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="h-px w-8 bg-[#ec6d13]" />
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-[#ec6d13] font-bold">
+                      <span className="h-px w-8 bg-[#2e5424]" />
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-[#2e5424] font-bold">
                         {ed.subtitle}
                       </p>
                     </div>
                     <h2 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
                       {ed.title}
                     </h2>
-                    <p className="text-[#2c2c2c]/70 text-xl md:text-2xl leading-relaxed mb-10 font-light italic">
+                    <p className="text-[#2b2f26]/70 text-xl md:text-2xl leading-relaxed mb-10 font-light italic">
                       {ed.description}
                     </p>
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#ec6d13] transition-all duration-300"
+                      className="inline-block px-10 py-5 bg-[#2b2f26] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#2e5424] transition-all duration-300"
                     >
                       {ed.ctaLabel}
                     </Link>
@@ -331,24 +331,24 @@ export default function Colecciones() {
               return (
                 <div
                   key={col.id}
-                  className="relative -mx-6 md:-mx-12 px-6 md:px-12 py-20 md:py-28 bg-[#1a1a1a] text-[#f9f7f2]"
+                  className="relative -mx-6 md:-mx-12 px-6 md:px-12 py-20 md:py-28 bg-[#20291a] text-[#f5f1e6]"
                 >
                   <div className="max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-10 md:gap-12 items-center">
                     <div className="lg:col-span-5 space-y-8 md:space-y-10">
                       <div className="space-y-6">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-[#f9f7f2]/40 font-bold">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-[#f5f1e6]/40 font-bold">
                           {ed.subtitle}
                         </p>
                         <h2 className="text-5xl md:text-6xl font-serif leading-tight">
                           {ed.title}
                         </h2>
-                        <p className="text-[#f9f7f2]/70 text-lg md:text-xl leading-relaxed font-light italic">
+                        <p className="text-[#f5f1e6]/70 text-lg md:text-xl leading-relaxed font-light italic">
                           {ed.description}
                         </p>
                       </div>
                       <Link
                         to={`/coleccion/${col.slug}`}
-                        className="inline-block px-10 py-5 border-2 border-[#f9f7f2] text-[#f9f7f2] text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#f9f7f2] hover:text-[#1a1a1a] transition-all duration-300"
+                        className="inline-block px-10 py-5 border-2 border-[#f5f1e6] text-[#f5f1e6] text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#f5f1e6] hover:text-[#20291a] transition-all duration-300"
                       >
                         {ed.ctaLabel}
                       </Link>
@@ -358,10 +358,10 @@ export default function Colecciones() {
                         <img
                           src={previewImg}
                           alt={ed.title}
-                          className="aspect-[3/4] w-full object-cover border border-[#f9f7f2]/10"
+                          className="aspect-[3/4] w-full object-cover border border-[#f5f1e6]/10"
                         />
                       ) : (
-                        <div className="aspect-[3/4] w-full bg-[#2a2a2a] border border-[#f9f7f2]/10" />
+                        <div className="aspect-[3/4] w-full bg-[#2a2a2a] border border-[#f5f1e6]/10" />
                       )}
                     </div>
                   </div>
@@ -382,19 +382,19 @@ export default function Colecciones() {
                   <div className="aspect-[16/7] w-full bg-[#e5e1d8] mb-10 md:mb-12" />
                 )}
                 <div className="text-center max-w-3xl mx-auto space-y-6 md:space-y-10">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-[#2c2c2c]/40 font-bold">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
                     {ed.subtitle}
                   </p>
                   <h2 className="text-5xl font-serif leading-tight italic">
                     {ed.title}
                   </h2>
-                  <p className="text-[#2c2c2c]/70 text-lg leading-relaxed font-light italic">
+                  <p className="text-[#2b2f26]/70 text-lg leading-relaxed font-light italic">
                     {ed.description}
                   </p>
                   <div className="pt-4">
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="inline-block px-10 py-5 bg-[#2c2c2c] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#ec6d13] transition-all duration-300"
+                      className="inline-block px-10 py-5 bg-[#2b2f26] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#2e5424] transition-all duration-300"
                     >
                       {ed.ctaLabel}
                     </Link>
@@ -407,7 +407,7 @@ export default function Colecciones() {
         )}
 
         {/* ═══════════════ THE ARCHIVE NAV ═══════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-20 md:py-24 border-y border-[#2c2c2c]/10">
+        <section className="max-w-[1400px] mx-auto px-6 py-20 md:py-24 border-y border-[#2b2f26]/10">
           <div className="mb-16 md:mb-20">
             <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 opacity-40">
               El Archivo del Saber
@@ -419,7 +419,7 @@ export default function Colecciones() {
           <div className="grid lg:grid-cols-3 gap-12 md:gap-20">
             {/* Column 1: All collections */}
             <div className="space-y-6 md:space-y-8">
-              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2c2c2c]/10 pb-4 mb-2">
+              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2b2f26]/10 pb-4 mb-2">
                 Por Colección
               </h4>
               <ul className="space-y-4">
@@ -427,7 +427,7 @@ export default function Colecciones() {
                   <li key={col.id}>
                     <Link
                       to={`/coleccion/${col.slug}`}
-                      className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all flex items-center justify-between group"
+                      className="text-xl font-serif hover:italic hover:text-[#2e5424] transition-all flex items-center justify-between group"
                     >
                       {col.name}
                       <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -439,14 +439,14 @@ export default function Colecciones() {
 
             {/* Column 2: By territory */}
             <div className="space-y-6 md:space-y-8">
-              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2c2c2c]/10 pb-4 mb-2">
+              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2b2f26]/10 pb-4 mb-2">
                 Por Territorio
               </h4>
               <ul className="space-y-4">
                 <li>
                   <Link
                     to="/territorios"
-                    className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all flex items-center justify-between group"
+                    className="text-xl font-serif hover:italic hover:text-[#2e5424] transition-all flex items-center justify-between group"
                   >
                     Explorar el mapa
                     <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -457,7 +457,7 @@ export default function Colecciones() {
 
             {/* Column 3: By technique */}
             <div className="space-y-6 md:space-y-8">
-              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2c2c2c]/10 pb-4 mb-2">
+              <h4 className="text-[11px] uppercase tracking-[0.25em] font-extrabold border-b border-[#2b2f26]/10 pb-4 mb-2">
                 Por Técnica
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -467,7 +467,7 @@ export default function Colecciones() {
                     <Link
                       key={slug}
                       to={`/tecnica/${slug}`}
-                      className="px-4 py-2 bg-[#2c2c2c]/[0.03] border border-[#2c2c2c]/5 rounded-full text-[10px] uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] hover:bg-white transition-all"
+                      className="px-4 py-2 bg-[#2b2f26]/[0.03] border border-[#2b2f26]/5 rounded-full text-[10px] uppercase tracking-widest hover:border-[#2e5424] hover:text-[#2e5424] hover:bg-white transition-all"
                     >
                       {name}
                     </Link>
@@ -482,7 +482,7 @@ export default function Colecciones() {
         {/* <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20 gap-6">
             <div className="max-w-xl">
-              <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px] mb-4 block">
+              <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[11px] mb-4 block">
                 Actualidad
               </span>
               <h2 className="text-5xl font-serif leading-[1.1]">
@@ -509,10 +509,10 @@ export default function Colecciones() {
                     <h4 className="text-2xl italic tracking-tight font-serif leading-none">
                       {item.title}
                     </h4>
-                    <p className="text-[10px] text-[#2c2c2c]/50 leading-relaxed uppercase tracking-widest font-medium">
+                    <p className="text-[10px] text-[#2b2f26]/50 leading-relaxed uppercase tracking-widest font-medium">
                       {item.description}
                     </p>
-                    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-[#ec6d13] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-[#2e5424] opacity-0 group-hover:opacity-100 transition-opacity">
                       {item.cta}
                     </p>
                   </div>
@@ -523,13 +523,13 @@ export default function Colecciones() {
         </section> */}
 
         {/* ═══════════════ CTA DARK BLOCK ═══════════════ */}
-        <section className="bg-[#1a1a1a] py-14 md:py-14">
+        <section className="bg-[#20291a] py-14 md:py-14">
           <div className="max-w-4xl mx-auto text-center space-y-12 md:space-y-16 px-6">
             <div className="space-y-6">
-              <p className="text-[10px] uppercase tracking-[0.5em] text-[#ec6d13] font-bold">
+              <p className="text-[10px] uppercase tracking-[0.5em] text-[#2e5424] font-bold">
                 El viaje continúa
               </p>
-              <h2 className="text-5xl md:text-7xl font-serif leading-[1.1] text-[#f9f7f2] italic">
+              <h2 className="text-5xl md:text-7xl font-serif leading-[1.1] text-[#f5f1e6] italic">
                 El saber hacer es un viaje
                 <br />
                 que apenas comienza
@@ -537,22 +537,22 @@ export default function Colecciones() {
             </div>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-10 md:gap-16">
               <Link to="/productos" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f5f1e6] group-hover:text-[#2e5424] transition-colors">
                   Explorar piezas
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f5f1e6]/20 group-hover:w-16 group-hover:bg-[#2e5424] transition-all duration-500" />
               </Link>
               <Link to="/historias" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f5f1e6] group-hover:text-[#2e5424] transition-colors">
                   Descubrir historias
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f5f1e6]/20 group-hover:w-16 group-hover:bg-[#2e5424] transition-all duration-500" />
               </Link>
               <Link to="/territorios" className="group flex flex-col items-center gap-4">
-                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f9f7f2] group-hover:text-[#ec6d13] transition-colors">
+                <span className="text-xs uppercase tracking-[0.3em] font-bold text-[#f5f1e6] group-hover:text-[#2e5424] transition-colors">
                   Conocer territorios
                 </span>
-                <span className="h-px w-10 bg-[#f9f7f2]/20 group-hover:w-16 group-hover:bg-[#ec6d13] transition-all duration-500" />
+                <span className="h-px w-10 bg-[#f5f1e6]/20 group-hover:w-16 group-hover:bg-[#2e5424] transition-all duration-500" />
               </Link>
             </div>
           </div>

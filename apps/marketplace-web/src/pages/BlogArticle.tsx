@@ -74,7 +74,7 @@ const BlogArticle = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2]">
+      <div className="min-h-screen bg-[#f5f1e6]">
         <div className="max-w-[1400px] mx-auto px-6 py-32 animate-pulse space-y-16">
           <div className="max-w-5xl mx-auto text-center space-y-8">
             <div className="h-4 w-40 bg-[#e5e1d8] mx-auto rounded" />
@@ -88,17 +88,17 @@ const BlogArticle = () => {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
         <div className="text-center space-y-6">
           <h1 className="font-serif text-4xl italic">
             Articulo no encontrado
           </h1>
-          <p className="text-[#2c2c2c]/60">
+          <p className="text-[#2b2f26]/60">
             El articulo que buscas no existe o ha sido eliminado.
           </p>
           <Link
             to="/historias"
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#2e5424] transition-colors"
           >
             <ArrowLeft className="w-3 h-3" />
             Volver a Historias
@@ -133,24 +133,24 @@ const BlogArticle = () => {
         <meta property="og:type" content="article" />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
+      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
         {/* HERO — Narrative Entry */}
         <header className="max-w-[1400px] mx-auto px-6 py-32 flex flex-col items-center text-center">
           <div className="space-y-12 max-w-5xl mx-auto">
             <div className="space-y-8">
-              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-[#2c2c2c]/40 font-bold">
+              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-[#2b2f26]/40 font-bold">
                 {article.category || "Cronica del Territorio"}
               </span>
               <h1 className="text-5xl md:text-8xl leading-[0.9] font-serif italic tracking-tight">
                 {article.title}
               </h1>
               {article.description && (
-                <p className="text-xl md:text-2xl text-[#2c2c2c]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
+                <p className="text-xl md:text-2xl text-[#2b2f26]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
                   {article.description}
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-8 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2c2c2c]/50 pt-12 border-t border-[#2c2c2c]/10">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2b2f26]/50 pt-12 border-t border-[#2b2f26]/10">
               {publishDate && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-3 h-3" />
@@ -167,7 +167,7 @@ const BlogArticle = () => {
               )}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 hover:text-[#ec6d13] transition-colors"
+                className="flex items-center gap-2 hover:text-[#2e5424] transition-colors"
               >
                 <Share2 className="w-3 h-3" />
                 Compartir
@@ -186,7 +186,7 @@ const BlogArticle = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <p className="mt-4 text-[10px] tracking-widest text-[#2c2c2c]/40 uppercase text-center">
+            <p className="mt-4 text-[10px] tracking-widest text-[#2b2f26]/40 uppercase text-center">
               {article.cover?.alt || article.title}
             </p>
           </section>
@@ -194,13 +194,13 @@ const BlogArticle = () => {
 
         {/* Scenic Opening — Description as blockquote */}
         {article.description && (
-          <section className="py-32 px-6 flex justify-center bg-white/50 border-y border-[#2c2c2c]/5">
+          <section className="py-32 px-6 flex justify-center bg-white/50 border-y border-[#2b2f26]/5">
             <div className="max-w-3xl text-center">
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mb-16" />
-              <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2c2c2c]">
+              <div className="w-16 h-px bg-[#2e5424]/40 mx-auto mb-16" />
+              <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2b2f26]">
                 "{article.description}"
               </blockquote>
-              <div className="w-16 h-px bg-[#ec6d13]/40 mx-auto mt-16" />
+              <div className="w-16 h-px bg-[#2e5424]/40 mx-auto mt-16" />
             </div>
           </section>
         )}
@@ -218,13 +218,13 @@ const BlogArticle = () => {
         {isAlcides && artesolProducts.length > 0 && (
           <section className="max-w-[1400px] mx-auto px-6 pb-32">
             <div className="mb-12 text-center">
-              <span className="text-[10px] uppercase tracking-[0.4em] text-[#ec6d13] font-bold">
+              <span className="text-[10px] uppercase tracking-[0.4em] text-[#2e5424] font-bold">
                 Taller Artesol
               </span>
               <h3 className="mt-4 font-serif text-4xl md:text-5xl italic leading-tight">
                 Piezas del Taller
               </h3>
-              <p className="mt-4 text-[#2c2c2c]/60 italic font-serif max-w-2xl mx-auto">
+              <p className="mt-4 text-[#2b2f26]/60 italic font-serif max-w-2xl mx-auto">
                 Cada pieza nace de la palma de seje recolectada en los montes de
                 El Cedro y tejida por las manos del equipo de Alcides.
               </p>
@@ -250,11 +250,11 @@ const BlogArticle = () => {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#ec6d13] transition-colors line-clamp-2">
+                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#2e5424] transition-colors line-clamp-2">
                         {product.name}
                       </h4>
                       {price != null && (
-                        <p className="text-sm font-bold text-[#2c2c2c]">
+                        <p className="text-sm font-bold text-[#2b2f26]">
                           {formatCurrency(price)}
                         </p>
                       )}
@@ -266,7 +266,7 @@ const BlogArticle = () => {
             <div className="mt-16 text-center">
               <Link
                 to={`/tienda/${ARTESOL_SHOP_SLUG}`}
-                className="inline-block px-12 py-4 border border-[#2c2c2c]/20 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#2c2c2c] hover:text-white transition-all"
+                className="inline-block px-12 py-4 border border-[#2b2f26]/20 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-[#2b2f26] hover:text-white transition-all"
               >
                 Visitar el Taller Artesol
               </Link>
@@ -276,9 +276,9 @@ const BlogArticle = () => {
 
         {/* Author Section */}
         {article.author_name && (
-          <section className="py-24 bg-[#2c2c2c] text-[#f9f7f2] px-6">
+          <section className="py-24 bg-[#2b2f26] text-[#f5f1e6] px-6">
             <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center space-y-6">
-              <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+              <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
                 Escrito por
               </span>
               <h3 className="font-serif text-3xl italic">
@@ -289,47 +289,47 @@ const BlogArticle = () => {
         )}
 
         {/* System Navigation */}
-        <section className="py-24 bg-white border-y border-[#2c2c2c]/5">
+        <section className="py-24 bg-white border-y border-[#2b2f26]/5">
           <div className="max-w-4xl mx-auto px-6">
-            <h4 className="text-[10px] font-bold tracking-[0.4em] text-center text-[#2c2c2c]/30 mb-16 uppercase">
+            <h4 className="text-[10px] font-bold tracking-[0.4em] text-center text-[#2b2f26]/30 mb-16 uppercase">
               Profundizar en la huella
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <Link to="/tiendas" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#2e5424] text-3xl">
                   ✦
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Conocer talleres
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2c2c2c]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
                     Artesanos de Colombia
                   </span>
                 </div>
               </Link>
               <Link to="/productos" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#2e5424] text-3xl">
                   ◆
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Explorar piezas
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2c2c2c]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
                     Coleccion completa
                   </span>
                 </div>
               </Link>
               <Link to="/historias" className="group text-center space-y-6">
-                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#ec6d13] text-3xl">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center text-[#2e5424] text-3xl">
                   ●
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Mas historias
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2c2c2c]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
                     Cronicas del territorio
                   </span>
                 </div>
@@ -339,14 +339,14 @@ const BlogArticle = () => {
         </section>
 
         {/* Final Narrative Closing */}
-        <section className="py-40 px-6 text-center bg-[#f9f7f2]">
+        <section className="py-40 px-6 text-center bg-[#f5f1e6]">
           <div className="max-w-3xl mx-auto space-y-16">
-            <blockquote className="text-4xl md:text-5xl font-serif italic text-[#2c2c2c] leading-[1.1]">
+            <blockquote className="text-4xl md:text-5xl font-serif italic text-[#2b2f26] leading-[1.1]">
               "Cada puntada es un susurro de nuestros ancestros."
             </blockquote>
             <Link
               to="/historias"
-              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#ec6d13] transition-all duration-500 shadow-lg"
+              className="inline-block bg-[#2b2f26] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#2e5424] transition-all duration-500 shadow-lg"
             >
               Descubrir mas relatos del territorio
             </Link>

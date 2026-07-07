@@ -14,6 +14,8 @@ import {
   type ProductFeatured,
 } from '@/services/products-new.actions';
 import { formatCurrency } from '@/lib/currencyUtils';
+import escuelasTallerLogo from '@/assets/escuelas-taller-logo.svg';
+import culturasLogo from '@/assets/culturas-logo.svg';
 
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed++) * 10000;
@@ -96,7 +98,7 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
   );
 
   return (
-    <section className="py-12 border-y border-[#2c2c2c]/10">
+    <section className="py-12 border-y border-[#2b2f26]/10">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex flex-wrap justify-between gap-y-12">
           {kicker && (
@@ -121,11 +123,11 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
               </Link>
               <Link
                 to={`/categoria/${cat.slug}`}
-                className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
+                className="text-xl font-serif hover:italic hover:text-[#2e5424] transition-all"
               >
                 {cat.name}
               </Link>
-              <p className="text-[10px] text-[#2c2c2c]/50 uppercase tracking-widest">
+              <p className="text-[10px] text-[#2b2f26]/50 uppercase tracking-widest">
                 {cat.subcategories.length > 0
                   ? cat.subcategories.slice(0, 3).map((s) => s.name).join(', ')
                   : 'Piezas artesanales únicas'}
@@ -160,12 +162,12 @@ export function FeaturedProductsWidget({
         <div className="text-center mb-16 space-y-3">
           {title && <h2 className="text-4xl md:text-5xl font-serif">{title}</h2>}
           {subtitle && (
-            <p className="text-[#2c2c2c]/60 italic font-light">{subtitle}</p>
+            <p className="text-[#2b2f26]/60 italic font-light">{subtitle}</p>
           )}
           {ctaLabel && ctaHref && (
             <Link
               to={ctaHref}
-              className="inline-block mt-4 text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13]"
+              className="inline-block mt-4 text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] pb-1 hover:text-[#2e5424] hover:border-[#2e5424]"
             >
               {ctaLabel}
             </Link>
@@ -200,15 +202,15 @@ export function FeaturedProductsWidget({
                     )}
                   </div>
                   <div className="space-y-3">
-                    <span className="inline-block bg-[#ec6d13]/10 text-[#ec6d13] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
+                    <span className="inline-block bg-[#2e5424]/10 text-[#2e5424] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
                       Hecho a mano
                     </span>
                     <h3 className="text-2xl font-serif leading-tight">{product.name}</h3>
-                    <p className="text-xs uppercase tracking-widest text-[#2c2c2c]/50">
+                    <p className="text-xs uppercase tracking-widest text-[#2b2f26]/50">
                       {product.storeName}
                       {product.department ? ` — ${product.department}` : ''}
                     </p>
-                    <div className="pt-4 flex items-center justify-between border-t border-[#2c2c2c]/5">
+                    <div className="pt-4 flex items-center justify-between border-t border-[#2b2f26]/5">
                       <span className="font-medium">
                         {product.price != null ? formatCurrency(product.price) : 'Consultar'}
                       </span>
@@ -237,7 +239,7 @@ export function HuellaDigitalWidget() {
         </div>
         <div className="space-y-10">
           <h2 className="text-5xl font-serif leading-tight">Cada pieza tiene una huella digital</h2>
-          <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light mb-8">
+          <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light mb-8">
             Cada objeto en Cocrea conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
           </p>
           <div className="space-y-8">
@@ -247,17 +249,17 @@ export function HuellaDigitalWidget() {
               { n: '03', t: 'Proceso documentado', b: 'Detalles de la técnica, materiales y tiempo de elaboración.' },
             ].map(({ n, t, b }) => (
               <div key={n} className="flex gap-6">
-                <span className="text-[#ec6d13] font-serif italic text-3xl">{n}</span>
+                <span className="text-[#2e5424] font-serif italic text-3xl">{n}</span>
                 <div>
                   <h4 className="font-bold uppercase tracking-widest text-xs mb-2">{t}</h4>
-                  <p className="text-[#2c2c2c]/60 text-sm">{b}</p>
+                  <p className="text-[#2b2f26]/60 text-sm">{b}</p>
                 </div>
               </div>
             ))}
           </div>
           <Link
             to="/productos"
-            className="inline-block border border-[#2c2c2c] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2c2c2c] hover:text-white transition-all"
+            className="inline-block border border-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2b2f26] hover:text-white transition-all"
           >
             Explorar el registro de autenticidad
           </Link>
@@ -282,7 +284,7 @@ export function FeaturedShopWidget() {
   }, [shops]);
 
   return (
-    <section className="py-32 bg-[#fdfaf6]">
+    <section className="py-32 bg-[#faf7ed]">
       <div className="max-w-[1400px] mx-auto px-6">
         <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
           Conoce a los talleres artesanales
@@ -299,11 +301,11 @@ export function FeaturedShopWidget() {
             {featuredShop ? (
               <>
                 <div className="space-y-2">
-                  <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px]">
+                  <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[11px]">
                     Taller del Mes
                   </span>
                   <h3 className="text-5xl md:text-6xl font-serif">{featuredShop.shopName}</h3>
-                  <p className="text-[#2c2c2c]/50 italic font-serif text-xl">
+                  <p className="text-[#2b2f26]/50 italic font-serif text-xl">
                     {featuredShop.municipality && featuredShop.department
                       ? `${featuredShop.municipality}, ${featuredShop.department}`
                       : featuredShop.department || 'Colombia'}
@@ -311,18 +313,18 @@ export function FeaturedShopWidget() {
                 </div>
                 <div className="space-y-6">
                   {featuredShop.craftType && (
-                    <div className="flex items-start gap-4 pb-6 border-b border-[#2c2c2c]/10">
-                      <span className="text-[#ec6d13] mt-1 text-xl">★</span>
+                    <div className="flex items-start gap-4 pb-6 border-b border-[#2b2f26]/10">
+                      <span className="text-[#2e5424] mt-1 text-xl">★</span>
                       <span className="text-lg font-serif">Especialidad: {featuredShop.craftType}</span>
                     </div>
                   )}
-                  <p className="text-lg leading-relaxed text-[#2c2c2c]/80">
+                  <p className="text-lg leading-relaxed text-[#2b2f26]/80">
                     {featuredShop.story ||
                       'Taller artesanal dedicado al tejido tradicional con técnicas transmitidas entre generaciones.'}
                   </p>
                   <Link
                     to={`/artesano/${featuredShop.shopSlug}`}
-                    className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                    className="text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] pb-1 hover:text-[#2e5424] hover:border-[#2e5424] transition-colors"
                   >
                     Ver perfil del taller
                   </Link>
@@ -348,17 +350,17 @@ export function FeaturedShopWidget() {
 export function RegalosConHistoriaWidget() {
   const { featured } = useFeaturedProducts();
   return (
-    <section className="py-24 bg-[#f9f7f2]">
+    <section className="py-24 bg-[#f5f1e6]">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex flex-col md:flex-row gap-16 items-center">
           <div className="flex-1 space-y-8">
             <h2 className="text-5xl font-serif">Regalos con historia</h2>
-            <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
+            <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light">
               En Cocrea puedes encontrar piezas especiales para regalar en momentos importantes. Cada objeto hecho a mano lleva consigo tradición, conocimiento y dedicación.
             </p>
             <Link
               to="/giftcards"
-              className="inline-block bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors"
+              className="inline-block bg-[#2b2f26] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] transition-colors"
             >
               Explorar piezas para regalar
             </Link>
@@ -432,17 +434,24 @@ export function ColeccionesOverviewWidget() {
 // ────────────────────────────────────────────────────────────
 export function AliadosWidget() {
   return (
-    <section className="py-24 border-t border-[#2c2c2c]/10">
-      <div className="max-w-2xl mx-auto px-6 text-center space-y-8">
-        <h2 className="text-[10px] font-bold text-[#2c2c2c]/40 uppercase tracking-[0.4em]">Aliados</h2>
-        <div className="flex flex-col items-center gap-6">
+    <section className="py-24 border-t border-[#2b2f26]/10">
+      <div className="max-w-3xl mx-auto px-6 text-center space-y-10">
+        <h2 className="text-[10px] font-bold text-[#2b2f26]/40 uppercase tracking-[0.4em]">Una iniciativa de</h2>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
           <img
-            src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
-            alt="Artesanías de Colombia"
-            className="w-48 h-auto object-contain"
+            src={escuelasTallerLogo}
+            alt="Escuelas Taller de Colombia — Herramientas de paz"
+            className="w-32 h-32 object-contain"
           />
-          <h3 className="text-2xl font-serif">Con el apoyo de Artesanías de Colombia</h3>
+          <img
+            src={culturasLogo}
+            alt="Ministerio de las Culturas, las Artes y los Saberes"
+            className="w-44 h-auto object-contain"
+          />
         </div>
+        <h3 className="text-2xl font-serif">
+          Programa Nacional Escuelas Taller de Colombia · Ministerio de las Culturas, las Artes y los Saberes
+        </h3>
       </div>
     </section>
   );

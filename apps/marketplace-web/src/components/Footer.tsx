@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import cocreaFooterLogo from "@/assets/cocrea-footer-logo.svg";
+import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
+import culturasLogoCream from "@/assets/culturas-logo-cream.svg";
 
 export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean }) => {
   const [email, setEmail] = useState("");
@@ -18,23 +20,23 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
   };
 
   return (
-    <footer className={`relative bg-[#1a1a1a] text-white overflow-visible `}>
+    <footer className={`relative bg-[#20291a] text-white overflow-visible `}>
       {/* ── Floating Newsletter Module (only on Historias & Sobre Telar) ── */}
       {/* {showNewsletter && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
-          <div className="bg-white text-[#1a1a1a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
+          <div className="bg-white text-[#20291a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
             <div className="max-w-md">
               <h2 className="font-serif text-3xl md:text-4xl italic mb-4 leading-tight">
                 Historias del mundo artesanal
               </h2>
-              <p className="font-sans text-[#1a1a1a]/60 text-base">
+              <p className="font-sans text-[#20291a]/60 text-base">
                 Crónicas de maestros artesanos y lanzamientos exclusivos.
               </p>
             </div>
             <div className="w-full max-w-md">
               <form onSubmit={handleSubscribe} className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/50 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-[#20291a]/50 mb-2">
                     Email
                   </label>
                   <input
@@ -43,13 +45,13 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@correo.com"
                     required
-                    className="w-full bg-transparent border-0 border-b border-[#1a1a1a]/20 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-[#1a1a1a]/30 transition-colors outline-none"
+                    className="w-full bg-transparent border-0 border-b border-[#20291a]/20 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-[#20291a]/30 transition-colors outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-full hover:bg-[#783200] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
+                  className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-full hover:bg-[#1f3a15] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
                 >
                   {loading ? "Suscribiendo..." : "Suscribirme Gratis"}
                 </button>
@@ -117,8 +119,22 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
               Saberes y oficios de las Escuelas Taller de Colombia: herramientas de paz.
             </p>
           </div>
-          <div className="flex flex-col items-start md:items-end gap-3 text-white/40 text-[10px] font-bold tracking-[0.3em] uppercase">
-            <span>Colombia</span>
+          <div className="flex flex-col items-start md:items-end gap-6">
+            <div className="flex items-center gap-8">
+              <img
+                src={escuelasTallerLogo}
+                alt="Escuelas Taller de Colombia — Herramientas de paz"
+                className="h-24 w-24 object-contain"
+              />
+              <img
+                src={culturasLogoCream}
+                alt="Ministerio de las Culturas, las Artes y los Saberes"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+            <span className="text-white/40 text-[10px] font-bold tracking-[0.3em] uppercase">
+              Colombia
+            </span>
           </div>
         </div>
       </div>
@@ -150,7 +166,7 @@ function FooterNav({
 }) {
   return (
     <nav className="flex flex-col gap-8">
-      <h3 className="font-serif text-xs font-bold uppercase tracking-[0.4em] text-primary">
+      <h3 className="font-serif text-xs font-bold uppercase tracking-[0.4em] text-sage">
         {title}
       </h3>
       <ul className="flex flex-col gap-4">{children}</ul>
@@ -169,7 +185,7 @@ function FooterLink({
     <li>
       <Link
         to={to}
-        className="text-white/60 text-xs tracking-wide hover:text-primary transition-colors duration-300"
+        className="text-white/60 text-xs tracking-wide hover:text-sage transition-colors duration-300"
       >
         {children}
       </Link>

@@ -37,17 +37,17 @@ function getProductBadge(product: ProductNewCore): {
   if (stock === 0)
     return {
       label: "Agotado",
-      className: "bg-[#2c2c2c] text-white",
+      className: "bg-[#2b2f26] text-white",
     };
   if (stock > 0 && stock <= 3)
     return {
       label: "Últimas piezas",
-      className: "bg-[#ec6d13] text-white",
+      className: "bg-[#2e5424] text-white",
     };
   if (isNew)
     return {
       label: "Nuevo",
-      className: "bg-[#ec6d13] text-white",
+      className: "bg-[#2e5424] text-white",
     };
   return null;
 }
@@ -193,7 +193,7 @@ export default function ShopDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2]">
+      <div className="min-h-screen bg-[#f5f1e6]">
         <div className="max-w-[1400px] mx-auto px-6 py-20 animate-pulse space-y-16">
           <div className="grid lg:grid-cols-12 gap-16">
             <div className="lg:col-span-5 space-y-6">
@@ -218,12 +218,12 @@ export default function ShopDetail() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
         <div className="text-center space-y-4">
           <h1 className="font-serif text-4xl">Taller no encontrado</h1>
           <Link
             to="/tiendas"
-            className="text-[#ec6d13] text-sm font-bold uppercase tracking-widest"
+            className="text-[#2e5424] text-sm font-bold uppercase tracking-widest"
           >
             Volver a talleres
           </Link>
@@ -233,23 +233,23 @@ export default function ShopDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
+    <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
       {/* Breadcrumb */}
       <nav className="max-w-[1400px] mx-auto px-6 py-8">
-        <ol className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
+        <ol className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
           <li>
-            <Link to="/" className="hover:text-[#2c2c2c]">
+            <Link to="/" className="hover:text-[#2b2f26]">
               Inicio
             </Link>
           </li>
           <li>/</li>
           <li>
-            <Link to="/tiendas" className="hover:text-[#2c2c2c]">
+            <Link to="/tiendas" className="hover:text-[#2b2f26]">
               Talleres
             </Link>
           </li>
           <li>/</li>
-          <li className="text-[#2c2c2c]">{shop.shopName}</li>
+          <li className="text-[#2b2f26]">{shop.shopName}</li>
         </ol>
       </nav>
 
@@ -258,7 +258,7 @@ export default function ShopDetail() {
         <div className="lg:col-span-5 space-y-10">
           <div className="space-y-6">
             {shop.region && (
-              <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[10px]">
+              <span className="text-[#2e5424] font-bold uppercase tracking-[0.4em] text-[10px]">
                 {shop.region}
               </span>
             )}
@@ -266,12 +266,12 @@ export default function ShopDetail() {
               {shop.shopName}
             </h1>
             {shop.craftType && (
-              <p className="text-2xl font-serif italic text-[#2c2c2c]/70">
+              <p className="text-2xl font-serif italic text-[#2b2f26]/70">
                 {shop.craftType}
               </p>
             )}
             {shop.description && (
-              <p className="text-lg text-[#2c2c2c]/60 leading-relaxed font-light max-w-md">
+              <p className="text-lg text-[#2b2f26]/60 leading-relaxed font-light max-w-md">
                 {shop.description}
               </p>
             )}
@@ -279,13 +279,13 @@ export default function ShopDetail() {
           <div className="flex flex-col sm:flex-row gap-4">
             <a
               href="#productos"
-              className="bg-[#2c2c2c] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#ec6d13] transition-colors text-center"
+              className="bg-[#2b2f26] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2e5424] transition-colors text-center"
             >
               Explorar piezas del taller
             </a>
             <Link
               to={`/artesano/${shop.shopSlug}`}
-              className="border border-[#2c2c2c]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#2c2c2c] transition-colors text-center"
+              className="border border-[#2b2f26]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#2b2f26] transition-colors text-center"
             >
               Conocer al artesano
             </Link>
@@ -295,7 +295,7 @@ export default function ShopDetail() {
                 "border px-10 py-4 uppercase text-[10px] tracking-widest font-bold transition-colors flex items-center justify-center gap-2",
                 isShopInWishlist(shop.id)
                   ? "bg-red-500 text-white border-red-500"
-                  : "border-[#2c2c2c]/20 hover:border-[#2c2c2c]"
+                  : "border-[#2b2f26]/20 hover:border-[#2b2f26]"
               )}
             >
               <Heart
@@ -307,10 +307,10 @@ export default function ShopDetail() {
               {isShopInWishlist(shop.id) ? "Guardado" : "Guardar taller"}
             </button>
           </div>
-          <div className="flex items-center gap-12 pt-8 border-t border-[#2c2c2c]/5">
+          <div className="flex items-center gap-12 pt-8 border-t border-[#2b2f26]/5">
             {primaryTechnique && (
               <div className="flex items-center gap-3">
-                <span className="text-[#ec6d13] text-lg">✦</span>
+                <span className="text-[#2e5424] text-lg">✦</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {primaryTechnique}
                 </span>
@@ -318,7 +318,7 @@ export default function ShopDetail() {
             )}
             {shop.department && (
               <div className="flex items-center gap-3">
-                <span className="text-[#ec6d13] text-lg">◆</span>
+                <span className="text-[#2e5424] text-lg">◆</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {shop.department}, {shop.municipality || shop.region}
                 </span>
@@ -342,29 +342,29 @@ export default function ShopDetail() {
       </section>
 
       {/* Trust Signals Strip */}
-      <section className="py-12 bg-[#2c2c2c]/5 border-y border-[#2c2c2c]/5 mb-24">
+      <section className="py-12 bg-[#2b2f26]/5 border-y border-[#2b2f26]/5 mb-24">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex flex-wrap justify-between items-center gap-8">
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[#2e5424]">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Origen cultural trazable
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[#2e5424]">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Tecnica artesanal identificada
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[#2e5424]">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Piezas con huella digital
               </span>
             </div>
             <div className="flex items-center gap-3 opacity-60">
-              <span className="text-[#ec6d13]">✦</span>
+              <span className="text-[#2e5424]">✦</span>
               <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                 Produccion artesanal
               </span>
@@ -378,7 +378,7 @@ export default function ShopDetail() {
         id="productos"
         className="max-w-[1400px] mx-auto px-6 mb-32"
       >
-        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 border-b border-[#2c2c2c]/5 pb-8">
+        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 border-b border-[#2b2f26]/5 pb-8">
           <div className="max-w-xl">
             <h2 className="text-4xl md:text-5xl font-serif mb-6">
               Coleccion {shop.shopName}
@@ -389,8 +389,8 @@ export default function ShopDetail() {
                 className={cn(
                   "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                   activeFilter === "all"
-                    ? "bg-[#ec6d13] text-white"
-                    : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
+                    ? "bg-[#2e5424] text-white"
+                    : "border border-[#2b2f26]/10 hover:border-[#2e5424]"
                 )}
               >
                 Todos
@@ -402,8 +402,8 @@ export default function ShopDetail() {
                   className={cn(
                     "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                     activeFilter === slug
-                      ? "bg-[#ec6d13] text-white"
-                      : "border border-[#2c2c2c]/10 hover:border-[#ec6d13]"
+                      ? "bg-[#2e5424] text-white"
+                      : "border border-[#2b2f26]/10 hover:border-[#2e5424]"
                   )}
                 >
                   {name}
@@ -412,7 +412,7 @@ export default function ShopDetail() {
             </div>
           </div>
           <div className="flex items-center gap-8 w-full lg:w-auto justify-between lg:justify-end">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[#2c2c2c]/40 font-bold hidden sm:inline">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#2b2f26]/40 font-bold hidden sm:inline">
               {paginatedProducts.length} de {filteredProducts.length} piezas
               artesanales
             </span>
@@ -433,10 +433,10 @@ export default function ShopDetail() {
         {paginatedProducts.length === 0 ? (
           <div className="py-32 text-center space-y-6">
             <div className="space-y-3">
-              <p className="text-4xl md:text-5xl font-serif italic text-[#2c2c2c]/30">
+              <p className="text-4xl md:text-5xl font-serif italic text-[#2b2f26]/30">
                 Sin productos disponibles
               </p>
-              <p className="text-base text-[#2c2c2c]/50 max-w-md mx-auto">
+              <p className="text-base text-[#2b2f26]/50 max-w-md mx-auto">
                 {activeFilter !== "all"
                   ? "No hay productos en esta categoría. Prueba con otra categoría o revisa todos los productos."
                   : "Este taller aún no tiene productos publicados. Vuelve pronto para ver sus creaciones."}
@@ -445,7 +445,7 @@ export default function ShopDetail() {
             {activeFilter !== "all" && (
               <button
                 onClick={() => setActiveFilter("all")}
-                className="inline-block mt-8 px-8 py-3 bg-[#2c2c2c] text-white text-xs uppercase tracking-widest hover:bg-[#ec6d13] transition-colors"
+                className="inline-block mt-8 px-8 py-3 bg-[#2b2f26] text-white text-xs uppercase tracking-widest hover:bg-[#2e5424] transition-colors"
               >
                 Ver todos los productos
               </button>
@@ -493,7 +493,7 @@ export default function ShopDetail() {
                     </div>
                   )}
                   <button
-                    className="absolute top-4 right-4 z-10 text-[#2c2c2c] hover:text-[#ec6d13] transition-colors opacity-0 group-hover:opacity-100"
+                    className="absolute top-4 right-4 z-10 text-[#2b2f26] hover:text-[#2e5424] transition-colors opacity-0 group-hover:opacity-100"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -504,29 +504,29 @@ export default function ShopDetail() {
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-serif leading-tight group-hover:text-[#ec6d13] transition-colors">
+                    <h3 className="text-2xl font-serif leading-tight group-hover:text-[#2e5424] transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#ec6d13]">
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#2e5424]">
                       {shop.shopName}
                     </p>
-                    <p className="text-[9px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
+                    <p className="text-[9px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
                       {shop.region || shop.department}
                     </p>
                   </div>
-                  <div className="pt-4 border-t border-[#2c2c2c]/5 space-y-3">
+                  <div className="pt-4 border-t border-[#2b2f26]/5 space-y-3">
                     <p className="text-lg font-bold tracking-tight">
                       {price ? formatCurrency(price) : "Consultar"}
                     </p>
                     {primaryMaterial && (
                       <div className="flex flex-wrap gap-1">
-                        <span className="text-[8px] bg-[#ec6d13]/5 text-[#ec6d13] border border-[#ec6d13]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
+                        <span className="text-[8px] bg-[#2e5424]/5 text-[#2e5424] border border-[#2e5424]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
                           {primaryMaterial}
                         </span>
                       </div>
                     )}
                     {logistics && (
-                      <p className="text-[8px] uppercase tracking-widest text-[#2c2c2c]/40 italic font-bold">
+                      <p className="text-[8px] uppercase tracking-widest text-[#2b2f26]/40 italic font-bold">
                         {logistics}
                       </p>
                     )}
@@ -557,8 +557,8 @@ export default function ShopDetail() {
                     className={cn(
                       "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
                       page === currentPage
-                        ? "bg-[#2c2c2c] text-white"
-                        : "text-[#2c2c2c]/40 hover:text-[#2c2c2c]"
+                        ? "bg-[#2b2f26] text-white"
+                        : "text-[#2b2f26]/40 hover:text-[#2b2f26]"
                     )}
                   >
                     {page}
@@ -596,7 +596,7 @@ export default function ShopDetail() {
           shop.brandClaim?.trim() ||
           "Un taller que preserva oficio y territorio";
         return (
-          <section className="bg-white py-24 border-y border-[#2c2c2c]/5">
+          <section className="bg-white py-24 border-y border-[#2b2f26]/5">
             <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
               <div className="aspect-square bg-[#e5e1d8] shadow-sm overflow-hidden rounded-sm">
                 {heroImages.length > 1 && (
@@ -611,7 +611,7 @@ export default function ShopDetail() {
                 <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight">
                   {editorialTitle}
                 </h2>
-                <p className="text-xl text-[#2c2c2c]/60 leading-relaxed font-light italic">
+                <p className="text-xl text-[#2b2f26]/60 leading-relaxed font-light italic">
                   "{editorialStory}"
                 </p>
                 <Link
@@ -620,7 +620,7 @@ export default function ShopDetail() {
                       ? `https://instagram.com/${shop.contactInfo.instagram}`
                       : "#"
                   }
-                  className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#ec6d13] pb-3 hover:text-[#ec6d13] transition-all inline-flex items-center gap-3 group"
+                  className="text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#2e5424] pb-3 hover:text-[#2e5424] transition-all inline-flex items-center gap-3 group"
                 >
                   Leer historia del artesano
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -637,7 +637,7 @@ export default function ShopDetail() {
           <div className="grid lg:grid-cols-2 gap-24">
             <div className="space-y-12">
               <div className="space-y-6">
-                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#ec6d13]">
+                <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#2e5424]">
                   Detalles del Oficio
                 </span>
                 <h3 className="text-3xl lg:text-4xl font-serif italic leading-tight">
@@ -648,9 +648,9 @@ export default function ShopDetail() {
                     : "Oficio artesanal"}
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-12 py-8 border-y border-[#2c2c2c]/5">
+              <div className="grid grid-cols-2 gap-12 py-8 border-y border-[#2b2f26]/5">
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
                     Region
                   </span>
                   <p className="font-serif text-xl italic">
@@ -658,7 +658,7 @@ export default function ShopDetail() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
                     Oficio
                   </span>
                   <p className="font-serif text-xl italic">
@@ -667,7 +667,7 @@ export default function ShopDetail() {
                 </div>
                 {materialsText && (
                   <div className="space-y-2 col-span-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
                       Materiales
                     </span>
                     <p className="font-serif text-xl italic">{materialsText}</p>
@@ -677,7 +677,7 @@ export default function ShopDetail() {
               <div>
                 <Link
                   to={`/productos`}
-                  className="border border-[#2c2c2c] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2c2c2c] hover:text-white transition-all inline-block"
+                  className="border border-[#2b2f26] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2b2f26] hover:text-white transition-all inline-block"
                 >
                   Ver piezas de esta tecnica
                 </Link>
@@ -708,19 +708,19 @@ export default function ShopDetail() {
       )}
 
       {/* CTA Section */}
-      <section className="py-32 bg-[#f9f7f2]">
+      <section className="py-32 bg-[#f5f1e6]">
         <div className="max-w-[1400px] mx-auto px-6 text-center">
           <div className="max-w-2xl mx-auto space-y-10">
             <h2 className="text-4xl lg:text-5xl font-serif italic">
               Conoce a la persona detras del taller
             </h2>
-            <p className="text-xl text-[#2c2c2c]/50 leading-relaxed font-light">
+            <p className="text-xl text-[#2b2f26]/50 leading-relaxed font-light">
               Descubre la trayectoria de los maestros artesanos de{" "}
               {shop.shopName} y su impacto en la comunidad.
             </p>
             <Link
               to={`/artesano/${shop.shopSlug}`}
-              className="inline-block bg-[#2c2c2c] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#ec6d13] transition-colors"
+              className="inline-block bg-[#2b2f26] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#2e5424] transition-colors"
             >
               Ver perfil del artesano
             </Link>
@@ -729,14 +729,14 @@ export default function ShopDetail() {
       </section>
 
       {/* Related Navigation */}
-      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#2c2c2c]/5">
+      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#2b2f26]/5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <Link
             to="/tiendas"
-            className="group border border-[#2c2c2c]/10 p-12 flex items-center justify-between hover:border-[#2c2c2c] transition-colors bg-white/50"
+            className="group border border-[#2b2f26]/10 p-12 flex items-center justify-between hover:border-[#2b2f26] transition-colors bg-white/50"
           >
             <div className="space-y-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
                 Explorar mas
               </span>
               <h4 className="text-3xl font-serif italic">
@@ -747,10 +747,10 @@ export default function ShopDetail() {
           </Link>
           <Link
             to="/giftcards"
-            className="group border border-[#2c2c2c]/10 p-12 flex items-center justify-between hover:border-[#2c2c2c] transition-colors bg-white/50"
+            className="group border border-[#2b2f26]/10 p-12 flex items-center justify-between hover:border-[#2b2f26] transition-colors bg-white/50"
           >
             <div className="space-y-2">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2c2c2c]/30">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
                 Curaduria
               </span>
               <h4 className="text-3xl font-serif italic">

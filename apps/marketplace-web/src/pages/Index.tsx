@@ -18,7 +18,8 @@ import {
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import telarHorizontal from "@/assets/telar-horizontal.svg";
+import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
+import culturasLogo from "@/assets/culturas-logo.svg";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
 // import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 
@@ -123,7 +124,7 @@ const Index = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
+      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26] font-sans selection:bg-[#7a8a7a] selection:text-white">
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
           <HeroSectionV2 />
@@ -132,7 +133,7 @@ const Index = () => {
         {/* {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />} */}
 
         {/* ═══════════════ CATEGORIES ═══════════════ */}
-        <section className="py-12 border-y border-[#2c2c2c]/10">
+        <section className="py-12 border-y border-[#2b2f26]/10">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-wrap justify-between gap-y-12">
               <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
@@ -155,11 +156,11 @@ const Index = () => {
                   </Link>
                   <Link
                     to={`/categoria/${cat.slug}`}
-                    className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
+                    className="text-xl font-serif hover:italic hover:text-[#2e5424] transition-all"
                   >
                     {cat.name}
                   </Link>
-                  <p className="text-[10px] text-[#2c2c2c]/50 uppercase tracking-widest">
+                  <p className="text-[10px] text-[#2b2f26]/50 uppercase tracking-widest">
                     {cat.subcategories.length > 0
                       ? cat.subcategories
                           .slice(0, 3)
@@ -180,13 +181,13 @@ const Index = () => {
               <h2 className="text-5xl font-serif mb-4">
                 Creaciones Destacadas
               </h2>
-              <p className="text-[#2c2c2c]/60 italic font-serif">
+              <p className="text-[#2b2f26]/60 italic font-serif">
                 Piezas con alma seleccionadas por su maestría técnica.
               </p>
             </div>
             <Link
               to="/productos"
-              className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] flex items-center gap-2 pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+              className="text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] flex items-center gap-2 pb-1 hover:text-[#2e5424] hover:border-[#2e5424] transition-colors"
             >
               Ver colección completa
             </Link>
@@ -226,17 +227,17 @@ const Index = () => {
                           )}
                         </div>
                         <div className="space-y-3">
-                          <span className="inline-block bg-[#ec6d13]/10 text-[#ec6d13] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
+                          <span className="inline-block bg-[#2e5424]/10 text-[#2e5424] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
                             Hecho a mano
                           </span>
                           <h3 className="text-2xl font-serif leading-tight">
                             {product.name}
                           </h3>
-                          <p className="text-xs uppercase tracking-widest text-[#2c2c2c]/50">
+                          <p className="text-xs uppercase tracking-widest text-[#2b2f26]/50">
                             {shopName}
                             {department ? ` — ${department}` : ""}
                           </p>
-                          <div className="pt-4 flex items-center justify-between border-t border-[#2c2c2c]/5">
+                          <div className="pt-4 flex items-center justify-between border-t border-[#2b2f26]/5">
                             <span className="font-medium">
                               {price != null
                                 ? formatCurrency(price)
@@ -252,7 +253,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ UN MARKETPLACE DIFERENTE ═══════════════ */}
-        <section className="bg-[#2c2c2c] text-[#fdfaf6] py-32">
+        <section className="bg-[#2b2f26] text-[#faf7ed] py-32">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
               Un marketplace diferente
@@ -265,7 +266,7 @@ const Index = () => {
                 </p>
                 <Link
                   to="/newsletter"
-                  className="inline-block border border-[#ec6d13] text-[#ec6d13] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-all"
+                  className="inline-block border border-[#2e5424] text-[#2e5424] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-all"
                 >
                   Descubrir cómo funciona Cocrea
                 </Link>
@@ -296,47 +297,47 @@ const Index = () => {
               <h2 className="text-5xl font-serif leading-tight">
                 Cada pieza tiene una huella digital
               </h2>
-              <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light mb-8">
+              <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light mb-8">
                 Cada objeto en Cocrea conserva un registro que documenta su
                 origen cultural, el taller que lo creó y su proceso artesanal.
               </p>
               <div className="space-y-8">
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-[#2e5424] font-serif italic text-3xl">
                     01
                   </span>
                   <div>
                     <h4 className="font-bold uppercase tracking-widest text-xs mb-2">
                       Taller artesanal
                     </h4>
-                    <p className="text-[#2c2c2c]/60 text-sm">
+                    <p className="text-[#2b2f26]/60 text-sm">
                       Ubicación geográfica exacta donde se produjo la pieza.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-[#2e5424] font-serif italic text-3xl">
                     02
                   </span>
                   <div>
                     <h4 className="font-bold uppercase tracking-widest text-xs mb-2">
                       Maestro artesano
                     </h4>
-                    <p className="text-[#2c2c2c]/60 text-sm">
+                    <p className="text-[#2b2f26]/60 text-sm">
                       Nombre y rostro de los maestros artesanos detrás de la
                       creación.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-6">
-                  <span className="text-[#ec6d13] font-serif italic text-3xl">
+                  <span className="text-[#2e5424] font-serif italic text-3xl">
                     03
                   </span>
                   <div>
                     <h4 className="font-bold uppercase tracking-widest text-xs mb-2">
                       Proceso documentado
                     </h4>
-                    <p className="text-[#2c2c2c]/60 text-sm">
+                    <p className="text-[#2b2f26]/60 text-sm">
                       Detalles de la técnica, materiales y tiempo de
                       elaboración.
                     </p>
@@ -345,7 +346,7 @@ const Index = () => {
               </div>
               <Link
                 to="/productos"
-                className="inline-block border border-[#2c2c2c] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2c2c2c] hover:text-white transition-all"
+                className="inline-block border border-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2b2f26] hover:text-white transition-all"
               >
                 Explorar el registro de autenticidad
               </Link>
@@ -354,7 +355,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ FEATURED SHOP ═══════════════ */}
-        <section className="py-14 bg-[#fdfaf6]">
+        <section className="py-14 bg-[#faf7ed]">
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
               Conoce a los talleres artesanales
@@ -381,13 +382,13 @@ const Index = () => {
                 {featuredShop ? (
                   <>
                     <div className="space-y-2">
-                      <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[11px]">
+                      <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[11px]">
                         Taller del Mes
                       </span>
                       <h3 className="text-5xl md:text-6xl font-serif">
                         {featuredShop.shopName}
                       </h3>
-                      <p className="text-[#2c2c2c]/50 italic font-serif text-xl">
+                      <p className="text-[#2b2f26]/50 italic font-serif text-xl">
                         {featuredShop.municipality && featuredShop.department
                           ? `${featuredShop.municipality}, ${featuredShop.department}`
                           : featuredShop.department || "Colombia"}
@@ -395,20 +396,20 @@ const Index = () => {
                     </div>
                     <div className="space-y-6">
                       {featuredShop.craftType && (
-                        <div className="flex items-start gap-4 pb-6 border-b border-[#2c2c2c]/10">
-                          <span className="text-[#ec6d13] mt-1 text-xl">★</span>
+                        <div className="flex items-start gap-4 pb-6 border-b border-[#2b2f26]/10">
+                          <span className="text-[#2e5424] mt-1 text-xl">★</span>
                           <span className="text-lg font-serif">
                             Especialidad: {featuredShop.craftType}
                           </span>
                         </div>
                       )}
-                      <p className="text-lg leading-relaxed text-[#2c2c2c]/80">
+                      <p className="text-lg leading-relaxed text-[#2b2f26]/80">
                         {featuredShop.story ||
                           "Taller artesanal dedicado al tejido tradicional con técnicas transmitidas entre generaciones."}
                       </p>
                       <Link
                         to={`/artesano/${featuredShop.shopSlug}`}
-                        className="text-xs font-bold uppercase tracking-widest border-b border-[#2c2c2c] pb-1 hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+                        className="text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] pb-1 hover:text-[#2e5424] hover:border-[#2e5424] transition-colors"
                       >
                         Ver perfil del taller
                       </Link>
@@ -427,19 +428,19 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ REGALOS CON HISTORIA ═══════════════ */}
-        <section className="py-10 bg-[#f9f7f2]">
+        <section className="py-10 bg-[#f5f1e6]">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex flex-col md:flex-row gap-16 items-center">
               <div className="flex-1 space-y-8">
                 <h2 className="text-5xl font-serif">Regalos con historia</h2>
-                <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light">
+                <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light">
                   En Cocrea puedes encontrar piezas especiales para regalar en
                   momentos importantes. Cada objeto hecho a mano lleva consigo
                   tradición, conocimiento y dedicación.
                 </p>
                 <Link
                   to="/giftcards"
-                  className="inline-block bg-[#2c2c2c] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors"
+                  className="inline-block bg-[#2b2f26] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] transition-colors"
                 >
                   Explorar piezas para regalar
                 </Link>
@@ -535,22 +536,28 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ ALIADOS ═══════════════ */}
-       <section className="py-24 border-t border-[#2c2c2c]/10">
-          <div className="max-w-2xl mx-auto px-6 text-center space-y-8">
-            <h2 className="text-[10px] font-bold text-[#2c2c2c]/40 uppercase tracking-[0.4em]">
-              Aliados
+        {/* ═══════════════ INSTITUCIONAL ═══════════════ */}
+        <section className="py-24 border-t border-[#2b2f26]/10">
+          <div className="max-w-3xl mx-auto px-6 text-center space-y-10">
+            <h2 className="text-[10px] font-bold text-[#2b2f26]/40 uppercase tracking-[0.4em]">
+              Una iniciativa de
             </h2>
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
               <img
-                src="https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png"
-                alt="Artesanías de Colombia"
-                className="w-48 h-auto object-contain"
+                src={escuelasTallerLogo}
+                alt="Escuelas Taller de Colombia — Herramientas de paz"
+                className="w-32 h-32 object-contain"
               />
-              <h3 className="text-2xl font-serif">
-                Con el apoyo de Artesanías de Colombia
-              </h3>
+              <img
+                src={culturasLogo}
+                alt="Ministerio de las Culturas, las Artes y los Saberes"
+                className="w-44 h-auto object-contain"
+              />
             </div>
+            <h3 className="text-2xl font-serif">
+              Programa Nacional Escuelas Taller de Colombia · Ministerio de las
+              Culturas, las Artes y los Saberes
+            </h3>
           </div>
         </section>
 

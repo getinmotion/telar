@@ -262,13 +262,13 @@ export default function Territory() {
   // Not found
   if (!territory) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#f9f7f2" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#f5f1e6" }}>
         <div className="text-center">
           <h1 className="font-serif text-4xl italic mb-4">Territorio no encontrado</h1>
           <Link
             to="/territorios"
             className="inline-block px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-white"
-            style={{ backgroundColor: "#2c2c2c" }}
+            style={{ backgroundColor: "#2b2f26" }}
           >
             Ver todos los territorios
           </Link>
@@ -282,14 +282,14 @@ export default function Territory() {
   const displayShops = shops.slice(0, 4);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#2c2c2c" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#f5f1e6", color: "#2b2f26" }}>
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-6 py-12 grid lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-5 space-y-8 lg:border-r lg:pr-12" style={{ borderColor: "rgba(44,44,44,0.05)" }}>
           <div className="space-y-4">
             <p
               className="font-sans text-[10px] uppercase tracking-[0.4em] font-bold"
-              style={{ color: "#ec6d13" }}
+              style={{ color: "#2e5424" }}
             >
               Territorio
             </p>
@@ -303,8 +303,8 @@ export default function Territory() {
           </p>
           <Link
             to={`/productos`}
-            className="inline-block px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-all"
-            style={{ backgroundColor: "#ec6d13" }}
+            className="inline-block px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#2b2f26] transition-all"
+            style={{ backgroundColor: "#2e5424" }}
           >
             Ver artesanías del territorio
           </Link>
@@ -324,7 +324,7 @@ export default function Territory() {
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                     onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2c2c2c]/80 via-[#2c2c2c]/20 to-transparent p-6 md:p-8 text-white">
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#2b2f26]/80 via-[#2b2f26]/20 to-transparent p-6 md:p-8 text-white">
                     <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-bold mb-2 opacity-80">
                       Pieza destacada del territorio
                     </p>
@@ -346,7 +346,7 @@ export default function Territory() {
       </section>
 
       {/* ═══════════════ GROUNDED DESCRIPTION ═══════════════ */}
-      <section className="px-6 py-24" style={{ backgroundColor: "#2c2c2c", color: "#f9f7f2" }}>
+      <section className="px-6 py-24" style={{ backgroundColor: "#2b2f26", color: "#f5f1e6" }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row gap-20 items-center">
           <div className="w-full md:w-1/2">
             <h2 className="text-5xl font-serif leading-tight">Un legado central en la tejeduría</h2>
@@ -384,10 +384,10 @@ export default function Territory() {
                   <div
                     key={tech.id}
                     className="p-12 space-y-8 border transition-colors duration-500 hover:bg-white"
-                    style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
+                    style={{ backgroundColor: "#f5f1e6", borderColor: "rgba(44,44,44,0.05)" }}
                   >
                     <div className="space-y-4">
-                      <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
+                      <span className="font-serif italic text-2xl" style={{ color: "#2e5424" }}>
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <h3 className="text-3xl font-serif">{tech.name}</h3>
@@ -398,7 +398,7 @@ export default function Territory() {
                     <Link
                       to={`/tecnica/${techSlug}`}
                       className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:gap-4 transition-all"
-                      style={{ color: "#ec6d13" }}
+                      style={{ color: "#2e5424" }}
                     >
                       Explorar técnica <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
@@ -428,8 +428,8 @@ export default function Territory() {
           <h2 className="text-5xl font-serif">Piezas de {territory.name.split(",")[0]}</h2>
           <Link
             to="/productos"
-            className="text-[10px] font-bold uppercase tracking-widest border-b pb-1 transition-colors hover:text-[#ec6d13] hover:border-[#ec6d13]"
-            style={{ borderColor: "#2c2c2c" }}
+            className="text-[10px] font-bold uppercase tracking-widest border-b pb-1 transition-colors hover:text-[#2e5424] hover:border-[#2e5424]"
+            style={{ borderColor: "#2b2f26" }}
           >
             Ver colección del territorio
           </Link>
@@ -459,7 +459,7 @@ export default function Territory() {
       </section>
 
       {/* ═══════════════ WORKSHOPS ═══════════════ */}
-      <section className="px-6 py-32" style={{ backgroundColor: "#f9f7f2" }}>
+      <section className="px-6 py-32" style={{ backgroundColor: "#f5f1e6" }}>
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center mb-20 gap-8">
             <div className="text-center md:text-left">
@@ -475,8 +475,8 @@ export default function Territory() {
             </div>
             <Link
               to="/tiendas"
-              className="px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-all"
-              style={{ backgroundColor: "#ec6d13" }}
+              className="px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#2b2f26] transition-all"
+              style={{ backgroundColor: "#2e5424" }}
             >
               Ver todos los artesanos
             </Link>
@@ -505,11 +505,11 @@ export default function Territory() {
                     <div className="space-y-4">
                       <span
                         className="font-bold uppercase tracking-widest text-[11px]"
-                        style={{ color: "#ec6d13" }}
+                        style={{ color: "#2e5424" }}
                       >
                         {shop.craftType || "Taller Artesanal"}
                       </span>
-                      <h3 className="text-3xl font-serif group-hover:text-[#ec6d13] transition-colors">
+                      <h3 className="text-3xl font-serif group-hover:text-[#2e5424] transition-colors">
                         {shop.shopName}
                       </h3>
                       {shop.description && (
@@ -524,7 +524,7 @@ export default function Territory() {
                       )}
                     </div>
                     <span
-                      className="inline-block mt-8 text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 self-start transition-colors group-hover:text-[#ec6d13] group-hover:border-[#ec6d13]"
+                      className="inline-block mt-8 text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 self-start transition-colors group-hover:text-[#2e5424] group-hover:border-[#2e5424]"
                       style={{ borderColor: "rgba(44,44,44,0.2)" }}
                     >
                       Ver taller
@@ -554,7 +554,7 @@ export default function Territory() {
 
       {/* ═══════════════ EXTRA NARRATIVE SECTIONS ═══════════════ */}
       {territory.extraSections?.length ? (
-        <section className="px-6 py-24 md:py-32" style={{ backgroundColor: "#f9f7f2" }}>
+        <section className="px-6 py-24 md:py-32" style={{ backgroundColor: "#f5f1e6" }}>
           <div className="max-w-[1100px] mx-auto space-y-20">
             {territory.extraSections.map((sec) => (
               <div
@@ -564,7 +564,7 @@ export default function Territory() {
                 <div className="md:col-span-4">
                   <p
                     className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans mb-4"
-                    style={{ color: "#ec6d13" }}
+                    style={{ color: "#2e5424" }}
                   >
                     {sec.eyebrow}
                   </p>
@@ -589,12 +589,12 @@ export default function Territory() {
       {/* ═══════════════ CULTURAL STORY CAPSULE ═══════════════ */}
       <section className="relative px-6 py-40 overflow-hidden bg-white border-y" style={{ borderColor: "rgba(44,44,44,0.05)" }}>
         <div className="max-w-4xl mx-auto text-center space-y-10">
-          <span className="text-5xl" style={{ color: "#ec6d13" }}>"</span>
+          <span className="text-5xl" style={{ color: "#2e5424" }}>"</span>
           <h2 className="text-5xl font-serif italic">{territory.culturalTitle}</h2>
           <p className="text-2xl leading-relaxed italic font-serif" style={{ color: "rgba(44,44,44,0.8)" }}>
             "{territory.culturalQuote}"
           </p>
-          <div className="w-16 h-px mx-auto" style={{ backgroundColor: "#ec6d13" }} />
+          <div className="w-16 h-px mx-auto" style={{ backgroundColor: "#2e5424" }} />
         </div>
       </section>
 
@@ -609,7 +609,7 @@ export default function Territory() {
           </h2>
           <Link
             to="/territorios"
-            className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#2e5424] hover:text-[#2e5424]"
             style={{ borderColor: "rgba(44,44,44,0.2)" }}
           >
             Ver todos los territorios
@@ -638,27 +638,27 @@ export default function Territory() {
       {/* ═══════════════ FINAL CTA ═══════════════ */}
       <section
         className="px-6 py-40 flex flex-col items-center text-center gap-10"
-        style={{ backgroundColor: "#2c2c2c", color: "#fff" }}
+        style={{ backgroundColor: "#2b2f26", color: "#fff" }}
       >
         <h2 className="text-5xl font-serif max-w-3xl leading-tight">{territory.ctaHeadline}</h2>
         <div className="flex flex-col sm:flex-row gap-6">
           <Link
             to="/productos"
-            className="px-12 py-4 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
-            style={{ backgroundColor: "#ec6d13" }}
+            className="px-12 py-4 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2b2f26] transition-all"
+            style={{ backgroundColor: "#2e5424" }}
           >
             Explorar piezas
           </Link>
           <Link
             to="/tiendas"
-            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#2e5424] hover:text-[#2e5424]"
             style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
           >
             Ver talleres
           </Link>
           <Link
             to="/territorios"
-            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#2e5424] hover:text-[#2e5424]"
             style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
           >
             Descubrir territorios

@@ -67,21 +67,21 @@ const Blog = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c]">
+      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
         {/* Hero */}
         <header className="max-w-[1400px] mx-auto px-6 py-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
-            <span className="text-[10px] uppercase tracking-[0.4em] text-[#2c2c2c]/40 font-bold">
+            <span className="text-[10px] uppercase tracking-[0.4em] text-[#2b2f26]/40 font-bold">
               El Taller Digital
             </span>
             <h1 className="text-6xl md:text-8xl font-serif italic leading-[0.9] tracking-tight">
               Historias
             </h1>
-            <p className="text-xl text-[#2c2c2c]/70 leading-relaxed font-light italic font-serif max-w-2xl mx-auto">
+            <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light italic font-serif max-w-2xl mx-auto">
               Cronicas de origen, tecnicas ancestrales y los rostros detras de
               cada pieza artesanal colombiana.
             </p>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
+            <div className="w-24 h-px bg-[#2e5424] mx-auto mt-8" />
           </div>
         </header>
 
@@ -93,7 +93,7 @@ const Blog = () => {
               placeholder="Buscar historias..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b border-[#2c2c2c]/20 py-3 text-center text-sm focus:ring-0 focus:border-[#2c2c2c] outline-none placeholder:text-[#2c2c2c]/30 transition-colors"
+              className="w-full bg-transparent border-b border-[#2b2f26]/20 py-3 text-center text-sm focus:ring-0 focus:border-[#2b2f26] outline-none placeholder:text-[#2b2f26]/30 transition-colors"
             />
           </div>
         </div>
@@ -102,7 +102,7 @@ const Blog = () => {
           <section className="py-32 px-6 text-center">
             <div className="max-w-xl mx-auto space-y-6">
               <h2 className="font-serif text-4xl italic">Proximamente</h2>
-              <p className="text-[#2c2c2c]/60 leading-relaxed">
+              <p className="text-[#2b2f26]/60 leading-relaxed">
                 Estamos preparando contenido increible sobre nuestros artesanos
                 y sus tecnicas ancestrales.
               </p>
@@ -126,7 +126,7 @@ const Blog = () => {
             <h2 className="font-serif text-3xl italic mb-4">
               Sin resultados
             </h2>
-            <p className="text-[#2c2c2c]/60">
+            <p className="text-[#2b2f26]/60">
               {searchQuery
                 ? "No se encontraron historias con esa busqueda"
                 : "Pronto publicaremos nuevas historias"}
@@ -151,19 +151,19 @@ const Blog = () => {
                 </div>
                 <div className="space-y-6">
                   {featured.category && (
-                    <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                    <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
                       {featured.category}
                     </span>
                   )}
-                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-[#ec6d13] transition-colors">
+                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-[#2e5424] transition-colors">
                     {featured.title}
                   </h2>
                   {featured.description && (
-                    <p className="text-lg text-[#2c2c2c]/70 leading-relaxed font-light">
+                    <p className="text-lg text-[#2b2f26]/70 leading-relaxed font-light">
                       {featured.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-6 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2c2c2c]/40 pt-6 border-t border-[#2c2c2c]/5">
+                  <div className="flex items-center gap-6 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2b2f26]/40 pt-6 border-t border-[#2b2f26]/5">
                     <span>
                       {format(
                         new Date(featured.publishedAt),
@@ -203,7 +203,7 @@ const Blog = () => {
                     </div>
                     <div className="space-y-3">
                       {article.category && (
-                        <span className="text-[10px] text-[#ec6d13] uppercase tracking-[0.3em] font-bold">
+                        <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
                           {article.category}
                         </span>
                       )}
@@ -211,11 +211,11 @@ const Blog = () => {
                         {article.title}
                       </h3>
                       {article.description && (
-                        <p className="text-sm text-[#2c2c2c]/60 leading-relaxed font-light line-clamp-3">
+                        <p className="text-sm text-[#2b2f26]/60 leading-relaxed font-light line-clamp-3">
                           {article.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2c2c2c]/30 pt-4 border-t border-[#2c2c2c]/5">
+                      <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2b2f26]/30 pt-4 border-t border-[#2b2f26]/5">
                         <span>
                           {format(
                             new Date(article.publishedAt),
@@ -250,8 +250,8 @@ const Blog = () => {
                         className={cn(
                           "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
                           p === page
-                            ? "bg-[#2c2c2c] text-white"
-                            : "text-[#2c2c2c]/40 hover:text-[#2c2c2c]"
+                            ? "bg-[#2b2f26] text-white"
+                            : "text-[#2b2f26]/40 hover:text-[#2b2f26]"
                         )}
                       >
                         {p}
@@ -272,7 +272,7 @@ const Blog = () => {
         )}
 
         {/* CTA Section */}
-        <section className="py-32 bg-[#2c2c2c] text-[#f9f7f2] text-center">
+        <section className="py-32 bg-[#2b2f26] text-[#f5f1e6] text-center">
           <div className="max-w-3xl mx-auto px-6 space-y-10">
             <h2 className="font-serif text-4xl md:text-5xl italic leading-tight">
               Cada pieza tiene una historia. Cada historia, un territorio.
@@ -280,13 +280,13 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link
                 to="/productos"
-                className="px-12 py-4 bg-[#ec6d13] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
+                className="px-12 py-4 bg-[#2e5424] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2b2f26] transition-all"
               >
                 Explorar piezas
               </Link>
               <Link
                 to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#ec6d13] hover:text-[#ec6d13] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#2e5424] hover:text-[#2e5424] transition-all"
               >
                 Conocer talleres
               </Link>

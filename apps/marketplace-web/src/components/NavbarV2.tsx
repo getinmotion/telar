@@ -123,6 +123,14 @@ export const NavbarV2 = ({
       <header
         className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? "shadow-md" : ""}`}
       >
+        {/* Institutional strip */}
+        {!isScrolled && (
+          <div className="w-full bg-primary text-primary-foreground">
+            <p className="container mx-auto px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.25em]">
+              Programa Nacional Escuelas Taller de Colombia · Herramientas de paz
+            </p>
+          </div>
+        )}
         <div className="container mx-auto px-4 relative">
           {/* ════════════ MOBILE TOP BAR (< lg) ════════════ */}
           <div className="flex lg:hidden items-center justify-between py-3">

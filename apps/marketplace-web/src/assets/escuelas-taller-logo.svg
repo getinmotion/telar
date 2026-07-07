@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Escuelas Taller de Colombia — Herramientas de paz">
+  <defs>
+    <path id="et-top-arc" d="M 26 146 A 96 96 0 1 1 214 146" fill="none" />
+    <path id="et-bottom-arc" d="M 34 152 A 88 88 0 0 0 206 152" fill="none" />
+  </defs>
+  <circle cx="120" cy="120" r="120" fill="#2E5424" />
+  <text fill="#EDE4D3" font-family="Manrope, Futura, 'Century Gothic', Arial, sans-serif" font-weight="600" font-size="19" letter-spacing="1">
+    <textPath href="#et-top-arc" startOffset="50%" text-anchor="middle">Escuelas Taller de Colombia</textPath>
+  </text>
+  <text fill="#EDE4D3" font-family="Manrope, Futura, 'Century Gothic', Arial, sans-serif" font-weight="600" font-size="17" letter-spacing="1">
+    <textPath href="#et-bottom-arc" startOffset="50%" text-anchor="middle">Herramientas de paz</textPath>
+  </text>
+  <!-- loom motif -->
+  <g stroke="#EDE4D3" stroke-width="6" stroke-linecap="round" fill="none">
+    <!-- roof bars -->
+    <path d="M 102 68 H 138" />
+    <path d="M 88 80 H 152" />
+    <path d="M 78 92 H 162" />
+    <path d="M 70 104 H 170" />
+    <!-- warp threads -->
+    <path d="M 96 112 V 168" />
+    <path d="M 112 112 V 176" />
+    <path d="M 128 112 V 176" />
+    <path d="M 144 112 V 168" />
+    <!-- left comb -->
+    <path d="M 52 118 H 78" />
+    <path d="M 56 132 H 78" />
+    <path d="M 60 146 H 78" />
+    <!-- right nested frame -->
+    <path d="M 162 118 H 186 V 158 H 168" />
+    <path d="M 168 132 H 176 V 146" />
+  </g>
+</svg>
