@@ -46,6 +46,9 @@ export class ProductArtisanalIdentity {
   @Column({ name: 'is_collaboration', type: 'boolean', default: false })
   isCollaboration: boolean;
 
+  @Column({ name: 'collaboration_name', type: 'text', nullable: true })
+  collaborationName: string;
+
   @Column({ name: 'process_type', type: 'varchar', nullable: true })
   processType: string; // 'manual', 'mixto', 'asistido'
 

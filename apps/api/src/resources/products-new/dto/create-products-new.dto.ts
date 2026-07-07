@@ -93,6 +93,10 @@ export class CreateProductArtisanalIdentityDto {
   isCollaboration?: boolean;
 
   @IsOptional()
+  @IsString()
+  collaborationName?: string;
+
+  @IsOptional()
   @IsEnum(ProcessType)
   processType?: ProcessType;
 
@@ -179,6 +183,15 @@ export class CreateProductProductionDto {
   @IsOptional()
   @IsString()
   requirementsToStart?: string;
+
+  @IsOptional()
+  @IsString()
+  processDescription?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  processEvidenceUrls?: string[];
 }
 
 export class CreateProductMediaDto {
