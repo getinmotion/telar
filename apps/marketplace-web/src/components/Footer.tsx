@@ -20,23 +20,23 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
   };
 
   return (
-    <footer className={`relative bg-[#20291a] text-white overflow-visible `}>
+    <footer className={`relative bg-forest text-white overflow-visible `}>
       {/* ── Floating Newsletter Module (only on Historias & Sobre Telar) ── */}
       {/* {showNewsletter && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-6 z-10">
-          <div className="bg-white text-[#20291a] p-10 md:p-16 shadow-2xl rounded-xl flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
+          <div className="bg-white text-forest p-10 md:p-16 shadow-2xl rounded-md flex flex-col lg:flex-row items-center justify-between gap-12 border border-stone-100">
             <div className="max-w-md">
-              <h2 className="font-serif text-3xl md:text-4xl italic mb-4 leading-tight">
+              <h2 className="font-serif text-3xl md:text-4xl mb-4 leading-tight">
                 Historias del mundo artesanal
               </h2>
-              <p className="font-sans text-[#20291a]/60 text-base">
+              <p className="font-sans text-forest/70 text-base">
                 Crónicas de maestros artesanos y lanzamientos exclusivos.
               </p>
             </div>
             <div className="w-full max-w-md">
               <form onSubmit={handleSubscribe} className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-[#20291a]/50 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-forest/60 mb-2">
                     Email
                   </label>
                   <input
@@ -45,13 +45,13 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@correo.com"
                     required
-                    className="w-full bg-transparent border-0 border-b border-[#20291a]/20 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-[#20291a]/30 transition-colors outline-none"
+                    className="w-full bg-transparent border-0 border-b border-forest/25 py-2 px-0 text-sm focus:ring-0 focus:border-primary placeholder:text-forest/40 transition-colors outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-full hover:bg-[#1f3a15] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
+                  className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-4 rounded-sm hover:bg-forest transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60"
                 >
                   {loading ? "Suscribiendo..." : "Suscribirme Gratis"}
                 </button>
@@ -115,7 +115,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
                 className="h-10 w-auto"
               />
             </div>
-            <p className="font-serif text-4xl md:text-5xl italic text-white leading-tight">
+            <p className="font-serif text-4xl md:text-5xl text-white leading-tight">
               Saberes y oficios de las Escuelas Taller de Colombia: herramientas de paz.
             </p>
           </div>
@@ -132,7 +132,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
                 className="h-12 w-auto object-contain"
               />
             </div>
-            <span className="text-white/40 text-[10px] font-bold tracking-[0.3em] uppercase">
+            <span className="text-white/75 text-[10px] font-bold tracking-[0.3em] uppercase">
               Colombia
             </span>
           </div>
@@ -142,11 +142,11 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       {/* ── Copyright ── */}
       <div className="max-w-7xl mx-auto px-8 py-10 border-t border-white/10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-          <div className="flex flex-col gap-2 text-white/30 text-[9px] font-bold tracking-[0.2em] uppercase">
+          <div className="flex flex-col gap-2 text-white/65 text-[9px] font-bold tracking-[0.2em] uppercase">
             <p>Programa Nacional Escuelas Taller de Colombia</p>
             <p>Ministerio de las Culturas, las Artes y los Saberes</p>
           </div>
-          <div className="text-white/20 text-[9px] font-bold tracking-[0.2em] uppercase">
+          <div className="text-white/55 text-[9px] font-bold tracking-[0.2em] uppercase">
             <p>&copy; {new Date().getFullYear()} COCREA. TODOS LOS DERECHOS RESERVADOS.</p>
           </div>
         </div>
@@ -185,7 +185,7 @@ function FooterLink({
     <li>
       <Link
         to={to}
-        className="text-white/60 text-xs tracking-wide hover:text-sage transition-colors duration-300"
+        className="text-white/80 text-xs tracking-wide hover:text-sage transition-colors duration-300"
       >
         {children}
       </Link>

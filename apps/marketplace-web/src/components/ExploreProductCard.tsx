@@ -50,13 +50,13 @@ export function ExploreProductCard({
       <Link to={`/product/${product.id}`} className="block">
         {/* ── Image + L0 Badge ── */}
         <div
-          className={`relative aspect-[3/4] bg-[#e5e1d8] mb-6 rounded-sm overflow-hidden ${isOutOfStock ? "grayscale" : ""}`}
+          className={`relative aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden ${isOutOfStock ? "grayscale" : ""}`}
         >
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
               loading="lazy"
             />
           ) : (
@@ -68,15 +68,15 @@ export function ExploreProductCard({
           {/* L0: State badge — priority: Agotado > Últimas piezas > Nuevo */}
           <div className="absolute top-4 left-0 z-10 flex flex-col gap-0.5">
             {isOutOfStock ? (
-              <span className="bg-charcoal text-white text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 shadow-sm">
+              <span className="bg-charcoal text-white text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5">
                 Agotado
               </span>
             ) : isLowStock ? (
-              <span className="bg-primary text-white text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 shadow-sm">
+              <span className="bg-primary text-primary-foreground text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5">
                 Últimas piezas
               </span>
             ) : isNew ? (
-              <span className="bg-primary text-white text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 shadow-sm">
+              <span className="bg-primary text-primary-foreground text-[8px] font-bold uppercase tracking-[0.2em] px-4 py-1.5">
                 Nuevo
               </span>
             ) : null}
@@ -85,7 +85,7 @@ export function ExploreProductCard({
           {/* Wishlist */}
           <button
             className={`absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-all ${
-              isFavorite ? "!opacity-100 text-[#2e5424]" : "text-charcoal"
+              isFavorite ? "!opacity-100 text-primary" : "text-charcoal"
             }`}
             onClick={(e) => {
               e.preventDefault();
@@ -94,7 +94,7 @@ export function ExploreProductCard({
             }}
             disabled={wishlistLoading}
           >
-            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-[#2e5424]" : ""}`} />
+            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-primary" : ""}`} />
           </button>
         </div>
 
@@ -102,7 +102,7 @@ export function ExploreProductCard({
         <div className="space-y-4">
           {/* L1: Identity */}
           <div className="space-y-1">
-            <h3 className="text-2xl font-serif leading-tight group-hover:text-primary transition-colors">
+            <h3 className="text-xl md:text-2xl font-serif tracking-tight leading-tight group-hover:text-primary transition-colors">
               {product.name}
             </h3>
             {shopName && (
@@ -150,7 +150,7 @@ export function ExploreProductCard({
             <div className="flex flex-col gap-2">
               {/* L2: Material pill */}
               {primaryMaterial && (
-                <span className="text-[8px] px-2 py-0.5 uppercase tracking-widest font-bold inline-block w-fit bg-[#e2e9e1] text-charcoal/60 font-sans">
+                <span className="text-[8px] px-2 py-0.5 uppercase tracking-widest font-bold inline-block w-fit bg-accent text-accent-foreground/70 font-sans">
                   {primaryMaterial}
                 </span>
               )}

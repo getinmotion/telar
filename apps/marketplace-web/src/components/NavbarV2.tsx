@@ -214,13 +214,34 @@ export const NavbarV2 = ({
 
           {/* ════════════ DESKTOP TOP BAR (>= lg) ════════════ */}
           <div
-            className={`hidden lg:grid grid-cols-[1fr_auto_1fr] gap-8 items-center transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
+            className={`hidden lg:grid grid-cols-[auto_1fr_auto] gap-8 items-center transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
           >
-            {/* Col 1: Search */}
-            <div className="flex items-center gap-2">
+            {/* Col 1: Logo */}
+            <div className="flex items-center">
+              {onHomeClick ? (
+                <button onClick={onHomeClick} className="flex items-center">
+                  <img
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
+                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                  />
+                </button>
+              ) : (
+                <Link to="/?reset=true" className="flex items-center">
+                  <img
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
+                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                  />
+                </Link>
+              )}
+            </div>
+
+            {/* Col 2: Search (centered) */}
+            <div className="flex items-center justify-center gap-2">
               {!isScrolled ? (
                 <>
-                  <div className="relative w-3/4 min-w-[200px]">
+                  <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="search"
@@ -282,33 +303,6 @@ export const NavbarV2 = ({
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Col 2: Logo */}
-            <div className="flex flex-col items-center gap-1">
-              {onHomeClick ? (
-                <button
-                  onClick={onHomeClick}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <img
-                    src={cocreaHorizontal}
-                    alt="CO·CREA"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
-                  />
-                </button>
-              ) : (
-                <Link
-                  to="/?reset=true"
-                  className="flex flex-col items-center gap-1"
-                >
-                  <img
-                    src={cocreaHorizontal}
-                    alt="CO·CREA"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
-                  />
-                </Link>
               )}
             </div>
 
@@ -402,7 +396,7 @@ export const NavbarV2 = ({
             className={`hidden lg:block border-t border-border/10 transition-all duration-300 ${isScrolled ? "bg-muted/30" : ""}`}
           >
             <div
-              className={`flex items-center justify-center gap-8 transition-all duration-300 ${isScrolled ? "py-1.5" : "py-3"}`}
+              className={`flex items-center justify-start gap-8 transition-all duration-300 ${isScrolled ? "py-1.5" : "py-3"}`}
             >
               {NAV_LINKS.map((link) =>
                 link.hasMegaMenu ? (
@@ -527,7 +521,7 @@ export const NavbarV2 = ({
                   className="flex items-center justify-between px-6 py-4 text-[15px] font-medium text-foreground/80 hover:text-foreground hover:bg-muted/40 transition-colors active:bg-muted/60"
                 >
                   <span>{link.label}</span>
-                  <ChevronRight className="w-4 h-4 text-foreground/30" />
+                  <ChevronRight className="w-4 h-4 text-foreground/45" />
                 </Link>
               ))}
             </div>

@@ -372,7 +372,7 @@ function WorkshopCard({
   return (
     <div className="group">
       {/* Image */}
-      <div className="relative aspect-[4/5] bg-[#e5e1d8] mb-5 overflow-hidden">
+      <div className="relative aspect-[4/5] bg-muted border border-foreground/10 mb-5 overflow-hidden">
         {imageUrl ? (
           <Link
             to={`/tienda/${shop.shopSlug}`}
@@ -381,7 +381,7 @@ function WorkshopCard({
             <img
               src={imageUrl}
               alt={shop.shopName}
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
               loading="lazy"
             />
           </Link>
@@ -416,7 +416,7 @@ function WorkshopCard({
 
       {/* Name */}
       <Link to={`/tienda/${shop.shopSlug}`}>
-        <h4 className="font-serif text-3xl mb-3 text-charcoal group-hover:text-primary transition-colors cursor-pointer leading-tight">
+        <h4 className="font-serif tracking-tight text-3xl mb-3 text-charcoal group-hover:text-primary transition-colors cursor-pointer leading-tight">
           {shop.shopName}
         </h4>
       </Link>

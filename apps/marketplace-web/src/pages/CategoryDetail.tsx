@@ -304,12 +304,12 @@ const CategoryDetail = () => {
               {editorial.description}
             </p>
           </div>
-          <div className="aspect-[21/6] bg-[#e5e1d8] w-full rounded-sm relative overflow-hidden">
+          <div className="aspect-[21/6] bg-[#ece9e2] w-full rounded-sm border border-foreground/10 relative overflow-hidden group">
             {parentCategory?.imageUrl && (
               <img
                 src={parentCategory.imageUrl}
                 alt={categoryName}
-                className="w-full h-full object-cover rounded-sm"
+                className="w-full h-full object-cover rounded-sm grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
               />
             )}
           </div>
@@ -463,7 +463,7 @@ const CategoryDetail = () => {
               {/* Active Filters */}
               {activeFilterChips.length > 0 && (
                 <div className="flex flex-wrap items-center gap-4 border-b border-charcoal/5 pb-6">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal/40">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal/50">
                     Filtros activos:
                   </span>
                   <div className="flex flex-wrap gap-2">
@@ -510,9 +510,9 @@ const CategoryDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-24">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="bg-[#e5e1d8] aspect-[3/4] mb-6 rounded-sm" />
-                    <div className="h-4 bg-[#e5e1d8] rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-[#e5e1d8] rounded w-1/2" />
+                    <div className="bg-[#ece9e2] aspect-[3/4] mb-6 rounded-sm border border-foreground/10" />
+                    <div className="h-4 bg-[#ece9e2] rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-[#ece9e2] rounded w-1/2" />
                   </div>
                 ))}
               </div>
@@ -534,7 +534,7 @@ const CategoryDetail = () => {
               </div>
             ) : (
               <div className="text-center py-32">
-                <p className="text-charcoal/40 text-sm font-sans">
+                <p className="text-charcoal/60 text-sm font-sans">
                   No se encontraron piezas en esta categoría.
                 </p>
               </div>
@@ -557,7 +557,7 @@ const CategoryDetail = () => {
       <section className="bg-primary/5 py-32 mb-32">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <div className="aspect-[5/6] w-full bg-[#e5e1d8] shadow-2xl rounded-sm" />
+            <div className="aspect-[5/6] w-full bg-[#ece9e2] shadow-2xl rounded-sm border border-foreground/10" />
             <div className="space-y-10">
               <h2 className="text-5xl md:text-7xl font-serif leading-tight">
                 {editorial.storyTitle} <br />
@@ -626,9 +626,9 @@ const CategoryDetail = () => {
                   key={i}
                   className="bg-white p-8 rounded-sm border border-primary/10"
                 >
-                  <div className="w-full aspect-square bg-[#e5e1d8] rounded-sm mb-8" />
-                  <div className="h-5 bg-[#e5e1d8] rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-[#e5e1d8] rounded w-1/2" />
+                  <div className="w-full aspect-square bg-[#ece9e2] rounded-sm border border-foreground/10 mb-8" />
+                  <div className="h-5 bg-[#ece9e2] rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-[#ece9e2] rounded w-1/2" />
                 </div>
               ));
             }
@@ -639,12 +639,12 @@ const CategoryDetail = () => {
                 to={`/artesano/${shop.shopSlug}`}
                 className="bg-white p-8 rounded-sm border border-primary/10 hover:shadow-xl transition-all cursor-pointer group"
               >
-                <div className="w-full aspect-square bg-[#e5e1d8] rounded-sm mb-8 overflow-hidden">
+                <div className="w-full aspect-square bg-[#ece9e2] rounded-sm border border-foreground/10 mb-8 overflow-hidden">
                   {shop.logoUrl && (
                     <img
                       src={shop.logoUrl}
                       alt={shop.shopName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
                     />
                   )}
                 </div>
@@ -662,8 +662,8 @@ const CategoryDetail = () => {
 
       {/* Piezas para regalar */}
       <section className="max-w-[1400px] mx-auto px-6 mb-32">
-        <div className="relative rounded-sm overflow-hidden h-[450px] flex items-center px-16 group">
-          <div className="absolute inset-0 bg-[#e5e1d8]" />
+        <div className="relative rounded-sm overflow-hidden border border-foreground/10 h-[450px] flex items-center px-16 group">
+          <div className="absolute inset-0 bg-[#ece9e2]" />
           <div className="relative z-10 max-w-xl">
             <h2 className="font-serif text-6xl mb-6 leading-tight text-charcoal">
               Piezas para regalar
@@ -706,16 +706,16 @@ function ProductNewCard({
         className="group block"
       >
         {/* Image */}
-        <div className="relative aspect-[3/4] bg-[#e5e1d8] mb-6 rounded-sm overflow-hidden">
+        <div className="relative aspect-[3/4] bg-[#ece9e2] mb-6 rounded-sm border border-foreground/10 overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-charcoal/20 text-sm font-sans">
+            <div className="w-full h-full flex items-center justify-center text-charcoal/30 text-sm font-sans">
               Sin imagen
             </div>
           )}

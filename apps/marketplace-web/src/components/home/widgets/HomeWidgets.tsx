@@ -98,36 +98,36 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
   );
 
   return (
-    <section className="py-12 border-y border-[#2b2f26]/10">
+    <section className="py-12 border-y border-foreground/10">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex flex-wrap justify-between gap-y-12">
           {kicker && (
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 opacity-40">
+            <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 text-primary">
               {kicker}
             </span>
           )}
           {displayCategories.map((cat) => (
             <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
               <Link to={`/categoria/${cat.slug}`}>
-                <div className="aspect-[16/10] bg-[#e5e1d8] mb-4 overflow-hidden relative">
+                <div className="aspect-[16/10] bg-muted mb-4 rounded-sm border border-foreground/10 overflow-hidden relative">
                   {cat.imageUrl ? (
                     <img
                       src={cat.imageUrl}
                       alt={cat.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#e5e1d8]" />
+                    <div className="w-full h-full bg-muted" />
                   )}
                 </div>
               </Link>
               <Link
                 to={`/categoria/${cat.slug}`}
-                className="text-xl font-serif hover:italic hover:text-[#2e5424] transition-all"
+                className="text-xl font-serif hover:italic hover:text-primary transition-all"
               >
                 {cat.name}
               </Link>
-              <p className="text-[10px] text-[#2b2f26]/50 uppercase tracking-widest">
+              <p className="text-[10px] text-charcoal/60 uppercase tracking-widest">
                 {cat.subcategories.length > 0
                   ? cat.subcategories.slice(0, 3).map((s) => s.name).join(', ')
                   : 'Piezas artesanales únicas'}
@@ -162,12 +162,12 @@ export function FeaturedProductsWidget({
         <div className="text-center mb-16 space-y-3">
           {title && <h2 className="text-4xl md:text-5xl font-serif">{title}</h2>}
           {subtitle && (
-            <p className="text-[#2b2f26]/60 italic font-light">{subtitle}</p>
+            <p className="text-charcoal/70 italic font-light">{subtitle}</p>
           )}
           {ctaLabel && ctaHref && (
             <Link
               to={ctaHref}
-              className="inline-block mt-4 text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] pb-1 hover:text-[#2e5424] hover:border-[#2e5424]"
+              className="inline-block mt-4 text-xs font-bold uppercase tracking-widest border-b border-charcoal pb-1 hover:text-primary hover:border-primary"
             >
               {ctaLabel}
             </Link>
@@ -178,10 +178,10 @@ export function FeaturedProductsWidget({
         {loading || featured.length === 0
           ? [...Array(3)].map((_, i) => (
               <div key={i} className="space-y-6 animate-pulse">
-                <div className="aspect-[3/4] bg-[#e5e1d8]" />
-                <div className="h-4 w-24 bg-[#e5e1d8]" />
-                <div className="h-6 w-3/4 bg-[#e5e1d8]" />
-                <div className="h-4 w-1/2 bg-[#e5e1d8]" />
+                <div className="aspect-[3/4] bg-muted" />
+                <div className="h-4 w-24 bg-muted" />
+                <div className="h-6 w-3/4 bg-muted" />
+                <div className="h-4 w-1/2 bg-muted" />
               </div>
             ))
           : featured.map((product, idx) => (
@@ -190,27 +190,27 @@ export function FeaturedProductsWidget({
                 className={`group ${idx === 1 ? 'mt-12 md:mt-24' : ''}`}
               >
                 <Link to={`/product/${product.id}`}>
-                  <div className="aspect-[3/4] bg-[#e5e1d8] mb-6 grayscale hover:grayscale-0 transition-all duration-700 overflow-hidden relative">
+                  <div className="aspect-[3/4] bg-muted mb-6 rounded-sm border border-foreground/10 transition-all duration-700 overflow-hidden relative">
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
                       />
                     ) : (
-                      <div className="w-full h-full bg-[#e5e1d8]" />
+                      <div className="w-full h-full bg-muted" />
                     )}
                   </div>
                   <div className="space-y-3">
-                    <span className="inline-block bg-[#2e5424]/10 text-[#2e5424] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
+                    <span className="inline-block bg-primary/10 text-primary text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
                       Hecho a mano
                     </span>
                     <h3 className="text-2xl font-serif leading-tight">{product.name}</h3>
-                    <p className="text-xs uppercase tracking-widest text-[#2b2f26]/50">
+                    <p className="text-xs uppercase tracking-widest text-charcoal/60">
                       {product.storeName}
                       {product.department ? ` — ${product.department}` : ''}
                     </p>
-                    <div className="pt-4 flex items-center justify-between border-t border-[#2b2f26]/5">
+                    <div className="pt-4 flex items-center justify-between border-t border-foreground/10">
                       <span className="font-medium">
                         {product.price != null ? formatCurrency(product.price) : 'Consultar'}
                       </span>
@@ -232,14 +232,14 @@ export function HuellaDigitalWidget() {
   return (
     <section className="py-24 bg-white">
       <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
-        <div className="aspect-square bg-[#e5e1d8]">
+        <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
           {featured[1]?.imageUrl && (
-            <img src={featured[1].imageUrl} alt="Huella digital" className="w-full h-full object-cover" />
+            <img src={featured[1].imageUrl} alt="Huella digital" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
           )}
         </div>
         <div className="space-y-10">
           <h2 className="text-5xl font-serif leading-tight">Cada pieza tiene una huella digital</h2>
-          <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light mb-8">
+          <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
             Cada objeto en Cocrea conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
           </p>
           <div className="space-y-8">
@@ -249,17 +249,17 @@ export function HuellaDigitalWidget() {
               { n: '03', t: 'Proceso documentado', b: 'Detalles de la técnica, materiales y tiempo de elaboración.' },
             ].map(({ n, t, b }) => (
               <div key={n} className="flex gap-6">
-                <span className="text-[#2e5424] font-serif italic text-3xl">{n}</span>
+                <span className="text-primary font-serif italic text-3xl">{n}</span>
                 <div>
                   <h4 className="font-bold uppercase tracking-widest text-xs mb-2">{t}</h4>
-                  <p className="text-[#2b2f26]/60 text-sm">{b}</p>
+                  <p className="text-charcoal/60 text-sm">{b}</p>
                 </div>
               </div>
             ))}
           </div>
           <Link
             to="/productos"
-            className="inline-block border border-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2b2f26] hover:text-white transition-all"
+            className="inline-block border border-charcoal px-10 py-4 uppercase text-xs tracking-widest hover:bg-charcoal hover:text-white transition-all"
           >
             Explorar el registro de autenticidad
           </Link>
@@ -284,28 +284,28 @@ export function FeaturedShopWidget() {
   }, [shops]);
 
   return (
-    <section className="py-32 bg-[#faf7ed]">
+    <section className="py-32 bg-cream">
       <div className="max-w-[1400px] mx-auto px-6">
-        <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-40">
+        <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-60">
           Conoce a los talleres artesanales
         </h2>
         <div className="grid lg:grid-cols-2 gap-20 items-stretch">
-          <div className="min-h-[500px] bg-[#e5e1d8] overflow-hidden">
+          <div className="min-h-[500px] bg-muted rounded-sm border border-foreground/10 overflow-hidden">
             {featuredShop?.bannerUrl ? (
-              <img src={featuredShop.bannerUrl} alt={featuredShop.shopName} className="w-full h-full object-cover" />
+              <img src={featuredShop.bannerUrl} alt={featuredShop.shopName} className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
             ) : featuredShop?.logoUrl ? (
-              <img src={featuredShop.logoUrl} alt={featuredShop.shopName} className="w-full h-full object-cover" />
+              <img src={featuredShop.logoUrl} alt={featuredShop.shopName} className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
             ) : null}
           </div>
           <div className="flex flex-col justify-center py-10 space-y-8">
             {featuredShop ? (
               <>
                 <div className="space-y-2">
-                  <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[11px]">
+                  <span className="text-primary font-bold uppercase tracking-widest text-[11px]">
                     Taller del Mes
                   </span>
                   <h3 className="text-5xl md:text-6xl font-serif">{featuredShop.shopName}</h3>
-                  <p className="text-[#2b2f26]/50 italic font-serif text-xl">
+                  <p className="text-charcoal/60 italic font-serif text-xl">
                     {featuredShop.municipality && featuredShop.department
                       ? `${featuredShop.municipality}, ${featuredShop.department}`
                       : featuredShop.department || 'Colombia'}
@@ -313,18 +313,18 @@ export function FeaturedShopWidget() {
                 </div>
                 <div className="space-y-6">
                   {featuredShop.craftType && (
-                    <div className="flex items-start gap-4 pb-6 border-b border-[#2b2f26]/10">
-                      <span className="text-[#2e5424] mt-1 text-xl">★</span>
+                    <div className="flex items-start gap-4 pb-6 border-b border-foreground/10">
+                      <span className="text-primary mt-1 text-xl">★</span>
                       <span className="text-lg font-serif">Especialidad: {featuredShop.craftType}</span>
                     </div>
                   )}
-                  <p className="text-lg leading-relaxed text-[#2b2f26]/80">
+                  <p className="text-lg leading-relaxed text-charcoal/80">
                     {featuredShop.story ||
                       'Taller artesanal dedicado al tejido tradicional con técnicas transmitidas entre generaciones.'}
                   </p>
                   <Link
                     to={`/artesano/${featuredShop.shopSlug}`}
-                    className="text-xs font-bold uppercase tracking-widest border-b border-[#2b2f26] pb-1 hover:text-[#2e5424] hover:border-[#2e5424] transition-colors"
+                    className="text-xs font-bold uppercase tracking-widest border-b border-charcoal pb-1 hover:text-primary hover:border-primary transition-colors"
                   >
                     Ver perfil del taller
                   </Link>
@@ -332,9 +332,9 @@ export function FeaturedShopWidget() {
               </>
             ) : (
               <div className="animate-pulse space-y-4">
-                <div className="h-8 w-48 bg-[#e5e1d8]" />
-                <div className="h-16 w-full bg-[#e5e1d8]" />
-                <div className="h-6 w-64 bg-[#e5e1d8]" />
+                <div className="h-8 w-48 bg-muted" />
+                <div className="h-16 w-full bg-muted" />
+                <div className="h-6 w-64 bg-muted" />
               </div>
             )}
           </div>
@@ -350,30 +350,30 @@ export function FeaturedShopWidget() {
 export function RegalosConHistoriaWidget() {
   const { featured } = useFeaturedProducts();
   return (
-    <section className="py-24 bg-[#f5f1e6]">
+    <section className="py-24 bg-editorial-bg">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex flex-col md:flex-row gap-16 items-center">
           <div className="flex-1 space-y-8">
             <h2 className="text-5xl font-serif">Regalos con historia</h2>
-            <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light">
+            <p className="text-xl text-charcoal/70 leading-relaxed font-light">
               En Cocrea puedes encontrar piezas especiales para regalar en momentos importantes. Cada objeto hecho a mano lleva consigo tradición, conocimiento y dedicación.
             </p>
             <Link
               to="/giftcards"
-              className="inline-block bg-[#2b2f26] text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] transition-colors"
+              className="inline-block bg-charcoal text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-primary transition-colors"
             >
               Explorar piezas para regalar
             </Link>
           </div>
           <div className="flex-1 grid grid-cols-2 gap-4 w-full">
-            <div className="aspect-square bg-[#e5e1d8] overflow-hidden">
+            <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
               {featured[1]?.imageUrl && (
-                <img src={featured[1].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover" />
+                <img src={featured[1].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
               )}
             </div>
-            <div className="aspect-square bg-[#e5e1d8] mt-12 overflow-hidden">
+            <div className="aspect-square bg-muted rounded-sm border border-foreground/10 mt-12 overflow-hidden">
               {featured[2]?.imageUrl && (
-                <img src={featured[2].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover" />
+                <img src={featured[2].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
               )}
             </div>
           </div>
@@ -409,18 +409,17 @@ export function ColeccionesOverviewWidget() {
             { to: '/giftcards', img: 2, title: 'Creaciones para regalar', sub: 'Detalles con alma' },
           ].map(({ to, img, title, sub }) => (
             <Link key={to + title} to={to} className="group cursor-pointer">
-              <div className="aspect-[4/5] bg-[#e5e1d8] mb-6 overflow-hidden relative">
+              <div className="aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden relative">
                 {displayCategories[img]?.imageUrl && (
                   <img
                     src={displayCategories[img].imageUrl}
                     alt={title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
                   />
                 )}
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
               </div>
               <h3 className="text-2xl font-serif italic">{title}</h3>
-              <p className="text-[10px] uppercase tracking-widest mt-2 opacity-50">{sub}</p>
+              <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">{sub}</p>
             </Link>
           ))}
         </div>
@@ -434,9 +433,9 @@ export function ColeccionesOverviewWidget() {
 // ────────────────────────────────────────────────────────────
 export function AliadosWidget() {
   return (
-    <section className="py-24 border-t border-[#2b2f26]/10">
+    <section className="py-24 border-t border-foreground/10">
       <div className="max-w-3xl mx-auto px-6 text-center space-y-10">
-        <h2 className="text-[10px] font-bold text-[#2b2f26]/40 uppercase tracking-[0.4em]">Una iniciativa de</h2>
+        <h2 className="text-[10px] font-bold text-charcoal/50 uppercase tracking-[0.4em]">Una iniciativa de</h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
           <img
             src={escuelasTallerLogo}
