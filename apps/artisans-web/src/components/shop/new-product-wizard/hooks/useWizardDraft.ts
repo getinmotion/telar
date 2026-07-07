@@ -9,6 +9,13 @@ const priceToMinor = (price: number): string => String(Math.round(price * 100));
 const isUUID = (v: string | undefined | null): v is string =>
   !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
+/** Convierte un valor (puede venir como string del form/localStorage) a number o undefined */
+const toNum = (v: string | number | undefined | null): number | undefined => {
+  if (v == null || v === '') return undefined;
+  const n = Number(v);
+  return isNaN(n) ? undefined : n;
+};
+
 export const extractApiError = (err: any): string => {
   const nested = err?.response?.data?.message?.response?.message;
   if (Array.isArray(nested) && nested.length > 0) return nested.join(', ');
@@ -62,19 +69,19 @@ export const mapNewStateToDto = (
 
   if (state.heightCm || state.widthCm || state.lengthCm || state.weightKg) {
     dto.physicalSpecs = {
-      heightCm: state.heightCm,
-      widthCm: state.widthCm,
-      lengthOrDiameterCm: state.lengthCm,
-      realWeightKg: state.weightKg,
+      heightCm: toNum(state.heightCm),
+      widthCm: toNum(state.widthCm),
+      lengthOrDiameterCm: toNum(state.lengthCm),
+      realWeightKg: toNum(state.weightKg),
     };
   }
 
   if (state.packagedWeightKg || state.packagedWidthCm || state.shippingRestrictions) {
     dto.logistics = {
-      packWeightKg: state.packagedWeightKg,
-      packWidthCm: state.packagedWidthCm,
-      packHeightCm: state.packagedHeightCm,
-      packLengthCm: state.packagedLengthCm,
+      packWeightKg: toNum(state.packagedWeightKg),
+      packWidthCm: toNum(state.packagedWidthCm),
+      packHeightCm: toNum(state.packagedHeightCm),
+      packLengthCm: toNum(state.packagedLengthCm),
       specialProtectionNotes: state.shippingRestrictions,
       fragility: state.specialHandling ? 'alto' : 'bajo',
     };
@@ -85,8 +92,8 @@ export const mapNewStateToDto = (
       availabilityType: state.availabilityType,
       monthlyCapacity: state.monthlyCapacity,
       processDescription: state.processDescription?.trim() || undefined,
-      processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(Boolean).length > 0
-        ? (state.processEvidenceUrls ?? []).filter(Boolean)
+      processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(u => u && !u.startsWith('blob:')).length > 0
+        ? (state.processEvidenceUrls ?? []).filter(u => u && !u.startsWith('blob:'))
         : undefined,
     };
   }
