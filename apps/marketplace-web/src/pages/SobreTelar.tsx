@@ -102,18 +102,79 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     updatedAt: "",
   },
   {
-    id: "fallback-about-cta",
+    id: "fallback-about-ecosystem",
     pageKey: "sobre-telar",
     position: 40,
+    type: "about_wide_block",
+    published: true,
+    payload: {
+      kicker: "Un ecosistema articulado",
+      titleLineTop: "De la transmisión de saberes",
+      titleLineItalic: "a la comercialización",
+      paragraphs: [
+        "Las estrategias lideradas por el Ministerio de las Culturas, las Artes y los Saberes no funcionan como proyectos independientes, sino como un ecosistema articulado que acompaña el ciclo completo de fortalecimiento de las economías culturales: desde el reconocimiento de maestras, maestros, sabedoras y sabedores, pasando por la formación, la creación y la innovación, hasta la producción, la circulación y la comercialización de bienes y servicios culturales.",
+        "Cada iniciativa responde a una etapa del proceso, pero todas se articulan para generar oportunidades de formación, creación, innovación, circulación y sostenibilidad económica para las comunidades y los territorios. Cocrea es el eslabón de circulación y comercialización de esa ruta: el canal digital donde los productos y servicios culturales encuentran nuevos mercados.",
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-about-projects",
+    pageKey: "sobre-telar",
+    position: 50,
+    type: "about_two_col",
+    published: true,
+    payload: {
+      imageSide: "right",
+      kicker: "Proyectos del ecosistema",
+      titleLineTop: "Iniciativas que",
+      titleLineItalic: "caminan juntas",
+      intro: "Cocrea se articula con los programas y proyectos del Ministerio que fortalecen el diseño, la circulación y el turismo cultural:",
+      bullets: [
+        "Kasa Raíz — Centro Nacional de Diseño e Innovación Cultural: diseño, innovación y emprendimiento creativo en Villa Adelaida, Bogotá",
+        "Villa Adelaida: espacio nacional para la formación, creación y fortalecimiento de emprendimientos del diseño, los oficios y las artes",
+        "País Raíz: turismo biocultural en territorios como La Guajira, Guaviare, San Andrés, Santa Marta y el Alto Magdalena",
+        "Circuitos Vivos: circulación cultural mediante rutas regionales en el Caribe, el Pacífico, los Llanos, el Eje Cafetero y el centro del país",
+      ],
+      outro: "Juntas conforman una ruta que acompaña a las personas, organizaciones y territorios desde la transmisión de saberes hasta la sostenibilidad económica.",
+      imageUrl: ABOUT_1_URL,
+      imageAlt: "Oficios culturales de las Escuelas Taller",
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-about-governance",
+    pageKey: "sobre-telar",
+    position: 60,
+    type: "about_wide_block",
+    published: true,
+    payload: {
+      kicker: "Quiénes estamos detrás",
+      titleLineTop: "Una apuesta",
+      titleLineItalic: "institucional y territorial",
+      paragraphs: [
+        "Cocrea es liderada por el Ministerio de las Culturas, las Artes y los Saberes, a través de la Dirección de Estrategia, Desarrollo y Emprendimiento (DEDE) y su Grupo Escuelas Taller. La implementación territorial se realiza mediante la red de Escuelas Taller presentes en diferentes regiones del país, en articulación con entidades territoriales, organizaciones sociales, comunidades, maestras y maestros, sabedoras y sabedores y aliados estratégicos.",
+        "La plataforma está pensada para todas las personas que participan en las economías culturales: compradores, compradores institucionales, artesanas y artesanos, emprendimientos culturales, Escuelas Taller, turistas culturales, diseñadores, cooperación internacional, entidades públicas y academia.",
+      ],
+    },
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    id: "fallback-about-cta",
+    pageKey: "sobre-telar",
+    position: 70,
     type: "about_cta",
     published: true,
     payload: {
       titleLineTop: "Cada compra fortalece",
       titleLineItalic: "el patrimonio vivo",
-      body: "Explora los productos elaborados por artesanas, artesanos, Escuelas Taller y emprendimientos culturales de todo el país, conoce las historias y los saberes detrás de cada pieza y conecta directamente con sus creadores.",
+      body: "Explora los productos elaborados por artesanas, artesanos, Escuelas Taller y emprendimientos culturales de todo el país; conoce las historias, los saberes y los procesos detrás de cada pieza; descubre experiencias, rutas y talleres asociados a los oficios tradicionales, y conecta directamente con sus creadores.",
       ctas: [
         { label: "Explorar productos", href: "/productos", variant: "secondary" },
-        { label: "Ver categorías", href: "/categorias", variant: "outline" },
+        { label: "Conocer las historias", href: "/historias", variant: "outline" },
       ],
     },
     createdAt: "",
@@ -123,8 +184,14 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
 
 export default function SobreTelar() {
   const { data: cmsSections } = useCmsSections("sobre-telar");
-  const sections =
-    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_SOBRE_COCREA_SECTIONS;
+  // El CMS aún guarda el "about" de la marca anterior (Telar). Hasta que el
+  // contenido se actualice desde el admin, cualquier mención de esa marca en
+  // el payload invalida las secciones remotas y se usa el contenido de Cocrea.
+  const cmsIsStale =
+    !cmsSections ||
+    cmsSections.length === 0 ||
+    /Telar/i.test(JSON.stringify(cmsSections.map((s) => s.payload)));
+  const sections = cmsIsStale ? FALLBACK_SOBRE_COCREA_SECTIONS : cmsSections;
 
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">

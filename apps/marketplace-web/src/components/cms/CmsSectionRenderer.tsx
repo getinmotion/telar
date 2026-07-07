@@ -655,7 +655,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 {p.ctaLabel && p.ctaHref && (
                   <Link
                     to={p.ctaHref}
-                    className="inline-block border border-[#2e5424] text-[#2e5424] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-all"
+                    className="inline-block border border-[#c8d5b9] text-[#c8d5b9] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#c8d5b9] hover:text-[#20291a] transition-all"
                   >
                     {p.ctaLabel}
                   </Link>
@@ -1230,7 +1230,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     <Link
                       key={i}
                       to={cta.href}
-                      className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#2e5424] hover:text-[#2e5424] transition-all"
+                      className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#c8d5b9] hover:text-[#c8d5b9] transition-all"
                     >
                       {cta.label}
                     </Link>

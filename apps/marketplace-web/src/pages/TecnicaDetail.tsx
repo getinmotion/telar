@@ -599,7 +599,7 @@ export default function TecnicaDetail() {
                   <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[9px] mb-1 block">
                     {shop.department || shop.region || "Colombia"}
                   </span>
-                  <h4 className="font-serif text-xl text-white group-hover:text-[#2e5424] transition-colors">
+                  <h4 className="font-serif text-xl text-white group-hover:text-[#c8d5b9] transition-colors">
                     {shop.shopName}
                   </h4>
                 </Link>

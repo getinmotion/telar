@@ -286,7 +286,7 @@ const Blog = () => {
               </Link>
               <Link
                 to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#2e5424] hover:text-[#2e5424] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#c8d5b9] hover:text-[#c8d5b9] transition-all"
               >
                 Conocer talleres
               </Link>

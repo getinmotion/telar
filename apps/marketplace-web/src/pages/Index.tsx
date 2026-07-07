@@ -261,12 +261,13 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-16">
               <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
                 <p className="text-2xl font-serif italic opacity-90">
-                  Cocrea conecta a compradores con talleres artesanales reales.
-                  Cada pieza tiene origen, autor y proceso documentado.
+                  Cocrea conecta a compradores con las Escuelas Taller, artesanas
+                  y artesanos de todo el país. Cada pieza tiene origen, autor y
+                  proceso documentado.
                 </p>
                 <Link
-                  to="/newsletter"
-                  className="inline-block border border-[#2e5424] text-[#2e5424] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-all"
+                  to="/sobre-cocrea"
+                  className="inline-block border border-[#c8d5b9] text-[#c8d5b9] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#c8d5b9] hover:text-[#20291a] transition-all"
                 >
                   Descubrir cómo funciona Cocrea
                 </Link>
