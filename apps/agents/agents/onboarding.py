@@ -397,6 +397,8 @@ class OnboardingAgent(BaseAgent):
             recommendations=recommendations,
         )
 
+        dimensions = self._build_dimensions_breakdown(assessment)
+
         from agents.helpers import format_timestamp
         return {
             "onboarding_response": {
@@ -414,12 +416,43 @@ class OnboardingAgent(BaseAgent):
                     "title": title,
                     "body": body,
                 },
+                "dimensions": dimensions,
                 "next_priority_action": {
                     "based_on_q16": q16_value,
                     "recommendations": recommendations,
                 },
             }
         }
+
+    _DIMENSION_MATURITY_MAP = {
+        "Inicial": "emergente",
+        "En Desarrollo": "en_desarrollo",
+        "Consolidado": "consolidado",
+        "Avanzado": "consolidado",
+    }
+
+    @classmethod
+    def _build_dimensions_breakdown(cls, assessment: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Build the per-dimension maturity breakdown (level + reasoning + tasks)
+        so the artisan sees how they're doing in each area, not just the
+        overall/general average.
+        """
+        dimension_keys = [
+            "identidad_artesanal",
+            "realidad_comercial",
+            "clientes_y_mercado",
+            "operacion_y_crecimiento",
+        ]
+        result: Dict[str, Any] = {}
+        for key in dimension_keys:
+            level_raw = assessment.get(f"madurez_{key}", "Inicial")
+            result[key] = {
+                "maturity_level": cls._DIMENSION_MATURITY_MAP.get(level_raw, "emergente"),
+                "reasoning": assessment.get(f"madurez_{key}_razon", ""),
+                "tasks": assessment.get(f"madurez_{key}_tareas", []),
+            }
+        return result
 
     _Q16_LABELS = {
         "mostrar_mejor_productos": "mostrar mejor tus productos",
