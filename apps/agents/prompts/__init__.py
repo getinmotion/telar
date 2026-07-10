@@ -113,6 +113,19 @@ def get_onboarding_welcome_message_prompt(template_vars: Optional[Dict[str, Any]
     return render_prompt('onboarding_welcome_message.md.j2', template_vars or {})
 
 
+def get_onboarding_dimension_messages_prompt(template_vars: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Get the prompt that turns the per-dimension technical assessment (level +
+    reasoning) into friendly, artisan-facing title/body messages for each of
+    the 4 onboarding dimensions.
+
+    Renders `template_vars` directly (artisan_name plus `<dimension>_nivel` /
+    `<dimension>_razon` for each of the 4 dimensions), same pattern as
+    get_onboarding_welcome_message_prompt().
+    """
+    return render_prompt('onboarding_dimension_messages.md.j2', template_vars or {})
+
+
 def get_artisan_tutor_prompt(context: Optional[Dict[str, Any]] = None) -> str:
     """Get the artisan support/tutor (capacitaciones RAG bot) system prompt."""
     return render_prompt('artisan_tutor_system.md.j2', extract_template_vars(context))
@@ -195,4 +208,5 @@ __all__ = [
     'get_product_creation_step3_process_prompt',
     'get_product_creation_step3_pricing_prompt',
     'get_onboarding_welcome_message_prompt',
+    'get_onboarding_dimension_messages_prompt',
 ]

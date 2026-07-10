@@ -53,9 +53,10 @@ class DimensionScoreDto {
   maturity_level!: string;
 
   @ApiProperty({
-    example: 'El artesano tiene claridad sobre su técnica pero le falta definir su diferenciación frente a otros artesanos de la región.',
+    type: MessageDto,
+    description: 'Mensaje amigable y profesional para mostrar al artesano sobre esta dimensión',
   })
-  reasoning!: string;
+  message!: MessageDto;
 
   @ApiProperty({
     type: [String],

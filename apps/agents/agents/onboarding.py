@@ -397,7 +397,7 @@ class OnboardingAgent(BaseAgent):
             recommendations=recommendations,
         )
 
-        dimensions = self._build_dimensions_breakdown(assessment)
+        dimensions = await self._build_dimensions_breakdown(assessment, artisan_name)
 
         from agents.helpers import format_timestamp
         return {
@@ -431,28 +431,80 @@ class OnboardingAgent(BaseAgent):
         "Avanzado": "consolidado",
     }
 
-    @classmethod
-    def _build_dimensions_breakdown(cls, assessment: Dict[str, Any]) -> Dict[str, Any]:
+    _DIMENSION_KEYS = [
+        "identidad_artesanal",
+        "realidad_comercial",
+        "clientes_y_mercado",
+        "operacion_y_crecimiento",
+    ]
+
+    _DIMENSION_FALLBACK_TITLES = {
+        "identidad_artesanal": "Tu identidad artesanal",
+        "realidad_comercial": "Tu realidad comercial",
+        "clientes_y_mercado": "Tus clientes y mercado",
+        "operacion_y_crecimiento": "Tu operación y crecimiento",
+    }
+
+    async def _build_dimensions_breakdown(
+        self,
+        assessment: Dict[str, Any],
+        artisan_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
-        Build the per-dimension maturity breakdown (level + reasoning + tasks)
-        so the artisan sees how they're doing in each area, not just the
-        overall/general average.
+        Build the per-dimension breakdown the artisan sees on the results
+        screen: for each of the 4 dimensions, a friendly title/body message
+        (translated from the technical reasoning) plus the maturity level and
+        recommended tasks — so the artisan understands how they're doing in
+        each area, not just the overall/general average.
         """
-        dimension_keys = [
-            "identidad_artesanal",
-            "realidad_comercial",
-            "clientes_y_mercado",
-            "operacion_y_crecimiento",
-        ]
+        messages = await self._generate_dimension_messages(assessment, artisan_name)
+
         result: Dict[str, Any] = {}
-        for key in dimension_keys:
+        for key in self._DIMENSION_KEYS:
             level_raw = assessment.get(f"madurez_{key}", "Inicial")
+            dimension_message = messages.get(key) or {}
             result[key] = {
-                "maturity_level": cls._DIMENSION_MATURITY_MAP.get(level_raw, "emergente"),
-                "reasoning": assessment.get(f"madurez_{key}_razon", ""),
+                "maturity_level": self._DIMENSION_MATURITY_MAP.get(level_raw, "emergente"),
+                "message": {
+                    "title": dimension_message.get("title") or self._DIMENSION_FALLBACK_TITLES[key],
+                    "body": dimension_message.get("body") or assessment.get(f"madurez_{key}_razon", ""),
+                },
                 "tasks": assessment.get(f"madurez_{key}_tareas", []),
             }
         return result
+
+    async def _generate_dimension_messages(
+        self,
+        assessment: Dict[str, Any],
+        artisan_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate friendly title/body messages for each of the 4 dimensions in
+        a single LLM call, translating the technical reasoning into artisan-
+        facing language. Falls back to an empty dict (per-dimension fallbacks
+        are applied by the caller) if the LLM call fails.
+        """
+        from agents.prompts import get_onboarding_dimension_messages_prompt
+        from agents.helpers import parse_json_response
+
+        try:
+            template_vars: Dict[str, Any] = {"artisan_name": artisan_name}
+            for key in self._DIMENSION_KEYS:
+                template_vars[f"{key}_nivel"] = assessment.get(f"madurez_{key}", "Inicial")
+                template_vars[f"{key}_razon"] = assessment.get(f"madurez_{key}_razon", "")
+
+            system_prompt = get_onboarding_dimension_messages_prompt(template_vars)
+
+            raw = await self._call_llm(
+                user_message="Genera los mensajes por dimensión según las instrucciones del sistema.",
+                system_prompt=system_prompt,
+                temperature=0.5,
+                max_tokens=800,
+            )
+            return parse_json_response(raw)
+        except Exception as e:
+            logger.error(f"Failed to generate onboarding dimension messages: {str(e)}")
+            return {}
 
     _Q16_LABELS = {
         "mostrar_mejor_productos": "mostrar mejor tus productos",
