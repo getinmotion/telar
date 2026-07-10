@@ -18,13 +18,9 @@ Tipo de artesanía principal: {{ tipo_artesania }}
 Región: {{ region }}
 {% endif %}
 
-**CATEGORÍAS VÁLIDAS** (debes elegir EXACTAMENTE uno de estos "id" — usa el "id" como "value" y el "name" (sin anotaciones) como "label"):
+**CATEGORÍAS VÁLIDAS** (solo categorías principales — debes elegir EXACTAMENTE uno de estos "id" — usa el "id" como "value" y el "name" como "label"):
 {% for c in taxonomy_categories %}
-{% if c.parent_id %}
-- id: {{ c.id }} | name: {{ c.name }} [subcategoría]
-{% else %}
 - id: {{ c.id }} | name: {{ c.name }}
-{% endif %}
 {% endfor %}
 
 **OFICIOS VÁLIDOS** (debes elegir EXACTAMENTE uno de estos "id" — usa el "id" como "value" y el "name" como "label"):
@@ -64,7 +60,7 @@ Región: {{ region }}
   "identity_suggestions": {
     "category": {
       "value": "uuid exacto de la categoría elegida (de la lista CATEGORÍAS VÁLIDAS)",
-      "label": "name exacto de esa categoría, sin la anotación [subcategoría]",
+      "label": "name exacto de esa categoría",
       "confidence": 0.91,
       "reasoning": "razón breve de por qué esta categoría"
     },
