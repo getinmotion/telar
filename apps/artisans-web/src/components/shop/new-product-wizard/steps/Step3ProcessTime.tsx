@@ -4,6 +4,12 @@ import type { NewWizardState } from "../hooks/useNewWizardState";
 import { WizardFooter } from "../components/WizardFooter";
 import { WizardHeader } from "../components/WizardHeader";
 import { AiBadge } from "../components/AiBadge";
+import { useStepValidation } from "../hooks/useStepValidation";
+import {
+  RequiredMark,
+  FieldErrorMessage,
+  MissingFieldsBanner,
+} from "../components/FieldValidation";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
 import { ToolPicker } from "../components/TaxonomyPicker";
 import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
@@ -407,16 +413,20 @@ export const Step3ProcessTime: React.FC<Props> = ({
   const [saveTitle, setSaveTitle] = useState("");
   const [isSavingProcess, setIsSavingProcess] = useState(false);
 
-  // Validation: require at least elaboration time + agent not loading
-  const canContinue =
-    !!state.elaborationTime &&
-    state.elaborationTime.trim().length > 0 &&
-    !agentLoading;
+  // Validation: require at least elaboration time
+  const { missing, attemptNext, fieldError } = useStepValidation([
+    {
+      key: "elaborationTime",
+      label: "Tiempo total estimado",
+      isValid:
+        !!state.elaborationTime && state.elaborationTime.trim().length > 0,
+      errorMessage: "Indica el tiempo de elaboración",
+    },
+  ]);
 
   const handleNext = () => {
-    // Strict validation with user feedback
-    if (!state.elaborationTime || state.elaborationTime.trim().length === 0) {
-      toast.error("Por favor ingresa el tiempo de elaboración de la pieza");
+    if (!attemptNext()) {
+      toast.error("Completa los campos marcados en rojo");
       return;
     }
 
@@ -1370,9 +1380,10 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <div>
+                  <div id="wizard-field-elaborationTime">
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-3">
                       Tiempo total estimado
+                      <RequiredMark />
                     </label>
                     <div className="grid grid-cols-5 gap-2">
                       {TIME_OPTIONS.map((opt) => {
@@ -1441,6 +1452,9 @@ export const Step3ProcessTime: React.FC<Props> = ({
                         className={`mt-3 ${inputClass}`}
                         style={{ background: "rgba(247,244,239,0.4)" }}
                       />
+                    )}
+                    {fieldError("elaborationTime") && (
+                      <FieldErrorMessage message="Indica el tiempo de elaboración" />
                     )}
                   </div>
 
@@ -1531,6 +1545,10 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 style={{ background: "rgba(247,244,239,0.4)" }}
               />
             </section>
+
+            {missing.length > 0 && (
+              <MissingFieldsBanner missing={missing} />
+            )}
           </div>
         </div>
       </main>
@@ -1542,14 +1560,9 @@ export const Step3ProcessTime: React.FC<Props> = ({
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue}
+        nextDisabled={agentLoading}
         disabledReason={
-          agentLoading
-            ? "Analizando proceso con IA..."
-            : !state.elaborationTime ||
-                state.elaborationTime.trim().length === 0
-              ? "Ingresa el tiempo de elaboración"
-              : undefined
+          agentLoading ? "Analizando proceso con IA..." : undefined
         }
         leftOffset={leftOffset}
       />

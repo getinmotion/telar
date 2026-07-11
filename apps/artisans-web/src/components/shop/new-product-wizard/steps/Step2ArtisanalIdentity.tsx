@@ -5,6 +5,8 @@ import type { FieldSource, IdentityFieldMetadata, MaterialFieldMetadata, Step1Co
 import { step1Confirm } from '@/services/agent.actions';
 import { WizardFooter } from '../components/WizardFooter';
 import { AiBadge } from '../components/AiBadge';
+import { useStepValidation } from '../hooks/useStepValidation';
+import { RequiredMark, FieldErrorMessage, MissingFieldsBanner } from '../components/FieldValidation';
 import { MaterialPicker } from '../components/TaxonomyPicker';
 import { CraftPicker, TechniquePicker } from '../components/CraftPicker';
 import { getAllCategories, type Category } from '@/services/categories.actions';
@@ -131,7 +133,26 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
     [state.fieldMetadata, update],
   );
 
-  const canContinue = !!state.categoryId && !!state.craftId;
+  const { missing, attemptNext, fieldError } = useStepValidation([
+    {
+      key: 'category',
+      label: 'Categoría TELAR',
+      isValid: !!state.categoryId,
+      errorMessage: 'Selecciona una categoría',
+    },
+    {
+      key: 'craft',
+      label: 'Oficio',
+      isValid: !!state.craftId,
+      errorMessage: 'Selecciona el oficio artesanal',
+    },
+    {
+      key: 'technique',
+      label: 'Técnica',
+      isValid: !!state.primaryTechniqueId,
+      errorMessage: 'Selecciona la técnica principal',
+    },
+  ]);
 
   const telarCategories = allCategories
     .filter(c => !c.parentId)
@@ -167,14 +188,8 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
   const [isConfirming, setIsConfirming] = useState(false);
 
   const handleNext = async () => {
-    // Strict validation with user feedback
-    if (!state.categoryId) {
-      toast.error("Por favor selecciona una categoría para la pieza");
-      return;
-    }
-
-    if (!state.craftId) {
-      toast.error("Por favor selecciona el oficio artesanal");
+    if (!attemptNext()) {
+      toast.error("Completa los campos marcados en rojo");
       return;
     }
 
@@ -381,10 +396,11 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
           <section className="lg:col-span-9 space-y-4">
 
             {/* ── 1. Categoría ──────────────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div id="wizard-field-category" className="p-5 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-2 mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
                   Categoría TELAR
+                  <RequiredMark />
                 </label>
                 <AiBadge />
               </div>
@@ -424,6 +440,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                     );
                   })}
                 </div>
+              )}
+              {fieldError('category') && (
+                <FieldErrorMessage message="Selecciona una categoría" />
               )}
 
               {state.categoryId && (
@@ -469,10 +488,11 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
             </div>
 
             {/* ── 2. Oficio + Técnicas ──────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div id="wizard-field-craft" className="p-5 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-2 mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
                   Oficio
+                  <RequiredMark />
                 </label>
                 <AiBadge />
               </div>
@@ -487,15 +507,18 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                 onChange={handleCraftChange}
                 onNameChange={setCraftName}
               />
+              {fieldError('craft') && (
+                <FieldErrorMessage message="Selecciona el oficio artesanal" />
+              )}
 
               {state.craftId && (
-                <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
+                <div id="wizard-field-technique" className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
                   <div className="flex items-center gap-2 mb-3">
                     <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
                       Técnica
+                      <RequiredMark />
                     </label>
                     <AiBadge />
-                    <span className="text-[10px] text-[#54433e]/35 font-[500]">— Opcional</span>
                   </div>
                   <TechniquePicker
                     craftId={state.craftId}
@@ -504,6 +527,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                     onChange={techniqueId => update({ primaryTechniqueId: techniqueId })}
                     onNameChange={setTechniqueName}
                   />
+                  {fieldError('technique') && (
+                    <FieldErrorMessage message="Selecciona la técnica principal" />
+                  )}
                 </div>
               )}
             </div>
@@ -707,6 +733,12 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                 </div>
               )}
             </div>
+
+            {missing.length > 0 && (
+              <div className="mt-4">
+                <MissingFieldsBanner missing={missing} />
+              </div>
+            )}
           </section>
         </div>
       </main>
@@ -718,14 +750,8 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue || isConfirming}
-        disabledReason={
-          !state.categoryId
-            ? "Selecciona una categoría"
-            : !state.craftId
-              ? "Selecciona el oficio artesanal"
-              : undefined
-        }
+        nextDisabled={isConfirming}
+        disabledReason={isConfirming ? "Confirmando información..." : undefined}
         nextLabel="Confirmar y continuar"
         leftOffset={leftOffset}
       />

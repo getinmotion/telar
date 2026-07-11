@@ -147,6 +147,49 @@ export const Step6FinalReview: React.FC<Props> = ({
   const isDraft = !state.status || state.status === 'draft';
   const canSubmit = isStep1Complete && isStep2Complete && isStep4Complete && isDraft;
 
+  const incompleteSections = [
+    ...(!isStep1Complete
+      ? [{ step: 1, label: 'La pieza', detail: 'nombre y descripción' }]
+      : []),
+    ...(!isStep2Complete
+      ? [{ step: 2, label: 'Identidad artesanal', detail: 'categoría, oficio y técnica' }]
+      : []),
+    ...(!isStep4Complete
+      ? [{ step: 4, label: 'Precio y logística', detail: 'precio, disponibilidad, dimensiones y variantes' }]
+      : []),
+  ];
+
+  const IncompleteSectionsBanner = () =>
+    isDraft && incompleteSections.length > 0 ? (
+      <div
+        className="rounded-xl border border-[#ef4444]/30 px-4 py-3"
+        style={{ background: 'rgba(239,68,68,0.08)' }}
+        role="alert"
+      >
+        <p className="flex items-center gap-1.5 text-[12px] font-[700] text-[#ef4444]">
+          <span className="material-symbols-outlined text-[16px]">error</span>
+          Completa estas secciones antes de enviar a curaduría:
+        </p>
+        <ul className="mt-2 space-y-1.5">
+          {incompleteSections.map(s => (
+            <li key={s.step} className="flex items-center justify-between gap-3">
+              <span className="text-[11px] font-[600] text-[#54433e]">
+                {s.label}
+                <span className="text-[#54433e]/50 font-[500]"> — {s.detail}</span>
+              </span>
+              <button
+                onClick={() => onGoToStep(s.step)}
+                className="flex items-center gap-0.5 text-[10px] font-[800] text-[#ec6d13] shrink-0 uppercase tracking-wide"
+              >
+                Editar
+                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>east</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+
   const mainPreview =
     state.images[0]
       ? typeof state.images[0] === 'string'
@@ -263,6 +306,8 @@ export const Step6FinalReview: React.FC<Props> = ({
           </p>
         </div>
 
+        <IncompleteSectionsBanner />
+
         {/* Filas de revisión */}
         {([
           {
@@ -348,6 +393,12 @@ export const Step6FinalReview: React.FC<Props> = ({
       {/* ══ FIN MOBILE ═══════════════════════════════════════════════════════ */}
 
       <main className="max-w-[1200px] mx-auto px-4 md:px-10 pt-6">
+        {isDraft && incompleteSections.length > 0 && (
+          <div className="hidden md:block mb-8">
+            <IncompleteSectionsBanner />
+          </div>
+        )}
+
         {/* Info block */}
         <div
           className="hidden md:flex rounded-lg p-6 mb-8 items-start gap-4"

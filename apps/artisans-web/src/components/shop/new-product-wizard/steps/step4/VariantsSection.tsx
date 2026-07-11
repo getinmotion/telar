@@ -7,10 +7,13 @@ import {
 } from '@telar/shared-types/products';
 import type { NewWizardState, WizardVariant } from '../../hooks/useNewWizardState';
 import { useVariantAxes } from '../../hooks/useVariantAxes';
+import { FieldErrorMessage } from '../../components/FieldValidation';
 
 interface Props {
   state: NewWizardState;
   update: (updates: Partial<NewWizardState>) => void;
+  /** Muestra el error de "genera al menos una variante" tras intentar avanzar */
+  showError?: boolean;
 }
 
 const cardStyle = {
@@ -71,7 +74,7 @@ export const buildVariants = (
   return [...rows, ...paused];
 };
 
-export const VariantsSection: React.FC<Props> = ({ state, update }) => {
+export const VariantsSection: React.FC<Props> = ({ state, update, showError }) => {
   const { axes } = useVariantAxes(state.categoryId, state.materials ?? []);
   const [customValue, setCustomValue] = useState<Record<string, string>>({});
 
@@ -173,7 +176,7 @@ export const VariantsSection: React.FC<Props> = ({ state, update }) => {
     val ? val.toLocaleString('es-CO') : '';
 
   return (
-    <section className="p-6 rounded-2xl" style={cardStyle}>
+    <section id="wizard-field-variants" className="p-6 rounded-2xl" style={cardStyle}>
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -406,6 +409,9 @@ export const VariantsSection: React.FC<Props> = ({ state, update }) => {
             </p>
           )}
         </div>
+      )}
+      {showError && hasVariants && activeVariants.length === 0 && (
+        <FieldErrorMessage message="Genera al menos una variante o desactiva las variantes" />
       )}
     </section>
   );

@@ -136,7 +136,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
           <div className="flex items-center gap-4">
             {/* <SaveDraftButton disabled={isSubmitting} /> */}
             {submitDisabledReason && submitDisabled && (
-              <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">
+              <span className="text-[9px] text-[#54433e]/40 italic max-w-[45vw] sm:max-w-none truncate text-right">
                 {submitDisabledReason}
               </span>
             )}
@@ -178,8 +178,8 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
           <div className="hidden md:block">
             <SaveAndExitButton />
           </div>
-          {disabledReason && (
-            <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">
+          {disabledReason && nextDisabled && (
+            <span className="text-[9px] text-[#54433e]/40 italic max-w-[45vw] sm:max-w-none truncate text-right">
               {disabledReason}
             </span>
           )}

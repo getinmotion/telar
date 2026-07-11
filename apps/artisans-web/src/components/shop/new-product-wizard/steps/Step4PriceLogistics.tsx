@@ -9,6 +9,13 @@ import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { step2Confirm } from '@/services/agent.actions';
 import type { Step2ConfirmRequest, VariantSuggestions } from '@/types/agent.types';
 import { VariantsSection, buildVariants } from './step4/VariantsSection';
+import { useStepValidation } from '../hooks/useStepValidation';
+import {
+  RequiredMark,
+  FieldErrorMessage,
+  MissingFieldsBanner,
+  fieldErrorClass,
+} from '../components/FieldValidation';
 import { MAX_VARIANTS_PER_PRODUCT } from '@telar/shared-types/products';
 
 interface Props {
@@ -107,6 +114,39 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   const hasActiveVariants = !!state.hasVariants && activeVariantsCount > 0;
   const variantsOk = !state.hasVariants || activeVariantsCount > 0;
   const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions && variantsOk;
+
+  const { missing, attemptNext, fieldError } = useStepValidation([
+    {
+      key: 'price',
+      label: 'Tu precio (COP)',
+      isValid: !!state.price && state.price > 0,
+      errorMessage: 'Ingresa el precio de la pieza',
+    },
+    {
+      key: 'availability',
+      label: 'Disponibilidad comercial',
+      isValid: !!state.availabilityType,
+      errorMessage: 'Selecciona cómo se vende esta pieza',
+    },
+    {
+      key: 'productDims',
+      label: 'Dimensiones de la pieza',
+      isValid: hasProductDimensions,
+      errorMessage: 'Completa alto, ancho, largo y peso de la pieza',
+    },
+    {
+      key: 'packageDims',
+      label: 'Dimensiones del paquete',
+      isValid: hasPackageDimensions,
+      errorMessage: 'Completa alto, ancho, largo y peso del paquete',
+    },
+    {
+      key: 'variants',
+      label: 'Variantes',
+      isValid: variantsOk,
+      errorMessage: 'Genera al menos una variante o desactiva las variantes',
+    },
+  ]);
 
   // ── Accept / Reject handlers for pricing suggestions ──────────────
   type Step4Field = 'price' | 'weightKg';
@@ -228,13 +268,8 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   ) : null;
 
   const handleNext = () => {
-    if (!state.price || state.price <= 0) {
-      toast.error("Por favor ingresa el precio de la pieza");
-      return;
-    }
-
-    if (!state.availabilityType) {
-      toast.error("Por favor selecciona el tipo de disponibilidad");
+    if (!attemptNext()) {
+      toast.error("Completa los campos marcados en rojo");
       return;
     }
 
@@ -572,9 +607,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
+                <div id="wizard-field-price">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
-                    Tu precio (COP) *
+                    Tu precio (COP)
+                    <RequiredMark />
                   </label>
                   <div className="relative">
                     <input
@@ -585,13 +621,16 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                         update({ price: raw ? Number(raw) : undefined });
                       }}
                       placeholder="0"
-                      className={`${inputClass} text-lg font-bold pr-14`}
+                      className={`${inputClass} text-lg font-bold pr-14 ${fieldError('price') ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-[800] text-[#54433e]/30 uppercase">
                       COP
                     </span>
                   </div>
+                  {fieldError('price') && (
+                    <FieldErrorMessage message="Ingresa el precio de la pieza" />
+                  )}
                 </div>
 
                 {/* Commission breakdown */}
@@ -650,14 +689,19 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
             </section>
 
             {/* 1.5 Variantes (talla / color / material según categoría) */}
-            <VariantsSection state={state} update={update} />
+            <VariantsSection
+              state={state}
+              update={update}
+              showError={!!fieldError('variants')}
+            />
 
             {/* 2. Availability + smart stock */}
-            <section className="p-6 rounded-2xl" style={cardStyle}>
+            <section id="wizard-field-availability" className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">storefront</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Disponibilidad comercial *
+                  Disponibilidad comercial
+                  <RequiredMark />
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -694,6 +738,11 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   );
                 })}
               </div>
+              {fieldError('availability') && (
+                <div className="-mt-3 mb-4">
+                  <FieldErrorMessage message="Selecciona cómo se vende esta pieza" />
+                </div>
+              )}
 
               {/* Smart stock */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -773,11 +822,12 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
             </section>
 
             {/* 3. Product dimensions */}
-            <section className="p-6 rounded-2xl" style={cardStyle}>
+            <section id="wizard-field-productDims" className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">straighten</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones de la pieza *
+                  Dimensiones de la pieza
+                  <RequiredMark />
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -798,7 +848,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       value={(state[key] as number | undefined) ?? ''}
                       onChange={e => update({ [key]: e.target.value ? Number(e.target.value) : undefined })}
                       placeholder="—"
-                      className={`${inputClass} text-center`}
+                      className={`${inputClass} text-center ${fieldError('productDims') && !state[key] ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                   </div>
@@ -811,14 +861,18 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   onChange={v => update({ weightKg: v })}
                 />
               </div>
+              {fieldError('productDims') && (
+                <FieldErrorMessage message="Completa alto, ancho, largo y peso de la pieza" />
+              )}
             </section>
 
             {/* 4. Package dimensions — clearly separate */}
-            <section className="p-6 rounded-2xl" style={{ ...cardStyle, borderLeft: '3px solid #ec6d13' }}>
+            <section id="wizard-field-packageDims" className="p-6 rounded-2xl" style={{ ...cardStyle, borderLeft: '3px solid #ec6d13' }}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#ec6d13] text-xl">local_shipping</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones del paquete *
+                  Dimensiones del paquete
+                  <RequiredMark />
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -839,7 +893,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       value={(state[key] as number | undefined) ?? ''}
                       onChange={e => update({ [key]: e.target.value ? Number(e.target.value) : undefined })}
                       placeholder="—"
-                      className={`${inputClass} text-center`}
+                      className={`${inputClass} text-center ${fieldError('packageDims') && !state[key] ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                   </div>
@@ -852,6 +906,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   onChange={v => update({ packagedWeightKg: v })}
                 />
               </div>
+              {fieldError('packageDims') && (
+                <FieldErrorMessage message="Completa alto, ancho, largo y peso del paquete" />
+              )}
 
               {/* Special handling */}
               <div className="mt-4 flex items-center justify-between">
@@ -892,6 +949,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               )}
             </section>
 
+            {missing.length > 0 && (
+              <MissingFieldsBanner missing={missing} />
+            )}
           </div>
         </div>
       </main>
@@ -903,16 +963,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue}
-        disabledReason={
-          !state.price || state.price <= 0
-            ? "Ingresa el precio de la pieza"
-            : !state.availabilityType
-              ? "Selecciona el tipo de disponibilidad"
-              : !variantsOk
-                ? "Genera al menos una variante o desactiva las variantes"
-                : undefined
-        }
         leftOffset={leftOffset}
       />
     </div>
