@@ -131,6 +131,7 @@ export const mapNewStateToDto = (
         ...(v.id && { id: v.id }),
         variantName: composeVariantName(v.optionValues) || undefined,
         optionValues: v.optionValues,
+        imageUrl: v.imageUrl,
         stockQuantity: v.stock ?? 0,
         minStock: v.minStock ?? 0,
         basePriceMinor: toBuyerPriceMinor(v.price ?? state.price!),

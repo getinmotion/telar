@@ -39,6 +39,8 @@ export interface MarketplaceVariant {
   price: number;
   stock: number;
   minStock?: number;
+  /** Foto propia de la variante (null = usa las del producto) */
+  imageUrl?: string | null;
   isActive: boolean;
 }
 

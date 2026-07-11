@@ -282,6 +282,11 @@ export class CreateProductVariantDto {
   @Min(0)
   minStock?: number;
 
+  // Foto propia de la variante (opcional)
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
   @IsNotEmpty()
   @IsNumber()
   @Min(0)

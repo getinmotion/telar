@@ -25,6 +25,8 @@ export interface WizardVariant {
   price?: number;
   stock?: number;
   minStock?: number;
+  /** Foto propia de la variante (URL ya subida; opcional) */
+  imageUrl?: string;
   isActive: boolean;
   sku?: string;
 }

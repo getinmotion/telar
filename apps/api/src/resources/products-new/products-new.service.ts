@@ -1250,6 +1250,7 @@ export class ProductsNewService {
         currency: v.currency,
         stock: v.stockQuantity,
         minStock: v.minStock,
+        imageUrl: v.imageUrl,
         isActive: v.isActive,
       })),
 

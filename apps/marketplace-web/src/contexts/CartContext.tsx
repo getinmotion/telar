@@ -289,9 +289,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // "5000000" → 50000.00
         const price = parseFloat(item.unitPriceMinor) / 100;
 
-        // Get primary image from product media
+        // Get primary image from product media (la foto de la variante manda)
         const primaryMedia = item.product?.media?.find(m => m.isPrimary);
-        const imageUrl = primaryMedia?.mediaUrl || item.product?.media?.[0]?.mediaUrl || '';
+        const imageUrl =
+          item.metadata?.variantImageUrl ||
+          primaryMedia?.mediaUrl ||
+          item.product?.media?.[0]?.mediaUrl ||
+          '';
 
         return {
           id: item.id,
@@ -364,6 +368,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         selectedVariant ?? (activeVariants.length === 1 ? activeVariants[0] : undefined);
       const unitPrice = effectiveVariant?.price ?? parseFloat(product.price.toString());
       const variantName = effectiveVariant?.variantName ?? null;
+      // Preferir la foto propia de la variante para mostrar el item del carrito
+      const itemImageUrl = effectiveVariant?.imageUrl || imageUrl;
 
       // For guests, add to localStorage
       if (!user) {
@@ -376,7 +382,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           product: {
             name: product.name,
             price: unitPrice,
-            image_url: imageUrl
+            image_url: itemImageUrl
           }
         };
 
@@ -408,6 +414,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                 variantId: effectiveVariant.id,
                 variantName: effectiveVariant.variantName ?? undefined,
                 optionValues: effectiveVariant.optionValues,
+                variantImageUrl: effectiveVariant.imageUrl ?? undefined,
               }
             : variantId
               ? { variantId }

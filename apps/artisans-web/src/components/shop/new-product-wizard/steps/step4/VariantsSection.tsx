@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   composeVariantName,
@@ -8,6 +8,7 @@ import {
 import type { NewWizardState, WizardVariant } from '../../hooks/useNewWizardState';
 import { useVariantAxes } from '../../hooks/useVariantAxes';
 import { FieldErrorMessage } from '../../components/FieldValidation';
+import { useImageUpload } from '@/components/shop/ai-upload/hooks/useImageUpload';
 
 interface Props {
   state: NewWizardState;
@@ -77,6 +78,11 @@ export const buildVariants = (
 export const VariantsSection: React.FC<Props> = ({ state, update, showError }) => {
   const { axes } = useVariantAxes(state.categoryId, state.materials ?? []);
   const [customValue, setCustomValue] = useState<Record<string, string>>({});
+  // Picker de foto por variante (índice de la fila abierta)
+  const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadImages } = useImageUpload();
 
   // Pieza única: no aplican variantes
   if (state.productionType === 'unica') return null;
@@ -174,6 +180,25 @@ export const VariantsSection: React.FC<Props> = ({ state, update, showError }) =
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
+
+  // Fotos del producto ya subidas (URLs) — candidatas para la foto de variante
+  const productPhotos = (state.images ?? []).filter(
+    (img): img is string => typeof img === 'string',
+  );
+
+  const handleUploadVariantPhoto = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    try {
+      const [url] = await uploadImages([file]);
+      updateVariant(index, { imageUrl: url });
+      setOpenPickerIndex(null);
+      toast.success('Foto de la variante guardada');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo subir la foto');
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
 
   return (
     <section id="wizard-field-variants" className="p-6 rounded-2xl" style={cardStyle}>
@@ -326,24 +351,50 @@ export const VariantsSection: React.FC<Props> = ({ state, update, showError }) =
                 {variants.map((variant, index) => {
                   if (!variant.isActive) return null;
                   const effectivePrice = variant.price ?? state.price;
+                  const isPickerOpen = openPickerIndex === index;
+                  const isUploadingThis = uploadingIndex === index;
                   return (
                     <div
                       key={keyOf(variant.optionValues)}
-                      className="grid grid-cols-12 gap-2 items-center p-3 rounded-xl border border-[#e2d5cf]/30"
+                      className="p-3 rounded-xl border border-[#e2d5cf]/30"
                       style={{ background: 'rgba(247,244,239,0.35)' }}
                     >
-                      <div className="col-span-12 sm:col-span-4">
-                        <p className="text-[12px] font-[700] text-[#151b2d]">
-                          {composeVariantName(variant.optionValues) || 'Variante'}
-                        </p>
-                        {variant.sku && (
-                          <p className="text-[9px] text-[#54433e]/40 font-mono mt-0.5">{variant.sku}</p>
-                        )}
-                        {effectivePrice ? (
-                          <p className="text-[9px] text-[#54433e]/50 mt-0.5">
-                            El comprador verá ${formatCOP(Math.round(effectivePrice * 1.05))}
+                    <div className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-12 sm:col-span-4 flex items-center gap-2.5">
+                        {/* Foto de la variante */}
+                        <button
+                          type="button"
+                          onClick={() => setOpenPickerIndex(isPickerOpen ? null : index)}
+                          title={variant.imageUrl ? 'Cambiar foto de la variante' : 'Agregar foto a la variante'}
+                          className="w-11 h-11 rounded-lg overflow-hidden shrink-0 flex items-center justify-center transition-all"
+                          style={{
+                            border: variant.imageUrl
+                              ? '1.5px solid rgba(236,109,19,0.4)'
+                              : '1.5px dashed rgba(226,213,207,0.8)',
+                            background: 'rgba(255,255,255,0.6)',
+                          }}
+                        >
+                          {isUploadingThis ? (
+                            <span className="material-symbols-outlined text-[18px] text-[#ec6d13] animate-spin">progress_activity</span>
+                          ) : variant.imageUrl ? (
+                            <img src={variant.imageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-[18px] text-[#54433e]/40">add_a_photo</span>
+                          )}
+                        </button>
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-[700] text-[#151b2d]">
+                            {composeVariantName(variant.optionValues) || 'Variante'}
                           </p>
-                        ) : null}
+                          {variant.sku && (
+                            <p className="text-[9px] text-[#54433e]/40 font-mono mt-0.5">{variant.sku}</p>
+                          )}
+                          {effectivePrice ? (
+                            <p className="text-[9px] text-[#54433e]/50 mt-0.5">
+                              El comprador verá ${formatCOP(Math.round(effectivePrice * 1.05))}
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
                       <div className="col-span-5 sm:col-span-3">
                         <div className="relative">
@@ -393,9 +444,84 @@ export const VariantsSection: React.FC<Props> = ({ state, update, showError }) =
                         />
                       </div>
                     </div>
+
+                    {/* Picker de foto de la variante */}
+                    {isPickerOpen && (
+                      <div className="mt-3 pt-3 border-t border-[#e2d5cf]/30">
+                        <p className="text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider mb-2">
+                          Foto de esta variante
+                        </p>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {productPhotos.map(url => {
+                            const selected = variant.imageUrl === url;
+                            return (
+                              <button
+                                key={url}
+                                type="button"
+                                onClick={() => {
+                                  updateVariant(index, { imageUrl: selected ? undefined : url });
+                                  if (!selected) setOpenPickerIndex(null);
+                                }}
+                                className="w-14 h-14 rounded-lg overflow-hidden transition-all"
+                                style={{
+                                  border: selected
+                                    ? '2px solid #ec6d13'
+                                    : '1px solid rgba(226,213,207,0.5)',
+                                  opacity: selected ? 1 : 0.85,
+                                }}
+                              >
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                              </button>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploadingThis}
+                            className="w-14 h-14 rounded-lg flex flex-col items-center justify-center gap-0.5 text-[#54433e]/50 hover:text-[#ec6d13] transition-all"
+                            style={{ border: '1.5px dashed rgba(226,213,207,0.8)', background: 'rgba(255,255,255,0.6)' }}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">upload</span>
+                            <span className="text-[8px] font-[700] uppercase">Subir</span>
+                          </button>
+                          {variant.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateVariant(index, { imageUrl: undefined });
+                                setOpenPickerIndex(null);
+                              }}
+                              className="px-3 py-2 rounded-lg text-[10px] font-[700] text-[#54433e]/60 hover:text-red-500 transition-all"
+                              style={{ border: '1px solid rgba(226,213,207,0.5)' }}
+                            >
+                              Quitar foto
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[9px] text-[#54433e]/40 mt-2">
+                          Elige una foto de la pieza o sube una específica de este color/talla. Sin foto, se usa la principal del producto.
+                        </p>
+                      </div>
+                    )}
+                    </div>
                   );
                 })}
               </div>
+
+              {/* Input de archivo compartido para subir foto de variante */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (file && openPickerIndex !== null) {
+                    handleUploadVariantPhoto(openPickerIndex, file);
+                  }
+                }}
+              />
 
               <p className="text-[10px] text-[#54433e]/40 mt-2">
                 Precio vacío = usa el precio base. Columnas: precio (COP), stock y alerta de stock mínimo.

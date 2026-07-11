@@ -254,6 +254,7 @@ export const NewProductWizard: React.FC = () => {
             price: v.basePriceMinor ? toSellerPrice(v.basePriceMinor) : undefined,
             stock: v.stockQuantity,
             minStock: v.minStock ?? 0,
+            imageUrl: v.imageUrl || undefined,
             isActive: v.isActive,
             sku: v.sku || undefined,
           }));

@@ -46,6 +46,7 @@ export interface ProductVariant {
   variantName?: string | null;
   optionValues?: Record<string, string>;
   minStock?: number;
+  imageUrl?: string | null;
   basePriceMinor?: number | string; // bigint from DB — price in COP cents
   currency?: string;
   stockQuantity?: number;

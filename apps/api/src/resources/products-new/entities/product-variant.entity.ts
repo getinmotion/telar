@@ -36,6 +36,10 @@ export class ProductVariant {
   @Column({ name: 'min_stock', type: 'int', default: 0 })
   minStock: number;
 
+  // Foto propia de la variante (opcional; si falta se usa la del producto)
+  @Column({ name: 'image_url', type: 'text', nullable: true })
+  imageUrl: string | null;
+
   @Column({ name: 'stock_quantity', type: 'int', default: 0 })
   stockQuantity: number;
 

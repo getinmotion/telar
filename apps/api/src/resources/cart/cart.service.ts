@@ -406,6 +406,7 @@ export class CartService {
             variantId: item.variantId,
             variantName: variant.variantName ?? undefined,
             optionValues: variant.optionValues ?? undefined,
+            variantImageUrl: variant.imageUrl ?? undefined,
           }
         : {};
 

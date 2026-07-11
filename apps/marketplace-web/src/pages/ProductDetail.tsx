@@ -165,6 +165,14 @@ const ProductDetail = () => {
         ? [product.imageUrl]
         : [];
 
+  // La foto de la variante seleccionada encabeza la galería (sin duplicarla)
+  const galleryImages = selectedVariant?.imageUrl
+    ? [
+        selectedVariant.imageUrl,
+        ...productImages.filter((img) => img !== selectedVariant.imageUrl),
+      ]
+    : productImages;
+
   return (
     <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
@@ -173,7 +181,8 @@ const ProductDetail = () => {
           {/* Gallery */}
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <ProductImageGallery
-              images={productImages}
+              key={selectedVariant?.imageUrl ?? "base"}
+              images={galleryImages}
               productName={product.name}
             />
           </div>

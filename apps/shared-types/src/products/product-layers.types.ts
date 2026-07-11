@@ -106,6 +106,8 @@ export interface ProductVariant {
   /** Ejes de variación, ej. {"talla":"M","color":"Rojo","material":"Fique"} */
   optionValues: Record<string, string>;
   minStock: number;
+  /** Foto propia de la variante (null = usa la del producto) */
+  imageUrl?: string | null;
   stockQuantity: number;
   basePriceMinor: string; // BIGINT en centavos como string
   currency: string;

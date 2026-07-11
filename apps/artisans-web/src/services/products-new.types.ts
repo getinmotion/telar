@@ -166,6 +166,7 @@ export interface CreateProductVariantDto {
   variantName?: string; // ej. "Talla M · Rojo"
   optionValues?: Record<string, string>; // ej. {"talla":"M","color":"Rojo"}
   minStock?: number;
+  imageUrl?: string; // foto propia de la variante (opcional)
   stockQuantity: number;
   basePriceMinor: string; // BIGINT como string (en centavos)
   currency?: string;
@@ -293,6 +294,7 @@ export interface ProductVariantResponse {
   variantName?: string | null;
   optionValues?: Record<string, string>;
   minStock?: number;
+  imageUrl?: string | null;
   stockQuantity: number;
   basePriceMinor: string;
   currency: string;

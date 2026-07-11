@@ -48,6 +48,7 @@ function mapNewToLegacy(p: ProductNewCore): Product {
     price: variantPriceInPesos(v) ?? 0,
     stock: v.stockQuantity ?? v.stock ?? 0,
     minStock: v.minStock,
+    imageUrl: v.imageUrl ?? null,
     isActive: v.isActive ?? true,
   }));
   const imageUrl = getPrimaryImageUrl(p);
