@@ -27,6 +27,7 @@ const AVAILABILITY_OPTIONS: { value: AvailabilityType; label: string }[] = [
   { value: 'en_stock', label: 'En Stock' },
   { value: 'bajo_pedido', label: 'Bajo Pedido' },
   { value: 'edicion_limitada', label: 'Edición Limitada' },
+  { value: 'pieza_unica', label: 'Pieza Única' },
 ];
 
 export const VariantTab: React.FC<VariantTabProps> = ({

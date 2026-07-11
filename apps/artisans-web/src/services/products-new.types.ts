@@ -15,13 +15,13 @@ export type ProductStatus =
   | 'approved_with_edits'
   | 'rejected';
 
-export type PieceType = 'funcional' | 'decorativa' | 'mixta';
+export type PieceType = 'funcional' | 'decorativa' | 'mixta' | 'ritual' | 'coleccionable';
 
 export type StyleType = 'tradicional' | 'contemporaneo' | 'fusion';
 
 export type ProcessType = 'manual' | 'mixto' | 'asistido';
 
-export type AvailabilityType = 'en_stock' | 'bajo_pedido' | 'edicion_limitada';
+export type AvailabilityType = 'en_stock' | 'bajo_pedido' | 'edicion_limitada' | 'pieza_unica';
 
 export type FragilityLevel = 'bajo' | 'medio' | 'alto';
 
@@ -38,6 +38,7 @@ export interface CreateProductsNewDto {
   productId?: string;
   storeId: string;
   categoryId?: string;
+  subcategoryId?: string;
   legacyProductId?: string;
   name: string;
   shortDescription: string;
@@ -75,6 +76,8 @@ export interface CreateProductArtisanalIdentityDto {
   curatorialCategoryId?: string;
   pieceType?: PieceType;
   style?: StyleType;
+  /** Estilos múltiples; `style` conserva el primero por compatibilidad */
+  styles?: StyleType[];
   isCollaboration?: boolean;
   collaborationName?: string;
   processType?: ProcessType;
@@ -118,6 +121,7 @@ export interface CreateProductProductionDto {
   requirementsToStart?: string;
   processDescription?: string;
   processEvidenceUrls?: string[];
+  tools?: string[];
 }
 
 /**
@@ -186,6 +190,7 @@ export interface ProductResponse {
   id: string;
   storeId: string;
   categoryId?: string;
+  subcategoryId?: string;
   name: string;
   shortDescription: string;
   history?: string;
@@ -215,6 +220,7 @@ export interface ProductArtisanalIdentityResponse {
   curatorialCategoryId?: string;
   pieceType?: string;
   style?: string;
+  styles?: string[];
   isCollaboration: boolean;
   collaborationName?: string;
   processType?: string;
@@ -249,6 +255,7 @@ export interface ProductProductionResponse {
   requirementsToStart?: string;
   processDescription?: string;
   processEvidenceUrls?: string[];
+  tools?: string[];
 }
 
 export interface ProductMediaResponse {

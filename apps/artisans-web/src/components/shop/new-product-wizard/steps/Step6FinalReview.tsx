@@ -12,6 +12,7 @@ import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { composeVariantName } from '@telar/shared-types/products';
 import { mapNewStateToDto, extractApiError } from '../hooks/useWizardDraft';
+import { AVAILABILITY_LABELS } from '../utils/availability';
 import { WizardFooter } from '../components/WizardFooter';
 
 interface Props {
@@ -139,7 +140,7 @@ export const Step6FinalReview: React.FC<Props> = ({
   const isStep2Complete = !!(state.categoryId && state.craftId && state.primaryTechniqueId);
   const activeVariants = (state.variants ?? []).filter(v => v.isActive);
   const isStep4Complete = !!(
-    state.price && state.availabilityType &&
+    state.price && (state.availabilityType || state.productionType) &&
     state.heightCm && state.widthCm && state.lengthCm && state.weightKg &&
     state.packagedWidthCm && state.packagedHeightCm && state.packagedLengthCm && state.packagedWeightKg &&
     (!state.hasVariants || activeVariants.length > 0)
@@ -155,7 +156,7 @@ export const Step6FinalReview: React.FC<Props> = ({
       ? [{ step: 2, label: 'Identidad artesanal', detail: 'categoría, oficio y técnica' }]
       : []),
     ...(!isStep4Complete
-      ? [{ step: 4, label: 'Precio y logística', detail: 'precio, disponibilidad, dimensiones y variantes' }]
+      ? [{ step: 4, label: 'Precio y logística', detail: 'precio, dimensiones y variantes' }]
       : []),
   ];
 
@@ -343,6 +344,7 @@ export const Step6FinalReview: React.FC<Props> = ({
               : state.availabilityType === 'en_stock' ? `${state.inventory ?? 0} unidades`
               : state.availabilityType === 'bajo_pedido' ? 'Bajo pedido'
               : state.availabilityType === 'edicion_limitada' ? `Ed. limitada · ${state.inventory ?? 0} un.`
+              : state.availabilityType === 'pieza_unica' ? 'Pieza única'
               : null,
             ready: isStep4Complete,
             step: 4,
@@ -562,8 +564,8 @@ export const Step6FinalReview: React.FC<Props> = ({
                   <p className="font-['Manrope'] text-[10px] font-[800] text-[#54433e] mb-1 uppercase tracking-widest">Disponibilidad</p>
                   <p className="font-['Manrope'] text-[14px] font-[500]">
                     {state.availabilityType === 'en_stock' ? `Disponible ahora (${state.inventory ?? 0} un.)`
-                      : state.availabilityType === 'bajo_pedido' ? 'Bajo pedido'
                       : state.availabilityType === 'edicion_limitada' ? `Edición limitada (${state.inventory ?? 0} un.)`
+                      : state.availabilityType ? AVAILABILITY_LABELS[state.availabilityType]
                       : '—'}
                   </p>
                 </div>

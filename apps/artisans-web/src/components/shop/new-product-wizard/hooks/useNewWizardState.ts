@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useUserLocalStorage } from '@/hooks/useUserLocalStorage';
 import type { ProductStatus, AvailabilityType } from '@/services/products-new.types';
+import { deriveAvailabilityType, deriveProductionType } from '../utils/availability';
 import type { FieldMetadata, IdentityFieldMetadata, MaterialFieldMetadata, Step1InitialCaptureResponse, Step1ConfirmResponse, Step2CaptureResponse } from '@/types/agent.types';
 
 export type PieceStyle = 'tradicional' | 'contemporaneo' | 'fusion';
@@ -161,6 +162,12 @@ export const useNewWizardState = (autoRestore = false) => {
       if (saved) {
         try {
           const parsed = JSON.parse(saved) as Partial<NewWizardState>;
+          // La disponibilidad se deriva del tipo de producción; normaliza borradores viejos
+          if (parsed.productionType) {
+            parsed.availabilityType = deriveAvailabilityType(parsed.productionType);
+          } else if (parsed.availabilityType) {
+            parsed.productionType = deriveProductionType(parsed.availabilityType);
+          }
           return { ...initialState, ...parsed, images: [] };
         } catch {
           // ignore corrupt data

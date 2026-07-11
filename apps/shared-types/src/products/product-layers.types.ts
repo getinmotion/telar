@@ -54,7 +54,7 @@ export interface ProductLogistics {
 
 export interface ProductProduction {
   productId: string;
-  availabilityType: 'en_stock' | 'bajo_pedido' | 'edicion_limitada';
+  availabilityType: 'en_stock' | 'bajo_pedido' | 'edicion_limitada' | 'pieza_unica';
   productionTimeDays?: number;
   monthlyCapacity?: number;
   requirementsToStart?: string;

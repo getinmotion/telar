@@ -35,6 +35,9 @@ export class ProductProduction {
   @Column({ name: 'process_evidence_urls', type: 'jsonb', nullable: true })
   processEvidenceUrls: string[];
 
+  @Column({ type: 'text', array: true, nullable: true })
+  tools: string[] | null;
+
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date;
 

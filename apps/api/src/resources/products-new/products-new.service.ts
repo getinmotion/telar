@@ -78,6 +78,7 @@ export class ProductsNewService {
       productId,
       storeId,
       categoryId,
+      subcategoryId,
       legacyProductId,
       name,
       shortDescription,
@@ -127,6 +128,7 @@ export class ProductsNewService {
       if (careNotes !== undefined) product.careNotes = careNotes;
       if (status !== undefined) product.status = status;
       if (categoryId !== undefined) product.categoryId = categoryId;
+      if (subcategoryId !== undefined) product.subcategoryId = subcategoryId;
       if (legacyProductId !== undefined)
         product.legacyProductId = legacyProductId;
 
@@ -137,6 +139,7 @@ export class ProductsNewService {
       product = this.productCoreRepository.create({
         storeId,
         categoryId,
+        subcategoryId,
         legacyProductId,
         name,
         shortDescription,
@@ -1143,6 +1146,7 @@ export class ProductsNewService {
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
       .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.subcategory', 'subcategory')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
       .leftJoinAndSelect('identity.primaryTechnique', 'primaryTech')
@@ -1194,6 +1198,8 @@ export class ProductsNewService {
       // Categoría
       categoryId: product.category?.id,
       categoryName: product.category?.name,
+      subcategoryId: product.subcategory?.id,
+      subcategoryName: product.subcategory?.name,
 
       // Identidad artesanal completa
       artisanalIdentity: {
@@ -1203,6 +1209,7 @@ export class ProductsNewService {
         curatorialCategory: product.artisanalIdentity?.curatorialCategory?.name,
         pieceType: product.artisanalIdentity?.pieceType,
         style: product.artisanalIdentity?.style,
+        styles: product.artisanalIdentity?.styles,
         processType: product.artisanalIdentity?.processType,
         estimatedElaborationTime: product.artisanalIdentity?.estimatedElaborationTime,
         isCollaboration: product.artisanalIdentity?.isCollaboration,
@@ -1225,6 +1232,7 @@ export class ProductsNewService {
         requirementsToStart: product.production?.requirementsToStart,
         processDescription: product.production?.processDescription,
         processEvidenceUrls: product.production?.processEvidenceUrls,
+        tools: product.production?.tools,
       },
 
       // Precio y stock desde variantes (price = mínimo para compat)

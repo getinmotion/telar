@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import type { NewWizardState } from '../hooks/useNewWizardState';
-import type { AvailabilityType } from '@/services/products-new.types';
+import { AVAILABILITY_LABELS } from '../utils/availability';
 import { WizardFooter } from '../components/WizardFooter';
 import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
@@ -30,12 +30,6 @@ interface Props {
   leftOffset?: number;
   userId?: string;
 }
-
-const AVAILABILITY_OPTIONS: { id: AvailabilityType; label: string; icon: string; desc: string }[] = [
-  { id: 'en_stock', label: 'Disponible ahora', icon: 'inventory_2', desc: 'Tienes unidades listas para despacho' },
-  { id: 'bajo_pedido', label: 'Bajo pedido', icon: 'assignment', desc: 'Se fabrica cuando llega un encargo' },
-  { id: 'edicion_limitada', label: 'Edición limitada', icon: 'layers', desc: 'Número fijo de unidades en total' },
-];
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.82)',
@@ -113,7 +107,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   const activeVariantsCount = (state.variants ?? []).filter(v => v.isActive).length;
   const hasActiveVariants = !!state.hasVariants && activeVariantsCount > 0;
   const variantsOk = !state.hasVariants || activeVariantsCount > 0;
-  const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions && variantsOk;
+  const canContinue = !!state.price && hasProductDimensions && hasPackageDimensions && variantsOk;
 
   const { missing, attemptNext, fieldError } = useStepValidation([
     {
@@ -121,12 +115,6 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       label: 'Tu precio (COP)',
       isValid: !!state.price && state.price > 0,
       errorMessage: 'Ingresa el precio de la pieza',
-    },
-    {
-      key: 'availability',
-      label: 'Disponibilidad comercial',
-      isValid: !!state.availabilityType,
-      errorMessage: 'Selecciona cómo se vende esta pieza',
     },
     {
       key: 'productDims',
@@ -695,53 +683,20 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               showError={!!fieldError('variants')}
             />
 
-            {/* 2. Availability + smart stock */}
-            <section id="wizard-field-availability" className="p-6 rounded-2xl" style={cardStyle}>
+            {/* 2. Stock y entrega (la disponibilidad se deriva del tipo de producción, paso 2) */}
+            <section className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">storefront</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Disponibilidad comercial
-                  <RequiredMark />
+                  Stock y entrega
                 </label>
               </div>
-              <p className="text-[11px] text-[#54433e]/60 mb-4">
-                ¿Cómo se vende esta pieza?
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-                {AVAILABILITY_OPTIONS.map(opt => {
-                  const isSelected = state.availabilityType === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() => update({ availabilityType: opt.id })}
-                      className="flex flex-col gap-1.5 p-4 rounded-xl text-left transition-all"
-                      style={{
-                        background: isSelected ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
-                        border: isSelected ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined text-[20px]"
-                        style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
-                      >
-                        {opt.icon}
-                      </span>
-                      <span
-                        className="text-[10px] font-[800] uppercase tracking-wider"
-                        style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
-                      >
-                        {opt.label}
-                      </span>
-                      <span className="text-[10px] text-[#54433e]/50 leading-snug">{opt.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {fieldError('availability') && (
-                <div className="-mt-3 mb-4">
-                  <FieldErrorMessage message="Selecciona cómo se vende esta pieza" />
-                </div>
+              {state.availabilityType && (
+                <p className="text-[11px] text-[#54433e]/60 mb-4">
+                  Se vende como{' '}
+                  <span className="font-[800] text-[#151b2d]">{AVAILABILITY_LABELS[state.availabilityType]}</span>
+                  {' '}— definido por el tipo de producción del paso 2.
+                </p>
               )}
 
               {/* Smart stock */}
@@ -800,7 +755,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </div>
 
               {/* Bajo pedido: delivery time */}
-              {state.availabilityType === 'bajo_pedido' && (
+              {state.productionType === 'bajo_pedido' && (
                 <div className="mt-4 pt-4 border-t border-[#e2d5cf]/30">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
                     Tiempo estimado de entrega

@@ -9,6 +9,7 @@ import { useStepValidation } from '../hooks/useStepValidation';
 import { RequiredMark, FieldErrorMessage, MissingFieldsBanner } from '../components/FieldValidation';
 import { MaterialPicker } from '../components/TaxonomyPicker';
 import { CraftPicker, TechniquePicker } from '../components/CraftPicker';
+import { deriveAvailabilityType, AVAILABILITY_LABELS } from '../utils/availability';
 import { getAllCategories, type Category } from '@/services/categories.actions';
 
 interface Props {
@@ -151,6 +152,12 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
       label: 'Técnica',
       isValid: !!state.primaryTechniqueId,
       errorMessage: 'Selecciona la técnica principal',
+    },
+    {
+      key: 'productionType',
+      label: 'Tipo de producción',
+      isValid: !!state.productionType,
+      errorMessage: 'Selecciona cómo se produce esta pieza',
     },
   ]);
 
@@ -651,12 +658,13 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
             </div>
 
             {/* ── 5. Tipo de producción ─────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div id="wizard-field-productionType" className="p-5 rounded-2xl" style={cardStyle}>
               <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] block mb-1 uppercase tracking-widest">
                 Tipo de producción
+                <RequiredMark />
               </label>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
-                ¿Cómo se produce esta pieza?
+                ¿Cómo se produce esta pieza? Esto define su disponibilidad comercial.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
                 {PRODUCTION_TYPES.map(pt => {
@@ -664,7 +672,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   return (
                     <button
                       key={pt.id}
-                      onClick={() => update({ productionType: pt.id })}
+                      onClick={() => update({ productionType: pt.id, availabilityType: deriveAvailabilityType(pt.id) })}
                       className="flex flex-col gap-1 p-3 rounded-xl text-left transition-all"
                       style={{
                         background: isSelected ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
@@ -688,6 +696,18 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({ state, update, onNext,
                   );
                 })}
               </div>
+              {fieldError('productionType') && (
+                <FieldErrorMessage message="Selecciona cómo se produce esta pieza" />
+              )}
+              {state.productionType && (
+                <p className="text-[11px] text-[#54433e]/60 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">storefront</span>
+                  Se venderá como:{' '}
+                  <span className="font-[800] text-[#151b2d]">
+                    {AVAILABILITY_LABELS[deriveAvailabilityType(state.productionType)]}
+                  </span>
+                </p>
+              )}
             </div>
 
             {/* ── 6. Colaboración ───────────────────────── */}

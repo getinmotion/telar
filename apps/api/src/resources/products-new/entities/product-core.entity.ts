@@ -36,6 +36,9 @@ export class ProductCore {
   @Column({ name: 'category_id', type: 'uuid', nullable: true })
   categoryId: string;
 
+  @Column({ name: 'subcategory_id', type: 'uuid', nullable: true })
+  subcategoryId: string | null;
+
   @Column({ name: 'legacy_product_id', type: 'uuid', nullable: true })
   legacyProductId: string;
 
@@ -77,6 +80,10 @@ export class ProductCore {
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'category_id' })
   category?: Category;
+
+  @ManyToOne(() => Category)
+  @JoinColumn({ name: 'subcategory_id' })
+  subcategory?: Category;
 
   @OneToOne(
     () => ProductArtisanalIdentity,

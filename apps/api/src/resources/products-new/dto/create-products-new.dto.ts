@@ -29,6 +29,8 @@ export enum PieceType {
   FUNCIONAL = 'funcional',
   DECORATIVA = 'decorativa',
   MIXTA = 'mixta',
+  RITUAL = 'ritual',
+  COLECCIONABLE = 'coleccionable',
 }
 
 export enum StyleType {
@@ -87,6 +89,11 @@ export class CreateProductArtisanalIdentityDto {
   @IsOptional()
   @IsEnum(StyleType)
   style?: StyleType;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(StyleType, { each: true })
+  styles?: StyleType[];
 
   @IsOptional()
   @IsBoolean()
@@ -192,6 +199,11 @@ export class CreateProductProductionDto {
   @IsArray()
   @IsString({ each: true })
   processEvidenceUrls?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tools?: string[];
 }
 
 export class CreateProductMediaDto {
@@ -344,6 +356,10 @@ export class CreateProductsNewDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  subcategoryId?: string;
 
   @IsOptional()
   @IsUUID()

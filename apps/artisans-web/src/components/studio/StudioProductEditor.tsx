@@ -752,11 +752,12 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
                 {/* Disponibilidad */}
                 <div className="rounded-2xl p-5" style={glassCard}>
                   <FieldLabel label="Disponibilidad comercial" />
-                  <div className="grid grid-cols-3 gap-2 mt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
                     {([
                       { id: 'en_stock',         label: 'En stock',     icon: 'inventory_2' },
                       { id: 'bajo_pedido',      label: 'Bajo pedido',  icon: 'assignment' },
                       { id: 'edicion_limitada', label: 'Ed. limitada', icon: 'layers' },
+                      { id: 'pieza_unica',      label: 'Pieza única',  icon: 'fiber_manual_record' },
                     ] as { id: AvailabilityType; label: string; icon: string }[]).map((opt) => (
                       <button
                         key={opt.id}

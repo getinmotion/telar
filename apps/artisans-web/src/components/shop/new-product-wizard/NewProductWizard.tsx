@@ -16,6 +16,7 @@ import {
   type WizardVariant,
 } from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
+import { deriveProductionType } from "./utils/availability";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
 import { Step3ProcessTime } from "./steps/Step3ProcessTime";
@@ -298,6 +299,7 @@ export const NewProductWizard: React.FC = () => {
           careNotes: product.careNotes || undefined,
           images,
           categoryId: product.categoryId || undefined,
+          subcategoryId: product.subcategoryId || undefined,
           materials: product.materials?.map((m) => m.materialId) || [],
           // artisanal identity
           craftId: product.artisanalIdentity?.primaryCraftId || undefined,
@@ -312,9 +314,11 @@ export const NewProductWizard: React.FC = () => {
             ? { name: product.artisanalIdentity.collaborationName }
             : undefined,
           purpose: product.artisanalIdentity?.pieceType as any,
-          styles: product.artisanalIdentity?.style
-            ? [product.artisanalIdentity.style as any]
-            : undefined,
+          styles: (product.artisanalIdentity?.styles?.length
+            ? product.artisanalIdentity.styles
+            : product.artisanalIdentity?.style
+              ? [product.artisanalIdentity.style]
+              : undefined) as any,
           // physical specs
           heightCm: product.physicalSpecs?.heightCm || undefined,
           widthCm: product.physicalSpecs?.widthCm || undefined,
@@ -330,11 +334,13 @@ export const NewProductWizard: React.FC = () => {
           specialHandling: product.logistics?.fragility === "alto",
           // production
           availabilityType: product.production?.availabilityType as any,
+          productionType: deriveProductionType(product.production?.availabilityType),
           monthlyCapacity: product.production?.monthlyCapacity || undefined,
           processDescription:
             product.production?.processDescription || undefined,
           processEvidenceUrls:
             product.production?.processEvidenceUrls || undefined,
+          tools: product.production?.tools || [],
           // pricing + variantes
           ...variantUpdates,
         });
