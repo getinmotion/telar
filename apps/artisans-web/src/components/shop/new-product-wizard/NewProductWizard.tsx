@@ -10,7 +10,11 @@ import {
   getProductNewById,
   createProductNew,
 } from "@/services/products-new.actions";
-import { useNewWizardState } from "./hooks/useNewWizardState";
+import {
+  useNewWizardState,
+  type NewWizardState,
+  type WizardVariant,
+} from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
@@ -223,8 +227,62 @@ export const NewProductWizard: React.FC = () => {
           toast.error("No se encontró el producto para editar");
           return;
         }
+        // Variantes: precio del vendedor = precio guardado ÷ 1.05 (recargo comprador)
+        const toSellerPrice = (basePriceMinor: string) =>
+          Math.round(parseInt(basePriceMinor) / 100 / 1.05);
+        const allVariants = product.variants ?? [];
+        const hasRealVariants = allVariants.some(
+          (v) => Object.keys(v.optionValues ?? {}).length > 0,
+        );
         const primaryVariant =
-          product.variants?.find((v) => v.isActive) || product.variants?.[0];
+          allVariants.find((v) => v.isActive) || allVariants[0];
+
+        let variantUpdates: Partial<NewWizardState> = {};
+        if (hasRealVariants) {
+          const wizardVariants: WizardVariant[] = allVariants.map((v) => ({
+            id: v.id,
+            optionValues: v.optionValues ?? {},
+            price: v.basePriceMinor ? toSellerPrice(v.basePriceMinor) : undefined,
+            stock: v.stockQuantity,
+            minStock: v.minStock ?? 0,
+            isActive: v.isActive,
+            sku: v.sku || undefined,
+          }));
+          // Derivar ejes y valores desde los optionValues existentes
+          const axisValues: Record<string, string[]> = {};
+          for (const v of wizardVariants) {
+            for (const [axis, value] of Object.entries(v.optionValues)) {
+              if (!value) continue;
+              if (!axisValues[axis]) axisValues[axis] = [];
+              if (!axisValues[axis].includes(value)) axisValues[axis].push(value);
+            }
+          }
+          const activePrices = wizardVariants
+            .filter((v) => v.isActive && v.price)
+            .map((v) => v.price!);
+          variantUpdates = {
+            hasVariants: true,
+            variants: wizardVariants,
+            variantAxes: Object.keys(axisValues),
+            variantAxisValues: axisValues,
+            price: activePrices.length ? Math.min(...activePrices) : undefined,
+            inventory: wizardVariants
+              .filter((v) => v.isActive)
+              .reduce((sum, v) => sum + (v.stock ?? 0), 0),
+          };
+        } else {
+          variantUpdates = {
+            hasVariants: false,
+            primaryVariantId: primaryVariant?.id,
+            price: primaryVariant?.basePriceMinor
+              ? toSellerPrice(primaryVariant.basePriceMinor)
+              : undefined,
+            sku: primaryVariant?.sku || undefined,
+            inventory: primaryVariant?.stockQuantity || undefined,
+            minimumStockAlert: primaryVariant?.minStock || undefined,
+          };
+        }
+
         const images =
           product.media
             ?.filter((m) => m.mediaType === "image")
@@ -277,12 +335,8 @@ export const NewProductWizard: React.FC = () => {
             product.production?.processDescription || undefined,
           processEvidenceUrls:
             product.production?.processEvidenceUrls || undefined,
-          // pricing
-          price: primaryVariant?.basePriceMinor
-            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100 / 1.05)
-            : undefined,
-          sku: primaryVariant?.sku || undefined,
-          inventory: primaryVariant?.stockQuantity || undefined,
+          // pricing + variantes
+          ...variantUpdates,
         });
 
         // Also restore agent suggestions from backend

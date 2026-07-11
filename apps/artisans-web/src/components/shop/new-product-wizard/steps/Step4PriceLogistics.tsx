@@ -8,6 +8,7 @@ import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { step2Confirm } from '@/services/agent.actions';
 import type { Step2ConfirmRequest } from '@/types/agent.types';
+import { VariantsSection } from './step4/VariantsSection';
 
 interface Props {
   state: NewWizardState;
@@ -101,7 +102,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   const hasProductDimensions = !!state.heightCm && !!state.widthCm && !!state.lengthCm && !!state.weightKg;
   const hasPackageDimensions = !!state.packagedWidthCm && !!state.packagedHeightCm && !!state.packagedLengthCm && !!state.packagedWeightKg;
-  const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions;
+  const activeVariantsCount = (state.variants ?? []).filter(v => v.isActive).length;
+  const hasActiveVariants = !!state.hasVariants && activeVariantsCount > 0;
+  const variantsOk = !state.hasVariants || activeVariantsCount > 0;
+  const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions && variantsOk;
 
   // ── Accept / Reject handlers for pricing suggestions ──────────────
   type Step4Field = 'price' | 'weightKg';
@@ -560,6 +564,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </div>
             </section>
 
+            {/* 1.5 Variantes (talla / color / material según categoría) */}
+            <VariantsSection state={state} update={update} />
+
             {/* 2. Availability + smart stock */}
             <section className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
@@ -622,11 +629,15 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       update(updates);
                     }}
                     placeholder={state.productionType === 'unica' ? '1' : '0'}
-                    disabled={state.productionType === 'unica'}
-                    className={`${inputClass} ${state.productionType === 'unica' ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={state.productionType === 'unica' || hasActiveVariants}
+                    className={`${inputClass} ${state.productionType === 'unica' || hasActiveVariants ? 'opacity-60 cursor-not-allowed' : ''}`}
                     style={{ background: 'rgba(247,244,239,0.4)' }}
                   />
-                  {stockHint && (
+                  {hasActiveVariants ? (
+                    <p className="text-[10px] text-[#ec6d13]/80 mt-1.5 font-[600]">
+                      Suma automática del stock de tus {activeVariantsCount} variantes.
+                    </p>
+                  ) : stockHint && (
                     <p className="text-[10px] text-[#ec6d13]/80 mt-1.5 font-[600]">{stockHint}</p>
                   )}
                 </div>
@@ -813,7 +824,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
             ? "Ingresa el precio de la pieza"
             : !state.availabilityType
               ? "Selecciona el tipo de disponibilidad"
-              : undefined
+              : !variantsOk
+                ? "Genera al menos una variante o desactiva las variantes"
+                : undefined
         }
         leftOffset={leftOffset}
       />

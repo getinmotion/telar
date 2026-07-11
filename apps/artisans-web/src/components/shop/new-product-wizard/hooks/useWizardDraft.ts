@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { createProductNew, updateProductNew } from '@/services/products-new.actions';
 import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from './useNewWizardState';
+import { composeVariantName } from '@telar/shared-types/products';
 
 const priceToMinor = (price: number): string => String(Math.round(price * 100));
 
@@ -106,11 +107,31 @@ export const mapNewStateToDto = (
     }));
   }
 
-  if (state.price && state.price > 0) {
+  // Precio del comprador = precio del vendedor + cargo de servicio (5%)
+  const toBuyerPriceMinor = (sellerPrice: number) =>
+    priceToMinor(Math.round(sellerPrice * 1.05));
+
+  if (state.hasVariants && (state.variants?.length ?? 0) > 0) {
+    dto.variants = state.variants!
+      .filter(v => (v.price ?? state.price ?? 0) > 0)
+      .map(v => ({
+        ...(v.id && { id: v.id }),
+        variantName: composeVariantName(v.optionValues) || undefined,
+        optionValues: v.optionValues,
+        stockQuantity: v.stock ?? 0,
+        minStock: v.minStock ?? 0,
+        basePriceMinor: toBuyerPriceMinor(v.price ?? state.price!),
+        currency: 'COP',
+        sku: v.sku,
+        isActive: v.isActive,
+      }));
+  } else if (state.price && state.price > 0) {
     dto.variants = [
       {
+        ...(isUUID(state.primaryVariantId) && { id: state.primaryVariantId }),
         stockQuantity: state.inventory ?? 1,
-        basePriceMinor: priceToMinor(Math.round(state.price * 1.05)),
+        minStock: state.minimumStockAlert ?? 0,
+        basePriceMinor: toBuyerPriceMinor(state.price),
         currency: 'COP',
         sku: state.sku,
         isActive: true,

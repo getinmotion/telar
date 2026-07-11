@@ -10,6 +10,7 @@ import { getAllCrafts, getTechniquesByCraftId } from '@/services/crafts.actions'
 import { getAllMaterials } from '@/services/materials.actions';
 import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from '../hooks/useNewWizardState';
+import { composeVariantName } from '@telar/shared-types/products';
 import { mapNewStateToDto, extractApiError } from '../hooks/useWizardDraft';
 import { WizardFooter } from '../components/WizardFooter';
 
@@ -136,10 +137,12 @@ export const Step6FinalReview: React.FC<Props> = ({
   // ── Validación global: todas las secciones obligatorias ──
   const isStep1Complete = !!(state.name?.trim() && state.shortDescription?.trim());
   const isStep2Complete = !!(state.categoryId && state.craftId && state.primaryTechniqueId);
+  const activeVariants = (state.variants ?? []).filter(v => v.isActive);
   const isStep4Complete = !!(
     state.price && state.availabilityType &&
     state.heightCm && state.widthCm && state.lengthCm && state.weightKg &&
-    state.packagedWidthCm && state.packagedHeightCm && state.packagedLengthCm && state.packagedWeightKg
+    state.packagedWidthCm && state.packagedHeightCm && state.packagedLengthCm && state.packagedWeightKg &&
+    (!state.hasVariants || activeVariants.length > 0)
   );
   const isDraft = !state.status || state.status === 'draft';
   const canSubmit = isStep1Complete && isStep2Complete && isStep4Complete && isDraft;
@@ -290,7 +293,9 @@ export const Step6FinalReview: React.FC<Props> = ({
             icon: 'sell',
             title: 'Precio y logística',
             value: state.price ? `$${Math.round(state.price * 1.05).toLocaleString('es-CO')} COP` : 'Sin precio',
-            sub: state.availabilityType === 'en_stock' ? `${state.inventory ?? 0} unidades`
+            sub: activeVariants.length > 0
+              ? `${state.inventory ?? 0} un. · ${activeVariants.length} variantes`
+              : state.availabilityType === 'en_stock' ? `${state.inventory ?? 0} unidades`
               : state.availabilityType === 'bajo_pedido' ? 'Bajo pedido'
               : state.availabilityType === 'edicion_limitada' ? `Ed. limitada · ${state.inventory ?? 0} un.`
               : null,
@@ -533,6 +538,32 @@ export const Step6FinalReview: React.FC<Props> = ({
                 </div>
               </div>
             </div>
+
+            {/* Variantes */}
+            {activeVariants.length > 0 && (
+              <div className="mt-5 pt-4 border-t border-[#e2d5cf]/30">
+                <p className="font-['Manrope'] text-[10px] font-[800] text-[#54433e] mb-2 uppercase tracking-widest">
+                  Variantes · Stock total: {state.inventory ?? 0} un.
+                </p>
+                <div className="space-y-1.5">
+                  {activeVariants.map(variant => (
+                    <div
+                      key={JSON.stringify(variant.optionValues)}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#e2d5cf]/30"
+                      style={{ background: 'rgba(247,244,239,0.35)' }}
+                    >
+                      <span className="font-['Manrope'] text-[12px] font-[600] text-[#151b2d]">
+                        {composeVariantName(variant.optionValues) || 'Variante'}
+                      </span>
+                      <span className="font-['Manrope'] text-[11px] text-[#54433e]/70">
+                        ${Math.round((variant.price ?? state.price ?? 0) * 1.05).toLocaleString('es-CO')} COP
+                        {' · '}{variant.stock ?? 0} un.
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Card 6: Pasaporte (full width) */}

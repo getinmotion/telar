@@ -22,6 +22,20 @@ export interface CollaborationData {
   description?: string;
 }
 
+/** Una variante en el wizard (precio en COP del vendedor, sin recargo) */
+export interface WizardVariant {
+  /** id de backend cuando la variante ya existe (se preserva en edición) */
+  id?: string;
+  /** ej. {"talla":"M","color":"Rojo"} */
+  optionValues: Record<string, string>;
+  /** Precio del vendedor; undefined = hereda el precio base del producto */
+  price?: number;
+  stock?: number;
+  minStock?: number;
+  isActive: boolean;
+  sku?: string;
+}
+
 export interface NewWizardState {
   // ── STEP 1: La pieza ──────────────────────────────────────
   images: (File | string)[];
@@ -73,6 +87,15 @@ export interface NewWizardState {
   inventory?: number;
   minimumStockAlert?: number;
   availabilityType?: AvailabilityType;
+  // Variantes (color/talla/material)
+  hasVariants?: boolean;
+  /** Ejes activos elegidos por la artesana, ej. ['talla','color'] */
+  variantAxes?: string[];
+  /** Valores elegidos por eje, ej. {talla:['S','M'], color:['Rojo']} */
+  variantAxisValues?: Record<string, string[]>;
+  variants?: WizardVariant[];
+  /** id de la variante única original (modo simple / edición) */
+  primaryVariantId?: string;
   // Physical specs
   heightCm?: number;
   widthCm?: number;
@@ -109,6 +132,7 @@ export interface NewWizardState {
     // Step 4 fields
     price?: FieldMetadata;
     weightKg?: FieldMetadata;
+    variants?: FieldMetadata;
   };
   agentStep1Response?: Step1InitialCaptureResponse;
   agentStep1ConfirmResponse?: Step1ConfirmResponse;

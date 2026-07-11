@@ -157,7 +157,11 @@ export interface CreateProductMaterialLinkDto {
  * SKUs, precios, y stocks del producto
  */
 export interface CreateProductVariantDto {
+  id?: string; // variante existente → upsert (conserva id y SKU)
   sku?: string;
+  variantName?: string; // ej. "Talla M · Rojo"
+  optionValues?: Record<string, string>; // ej. {"talla":"M","color":"Rojo"}
+  minStock?: number;
   stockQuantity: number;
   basePriceMinor: string; // BIGINT como string (en centavos)
   currency?: string;
@@ -279,6 +283,9 @@ export interface ProductVariantResponse {
   id: string;
   productId: string;
   sku?: string;
+  variantName?: string | null;
+  optionValues?: Record<string, string>;
+  minStock?: number;
   stockQuantity: number;
   basePriceMinor: string;
   currency: string;
