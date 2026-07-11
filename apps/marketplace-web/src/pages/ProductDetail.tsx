@@ -413,13 +413,15 @@ const ProductDetail = () => {
                   </span>
                 </li>
               )}
-              {(product.craft || product.techniques?.length > 0) && (
+              {(product.techniques?.length > 0 || product.craft) && (
                 <li className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                     Técnica
                   </span>
                   <span className="italic">
-                    {product.craft || product.techniques?.join(", ")}
+                    {product.techniques?.length > 0
+                      ? product.techniques.join(", ")
+                      : product.craft}
                   </span>
                 </li>
               )}
@@ -430,7 +432,7 @@ const ProductDetail = () => {
                   </span>
                   <span className="italic">
                     {product.leadTimeDays
-                      ? `De ${product.leadTimeDays} a ${product.leadTimeDays + 3} días`
+                      ? `Aproximadamente ${product.leadTimeDays} día${product.leadTimeDays > 1 ? "s" : ""}`
                       : product.productionTime}
                   </span>
                 </li>
@@ -516,14 +518,15 @@ const ProductDetail = () => {
             </span>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            {product.material && (
+            {(shop?.municipality || shop?.region || product.department) && (
               <div className="text-center space-y-6 px-4 group">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
                   <MapPin className="w-8 h-8 text-[#ec6d13]" />
                 </div>
                 <h5 className="text-2xl font-serif italic text-white">Origen</h5>
                 <p className="text-sm text-white/60 leading-relaxed font-light italic">
-                  {`${product.material}${product.region ? ` · ${product.region}` : ""}`}
+                  {shop?.municipality || shop?.region || product.department}
+                  {shop?.department ? `, ${shop.department}` : ""} — Colombia
                 </p>
               </div>
             )}

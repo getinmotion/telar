@@ -43,6 +43,24 @@ export interface MarketplaceVariant {
 }
 
 /**
+ * Badge otorgado a un producto (curaduría, certificaciones internas)
+ */
+export interface ProductBadge {
+  id: string;
+  name: string;
+  icon?: string | null;
+}
+
+/**
+ * Material con detalle de composición
+ */
+export interface ProductMaterialDetail {
+  id?: string;
+  name: string;
+  percentage?: number | null;
+}
+
+/**
  * Producto individual de Marketplace
  * Response de /products/marketplace (cada item en el array data)
  */
@@ -108,6 +126,17 @@ export interface Product {
 
   // New architecture fields
   careNotes?: string | null;
+
+  // Detalle marketplace (solo presentes en GET /products-new/marketplace/:id)
+  processDescription?: string | null;
+  processEvidenceUrls?: string[];
+  availabilityType?: string | null;   // 'en_stock' | 'bajo_pedido' | 'edicion_limitada' | 'pieza_unica'
+  secondaryTechnique?: string | null;
+  badges?: ProductBadge[];
+  isCollaboration?: boolean;
+  collaborationName?: string | null;
+  monthlyCapacity?: number | null;
+  materialsDetailed?: ProductMaterialDetail[];
 
   // Otros campos
   compactMode?: boolean; // Para mostrar versión compacta en ProductCard

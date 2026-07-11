@@ -9,6 +9,8 @@ import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
 import type {
   Product,
   MarketplaceVariant,
+  ProductBadge,
+  ProductMaterialDetail,
   ProductsResponse,
   ProductsFilters,
   CreateProductRequest,
@@ -150,6 +152,198 @@ function mapNewToLegacy(p: ProductNewCore): Product {
   };
 }
 
+// ── Mapper: GET /products-new/marketplace/:id → legacy Product ─────────────
+
+/**
+ * Shape del response de GET /products-new/marketplace/:id
+ * (getMarketplaceProductById en el API: precios ya en pesos, relaciones aplanadas).
+ */
+interface MarketplaceDetailResponse {
+  id: string;
+  name: string;
+  shortDescription?: string | null;
+  history?: string | null;
+  careNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isNew?: boolean;
+  categoryId?: string;
+  categoryName?: string;
+  artisanalIdentity?: {
+    primaryCraft?: string | null;
+    primaryTechnique?: string | null;
+    secondaryTechnique?: string | null;
+    curatorialCategory?: string | null;
+    pieceType?: string | null;
+    style?: string | null;
+    processType?: string | null;
+    estimatedElaborationTime?: string | null;
+    isCollaboration?: boolean;
+    collaborationName?: string | null;
+  };
+  physicalSpecs?: {
+    heightCm?: number | string | null;
+    widthCm?: number | string | null;
+    lengthOrDiameterCm?: number | string | null;
+    realWeightKg?: number | string | null;
+  };
+  production?: {
+    availabilityType?: string | null;
+    productionTimeDays?: number | null;
+    monthlyCapacity?: number | null;
+    requirementsToStart?: string | null;
+    processDescription?: string | null;
+    processEvidenceUrls?: string[] | null;
+  };
+  price: number;
+  priceMax?: number;
+  stock: number;
+  variants?: Array<{
+    id: string;
+    sku?: string;
+    variantName?: string | null;
+    optionValues?: Record<string, string>;
+    price: number;
+    stock?: number;
+    minStock?: number;
+    isActive?: boolean;
+  }>;
+  images?: string[];
+  materials?: ProductMaterialDetail[];
+  badges?: ProductBadge[];
+  shop?: {
+    id: string;
+    name?: string;
+    slug?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
+    description?: string;
+    region?: string;
+    department?: string;
+    municipality?: string;
+    craftType?: string;
+    bankDataStatus?: string;
+  };
+  canPurchase?: boolean;
+}
+
+function mapMarketplaceDetailToProduct(p: MarketplaceDetailResponse): Product {
+  const toNum = (v: unknown): number | undefined => {
+    if (v == null) return undefined;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+
+  const variants: MarketplaceVariant[] = (p.variants ?? []).map(v => ({
+    id: v.id,
+    sku: v.sku,
+    variantName: v.variantName ?? null,
+    optionValues: v.optionValues ?? {},
+    price: v.price ?? 0,
+    stock: v.stock ?? 0,
+    minStock: v.minStock,
+    isActive: v.isActive ?? true,
+  }));
+
+  const identity = p.artisanalIdentity;
+  const materials = p.materials ?? [];
+  const materialNames = materials.map(m => m.name).filter(Boolean);
+  const techniques = [identity?.primaryTechnique, identity?.secondaryTechnique]
+    .filter((t): t is string => !!t);
+
+  const psWidth = toNum(p.physicalSpecs?.widthCm);
+  const psHeight = toNum(p.physicalSpecs?.heightCm);
+  const psLength = toNum(p.physicalSpecs?.lengthOrDiameterCm);
+  const psWeight = toNum(p.physicalSpecs?.realWeightKg);
+
+  const createdAt = new Date(p.createdAt);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.shortDescription ?? '',
+    shortDescription: p.shortDescription ?? '',
+    history: p.history ?? null,
+    price: p.price != null ? String(p.price) : '0',
+    priceMax: p.priceMax ?? undefined,
+    imageUrl: p.images?.[0] ?? null,
+    images: p.images ?? [],
+    variants,
+
+    // Calculated (canPurchase ya considera datos bancarios + stock en el API)
+    stock: p.stock ?? 0,
+    inventory: p.stock ?? 0,
+    rating: 0,
+    reviewsCount: 0,
+    isNew: p.isNew ?? createdAt > thirtyDaysAgo,
+    freeShipping: false,
+    canPurchase: p.canPurchase ?? false,
+
+    // Metadata
+    tags: [],
+    materials: materialNames,
+    techniques,
+    category: p.categoryName ?? '',
+    craft: identity?.primaryCraft ?? null,
+    material: materialNames[0] ?? null,
+
+    dimensions: psWidth || psHeight || psLength
+      ? { width: psWidth, height: psHeight, length: psLength }
+      : undefined,
+    weight: psWeight !== undefined ? String(psWeight) : undefined,
+    productionTime: identity?.estimatedElaborationTime ?? null,
+    leadTimeDays: p.production?.productionTimeDays ?? undefined,
+
+    // Shop
+    shopId: p.shop?.id ?? '',
+    storeName: p.shop?.name ?? '',
+    storeSlug: p.shop?.slug ?? '',
+    logoUrl: p.shop?.logoUrl,
+    bannerUrl: p.shop?.bannerUrl,
+    storeDescription: p.shop?.description,
+    region: p.shop?.region ?? p.shop?.department,
+    city: p.shop?.municipality,
+    department: p.shop?.department,
+    craftType: p.shop?.craftType ?? identity?.primaryCraft ?? undefined,
+    bankDataStatus: p.shop?.bankDataStatus,
+
+    shop: p.shop
+      ? {
+          id: p.shop.id,
+          userId: '',
+          shopName: p.shop.name ?? '',
+          shopSlug: p.shop.slug ?? '',
+          description: p.shop.description,
+          department: p.shop.department,
+          municipality: p.shop.municipality,
+          active: true,
+          featured: false,
+        }
+      : undefined,
+
+    createdAt,
+    updatedAt: new Date(p.updatedAt),
+
+    careNotes: p.careNotes ?? null,
+
+    // Detalle marketplace
+    processDescription: p.production?.processDescription ?? null,
+    processEvidenceUrls: p.production?.processEvidenceUrls ?? undefined,
+    availabilityType: p.production?.availabilityType ?? null,
+    secondaryTechnique: identity?.secondaryTechnique ?? null,
+    badges: p.badges ?? [],
+    isCollaboration: identity?.isCollaboration ?? false,
+    collaborationName: identity?.collaborationName ?? null,
+    monthlyCapacity: p.production?.monthlyCapacity ?? null,
+    materialsDetailed: materials,
+
+    allowsLocalPickup: false,
+    shippingDataComplete: false,
+  };
+}
+
 // ── API Calls — now consuming /products-new ─────────────
 
 /**
@@ -182,15 +376,17 @@ export const getProducts = async (
 
 /**
  * Obtener detalle de un producto por ID.
- * Tries /products-new/:id first. If the ID is a legacyProductId, falls back to
- * fetching all and searching (until a dedicated endpoint exists).
+ * Usa GET /products-new/marketplace/:id — solo devuelve productos aprobados de
+ * tiendas publicadas, con canPurchase calculado (banco + stock) y la identidad
+ * artesanal/producción completas. Si el ID es un legacyProductId, cae al
+ * endpoint legacy.
  */
 export const getProductById = async (id: string): Promise<Product> => {
   try {
-    const response = await telarApiPublic.get<ProductNewCore>(
-      `/products-new/${id}`,
+    const response = await telarApiPublic.get<MarketplaceDetailResponse>(
+      `/products-new/marketplace/${id}`,
     );
-    return mapNewToLegacy(response.data);
+    return mapMarketplaceDetailToProduct(response.data);
   } catch (err: any) {
     // If not found by primary ID, try legacy endpoint
     if (err?.response?.status === 404 || err?.response?.status === 400) {
