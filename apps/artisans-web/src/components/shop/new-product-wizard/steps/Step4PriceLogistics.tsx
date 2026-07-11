@@ -436,7 +436,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     : state.productionType === 'bajo_pedido'
       ? 'Se fabrica por encargo. Define tu capacidad mensual.'
       : state.productionType === 'limitada'
-        ? `Edición limitada${state.collectionName ? ` de "${state.collectionName}"` : ''}. Define las unidades totales.`
+        ? 'Edición limitada. Define las unidades totales.'
         : undefined;
 
   // Auto-set stock to 1 for unique pieces

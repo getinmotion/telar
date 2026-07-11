@@ -7,14 +7,6 @@ import type { FieldMetadata, IdentityFieldMetadata, MaterialFieldMetadata, Step1
 export type PieceStyle = 'tradicional' | 'contemporaneo' | 'fusion';
 export type PiecePurpose = 'funcional' | 'decorativa' | 'ritual' | 'coleccionable';
 export type ProductionType = 'unica' | 'limitada' | 'continua' | 'bajo_pedido';
-export type ProcessMethodType =
-  | 'hecho_a_mano'
-  | 'herramientas_manuales'
-  | 'moldes'
-  | 'telar'
-  | 'torno'
-  | 'tallado'
-  | 'ensamble';
 
 export interface CollaborationData {
   type?: string;
@@ -50,15 +42,11 @@ export interface NewWizardState {
   purpose?: PiecePurpose;
   style?: PieceStyle; // kept for backward-compat with localStorage; UI uses `styles`
   styles?: PieceStyle[];
-  culturalDenomination?: string;
-  collectionName?: string;
-  // Origin
+  // Origin y taller: se pre-cargan del perfil de la tienda, no se capturan por pieza
   country?: string;
   department?: string;
   municipality?: string;
-  community?: string;
   workshopName?: string;
-  ethnicGroup?: string;
   // Collaboration
   isCollaboration?: boolean;
   collaboration?: CollaborationData;
@@ -68,15 +56,10 @@ export interface NewWizardState {
   secondaryTechniqueId?: string;
   elaborationTime?: string;
   productionType?: ProductionType;
-  manualInterventionPercentage?: number;
   artisanalHistory?: string;
 
   // ── STEP 3: Proceso y Tiempo ──────────────────────────────
-  processMethod?: ProcessMethodType;
-  processStages?: string[];
   processDescription?: string;
-  requiresDrying?: boolean;
-  additionalDryingTime?: string;
   monthlyCapacity?: number;
   tools?: string[];
   processEvidenceUrls?: string[];
@@ -148,7 +131,6 @@ const initialState: NewWizardState = {
   shortDescription: '',
   materials: [],
   country: 'Colombia',
-  processStages: [],
   tools: [],
   processEvidenceUrls: [],
 };

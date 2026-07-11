@@ -178,6 +178,14 @@ export const NewProductWizard: React.FC = () => {
           if (dept && !state.department) update({ department: dept });
           if (shop.municipality && !state.municipality)
             update({ municipality: shop.municipality });
+          // Origen y taller vienen del perfil de la tienda, no se capturan por pieza
+          if (shop.shopName && !state.workshopName)
+            update({ workshopName: shop.shopName });
+          const shopOrigin = [shop.municipality, dept]
+            .filter(Boolean)
+            .join(", ");
+          if (shopOrigin && !state.shippingOrigin)
+            update({ shippingOrigin: shopOrigin });
 
           // Pre-fill process and tools from artisan profile only for NEW products (not edit mode)
           if (!isEditMode) {
