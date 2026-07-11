@@ -101,6 +101,11 @@ export interface ProductVariant {
   id: string;
   productId: string;
   sku?: string;
+  /** Nombre legible de la variante, ej. "Talla M · Rojo" (null = variante por defecto) */
+  variantName?: string | null;
+  /** Ejes de variación, ej. {"talla":"M","color":"Rojo","material":"Fique"} */
+  optionValues: Record<string, string>;
+  minStock: number;
   stockQuantity: number;
   basePriceMinor: string; // BIGINT en centavos como string
   currency: string;
