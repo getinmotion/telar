@@ -298,12 +298,22 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
       },
       logistics: { packWeightKg: packWeight ? parseFloat(packWeight) : undefined },
       production: { availabilityType: availability },
-      variants: variant ? [{
-        sku: sku || undefined,
-        stockQuantity: stock ? parseInt(stock) : undefined,
-        basePriceMinor: basePrice,
-        isActive: true,
-      }] : undefined,
+      // Re-enviar TODAS las variantes con su id: el backend soft-elimina las
+      // que no lleguen. Este editor solo modifica la primera.
+      variants: variant
+        ? (product.variants ?? []).map((v, i) => ({
+            id: v.id,
+            sku: i === 0 ? (sku || undefined) : (v.sku || undefined),
+            variantName: v.variantName ?? undefined,
+            optionValues: v.optionValues,
+            minStock: v.minStock,
+            imageUrl: v.imageUrl ?? undefined,
+            stockQuantity: i === 0 && stock ? parseInt(stock) : v.stockQuantity,
+            basePriceMinor: i === 0 && basePrice ? basePrice : String(v.basePriceMinor),
+            currency: v.currency ?? 'COP',
+            isActive: v.isActive,
+          }))
+        : undefined,
     };
     await onUpdate(dto);
   };
