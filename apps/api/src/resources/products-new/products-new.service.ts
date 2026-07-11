@@ -185,9 +185,9 @@ export class ProductsNewService {
       await this.replaceMaterials(product.id, materials);
     }
 
-    // 8. Variants (OneToMany) - Replace
+    // 8. Variants (OneToMany) - Upsert por id (conserva referencias de carrito)
     if (variants && variants.length > 0) {
-      await this.replaceVariants(product.id, variants);
+      await this.upsertVariants(product.id, variants);
     }
 
     // 9. Generar y guardar embedding (solo si status !== 'draft' y hay datos suficientes)
@@ -367,40 +367,102 @@ export class ProductsNewService {
   }
 
   /**
-   * Replace Variants (OneToMany)
-   * Variantes sin SKU reciben uno generado automáticamente.
+   * Upsert Variants (OneToMany)
+   * - DTO con id existente → actualiza en sitio (conserva id y SKU).
+   * - DTO sin id → crea con SKU generado.
+   * - Variantes existentes no incluidas → soft-delete (sus ids pueden estar
+   *   referenciados por cart_items.price_ref_id).
    */
-  private async replaceVariants(
+  private async upsertVariants(
     productId: string,
     variantsList: any[],
   ): Promise<void> {
     const existingVariants = await this.variantsRepository.find({
       where: { productId },
     });
+    const existingById = new Map(existingVariants.map((v) => [v.id, v]));
+    const incomingIds = new Set(
+      variantsList.filter((v) => v.id).map((v) => v.id),
+    );
 
-    if (existingVariants.length > 0) {
-      await this.variantsRepository.remove(existingVariants);
-    }
-
-    const newVariants: any[] = [];
+    const toSave: any[] = [];
     for (const variantDto of variantsList) {
-      let sku = variantDto.sku;
-      if (!sku) {
-        try {
-          const generated = await this.skuGeneratorService.generateForProduct(productId);
-          sku = generated.sku;
-        } catch (err) {
-          this.logger.warn(`SKU generation failed for product ${productId}: ${err.message}`);
-        }
+      const { id, ...data } = variantDto;
+
+      if (!data.variantName && data.optionValues && Object.keys(data.optionValues).length > 0) {
+        data.variantName = this.composeVariantName(data.optionValues);
       }
-      newVariants.push(
-        this.variantsRepository.create({ ...variantDto, sku, productId } as any),
-      );
+
+      const existing = id ? existingById.get(id) : undefined;
+      if (existing) {
+        // Conservar SKU salvo que venga uno explícito
+        const { sku, ...rest } = data;
+        Object.assign(existing, rest, sku ? { sku } : {});
+        toSave.push(existing);
+      } else {
+        let sku = data.sku;
+        if (!sku) {
+          try {
+            const generated = await this.skuGeneratorService.generateForProduct(productId);
+            sku = generated.sku;
+          } catch (err) {
+            this.logger.warn(`SKU generation failed for product ${productId}: ${err.message}`);
+          }
+        }
+        toSave.push(
+          this.variantsRepository.create({ ...data, sku, productId } as any),
+        );
+      }
     }
 
-    if (newVariants.length > 0) {
-      await this.variantsRepository.save(newVariants as any);
+    const toRemove = existingVariants.filter((v) => !incomingIds.has(v.id));
+    if (toRemove.length > 0) {
+      await this.variantsRepository.softRemove(toRemove);
     }
+
+    if (toSave.length > 0) {
+      await this.variantsRepository.save(toSave as any);
+    }
+  }
+
+  /**
+   * Compone el nombre legible de una variante desde option_values.
+   * Ej: {talla:"M", color:"Rojo"} → "Talla M · Rojo"
+   * (Espejo de composeVariantName en @telar/shared-types)
+   */
+  private composeVariantName(optionValues: Record<string, string>): string {
+    const axisOrder = ['talla', 'color', 'material'];
+    const keys = [
+      ...axisOrder.filter((k) => optionValues[k]),
+      ...Object.keys(optionValues).filter(
+        (k) => !axisOrder.includes(k) && optionValues[k],
+      ),
+    ];
+    return keys
+      .map((k) => (k === 'talla' ? `Talla ${optionValues[k]}` : optionValues[k]))
+      .join(' · ');
+  }
+
+  /**
+   * Resumen de precio/stock a partir de las variantes activas de un producto.
+   */
+  private summarizeVariants(variants: any[]): {
+    totalStock: number;
+    priceMin: number;
+    priceMax: number;
+    currency: string;
+  } {
+    const totalStock = variants.reduce(
+      (sum: number, v: any) => sum + (v.stockQuantity || 0),
+      0,
+    );
+    const prices = variants
+      .map((v: any) => Number(v.basePriceMinor) / 100)
+      .filter((p: number) => p > 0);
+    const priceMin = prices.length ? Math.min(...prices) : 0;
+    const priceMax = prices.length ? Math.max(...prices) : 0;
+    const currency = variants[0]?.currency || 'COP';
+    return { totalStock, priceMin, priceMax, currency };
   }
 
   /**
@@ -996,10 +1058,7 @@ export class ProductsNewService {
     const data = rawResults.map((product: any) => {
       // Calcular precio y stock desde las variantes
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
-      const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
-
+      const { totalStock, priceMin, priceMax, currency } = this.summarizeVariants(variants);
 
       return {
         id: product.id,
@@ -1032,9 +1091,11 @@ export class ProductsNewService {
         availabilityType: product.production?.availabilityType,
         productionTimeDays: product.production?.productionTimeDays,
 
-        // Precio y stock desde variantes
-        price: basePrice,
-        currency: firstVariant?.currency || 'COP',
+        // Precio y stock desde variantes (price = mínimo para compat)
+        price: priceMin,
+        priceMax,
+        hasPriceRange: priceMax > priceMin,
+        currency,
         stock: totalStock,
 
         // Media
@@ -1117,9 +1178,7 @@ export class ProductsNewService {
 
     // Calcular precio y stock desde las variantes
     const variants = (product as any).variants || [];
-    const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
-    const firstVariant = variants[0];
-    const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+    const { totalStock, priceMin, priceMax, currency } = this.summarizeVariants(variants);
 
     return {
       id: product.id,
@@ -1165,16 +1224,22 @@ export class ProductsNewService {
         requirementsToStart: product.production?.requirementsToStart,
       },
 
-      // Precio y stock desde variantes
-      price: basePrice,
-      currency: firstVariant?.currency || 'COP',
+      // Precio y stock desde variantes (price = mínimo para compat)
+      price: priceMin,
+      priceMax,
+      hasPriceRange: priceMax > priceMin,
+      currency,
       stock: totalStock,
       variants: variants.map((v: any) => ({
         id: v.id,
         sku: v.sku,
+        variantName: v.variantName,
+        optionValues: v.optionValues ?? {},
         price: Number(v.basePriceMinor) / 100,
         currency: v.currency,
         stock: v.stockQuantity,
+        minStock: v.minStock,
+        isActive: v.isActive,
       })),
 
       // Media
@@ -1262,9 +1327,7 @@ export class ProductsNewService {
 
     return products.map((product: any) => {
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
-      const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+      const { totalStock, priceMin, priceMax, currency } = this.summarizeVariants(variants);
 
       return {
         id: product.id,
@@ -1280,8 +1343,10 @@ export class ProductsNewService {
         categoryName: product.category?.name,
         craftName: product.artisanalIdentity?.primaryCraft?.name,
 
-        price: basePrice,
-        currency: firstVariant?.currency || 'COP',
+        price: priceMin,
+        priceMax,
+        hasPriceRange: priceMax > priceMin,
+        currency,
         stock: totalStock,
 
         images: product.media?.map((m: any) => m.mediaUrl) || [],
@@ -1333,9 +1398,7 @@ export class ProductsNewService {
 
     return products.map((product: any) => {
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
-      const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+      const { totalStock, priceMin, priceMax, currency } = this.summarizeVariants(variants);
 
       return {
         id: product.id,
@@ -1351,8 +1414,10 @@ export class ProductsNewService {
         categoryName: product.category?.name,
         craftName: product.artisanalIdentity?.primaryCraft?.name,
 
-        price: basePrice,
-        currency: firstVariant?.currency || 'COP',
+        price: priceMin,
+        priceMax,
+        hasPriceRange: priceMax > priceMin,
+        currency,
         stock: totalStock,
 
         images: product.media?.map((m: any) => m.mediaUrl) || [],

@@ -246,9 +246,29 @@ export class CreateProductMaterialLinkDto {
 }
 
 export class CreateProductVariantDto {
+  // ID de variante existente → upsert (conserva referencias de carrito)
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @IsOptional()
   @IsString()
   sku?: string;
+
+  // Nombre legible, ej. "Talla M · Rojo"; se compone en el servidor si falta
+  @IsOptional()
+  @IsString()
+  variantName?: string;
+
+  // Ejes de variación, ej. {"talla":"M","color":"Rojo"}
+  @IsOptional()
+  @IsObject()
+  optionValues?: Record<string, string>;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minStock?: number;
 
   @IsNotEmpty()
   @IsNumber()
