@@ -7,8 +7,9 @@ import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { step2Confirm } from '@/services/agent.actions';
-import type { Step2ConfirmRequest } from '@/types/agent.types';
-import { VariantsSection } from './step4/VariantsSection';
+import type { Step2ConfirmRequest, VariantSuggestions } from '@/types/agent.types';
+import { VariantsSection, buildVariants } from './step4/VariantsSection';
+import { MAX_VARIANTS_PER_PRODUCT } from '@telar/shared-types/products';
 
 interface Props {
   state: NewWizardState;
@@ -155,6 +156,77 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   const pricing = state.agentStep2Response?.pricing_suggestions;
   const oraculo = state.agentStep2Response?.oraculo;
 
+  // ── Variantes sugeridas por el oráculo (paso 1) ────────────────────
+  const variantSuggestions = state.agentStep1Response?.variant_suggestions;
+  const showVariantSuggestion =
+    !!variantSuggestions?.has_variants &&
+    (variantSuggestions.axes?.length ?? 0) > 0 &&
+    state.productionType !== 'unica';
+
+  const handleAcceptVariantSuggestion = useCallback(() => {
+    if (!variantSuggestions?.axes?.length) return;
+    const axes = variantSuggestions.axes.map(a => a.axis);
+    const axisValues: Record<string, string[]> = {};
+    variantSuggestions.axes.forEach(a => {
+      axisValues[a.axis] = [...a.values];
+    });
+    // Recortar valores (del último eje hacia atrás) para respetar el tope
+    const combosOf = () =>
+      axes.reduce((acc, a) => acc * Math.max(1, axisValues[a].length), 1);
+    for (let i = axes.length - 1; i >= 0 && combosOf() > MAX_VARIANTS_PER_PRODUCT; i--) {
+      while (axisValues[axes[i]].length > 1 && combosOf() > MAX_VARIANTS_PER_PRODUCT) {
+        axisValues[axes[i]].pop();
+      }
+    }
+    const variants = buildVariants(
+      axes,
+      axisValues,
+      state.variants ?? [],
+      state.primaryVariantId,
+    );
+    update({
+      hasVariants: true,
+      variantAxes: axes,
+      variantAxisValues: axisValues,
+      variants,
+      inventory: variants
+        .filter(v => v.isActive)
+        .reduce((sum, v) => sum + (v.stock ?? 0), 0),
+      fieldMetadata: {
+        ...state.fieldMetadata,
+        variants: {
+          source: 'ia_accepted' as const,
+          originalAiValue: JSON.stringify(variantSuggestions),
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+    toast.success('Variantes generadas — ajusta precio y stock de cada una');
+  }, [variantSuggestions, state.variants, state.primaryVariantId, state.fieldMetadata, update]);
+
+  const handleRejectVariantSuggestion = useCallback(() => {
+    update({
+      fieldMetadata: {
+        ...state.fieldMetadata,
+        variants: {
+          source: 'manual' as const,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+    toast.info('Puedes crear variantes manualmente cuando quieras');
+  }, [state.fieldMetadata, update]);
+
+  const variantSuggestionCard = showVariantSuggestion ? (
+    <VariantSuggestionCard
+      suggestions={variantSuggestions!}
+      onAccept={handleAcceptVariantSuggestion}
+      onReject={handleRejectVariantSuggestion}
+      isAccepted={state.fieldMetadata?.variants?.source === 'ia_accepted'}
+      isRejected={state.fieldMetadata?.variants?.source === 'manual'}
+    />
+  ) : null;
+
   const handleNext = () => {
     if (!state.price || state.price <= 0) {
       toast.error("Por favor ingresa el precio de la pieza");
@@ -201,6 +273,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       weightKg: fm?.weightKg
         ? { source: fm.weightKg.source, originalAiValue: fm.weightKg.originalAiValue ?? '', timestamp: fm.weightKg.timestamp ?? new Date().toISOString() }
         : defaultField(),
+      ...(fm?.variants && {
+        variants: {
+          source: fm.variants.source,
+          originalAiValue: fm.variants.originalAiValue ?? '',
+          timestamp: fm.variants.timestamp ?? new Date().toISOString(),
+        },
+      }),
     };
 
     step2Confirm(payload)
@@ -266,6 +345,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
           />
         )}
 
+        {/* Variantes detectadas */}
+        {variantSuggestionCard}
+
         {/* Packaging — informational */}
         {pricing?.packaging && (
           <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -320,7 +402,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       </div>
     );
     return clearNode;
-  }, [canContinue, pricing, oraculo, state.fieldMetadata]);
+  }, [canContinue, pricing, oraculo, state.fieldMetadata, variantSuggestionCard]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
@@ -416,6 +498,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   isRejected={state.fieldMetadata?.weightKg?.source === 'manual'}
                 />
               )}
+
+              {/* Variantes detectadas */}
+              {variantSuggestionCard}
 
               {/* Packaging — informational */}
               {pricing?.packaging && (
@@ -833,6 +918,101 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     </div>
   );
 };
+
+// ── VariantSuggestionCard ─────────────────────────────────────────────────────
+
+interface VariantSuggestionCardProps {
+  suggestions: VariantSuggestions;
+  onAccept: () => void;
+  onReject: () => void;
+  isAccepted: boolean;
+  isRejected: boolean;
+}
+
+const AXIS_LABELS: Record<string, string> = {
+  talla: 'Tallas',
+  color: 'Colores',
+  material: 'Materiales',
+};
+
+const VariantSuggestionCard: React.FC<VariantSuggestionCardProps> = ({
+  suggestions,
+  onAccept,
+  onReject,
+  isAccepted,
+  isRejected,
+}) => (
+  <div
+    className="p-3 rounded-xl"
+    style={{
+      background: isAccepted ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.05)',
+      border: isAccepted ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(255,255,255,0.08)',
+    }}
+  >
+    <div className="flex items-center justify-between mb-1.5">
+      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40">
+        Variantes detectadas
+      </p>
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
+    </div>
+
+    <div className="space-y-1.5 mb-1">
+      {suggestions.axes.map(axis => (
+        <div key={axis.axis}>
+          <p className="text-[10px] font-[700] text-white/60">
+            {AXIS_LABELS[axis.axis] ?? axis.axis}
+          </p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {axis.values.map(value => (
+              <span
+                key={value}
+                className="px-2 py-0.5 rounded-full text-[10px] font-[600] text-white/80"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {suggestions.reasoning && (
+      <p className="text-[10px] text-white/35 mt-2 leading-snug">{suggestions.reasoning}</p>
+    )}
+
+    {isAccepted && (
+      <div className="flex items-center gap-1 text-[10px] text-green-400 mt-2">
+        <span className="material-symbols-outlined text-[14px]">check_circle</span>
+        <span>Variantes generadas</span>
+      </div>
+    )}
+
+    {isRejected && (
+      <div className="flex items-center gap-1 text-[10px] text-white/40 mt-2">
+        <span className="material-symbols-outlined text-[14px]">cancel</span>
+        <span>Sugerencia rechazada</span>
+      </div>
+    )}
+
+    {!isAccepted && !isRejected && (
+      <div className="flex gap-2 mt-3">
+        <button
+          onClick={onAccept}
+          className="flex-1 px-3 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] transition-all"
+        >
+          Generar variantes
+        </button>
+        <button
+          onClick={onReject}
+          className="px-3 py-2 rounded-lg border border-white/20 text-white/60 text-[10px] font-[700] hover:text-white hover:border-white/40 transition-all"
+        >
+          No aplica
+        </button>
+      </div>
+    )}
+  </div>
+);
 
 // ── Step4SuggestionCard ───────────────────────────────────────────────────────
 

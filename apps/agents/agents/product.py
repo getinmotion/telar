@@ -476,6 +476,7 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
 
         result = parse_json_response(raw)
         self._validate_identity_suggestions(result, taxonomy)
+        self._validate_variant_suggestions(result)
         return result
 
     @staticmethod
@@ -518,6 +519,64 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
                     m["label"] = materials_by_id[m["value"]]
                     valid_materials.append(m)
             identity["materials"] = valid_materials
+
+    @staticmethod
+    def _validate_variant_suggestions(result: Dict[str, Any]) -> None:
+        """
+        Sanitize variant_suggestions: whitelist axes (talla/color/material),
+        cap axes/values, and drop malformed blocks so the frontend only
+        receives well-formed suggestions.
+        """
+        VALID_AXES = {"talla", "color", "material"}
+        MAX_AXES = 3
+        MAX_VALUES_PER_AXIS = 8
+
+        suggestions = result.get("variant_suggestions")
+        if not isinstance(suggestions, dict):
+            result["variant_suggestions"] = {"has_variants": False, "axes": []}
+            return
+
+        axes = suggestions.get("axes")
+        valid_axes = []
+        if isinstance(axes, list):
+            seen = set()
+            for axis in axes:
+                if not isinstance(axis, dict):
+                    continue
+                key = str(axis.get("axis", "")).strip().lower()
+                if key not in VALID_AXES or key in seen:
+                    logger.warning(f"Discarding invalid variant axis suggestion: {axis}")
+                    continue
+                values = axis.get("values")
+                if not isinstance(values, list):
+                    continue
+                clean_values = []
+                for v in values:
+                    if not isinstance(v, (str, int, float)):
+                        continue
+                    text = str(v).strip()
+                    if text and text not in clean_values:
+                        clean_values.append(text)
+                if not clean_values:
+                    continue
+                confidence = axis.get("confidence")
+                try:
+                    confidence = max(0.0, min(1.0, float(confidence)))
+                except (TypeError, ValueError):
+                    confidence = 0.5
+                seen.add(key)
+                valid_axes.append({
+                    "axis": key,
+                    "values": clean_values[:MAX_VALUES_PER_AXIS],
+                    "confidence": confidence,
+                })
+                if len(valid_axes) >= MAX_AXES:
+                    break
+
+        suggestions["axes"] = valid_axes
+        suggestions["has_variants"] = bool(valid_axes) and bool(suggestions.get("has_variants"))
+        if not isinstance(suggestions.get("reasoning"), str):
+            suggestions.pop("reasoning", None)
 
     async def process_creation_step3_process(
         self,

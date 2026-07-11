@@ -32,7 +32,7 @@ const keyOf = (optionValues: Record<string, string>) =>
  * combinación). Filas con id de backend que salen de la matriz quedan
  * pausadas (isActive: false) — nunca se eliminan, protege referencias de carrito.
  */
-const buildVariants = (
+export const buildVariants = (
   axes: string[],
   axisValues: Record<string, string[]>,
   existing: WizardVariant[],
