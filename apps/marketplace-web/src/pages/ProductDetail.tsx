@@ -99,6 +99,27 @@ const ProductDetail = () => {
 
   const maxStock = selectedVariant?.stock ?? product?.stock ?? 0;
 
+  // Disponibilidad comercial (availabilityType de producción)
+  const availabilityInfo = (() => {
+    switch (product?.availabilityType) {
+      case "pieza_unica":
+        return { label: "Pieza única", note: "Existe un solo ejemplar de esta pieza." };
+      case "edicion_limitada":
+        return { label: "Edición limitada", note: null };
+      case "bajo_pedido":
+        return {
+          label: "Hecha bajo pedido",
+          note: product?.leadTimeDays
+            ? `Se elabora cuando la ordenas · aprox. ${product.leadTimeDays} días`
+            : product?.productionTime
+              ? `Se elabora cuando la ordenas · ${product.productionTime}`
+              : "Se elabora cuando la ordenas",
+        };
+      default:
+        return null;
+    }
+  })();
+
   // ── Loading skeleton ──
   if (loading) {
     return (
@@ -180,6 +201,11 @@ const ProductDetail = () => {
                     Hecho a mano en {shop?.municipality || shop?.region || "Colombia"}
                     {shop?.department ? `, ${shop.department}` : ""} por el taller{" "}
                     {product.storeName}
+                  </p>
+                )}
+                {product.isCollaboration && product.collaborationName && (
+                  <p className="text-sm text-[#2c2c2c]/60 italic">
+                    En colaboración con {product.collaborationName}
                   </p>
                 )}
 
@@ -273,6 +299,14 @@ const ProductDetail = () => {
                   Pieza con historia
                 </span>
               )}
+              {(product.badges ?? []).map((badge) => (
+                <span
+                  key={badge.id}
+                  className="border border-[#ec6d13]/30 text-[#ec6d13] px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold"
+                >
+                  {badge.name}
+                </span>
+              ))}
             </div>
 
             {/* Price */}
@@ -282,6 +316,20 @@ const ProductDetail = () => {
               )}
               {formatCurrency(getFinalPrice())}
             </div>
+
+            {/* Availability */}
+            {availabilityInfo && (
+              <div className="mb-8 -mt-6 flex flex-wrap items-center gap-3">
+                <span className="bg-[#2c2c2c] text-white px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold">
+                  {availabilityInfo.label}
+                </span>
+                {availabilityInfo.note && (
+                  <span className="text-xs text-[#2c2c2c]/50 italic">
+                    {availabilityInfo.note}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Variants */}
             <div className="mb-8">
@@ -504,6 +552,38 @@ const ProductDetail = () => {
               proceso.
             </p>
           </div>
+
+          {/* Así se hizo esta pieza */}
+          {(product.processDescription ||
+            (product.processEvidenceUrls?.length ?? 0) > 0) && (
+            <div className="md:col-span-3 space-y-6 pt-12 border-t border-[#2c2c2c]/10">
+              <h5 className="text-xl font-serif italic text-[#2c2c2c]">
+                Así se hizo esta pieza
+              </h5>
+              {product.processDescription && (
+                <p className="text-sm text-[#2c2c2c]/70 leading-relaxed italic max-w-3xl whitespace-pre-line">
+                  {product.processDescription}
+                </p>
+              )}
+              {(product.processEvidenceUrls?.length ?? 0) > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {product.processEvidenceUrls!.map((url) => (
+                    <div
+                      key={url}
+                      className="aspect-square bg-[#e5e1d8] rounded-xl overflow-hidden"
+                    >
+                      <img
+                        src={url}
+                        alt={`Proceso de elaboración de ${product.name}`}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ═══════════════ DIGITAL TRACEABILITY ═══════════════ */}

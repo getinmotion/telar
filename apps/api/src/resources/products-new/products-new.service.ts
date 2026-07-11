@@ -1206,6 +1206,7 @@ export class ProductsNewService {
         processType: product.artisanalIdentity?.processType,
         estimatedElaborationTime: product.artisanalIdentity?.estimatedElaborationTime,
         isCollaboration: product.artisanalIdentity?.isCollaboration,
+        collaborationName: product.artisanalIdentity?.collaborationName,
       },
 
       // Specs físicas
@@ -1222,6 +1223,8 @@ export class ProductsNewService {
         productionTimeDays: product.production?.productionTimeDays,
         monthlyCapacity: product.production?.monthlyCapacity,
         requirementsToStart: product.production?.requirementsToStart,
+        processDescription: product.production?.processDescription,
+        processEvidenceUrls: product.production?.processEvidenceUrls,
       },
 
       // Precio y stock desde variantes (price = mínimo para compat)
