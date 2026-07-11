@@ -19,7 +19,7 @@ import { Footer } from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/currencyUtils";
-import { Product } from "@/types/products.types";
+import { Product, MarketplaceVariant } from "@/types/products.types";
 import { ArtisanShop } from "@/types/artisan-shops.types";
 
 const ProductDetail = () => {
@@ -35,7 +35,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [loadingShop, setLoadingShop] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [selectedVariant, setSelectedVariant] = useState<MarketplaceVariant | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
 
   const { addToCart } = useCart();
@@ -85,8 +85,17 @@ const ProductDetail = () => {
 
   const getFinalPrice = () => {
     if (!product) return 0;
-    return parseFloat(product.price) + (selectedVariant?.price_adjustment || 0);
+    return selectedVariant ? selectedVariant.price : parseFloat(product.price);
   };
+
+  // ¿El producto tiene variantes reales que exigen selección?
+  const activeVariantsWithOptions = (product?.variants ?? []).filter(
+    (v) => v.isActive && Object.keys(v.optionValues).length > 0,
+  );
+  const needsVariantSelection =
+    activeVariantsWithOptions.length > 1 && !selectedVariant;
+  const hasPriceRange =
+    !!product?.priceMax && product.priceMax > parseFloat(product.price);
 
   const maxStock = selectedVariant?.stock ?? product?.stock ?? 0;
 
@@ -268,20 +277,22 @@ const ProductDetail = () => {
 
             {/* Price */}
             <div className="text-4xl font-serif mb-12 text-[#2c2c2c]">
+              {!selectedVariant && hasPriceRange && (
+                <span className="text-lg text-[#2c2c2c]/50 italic mr-2">Desde</span>
+              )}
               {formatCurrency(getFinalPrice())}
             </div>
 
             {/* Variants */}
-            {id && (
+            <div className="mb-8">
               <ProductVariants
-                productId={id}
-                basePrice={parseFloat(product.price)}
+                variants={product.variants ?? []}
                 onVariantSelect={(variant) => {
                   setSelectedVariant(variant);
                   setQuantity(1);
                 }}
               />
-            )}
+            </div>
 
             {/* Quantity */}
             {maxStock > 0 && (
@@ -327,6 +338,7 @@ const ProductDetail = () => {
                 stock={product.stock}
                 quantity={quantity}
                 variantId={selectedVariant?.id}
+                requiresVariantSelection={needsVariantSelection}
                 variant="detail"
               />
               <button

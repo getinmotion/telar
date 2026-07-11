@@ -43,6 +43,9 @@ export interface ProductBadgeLink {
 export interface ProductVariant {
   id: string;
   sku?: string;
+  variantName?: string | null;
+  optionValues?: Record<string, string>;
+  minStock?: number;
   basePriceMinor?: number | string; // bigint from DB — price in COP cents
   currency?: string;
   stockQuantity?: number;
@@ -317,29 +320,39 @@ export function getAllImageUrls(product: ProductNewCore): string[] {
  *  basePriceMinor is bigint in DB — comes as string from Postgres.
  *  The column stores COP cents, so we divide by 100 to get COP pesos.
  *  If the result seems too small (< 100), we assume the value was already in pesos. */
-export function getProductPrice(product: ProductNewCore): number | null {
-  const variants = product.variants ?? [];
-  if (variants.length === 0) return null;
+/** Precio de una variante en pesos, con heurística de centavos-vs-pesos */
+export function variantPriceInPesos(v: ProductVariant): number | null {
+  if (v.basePriceMinor != null) {
+    const raw = typeof v.basePriceMinor === 'string'
+      ? parseInt(v.basePriceMinor, 10)
+      : Number(v.basePriceMinor);
+    if (!isNaN(raw) && raw > 0) {
+      const asPesos = raw / 100;
+      // Sanity: COP artisan products are typically ≥ $1,000. If dividing
+      // gives < 100, the value was likely stored in pesos, not cents.
+      return asPesos >= 100 ? asPesos : raw;
+    }
+  }
+  return v.price ?? null;
+}
 
-  const prices = variants
-    .map(v => {
-      if (v.basePriceMinor != null) {
-        const raw = typeof v.basePriceMinor === 'string'
-          ? parseInt(v.basePriceMinor, 10)
-          : Number(v.basePriceMinor);
-        if (!isNaN(raw) && raw > 0) {
-          const asPesos = raw / 100;
-          // Sanity: COP artisan products are typically ≥ $1,000. If dividing
-          // gives < 100, the value was likely stored in pesos, not cents.
-          return asPesos >= 100 ? asPesos : raw;
-        }
-      }
-      return v.price ?? null;
-    })
+export function getProductPrice(product: ProductNewCore): number | null {
+  const prices = (product.variants ?? [])
+    .map(variantPriceInPesos)
     .filter((p): p is number => p != null && p > 0);
 
   if (prices.length === 0) return null;
   return Math.min(...prices);
+}
+
+/** Precio máximo entre variantes (para rangos "Desde $X") */
+export function getProductPriceMax(product: ProductNewCore): number | null {
+  const prices = (product.variants ?? [])
+    .map(variantPriceInPesos)
+    .filter((p): p is number => p != null && p > 0);
+
+  if (prices.length === 0) return null;
+  return Math.max(...prices);
 }
 
 /** Get total stock from variants */

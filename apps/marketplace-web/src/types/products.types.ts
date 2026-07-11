@@ -29,6 +29,20 @@ export interface ProductShop {
 }
 
 /**
+ * Variante normalizada para el marketplace (precio ABSOLUTO en pesos)
+ */
+export interface MarketplaceVariant {
+  id: string;
+  sku?: string;
+  variantName?: string | null;
+  optionValues: Record<string, string>;
+  price: number;
+  stock: number;
+  minStock?: number;
+  isActive: boolean;
+}
+
+/**
  * Producto individual de Marketplace
  * Response de /products/marketplace (cada item en el array data)
  */
@@ -39,9 +53,13 @@ export interface Product {
   description: string;
   shortDescription: string;
   history?: string | null;
-  price: string;              // Precio como string
+  price: string;              // Precio como string (mínimo entre variantes)
+  priceMax?: number;          // Precio máximo entre variantes (rango "Desde $X")
   imageUrl: string | null;
   images: string[];
+
+  // Variantes (color/talla/material) — precio absoluto por variante
+  variants?: MarketplaceVariant[];
 
   // Calculados (enriquecidos)
   stock: number;              // Desde variantes o inventory

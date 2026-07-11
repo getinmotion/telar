@@ -8,6 +8,7 @@
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
 import type {
   Product,
+  MarketplaceVariant,
   ProductsResponse,
   ProductsFilters,
   CreateProductRequest,
@@ -21,17 +22,32 @@ import {
   getPrimaryImageUrl,
   getAllImageUrls,
   getProductPrice,
+  getProductPriceMax,
   getProductStock,
   getMaterialNames,
   getCraftName,
   getTechniqueName,
+  variantPriceInPesos,
 } from './products-new.actions';
 
 // ── Mapper: ProductNewCore → legacy Product ─────────────
 
 function mapNewToLegacy(p: ProductNewCore): Product {
   const price = getProductPrice(p);
+  const priceMax = getProductPriceMax(p);
   const stock = getProductStock(p);
+
+  // Variantes normalizadas: precio ABSOLUTO en pesos por variante
+  const variants: MarketplaceVariant[] = (p.variants ?? []).map(v => ({
+    id: v.id,
+    sku: v.sku,
+    variantName: v.variantName ?? v.name ?? null,
+    optionValues: v.optionValues ?? {},
+    price: variantPriceInPesos(v) ?? 0,
+    stock: v.stockQuantity ?? v.stock ?? 0,
+    minStock: v.minStock,
+    isActive: v.isActive ?? true,
+  }));
   const imageUrl = getPrimaryImageUrl(p);
   const images = getAllImageUrls(p);
   const materialNames = getMaterialNames(p);
@@ -62,8 +78,10 @@ function mapNewToLegacy(p: ProductNewCore): Product {
     shortDescription: p.shortDescription ?? '',
     history: p.history ?? null,
     price: price != null ? String(price) : '0',
+    priceMax: priceMax ?? undefined,
     imageUrl,
     images,
+    variants,
 
     // Calculated
     stock,
