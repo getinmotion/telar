@@ -84,6 +84,7 @@ export class ProductsNewService {
       shortDescription,
       history,
       careNotes,
+      usageSuggestions,
       status,
       artisanalIdentity,
       physicalSpecs,
@@ -126,6 +127,8 @@ export class ProductsNewService {
         product.shortDescription = shortDescription;
       if (history !== undefined) product.history = history;
       if (careNotes !== undefined) product.careNotes = careNotes;
+      if (usageSuggestions !== undefined)
+        product.usageSuggestions = usageSuggestions;
       if (status !== undefined) product.status = status;
       if (categoryId !== undefined) product.categoryId = categoryId;
       if (subcategoryId !== undefined) product.subcategoryId = subcategoryId;
@@ -145,6 +148,7 @@ export class ProductsNewService {
         shortDescription,
         history,
         careNotes,
+        usageSuggestions,
         status: status || 'draft',
       });
 
@@ -1069,6 +1073,7 @@ export class ProductsNewService {
         shortDescription: product.shortDescription,
         history: product.history,
         careNotes: product.careNotes,
+        usageSuggestions: product.usageSuggestions,
         status: product.status,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
@@ -1190,6 +1195,7 @@ export class ProductsNewService {
       shortDescription: product.shortDescription,
       history: product.history,
       careNotes: product.careNotes,
+      usageSuggestions: product.usageSuggestions,
       status: product.status,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

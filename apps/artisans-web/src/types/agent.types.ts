@@ -246,6 +246,7 @@ export interface Step2CaptureResponse {
       phases: string[];
       tools?: string[];
       care_instructions?: string;
+      usage_suggestions?: string;
     };
   };
   pricing_suggestions: {

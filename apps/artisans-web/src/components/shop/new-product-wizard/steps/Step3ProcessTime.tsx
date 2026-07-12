@@ -11,8 +11,13 @@ import {
 } from "../components/FieldValidation";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
 import { ToolPicker } from "../components/TaxonomyPicker";
+import {
+  getCareSuggestions,
+  getUsageSuggestions,
+} from "../utils/careUsageSuggestions";
 import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
 import { step2Capture } from "@/services/agent.actions";
+import { getAllCategories } from "@/services/categories.actions";
 import {
   getStoriesByArtisan,
   createStory,
@@ -352,7 +357,8 @@ export const Step3ProcessTime: React.FC<Props> = ({
     | "processDescription"
     | "elaborationTime"
     | "monthlyCapacity"
-    | "careNotes";
+    | "careNotes"
+    | "usageSuggestions";
 
   const handleAcceptSuggestion = useCallback(
     (field: Step3Field, value: string) => {
@@ -370,6 +376,8 @@ export const Step3ProcessTime: React.FC<Props> = ({
         fieldUpdates.monthlyCapacity = Number(value);
       } else if (field === "careNotes") {
         fieldUpdates.careNotes = value;
+      } else if (field === "usageSuggestions") {
+        fieldUpdates.usageSuggestions = value;
       }
 
       update({
@@ -402,6 +410,38 @@ export const Step3ProcessTime: React.FC<Props> = ({
       toast.info("Puedes escribir tu propia versión");
     },
     [update, state.fieldMetadata],
+  );
+
+  // ── Chips de sugerencias por categoría / tipo de pieza ───────────
+  // El label viene del paso 2; en modo edición se resuelve por id.
+  const [categoryName, setCategoryName] = useState<string | undefined>(
+    state.fieldMetadata?.category?.label || undefined,
+  );
+  useEffect(() => {
+    if (categoryName || !state.categoryId) return;
+    getAllCategories()
+      .then((cats) => {
+        const found = cats.find((c) => c.id === state.categoryId);
+        if (found) setCategoryName(found.name);
+      })
+      .catch(() => {});
+  }, [categoryName, state.categoryId]);
+
+  const appendSuggestion = useCallback(
+    (field: "careNotes" | "usageSuggestions", text: string) => {
+      const current = (state[field] ?? "").replace(/\s+$/, "");
+      update({
+        [field]: current ? `${current}\n${text}` : text,
+        fieldMetadata: {
+          ...state.fieldMetadata,
+          [field]: {
+            source: "manual" as const,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      });
+    },
+    [update, state],
   );
 
   // Process library state
@@ -569,6 +609,21 @@ export const Step3ProcessTime: React.FC<Props> = ({
               state.fieldMetadata?.careNotes?.source === "ia_accepted"
             }
             isRejected={state.fieldMetadata?.careNotes?.source === "manual"}
+          />
+        )}
+        {pa?.structured_process?.usage_suggestions && (
+          <Step3SuggestionCard
+            label="Sugerencias de uso"
+            value={pa.structured_process.usage_suggestions}
+            fieldKey="usageSuggestions"
+            onAccept={handleAcceptSuggestion}
+            onReject={handleRejectSuggestion}
+            isAccepted={
+              state.fieldMetadata?.usageSuggestions?.source === "ia_accepted"
+            }
+            isRejected={
+              state.fieldMetadata?.usageSuggestions?.source === "manual"
+            }
           />
         )}
 
@@ -894,6 +949,29 @@ export const Step3ProcessTime: React.FC<Props> = ({
                       }
                       isRejected={
                         state.fieldMetadata?.careNotes?.source === "manual"
+                      }
+                    />
+                  )}
+
+                  {/* Usage suggestions suggestion */}
+                  {state.agentStep2Response?.process_analysis
+                    ?.structured_process?.usage_suggestions && (
+                    <Step3SuggestionCard
+                      label="Sugerencias de uso"
+                      value={
+                        state.agentStep2Response.process_analysis
+                          .structured_process.usage_suggestions
+                      }
+                      fieldKey="usageSuggestions"
+                      onAccept={handleAcceptSuggestion}
+                      onReject={handleRejectSuggestion}
+                      isAccepted={
+                        state.fieldMetadata?.usageSuggestions?.source ===
+                        "ia_accepted"
+                      }
+                      isRejected={
+                        state.fieldMetadata?.usageSuggestions?.source ===
+                        "manual"
                       }
                     />
                   )}
@@ -1507,7 +1585,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 />
               </section>
             </div>
-            {/* 6. Cuidados del producto */}
+            {/* 6. Cuidados y uso */}
             <section className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-1">
                 <span className="material-symbols-outlined text-[#54433e]/40">
@@ -1522,13 +1600,50 @@ export const Step3ProcessTime: React.FC<Props> = ({
               </div>
               <p className="text-[11px] text-[#54433e]/50 mb-3">
                 Instrucciones para mantener la pieza en buen estado: limpieza,
-                almacenamiento, materiales a evitar.
+                almacenamiento, materiales a evitar. Toca una sugerencia para
+                agregarla.
               </p>
+              <SuggestionChips
+                suggestions={getCareSuggestions(categoryName, state.purpose)}
+                currentText={state.careNotes ?? ""}
+                onPick={(text) => appendSuggestion("careNotes", text)}
+              />
               <textarea
                 rows={3}
                 value={state.careNotes ?? ""}
                 onChange={(e) => update({ careNotes: e.target.value })}
                 placeholder="Ej: Limpiar con paño suave, evitar humedad, no exponer al sol directo..."
+                className={`${inputClass} resize-none`}
+                style={{ background: "rgba(247,244,239,0.4)" }}
+              />
+
+              <div className="my-5 border-t border-[#54433e]/10" />
+
+              <div className="flex items-center gap-3 mb-1">
+                <span className="material-symbols-outlined text-[#54433e]/40">
+                  lightbulb
+                </span>
+                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
+                  Sugerencias de uso
+                </label>
+                <span className="ml-auto text-[9px] font-[600] text-[#54433e]/40 uppercase tracking-wider">
+                  Opcional
+                </span>
+              </div>
+              <p className="text-[11px] text-[#54433e]/50 mb-3">
+                Cuéntale al comprador cómo disfrutar la pieza: ocasiones,
+                ambientes, combinaciones. Toca una sugerencia para agregarla.
+              </p>
+              <SuggestionChips
+                suggestions={getUsageSuggestions(categoryName, state.purpose)}
+                currentText={state.usageSuggestions ?? ""}
+                onPick={(text) => appendSuggestion("usageSuggestions", text)}
+              />
+              <textarea
+                rows={3}
+                value={state.usageSuggestions ?? ""}
+                onChange={(e) => update({ usageSuggestions: e.target.value })}
+                placeholder="Ej: Ideal para servir bebidas frías, perfecto como centro de mesa..."
                 className={`${inputClass} resize-none`}
                 style={{ background: "rgba(247,244,239,0.4)" }}
               />
@@ -1558,6 +1673,43 @@ export const Step3ProcessTime: React.FC<Props> = ({
   );
 };
 
+// ── SuggestionChips ───────────────────────────────────────────────────────────
+
+interface SuggestionChipsProps {
+  suggestions: string[];
+  currentText: string;
+  onPick: (text: string) => void;
+}
+
+const SuggestionChips: React.FC<SuggestionChipsProps> = ({
+  suggestions,
+  currentText,
+  onPick,
+}) => {
+  const lower = currentText.toLowerCase();
+  const pending = suggestions.filter(
+    (s) => !lower.includes(s.toLowerCase()),
+  );
+  if (pending.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mb-3">
+      {pending.map((text) => (
+        <button
+          key={text}
+          type="button"
+          onClick={() => onPick(text)}
+          className="inline-flex items-center gap-1 rounded-full border border-[#ec6d13]/30 text-[11px] text-[#54433e] px-3 py-1 hover:bg-[#ec6d13]/10 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[13px] text-[#ec6d13]">
+            add
+          </span>
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 // ── Step3SuggestionCard ───────────────────────────────────────────────────────
 
 interface Step3SuggestionCardProps {
@@ -1567,7 +1719,8 @@ interface Step3SuggestionCardProps {
     | "processDescription"
     | "elaborationTime"
     | "monthlyCapacity"
-    | "careNotes";
+    | "careNotes"
+    | "usageSuggestions";
   onAccept: (field: any, value: string) => void;
   onReject: (field: any) => void;
   isAccepted: boolean;

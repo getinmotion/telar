@@ -390,6 +390,10 @@ export class CreateProductsNewDto {
   careNotes?: string;
 
   @IsOptional()
+  @IsString()
+  usageSuggestions?: string;
+
+  @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
 

@@ -66,6 +66,7 @@ export interface NewWizardState {
   tools?: string[];
   processEvidenceUrls?: string[];
   careNotes?: string;
+  usageSuggestions?: string;
 
   // ── STEP 4: Precio, Disponibilidad y Logística ────────────
   price?: number;
@@ -115,6 +116,7 @@ export interface NewWizardState {
     elaborationTime?: FieldMetadata;
     monthlyCapacity?: FieldMetadata;
     careNotes?: FieldMetadata;
+    usageSuggestions?: FieldMetadata;
     // Step 4 fields
     price?: FieldMetadata;
     weightKg?: FieldMetadata;

@@ -306,6 +306,7 @@ export const NewProductWizard: React.FC = () => {
           shortDescription: product.shortDescription,
           artisanalHistory: product.history || undefined,
           careNotes: product.careNotes || undefined,
+          usageSuggestions: product.usageSuggestions || undefined,
           images,
           categoryId: product.categoryId || undefined,
           subcategoryId: product.subcategoryId || undefined,

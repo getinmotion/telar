@@ -54,6 +54,9 @@ export class ProductCore {
   @Column({ name: 'care_notes', type: 'text', nullable: true })
   careNotes: string;
 
+  @Column({ name: 'usage_suggestions', type: 'text', nullable: true })
+  usageSuggestions: string;
+
   @Column({
     type: 'text',
     default: 'draft',

@@ -42,6 +42,7 @@ export const mapNewStateToDto = (
     shortDescription: state.shortDescription.trim(),
     history: state.artisanalHistory?.trim() || undefined,
     careNotes: state.careNotes?.trim() || undefined,
+    usageSuggestions: state.usageSuggestions?.trim() || undefined,
     status: publish ? 'pending_moderation' : 'draft',
     media: uploadedImageUrls.map((url, i) => ({
       mediaUrl: url,

@@ -44,6 +44,7 @@ export interface CreateProductsNewDto {
   shortDescription: string;
   history?: string;
   careNotes?: string;
+  usageSuggestions?: string;
   status?: ProductStatus;
 
   // Capas relacionadas (OneToOne)
@@ -196,6 +197,7 @@ export interface ProductResponse {
   shortDescription: string;
   history?: string;
   careNotes?: string;
+  usageSuggestions?: string;
   status: string;
   legacyProductId?: string;
   createdAt: string;
