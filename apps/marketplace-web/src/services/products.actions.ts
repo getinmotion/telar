@@ -147,6 +147,7 @@ function mapNewToLegacy(p: ProductNewCore): Product {
 
     // New architecture fields
     careNotes: p.careNotes ?? null,
+    usageSuggestions: p.usageSuggestions ?? null,
 
     allowsLocalPickup: false,
     shippingDataComplete: false,
@@ -165,11 +166,14 @@ interface MarketplaceDetailResponse {
   shortDescription?: string | null;
   history?: string | null;
   careNotes?: string | null;
+  usageSuggestions?: string | null;
   createdAt: string;
   updatedAt: string;
   isNew?: boolean;
   categoryId?: string;
   categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
   artisanalIdentity?: {
     primaryCraft?: string | null;
     primaryTechnique?: string | null;
@@ -177,6 +181,7 @@ interface MarketplaceDetailResponse {
     curatorialCategory?: string | null;
     pieceType?: string | null;
     style?: string | null;
+    styles?: string[] | null;
     processType?: string | null;
     estimatedElaborationTime?: string | null;
     isCollaboration?: boolean;
@@ -195,6 +200,7 @@ interface MarketplaceDetailResponse {
     requirementsToStart?: string | null;
     processDescription?: string | null;
     processEvidenceUrls?: string[] | null;
+    tools?: string[] | null;
   };
   price: number;
   priceMax?: number;
@@ -328,6 +334,7 @@ function mapMarketplaceDetailToProduct(p: MarketplaceDetailResponse): Product {
     updatedAt: new Date(p.updatedAt),
 
     careNotes: p.careNotes ?? null,
+    usageSuggestions: p.usageSuggestions ?? null,
 
     // Detalle marketplace
     processDescription: p.production?.processDescription ?? null,
@@ -339,6 +346,11 @@ function mapMarketplaceDetailToProduct(p: MarketplaceDetailResponse): Product {
     collaborationName: identity?.collaborationName ?? null,
     monthlyCapacity: p.production?.monthlyCapacity ?? null,
     materialsDetailed: materials,
+    subcategoryName: p.subcategoryName ?? null,
+    pieceType: identity?.pieceType ?? null,
+    styles: identity?.styles ?? (identity?.style ? [identity.style] : []),
+    tools: p.production?.tools ?? [],
+    requirementsToStart: p.production?.requirementsToStart ?? null,
 
     allowsLocalPickup: false,
     shippingDataComplete: false,

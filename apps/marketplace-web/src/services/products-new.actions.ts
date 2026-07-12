@@ -94,6 +94,7 @@ export interface ProductNewCore {
   shortDescription?: string;
   history?: string;
   careNotes?: string;
+  usageSuggestions?: string;
   status: string; // 'draft' | 'published' | 'archived'
   isFeatured?: boolean;
   createdAt: string;

@@ -128,6 +128,7 @@ export interface Product {
 
   // New architecture fields
   careNotes?: string | null;
+  usageSuggestions?: string | null;
 
   // Detalle marketplace (solo presentes en GET /products-new/marketplace/:id)
   processDescription?: string | null;
@@ -139,6 +140,11 @@ export interface Product {
   collaborationName?: string | null;
   monthlyCapacity?: number | null;
   materialsDetailed?: ProductMaterialDetail[];
+  subcategoryName?: string | null;
+  pieceType?: string | null;
+  styles?: string[];
+  tools?: string[];
+  requirementsToStart?: string | null;
 
   // Otros campos
   compactMode?: boolean; // Para mostrar versión compacta en ProductCard
