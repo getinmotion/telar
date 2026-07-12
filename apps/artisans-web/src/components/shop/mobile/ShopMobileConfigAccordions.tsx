@@ -67,7 +67,7 @@ export const ShopMobileConfigAccordions: React.FC<ShopMobileConfigAccordionsProp
       description: 'Portada de tu tienda',
       badge: (shop as any).hero_config?.slides?.length > 0 ? 'OK' : 'Pendiente',
       badgeVariant: ((shop as any).hero_config?.slides?.length > 0 ? 'default' : 'destructive') as 'default' | 'destructive',
-      route: '/dashboard/shop-hero-wizard'
+      route: '/mi-tienda/configurar/hero'
     },
     {
       icon: FileText,
@@ -83,7 +83,7 @@ export const ShopMobileConfigAccordions: React.FC<ShopMobileConfigAccordionsProp
       description: 'Info de contacto',
       badge: (shop as any).contact_config?.welcomeMessage ? 'OK' : 'Pendiente',
       badgeVariant: ((shop as any).contact_config?.welcomeMessage ? 'default' : 'destructive') as 'default' | 'destructive',
-      route: '/dashboard/shop-contact-wizard'
+      route: '/mi-tienda/configurar/contact'
     },
     {
       icon: Palette,

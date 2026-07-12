@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import type { NewWizardState } from '../hooks/useNewWizardState';
 import { AVAILABILITY_LABELS } from '../utils/availability';
 import { WizardFooter } from '../components/WizardFooter';
-import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { step2Confirm } from '@/services/agent.actions';
@@ -453,18 +452,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
-        <div className="hidden md:block">
-          <WizardHeader
-            step={step}
-            totalSteps={totalSteps}
-            onBack={onBack}
-            icon="payments"
-            title="Precio y logística"
-            subtitle="Define cómo se comercializa y despacha esta pieza"
-          />
-        </div>
-
+      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:pt-6 md:pb-10">
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar — Oráculo */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">

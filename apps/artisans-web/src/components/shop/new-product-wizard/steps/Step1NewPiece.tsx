@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
 import type { NewWizardState } from "../hooks/useNewWizardState";
 import { WizardFooter } from "../components/WizardFooter";
-import { WizardHeader } from "../components/WizardHeader";
 import { useStepValidation } from "../hooks/useStepValidation";
 import {
   RequiredMark,
@@ -703,18 +702,7 @@ export const Step1NewPiece: React.FC<Props> = ({
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
-      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-10 pb-[188px] md:pb-32 px-6 md:px-10">
-        <div className="hidden md:block">
-          <WizardHeader
-            step={step}
-            totalSteps={totalSteps}
-            onBack={onBack}
-            icon="add_photo_alternate"
-            title="Nueva pieza"
-            subtitle="Captura inicial para que TELAR entienda qué estás creando"
-          />
-        </div>
-
+      <main className="w-full max-w-[1200px] mx-auto pt-4 md:pt-6 pb-[188px] md:pb-32 px-6 md:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* ── AI sidebar ────────────────────────────────────────────────── */}
           <aside className="hidden lg:block lg:col-span-3">
