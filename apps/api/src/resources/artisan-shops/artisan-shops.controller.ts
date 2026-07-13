@@ -146,9 +146,12 @@ export class ArtisanShopsController {
       },
     },
   })
-  async getFeatured(@Query('limit') limit?: string) {
+  async getFeatured(
+    @Query('agreementId') agreementId: string,
+    @Query('limit') limit?: string,
+  ) {
     const limitNumber = limit ? parseInt(limit, 10) : 8;
-    return await this.artisanShopsService.getFeatured(limitNumber);
+    return await this.artisanShopsService.getFeatured(limitNumber, agreementId);
   }
 
   /**

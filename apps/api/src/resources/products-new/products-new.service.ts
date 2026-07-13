@@ -504,29 +504,37 @@ export class ProductsNewService {
    * Obtener productos por tienda (artisan_shop)
    * @param storeId - ID del artisan_shop (no confundir con la nueva tabla stores)
    */
-  async findByStoreIdForMarketplace(storeId: string): Promise<ProductCore[]> {
-    const products = await this.productCoreRepository.find({
-      where: { storeId, deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
-      relations: [
-        'artisanShop',
-        'category',
-        'artisanalIdentity',
-        'artisanalIdentity.primaryCraft',
-        'artisanalIdentity.primaryTechnique',
-        'artisanalIdentity.secondaryTechnique',
-        'artisanalIdentity.curatorialCategory',
-        'physicalSpecs',
-        'logistics',
-        'production',
-        'media',
-        'badges',
-        'badges.badge',
-        'materials',
-        'materials.material',
-        'variants',
-      ],
-      order: { createdAt: 'DESC' },
-    });
+  async findByStoreIdForMarketplace(storeId: string, agreementId?: string): Promise<ProductCore[]> {
+    const queryBuilder = this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('identity.primaryTechnique', 'primaryTech')
+      .leftJoinAndSelect('identity.secondaryTechnique', 'secondaryTech')
+      .leftJoinAndSelect('identity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.logistics', 'logistics')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.variants', 'variants')
+      .where('pc.storeId = :storeId', { storeId })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('pc.status IN (:...statuses)', { statuses: PUBLIC_STATUSES });
+
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
+    }
+
+    const products = await queryBuilder
+      .orderBy('pc.createdAt', 'DESC')
+      .getMany();
 
     return products;
   }
@@ -932,6 +940,7 @@ export class ProductsNewService {
    * Filtra solo productos aprobados de tiendas publicadas y aprobadas para marketplace
    */
   async getMarketplaceProducts(query: {
+    agreementId?: string;
     page?: number;
     limit?: number;
     categoryId?: string;
@@ -944,11 +953,12 @@ export class ProductsNewService {
     page: number;
     limit: number;
   }> {
-    const { page = 1, limit = 20, categoryId, featured, sortBy = 'createdAt', order = 'DESC' } = query;
+    const { agreementId, page = 1, limit = 20, categoryId, featured, sortBy = 'createdAt', order = 'DESC' } = query;
 
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -968,6 +978,11 @@ export class ProductsNewService {
         publishStatus: 'published',
       })
       .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    // Filtro por agreementId
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
+    }
 
     // Filtros opcionales
     if (categoryId) {
@@ -1073,14 +1088,15 @@ export class ProductsNewService {
   /**
    * Obtener un producto individual para marketplace
    */
-  async getMarketplaceProductById(id: string): Promise<any> {
+  async getMarketplaceProductById(id: string, agreementId?: string): Promise<any> {
     if (!id) {
       throw new BadRequestException('El ID es requerido');
     }
 
-    const product = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1103,8 +1119,13 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
-      .getOne();
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
+    }
+
+    const product = await queryBuilder.getOne();
 
     if (!product) {
       throw new NotFoundException(
@@ -1216,8 +1237,9 @@ export class ProductsNewService {
   /**
    * Obtener productos destacados para marketplace
    */
-  async getMarketplaceFeaturedProducts(): Promise<any[]> {
+  async getMarketplaceFeaturedProducts(agreementId?: string): Promise<any[]> {
     const result = await this.getMarketplaceProducts({
+      agreementId,
       featured: true,
       limit: 20,
     });
@@ -1228,14 +1250,15 @@ export class ProductsNewService {
   /**
    * Obtener productos de una tienda para marketplace
    */
-  async getMarketplaceProductsByShop(shopId: string): Promise<any[]> {
+  async getMarketplaceProductsByShop(shopId: string, agreementId?: string): Promise<any[]> {
     if (!shopId) {
       throw new BadRequestException('El shopId es requerido');
     }
 
-    const products = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1253,7 +1276,13 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
+    }
+
+    const products = await queryBuilder
       .orderBy('pc.createdAt', 'DESC')
       .getMany();
 
@@ -1299,14 +1328,15 @@ export class ProductsNewService {
   /**
    * Obtener productos de un usuario para marketplace
    */
-  async getMarketplaceProductsByUser(userId: string): Promise<any[]> {
+  async getMarketplaceProductsByUser(userId: string, agreementId?: string): Promise<any[]> {
     if (!userId) {
       throw new BadRequestException('El userId es requerido');
     }
 
-    const products = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1324,7 +1354,13 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
+    }
+
+    const products = await queryBuilder
       .orderBy('pc.createdAt', 'DESC')
       .getMany();
 
