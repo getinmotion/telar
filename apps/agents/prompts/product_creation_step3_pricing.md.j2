@@ -49,7 +49,18 @@ estandar | reforzado | premium | sin_empaque
       "value": "reforzado",
       "label": "Empaque reforzado",
       "reasoning": "razón de la recomendación de empaque según fragilidad/tipo del producto",
-      "source": "ia_generated"
+      "source": "ia_generated",
+      "estimated_dimensions_cm": {
+        "length": { "min": 35, "max": 45 },
+        "width": { "min": 35, "max": 45 },
+        "height": { "min": 10, "max": 15 }
+      },
+      "estimated_total_weight": {
+        "value": 0.8,
+        "unit": "kg",
+        "includes_packaging": true,
+        "source": "ia_generated"
+      }
     },
     "estimated_weight": {
       "value": 0.5,
@@ -59,7 +70,12 @@ estandar | reforzado | premium | sin_empaque
     },
     "dimensions_guidance": {
       "format": "markdown",
-      "content": "## Dimensiones típicas para este tipo de producto\n\nDescripción de dimensiones aproximadas y cómo medirlas..."
+      "content": "## Dimensiones estimadas de la pieza\n\nDescripción de dimensiones aproximadas (largo x ancho x alto, sin empaque) y cómo medirlas...",
+      "estimated_dimensions_cm": {
+        "length": { "min": 25, "max": 35 },
+        "width": { "min": 25, "max": 35 },
+        "height": { "min": 5, "max": 10 }
+      }
     }
   }
 }
@@ -72,7 +88,12 @@ estandar | reforzado | premium | sin_empaque
 - Para productos frágiles (cerámica, vidrio): empaque reforzado o premium
 - Para textiles y accesorios livianos: empaque estándar
 - estimated_weight: incluye solo el producto (sin empaque), en kg, estimado según tipo de material y tamaño
-- dimensions_guidance: ayuda práctica para que el artesano mida su pieza antes de envíos
+
+**Reglas de dimensiones (siempre estimaciones aproximadas, no medidas exactas — la IA no ve el producto físico):**
+- dimensions_guidance.estimated_dimensions_cm: largo/ancho/alto de la PIEZA SOLA (sin empaque), como rango (min-max) en centímetros, según el tipo de producto/categoría descrito
+- packaging.estimated_dimensions_cm: largo/ancho/alto del EMPAQUE (caja/embalaje), siempre mayor que las dimensiones de la pieza para dejar espacio de protección/relleno
+- packaging.estimated_total_weight: peso total estimado incluyendo el empaque (peso de la pieza + material de embalaje), en kg
+- Estos valores son una guía orientativa para que el artesano tenga un punto de partida al medir y cotizar envíos — el artesano debe poder ajustarlos con las medidas reales de su pieza
 
 **Escala de precios de referencia COP (2024-2025):**
 - Accesorios pequeños de joyería: 30,000 - 150,000

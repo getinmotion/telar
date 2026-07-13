@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createProductNew, updateProductNew } from '@/services/products-new.actions';
 import type { CreateProductsNewDto } from '@/services/products-new.types';
@@ -8,6 +8,13 @@ const priceToMinor = (price: number): string => String(Math.round(price * 100));
 
 const isUUID = (v: string | undefined | null): v is string =>
   !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
+/** Convierte un valor (puede venir como string del form/localStorage) a number o undefined */
+const toNum = (v: string | number | undefined | null): number | undefined => {
+  if (v == null || v === '') return undefined;
+  const n = Number(v);
+  return isNaN(n) ? undefined : n;
+};
 
 export const extractApiError = (err: any): string => {
   const nested = err?.response?.data?.message?.response?.message;
@@ -55,25 +62,26 @@ export const mapNewStateToDto = (
         : firstStyle === 'fusion' ? 'fusion'
         : undefined,
       isCollaboration: state.isCollaboration ?? false,
+      collaborationName: state.collaboration?.name?.trim() || undefined,
       estimatedElaborationTime: state.elaborationTime || undefined,
     };
   }
 
   if (state.heightCm || state.widthCm || state.lengthCm || state.weightKg) {
     dto.physicalSpecs = {
-      heightCm: state.heightCm,
-      widthCm: state.widthCm,
-      lengthOrDiameterCm: state.lengthCm,
-      realWeightKg: state.weightKg,
+      heightCm: toNum(state.heightCm),
+      widthCm: toNum(state.widthCm),
+      lengthOrDiameterCm: toNum(state.lengthCm),
+      realWeightKg: toNum(state.weightKg),
     };
   }
 
   if (state.packagedWeightKg || state.packagedWidthCm || state.shippingRestrictions) {
     dto.logistics = {
-      packWeightKg: state.packagedWeightKg,
-      packWidthCm: state.packagedWidthCm,
-      packHeightCm: state.packagedHeightCm,
-      packLengthCm: state.packagedLengthCm,
+      packWeightKg: toNum(state.packagedWeightKg),
+      packWidthCm: toNum(state.packagedWidthCm),
+      packHeightCm: toNum(state.packagedHeightCm),
+      packLengthCm: toNum(state.packagedLengthCm),
       specialProtectionNotes: state.shippingRestrictions,
       fragility: state.specialHandling ? 'alto' : 'bajo',
     };
@@ -83,6 +91,10 @@ export const mapNewStateToDto = (
     dto.production = {
       availabilityType: state.availabilityType,
       monthlyCapacity: state.monthlyCapacity,
+      processDescription: state.processDescription?.trim() || undefined,
+      processEvidenceUrls: (state.processEvidenceUrls ?? []).filter(u => u && !u.startsWith('blob:')).length > 0
+        ? (state.processEvidenceUrls ?? []).filter(u => u && !u.startsWith('blob:'))
+        : undefined,
     };
   }
 
@@ -121,21 +133,46 @@ export const useWizardDraft = (
   state: NewWizardState,
   update: (u: Partial<NewWizardState>) => void,
   shopId: string,
-  silent = false,
 ) => {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  const saveDraft = useCallback(async () => {
+  // Ref para rastrear el productId de forma inmediata (evita race conditions entre renders)
+  const productIdRef = useRef<string | undefined>(state.productId);
+  // Mutex: evita que dos llamadas concurrentes creen productos duplicados
+  const creatingRef = useRef(false);
+
+  // Mantener el ref sincronizado cuando el state cambia (ej. modo edición)
+  if (state.productId && state.productId !== productIdRef.current) {
+    productIdRef.current = state.productId;
+  }
+
+  const saveDraft = useCallback(async (silent = false) => {
     if (!shopId || !state.name.trim() || !state.shortDescription.trim()) return;
     setIsSavingDraft(true);
     try {
-      const dto = mapNewStateToDto(state, shopId, [], false);
-      if (state.productId) {
-        await updateProductNew(state.productId, dto, { suppressToast: true });
+      // Extraer URLs ya subidas desde state.images (las que son string, no File)
+      const uploadedUrls = (state.images ?? []).filter((img): img is string => typeof img === 'string');
+      const dto = mapNewStateToDto(state, shopId, uploadedUrls, false);
+      const existingId = productIdRef.current ?? state.productId;
+
+      if (existingId) {
+        await updateProductNew(existingId, dto, { suppressToast: true });
       } else {
-        const result = await createProductNew(dto, { suppressToast: true });
-        const newId = (result as any)?.id ?? (result as any)?.productId;
-        if (newId) update({ productId: newId });
+        // Evitar creates concurrentes
+        if (creatingRef.current) return;
+        creatingRef.current = true;
+        try {
+          // En el primer create (Step 1) solo enviar datos básicos, sin artisanalIdentity
+          delete dto.artisanalIdentity;
+          const result = await createProductNew(dto, { suppressToast: true });
+          const newId = (result as any)?.id ?? (result as any)?.productId;
+          if (newId) {
+            productIdRef.current = newId;
+            update({ productId: newId });
+          }
+        } finally {
+          creatingRef.current = false;
+        }
       }
       if (!silent) toast.success('Borrador guardado');
     } catch (err: any) {
@@ -143,7 +180,7 @@ export const useWizardDraft = (
     } finally {
       setIsSavingDraft(false);
     }
-  }, [state, shopId, update, silent]);
+  }, [state, shopId, update]);
 
   return { saveDraft, isSavingDraft };
 };

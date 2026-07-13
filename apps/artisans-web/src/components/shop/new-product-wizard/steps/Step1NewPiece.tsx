@@ -99,9 +99,15 @@ export const Step1NewPiece: React.FC<Props> = ({
   // Initialize from restored state if available (e.g., when returning to wizard)
   const [isCallingAgent, setIsCallingAgent] = useState(false);
   const [agentResponse, setAgentResponse] =
-    useState<Step1InitialCaptureResponse | null>(state.agentStep1Response ?? null);
-  const [agentCallAttempted, setAgentCallAttempted] = useState(!!state.agentStep1Response);
-  const [agentCallCompleted, setAgentCallCompleted] = useState(!!state.agentStep1Response);
+    useState<Step1InitialCaptureResponse | null>(
+      state.agentStep1Response ?? null,
+    );
+  const [agentCallAttempted, setAgentCallAttempted] = useState(
+    !!state.agentStep1Response,
+  );
+  const [agentCallCompleted, setAgentCallCompleted] = useState(
+    !!state.agentStep1Response,
+  );
 
   // Validation: require name, description, main photo, and history
   const hasMainPhoto = state.images[0] && typeof state.images[0] === "string";
@@ -1004,21 +1010,6 @@ export const Step1NewPiece: React.FC<Props> = ({
                     — Opcional
                   </span>
                 </label>
-                {!showSaveDialog && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSaveDialog(true);
-                      setSaveTitle(state.name ? `Historia: ${state.name}` : "");
-                    }}
-                    className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/50 hover:text-[#ec6d13] transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">
-                      bookmark_add
-                    </span>
-                    Guardar historia
-                  </button>
-                )}
               </div>
               <p className="text-[11px] text-[#54433e]/40 leading-snug mb-3">
                 No es la descripción del producto — es el origen. ¿De quién
@@ -1063,124 +1054,10 @@ export const Step1NewPiece: React.FC<Props> = ({
               </div>
 
               {/* ── Story library actions ───────────────────────────────── */}
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={handleOpenPicker}
-                  className="flex items-center gap-1.5 text-[11px] font-[700] text-[#54433e]/50 hover:text-[#ec6d13] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[15px]">
-                    {showPicker ? "expand_less" : "menu_book"}
-                  </span>
-                  {showPicker ? "Cerrar biblioteca" : "Usar historia guardada"}
-                </button>
-              </div>
 
               {/* Save dialog */}
-              {showSaveDialog && (
-                <div
-                  className="mt-3 p-4 rounded-xl space-y-3"
-                  style={{
-                    background: "rgba(236,109,19,0.04)",
-                    border: "1px solid rgba(236,109,19,0.15)",
-                  }}
-                >
-                  <p className="text-[10px] font-[800] uppercase tracking-widest text-[#ec6d13]/80">
-                    Guardar en tu biblioteca de historias
-                  </p>
-                  <input
-                    type="text"
-                    value={saveTitle}
-                    onChange={(e) => setSaveTitle(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && !isSavingStory && handleSaveStory()
-                    }
-                    placeholder="Dale un nombre a esta historia..."
-                    autoFocus
-                    className="w-full border border-[#ec6d13]/20 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:border-[#ec6d13]/50 transition-all"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleSaveStory}
-                      disabled={!saveTitle.trim() || isSavingStory}
-                      className="flex-1 px-4 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      {isSavingStory && (
-                        <span className="material-symbols-outlined text-[13px] animate-spin">
-                          progress_activity
-                        </span>
-                      )}
-                      Guardar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowSaveDialog(false);
-                        setSaveTitle("");
-                      }}
-                      className="px-4 py-2 rounded-lg border border-[#e2d5cf]/50 text-[#54433e]/50 text-[11px] hover:text-[#54433e] transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* Story picker */}
-              {showPicker && (
-                <div
-                  className="mt-3 rounded-xl overflow-hidden"
-                  style={{
-                    border: "1px solid rgba(226,213,207,0.4)",
-                    background: "rgba(247,244,239,0.6)",
-                  }}
-                >
-                  {loadingStories ? (
-                    <div className="flex items-center gap-2 p-4 text-[12px] text-[#54433e]/40">
-                      <span className="material-symbols-outlined text-[15px] animate-spin">
-                        progress_activity
-                      </span>
-                      Cargando historias...
-                    </div>
-                  ) : stories.length === 0 ? (
-                    <div className="p-4 text-center">
-                      <span className="material-symbols-outlined text-[28px] text-[#54433e]/20 block mb-1">
-                        menu_book
-                      </span>
-                      <p className="text-[12px] text-[#54433e]/40">
-                        Aún no tienes historias guardadas.
-                      </p>
-                      <p className="text-[11px] text-[#54433e]/30 mt-0.5">
-                        Escribe una y usa "Guardar para futuros productos".
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-[#e2d5cf]/30 max-h-[280px] overflow-y-auto">
-                      {stories.map((story) => (
-                        <button
-                          key={story.id}
-                          type="button"
-                          onClick={() => handleSelectStory(story)}
-                          className="w-full text-left px-4 py-3 hover:bg-[#ec6d13]/5 transition-colors group"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-[12px] font-[700] text-[#151b2d] group-hover:text-[#ec6d13] transition-colors truncate">
-                                {story.title}
-                              </p>
-                              <p className="text-[11px] text-[#54433e]/50 mt-0.5 leading-snug line-clamp-2">
-                                {story.content}
-                              </p>
-                            </div>
-                            <span className="material-symbols-outlined text-[16px] text-[#54433e]/25 group-hover:text-[#ec6d13] transition-colors shrink-0 mt-0.5">
-                              arrow_forward
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </section>
         </div>
