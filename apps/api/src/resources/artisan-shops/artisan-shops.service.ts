@@ -55,9 +55,7 @@ export class ArtisanShopsService {
     });
 
     if (existingStore) {
-      throw new ConflictException(
-        'El usuario ya tiene un registro en stores',
-      );
+      throw new ConflictException('El usuario ya tiene un registro en stores');
     }
 
     // Usar transacción para crear en ambas tablas de forma atómica
@@ -448,7 +446,10 @@ export class ArtisanShopsService {
    * - Ordenadas por fecha de creación (más recientes primero)
    * @param limit Cantidad máxima de tiendas a retornar (default: 8)
    */
-  async getFeatured(limit: number = 8, agreementId?: string): Promise<ArtisanShop[]> {
+  async getFeatured(
+    limit: number = 8,
+    agreementId?: string,
+  ): Promise<ArtisanShop[]> {
     // Paso 1: Obtener IDs de tiendas que tienen productos aprobados usando query raw
     const shopIdsResult = await this.artisanShopsRepository.query(
       `
