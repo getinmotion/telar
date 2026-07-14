@@ -10,7 +10,7 @@ import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
   getProductsNew,
   getPrimaryImageUrl,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
 import { Footer } from "@/components/Footer";
@@ -323,7 +323,7 @@ export default function TecnicaDetail() {
   const { techniques: allTechniques } = useTaxonomy();
   const { shops } = useArtisanShops();
   const { data: techImages } = useProductImagesByTechnique();
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [loading, setLoading] = useState(true);
 
   const technique = slug ? findTechniqueData(slug) : undefined;
@@ -344,27 +344,19 @@ export default function TecnicaDetail() {
         const res = await getProductsNew({ page: 1, limit: 500 });
         if (cancelled) return;
 
-        if (apiTechnique) {
-          const filtered = res.data.filter((p) => {
-            const primary = p.artisanalIdentity?.primaryTechnique;
-            const secondary = p.artisanalIdentity?.secondaryTechnique;
-            return primary?.id === apiTechnique.id || secondary?.id === apiTechnique.id;
-          });
-          setProducts(filtered);
-        } else {
-          // Fallback: strict normalized equality so "talla" ≠ "tallado".
-          const norm = (s: string) =>
-            s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-          const target = norm(technique?.name || slug?.replace(/-/g, " ") || "");
-          const filtered = target
-            ? res.data.filter((p) => {
-                const primary = norm(p.artisanalIdentity?.primaryTechnique?.name || "");
-                const secondary = norm(p.artisanalIdentity?.secondaryTechnique?.name || "");
-                return primary === target || secondary === target;
-              })
-            : [];
-          setProducts(filtered);
-        }
+        // Filter products by primaryTechnique string matching
+        const norm = (s: string) =>
+          s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        const target = apiTechnique
+          ? norm(apiTechnique.name)
+          : norm(technique?.name || slug?.replace(/-/g, " ") || "");
+        const filtered = target
+          ? res.data.filter((p) => {
+              const primary = norm(p.primaryTechnique || "");
+              return primary === target;
+            })
+          : [];
+        setProducts(filtered);
       } catch {
         // silent
       } finally {

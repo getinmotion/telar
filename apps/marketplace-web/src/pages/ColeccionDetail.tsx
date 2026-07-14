@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/carousel";
 import { ArrowRight, Map, Waypoints, Store } from "lucide-react";
 import {
-  getProductsNew,
+  getProductsNewLegacy,
   getProductNewById,
   getPrimaryImageUrl,
   type ProductNewCore,
@@ -333,7 +333,7 @@ function LegacyColeccionDetail() {
   // Fetch all products, then filter by curatorial category
   useEffect(() => {
     setLoadingProducts(true);
-    getProductsNew({ page: 1, limit: 500 })
+    getProductsNewLegacy({ page: 1, limit: 500 })
       .then((res) => {
         const data = Array.isArray(res) ? res : res.data ?? [];
         setProducts(data as ProductNewCore[]);

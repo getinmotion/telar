@@ -14,7 +14,7 @@ import {
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import type { CategoryWithChildren } from "@/services/taxonomy.actions";
@@ -50,9 +50,9 @@ interface CategoriesMegaMenuProps {
 export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
   const { categoryHierarchy, loading } = useTaxonomy();
   const [activeCategory, setActiveCategory] = useState<CategoryWithChildren | null>(null);
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [allProducts, setAllProducts] = useState<ProductNewCore[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductFeatured[]>([]);
 
   const categories = categoryHierarchy.filter(
     (c) => c.isActive && !EXCLUDED_SLUGS.includes(c.slug)
@@ -207,7 +207,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                 const imageUrl = getPrimaryImageUrl(product);
                 const price = getProductPrice(product);
                 const technique = getTechniqueName(product);
-                const department = product.artisanShop?.department;
+                const department = product.department;
 
                 return (
                   <Link
@@ -233,7 +233,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                           {product.name}
                         </h4>
                         <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/40 italic">
-                          {product.artisanShop?.shopName}
+                          {product.storeName}
                         </p>
                         <div className="flex gap-1.5 items-center">
                           {technique && (

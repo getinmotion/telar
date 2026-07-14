@@ -15,7 +15,7 @@ import {
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { useCollections } from "@/hooks/useCollections";
@@ -131,7 +131,7 @@ const SEASONAL = [
 
 export default function Colecciones() {
   const { curatorialCategories, techniques, loading } = useTaxonomy();
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const { data: cmsCollectionsRes } = useCollections({ limit: 50 });
   const cmsCollections = cmsCollectionsRes?.data ?? [];
   const { data: cmsPageSections } = useCmsSections('colecciones');
@@ -154,7 +154,7 @@ export default function Colecciones() {
     getProductsNew({ page: 1, limit: 200 })
       .then((res) => {
         const data = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(data as ProductNewCore[]);
+        setProducts(data as ProductFeatured[]);
       })
       .catch(() => {});
   }, []);
@@ -165,9 +165,9 @@ export default function Colecciones() {
       const slug = nameToSlug(cat.name);
       const editorial = getEditorial(slug);
       // Count products with this curatorial category
-      const matchingProducts = products.filter(
-        (p) => p.artisanalIdentity?.curatorialCategory?.id === cat.id,
-      );
+      // Note: curatorialCategory is not available in ProductFeatured;
+      // this legacy fallback section only renders when CMS collections are empty.
+      const matchingProducts: ProductFeatured[] = [];
       return {
         ...cat,
         slug,

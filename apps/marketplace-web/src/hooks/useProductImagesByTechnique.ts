@@ -32,13 +32,11 @@ export function useProductImagesByTechnique() {
       const map: Record<string, string> = {};
 
       for (const p of res.data) {
-        const techName = p.artisanalIdentity?.primaryTechnique?.name;
+        const techName = p.primaryTechnique;
         if (!techName || map[techName]) continue; // first image per technique wins
 
-        const media =
-          p.media?.find((m) => m.isPrimary) || p.media?.[0];
-        if (media?.mediaUrl) {
-          map[techName] = sanitizeImageUrl(media.mediaUrl);
+        if (p.imageUrl) {
+          map[techName] = sanitizeImageUrl(p.imageUrl);
         }
       }
       return map;
