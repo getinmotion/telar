@@ -15,7 +15,7 @@ import {
   getProductPrice,
   getCraftName,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
@@ -40,7 +40,7 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
   const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
   const dailySeed = useMemo(() => {
@@ -53,7 +53,7 @@ const Index = () => {
     getProductsNew({ page: 1, limit: 50 })
       .then((res) => {
         const data = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(data as ProductNewCore[]);
+        setProducts(data as ProductFeatured[]);
       })
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false));
@@ -79,9 +79,9 @@ const Index = () => {
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
-    const picked: ProductNewCore[] = [];
+    const picked: ProductFeatured[] = [];
     for (const p of shuffled) {
-      const store = p.artisanShop?.shopName ?? "";
+      const store = p.storeName ?? "";
       if (!seen.has(store)) {
         picked.push(p);
         seen.add(store);
@@ -204,8 +204,8 @@ const Index = () => {
               : featuredProducts.map((product, idx) => {
                   const imageUrl = getPrimaryImageUrl(product);
                   const price = getProductPrice(product);
-                  const shopName = product.artisanShop?.shopName;
-                  const department = product.artisanShop?.department;
+                  const shopName = product.storeName;
+                  const department = product.department;
                   const technique = getTechniqueName(product);
 
                   return (
