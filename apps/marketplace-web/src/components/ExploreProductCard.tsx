@@ -8,6 +8,9 @@ import {
   getCraftName,
   getTechniqueName,
   getProductStock,
+  getMaterialNames,
+  type AnyProduct,
+  type ProductFeatured,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 
@@ -21,7 +24,7 @@ export function ExploreProductCard({
   product,
   className = "",
 }: {
-  product: ProductNewCore;
+  product: AnyProduct;
   className?: string;
 }) {
   const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
@@ -31,12 +34,11 @@ export function ExploreProductCard({
   const craft = getCraftName(product);
   const technique = getTechniqueName(product);
   const stock = getProductStock(product);
-  const shopName = product.artisanShop?.shopName;
-  const shopSlug = product.artisanShop?.shopSlug;
-  const department = product.artisanShop?.department;
-  const materialNames = (product.materials ?? [])
-    .map((m) => m.material?.name)
-    .filter(Boolean);
+  const isFeatured = 'storeName' in product;
+  const shopName = isFeatured ? (product as ProductFeatured).storeName : (product as ProductNewCore).artisanShop?.shopName;
+  const shopSlug = isFeatured ? (product as ProductFeatured).storeSlug : (product as ProductNewCore).artisanShop?.shopSlug;
+  const department = isFeatured ? (product as ProductFeatured).department : (product as ProductNewCore).artisanShop?.department;
+  const materialNames = getMaterialNames(product);
   const primaryMaterial = materialNames[0];
 
   const isNew =

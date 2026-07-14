@@ -73,7 +73,9 @@ export class ProductsNewService {
    *
    * Permite creación incremental: el frontend envía solo lo que tiene en cada step
    */
-  async create(createProductsNewDto: CreateProductsNewDto): Promise<ProductCore> {
+  async create(
+    createProductsNewDto: CreateProductsNewDto,
+  ): Promise<ProductCore> {
     const {
       productId,
       storeId,
@@ -292,7 +294,10 @@ export class ProductsNewService {
    * Replace Media (OneToMany)
    * Elimina existentes y crea nuevos
    */
-  private async replaceMedia(productId: string, mediaList: any[]): Promise<void> {
+  private async replaceMedia(
+    productId: string,
+    mediaList: any[],
+  ): Promise<void> {
     // Eliminar medias existentes
     const existingMedia = await this.productMediaRepository.find({
       where: { productId },
@@ -318,7 +323,10 @@ export class ProductsNewService {
   /**
    * Replace Badges (OneToMany)
    */
-  private async replaceBadges(productId: string, badgesList: any[]): Promise<void> {
+  private async replaceBadges(
+    productId: string,
+    badgesList: any[],
+  ): Promise<void> {
     const existingBadges = await this.badgesRepository.find({
       where: { productId },
     });
@@ -387,14 +395,21 @@ export class ProductsNewService {
       let sku = variantDto.sku;
       if (!sku) {
         try {
-          const generated = await this.skuGeneratorService.generateForProduct(productId);
+          const generated =
+            await this.skuGeneratorService.generateForProduct(productId);
           sku = generated.sku;
         } catch (err) {
-          this.logger.warn(`SKU generation failed for product ${productId}: ${err.message}`);
+          this.logger.warn(
+            `SKU generation failed for product ${productId}: ${err.message}`,
+          );
         }
       }
       newVariants.push(
-        this.variantsRepository.create({ ...variantDto, sku, productId } as any),
+        this.variantsRepository.create({
+          ...variantDto,
+          sku,
+          productId,
+        } as any),
       );
     }
 
@@ -500,33 +515,46 @@ export class ProductsNewService {
     return products;
   }
 
-    /**
+  /**
    * Obtener productos por tienda (artisan_shop)
    * @param storeId - ID del artisan_shop (no confundir con la nueva tabla stores)
    */
-  async findByStoreIdForMarketplace(storeId: string): Promise<ProductCore[]> {
-    const products = await this.productCoreRepository.find({
-      where: { storeId, deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
-      relations: [
-        'artisanShop',
-        'category',
-        'artisanalIdentity',
-        'artisanalIdentity.primaryCraft',
-        'artisanalIdentity.primaryTechnique',
-        'artisanalIdentity.secondaryTechnique',
-        'artisanalIdentity.curatorialCategory',
-        'physicalSpecs',
-        'logistics',
-        'production',
-        'media',
-        'badges',
-        'badges.badge',
-        'materials',
-        'materials.material',
-        'variants',
-      ],
-      order: { createdAt: 'DESC' },
-    });
+  async findByStoreIdForMarketplace(
+    storeId: string,
+    agreementId?: string,
+  ): Promise<ProductCore[]> {
+    const queryBuilder = this.productCoreRepository
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoinAndSelect('pc.category', 'category')
+      .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
+      .leftJoinAndSelect('identity.primaryCraft', 'craft')
+      .leftJoinAndSelect('identity.primaryTechnique', 'primaryTech')
+      .leftJoinAndSelect('identity.secondaryTechnique', 'secondaryTech')
+      .leftJoinAndSelect('identity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect('pc.physicalSpecs', 'physicalSpecs')
+      .leftJoinAndSelect('pc.logistics', 'logistics')
+      .leftJoinAndSelect('pc.production', 'production')
+      .leftJoinAndSelect('pc.media', 'media')
+      .leftJoinAndSelect('pc.badges', 'badges')
+      .leftJoinAndSelect('badges.badge', 'badge')
+      .leftJoinAndSelect('pc.materials', 'materials')
+      .leftJoinAndSelect('materials.material', 'material')
+      .leftJoinAndSelect('pc.variants', 'variants')
+      .where('pc.storeId = :storeId', { storeId })
+      .andWhere('pc.deletedAt IS NULL')
+      .andWhere('pc.status IN (:...statuses)', { statuses: PUBLIC_STATUSES });
+
+    if (agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId },
+      );
+    }
+
+    const products = await queryBuilder
+      .orderBy('pc.createdAt', 'DESC')
+      .getMany();
 
     return products;
   }
@@ -547,9 +575,18 @@ export class ProductsNewService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
       .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
-      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect(
+        'artisanalIdentity.primaryTechnique',
+        'primaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.secondaryTechnique',
+        'secondaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.curatorialCategory',
+        'curatorialCategory',
+      )
       .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
       .leftJoinAndSelect('product.logistics', 'logistics')
       .leftJoinAndSelect('product.production', 'production')
@@ -680,9 +717,18 @@ export class ProductsNewService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
       .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
-      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect(
+        'artisanalIdentity.primaryTechnique',
+        'primaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.secondaryTechnique',
+        'secondaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.curatorialCategory',
+        'curatorialCategory',
+      )
       .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
       .leftJoinAndSelect('product.logistics', 'logistics')
       .leftJoinAndSelect('product.production', 'production')
@@ -824,7 +870,9 @@ export class ProductsNewService {
       });
 
       if (!product || product.status === 'draft') {
-        this.logger.log(`Embedding no generado: producto en draft o no encontrado (${productId})`);
+        this.logger.log(
+          `Embedding no generado: producto en draft o no encontrado (${productId})`,
+        );
         return;
       }
 
@@ -883,7 +931,9 @@ export class ProductsNewService {
       );
 
       if (!result || result.length === 0) {
-        this.logger.warn(`No se pudo generar texto semántico para producto ${productId}`);
+        this.logger.warn(
+          `No se pudo generar texto semántico para producto ${productId}`,
+        );
         return;
       }
 
@@ -891,8 +941,14 @@ export class ProductsNewService {
       const semanticText = data.full_semantic_text;
 
       // 3. Verificar si hay datos suficientes (al menos nombre + algún otro campo)
-      if (!semanticText || semanticText.trim() === '' || semanticText === data.product_name) {
-        this.logger.log(`Embedding no generado: datos insuficientes (${productId})`);
+      if (
+        !semanticText ||
+        semanticText.trim() === '' ||
+        semanticText === data.product_name
+      ) {
+        this.logger.log(
+          `Embedding no generado: datos insuficientes (${productId})`,
+        );
         return;
       }
 
@@ -904,7 +960,9 @@ export class ProductsNewService {
       }
 
       const embeddingServiceUrl = `${agentUrl}/search/embeddings/save`;
-      this.logger.log(`Enviando texto semántico al servicio de embeddings: ${embeddingServiceUrl}`);
+      this.logger.log(
+        `Enviando texto semántico al servicio de embeddings: ${embeddingServiceUrl}`,
+      );
 
       const response = await firstValueFrom(
         this.httpService.post(embeddingServiceUrl, {
@@ -914,7 +972,9 @@ export class ProductsNewService {
       );
 
       if (response.data) {
-        this.logger.log(`✅ Embedding generado y guardado para producto ${productId}`);
+        this.logger.log(
+          `✅ Embedding generado y guardado para producto ${productId}`,
+        );
       }
     } catch (error: any) {
       this.logger.error(
@@ -932,6 +992,7 @@ export class ProductsNewService {
    * Filtra solo productos aprobados de tiendas publicadas y aprobadas para marketplace
    */
   async getMarketplaceProducts(query: {
+    agreementId?: string;
     page?: number;
     limit?: number;
     categoryId?: string;
@@ -944,7 +1005,15 @@ export class ProductsNewService {
     page: number;
     limit: number;
   }> {
-    const { page = 1, limit = 20, categoryId, featured, sortBy = 'createdAt', order = 'DESC' } = query;
+    const {
+      agreementId,
+      page = 1,
+      limit = 20,
+      categoryId,
+      featured,
+      sortBy = 'createdAt',
+      order = 'DESC',
+    } = query;
 
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
@@ -958,7 +1027,11 @@ export class ProductsNewService {
       .leftJoinAndSelect('pc.media', 'media')
       .leftJoinAndSelect('pc.materials', 'materials')
       .leftJoinAndSelect('materials.material', 'material')
-      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .leftJoinAndSelect(
+        'pc.variants',
+        'variants',
+        'variants.isActive = true AND variants.deletedAt IS NULL',
+      )
       // Filtros automáticos (solo productos aprobados de tiendas publicadas)
       .where('pc.status IN (:...statuses)', {
         statuses: ['published', 'approved'],
@@ -966,8 +1039,15 @@ export class ProductsNewService {
       .andWhere('pc.deletedAt IS NULL')
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
-      })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+      });
+
+    // Filtro por agreementId
+    if (agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId },
+      );
+    }
 
     // Filtros opcionales
     if (categoryId) {
@@ -996,10 +1076,14 @@ export class ProductsNewService {
     const data = rawResults.map((product: any) => {
       // Calcular precio y stock desde las variantes
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const totalStock = variants.reduce(
+        (sum: number, v: any) => sum + (v.stockQuantity || 0),
+        0,
+      );
       const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
-
+      const basePrice = firstVariant
+        ? Number(firstVariant.basePriceMinor) / 100
+        : 0;
 
       return {
         id: product.id,
@@ -1058,7 +1142,8 @@ export class ProductsNewService {
         bankDataStatus: product.artisanShop?.bankDataStatus,
 
         // Cálculo de si se puede comprar
-        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+        canPurchase:
+          product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
       };
     });
 
@@ -1073,12 +1158,15 @@ export class ProductsNewService {
   /**
    * Obtener un producto individual para marketplace
    */
-  async getMarketplaceProductById(id: string): Promise<any> {
+  async getMarketplaceProductById(
+    id: string,
+    agreementId?: string,
+  ): Promise<any> {
     if (!id) {
       throw new BadRequestException('El ID es requerido');
     }
 
-    const product = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
       .leftJoinAndSelect('pc.category', 'category')
@@ -1094,7 +1182,11 @@ export class ProductsNewService {
       .leftJoinAndSelect('materials.material', 'material')
       .leftJoinAndSelect('pc.badges', 'badges')
       .leftJoinAndSelect('badges.badge', 'badge')
-      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .leftJoinAndSelect(
+        'pc.variants',
+        'variants',
+        'variants.isActive = true AND variants.deletedAt IS NULL',
+      )
       .where('pc.id = :id', { id })
       .andWhere('pc.status IN (:...statuses)', {
         statuses: ['published', 'approved'],
@@ -1103,8 +1195,16 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
-      .getOne();
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId },
+      );
+    }
+
+    const product = await queryBuilder.getOne();
 
     if (!product) {
       throw new NotFoundException(
@@ -1117,9 +1217,14 @@ export class ProductsNewService {
 
     // Calcular precio y stock desde las variantes
     const variants = (product as any).variants || [];
-    const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+    const totalStock = variants.reduce(
+      (sum: number, v: any) => sum + (v.stockQuantity || 0),
+      0,
+    );
     const firstVariant = variants[0];
-    const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+    const basePrice = firstVariant
+      ? Number(firstVariant.basePriceMinor) / 100
+      : 0;
 
     return {
       id: product.id,
@@ -1145,7 +1250,8 @@ export class ProductsNewService {
         pieceType: product.artisanalIdentity?.pieceType,
         style: product.artisanalIdentity?.style,
         processType: product.artisanalIdentity?.processType,
-        estimatedElaborationTime: product.artisanalIdentity?.estimatedElaborationTime,
+        estimatedElaborationTime:
+          product.artisanalIdentity?.estimatedElaborationTime,
         isCollaboration: product.artisanalIdentity?.isCollaboration,
       },
 
@@ -1181,18 +1287,20 @@ export class ProductsNewService {
       images: product.media?.map((m: any) => m.mediaUrl) || [],
 
       // Materiales
-      materials: product.materials?.map((m: any) => ({
-        id: m.material?.id,
-        name: m.material?.name,
-        percentage: m.percentage,
-      })) || [],
+      materials:
+        product.materials?.map((m: any) => ({
+          id: m.material?.id,
+          name: m.material?.name,
+          percentage: m.percentage,
+        })) || [],
 
       // Badges
-      badges: product.badges?.map((b: any) => ({
-        id: b.badge?.id,
-        name: b.badge?.name,
-        icon: b.badge?.icon,
-      })) || [],
+      badges:
+        product.badges?.map((b: any) => ({
+          id: b.badge?.id,
+          name: b.badge?.name,
+          icon: b.badge?.icon,
+        })) || [],
 
       // Tienda
       shop: {
@@ -1209,15 +1317,17 @@ export class ProductsNewService {
         bankDataStatus: product.artisanShop?.bankDataStatus,
       },
 
-      canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+      canPurchase:
+        product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
     };
   }
 
   /**
    * Obtener productos destacados para marketplace
    */
-  async getMarketplaceFeaturedProducts(): Promise<any[]> {
+  async getMarketplaceFeaturedProducts(agreementId?: string): Promise<any[]> {
     const result = await this.getMarketplaceProducts({
+      agreementId,
       featured: true,
       limit: 20,
     });
@@ -1228,12 +1338,15 @@ export class ProductsNewService {
   /**
    * Obtener productos de una tienda para marketplace
    */
-  async getMarketplaceProductsByShop(shopId: string): Promise<any[]> {
+  async getMarketplaceProductsByShop(
+    shopId: string,
+    agreementId?: string,
+  ): Promise<any[]> {
     if (!shopId) {
       throw new BadRequestException('El shopId es requerido');
     }
 
-    const products = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
       .leftJoinAndSelect('pc.category', 'category')
@@ -1244,7 +1357,11 @@ export class ProductsNewService {
       .leftJoinAndSelect('pc.media', 'media')
       .leftJoinAndSelect('pc.materials', 'materials')
       .leftJoinAndSelect('materials.material', 'material')
-      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .leftJoinAndSelect(
+        'pc.variants',
+        'variants',
+        'variants.isActive = true AND variants.deletedAt IS NULL',
+      )
       .where('pc.artisanShopId = :shopId', { shopId })
       .andWhere('pc.status IN (:...statuses)', {
         statuses: ['approved_with_edits', 'approved'],
@@ -1253,7 +1370,16 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId },
+      );
+    }
+
+    const products = await queryBuilder
       .orderBy('pc.createdAt', 'DESC')
       .getMany();
 
@@ -1262,9 +1388,14 @@ export class ProductsNewService {
 
     return products.map((product: any) => {
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const totalStock = variants.reduce(
+        (sum: number, v: any) => sum + (v.stockQuantity || 0),
+        0,
+      );
       const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+      const basePrice = firstVariant
+        ? Number(firstVariant.basePriceMinor) / 100
+        : 0;
 
       return {
         id: product.id,
@@ -1291,7 +1422,8 @@ export class ProductsNewService {
 
         shopId: product.artisanShop?.id,
         storeName: product.artisanShop?.shopName,
-        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+        canPurchase:
+          product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
       };
     });
   }
@@ -1299,12 +1431,15 @@ export class ProductsNewService {
   /**
    * Obtener productos de un usuario para marketplace
    */
-  async getMarketplaceProductsByUser(userId: string): Promise<any[]> {
+  async getMarketplaceProductsByUser(
+    userId: string,
+    agreementId?: string,
+  ): Promise<any[]> {
     if (!userId) {
       throw new BadRequestException('El userId es requerido');
     }
 
-    const products = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
       .leftJoinAndSelect('pc.category', 'category')
@@ -1315,7 +1450,11 @@ export class ProductsNewService {
       .leftJoinAndSelect('pc.media', 'media')
       .leftJoinAndSelect('pc.materials', 'materials')
       .leftJoinAndSelect('materials.material', 'material')
-      .leftJoinAndSelect('pc.variants', 'variants', 'variants.isActive = true AND variants.deletedAt IS NULL')
+      .leftJoinAndSelect(
+        'pc.variants',
+        'variants',
+        'variants.isActive = true AND variants.deletedAt IS NULL',
+      )
       .where('shop.userId = :userId', { userId })
       .andWhere('pc.status IN (:...statuses)', {
         statuses: ['published', 'approved'],
@@ -1324,7 +1463,16 @@ export class ProductsNewService {
       .andWhere('shop.publishStatus = :publishStatus', {
         publishStatus: 'published',
       })
-      .andWhere('shop.marketplaceApproved = :approved', { approved: true })
+      .andWhere('shop.marketplaceApproved = :approved', { approved: true });
+
+    if (agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId },
+      );
+    }
+
+    const products = await queryBuilder
       .orderBy('pc.createdAt', 'DESC')
       .getMany();
 
@@ -1333,9 +1481,14 @@ export class ProductsNewService {
 
     return products.map((product: any) => {
       const variants = product.variants || [];
-      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stockQuantity || 0), 0);
+      const totalStock = variants.reduce(
+        (sum: number, v: any) => sum + (v.stockQuantity || 0),
+        0,
+      );
       const firstVariant = variants[0];
-      const basePrice = firstVariant ? Number(firstVariant.basePriceMinor) / 100 : 0;
+      const basePrice = firstVariant
+        ? Number(firstVariant.basePriceMinor) / 100
+        : 0;
 
       return {
         id: product.id,
@@ -1362,7 +1515,8 @@ export class ProductsNewService {
 
         shopId: product.artisanShop?.id,
         storeName: product.artisanShop?.shopName,
-        canPurchase: product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+        canPurchase:
+          product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
       };
     });
   }
@@ -1392,9 +1546,18 @@ export class ProductsNewService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.artisanalIdentity', 'artisanalIdentity')
       .leftJoinAndSelect('artisanalIdentity.primaryCraft', 'primaryCraft')
-      .leftJoinAndSelect('artisanalIdentity.primaryTechnique', 'primaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.secondaryTechnique', 'secondaryTechnique')
-      .leftJoinAndSelect('artisanalIdentity.curatorialCategory', 'curatorialCategory')
+      .leftJoinAndSelect(
+        'artisanalIdentity.primaryTechnique',
+        'primaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.secondaryTechnique',
+        'secondaryTechnique',
+      )
+      .leftJoinAndSelect(
+        'artisanalIdentity.curatorialCategory',
+        'curatorialCategory',
+      )
       .leftJoinAndSelect('product.physicalSpecs', 'physicalSpecs')
       .leftJoinAndSelect('product.logistics', 'logistics')
       .leftJoinAndSelect('product.production', 'production')

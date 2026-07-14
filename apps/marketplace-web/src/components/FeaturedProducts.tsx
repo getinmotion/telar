@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
 import {
   getProductsNew,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 
 // Seeded random for consistent shuffle during the day
@@ -72,7 +72,7 @@ const prioritizedDistributedShuffle = <
 
 export const FeaturedProducts = () => {
   const navigate = useNavigate();
-  const [displayProducts, setDisplayProducts] = useState<ProductNewCore[]>([]);
+  const [displayProducts, setDisplayProducts] = useState<ProductFeatured[]>([]);
   const [loading, setLoading] = useState(true);
   const [randomSeed] = useState(() => Math.floor(Date.now() / 86400000));
 
@@ -87,10 +87,7 @@ export const FeaturedProducts = () => {
       const products = response.data;
 
       const prioritizedProducts = prioritizedDistributedShuffle(
-        products.map((p) => ({
-          ...p,
-          storeName: p.artisanShop?.shopName,
-        })),
+        products,
         randomSeed,
       );
 
