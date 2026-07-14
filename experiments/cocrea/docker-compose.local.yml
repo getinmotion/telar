@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # Marketplace Web (React) — cocrea.telar.co → :3002
+  # Local build version
+  # ========================================
+  marketplace-web:
+    build:
+      context: ../../
+      dockerfile: experiments/cocrea/Dockerfile.marketplace-prebuilt
+    container_name: cocrea-marketplace
+    restart: unless-stopped
+    ports:
+      - "3002:80"
+    networks:
+      - cocrea-network
+
+networks:
+  cocrea-network:
+    driver: bridge
