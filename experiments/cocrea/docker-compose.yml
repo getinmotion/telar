@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ========================================
   # Marketplace Web (React) — cocrea.telar.co → :3002
