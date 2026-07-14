@@ -90,6 +90,9 @@ export interface ArtisanShopsFilters {
   // Ordenamiento
   sortBy?: 'created_at' | 'shop_name' | 'updated_at';
   order?: 'ASC' | 'DESC';
+
+  // Agreement
+  agreementId?: string;
 }
 
 /**

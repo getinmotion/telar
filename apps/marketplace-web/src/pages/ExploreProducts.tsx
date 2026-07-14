@@ -6,7 +6,7 @@ import { semanticSearch } from "@/lib/semanticSearchClient";
 import {
   getProductsNew,
   getProductPrice,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { Footer } from "@/components/Footer";
@@ -29,10 +29,9 @@ const PAGE_SIZE = 24;
 interface ExploreFilters {
   categorySlug: string | null;
   subcategorySlug: string | null;
-  techniqueId: string | null;
-  materialId: string | null;
-  craftId: string | null;
-  curatorialId: string | null;
+  techniqueName: string | null;
+  materialName: string | null;
+  craftName: string | null;
   priceRange: [number, number];
   sortBy: "newest" | "price_asc" | "price_desc" | "name";
 }
@@ -40,10 +39,9 @@ interface ExploreFilters {
 const INITIAL_FILTERS: ExploreFilters = {
   categorySlug: null,
   subcategorySlug: null,
-  techniqueId: null,
-  materialId: null,
-  craftId: null,
-  curatorialId: null,
+  techniqueName: null,
+  materialName: null,
+  craftName: null,
   priceRange: [0, 0],
   sortBy: "newest",
 };
@@ -58,7 +56,7 @@ const ExploreProducts = () => {
     loading: taxonomyLoading,
   } = useTaxonomy();
 
-  const [allProducts, setAllProducts] = useState<ProductNewCore[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductFeatured[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalFromApi, setTotalFromApi] = useState(0);
   const [page, setPage] = useState(1);
@@ -164,9 +162,9 @@ const ExploreProducts = () => {
       // Always fetch all products — category filtering is done client-side
       // because the API only supports single categoryId, not parent+children
       const res = await getProductsNew({ page: 1, limit: 500 });
-      let products: ProductNewCore[] = [];
+      let products: ProductFeatured[] = [];
       if (Array.isArray(res)) {
-        products = res as ProductNewCore[];
+        products = res as ProductFeatured[];
       } else {
         products = res.data ?? [];
       }
@@ -199,79 +197,56 @@ const ExploreProducts = () => {
   const productsExcluding = useCallback(
     (exclude: keyof ExploreFilters) => {
       let result = allProducts;
-      if (exclude !== "techniqueId" && filters.techniqueId) {
+      if (exclude !== "techniqueName" && filters.techniqueName) {
         result = result.filter(
-          (p) =>
-            p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+          (p) => p.primaryTechnique === filters.techniqueName,
         );
       }
-      if (exclude !== "craftId" && filters.craftId) {
+      if (exclude !== "craftName" && filters.craftName) {
         result = result.filter(
-          (p) => p.artisanalIdentity?.primaryCraft?.id === filters.craftId,
+          (p) => p.craftName === filters.craftName,
         );
       }
-      if (exclude !== "materialId" && filters.materialId) {
+      if (exclude !== "materialName" && filters.materialName) {
         result = result.filter((p) =>
-          (p.materials ?? []).some(
-            (m) => m.material?.id === filters.materialId,
-          ),
-        );
-      }
-      if (exclude !== "curatorialId" && filters.curatorialId) {
-        result = result.filter(
-          (p) =>
-            p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
+          (p.materials ?? []).includes(filters.materialName!),
         );
       }
       return result;
     },
-    [allProducts, filters.techniqueId, filters.craftId, filters.materialId, filters.curatorialId],
+    [allProducts, filters.techniqueName, filters.craftName, filters.materialName],
   );
 
   const availableTechniques = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("techniqueId").forEach((p) => {
-      const t = p.artisanalIdentity?.primaryTechnique;
-      if (t?.id && t.name) map.set(t.id, t.name);
+    const names = new Set<string>();
+    productsExcluding("techniqueName").forEach((p) => {
+      if (p.primaryTechnique) names.add(p.primaryTechnique);
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   const availableCrafts = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("craftId").forEach((p) => {
-      const c = p.artisanalIdentity?.primaryCraft;
-      if (c?.id && c.name) map.set(c.id, c.name);
+    const names = new Set<string>();
+    productsExcluding("craftName").forEach((p) => {
+      if (p.craftName) names.add(p.craftName);
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   const availableMaterials = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("materialId").forEach((p) => {
-      (p.materials ?? []).forEach((ml) => {
-        if (ml.material?.id && ml.material.name)
-          map.set(ml.material.id, ml.material.name);
+    const names = new Set<string>();
+    productsExcluding("materialName").forEach((p) => {
+      (p.materials ?? []).forEach((m) => {
+        if (m) names.add(m);
       });
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [productsExcluding]);
-
-  const availableCuratorial = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("curatorialId").forEach((p) => {
-      const cc = p.artisanalIdentity?.curatorialCategory;
-      if (cc?.id && cc.name) map.set(cc.id, cc.name);
-    });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   // ── Dynamic price range from loaded products ──
@@ -322,7 +297,7 @@ const ExploreProducts = () => {
       // Mapear resultados semánticos a productos, MANTENIENDO EL ORDEN de relevancia
       result = semanticResults
         .map(sr => productMap.get(sr.id))
-        .filter((p): p is ProductNewCore => p !== undefined);
+        .filter((p): p is ProductFeatured => p !== undefined);
 
       console.log('[ExploreProducts] Usando orden de búsqueda semántica:', result.length, 'productos');
     } else if (searchQuery && searchQuery.trim().length > 0) {
@@ -330,11 +305,11 @@ const ExploreProducts = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter((p) => {
         const productName = p.name?.toLowerCase() || "";
-        const shopName = p.artisanShop?.shopName?.toLowerCase() || "";
-        const technique = p.artisanalIdentity?.primaryTechnique?.name?.toLowerCase() || "";
-        const craft = p.artisanalIdentity?.primaryCraft?.name?.toLowerCase() || "";
-        const description = p.description?.toLowerCase() || "";
-        const department = p.artisanShop?.department?.toLowerCase() || "";
+        const shopName = p.storeName?.toLowerCase() || "";
+        const technique = p.primaryTechnique?.toLowerCase() || "";
+        const craft = p.craftName?.toLowerCase() || "";
+        const description = p.shortDescription?.toLowerCase() || "";
+        const department = p.department?.toLowerCase() || "";
 
         return (
           productName.includes(query) ||
@@ -347,28 +322,19 @@ const ExploreProducts = () => {
       });
     }
 
-    if (filters.techniqueId) {
+    if (filters.techniqueName) {
       result = result.filter(
-        (p) =>
-          p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+        (p) => p.primaryTechnique === filters.techniqueName,
       );
     }
-    if (filters.materialId) {
+    if (filters.materialName) {
       result = result.filter((p) =>
-        (p.materials ?? []).some(
-          (m) => m.material?.id === filters.materialId,
-        ),
+        (p.materials ?? []).includes(filters.materialName!),
       );
     }
-    if (filters.craftId) {
+    if (filters.craftName) {
       result = result.filter(
-        (p) => p.artisanalIdentity?.primaryCraft?.id === filters.craftId,
-      );
-    }
-    if (filters.curatorialId) {
-      result = result.filter(
-        (p) =>
-          p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
+        (p) => p.craftName === filters.craftName,
       );
     }
     // Price filter
@@ -428,10 +394,9 @@ const ExploreProducts = () => {
   }, [
     filters.categorySlug,
     filters.subcategorySlug,
-    filters.techniqueId,
-    filters.materialId,
-    filters.craftId,
-    filters.curatorialId,
+    filters.techniqueName,
+    filters.materialName,
+    filters.craftName,
     filters.priceRange[1],
     filters.sortBy,
     searchQuery,
@@ -441,10 +406,9 @@ const ExploreProducts = () => {
   const activeFilterCount = [
     filters.categorySlug,
     filters.subcategorySlug,
-    filters.techniqueId,
-    filters.materialId,
-    filters.craftId,
-    filters.curatorialId,
+    filters.techniqueName,
+    filters.materialName,
+    filters.craftName,
     filters.priceRange[1] > 0 && filters.priceRange[1] < priceExtent.max
       ? "price"
       : null,
@@ -466,10 +430,9 @@ const ExploreProducts = () => {
       ...(key === "categorySlug"
         ? {
             subcategorySlug: null,
-            techniqueId: null,
-            materialId: null,
-            craftId: null,
-            curatorialId: null,
+            techniqueName: null,
+            materialName: null,
+            craftName: null,
             priceRange: [0, 0] as [number, number],
           }
         : {}),
@@ -516,14 +479,14 @@ const ExploreProducts = () => {
               {availableCrafts.map((c) => (
                 <li
                   key={c.id}
-                  onClick={() => updateFilter("craftId", c.id)}
+                  onClick={() => updateFilter("craftName", c.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.craftId === c.id
+                    filters.craftName === c.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.craftId === c.id && (
+                  {filters.craftName === c.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {c.name}
@@ -542,14 +505,14 @@ const ExploreProducts = () => {
               {availableTechniques.map((t) => (
                 <li
                   key={t.id}
-                  onClick={() => updateFilter("techniqueId", t.id)}
+                  onClick={() => updateFilter("techniqueName", t.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.techniqueId === t.id
+                    filters.techniqueName === t.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.techniqueId === t.id && (
+                  {filters.techniqueName === t.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {t.name}
@@ -568,41 +531,17 @@ const ExploreProducts = () => {
               {availableMaterials.map((m) => (
                 <li
                   key={m.id}
-                  onClick={() => updateFilter("materialId", m.id)}
+                  onClick={() => updateFilter("materialName", m.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.materialId === m.id
+                    filters.materialName === m.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.materialId === m.id && (
+                  {filters.materialName === m.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {m.name}
-                </li>
-              ))}
-            </ul>
-          </FilterSection>
-        )}
-
-        {/* Colección curatorial */}
-        {availableCuratorial.length > 0 && (
-          <FilterSection title="Colección">
-            <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
-              {availableCuratorial.map((cc) => (
-                <li
-                  key={cc.id}
-                  onClick={() => updateFilter("curatorialId", cc.id)}
-                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.curatorialId === cc.id
-                      ? "font-bold text-charcoal"
-                      : ""
-                  }`}
-                >
-                  {filters.curatorialId === cc.id && (
-                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                  )}
-                  {cc.name}
                 </li>
               ))}
             </ul>
@@ -848,49 +787,26 @@ const ExploreProducts = () => {
                     }
                   />
                 )}
-                {filters.techniqueId && (
+                {filters.techniqueName && (
                   <FilterChip
-                    label={
-                      availableTechniques.find(
-                        (t) => t.id === filters.techniqueId,
-                      )?.name ?? ""
-                    }
+                    label={filters.techniqueName}
                     onRemove={() =>
-                      updateFilter("techniqueId", null as any)
+                      updateFilter("techniqueName", null as any)
                     }
                   />
                 )}
-                {filters.materialId && (
+                {filters.materialName && (
                   <FilterChip
-                    label={
-                      availableMaterials.find(
-                        (m) => m.id === filters.materialId,
-                      )?.name ?? ""
-                    }
+                    label={filters.materialName}
                     onRemove={() =>
-                      updateFilter("materialId", null as any)
+                      updateFilter("materialName", null as any)
                     }
                   />
                 )}
-                {filters.craftId && (
+                {filters.craftName && (
                   <FilterChip
-                    label={
-                      availableCrafts.find((c) => c.id === filters.craftId)
-                        ?.name ?? ""
-                    }
-                    onRemove={() => updateFilter("craftId", null as any)}
-                  />
-                )}
-                {filters.curatorialId && (
-                  <FilterChip
-                    label={
-                      availableCuratorial.find(
-                        (c) => c.id === filters.curatorialId,
-                      )?.name ?? ""
-                    }
-                    onRemove={() =>
-                      updateFilter("curatorialId", null as any)
-                    }
+                    label={filters.craftName}
+                    onRemove={() => updateFilter("craftName", null as any)}
                   />
                 )}
                 <button
