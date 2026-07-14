@@ -93,7 +93,7 @@ const ProductDetail = () => {
   // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2]">
+      <div className="min-h-screen bg-[#f5f1e6]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
             <Skeleton className="aspect-square w-full rounded-xl" />
@@ -112,14 +112,14 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#f9f7f2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-serif italic text-[#2c2c2c]">
+          <h1 className="text-3xl font-serif italic text-[#2b2f26]">
             Producto no encontrado
           </h1>
           <Link
             to="/"
-            className="inline-block bg-[#2c2c2c] text-white px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#ec6d13] transition-colors"
+            className="inline-block bg-[#2b2f26] text-white px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#2e5424] transition-colors"
           >
             Volver al inicio
           </Link>
@@ -136,7 +136,7 @@ const ProductDetail = () => {
         : [];
 
   return (
-    <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans">
+    <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26] font-sans">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
         {/* ═══════════════ PRODUCT HERO ═══════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-24">
@@ -154,7 +154,7 @@ const ProductDetail = () => {
             {product.storeName && (
               <Link
                 to={product.storeSlug ? `/tienda/${product.storeSlug}` : "#"}
-                className="mb-2 text-[#ec6d13] font-bold tracking-widest text-[10px] uppercase hover:underline"
+                className="mb-2 text-[#2e5424] font-bold tracking-widest text-[10px] uppercase hover:underline"
               >
                 Taller: {product.storeName}
               </Link>
@@ -163,11 +163,11 @@ const ProductDetail = () => {
             <div className="flex flex-col gap-4 mb-6">
               {/* Title + subtitle */}
               <div className="flex flex-col gap-4">
-                <h2 className="text-5xl font-serif italic text-[#2c2c2c]">
+                <h2 className="text-5xl font-serif italic text-[#2b2f26]">
                   {product.name}
                 </h2>
                 {(shop?.region || product.storeName) && (
-                  <p className="text-sm text-[#2c2c2c]/80 italic">
+                  <p className="text-sm text-[#2b2f26]/80 italic">
                     Hecho a mano en {shop?.municipality || shop?.region || "Colombia"}
                     {shop?.department ? `, ${shop.department}` : ""} por el taller{" "}
                     {product.storeName}
@@ -178,15 +178,15 @@ const ProductDetail = () => {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowComingSoon(true)}
-                    className="bg-[#2c2c2c] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#2c2c2c]/80 transition-colors"
+                    className="bg-[#2b2f26] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#2b2f26]/80 transition-colors"
                   >
                     Huella Digital Registrada
                   </button>
                   <button
                     onClick={() => setShowComingSoon(true)}
-                    className="bg-[#ec6d13] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#ec6d13]/80 transition-colors"
+                    className="bg-[#2e5424] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#2e5424]/80 transition-colors"
                   >
-                    Certificado de autenticidad TELAR
+                    Certificado de autenticidad COCREA
                   </button>
                 </div>
               </div>
@@ -194,34 +194,34 @@ const ProductDetail = () => {
               {/* Certificate link */}
               <button
                 onClick={() => setShowComingSoon(true)}
-                className="text-xs text-[#2c2c2c]/60 underline underline-offset-4 hover:text-[#ec6d13] transition-colors font-bold w-fit"
+                className="text-xs text-[#2b2f26]/60 underline underline-offset-4 hover:text-[#2e5424] transition-colors font-bold w-fit"
               >
                 Ver certificado de autenticidad
               </button>
-              <p className="text-[10px] text-[#2c2c2c]/40 max-w-xs leading-relaxed">
+              <p className="text-[10px] text-[#2b2f26]/40 max-w-xs leading-relaxed">
                 Al adquirir esta pieza, usted recibe un certificado de autenticidad
                 digital que garantiza su origen y autoría.
               </p>
 
               {/* Coming Soon Card */}
               {showComingSoon && (
-                <div className="relative border border-[#ec6d13]/30 bg-[#ec6d13]/5 p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative border border-[#2e5424]/30 bg-[#2e5424]/5 p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                   <button
                     onClick={() => setShowComingSoon(false)}
-                    className="absolute top-3 right-3 text-[#2c2c2c]/40 hover:text-[#2c2c2c] transition-colors"
+                    className="absolute top-3 right-3 text-[#2b2f26]/40 hover:text-[#2b2f26] transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#ec6d13]" />
+                    <Sparkles className="w-5 h-5 text-[#2e5424]" />
                     <h4 className="font-serif italic text-lg">Próximamente</h4>
                   </div>
-                  <p className="text-sm text-[#2c2c2c]/70 leading-relaxed">
+                  <p className="text-sm text-[#2b2f26]/70 leading-relaxed">
                     Estamos construyendo un sistema de certificados digitales que
                     permitirá verificar la autenticidad, el origen y la trazabilidad
                     de cada pieza artesanal.
                   </p>
-                  <p className="text-[10px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
+                  <p className="text-[10px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
                     Lanzamiento próximo · 2026
                   </p>
                 </div>
@@ -229,7 +229,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Location + Category */}
-            <div className="flex flex-wrap gap-2 mb-8 text-xs text-[#2c2c2c]/50 uppercase tracking-widest font-bold">
+            <div className="flex flex-wrap gap-2 mb-8 text-xs text-[#2b2f26]/50 uppercase tracking-widest font-bold">
               {(shop?.municipality || shop?.region || product.department) && (
                 <span>
                   {shop?.municipality || shop?.region || product.department}
@@ -246,28 +246,28 @@ const ProductDetail = () => {
 
             {/* Feature pills */}
             <div className="flex flex-wrap gap-3 mb-12">
-              <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+              <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                 Hecho a mano en Colombia
               </span>
               {product.craft && (
-                <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   {product.craft}
                 </span>
               )}
               {product.materials && product.materials.length > 0 && (
-                <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   {product.materials.slice(0, 2).join(" · ")}
                 </span>
               )}
               {product.history && (
-                <span className="border border-[#2c2c2c]/10 text-[#2c2c2c]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   Pieza con historia
                 </span>
               )}
             </div>
 
             {/* Price */}
-            <div className="text-4xl font-serif mb-12 text-[#2c2c2c]">
+            <div className="text-4xl font-serif mb-12 text-[#2b2f26]">
               {formatCurrency(getFinalPrice())}
             </div>
 
@@ -286,29 +286,29 @@ const ProductDetail = () => {
             {/* Quantity */}
             {maxStock > 0 && (
               <div className="mb-6 flex items-center gap-4">
-                <span className="text-[10px] uppercase tracking-widest font-bold text-[#2c2c2c]/40">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-[#2b2f26]/40">
                   Cantidad
                 </span>
-                <div className="flex items-center border border-[#2c2c2c]/10">
+                <div className="flex items-center border border-[#2b2f26]/10">
                   <button
-                    className="w-10 h-10 flex items-center justify-center text-[#2c2c2c]/60 hover:text-[#2c2c2c] transition-colors disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center text-[#2b2f26]/60 hover:text-[#2b2f26] transition-colors disabled:opacity-30"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
                   >
                     −
                   </button>
-                  <span className="w-10 h-10 flex items-center justify-center text-sm font-bold border-x border-[#2c2c2c]/10">
+                  <span className="w-10 h-10 flex items-center justify-center text-sm font-bold border-x border-[#2b2f26]/10">
                     {quantity}
                   </span>
                   <button
-                    className="w-10 h-10 flex items-center justify-center text-[#2c2c2c]/60 hover:text-[#2c2c2c] transition-colors disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center text-[#2b2f26]/60 hover:text-[#2b2f26] transition-colors disabled:opacity-30"
                     onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
                     disabled={quantity >= maxStock}
                   >
                     +
                   </button>
                 </div>
-                <span className="text-xs text-[#2c2c2c]/40 italic">
+                <span className="text-xs text-[#2b2f26]/40 italic">
                   {maxStock <= 3
                     ? `¡Solo ${maxStock} disponible${maxStock > 1 ? "s" : ""}!`
                     : maxStock > 10
@@ -330,18 +330,18 @@ const ProductDetail = () => {
                 variant="detail"
               />
               <button
-                className="w-full border border-[#2c2c2c]/20 text-[#2c2c2c] font-bold py-5 uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:border-[#2c2c2c] transition-all"
+                className="w-full border border-[#2b2f26]/20 text-[#2b2f26] font-bold py-5 uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:border-[#2b2f26] transition-all"
                 onClick={() => toggleWishlist(product.id)}
               >
                 <Heart
-                  className={`w-4 h-4 ${isFavorite ? "fill-[#ec6d13] text-[#ec6d13]" : ""}`}
+                  className={`w-4 h-4 ${isFavorite ? "fill-[#2e5424] text-[#2e5424]" : ""}`}
                 />
                 {isFavorite ? "Guardado" : "Guardar"}
               </button>
             </div>
 
             {/* Handmade notice */}
-            <p className="text-xs text-[#2c2c2c]/60 leading-relaxed italic border-l border-[#ec6d13]/30 pl-4">
+            <p className="text-xs text-[#2b2f26]/60 leading-relaxed italic border-l border-[#2e5424]/30 pl-4">
               "Las piezas hechas a mano pueden tener tiempos de preparación
               diferentes dependiendo del proceso artesanal."
             </p>
@@ -350,11 +350,11 @@ const ProductDetail = () => {
 
         {/* ═══════════════ NARRATIVE QUOTE ═══════════════ */}
         {product.shortDescription && (
-          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#2c2c2c]/5">
-            <span className="text-[#ec6d13] font-serif italic text-4xl opacity-40 mb-8 block">
+          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#2b2f26]/5">
+            <span className="text-[#2e5424] font-serif italic text-4xl opacity-40 mb-8 block">
               "
             </span>
-            <blockquote className="font-serif text-2xl lg:text-3xl text-[#2c2c2c] leading-relaxed italic px-8">
+            <blockquote className="font-serif text-2xl lg:text-3xl text-[#2b2f26] leading-relaxed italic px-8">
               {product.shortDescription}
             </blockquote>
           </section>
@@ -364,10 +364,10 @@ const ProductDetail = () => {
         {product.history && (
           <section className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24 items-center">
             <div>
-              <h3 className="text-4xl font-serif mb-8 text-[#2c2c2c]">
+              <h3 className="text-4xl font-serif mb-8 text-[#2b2f26]">
                 Historia de la pieza
               </h3>
-              <div className="space-y-6 text-[#2c2c2c]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
+              <div className="space-y-6 text-[#2b2f26]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
                 {product.history}
               </div>
             </div>
@@ -384,13 +384,13 @@ const ProductDetail = () => {
         )}
 
         {/* ═══════════════ PROCESS + DETAILS (3 cols) ═══════════════ */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-24 border-y border-[#2c2c2c]/10 py-16">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-24 border-y border-[#2b2f26]/10 py-16">
           {/* Proceso artesanal */}
           <div className="space-y-6">
-            <h5 className="text-xl font-serif italic text-[#2c2c2c]">
+            <h5 className="text-xl font-serif italic text-[#2b2f26]">
               Proceso artesanal
             </h5>
-            <ul className="space-y-4 text-sm text-[#2c2c2c]/70">
+            <ul className="space-y-4 text-sm text-[#2b2f26]/70">
               {(product.materials?.length > 0 || product.material) && (
                 <li className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -428,10 +428,10 @@ const ProductDetail = () => {
 
           {/* Detalles técnicos */}
           <div className="space-y-6">
-            <h5 className="text-xl font-serif italic text-[#2c2c2c]">
+            <h5 className="text-xl font-serif italic text-[#2b2f26]">
               Detalles técnicos
             </h5>
-            <ul className="space-y-4 text-sm text-[#2c2c2c]/70">
+            <ul className="space-y-4 text-sm text-[#2b2f26]/70">
               {(() => {
                 const d = product.dimensions;
                 if (!d) return null;
@@ -481,10 +481,10 @@ const ProductDetail = () => {
 
           {/* Envío consciente */}
           <div className="space-y-6">
-            <h5 className="text-xl font-serif italic text-[#2c2c2c]">
+            <h5 className="text-xl font-serif italic text-[#2b2f26]">
               Envío consciente
             </h5>
-            <p className="text-sm text-[#2c2c2c]/70 leading-relaxed italic">
+            <p className="text-sm text-[#2b2f26]/70 leading-relaxed italic">
               Las piezas se preparan cuidadosamente para su envío respetando
               tanto la integridad de la creación como el impacto ambiental del
               proceso.
@@ -493,10 +493,10 @@ const ProductDetail = () => {
         </section>
 
         {/* ═══════════════ DIGITAL TRACEABILITY ═══════════════ */}
-        <section className="mb-24 bg-[#2c2c2c] text-white py-16 px-6 rounded-3xl">
+        <section className="mb-24 bg-[#2b2f26] text-white py-16 px-6 rounded-3xl">
           <h3 className="text-center mb-12">
             <span className="text-xs text-white/70 mb-4 block italic max-w-lg mx-auto leading-relaxed">
-              Cada pieza en TELAR cuenta con una huella digital que preserva su
+              Cada pieza en COCREA cuenta con una huella digital que preserva su
               origen, su proceso artesanal y el taller que la creó.
             </span>
             <span className="text-4xl font-serif text-white">
@@ -506,8 +506,8 @@ const ProductDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             {product.material && (
               <div className="text-center space-y-6 px-4 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                  <MapPin className="w-8 h-8 text-[#ec6d13]" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#2e5424]/30 group-hover:border-[#2e5424] transition-colors">
+                  <MapPin className="w-8 h-8 text-[#2e5424]" />
                 </div>
                 <h5 className="text-2xl font-serif italic text-white">Origen</h5>
                 <p className="text-sm text-white/60 leading-relaxed font-light italic">
@@ -517,8 +517,8 @@ const ProductDetail = () => {
             )}
             {product.storeName && (
               <div className="text-center space-y-6 px-4 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                  <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#2e5424]/30 group-hover:border-[#2e5424] transition-colors">
+                  <svg className="w-8 h-8 text-[#2e5424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                   </svg>
                 </div>
@@ -530,8 +530,8 @@ const ProductDetail = () => {
             )}
             {product.craft && (
               <div className="text-center space-y-6 px-4 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#ec6d13]/30 group-hover:border-[#ec6d13] transition-colors">
-                  <svg className="w-8 h-8 text-[#ec6d13]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#2e5424]/30 group-hover:border-[#2e5424] transition-colors">
+                  <svg className="w-8 h-8 text-[#2e5424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                   </svg>
                 </div>
@@ -548,23 +548,23 @@ const ProductDetail = () => {
 
         {/* ═══════════════ CULTURAL RECORD + MAP ═══════════════ */}
         {(shop?.region || shop?.municipality) && (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#2c2c2c]/5 shadow-sm">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#2b2f26]/5 shadow-sm">
             <div className="p-12 lg:p-20 flex flex-col justify-center">
-              <span className="text-[#ec6d13] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
+              <span className="text-[#2e5424] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
                 Registro cultural
               </span>
-              <h3 className="text-4xl font-serif text-[#2c2c2c] mb-8">
+              <h3 className="text-4xl font-serif text-[#2b2f26] mb-8">
                 {shop?.municipality || shop?.region}
                 {shop?.department ? `, ${shop.department}` : ""}
               </h3>
               {shop?.description && (
-                <p className="text-[#2c2c2c]/70 leading-relaxed mb-10 text-lg font-light italic">
+                <p className="text-[#2b2f26]/70 leading-relaxed mb-10 text-lg font-light italic">
                   {shop.description}
                 </p>
               )}
               <div className="flex flex-col gap-4">
                 {product.craft && (
-                  <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
+                  <div className="flex justify-between border-b border-[#2b2f26]/10 pb-2">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Tradición
                     </span>
@@ -572,7 +572,7 @@ const ProductDetail = () => {
                   </div>
                 )}
                 {(shop?.department || shop?.region) && (
-                  <div className="flex justify-between border-b border-[#2c2c2c]/10 pb-2">
+                  <div className="flex justify-between border-b border-[#2b2f26]/10 pb-2">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Ubicación
                     </span>
@@ -584,12 +584,12 @@ const ProductDetail = () => {
               </div>
             </div>
             <div className="bg-[#e5e1d8] min-h-[400px] relative flex items-center justify-center">
-              <MapPin className="w-16 h-16 text-[#ec6d13] opacity-40" />
+              <MapPin className="w-16 h-16 text-[#2e5424] opacity-40" />
               <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
-                <p className="text-sm font-semibold text-[#2c2c2c]">
+                <p className="text-sm font-semibold text-[#2b2f26]">
                   {shop?.municipality || shop?.region || "Colombia"}
                 </p>
-                <p className="text-xs text-[#2c2c2c]/50 mt-1">
+                <p className="text-xs text-[#2b2f26]/50 mt-1">
                   Origen artesanal
                 </p>
               </div>
@@ -638,18 +638,18 @@ const ProductDetail = () => {
               </div>
               <div className="order-1 lg:order-2 space-y-8">
                 <div>
-                  <span className="text-[#ec6d13] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
+                  <span className="text-[#2e5424] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
                     Conoce al artesano
                   </span>
-                  <h3 className="text-4xl font-serif text-[#2c2c2c] mb-6">
+                  <h3 className="text-4xl font-serif text-[#2b2f26] mb-6">
                     {claim || `El taller que creó esta pieza`}
                   </h3>
-                  <h4 className="text-2xl font-serif italic text-[#2c2c2c]/80 mb-6">
+                  <h4 className="text-2xl font-serif italic text-[#2b2f26]/80 mb-6">
                     {product.storeName}
                   </h4>
                 </div>
                 {identityStory && (
-                  <div className="space-y-4 text-[#2c2c2c]/70 text-lg font-light italic leading-relaxed">
+                  <div className="space-y-4 text-[#2b2f26]/70 text-lg font-light italic leading-relaxed">
                     <p>{identityStory}</p>
                   </div>
                 )}
@@ -658,7 +658,7 @@ const ProductDetail = () => {
                     {shop.certifications.map((cert) => (
                       <span
                         key={cert}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#2c2c2c]/15 text-[#2c2c2c]/70"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#2b2f26]/15 text-[#2b2f26]/70"
                       >
                         {cert}
                       </span>
@@ -667,7 +667,7 @@ const ProductDetail = () => {
                 )}
                 <Link
                   to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
-                  className="inline-block border border-[#2c2c2c] text-[#2c2c2c] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2c2c2c] hover:text-white transition-all"
+                  className="inline-block border border-[#2b2f26] text-[#2b2f26] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2b2f26] hover:text-white transition-all"
                 >
                   Ver perfil del taller
                 </Link>
@@ -677,7 +677,7 @@ const ProductDetail = () => {
         })()}
 
         {/* ═══════════════ FAIR TRADE BLOCK ═══════════════ */}
-        <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 bg-[#2c2c2c] rounded-3xl overflow-hidden shadow-2xl min-h-[60vh]">
+        <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 bg-[#2b2f26] rounded-3xl overflow-hidden shadow-2xl min-h-[60vh]">
           <div className="h-96 lg:h-auto bg-[#e5e1d8] relative overflow-hidden">
             {productImages[0] && (
               <img
@@ -699,15 +699,15 @@ const ProductDetail = () => {
             </p>
             <Link
               to="/newsletter"
-              className="inline-block bg-[#ec6d13] text-white px-8 py-4 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#2c2c2c] transition-all"
+              className="inline-block bg-[#2e5424] text-white px-8 py-4 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#2b2f26] transition-all"
             >
-              Conoce más de Telar
+              Conoce más de Cocrea
             </Link>
           </div>
         </section>
 
         {/* ═══════════════ GIFT BLOCK ═══════════════ */}
-        <section className="relative bg-[#1a1a1a] text-white rounded-3xl overflow-hidden mb-24">
+        <section className="relative bg-[#20291a] text-white rounded-3xl overflow-hidden mb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px]">
             <div className="p-12 lg:p-20 flex flex-col justify-center items-start z-10">
               <h3 className="text-5xl font-serif italic text-white mb-8">
@@ -720,12 +720,12 @@ const ProductDetail = () => {
               </p>
               <Link
                 to="/giftcards"
-                className="bg-[#ec6d13] text-white px-12 py-5 uppercase text-[11px] tracking-[0.2em] font-bold hover:bg-white hover:text-[#2c2c2c] transition-all"
+                className="bg-[#2e5424] text-white px-12 py-5 uppercase text-[11px] tracking-[0.2em] font-bold hover:bg-white hover:text-[#2b2f26] transition-all"
               >
                 Explorar regalos
               </Link>
             </div>
-            <div className="hidden lg:block bg-[#2c2c2c]" />
+            <div className="hidden lg:block bg-[#2b2f26]" />
           </div>
         </section>
       </main>

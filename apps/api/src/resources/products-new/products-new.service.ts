@@ -1018,6 +1018,7 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1047,6 +1048,11 @@ export class ProductsNewService {
         `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = shop.user_id AND ap.agreement_id = :agreementId)`,
         { agreementId },
       );
+    }
+
+    // Filtro por agreementId
+    if (agreementId) {
+      queryBuilder.andWhere('ap.agreement_id = :agreementId', { agreementId });
     }
 
     // Filtros opcionales
@@ -1169,6 +1175,7 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1349,6 +1356,7 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1442,6 +1450,7 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
+      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')

@@ -217,10 +217,10 @@ export default function Contacto() {
                 ¿Eres artesano?
               </h3>
               <p className="text-charcoal/70 font-sans leading-relaxed mb-4">
-                Si eres artesano y quieres vender en TELAR, contáctanos para conocer más sobre nuestro programa.
+                Si eres artesano y quieres vender en COCREA, contáctanos para conocer más sobre nuestro programa.
               </p>
               <Button variant="outline" className="w-full">
-                Quiero vender en TELAR
+                Quiero vender en COCREA
               </Button>
             </div>
           </div>

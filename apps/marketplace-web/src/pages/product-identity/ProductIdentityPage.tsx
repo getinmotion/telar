@@ -536,7 +536,7 @@ export const ProductIdentityPage = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-2">
-                        Sello de Validación TELAR
+                        Sello de Validación COCREA
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Este producto ha sido registrado y verificado en nuestra
@@ -655,7 +655,7 @@ export const ProductIdentityPage = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-8">
-          <p>Pasaporte Digital generado por TELAR</p>
+          <p>Pasaporte Digital generado por COCREA</p>
         </div>
       </div>
     </div>

@@ -21,8 +21,8 @@ const Terms = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">1. Definiciones</h2>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Plataforma:</strong> El sitio web, aplicación móvil y cualquier otro medio digital operado por TELAR, donde se prestan los servicios de comercio electrónico.</li>
-              <li><strong>TELAR:</strong> GET IN MOTION S.A.S., sociedad colombiana, identificada con NIT 901.777.707-1, con domicilio en Bogotá, D.C., que opera como administradora y responsable de la Plataforma.</li>
+              <li><strong>Plataforma:</strong> El sitio web, aplicación móvil y cualquier otro medio digital operado por COCREA, donde se prestan los servicios de comercio electrónico.</li>
+              <li><strong>COCREA:</strong> GET IN MOTION S.A.S., sociedad colombiana, identificada con NIT 901.777.707-1, con domicilio en Bogotá, D.C., que opera como administradora y responsable de la Plataforma.</li>
               <li><strong>Usuario:</strong> Toda persona natural o jurídica que acceda a la Plataforma, ya sea como visitante, comprador o vendedor.</li>
               <li><strong>Comprador:</strong> Usuario que adquiere productos o servicios publicados en la Plataforma.</li>
               <li><strong>Vendedor o Artesano:</strong> Persona natural o jurídica que ofrece productos artesanales a través de la Plataforma, previa aceptación de estos términos y condiciones.</li>
@@ -35,7 +35,7 @@ const Terms = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">2. Objeto de la Plataforma</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR es un marketplace que conecta compradores con artesanos colombianos, facilitando la comercialización de productos artesanales. TELAR actúa como intermediario tecnológico, proporcionando el espacio digital para la publicación, promoción y gestión de transacciones, sin ser parte de los contratos de compraventa celebrados entre compradores y vendedores.
+              COCREA es un marketplace que conecta compradores con artesanos colombianos, facilitando la comercialización de productos artesanales. COCREA actúa como intermediario tecnológico, proporcionando el espacio digital para la publicación, promoción y gestión de transacciones, sin ser parte de los contratos de compraventa celebrados entre compradores y vendedores.
             </p>
           </section>
 
@@ -45,7 +45,7 @@ const Terms = () => {
               El acceso y uso de la Plataforma implica la aceptación plena e incondicional de estos términos y condiciones. Si el usuario no está de acuerdo con alguna de las disposiciones aquí contenidas, deberá abstenerse de usar la Plataforma.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a los usuarios mediante publicación en la Plataforma o por correo electrónico. El uso continuado de la Plataforma después de la notificación implica la aceptación de los nuevos términos.
+              COCREA se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán notificadas a los usuarios mediante publicación en la Plataforma o por correo electrónico. El uso continuado de la Plataforma después de la notificación implica la aceptación de los nuevos términos.
             </p>
           </section>
 
@@ -57,11 +57,11 @@ const Terms = () => {
             </p>
             <h3 className="text-lg font-medium mb-3">4.2. Responsabilidad del usuario</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              El usuario es responsable de mantener la confidencialidad de su cuenta y contraseña, y de todas las actividades realizadas bajo su cuenta. En caso de uso no autorizado, deberá notificar inmediatamente a TELAR.
+              El usuario es responsable de mantener la confidencialidad de su cuenta y contraseña, y de todas las actividades realizadas bajo su cuenta. En caso de uso no autorizado, deberá notificar inmediatamente a COCREA.
             </p>
             <h3 className="text-lg font-medium mb-3">4.3. Suspensión y cancelación de cuentas</h3>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR se reserva el derecho de suspender o cancelar cuentas de usuarios que incumplan estos términos, realicen actividades fraudulentas o que afecten la operación de la Plataforma.
+              COCREA se reserva el derecho de suspender o cancelar cuentas de usuarios que incumplan estos términos, realicen actividades fraudulentas o que afecten la operación de la Plataforma.
             </p>
           </section>
 
@@ -105,7 +105,7 @@ const Terms = () => {
             <h2 className="text-xl font-semibold mb-4">8. Proceso de Compra y Pago</h2>
             <h3 className="text-lg font-medium mb-3">8.1. Órdenes</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Una vez realizado el pago, la orden será enviada al vendedor para su procesamiento. TELAR confirmará la orden al comprador mediante correo electrónico.
+              Una vez realizado el pago, la orden será enviada al vendedor para su procesamiento. COCREA confirmará la orden al comprador mediante correo electrónico.
             </p>
             <h3 className="text-lg font-medium mb-3">8.2. Métodos de pago</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
@@ -121,7 +121,7 @@ const Terms = () => {
             <h2 className="text-xl font-semibold mb-4">9. Envíos y Entregas</h2>
             <h3 className="text-lg font-medium mb-3">9.1. Tiempos de entrega</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Los tiempos de entrega son estimados y dependen del vendedor y del transportador. TELAR no garantiza plazos exactos de entrega, aunque trabajará por optimizar los tiempos de despacho.
+              Los tiempos de entrega son estimados y dependen del vendedor y del transportador. COCREA no garantiza plazos exactos de entrega, aunque trabajará por optimizar los tiempos de despacho.
             </p>
             <h3 className="text-lg font-medium mb-3">9.2. Riesgo de pérdida</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -153,9 +153,9 @@ const Terms = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">12. Responsabilidad de TELAR</h2>
+            <h2 className="text-xl font-semibold mb-4">12. Responsabilidad de COCREA</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              TELAR actúa exclusivamente como intermediario tecnológico y no es responsable por:
+              COCREA actúa exclusivamente como intermediario tecnológico y no es responsable por:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>La calidad, legalidad o veracidad de los productos publicados por los vendedores.</li>
@@ -163,17 +163,17 @@ const Terms = () => {
               <li>Daños derivados del uso inadecuado de los productos adquiridos.</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              No obstante, TELAR podrá mediar en los conflictos entre compradores y vendedores, y tomará las acciones necesarias para garantizar el buen funcionamiento de la Plataforma.
+              No obstante, COCREA podrá mediar en los conflictos entre compradores y vendedores, y tomará las acciones necesarias para garantizar el buen funcionamiento de la Plataforma.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">13. Propiedad Intelectual</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Todo el contenido de la Plataforma, incluyendo logotipos, diseños, textos, imágenes y software, es propiedad de TELAR o de sus licenciantes. Queda prohibida la reproducción, distribución o modificación sin autorización previa.
+              Todo el contenido de la Plataforma, incluyendo logotipos, diseños, textos, imágenes y software, es propiedad de COCREA o de sus licenciantes. Queda prohibida la reproducción, distribución o modificación sin autorización previa.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Los vendedores otorgan a TELAR una licencia no exclusiva para usar las imágenes y descripciones de sus productos con fines publicitarios y promocionales.
+              Los vendedores otorgan a COCREA una licencia no exclusiva para usar las imágenes y descripciones de sus productos con fines publicitarios y promocionales.
             </p>
           </section>
 
@@ -188,7 +188,7 @@ const Terms = () => {
             <h2 className="text-xl font-semibold mb-4">15. Resolución de Disputas</h2>
             <h3 className="text-lg font-medium mb-3">15.1. Mediación interna</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              En caso de conflicto entre compradores y vendedores, las partes deberán intentar resolverlo de manera directa. En caso de no lograrlo, podrán solicitar la mediación de TELAR.
+              En caso de conflicto entre compradores y vendedores, las partes deberán intentar resolverlo de manera directa. En caso de no lograrlo, podrán solicitar la mediación de COCREA.
             </p>
             <h3 className="text-lg font-medium mb-3">15.2. Jurisdicción aplicable</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -199,14 +199,14 @@ const Terms = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">16. Modificaciones a los Términos</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TELAR se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán comunicadas a través de la Plataforma y/o por correo electrónico. El uso continuado de la Plataforma constituye aceptación de los nuevos términos.
+              COCREA se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán comunicadas a través de la Plataforma y/o por correo electrónico. El uso continuado de la Plataforma constituye aceptación de los nuevos términos.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">17. Contacto</h2>
             <div className="text-muted-foreground leading-relaxed">
-              <p>Para cualquier consulta o reclamación, el usuario puede contactar a TELAR a través de:</p>
+              <p>Para cualquier consulta o reclamación, el usuario puede contactar a COCREA a través de:</p>
               <ul className="list-disc pl-6 space-y-2 mt-4">
                 <li>Correo electrónico: soporte@telar.co</li>
                 <li>Teléfono: +57 300 123 4567</li>

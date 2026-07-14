@@ -7,7 +7,7 @@ const devolutionProcess = [
   {
     step: 1,
     title: "Contacta al artesano",
-    description: "Dentro de los 7 días calendario de recibido el producto, comunícate con el artesano a través de TELAR para notificar tu intención de devolución."
+    description: "Dentro de los 7 días calendario de recibido el producto, comunícate con el artesano a través de COCREA para notificar tu intención de devolución."
   },
   {
     step: 2,

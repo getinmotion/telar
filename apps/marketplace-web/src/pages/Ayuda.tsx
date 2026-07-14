@@ -7,7 +7,7 @@ const helpCategories = [
   {
     id: "faqs",
     title: "FAQs",
-    description: "Preguntas frecuentes sobre TELAR",
+    description: "Preguntas frecuentes sobre COCREA",
     icon: MessageCircle,
   },
   {

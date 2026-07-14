@@ -52,7 +52,7 @@ export default function PoliticaDeGarantias() {
                     <div>
                       <h2 className="text-xl font-semibold text-charcoal mb-2">Compromiso con la Calidad</h2>
                       <p className="text-charcoal/70 font-sans leading-relaxed">
-                        En TELAR garantizamos la autenticidad y calidad artesanal de cada producto. Esta política establece los términos y condiciones de las garantías aplicables a los productos adquiridos a través de nuestra plataforma.
+                        En COCREA garantizamos la autenticidad y calidad artesanal de cada producto. Esta política establece los términos y condiciones de las garantías aplicables a los productos adquiridos a través de nuestra plataforma.
                       </p>
                     </div>
                   </div>
@@ -62,7 +62,7 @@ export default function PoliticaDeGarantias() {
               <section>
                 <h2 className="text-2xl font-serif mb-4 text-charcoal">1. Ámbito de Aplicación</h2>
                 <p className="text-charcoal/70 font-sans leading-relaxed">
-                  Esta política de garantías aplica a todos los productos artesanales vendidos a través de la plataforma TELAR. Los productos están garantizados contra defectos de fabricación y materiales, conforme a lo establecido en la legislación colombiana de protección al consumidor (Ley 1480 de 2011).
+                  Esta política de garantías aplica a todos los productos artesanales vendidos a través de la plataforma COCREA. Los productos están garantizados contra defectos de fabricación y materiales, conforme a lo establecido en la legislación colombiana de protección al consumidor (Ley 1480 de 2011).
                 </p>
               </section>
 
@@ -170,7 +170,7 @@ export default function PoliticaDeGarantias() {
                     <div>
                       <strong className="text-charcoal">Contacta al artesano:</strong>
                       <p className="text-charcoal/70 font-sans text-sm mt-1">
-                        Dentro del período de garantía, contacta directamente al artesano a través de la plataforma TELAR.
+                        Dentro del período de garantía, contacta directamente al artesano a través de la plataforma COCREA.
                       </p>
                     </div>
                   </li>

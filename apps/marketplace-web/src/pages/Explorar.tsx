@@ -67,12 +67,12 @@ const Explorar = () => {
   const { data: featuredProducts } = useFeaturedProducts();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#1b1c19" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#f5f1e6", color: "#1b1c19" }}>
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-8 py-20 text-center">
         <span
           className="font-bold uppercase tracking-[0.5em] text-[10px] block mb-6"
-          style={{ color: "#ec6d13" }}
+          style={{ color: "#2e5424" }}
         >
           Explorar
         </span>
@@ -82,7 +82,7 @@ const Explorar = () => {
         >
           Descubre el universo artesanal
         </h1>
-        <p className="text-lg md:text-xl font-light max-w-2xl mx-auto opacity-80" style={{ color: "#584237" }}>
+        <p className="text-lg md:text-xl font-light max-w-2xl mx-auto opacity-80" style={{ color: "#55603c" }}>
           Explora la artesanía colombiana a través de sus categorías, técnicas y territorios.
         </p>
       </section>
@@ -106,7 +106,7 @@ const Explorar = () => {
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
               <div>
                 <h2 className="font-serif text-2xl italic">Por Categoría</h2>
-                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#584237" }}>
+                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#55603c" }}>
                   Descubre por tipo de producto
                 </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -114,7 +114,7 @@ const Explorar = () => {
                     <Link
                       key={cat.id}
                       to={`/categoria/${cat.slug}`}
-                      className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                      className="text-[10px] uppercase tracking-widest hover:text-[#2e5424] transition-colors"
                       style={{ color: "rgba(27,28,25,0.4)" }}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -130,7 +130,7 @@ const Explorar = () => {
                   )}
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-[#2e5424] group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -152,7 +152,7 @@ const Explorar = () => {
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
               <div>
                 <h2 className="font-serif text-2xl italic">Por Técnica</h2>
-                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#584237" }}>
+                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#55603c" }}>
                   Explora tradiciones artesanales
                 </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -162,7 +162,7 @@ const Explorar = () => {
                       <Link
                         key={tech.id}
                         to={`/tecnica/${techSlug}`}
-                        className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
+                        className="text-[10px] uppercase tracking-widest hover:text-[#2e5424] transition-colors"
                         style={{ color: "rgba(27,28,25,0.4)" }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -179,7 +179,7 @@ const Explorar = () => {
                   )}
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-[#2e5424] group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -201,7 +201,7 @@ const Explorar = () => {
             <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: "rgba(27,28,25,0.1)" }}>
               <div>
                 <h2 className="font-serif text-2xl italic">Por Territorio</h2>
-                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#584237" }}>
+                <p className="text-xs mt-1 mb-2 font-light italic" style={{ color: "#55603c" }}>
                   Enraizado en su origen
                 </p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -210,7 +210,7 @@ const Explorar = () => {
                   <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(27,28,25,0.4)" }}>Nariño</span>
                 </div>
               </div>
-              <span className="text-[#ec6d13] group-hover:translate-x-1 transition-transform mt-1">
+              <span className="text-[#2e5424] group-hover:translate-x-1 transition-transform mt-1">
                 <Arrow />
               </span>
             </div>
@@ -232,16 +232,16 @@ const Explorar = () => {
                 </div>
               </div>
               <div className="w-2/3">
-                <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
+                <span className="text-[#2e5424] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
                   Editorial
                 </span>
                 <h2 className="font-serif text-2xl mb-2 italic">Piezas Únicas</h2>
-                <p className="text-[11px] leading-relaxed mb-4 font-light italic" style={{ color: "#584237" }}>
+                <p className="text-[11px] leading-relaxed mb-4 font-light italic" style={{ color: "#55603c" }}>
                   Objetos irrepetibles para coleccionistas de historias.
                 </p>
                 <Link
                   to="/productos"
-                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#ec6d13] hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#2e5424] hover:gap-3 transition-all"
                 >
                   Explorar <Arrow />
                 </Link>
@@ -258,16 +258,16 @@ const Explorar = () => {
                 </div>
               </div>
               <div className="w-2/3">
-                <span className="text-[#ec6d13] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
+                <span className="text-[#2e5424] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
                   Selección
                 </span>
                 <h2 className="font-serif text-2xl mb-2 italic">Regalos con Historia</h2>
-                <p className="text-[11px] leading-relaxed mb-4 font-light italic" style={{ color: "#584237" }}>
+                <p className="text-[11px] leading-relaxed mb-4 font-light italic" style={{ color: "#55603c" }}>
                   Curaduría especial para momentos que merecen perdurar.
                 </p>
                 <Link
                   to="/giftcards"
-                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#ec6d13] hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#2e5424] hover:gap-3 transition-all"
                 >
                   Ver Guía <Arrow />
                 </Link>
@@ -283,7 +283,7 @@ const Explorar = () => {
           <h2 className="font-serif text-3xl italic">Talleres Destacados</h2>
           <Link
             to="/tiendas"
-            className="text-[10px] font-bold uppercase tracking-widest text-[#ec6d13] flex items-center gap-2 group"
+            className="text-[10px] font-bold uppercase tracking-widest text-[#2e5424] flex items-center gap-2 group"
           >
             Ver todos los talleres
             <span className="group-hover:translate-x-1 transition-transform">
@@ -322,14 +322,14 @@ const Explorar = () => {
                       <div className="absolute inset-0 bg-black/5 group-hover:scale-105 transition-transform duration-700" />
                     )}
                   </div>
-                  <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[9px] mb-2 block">
+                  <span className="text-[#2e5424] font-bold uppercase tracking-widest text-[9px] mb-2 block">
                     {shop.department || shop.region || "Colombia"} {shop.craftType ? `· ${shop.craftType}` : ""}
                   </span>
-                  <h4 className="font-serif text-xl group-hover:text-[#ec6d13] transition-colors">
+                  <h4 className="font-serif text-xl group-hover:text-[#2e5424] transition-colors">
                     {shop.shopName}
                   </h4>
                   {shop.description && (
-                    <p className="text-xs mt-2 font-light italic" style={{ color: "#584237" }}>
+                    <p className="text-xs mt-2 font-light italic" style={{ color: "#55603c" }}>
                       {shop.description.length > 90
                         ? shop.description.slice(0, 90) + "..."
                         : shop.description}
@@ -352,10 +352,10 @@ const Explorar = () => {
       <section className="max-w-[1400px] mx-auto px-8 mb-32">
         <div
           className="overflow-hidden flex flex-col md:flex-row items-stretch min-h-[300px]"
-          style={{ backgroundColor: "#1a1a1a", color: "#fff" }}
+          style={{ backgroundColor: "#20291a", color: "#fff" }}
         >
           <div className="w-full md:w-1/2 p-10 lg:p-14 flex flex-col justify-center">
-            <span className="text-[#ec6d13] font-extrabold tracking-[0.5em] uppercase mb-4 text-[9px] block">
+            <span className="text-[#2e5424] font-extrabold tracking-[0.5em] uppercase mb-4 text-[9px] block">
               Crónica del Mes
             </span>
             <h2 className="font-serif text-3xl italic mb-4" style={{ letterSpacing: "-0.04em" }}>
@@ -367,8 +367,8 @@ const Explorar = () => {
             <div className="flex items-center gap-6">
               <Link
                 to="/productos"
-                className="px-6 py-3 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-[#1a1a1a] transition-all"
-                style={{ backgroundColor: "#ec6d13", color: "#fff" }}
+                className="px-6 py-3 text-[9px] font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-[#20291a] transition-all"
+                style={{ backgroundColor: "#2e5424", color: "#fff" }}
               >
                 Ver piezas
               </Link>
@@ -402,12 +402,12 @@ const Explorar = () => {
           <h2 className="font-serif text-3xl mb-8 italic">¿Buscas algo específico?</h2>
           <Link to="/productos" className="group inline-flex items-center gap-6">
             <span
-              className="text-lg font-light border-b pb-1 group-hover:border-[#ec6d13] transition-colors"
+              className="text-lg font-light border-b pb-1 group-hover:border-[#2e5424] transition-colors"
               style={{ borderColor: "rgba(27,28,25,0.2)" }}
             >
               Ver catálogo completo del marketplace
             </span>
-            <span className="text-[#ec6d13] group-hover:translate-x-3 transition-transform">
+            <span className="text-[#2e5424] group-hover:translate-x-3 transition-transform">
               <Arrow />
             </span>
           </Link>

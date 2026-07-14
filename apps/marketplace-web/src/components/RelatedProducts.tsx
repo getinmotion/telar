@@ -80,7 +80,7 @@ export const RelatedProducts = ({
 
   if (loading) {
     return (
-      <section className="py-20 px-4" style={{ backgroundColor: "#f9f7f2" }}>
+      <section className="py-20 px-4" style={{ backgroundColor: "#f5f1e6" }}>
         <div className="max-w-7xl mx-auto">
           <div className="h-8 w-64 bg-[#e5e1d8] rounded mb-12 animate-pulse" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -102,19 +102,19 @@ export const RelatedProducts = ({
   }
 
   return (
-    <section className="py-20 px-4" style={{ backgroundColor: "#f9f7f2" }}>
+    <section className="py-20 px-4" style={{ backgroundColor: "#f5f1e6" }}>
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="mb-12">
           <p
             className="text-[9px] font-bold uppercase tracking-[0.3em] mb-3 font-sans"
-            style={{ color: "#ec6d13" }}
+            style={{ color: "#2e5424" }}
           >
             Descubre más
           </p>
           <h2
             className="text-3xl lg:text-4xl font-serif"
-            style={{ color: "#2c2c2c" }}
+            style={{ color: "#2b2f26" }}
           >
             Piezas que también te pueden inspirar
           </h2>

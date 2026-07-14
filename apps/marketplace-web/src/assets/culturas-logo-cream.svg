@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 90" role="img" aria-label="Ministerio de las Culturas, las Artes y los Saberes">
+  <g stroke="#EDE4D3" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- condor -->
+    <path d="M 16 26 Q 45 6 74 26" />
+    <path d="M 40 22 Q 45 16 50 22" />
+    <!-- shield -->
+    <path d="M 23 30 H 67 V 52 Q 67 74 45 82 Q 23 74 23 52 Z" />
+    <path d="M 23 47 H 67" />
+    <path d="M 23 62 H 67" />
+    <circle cx="45" cy="38" r="4" />
+    <path d="M 33 70 Q 39 66 45 70 Q 51 74 57 70" />
+  </g>
+  <text x="92" y="60" fill="#EDE4D3" font-family="Manrope, 'Century Gothic', Arial, sans-serif" font-weight="700" font-size="42">Culturas</text>
+</svg>

@@ -116,7 +116,7 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
     heroDescription:
       "La filigrana es joyería convertida en encaje. Hilos finísimos de plata u oro se enrollan, sueldan y ensamblan a mano sin moldes, dando vida a piezas que parecen bordadas sobre el aire.",
     longDescription:
-      "Heredera del encuentro entre la orfebrería precolombina —Quimbaya, Tayrona, Zenú— y la técnica morisca llegada a América con la Colonia, la filigrana colombiana es una cartografía de maestrías regionales: la escuela momposina (Bolívar), declarada Patrimonio Cultural Inmaterial de la Nación; la tradición antioqueña de Santa Fe de Antioquia; el pulso del Zenú en Ciénaga de Oro (Córdoba); la orfebrería afro del Pacífico en Quibdó (Chocó); y la tradición pastusa en Barbacoas (Nariño). En Telar acompañamos a cada taller con trazabilidad del metal, pago directo a la maestra o maestro orfebre y apoyo a la recuperación de plata reciclada.",
+      "Heredera del encuentro entre la orfebrería precolombina —Quimbaya, Tayrona, Zenú— y la técnica morisca llegada a América con la Colonia, la filigrana colombiana es una cartografía de maestrías regionales: la escuela momposina (Bolívar), declarada Patrimonio Cultural Inmaterial de la Nación; la tradición antioqueña de Santa Fe de Antioquia; el pulso del Zenú en Ciénaga de Oro (Córdoba); la orfebrería afro del Pacífico en Quibdó (Chocó); y la tradición pastusa en Barbacoas (Nariño). En Cocrea acompañamos a cada taller con trazabilidad del metal, pago directo a la maestra o maestro orfebre y apoyo a la recuperación de plata reciclada.",
     explanationCards: [
       {
         title: "Encuentro de dos mundos",
@@ -127,8 +127,8 @@ const TECHNIQUE_DATA: Record<string, TechniqueEditorial> = {
         text: "Mompox, Santa Fe de Antioquia, Ciénaga de Oro, Quibdó y Barbacoas. Cinco escuelas regionales, cinco gramáticas del hilo, un mismo respeto por el metal hecho encaje.",
       },
       {
-        title: "Impacto Telar",
-        text: "Transparencia de origen, inclusión financiera para artesanos sin banca y materias primas sostenibles (plata reciclada, oro libre de mercurio). Comprar filigrana en Telar es financiar un linaje.",
+        title: "Impacto Cocrea",
+        text: "Transparencia de origen, inclusión financiera para artesanos sin banca y materias primas sostenibles (plata reciclada, oro libre de mercurio). Comprar filigrana en Cocrea es financiar un linaje.",
       },
     ],
     culturalQuote:
@@ -406,46 +406,46 @@ export default function TecnicaDetail() {
   }, [shops, displayData.name]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f9f7f2", color: "#2c2c2c" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#f2f0ea", color: "#14150f" }}>
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="max-w-[1400px] mx-auto px-6 py-16">
-        <nav className="flex text-[10px] uppercase tracking-widest gap-2 font-sans mb-12" style={{ color: "rgba(44,44,44,0.4)" }}>
-          <Link to="/" className="hover:text-[#ec6d13] transition-colors">Inicio</Link>
+        <nav className="flex text-[10px] uppercase tracking-widest gap-2 font-sans mb-12" style={{ color: "rgba(20,21,15,0.5)" }}>
+          <Link to="/" className="hover:text-[#122b0e] transition-colors">Inicio</Link>
           <span>/</span>
-          <Link to="/tecnicas" className="hover:text-[#ec6d13] transition-colors">Técnicas</Link>
+          <Link to="/tecnicas" className="hover:text-[#122b0e] transition-colors">Técnicas</Link>
           <span>/</span>
-          <span style={{ color: "#ec6d13" }} className="font-bold">{displayData.name}</span>
+          <span style={{ color: "#122b0e" }} className="font-bold">{displayData.name}</span>
         </nav>
 
         <div className="grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 space-y-8 lg:border-r lg:pr-12" style={{ borderColor: "rgba(44,44,44,0.05)" }}>
+          <div className="lg:col-span-5 space-y-8 lg:border-r lg:pr-12" style={{ borderColor: "rgba(20,21,15,0.05)" }}>
             <div className="space-y-4">
               <p
                 className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans"
-                style={{ color: "#ec6d13" }}
+                style={{ color: "#122b0e" }}
               >
                 Técnica artesanal
               </p>
               <h1 className="text-5xl md:text-6xl font-serif italic leading-[0.9]" style={{ letterSpacing: "-0.04em" }}>
                 {displayData.name}
               </h1>
-              <p className="text-xl font-serif italic" style={{ color: "rgba(44,44,44,0.7)" }}>
+              <p className="text-xl font-serif italic" style={{ color: "rgba(20,21,15,0.7)" }}>
                 {displayData.subtitle}
               </p>
             </div>
-            <p className="text-lg font-light leading-relaxed max-w-md" style={{ color: "rgba(44,44,44,0.7)" }}>
+            <p className="text-lg font-light leading-relaxed max-w-md" style={{ color: "rgba(20,21,15,0.7)" }}>
               {displayData.heroDescription}
             </p>
             <Link
               to="/productos"
-              className="inline-block px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-all"
-              style={{ backgroundColor: "#ec6d13" }}
+              className="inline-block px-8 py-3 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#14150f] transition-all"
+              style={{ backgroundColor: "#122b0e" }}
             >
               Ver piezas con esta técnica
             </Link>
           </div>
           <div className="lg:col-span-7">
-            <div className="aspect-[21/9] rounded-sm relative overflow-hidden" style={{ backgroundColor: "#e5e1d8" }}>
+            <div className="aspect-[21/9] rounded-sm relative overflow-hidden border border-foreground/10 group" style={{ backgroundColor: "#ece9e2" }}>
               {(() => {
                 // Try product image first (sanitised), then technique image map
                 const productImg = displayProducts[0] && getPrimaryImageUrl(displayProducts[0]);
@@ -456,13 +456,13 @@ export default function TecnicaDetail() {
                   <img
                     src={imgUrl}
                     alt={displayData.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
                     loading="lazy"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="text-6xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                    <span className="text-6xl font-serif italic" style={{ color: "rgba(20,21,15,0.06)" }}>
                       {displayData.name}
                     </span>
                   </div>
@@ -474,11 +474,11 @@ export default function TecnicaDetail() {
       </section>
 
       {/* ═══════════════ EXPLANATION BLOCK (3 cards) ═══════════════ */}
-      <section className="px-6 py-24" style={{ backgroundColor: "#f5f3ee" }}>
+      <section className="px-6 py-24" style={{ backgroundColor: "#f2f0ea" }}>
         <div className="max-w-[1400px] mx-auto">
           <div className="mb-16 flex justify-between items-baseline">
             <h2 className="text-4xl font-serif italic">Cómo se hace</h2>
-            <span className="text-[10px] uppercase tracking-widest font-bold font-sans" style={{ color: "rgba(44,44,44,0.3)" }}>
+            <span className="text-[10px] uppercase tracking-widest font-bold font-sans" style={{ color: "rgba(20,21,15,0.4)" }}>
               El oficio
             </span>
           </div>
@@ -487,13 +487,13 @@ export default function TecnicaDetail() {
               <div
                 key={i}
                 className="p-10 space-y-6 border transition-colors duration-500 hover:bg-white"
-                style={{ backgroundColor: "#f9f7f2", borderColor: "rgba(44,44,44,0.05)" }}
+                style={{ backgroundColor: "#f2f0ea", borderColor: "rgba(20,21,15,0.05)" }}
               >
-                <span className="font-serif italic text-2xl" style={{ color: "#ec6d13" }}>
+                <span className="font-serif italic text-2xl" style={{ color: "#122b0e" }}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="text-2xl font-serif">{card.title}</h3>
-                <p className="font-light leading-relaxed" style={{ color: "rgba(44,44,44,0.7)" }}>
+                <p className="font-light leading-relaxed" style={{ color: "rgba(20,21,15,0.7)" }}>
                   {card.text}
                 </p>
               </div>
@@ -503,7 +503,7 @@ export default function TecnicaDetail() {
       </section>
 
       {/* ═══════════════ LONG DESCRIPTION ═══════════════ */}
-      <section className="px-6 py-24" style={{ backgroundColor: "#2c2c2c", color: "#f9f7f2" }}>
+      <section className="px-6 py-24" style={{ backgroundColor: "#14150f", color: "#f2f0ea" }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row gap-20 items-center">
           <div className="w-full md:w-1/2">
             <h2 className="text-4xl md:text-5xl font-serif leading-tight">La técnica en profundidad</h2>
@@ -522,8 +522,8 @@ export default function TecnicaDetail() {
           <h2 className="text-4xl md:text-5xl font-serif">Piezas con {displayData.name}</h2>
           <Link
             to="/productos"
-            className="text-[10px] font-bold uppercase tracking-widest border-b pb-1 transition-colors hover:text-[#ec6d13] hover:border-[#ec6d13]"
-            style={{ borderColor: "#2c2c2c" }}
+            className="text-[10px] font-bold uppercase tracking-widest border-b pb-1 transition-colors hover:text-[#122b0e] hover:border-[#122b0e]"
+            style={{ borderColor: "#14150f" }}
           >
             Ver todas las piezas
           </Link>
@@ -539,9 +539,9 @@ export default function TecnicaDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i}>
-                <div className="aspect-[3/4] mb-6 rounded-sm animate-pulse" style={{ backgroundColor: "#e5e1d8" }} />
-                <div className="h-4 w-24 rounded mb-2 animate-pulse" style={{ backgroundColor: "#e5e1d8" }} />
-                <div className="h-6 w-40 rounded animate-pulse" style={{ backgroundColor: "#e5e1d8" }} />
+                <div className="aspect-[3/4] mb-6 rounded-sm border border-foreground/10 animate-pulse" style={{ backgroundColor: "#ece9e2" }} />
+                <div className="h-4 w-24 rounded mb-2 animate-pulse" style={{ backgroundColor: "#ece9e2" }} />
+                <div className="h-6 w-40 rounded animate-pulse" style={{ backgroundColor: "#ece9e2" }} />
               </div>
             ))}
           </div>
@@ -554,18 +554,18 @@ export default function TecnicaDetail() {
 
       {/* ═══════════════ WORKSHOPS ═══════════════ */}
       {relevantShops.length > 0 && (
-        <section className="px-6 py-32" style={{ backgroundColor: "#2c2c2c", color: "#f9f7f2" }}>
+        <section className="px-6 py-32" style={{ backgroundColor: "#14150f", color: "#f2f0ea" }}>
           <div className="max-w-[1400px] mx-auto">
             <div className="flex justify-between items-end mb-16">
               <div>
                 <h2 className="text-4xl font-serif">Talleres que dominan esta técnica</h2>
-                <p className="text-[10px] font-bold uppercase tracking-[0.5em] mt-2 font-sans" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.5em] mt-2 font-sans" style={{ color: "rgba(255,255,255,0.5)" }}>
                   Maestros del oficio
                 </p>
               </div>
               <Link
                 to="/tiendas"
-                className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+                className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#122b0e] hover:text-[#122b0e]"
                 style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
               >
                 Ver todos los talleres
@@ -578,20 +578,20 @@ export default function TecnicaDetail() {
                   to={`/artesano/${shop.shopSlug || shop.id}`}
                   className="group"
                 >
-                  <div className="aspect-square mb-6 overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.05)" }}>
+                  <div className="aspect-square mb-6 overflow-hidden rounded-sm border border-white/10" style={{ backgroundColor: "rgba(255,255,255,0.05)" }}>
                     {(shop.logoUrl || shop.bannerUrl) && (
                       <img
                         src={shop.logoUrl || shop.bannerUrl}
                         alt={shop.shopName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
                         loading="lazy"
                       />
                     )}
                   </div>
-                  <span className="text-[#ec6d13] font-bold uppercase tracking-widest text-[9px] mb-1 block">
+                  <span className="text-[#c8d5b9] font-bold uppercase tracking-widest text-[9px] mb-1 block">
                     {shop.department || shop.region || "Colombia"}
                   </span>
-                  <h4 className="font-serif text-xl text-white group-hover:text-[#ec6d13] transition-colors">
+                  <h4 className="font-serif text-xl text-white group-hover:text-[#c8d5b9] transition-colors">
                     {shop.shopName}
                   </h4>
                 </Link>
@@ -606,7 +606,7 @@ export default function TecnicaDetail() {
         <section className="px-6 py-32 max-w-[1400px] mx-auto">
           <div className="mb-12">
             <h2 className="text-4xl font-serif italic">Territorios donde vive esta técnica</h2>
-            <p className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(44,44,44,0.4)" }}>
+            <p className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans mt-2" style={{ color: "rgba(20,21,15,0.5)" }}>
               Raíces geográficas
             </p>
           </div>
@@ -617,10 +617,10 @@ export default function TecnicaDetail() {
                 to={`/territorio/${tSlug}`}
                 className="group flex-shrink-0 w-80"
               >
-                <div className="aspect-[16/10] rounded-sm mb-4 overflow-hidden relative" style={{ backgroundColor: "#e5e1d8" }}>
+                <div className="aspect-[16/10] rounded-sm mb-4 overflow-hidden relative border border-foreground/10" style={{ backgroundColor: "#ece9e2" }}>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
                 </div>
-                <h3 className="text-xl font-serif italic group-hover:text-[#ec6d13] transition-colors">
+                <h3 className="text-xl font-serif italic group-hover:text-[#122b0e] transition-colors">
                   {TERRITORY_NAMES[tSlug] || tSlug}
                 </h3>
               </Link>
@@ -630,14 +630,14 @@ export default function TecnicaDetail() {
       )}
 
       {/* ═══════════════ CULTURAL CAPSULE ═══════════════ */}
-      <section className="relative px-6 py-40 overflow-hidden bg-white border-y" style={{ borderColor: "rgba(44,44,44,0.05)" }}>
+      <section className="relative px-6 py-40 overflow-hidden bg-white border-y" style={{ borderColor: "rgba(20,21,15,0.05)" }}>
         <div className="max-w-4xl mx-auto text-center space-y-10">
-          <span className="text-5xl" style={{ color: "#ec6d13" }}>"</span>
+          <span className="text-5xl" style={{ color: "#122b0e" }}>"</span>
           <h2 className="text-4xl md:text-5xl font-serif italic">{displayData.culturalTitle}</h2>
-          <p className="text-xl md:text-2xl leading-relaxed italic font-serif" style={{ color: "rgba(44,44,44,0.8)" }}>
+          <p className="text-xl md:text-2xl leading-relaxed italic font-serif" style={{ color: "rgba(20,21,15,0.8)" }}>
             "{displayData.culturalQuote}"
           </p>
-          <div className="w-16 h-px mx-auto" style={{ backgroundColor: "#ec6d13" }} />
+          <div className="w-16 h-px mx-auto" style={{ backgroundColor: "#122b0e" }} />
         </div>
       </section>
 
@@ -646,14 +646,14 @@ export default function TecnicaDetail() {
         <div className="flex justify-between items-end mb-12">
           <h2
             className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans"
-            style={{ color: "rgba(44,44,44,0.4)" }}
+            style={{ color: "rgba(20,21,15,0.5)" }}
           >
             Seguir explorando técnicas
           </h2>
           <Link
             to="/tecnicas"
-            className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
-            style={{ borderColor: "rgba(44,44,44,0.2)" }}
+            className="px-8 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#122b0e] hover:text-[#122b0e]"
+            style={{ borderColor: "rgba(20,21,15,0.2)" }}
           >
             Ver archivo completo
           </Link>
@@ -666,27 +666,27 @@ export default function TecnicaDetail() {
             return (
               <Link key={tSlug} to={`/tecnica/${tSlug}`} className="group block">
                 <div
-                  className="aspect-[4/3] rounded-sm mb-6 grayscale group-hover:grayscale-0 transition-all duration-700 relative overflow-hidden"
-                  style={{ backgroundColor: "#e5e1d8" }}
+                  className="aspect-[4/3] rounded-sm border border-foreground/10 mb-6 relative overflow-hidden"
+                  style={{ backgroundColor: "#ece9e2" }}
                 >
                   {relImg ? (
                     <img
                       src={relImg}
                       alt={t.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
                       loading="lazy"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <span className="text-4xl font-serif italic" style={{ color: "rgba(44,44,44,0.06)" }}>
+                      <span className="text-4xl font-serif italic" style={{ color: "rgba(20,21,15,0.06)" }}>
                         {t.name}
                       </span>
                     </div>
                   )}
                 </div>
-                <h3 className="text-2xl font-serif italic group-hover:text-[#ec6d13] transition-colors">{t.name}</h3>
-                <p className="text-sm mt-2 font-light" style={{ color: "rgba(44,44,44,0.6)" }}>
+                <h3 className="text-2xl font-serif italic group-hover:text-[#122b0e] transition-colors">{t.name}</h3>
+                <p className="text-sm mt-2 font-light" style={{ color: "rgba(20,21,15,0.6)" }}>
                   {t.subtitle}
                 </p>
               </Link>
@@ -698,27 +698,27 @@ export default function TecnicaDetail() {
       {/* ═══════════════ FINAL CTA ═══════════════ */}
       <section
         className="px-6 py-40 flex flex-col items-center text-center gap-10"
-        style={{ backgroundColor: "#2c2c2c", color: "#fff" }}
+        style={{ backgroundColor: "#14150f", color: "#fff" }}
       >
         <h2 className="text-4xl md:text-5xl font-serif max-w-3xl leading-tight">{displayData.ctaHeadline}</h2>
         <div className="flex flex-col sm:flex-row gap-6">
           <Link
             to="/productos"
-            className="px-12 py-4 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2c2c2c] transition-all"
-            style={{ backgroundColor: "#ec6d13" }}
+            className="px-12 py-4 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#14150f] transition-all"
+            style={{ backgroundColor: "#122b0e" }}
           >
             Explorar piezas
           </Link>
           <Link
             to="/tecnicas"
-            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#122b0e] hover:text-[#122b0e]"
             style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
           >
             Ver todas las técnicas
           </Link>
           <Link
             to="/territorios"
-            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#ec6d13] hover:text-[#ec6d13]"
+            className="px-12 py-4 border text-[10px] font-bold uppercase tracking-widest transition-all hover:border-[#122b0e] hover:text-[#122b0e]"
             style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
           >
             Descubrir territorios

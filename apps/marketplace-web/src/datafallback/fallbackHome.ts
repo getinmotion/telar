@@ -14,8 +14,8 @@ const empty = (id: string, position: number, type: string, payload: Record<strin
 export const FALLBACK_HOME_SECTIONS: CmsSection[] = [
   empty('fb-home-0', 0, 'home_hero_carousel', {
     description:
-      'Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean.',
-    tagline: 'Hecho a mano por talleres artesanales de Colombia.',
+      'Objetos auténticos creados por artesanas, artesanos y Escuelas Taller de Colombia. Cada pieza conserva la historia, el origen y el saber de quienes la crean.',
+    tagline: 'Hecho a mano por las Escuelas Taller y los talleres artesanales de Colombia.',
     primaryCtaLabel: 'Explorar Piezas',
     primaryCtaHref: '/productos',
     secondaryCtaLabel: 'Conocer Talleres',
@@ -44,8 +44,8 @@ export const FALLBACK_HOME_SECTIONS: CmsSection[] = [
   }),
   empty('fb-home-1', 10, 'home_value_props', {
     cards: [
-      { title: 'Hecho a mano',           body: 'Cada pieza es creada por talleres artesanales reales que mantienen vivas técnicas tradicionales.' },
-      { title: 'Origen cultural',        body: 'Los objetos conservan la historia de la región y las comunidades donde fueron creados.' },
+      { title: 'Hecho a mano',           body: 'Cada pieza es creada por maestras, maestros y aprendices que mantienen vivos los oficios tradicionales.' },
+      { title: 'Patrimonio vivo',        body: 'Los objetos conservan la historia de la región y de las comunidades portadoras de saberes donde fueron creados.' },
       { title: 'Autenticidad registrada', body: 'Cada pieza cuenta con una huella digital que documenta su origen, su taller y su proceso artesanal.' },
     ],
   }),
@@ -64,19 +64,19 @@ export const FALLBACK_HOME_SECTIONS: CmsSection[] = [
     slot: 'marketplace_diferente',
     kicker: 'Un marketplace diferente',
     title: '',
-    body: 'Telar conecta a compradores con talleres artesanales reales. Cada pieza tiene origen, autor y proceso documentado.',
-    ctaLabel: 'Descubrir cómo funciona Telar',
-    ctaHref: '/newsletter',
+    body: 'Cocrea conecta a compradores con las Escuelas Taller, artesanas y artesanos de todo el país. Cada pieza tiene origen, autor y proceso documentado.',
+    ctaLabel: 'Descubrir cómo funciona Cocrea',
+    ctaHref: '/sobre-cocrea',
     variant: 'dark',
     imageUrl: '',
   }),
   empty('fb-home-5', 50, 'home_block', {
     slot: 'comercio_justo',
     kicker: '',
-    title: 'Comercio justo para quienes crean',
-    body: 'Trabajamos directamente con talleres artesanales para asegurar que quienes crean las piezas reciban una compensación justa por su trabajo. Construimos relaciones directas entre quienes crean las piezas y quienes las valoran.',
+    title: 'Economías culturales que construyen paz',
+    body: 'Trabajamos directamente con las Escuelas Taller, las unidades productivas y los emprendimientos culturales para que quienes crean las piezas reciban una compensación justa. Cada compra fortalece las economías culturales, populares y comunitarias de los territorios.',
     ctaLabel: 'Conocer más',
-    ctaHref: '/newsletter',
+    ctaHref: '/sobre-cocrea',
     variant: 'bordered',
     imageUrl: '',
   }),

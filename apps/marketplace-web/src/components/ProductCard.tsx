@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, ShoppingCart, Star, Store, Clock } from "lucide-react";
+import { Heart, ShoppingCart, Star, Store, Clock, Leaf, Sparkles } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ProductPurchaseButton } from "./ProductPurchaseButton";
@@ -44,14 +44,14 @@ export const ProductCard = ({
     
     <Link to={`/product/${id}`} state={{ returnUrl: window.location.search }}>
 
-      <Card className="group overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/40">
+      <Card className="group overflow-hidden h-full rounded-sm border-foreground/10 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10">
+        <div className="relative aspect-[4/5] overflow-hidden bg-muted border-b border-foreground/10">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
               loading="lazy"
               onError={(e) => {
                 console.error(`[ProductCard] Error cargando imagen:`, {
@@ -76,7 +76,7 @@ export const ProductCard = ({
             </div>
           )}
           {/* Hidden placeholder for error fallback */}
-          <div className="hidden w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10">
+          <div className="hidden w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center absolute inset-0 bg-muted">
             <Store className="w-16 h-16 text-primary/30" />
             {craft && (
               <p className="text-sm font-medium text-muted-foreground/60">
@@ -88,12 +88,12 @@ export const ProductCard = ({
           {/* Stock Badges */}
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
             {stock === 0 && (
-              <Badge className="bg-red-500 hover:bg-red-500 text-white border-0">
+              <Badge className="bg-charcoal hover:bg-charcoal text-white border-0 rounded-none text-[10px] uppercase tracking-widest">
                 Agotado
               </Badge>
             )}
             {stock !== undefined && stock > 0 && stock <= 3 && (
-              <Badge className="bg-orange-500 hover:bg-orange-500 text-white border-0">
+              <Badge className="bg-primary hover:bg-primary text-primary-foreground border-0 rounded-none text-[10px] uppercase tracking-widest">
                 {stock === 1
                   ? "¡Última unidad!"
                   : `¡Últimas ${stock} unidades!`}
@@ -127,10 +127,10 @@ export const ProductCard = ({
           {/* Product Name */}
           <h3
             className={cn(
-              "font-medium text-foreground line-clamp-2 leading-snug",
+              "font-serif tracking-tight text-foreground line-clamp-2 leading-snug",
               compactMode
                 ? "text-sm min-h-[2.5rem]"
-                : "text-base min-h-[2.75rem]",
+                : "text-lg min-h-[2.75rem]",
             )}
           >
             {name}
@@ -212,18 +212,18 @@ export const ProductCard = ({
                 <Badge
                   key={material}
                   variant="outline"
-                  className="text-[10px] px-1.5 py-0.5"
+                  className="text-[10px] px-1.5 py-0.5 gap-1 rounded-none"
                 >
-                  🌿 {material}
+                  <Leaf className="h-2.5 w-2.5" /> {material}
                 </Badge>
               ))}
               {techniques?.slice(0, 1).map((technique) => (
                 <Badge
                   key={technique}
                   variant="secondary"
-                  className="text-[10px] px-1.5 py-0.5"
+                  className="text-[10px] px-1.5 py-0.5 gap-1 rounded-none"
                 >
-                  ✨ {technique}
+                  <Sparkles className="h-2.5 w-2.5" /> {technique}
                 </Badge>
               ))}
               {((materials?.length || 0) > 2 ||

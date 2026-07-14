@@ -188,7 +188,7 @@ const GiftCards = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f7f2] text-[#1b1c19]">
+    <div className="min-h-screen bg-[#f5f1e6] text-[#1b1c19]">
       {/* Hero Editorial Section */}
       <header className="relative w-full h-[70vh] min-h-[500px] max-h-[820px] flex items-center justify-center overflow-hidden">
         {(() => {
@@ -200,14 +200,14 @@ const GiftCards = () => {
                 alt="Regalos con historia"
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-[#1b1c19]/30 via-[#1b1c19]/20 to-[#f9f7f2]/90" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#1b1c19]/30 via-[#1b1c19]/20 to-[#f5f1e6]/90" />
             </>
           ) : (
             <div className="absolute inset-0 bg-[#1b1c19]/5" />
           );
         })()}
         <div className="relative z-10 text-center px-6 max-w-4xl">
-          <span className="text-[#ec6d13] text-xs uppercase tracking-[0.3em] mb-4 block font-bold">
+          <span className="text-[#2e5424] text-xs uppercase tracking-[0.3em] mb-4 block font-bold">
             Curaduria Exclusiva
           </span>
           <h1 className="font-serif text-6xl md:text-8xl font-bold tracking-tighter leading-none mb-8">
@@ -227,7 +227,7 @@ const GiftCards = () => {
             <h2 className="font-serif text-4xl mb-4">
               Encuentra el detalle perfecto
             </h2>
-            <p className="text-[#584237]">
+            <p className="text-[#55603c]">
               Navega por nuestras colecciones curadas segun la intencion de tu
               presente.
             </p>
@@ -254,10 +254,10 @@ const GiftCards = () => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c19]/80 via-[#1b1c19]/20 to-transparent z-10" />
                 <div className="absolute bottom-8 left-8 z-20">
-                  <h3 className="font-serif text-2xl text-[#f9f7f2]">
+                  <h3 className="font-serif text-2xl text-[#f5f1e6]">
                     {intent.title}
                   </h3>
-                  <p className="text-[#f9f7f2]/80 text-sm uppercase tracking-widest mt-2 font-bold">
+                  <p className="text-[#f5f1e6]/80 text-sm uppercase tracking-widest mt-2 font-bold">
                     {intent.subtitle}
                   </p>
                 </div>
@@ -274,13 +274,13 @@ const GiftCards = () => {
             <h2 className="font-serif text-5xl italic mb-6">
               Selecciones Curadas
             </h2>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto" />
+            <div className="w-24 h-px bg-[#2e5424] mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Large Feature — La Ruta de la Seda (Cauca · Agroarte) */}
-            <div className="md:col-span-7 bg-[#f9f7f2] rounded-sm p-12 flex flex-col justify-between min-h-[500px]">
+            <div className="md:col-span-7 bg-[#f5f1e6] rounded-sm p-12 flex flex-col justify-between min-h-[500px]">
               <div>
-                <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
+                <span className="text-[#2e5424] font-bold text-xs tracking-widest uppercase mb-4 block">
                   Crónica del Territorio · Cauca
                 </span>
                 <h3 className="font-serif text-4xl mb-6 leading-tight">
@@ -288,14 +288,14 @@ const GiftCards = () => {
                   <br />
                   <span className="italic">de la morera al telar de paz</span>
                 </h3>
-                <p className="text-[#584237] leading-relaxed mb-4">
+                <p className="text-[#55603c] leading-relaxed mb-4">
                   En las montañas del Cauca, Colteseda y Agroarte tejen una
                   revolución silenciosa. Mujeres cabeza de familia transforman
                   la morera en seda y la hoja de coca en tintes naturales,
                   sustituyendo economías de la guerra por una economía legal,
                   digna y circular.
                 </p>
-                <p className="text-[#584237] leading-relaxed">
+                <p className="text-[#55603c] leading-relaxed">
                   Cada pieza de Agroarte lleva el alma de esta transformación:
                   seda hilada a mano, teñida con pigmentos que devuelven a la
                   coca su origen artesanal. Regalar una pieza del Cauca es
@@ -319,7 +319,7 @@ const GiftCards = () => {
                         ? `/product/${caucaProduct.id}`
                         : `/product/${CAUCA_FEATURED_PRODUCT_ID}`
                     }
-                    className="font-bold border-b-2 border-[#ec6d13] pb-1 hover:text-[#ec6d13] transition-colors text-sm uppercase tracking-widest"
+                    className="font-bold border-b-2 border-[#2e5424] pb-1 hover:text-[#2e5424] transition-colors text-sm uppercase tracking-widest"
                   >
                     Ver la pieza{" "}
                     {caucaProduct?.artisanShop?.shopName
@@ -328,7 +328,7 @@ const GiftCards = () => {
                   </Link>
                   <Link
                     to="/territorio/cauca"
-                    className="text-[10px] uppercase tracking-widest font-bold text-[#584237] hover:text-[#ec6d13] transition-colors"
+                    className="text-[10px] uppercase tracking-widest font-bold text-[#55603c] hover:text-[#2e5424] transition-colors"
                   >
                     Conocer el territorio →
                   </Link>
@@ -339,7 +339,7 @@ const GiftCards = () => {
             <div className="md:col-span-5 flex flex-col gap-8">
               <Link
                 to="/tecnicas"
-                className="bg-[#f9f7f2] p-8 rounded-sm flex items-center gap-6 group cursor-pointer overflow-hidden"
+                className="bg-[#f5f1e6] p-8 rounded-sm flex items-center gap-6 group cursor-pointer overflow-hidden"
               >
                 {(() => {
                   const img = editorialImage(5);
@@ -356,10 +356,10 @@ const GiftCards = () => {
                   );
                 })()}
                 <div>
-                  <h4 className="font-serif text-xl mb-1 group-hover:text-[#ec6d13] transition-colors">
+                  <h4 className="font-serif text-xl mb-1 group-hover:text-[#2e5424] transition-colors">
                     Tecnicas Ancestrales
                   </h4>
-                  <p className="text-xs text-[#584237]">
+                  <p className="text-xs text-[#55603c]">
                     Kits para el coleccionista de arte popular.
                   </p>
                 </div>
@@ -368,7 +368,7 @@ const GiftCards = () => {
                 {(() => {
                   const img = editorialImage(6);
                   return (
-                    <div className="w-full h-40 mb-6 rounded-sm overflow-hidden bg-[#f9f7f2]/5">
+                    <div className="w-full h-40 mb-6 rounded-sm overflow-hidden bg-[#f5f1e6]/5">
                       {img && (
                         <img
                           src={img}
@@ -379,14 +379,14 @@ const GiftCards = () => {
                     </div>
                   );
                 })()}
-                <h4 className="font-serif text-2xl text-[#f9f7f2] mb-4">
+                <h4 className="font-serif text-2xl text-[#f5f1e6] mb-4">
                   El Arte de Empacar
                 </h4>
-                <p className="text-[#f9f7f2]/60 text-sm mb-6">
+                <p className="text-[#f5f1e6]/60 text-sm mb-6">
                   Nuestros empaques son piezas de arte por derecho propio,
                   creados en papel de fibra natural.
                 </p>
-                <span className="text-[#ec6d13] text-xs tracking-widest font-bold uppercase">
+                <span className="text-[#2e5424] text-xs tracking-widest font-bold uppercase">
                   Ver mas
                 </span>
               </div>
@@ -399,10 +399,10 @@ const GiftCards = () => {
       {recommendations.length > 0 && (
         <section className="py-20 px-6 md:px-12 max-w-7xl mx-auto">
           <div className="flex justify-between items-baseline mb-16">
-            <h2 className="font-serif text-4xl">Recomendaciones de Telar</h2>
+            <h2 className="font-serif text-4xl">Recomendaciones de Cocrea</h2>
             <Link
               to="/productos"
-              className="text-sm uppercase tracking-tight border-b border-[#1b1c19] font-bold hover:text-[#ec6d13] hover:border-[#ec6d13] transition-colors"
+              className="text-sm uppercase tracking-tight border-b border-[#1b1c19] font-bold hover:text-[#2e5424] hover:border-[#2e5424] transition-colors"
             >
               Ver todos los productos
             </Link>
@@ -439,15 +439,15 @@ const GiftCards = () => {
                     </button>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] text-[#584237] uppercase tracking-[0.15em]">
+                    <p className="text-[10px] text-[#55603c] uppercase tracking-[0.15em]">
                       {dept}
                       {dept && technique && " / "}
                       {technique}
                     </p>
-                    <h3 className="font-serif text-lg group-hover:text-[#ec6d13] transition-colors">
+                    <h3 className="font-serif text-lg group-hover:text-[#2e5424] transition-colors">
                       {product.name}
                     </h3>
-                    <p className="text-[#ec6d13] font-bold text-sm">
+                    <p className="text-[#2e5424] font-bold text-sm">
                       {price ? formatCurrency(price) : "Consultar"}
                     </p>
                   </div>
@@ -462,34 +462,34 @@ const GiftCards = () => {
       {/* <section className="py-32 bg-white border-y border-[#1b1c19]/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
-            <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase mb-4 block">
+            <span className="text-[#2e5424] font-bold text-xs tracking-widest uppercase mb-4 block">
               Tarjetas de Regalo
             </span>
             <h2 className="font-serif text-5xl italic mb-6">
               Regala una Gift Card
             </h2>
-            <p className="text-[#584237] max-w-lg mx-auto leading-relaxed">
+            <p className="text-[#55603c] max-w-lg mx-auto leading-relaxed">
               El regalo perfecto para quienes aman la artesania colombiana. Deja
               que elijan sus propias piezas unicas.
             </p>
-            <div className="w-24 h-px bg-[#ec6d13] mx-auto mt-8" />
+            <div className="w-24 h-px bg-[#2e5424] mx-auto mt-8" />
           </div>
 
           <div className="flex flex-wrap justify-center gap-12 mb-16">
             <div className="flex items-center gap-3">
-              <ShoppingCart className="w-4 h-4 text-[#ec6d13]" />
+              <ShoppingCart className="w-4 h-4 text-[#2e5424]" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Valida en todo el marketplace
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <Gift className="w-4 h-4 text-[#ec6d13]" />
+              <Gift className="w-4 h-4 text-[#2e5424]" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Saldo multiples compras
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <Mail className="w-4 h-4 text-[#ec6d13]" />
+              <Mail className="w-4 h-4 text-[#2e5424]" />
               <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b1c19]/60">
                 Entrega por correo
               </span>
@@ -506,12 +506,12 @@ const GiftCards = () => {
                   key={card.id}
                   className={`relative border transition-all duration-300 p-8 ${
                     isSelected
-                      ? "border-[#ec6d13] shadow-lg"
+                      ? "border-[#2e5424] shadow-lg"
                       : "border-[#1b1c19]/10 hover:border-[#1b1c19]/30"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <Gift className="w-6 h-6 text-[#ec6d13]" />
+                    <Gift className="w-6 h-6 text-[#2e5424]" />
                     <span className="font-serif text-2xl font-bold">
                       {fmt(card.amount)}
                     </span>
@@ -531,7 +531,7 @@ const GiftCards = () => {
                           id={`email-${card.id}`}
                           type="email"
                           placeholder="regalo@ejemplo.com"
-                          className="bg-[#f9f7f2] border-[#1b1c19]/10 text-sm"
+                          className="bg-[#f5f1e6] border-[#1b1c19]/10 text-sm"
                           value={forms[card.id]?.recipientEmail || ""}
                           onChange={(e) =>
                             handleFormChange(
@@ -553,7 +553,7 @@ const GiftCards = () => {
                         <Textarea
                           id={`msg-${card.id}`}
                           placeholder="Feliz cumpleanos! Espero que encuentres algo especial..."
-                          className="bg-[#f9f7f2] border-[#1b1c19]/10 text-sm"
+                          className="bg-[#f5f1e6] border-[#1b1c19]/10 text-sm"
                           value={forms[card.id]?.message || ""}
                           onChange={(e) =>
                             handleFormChange(card.id, "message", e.target.value)
@@ -570,7 +570,7 @@ const GiftCards = () => {
                         </button>
                         <button
                           onClick={() => handleAddToCart(card)}
-                          className="flex-1 bg-[#ec6d13] text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#2c2c2c] transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 bg-[#2e5424] text-white py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#2b2f26] transition-colors flex items-center justify-center gap-2"
                         >
                           <ShoppingCart className="w-3 h-3" />
                           Agregar
@@ -585,8 +585,8 @@ const GiftCards = () => {
                       disabled={isAdded}
                       className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                         isAdded
-                          ? "bg-[#2c2c2c] text-white"
-                          : "bg-[#2c2c2c] text-white hover:bg-[#ec6d13]"
+                          ? "bg-[#2b2f26] text-white"
+                          : "bg-[#2b2f26] text-white hover:bg-[#2e5424]"
                       }`}
                     >
                       {isAdded ? (
@@ -613,7 +613,7 @@ const GiftCards = () => {
       <section className="w-full bg-[#1b1c19] py-32 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
           <div className="order-2 md:order-1">
-            <div className="w-full aspect-square rounded-sm overflow-hidden bg-[#f9f7f2]/5">
+            <div className="w-full aspect-square rounded-sm overflow-hidden bg-[#f5f1e6]/5">
               {(() => {
                 const img = editorialImage(7);
                 return img ? (
@@ -628,13 +628,13 @@ const GiftCards = () => {
           </div>
           <div className="order-1 md:order-2 space-y-12">
             <div className="space-y-6">
-              <span className="text-[#ec6d13] font-bold text-xs tracking-widest uppercase block">
+              <span className="text-[#2e5424] font-bold text-xs tracking-widest uppercase block">
                 Servicios B2B
               </span>
-              <h2 className="font-serif text-5xl md:text-6xl text-[#f9f7f2] leading-tight">
+              <h2 className="font-serif text-5xl md:text-6xl text-[#f5f1e6] leading-tight">
                 Regalos que cuentan su proposito
               </h2>
-              <p className="text-[#f9f7f2]/60 text-lg leading-relaxed">
+              <p className="text-[#f5f1e6]/60 text-lg leading-relaxed">
                 Elevamos los regalos corporativos a una expresion de cultura y
                 responsabilidad. Personalizamos selecciones de alta artesania
                 para empresas que valoran la trazabilidad y el impacto social.
@@ -642,24 +642,24 @@ const GiftCards = () => {
             </div>
             <div className="flex flex-col gap-6">
               <div className="flex items-start gap-4">
-                <span className="text-[#ec6d13] mt-1">✦</span>
+                <span className="text-[#2e5424] mt-1">✦</span>
                 <div>
-                  <h4 className="text-[#f9f7f2] font-bold mb-1">
+                  <h4 className="text-[#f5f1e6] font-bold mb-1">
                     Trazabilidad Total
                   </h4>
-                  <p className="text-[#f9f7f2]/50 text-sm">
+                  <p className="text-[#f5f1e6]/50 text-sm">
                     Documentamos la historia de cada artesano involucrado en su
                     pedido.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <span className="text-[#ec6d13] mt-1">✦</span>
+                <span className="text-[#2e5424] mt-1">✦</span>
                 <div>
-                  <h4 className="text-[#f9f7f2] font-bold mb-1">
+                  <h4 className="text-[#f5f1e6] font-bold mb-1">
                     Curaduria a Medida
                   </h4>
-                  <p className="text-[#f9f7f2]/50 text-sm">
+                  <p className="text-[#f5f1e6]/50 text-sm">
                     Adaptamos las piezas a la identidad y valores de su
                     organizacion.
                   </p>
@@ -668,7 +668,7 @@ const GiftCards = () => {
             </div>
             <a
               href="mailto:hola@telar.co"
-              className="inline-block bg-[#ec6d13] text-white px-12 py-5 font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#1b1c19] transition-all"
+              className="inline-block bg-[#2e5424] text-white px-12 py-5 font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-[#1b1c19] transition-all"
             >
               Solicitar catalogo corporativo
             </a>
@@ -685,11 +685,11 @@ const GiftCards = () => {
           {[
             {
               q: "Como funciona la Gift Card?",
-              a: "Al completar la compra, el destinatario recibira un codigo unico por correo electronico. Este codigo se puede usar en el checkout de cualquier compra en el Marketplace de Telar.",
+              a: "Al completar la compra, el destinatario recibira un codigo unico por correo electronico. Este codigo se puede usar en el checkout de cualquier compra en el Marketplace de Cocrea.",
             },
             {
               q: "La Gift Card tiene fecha de vencimiento?",
-              a: "Las Gift Cards de Telar no tienen fecha de vencimiento. El saldo permanece disponible hasta que se utilice por completo.",
+              a: "Las Gift Cards de Cocrea no tienen fecha de vencimiento. El saldo permanece disponible hasta que se utilice por completo.",
             },
             {
               q: "Puedo usar la Gift Card en varias compras?",
@@ -702,7 +702,7 @@ const GiftCards = () => {
           ].map((faq, i) => (
             <div key={i} className="border-b border-[#1b1c19]/5 pb-10">
               <h3 className="font-serif text-xl mb-3">{faq.q}</h3>
-              <p className="text-[#584237] leading-relaxed font-light">
+              <p className="text-[#55603c] leading-relaxed font-light">
                 {faq.a}
               </p>
             </div>

@@ -48,7 +48,7 @@ export default function PoliticaDeCookies() {
               <section>
                 <h2 className="text-2xl font-serif mb-4 text-charcoal">1. ¿Qué son las cookies?</h2>
                 <p className="text-charcoal/70 font-sans leading-relaxed">
-                  Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo (ordenador, tablet o móvil) cuando visitas nuestra plataforma TELAR. Estas cookies permiten que el sitio web recuerde tus acciones y preferencias durante un período de tiempo.
+                  Las cookies son pequeños archivos de texto que se almacenan en tu dispositivo (ordenador, tablet o móvil) cuando visitas nuestra plataforma COCREA. Estas cookies permiten que el sitio web recuerde tus acciones y preferencias durante un período de tiempo.
                 </p>
               </section>
 
@@ -118,7 +118,7 @@ export default function PoliticaDeCookies() {
                   </li>
                 </ul>
                 <p className="text-charcoal/70 font-sans leading-relaxed mt-4">
-                  Ten en cuenta que al bloquear todas las cookies, algunas funcionalidades de TELAR pueden no estar disponibles.
+                  Ten en cuenta que al bloquear todas las cookies, algunas funcionalidades de COCREA pueden no estar disponibles.
                 </p>
               </section>
 

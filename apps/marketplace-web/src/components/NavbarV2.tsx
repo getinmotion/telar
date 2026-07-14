@@ -26,7 +26,7 @@ import { useCart } from "@/contexts/CartContext";
 import { SemanticSearchToggle } from "@/components/SemanticSearchToggle";
 import { CartDrawer } from "@/components/CartDrawer";
 import GuestAuthModal from "@/components/GuestAuthModal";
-import telarHorizontal from "@/assets/telar-horizontal.svg";
+import cocreaHorizontal from "@/assets/cocrea-horizontal.svg";
 
 interface NavbarV2Props {
   searchQuery?: string;
@@ -44,7 +44,7 @@ const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[]
   { to: "/giftcards", label: "Regalos" },
   { to: "/tiendas", label: "Talleres" },
   { to: "/historias", label: "Historias" },
-  { to: "/sobre-telar", label: "Sobre Telar" },
+  { to: "/sobre-cocrea", label: "Sobre Cocrea" },
 ];
 
 export const NavbarV2 = ({
@@ -123,6 +123,14 @@ export const NavbarV2 = ({
       <header
         className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? "shadow-md" : ""}`}
       >
+        {/* Institutional strip */}
+        {!isScrolled && (
+          <div className="w-full bg-primary text-primary-foreground">
+            <p className="container mx-auto px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.25em]">
+              Programa Nacional Escuelas Taller de Colombia · Herramientas de paz
+            </p>
+          </div>
+        )}
         <div className="container mx-auto px-4 relative">
           {/* ════════════ MOBILE TOP BAR (< lg) ════════════ */}
           <div className="flex lg:hidden items-center justify-between py-3">
@@ -139,16 +147,16 @@ export const NavbarV2 = ({
             {onHomeClick ? (
               <button onClick={onHomeClick} className="flex items-center">
                 <img
-                  src={telarHorizontal}
-                  alt="TELAR"
+                  src={cocreaHorizontal}
+                  alt="CO·CREA"
                   className="h-7"
                 />
               </button>
             ) : (
               <Link to="/?reset=true" className="flex items-center">
                 <img
-                  src={telarHorizontal}
-                  alt="TELAR"
+                  src={cocreaHorizontal}
+                  alt="CO·CREA"
                   className="h-7"
                 />
               </Link>
@@ -206,13 +214,34 @@ export const NavbarV2 = ({
 
           {/* ════════════ DESKTOP TOP BAR (>= lg) ════════════ */}
           <div
-            className={`hidden lg:grid grid-cols-[1fr_auto_1fr] gap-8 items-center transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
+            className={`hidden lg:grid grid-cols-[auto_1fr_auto] gap-8 items-center transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
           >
-            {/* Col 1: Search */}
-            <div className="flex items-center gap-2">
+            {/* Col 1: Logo */}
+            <div className="flex items-center">
+              {onHomeClick ? (
+                <button onClick={onHomeClick} className="flex items-center">
+                  <img
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
+                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                  />
+                </button>
+              ) : (
+                <Link to="/?reset=true" className="flex items-center">
+                  <img
+                    src={cocreaHorizontal}
+                    alt="CO·CREA"
+                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                  />
+                </Link>
+              )}
+            </div>
+
+            {/* Col 2: Search (centered) */}
+            <div className="flex items-center justify-center gap-2">
               {!isScrolled ? (
                 <>
-                  <div className="relative w-3/4 min-w-[200px]">
+                  <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="search"
@@ -274,33 +303,6 @@ export const NavbarV2 = ({
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Col 2: Logo */}
-            <div className="flex flex-col items-center gap-1">
-              {onHomeClick ? (
-                <button
-                  onClick={onHomeClick}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <img
-                    src={telarHorizontal}
-                    alt="TELAR"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
-                  />
-                </button>
-              ) : (
-                <Link
-                  to="/?reset=true"
-                  className="flex flex-col items-center gap-1"
-                >
-                  <img
-                    src={telarHorizontal}
-                    alt="TELAR"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
-                  />
-                </Link>
               )}
             </div>
 
@@ -394,7 +396,7 @@ export const NavbarV2 = ({
             className={`hidden lg:block border-t border-border/10 transition-all duration-300 ${isScrolled ? "bg-muted/30" : ""}`}
           >
             <div
-              className={`flex items-center justify-center gap-8 transition-all duration-300 ${isScrolled ? "py-1.5" : "py-3"}`}
+              className={`flex items-center justify-start gap-8 transition-all duration-300 ${isScrolled ? "py-1.5" : "py-3"}`}
             >
               {NAV_LINKS.map((link) =>
                 link.hasMegaMenu ? (
@@ -415,11 +417,11 @@ export const NavbarV2 = ({
                   >
                     <Link
                       to={link.to}
-                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-[#ec6d13]" : ""}`}
+                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-primary" : ""}`}
                     >
                       {link.label}
                       {megaMenuOpen && (
-                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-[#ec6d13]" />
+                        <span className="absolute -bottom-1 left-0 w-full h-[1px] bg-primary" />
                       )}
                     </Link>
                   </div>
@@ -471,7 +473,7 @@ export const NavbarV2 = ({
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-5 border-b border-border/20">
               <Link to="/?reset=true" onClick={closeMobileMenu}>
-                <img src={telarHorizontal} alt="TELAR" className="h-7" />
+                <img src={cocreaHorizontal} alt="CO·CREA" className="h-7" />
               </Link>
               <button
                 onClick={closeMobileMenu}
@@ -519,7 +521,7 @@ export const NavbarV2 = ({
                   className="flex items-center justify-between px-6 py-4 text-[15px] font-medium text-foreground/80 hover:text-foreground hover:bg-muted/40 transition-colors active:bg-muted/60"
                 >
                   <span>{link.label}</span>
-                  <ChevronRight className="w-4 h-4 text-foreground/30" />
+                  <ChevronRight className="w-4 h-4 text-foreground/45" />
                 </Link>
               ))}
             </div>

@@ -93,7 +93,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
     >
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-[560px]">
         {/* Left Column: Categories List */}
-        <aside className="w-full lg:w-80 bg-[#f9f7f2]/30 border-r border-border/10 p-10 flex flex-col justify-between">
+        <aside className="w-full lg:w-80 bg-[#f5f1e6]/30 border-r border-border/10 p-10 flex flex-col justify-between">
           <div>
             <div className="mb-10">
               <p className="text-[10px] text-foreground/40 uppercase tracking-widest font-bold mb-2">
@@ -113,8 +113,8 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                     <button
                       className={`flex items-center space-x-4 p-3 -mx-3 rounded-sm w-full text-left transition-all ${
                         isActive
-                          ? "bg-[#f2eee4] text-[#ec6d13]"
-                          : "text-foreground/60 hover:text-[#ec6d13] hover:bg-[#f2eee4]/50"
+                          ? "bg-[#f2eee4] text-[#2e5424]"
+                          : "text-foreground/60 hover:text-[#2e5424] hover:bg-[#f2eee4]/50"
                       }`}
                       onMouseEnter={() => setActiveCategory(cat)}
                       onClick={() => {
@@ -139,7 +139,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
             <Link
               to="/categorias"
               onClick={onClose}
-              className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-foreground hover:text-[#ec6d13] transition-all group"
+              className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-foreground hover:text-[#2e5424] transition-all group"
             >
               <span>Ver todas las categorias</span>
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -169,8 +169,8 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                         onClick={onClose}
                         className={`flex items-center justify-between group transition-colors ${
                           i < 3
-                            ? "text-base font-bold text-foreground hover:text-[#ec6d13]"
-                            : "text-sm font-medium text-foreground/60 hover:text-[#ec6d13]"
+                            ? "text-base font-bold text-foreground hover:text-[#2e5424]"
+                            : "text-sm font-medium text-foreground/60 hover:text-[#2e5424]"
                         }`}
                       >
                         {sub.name}
@@ -185,7 +185,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                   <Link
                     to={`/productos?categoria=${activeCategory.slug}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ec6d13] border-b border-[#ec6d13]/30 pb-1 hover:border-[#ec6d13] transition-all group"
+                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#2e5424] border-b border-[#2e5424]/30 pb-1 hover:border-[#2e5424] transition-all group"
                   >
                     Explorar todo {activeCategory.name}
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -196,7 +196,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
           </div>
 
           {/* Right Panel: Featured Products */}
-          <div className="col-span-12 lg:col-span-8 p-12 flex flex-col bg-[#f9f7f2]/10">
+          <div className="col-span-12 lg:col-span-8 p-12 flex flex-col bg-[#f5f1e6]/10">
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-border/10">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-foreground/30">
                 Popular en esta categoria
@@ -229,7 +229,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-1">
-                        <h4 className="font-serif text-2xl leading-tight group-hover:text-[#ec6d13] transition-colors">
+                        <h4 className="font-serif text-2xl leading-tight group-hover:text-[#2e5424] transition-colors">
                           {product.name}
                         </h4>
                         <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/40 italic">
@@ -237,7 +237,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                         </p>
                         <div className="flex gap-1.5 items-center">
                           {technique && (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#ec6d13]">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#2e5424]">
                               {technique}
                             </span>
                           )}

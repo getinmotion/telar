@@ -83,7 +83,7 @@ export function HeroCarousel() {
                     />
                   )}
                   <div
-                    className="absolute inset-0 bg-[#2c2c2c]"
+                    className="absolute inset-0 bg-[#2b2f26]"
                     style={{ opacity: overlay }}
                   />
                   <div className="absolute inset-0 flex items-center">
@@ -103,14 +103,14 @@ export function HeroCarousel() {
                               href={href}
                               target={slide.cta_link?.target ?? "_self"}
                               rel="noopener noreferrer"
-                              className="inline-block bg-white text-[#2c2c2c] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-colors"
+                              className="inline-block bg-white text-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-colors"
                             >
                               {slide.cta_text}
                             </a>
                           ) : (
                             <Link
                               to={href.startsWith("/") ? href : `/${href}`}
-                              className="inline-block bg-white text-[#2c2c2c] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#ec6d13] hover:text-white transition-colors"
+                              className="inline-block bg-white text-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-colors"
                             >
                               {slide.cta_text}
                             </Link>
@@ -131,7 +131,7 @@ export function HeroCarousel() {
             type="button"
             aria-label="Slide anterior"
             onClick={() => emblaApi?.scrollPrev()}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2c2c2c] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -139,7 +139,7 @@ export function HeroCarousel() {
             type="button"
             aria-label="Siguiente slide"
             onClick={() => emblaApi?.scrollNext()}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2c2c2c] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

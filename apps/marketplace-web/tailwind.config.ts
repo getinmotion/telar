@@ -14,13 +14,16 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["'Playfair Display'", "serif"],
-        sans: ["Manrope", "sans-serif"],
+        serif: ["Newsreader", "serif"],
+        sans: ["Inter", "sans-serif"],
       },
       colors: {
-        charcoal: "#2c2c2c",
-        cream: "#fdfaf6",
-        "editorial-bg": "#f9f7f2",
+        charcoal: "#14150f",
+        cream: "#f7f5f0",
+        "editorial-bg": "#f2f0ea",
+        forest: "#122b0e",
+        parchment: "#e6e2d6",
+        sage: "#aab89c",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
