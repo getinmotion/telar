@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ========================================
   # Marketplace Web (React) — cocrea.telar.co → :3002
@@ -7,8 +5,8 @@ services:
   # ========================================
   marketplace-web:
     build:
-      context: ../../
-      dockerfile: experiments/cocrea/Dockerfile.marketplace-prebuilt
+      context: .
+      dockerfile: Dockerfile.marketplace-prebuilt
     container_name: cocrea-marketplace
     restart: unless-stopped
     ports:
