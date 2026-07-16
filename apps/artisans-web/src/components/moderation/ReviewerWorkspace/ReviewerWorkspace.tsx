@@ -94,38 +94,41 @@ export const ReviewerWorkspace: React.FC<ReviewerWorkspaceProps> = ({
         })}
       </div>
 
-      {/* 3-column layout */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      {/* 2-column layout — left wider, right stacks mode + AI */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {/* LEFT — producto vivo */}
-        <div style={{ width: 280, flexShrink: 0, borderRight: '1px solid rgba(84,67,62,0.08)', overflowY: 'auto', background: 'white' }}>
+        <div style={{ borderRight: '1px solid rgba(84,67,62,0.08)', overflowY: 'auto', background: 'white' }}>
           <WorkspaceLeft product={product} />
         </div>
 
-        {/* CENTER — panel del modo activo */}
-        <div style={{
-          flex: 1, minWidth: 0, borderRight: '1px solid rgba(84,67,62,0.08)', overflowY: 'auto',
-          background: cfg.rgba(0.03),
-          borderTop: `3px solid ${cfg.color}`,
-        }}>
-          <ScrollArea className="h-full">
-            {mode === 'approval' && (
-              <ApprovalMode onApprove={handleApprove} moderating={moderating} />
-            )}
-            {mode === 'correction' && (
-              <CorrectionMode product={product} onApproveWithEdits={handleApproveWithEdits} moderating={moderating} />
-            )}
-            {mode === 'request_changes' && (
-              <RequestChangesMode onRequestChanges={handleRequestChanges} moderating={moderating} />
-            )}
-            {mode === 'rejection' && (
-              <RejectionMode onReject={handleReject} moderating={moderating} />
-            )}
-          </ScrollArea>
-        </div>
+        {/* RIGHT — mode panel + AI/score/historial stacked vertically */}
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+          {/* Mode panel */}
+          <div style={{
+            flex: 1, overflowY: 'auto',
+            background: cfg.rgba(0.03),
+            borderTop: `3px solid ${cfg.color}`,
+          }}>
+            <ScrollArea className="h-full">
+              {mode === 'approval' && (
+                <ApprovalMode onApprove={handleApprove} moderating={moderating} />
+              )}
+              {mode === 'correction' && (
+                <CorrectionMode product={product} onApproveWithEdits={handleApproveWithEdits} moderating={moderating} />
+              )}
+              {mode === 'request_changes' && (
+                <RequestChangesMode onRequestChanges={handleRequestChanges} moderating={moderating} />
+              )}
+              {mode === 'rejection' && (
+                <RejectionMode onReject={handleReject} moderating={moderating} />
+              )}
+            </ScrollArea>
+          </div>
 
-        {/* RIGHT — IA + score + historial */}
-        <div style={{ width: 260, flexShrink: 0, overflow: 'hidden', background: 'white' }}>
-          <WorkspaceRight product={product} history={history} />
+          {/* AI + score + historial */}
+          <div style={{ borderTop: '1px solid rgba(84,67,62,0.08)', overflow: 'hidden', background: 'white' }}>
+            <WorkspaceRight product={product} history={history} />
+          </div>
         </div>
       </div>
     </div>

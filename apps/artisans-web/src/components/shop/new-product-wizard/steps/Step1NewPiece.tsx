@@ -888,7 +888,7 @@ export const Step1NewPiece: React.FC<Props> = ({
             {/* Name */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-2">
-                Nombre de la pieza
+                Nombre de la pieza *
               </label>
               <input
                 type="text"
@@ -903,7 +903,7 @@ export const Step1NewPiece: React.FC<Props> = ({
             {/* Image gallery */}
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block mb-3">
-                Registro Visual
+                Registro Visual *
               </label>
 
               {/* Mobile: tira horizontal scrollable */}
@@ -957,7 +957,7 @@ export const Step1NewPiece: React.FC<Props> = ({
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <div className="flex items-baseline justify-between mb-2">
                 <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60 block">
-                  Descripción breve
+                  Descripción breve *
                 </label>
                 <span className="text-[11px] text-[#54433e]/40">
                   Lo que verá el comprador en la tienda
@@ -1005,10 +1005,7 @@ export const Step1NewPiece: React.FC<Props> = ({
             <div className="p-5 rounded-2xl" style={cardStyle}>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] uppercase tracking-widest text-[#54433e]/60">
-                  Historia y contexto
-                  <span className="ml-2 text-[#54433e]/30 normal-case font-[500] tracking-normal">
-                    — Opcional
-                  </span>
+                  Historia y contexto *
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/40 leading-snug mb-3">
@@ -1073,11 +1070,17 @@ export const Step1NewPiece: React.FC<Props> = ({
         disabledReason={
           isCallingAgent
             ? "Procesando información con IA..."
-            : !allFieldsComplete
-              ? "Completa: nombre, descripción, foto principal e historia."
-              : agentResponse === null
-                ? "Esperando respuesta del agente..."
-                : undefined
+            : !state.name || state.name.trim().length === 0
+              ? "Ingresa el nombre de la pieza"
+              : !state.shortDescription || state.shortDescription.trim().length === 0
+                ? "Ingresa la descripción de la pieza"
+                : !hasMainPhoto
+                  ? "Sube la foto principal de la pieza"
+                  : !hasHistory
+                    ? "Ingresa la historia artesanal"
+                    : agentResponse === null
+                      ? "Esperando respuesta del agente..."
+                      : undefined
         }
         leftOffset={leftOffset}
       />

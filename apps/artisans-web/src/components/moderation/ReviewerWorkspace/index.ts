@@ -1,6 +1,5 @@
 export { ReviewerWorkspace } from './ReviewerWorkspace';
 export { HealthScoreRing } from './HealthScoreRing';
-export { AIInsightsPanel } from './AIInsightsPanel';
 export { CorrectionTypeSelector } from './CorrectionTypeSelector';
 export type { CorrectionType, FieldCorrection } from './CorrectionTypeSelector';
 export { CorrectionSummaryCard } from './CorrectionSummaryCard';

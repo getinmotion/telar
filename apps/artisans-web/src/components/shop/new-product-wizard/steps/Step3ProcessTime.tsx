@@ -407,14 +407,19 @@ export const Step3ProcessTime: React.FC<Props> = ({
   const [saveTitle, setSaveTitle] = useState("");
   const [isSavingProcess, setIsSavingProcess] = useState(false);
 
-  // Validation: require at least elaboration time + agent not loading
-  const canContinue =
-    !!state.elaborationTime &&
-    state.elaborationTime.trim().length > 0 &&
-    !agentLoading;
+  // Validation: require process description + elaboration time + agent not loading
+  const hasProcessDesc = (state.processDescription ?? "").trim().length > 0;
+  const hasElaborationTime =
+    !!state.elaborationTime && state.elaborationTime.trim().length > 0;
+  const canContinue = hasProcessDesc && hasElaborationTime && !agentLoading;
 
   const handleNext = () => {
     // Strict validation with user feedback
+    if (!state.processDescription || state.processDescription.trim().length === 0) {
+      toast.error("Por favor describe el proceso de elaboración");
+      return;
+    }
+
     if (!state.elaborationTime || state.elaborationTime.trim().length === 0) {
       toast.error("Por favor ingresa el tiempo de elaboración de la pieza");
       return;
@@ -1052,7 +1057,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                     description
                   </span>
                   <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                    Descripción del proceso
+                    Descripción del proceso *
                   </label>
                   <AiBadge />
                 </div>
@@ -1365,7 +1370,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                     schedule
                   </span>
                   <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                    Tiempos de elaboración
+                    Tiempos de elaboración *
                   </label>
                 </div>
 
@@ -1546,10 +1551,11 @@ export const Step3ProcessTime: React.FC<Props> = ({
         disabledReason={
           agentLoading
             ? "Analizando proceso con IA..."
-            : !state.elaborationTime ||
-                state.elaborationTime.trim().length === 0
-              ? "Ingresa el tiempo de elaboración"
-              : undefined
+            : !hasProcessDesc
+              ? "Describe el proceso de elaboración"
+              : !hasElaborationTime
+                ? "Ingresa el tiempo de elaboración"
+                : undefined
         }
         leftOffset={leftOffset}
       />
