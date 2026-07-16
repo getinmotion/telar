@@ -38,6 +38,7 @@ export const login = async (loginPayload: LoginPayload): Promise<LoginSuccessRes
             },
             userMasterContext: response.data.userMasterContext,
             artisanShop: response.data.artisanShop,
+            artisansIdentityProfile: response.data.artisansIdentityProfile ?? null,
             userMaturityActions: response.data.userMaturityActions,
             access_token: response.data.access_token
         });
@@ -89,6 +90,7 @@ export const refreshToken = async (): Promise<RefreshTokenSuccessResponse> => {
                         },
                         userMasterContext: useAuthStore.getState().userMasterContext,
                         artisanShop: useAuthStore.getState().artisanShop,
+                        artisansIdentityProfile: useAuthStore.getState().artisansIdentityProfile,
                         userMaturityActions: useAuthStore.getState().userMaturityActions,
                         access_token: response.data.access_token,
                     });

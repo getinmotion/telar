@@ -197,6 +197,17 @@ export interface ProductFeatured {
   canPurchase: boolean;
 }
 
+// Paginated response for marketplace endpoint
+export interface MarketplacePaginatedResponse {
+  data: ProductFeatured[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/** Union type for helpers that need to work with both product shapes */
+export type AnyProduct = ProductNewCore | ProductFeatured;
+
 // ── API Calls ─────────────────────────────────────────
 
 /**
@@ -210,6 +221,16 @@ function coerceArr<T>(raw: any): T[] {
   return [];
 }
 
+function coercePaginatedMarketplace(raw: any): MarketplacePaginatedResponse {
+  const data = coerceArr<ProductFeatured>(raw);
+  return {
+    data,
+    total: typeof raw?.total === 'number' ? raw.total : data.length,
+    page: typeof raw?.page === 'number' ? raw.page : 1,
+    limit: typeof raw?.limit === 'number' ? raw.limit : data.length,
+  };
+}
+
 function coercePaginated(raw: any): ProductsNewPaginatedResponse {
   const data = coerceArr<ProductNewCore>(raw);
   return {
@@ -220,8 +241,30 @@ function coercePaginated(raw: any): ProductsNewPaginatedResponse {
   } as ProductsNewPaginatedResponse;
 }
 
-/** GET /products-new — all products (with optional filters) */
+/** GET /products-new/marketplace — marketplace products filtered by agreementId */
 export const getProductsNew = async (params?: {
+  page?: number;
+  limit?: number;
+  categoryId?: string;
+  featured?: boolean;
+  sortBy?: string;
+  order?: 'ASC' | 'DESC';
+}): Promise<MarketplacePaginatedResponse> => {
+  try {
+    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
+    const response = await telarApiPublic.get<MarketplacePaginatedResponse>(
+      '/products-new/marketplace',
+      { params: { agreementId, ...params } },
+    );
+    return coercePaginatedMarketplace(response.data);
+  } catch (err: any) {
+    console.warn('[products-new] GET /products-new/marketplace falló:', err?.message ?? err);
+    return { data: [], total: 0, page: 1, limit: 0 };
+  }
+};
+
+/** GET /products-new — legacy endpoint (used by ColeccionDetail, GiftCards) */
+export const getProductsNewLegacy = async (params?: {
   page?: number;
   limit?: number;
   storeId?: string;
@@ -268,11 +311,14 @@ export const getProductsByIds = async (ids: string[]): Promise<ProductNewCore[]>
   }
 };
 
-/** GET /products-new/store/:storeId — products by store */
-export const getProductsByStore = async (storeId: string): Promise<ProductNewCore[]> => {
+/** GET /products-new/marketplace/store/:storeId — products by store */
+export const getProductsByStore = async (storeId: string): Promise<ProductFeatured[]> => {
   try {
-    const response = await telarApiPublic.get(`/products-new/marketplace/store/${storeId}`);
-    return coerceArr<ProductNewCore>(response.data);
+    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
+    const response = await telarApiPublic.get(`/products-new/marketplace/store/${storeId}`, {
+      params: { agreementId },
+    });
+    return coerceArr<ProductFeatured>(response.data);
   } catch (err: any) {
     console.warn(`[products-new] GET store/${storeId} falló:`, err?.message ?? err);
     return [];
@@ -282,7 +328,10 @@ export const getProductsByStore = async (storeId: string): Promise<ProductNewCor
 /** GET /products-new/marketplace/featured — featured products (isFeatured = true) */
 export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
   try {
-    const response = await telarApiPublic.get('/products-new/marketplace/featured');
+    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
+    const response = await telarApiPublic.get('/products-new/marketplace/featured', {
+      params: { agreementId },
+    });
     return coerceArr<ProductFeatured>(response.data);
   } catch (err: any) {
     console.warn('[products-new] GET marketplace/featured falló:', err?.message ?? err);
@@ -291,6 +340,11 @@ export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
 };
 
 // ── Helpers ───────────────────────────────────────────
+
+/** Check if a product is the flat marketplace shape */
+function isMarketplaceProduct(product: AnyProduct): product is ProductFeatured {
+  return 'storeName' in product;
+}
 
 /**
  * Rewrite CDN URLs to direct S3 for local dev where cdn.telar.co doesn't resolve.
@@ -302,8 +356,13 @@ function fixImageHost(url: string): string {
     : url;
 }
 
-/** Get primary image URL from a product's media array */
-export function getPrimaryImageUrl(product: ProductNewCore): string | null {
+/** Get primary image URL from a product */
+export function getPrimaryImageUrl(product: AnyProduct): string | null {
+  if (isMarketplaceProduct(product)) {
+    if (product.imageUrl) return fixImageHost(product.imageUrl);
+    if (product.images?.length > 0) return fixImageHost(product.images[0]);
+    return null;
+  }
   const primary = product.media?.find(m => m.isPrimary);
   if (primary) return fixImageHost(primary.mediaUrl);
   const first = product.media?.[0];
@@ -311,7 +370,10 @@ export function getPrimaryImageUrl(product: ProductNewCore): string | null {
 }
 
 /** Get all image URLs sorted by display order */
-export function getAllImageUrls(product: ProductNewCore): string[] {
+export function getAllImageUrls(product: AnyProduct): string[] {
+  if (isMarketplaceProduct(product)) {
+    return (product.images ?? []).map(url => fixImageHost(url));
+  }
   return (product.media ?? [])
     .filter(m => m.mediaType === 'image')
     .sort((a, b) => a.displayOrder - b.displayOrder)
@@ -364,18 +426,21 @@ export function getProductStock(product: ProductNewCore): number {
 }
 
 /** Get material names from product */
-export function getMaterialNames(product: ProductNewCore): string[] {
+export function getMaterialNames(product: AnyProduct): string[] {
+  if (isMarketplaceProduct(product)) return product.materials ?? [];
   return (product.materials ?? [])
     .map(m => m.material?.name)
     .filter(Boolean) as string[];
 }
 
 /** Get primary craft name */
-export function getCraftName(product: ProductNewCore): string | null {
+export function getCraftName(product: AnyProduct): string | null {
+  if (isMarketplaceProduct(product)) return product.craftName ?? null;
   return product.artisanalIdentity?.primaryCraft?.name ?? null;
 }
 
 /** Get primary technique name */
-export function getTechniqueName(product: ProductNewCore): string | null {
+export function getTechniqueName(product: AnyProduct): string | null {
+  if (isMarketplaceProduct(product)) return product.primaryTechnique ?? null;
   return product.artisanalIdentity?.primaryTechnique?.name ?? null;
 }

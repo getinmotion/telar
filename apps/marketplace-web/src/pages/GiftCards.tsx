@@ -13,11 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/contexts/CartContext";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import {
-  getProductsNew,
   getProductNewById,
+  getProductsNew,
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
+  type ProductFeatured,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
@@ -98,7 +99,7 @@ const GiftCards = () => {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [forms, setForms] = useState<Record<string, GiftCardForm>>({});
   const [addedCards, setAddedCards] = useState<Set<string>>(new Set());
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [caucaProduct, setCaucaProduct] = useState<ProductNewCore | null>(null);
 
   // Fetch featured products
@@ -127,7 +128,7 @@ const GiftCards = () => {
   const editorialImage = (slot: number): string | null => {
     if (ARTESANOS_P_IMAGES[slot]) return ARTESANOS_P_IMAGES[slot];
     const p = products[slot];
-    return p ? getPrimaryImageUrl(p) ?? null : null;
+    return p ? (getPrimaryImageUrl(p) ?? null) : null;
   };
 
   // Image that represents a gift intention (category slug) — first product
@@ -135,9 +136,9 @@ const GiftCards = () => {
   const intentionImage = (slug: string, slot: number): string | null => {
     if (ARTESANOS_P_IMAGES[slot]) return ARTESANOS_P_IMAGES[slot];
     const match = products.find((p) => {
-      const cats = p.artisanalIdentity?.curatorialCategory;
-      if (cats?.name) {
-        const norm = cats.name
+      const catName = p.categoryName;
+      if (catName) {
+        const norm = catName
           .toLowerCase()
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
@@ -156,7 +157,7 @@ const GiftCards = () => {
   const handleFormChange = (
     cardId: string,
     field: keyof GiftCardForm,
-    value: string
+    value: string,
   ) => {
     setForms((prev) => ({
       ...prev,
@@ -169,7 +170,7 @@ const GiftCards = () => {
     await addGiftCardToCart(
       card.amount,
       form.recipientEmail || undefined,
-      form.message || undefined
+      form.message || undefined,
     );
     setAddedCards((prev) => new Set([...prev, card.id]));
     setTimeout(() => {
@@ -191,7 +192,7 @@ const GiftCards = () => {
       {/* Hero Editorial Section */}
       <header className="relative w-full h-[70vh] min-h-[500px] max-h-[820px] flex items-center justify-center overflow-hidden">
         {(() => {
-          const heroImg =  caucaImage ;
+          const heroImg = caucaImage;
           return heroImg ? (
             <>
               <img
@@ -213,8 +214,8 @@ const GiftCards = () => {
             Regalos con historia
           </h1>
           <p className="text-lg text-[#584237] max-w-xl mx-auto leading-relaxed">
-            Cada pieza es un dialogo entre el artesano y la materia, seleccionada
-            para trascender el simple gesto de obsequiar.
+            Cada pieza es un dialogo entre el artesano y la materia,
+            seleccionada para trascender el simple gesto de obsequiar.
           </p>
         </div>
       </header>
@@ -320,7 +321,8 @@ const GiftCards = () => {
                     }
                     className="font-bold border-b-2 border-[#ec6d13] pb-1 hover:text-[#ec6d13] transition-colors text-sm uppercase tracking-widest"
                   >
-                    Ver la pieza {caucaProduct?.artisanShop?.shopName
+                    Ver la pieza{" "}
+                    {caucaProduct?.artisanShop?.shopName
                       ? `de ${caucaProduct.artisanShop.shopName}`
                       : "de Agroarte"}
                   </Link>
@@ -410,7 +412,7 @@ const GiftCards = () => {
               const imageUrl = getPrimaryImageUrl(product);
               const price = getProductPrice(product);
               const technique = getTechniqueName(product);
-              const dept = product.artisanShop?.department;
+              const dept = product.department;
 
               return (
                 <Link
@@ -606,8 +608,6 @@ const GiftCards = () => {
           </div>
         </div>
       </section> */}
-
-      
 
       {/* Corporate Section */}
       <section className="w-full bg-[#1b1c19] py-32 overflow-hidden">
