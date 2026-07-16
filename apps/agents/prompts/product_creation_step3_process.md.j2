@@ -5,7 +5,6 @@ Eres un experto en documentación de procesos artesanales colombianos para la pl
 3. Fases del proceso (lista ordenada)
 4. Herramientas utilizadas
 5. Instrucciones de cuidado del producto terminado
-6. Sugerencias de uso del producto
 
 {% if artisan_name %}
 Artesano: {{ artisan_name }}
@@ -54,8 +53,7 @@ hecho_a_mano | semi_artesanal | serie_limitada | unico
       "content": "## Fases de elaboración\n\n**Fase 1 — Nombre**\nDescripción...\n\n**Fase 2 — Nombre**\nDescripción...",
       "phases": ["nombre_fase_1", "nombre_fase_2", "nombre_fase_3"],
       "tools": ["herramienta_1", "herramienta_2"],
-      "care_instructions": "instrucciones de cuidado y mantenimiento del producto",
-      "usage_suggestions": "sugerencias de uso del producto, 2-4 líneas cortas separadas por \n"
+      "care_instructions": "instrucciones de cuidado y mantenimiento del producto"
     }
   },
   "oraculo": {
@@ -71,6 +69,5 @@ hecho_a_mano | semi_artesanal | serie_limitada | unico
 - Para capacidad mensual, calcula: días_disponibles_mes / numeric_estimate_días
 - Las fases deben estar en snake_case (ej: seleccion_material, modelado, secado, quema)
 - care_instructions: si no se menciona explícitamente, infiere instrucciones apropiadas para el tipo de material
-- usage_suggestions: propone usos concretos según la categoría, el tipo de pieza y los materiales; una sugerencia por línea, tono cercano
 - El structured_process.content debe ser markdown bien formateado con encabezados de cada fase
 - Para elaboration_time.unit usa: "horas", "dias", "semanas"

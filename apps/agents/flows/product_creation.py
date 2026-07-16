@@ -152,7 +152,6 @@ async def _step1(request: "AgentRequest") -> Dict[str, Any]:
         },
         "content_improvements": agent_result.get("content_improvements") or {},
         "identity_suggestions": agent_result.get("identity_suggestions") or {},
-        "variant_suggestions": agent_result.get("variant_suggestions") or {"has_variants": False, "axes": []},
         "oraculo": agent_result.get("oraculo") or {
             "title": "¡Buena base!",
             "body": "Tu producto ha sido analizado. Revisa las sugerencias y confirma las mejoras.",
@@ -324,7 +323,6 @@ async def _step4(request: "AgentRequest") -> Dict[str, Any]:
     confirmed_pricing = payload.get("confirmed_pricing") or {}
     confirmed_logistics = payload.get("confirmed_logistics") or {}
     availability = payload.get("availability") or {}
-    confirmed_variants = payload.get("confirmed_variants") or {}
 
     step_snapshot: Dict[str, Any] = {
         "step4": {
@@ -332,7 +330,6 @@ async def _step4(request: "AgentRequest") -> Dict[str, Any]:
             "confirmed_pricing": confirmed_pricing,
             "confirmed_logistics": confirmed_logistics,
             "availability": availability,
-            "confirmed_variants": confirmed_variants,
         }
     }
 
