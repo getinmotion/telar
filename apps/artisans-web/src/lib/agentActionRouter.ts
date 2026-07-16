@@ -19,19 +19,19 @@ const SHOP_CONFIG_ACTIONS: Record<string, TaskAction> = {
   // Hero Slider missions
   'hero slider': {
     type: 'wizard',
-    destination: '/dashboard/shop-hero-wizard',
+    destination: '/mi-tienda/configurar/hero',
     label: 'Configurar Hero Slider',
     icon: 'Sparkles'
   },
   'configurar hero': {
     type: 'wizard',
-    destination: '/dashboard/shop-hero-wizard',
+    destination: '/mi-tienda/configurar/hero',
     label: 'Configurar Hero Slider',
     icon: 'Sparkles'
   },
   'carrusel': {
     type: 'wizard',
-    destination: '/dashboard/shop-hero-wizard',
+    destination: '/mi-tienda/configurar/hero',
     label: 'Configurar Hero Slider',
     icon: 'Sparkles'
   },
@@ -65,19 +65,19 @@ const SHOP_CONFIG_ACTIONS: Record<string, TaskAction> = {
   // Contact missions
   'configurar contacto': {
     type: 'wizard',
-    destination: '/dashboard/shop-contact-wizard',
+    destination: '/mi-tienda/configurar/contact',
     label: 'Configurar Contacto',
     icon: 'Mail'
   },
   'página de contacto': {
     type: 'wizard',
-    destination: '/dashboard/shop-contact-wizard',
+    destination: '/mi-tienda/configurar/contact',
     label: 'Configurar Contacto',
     icon: 'Mail'
   },
   'formulario de contacto': {
     type: 'wizard',
-    destination: '/dashboard/shop-contact-wizard',
+    destination: '/mi-tienda/configurar/contact',
     label: 'Configurar Contacto',
     icon: 'Mail'
   }

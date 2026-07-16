@@ -376,8 +376,9 @@ export class CartService {
     for (const item of dto.items) {
       const product = productMap.get(item.productId);
 
-      // Omitir si el producto no existe o no está publicado
-      if (!product || product.status !== 'published') {
+      // Omitir si el producto no existe o no es visible en marketplace
+      // (mismos estados que los endpoints marketplace de products-new)
+      if (!product || !['published', 'approved'].includes(product.status)) {
         continue;
       }
 
@@ -399,8 +400,15 @@ export class CartService {
       // Usar precio de la variante (ya está en centavos)
       const unitPriceMinor = variant.basePriceMinor.toString();
 
-      // Construir metadata para variante
-      const metadata = item.variantId ? { variantId: item.variantId } : {};
+      // Construir metadata para variante (nombre y opciones para mostrar en el carrito)
+      const metadata = item.variantId
+        ? {
+            variantId: item.variantId,
+            variantName: variant.variantName ?? undefined,
+            optionValues: variant.optionValues ?? undefined,
+            variantImageUrl: variant.imageUrl ?? undefined,
+          }
+        : {};
 
       // Verificar si el item ya existe en el carrito
       const itemKey = `${product.id}:${item.variantId || ''}`;

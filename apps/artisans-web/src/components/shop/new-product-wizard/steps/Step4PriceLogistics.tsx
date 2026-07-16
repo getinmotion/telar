@@ -1,13 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import type { NewWizardState } from '../hooks/useNewWizardState';
-import type { AvailabilityType } from '@/services/products-new.types';
+import { AVAILABILITY_LABELS } from '../utils/availability';
 import { WizardFooter } from '../components/WizardFooter';
-import { WizardHeader } from '../components/WizardHeader';
 import { AiBadge } from '../components/AiBadge';
 import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { step2Confirm } from '@/services/agent.actions';
-import type { Step2ConfirmRequest } from '@/types/agent.types';
+import type { Step2ConfirmRequest, VariantSuggestions } from '@/types/agent.types';
+import { VariantsSection, buildVariants } from './step4/VariantsSection';
+import { useStepValidation } from '../hooks/useStepValidation';
+import {
+  RequiredMark,
+  FieldErrorMessage,
+  MissingFieldsBanner,
+  fieldErrorClass,
+} from '../components/FieldValidation';
+import { MAX_VARIANTS_PER_PRODUCT } from '@telar/shared-types/products';
 
 interface Props {
   state: NewWizardState;
@@ -21,12 +29,6 @@ interface Props {
   leftOffset?: number;
   userId?: string;
 }
-
-const AVAILABILITY_OPTIONS: { id: AvailabilityType; label: string; icon: string; desc: string }[] = [
-  { id: 'en_stock', label: 'Disponible ahora', icon: 'inventory_2', desc: 'Tienes unidades listas para despacho' },
-  { id: 'bajo_pedido', label: 'Bajo pedido', icon: 'assignment', desc: 'Se fabrica cuando llega un encargo' },
-  { id: 'edicion_limitada', label: 'Edición limitada', icon: 'layers', desc: 'Número fijo de unidades en total' },
-];
 
 const cardStyle = {
   background: 'rgba(255,255,255,0.82)',
@@ -101,7 +103,37 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   const hasProductDimensions = !!state.heightCm && !!state.widthCm && !!state.lengthCm && !!state.weightKg;
   const hasPackageDimensions = !!state.packagedWidthCm && !!state.packagedHeightCm && !!state.packagedLengthCm && !!state.packagedWeightKg;
-  const canContinue = !!state.price && !!state.availabilityType && hasProductDimensions && hasPackageDimensions;
+  const activeVariantsCount = (state.variants ?? []).filter(v => v.isActive).length;
+  const hasActiveVariants = !!state.hasVariants && activeVariantsCount > 0;
+  const variantsOk = !state.hasVariants || activeVariantsCount > 0;
+  const canContinue = !!state.price && hasProductDimensions && hasPackageDimensions && variantsOk;
+
+  const { missing, attemptNext, fieldError } = useStepValidation([
+    {
+      key: 'price',
+      label: 'Tu precio (COP)',
+      isValid: !!state.price && state.price > 0,
+      errorMessage: 'Ingresa el precio de la pieza',
+    },
+    {
+      key: 'productDims',
+      label: 'Dimensiones de la pieza',
+      isValid: hasProductDimensions,
+      errorMessage: 'Completa alto, ancho, largo y peso de la pieza',
+    },
+    {
+      key: 'packageDims',
+      label: 'Dimensiones del paquete',
+      isValid: hasPackageDimensions,
+      errorMessage: 'Completa alto, ancho, largo y peso del paquete',
+    },
+    {
+      key: 'variants',
+      label: 'Variantes',
+      isValid: variantsOk,
+      errorMessage: 'Genera al menos una variante o desactiva las variantes',
+    },
+  ]);
 
   // ── Accept / Reject handlers for pricing suggestions ──────────────
   type Step4Field = 'price' | 'weightKg';
@@ -151,14 +183,80 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
   const pricing = state.agentStep2Response?.pricing_suggestions;
   const oraculo = state.agentStep2Response?.oraculo;
 
-  const handleNext = () => {
-    if (!state.price || state.price <= 0) {
-      toast.error("Por favor ingresa el precio de la pieza");
-      return;
-    }
+  // ── Variantes sugeridas por el oráculo (paso 1) ────────────────────
+  const variantSuggestions = state.agentStep1Response?.variant_suggestions;
+  const showVariantSuggestion =
+    !!variantSuggestions?.has_variants &&
+    (variantSuggestions.axes?.length ?? 0) > 0 &&
+    state.productionType !== 'unica';
 
-    if (!state.availabilityType) {
-      toast.error("Por favor selecciona el tipo de disponibilidad");
+  const handleAcceptVariantSuggestion = useCallback(() => {
+    if (!variantSuggestions?.axes?.length) return;
+    const axes = variantSuggestions.axes.map(a => a.axis);
+    const axisValues: Record<string, string[]> = {};
+    variantSuggestions.axes.forEach(a => {
+      axisValues[a.axis] = [...a.values];
+    });
+    // Recortar valores (del último eje hacia atrás) para respetar el tope
+    const combosOf = () =>
+      axes.reduce((acc, a) => acc * Math.max(1, axisValues[a].length), 1);
+    for (let i = axes.length - 1; i >= 0 && combosOf() > MAX_VARIANTS_PER_PRODUCT; i--) {
+      while (axisValues[axes[i]].length > 1 && combosOf() > MAX_VARIANTS_PER_PRODUCT) {
+        axisValues[axes[i]].pop();
+      }
+    }
+    const variants = buildVariants(
+      axes,
+      axisValues,
+      state.variants ?? [],
+      state.primaryVariantId,
+    );
+    update({
+      hasVariants: true,
+      variantAxes: axes,
+      variantAxisValues: axisValues,
+      variants,
+      inventory: variants
+        .filter(v => v.isActive)
+        .reduce((sum, v) => sum + (v.stock ?? 0), 0),
+      fieldMetadata: {
+        ...state.fieldMetadata,
+        variants: {
+          source: 'ia_accepted' as const,
+          originalAiValue: JSON.stringify(variantSuggestions),
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+    toast.success('Variantes generadas — ajusta precio y stock de cada una');
+  }, [variantSuggestions, state.variants, state.primaryVariantId, state.fieldMetadata, update]);
+
+  const handleRejectVariantSuggestion = useCallback(() => {
+    update({
+      fieldMetadata: {
+        ...state.fieldMetadata,
+        variants: {
+          source: 'manual' as const,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
+    toast.info('Puedes crear variantes manualmente cuando quieras');
+  }, [state.fieldMetadata, update]);
+
+  const variantSuggestionCard = showVariantSuggestion ? (
+    <VariantSuggestionCard
+      suggestions={variantSuggestions!}
+      onAccept={handleAcceptVariantSuggestion}
+      onReject={handleRejectVariantSuggestion}
+      isAccepted={state.fieldMetadata?.variants?.source === 'ia_accepted'}
+      isRejected={state.fieldMetadata?.variants?.source === 'manual'}
+    />
+  ) : null;
+
+  const handleNext = () => {
+    if (!attemptNext()) {
+      toast.error("Completa los campos marcados en rojo");
       return;
     }
 
@@ -197,6 +295,13 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       weightKg: fm?.weightKg
         ? { source: fm.weightKg.source, originalAiValue: fm.weightKg.originalAiValue ?? '', timestamp: fm.weightKg.timestamp ?? new Date().toISOString() }
         : defaultField(),
+      ...(fm?.variants && {
+        variants: {
+          source: fm.variants.source,
+          originalAiValue: fm.variants.originalAiValue ?? '',
+          timestamp: fm.variants.timestamp ?? new Date().toISOString(),
+        },
+      }),
     };
 
     step2Confirm(payload)
@@ -262,6 +367,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
           />
         )}
 
+        {/* Variantes detectadas */}
+        {variantSuggestionCard}
+
         {/* Packaging — informational */}
         {pricing?.packaging && (
           <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -316,7 +424,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
       </div>
     );
     return clearNode;
-  }, [canContinue, pricing, oraculo, state.fieldMetadata]);
+  }, [canContinue, pricing, oraculo, state.fieldMetadata, variantSuggestionCard]);
 
   const formatCOP = (val: number | undefined) =>
     val ? val.toLocaleString('es-CO') : '';
@@ -327,7 +435,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
     : state.productionType === 'bajo_pedido'
       ? 'Se fabrica por encargo. Define tu capacidad mensual.'
       : state.productionType === 'limitada'
-        ? `Edición limitada${state.collectionName ? ` de "${state.collectionName}"` : ''}. Define las unidades totales.`
+        ? 'Edición limitada. Define las unidades totales.'
         : undefined;
 
   // Auto-set stock to 1 for unique pieces
@@ -344,18 +452,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
 
   return (
     <div className="min-h-screen" style={{ background: 'transparent' }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
-        <div className="hidden md:block">
-          <WizardHeader
-            step={step}
-            totalSteps={totalSteps}
-            onBack={onBack}
-            icon="payments"
-            title="Precio y logística"
-            subtitle="Define cómo se comercializa y despacha esta pieza"
-          />
-        </div>
-
+      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:pt-6 md:pb-10">
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar — Oráculo */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
@@ -412,6 +509,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   isRejected={state.fieldMetadata?.weightKg?.source === 'manual'}
                 />
               )}
+
+              {/* Variantes detectadas */}
+              {variantSuggestionCard}
 
               {/* Packaging — informational */}
               {pricing?.packaging && (
@@ -483,9 +583,10 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
+                <div id="wizard-field-price">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
-                    Tu precio (COP) *
+                    Tu precio (COP)
+                    <RequiredMark />
                   </label>
                   <div className="relative">
                     <input
@@ -496,13 +597,16 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                         update({ price: raw ? Number(raw) : undefined });
                       }}
                       placeholder="0"
-                      className={`${inputClass} text-lg font-bold pr-14`}
+                      className={`${inputClass} text-lg font-bold pr-14 ${fieldError('price') ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-[800] text-[#54433e]/30 uppercase">
                       COP
                     </span>
                   </div>
+                  {fieldError('price') && (
+                    <FieldErrorMessage message="Ingresa el precio de la pieza" />
+                  )}
                 </div>
 
                 {/* Commission breakdown */}
@@ -560,48 +664,28 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </div>
             </section>
 
-            {/* 2. Availability + smart stock */}
+            {/* 1.5 Variantes (talla / color / material según categoría) */}
+            <VariantsSection
+              state={state}
+              update={update}
+              showError={!!fieldError('variants')}
+            />
+
+            {/* 2. Stock y entrega (la disponibilidad se deriva del tipo de producción, paso 2) */}
             <section className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">storefront</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Disponibilidad comercial *
+                  Stock y entrega
                 </label>
               </div>
-              <p className="text-[11px] text-[#54433e]/60 mb-4">
-                ¿Cómo se vende esta pieza?
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-                {AVAILABILITY_OPTIONS.map(opt => {
-                  const isSelected = state.availabilityType === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() => update({ availabilityType: opt.id })}
-                      className="flex flex-col gap-1.5 p-4 rounded-xl text-left transition-all"
-                      style={{
-                        background: isSelected ? 'rgba(236,109,19,0.07)' : 'rgba(255,255,255,0.6)',
-                        border: isSelected ? '1.5px solid rgba(236,109,19,0.4)' : '1px solid rgba(226,213,207,0.35)',
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined text-[20px]"
-                        style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
-                      >
-                        {opt.icon}
-                      </span>
-                      <span
-                        className="text-[10px] font-[800] uppercase tracking-wider"
-                        style={{ color: isSelected ? '#ec6d13' : '#54433e' }}
-                      >
-                        {opt.label}
-                      </span>
-                      <span className="text-[10px] text-[#54433e]/50 leading-snug">{opt.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {state.availabilityType && (
+                <p className="text-[11px] text-[#54433e]/60 mb-4">
+                  Se vende como{' '}
+                  <span className="font-[800] text-[#151b2d]">{AVAILABILITY_LABELS[state.availabilityType]}</span>
+                  {' '}— definido por el tipo de producción del paso 2.
+                </p>
+              )}
 
               {/* Smart stock */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -622,11 +706,15 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       update(updates);
                     }}
                     placeholder={state.productionType === 'unica' ? '1' : '0'}
-                    disabled={state.productionType === 'unica'}
-                    className={`${inputClass} ${state.productionType === 'unica' ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={state.productionType === 'unica' || hasActiveVariants}
+                    className={`${inputClass} ${state.productionType === 'unica' || hasActiveVariants ? 'opacity-60 cursor-not-allowed' : ''}`}
                     style={{ background: 'rgba(247,244,239,0.4)' }}
                   />
-                  {stockHint && (
+                  {hasActiveVariants ? (
+                    <p className="text-[10px] text-[#ec6d13]/80 mt-1.5 font-[600]">
+                      Suma automática del stock de tus {activeVariantsCount} variantes.
+                    </p>
+                  ) : stockHint && (
                     <p className="text-[10px] text-[#ec6d13]/80 mt-1.5 font-[600]">{stockHint}</p>
                   )}
                 </div>
@@ -655,7 +743,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               </div>
 
               {/* Bajo pedido: delivery time */}
-              {state.availabilityType === 'bajo_pedido' && (
+              {state.productionType === 'bajo_pedido' && (
                 <div className="mt-4 pt-4 border-t border-[#e2d5cf]/30">
                   <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-1.5">
                     Tiempo estimado de entrega
@@ -677,11 +765,12 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
             </section>
 
             {/* 3. Product dimensions */}
-            <section className="p-6 rounded-2xl" style={cardStyle}>
+            <section id="wizard-field-productDims" className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#54433e]/40 text-xl">straighten</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones de la pieza *
+                  Dimensiones de la pieza
+                  <RequiredMark />
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -702,7 +791,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       value={(state[key] as number | undefined) ?? ''}
                       onChange={e => update({ [key]: e.target.value ? Number(e.target.value) : undefined })}
                       placeholder="—"
-                      className={`${inputClass} text-center`}
+                      className={`${inputClass} text-center ${fieldError('productDims') && !state[key] ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                   </div>
@@ -715,14 +804,18 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   onChange={v => update({ weightKg: v })}
                 />
               </div>
+              {fieldError('productDims') && (
+                <FieldErrorMessage message="Completa alto, ancho, largo y peso de la pieza" />
+              )}
             </section>
 
             {/* 4. Package dimensions — clearly separate */}
-            <section className="p-6 rounded-2xl" style={{ ...cardStyle, borderLeft: '3px solid #ec6d13' }}>
+            <section id="wizard-field-packageDims" className="p-6 rounded-2xl" style={{ ...cardStyle, borderLeft: '3px solid #ec6d13' }}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="material-symbols-outlined text-[#ec6d13] text-xl">local_shipping</span>
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Dimensiones del paquete *
+                  Dimensiones del paquete
+                  <RequiredMark />
                 </label>
               </div>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
@@ -743,7 +836,7 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                       value={(state[key] as number | undefined) ?? ''}
                       onChange={e => update({ [key]: e.target.value ? Number(e.target.value) : undefined })}
                       placeholder="—"
-                      className={`${inputClass} text-center`}
+                      className={`${inputClass} text-center ${fieldError('packageDims') && !state[key] ? fieldErrorClass : ''}`}
                       style={{ background: 'rgba(247,244,239,0.4)' }}
                     />
                   </div>
@@ -756,6 +849,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
                   onChange={v => update({ packagedWeightKg: v })}
                 />
               </div>
+              {fieldError('packageDims') && (
+                <FieldErrorMessage message="Completa alto, ancho, largo y peso del paquete" />
+              )}
 
               {/* Special handling */}
               <div className="mt-4 flex items-center justify-between">
@@ -796,6 +892,9 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
               )}
             </section>
 
+            {missing.length > 0 && (
+              <MissingFieldsBanner missing={missing} />
+            )}
           </div>
         </div>
       </main>
@@ -807,19 +906,106 @@ export const Step4PriceLogistics: React.FC<Props> = ({ state, update, onNext, on
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue}
-        disabledReason={
-          !state.price || state.price <= 0
-            ? "Ingresa el precio de la pieza"
-            : !state.availabilityType
-              ? "Selecciona el tipo de disponibilidad"
-              : undefined
-        }
         leftOffset={leftOffset}
       />
     </div>
   );
 };
+
+// ── VariantSuggestionCard ─────────────────────────────────────────────────────
+
+interface VariantSuggestionCardProps {
+  suggestions: VariantSuggestions;
+  onAccept: () => void;
+  onReject: () => void;
+  isAccepted: boolean;
+  isRejected: boolean;
+}
+
+const AXIS_LABELS: Record<string, string> = {
+  talla: 'Tallas',
+  color: 'Colores',
+  material: 'Materiales',
+};
+
+const VariantSuggestionCard: React.FC<VariantSuggestionCardProps> = ({
+  suggestions,
+  onAccept,
+  onReject,
+  isAccepted,
+  isRejected,
+}) => (
+  <div
+    className="p-3 rounded-xl"
+    style={{
+      background: isAccepted ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.05)',
+      border: isAccepted ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(255,255,255,0.08)',
+    }}
+  >
+    <div className="flex items-center justify-between mb-1.5">
+      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40">
+        Variantes detectadas
+      </p>
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-[800] uppercase tracking-widest bg-[#ec6d13]/20 text-[#ec6d13]">IA</span>
+    </div>
+
+    <div className="space-y-1.5 mb-1">
+      {suggestions.axes.map(axis => (
+        <div key={axis.axis}>
+          <p className="text-[10px] font-[700] text-white/60">
+            {AXIS_LABELS[axis.axis] ?? axis.axis}
+          </p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {axis.values.map(value => (
+              <span
+                key={value}
+                className="px-2 py-0.5 rounded-full text-[10px] font-[600] text-white/80"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {suggestions.reasoning && (
+      <p className="text-[10px] text-white/35 mt-2 leading-snug">{suggestions.reasoning}</p>
+    )}
+
+    {isAccepted && (
+      <div className="flex items-center gap-1 text-[10px] text-green-400 mt-2">
+        <span className="material-symbols-outlined text-[14px]">check_circle</span>
+        <span>Variantes generadas</span>
+      </div>
+    )}
+
+    {isRejected && (
+      <div className="flex items-center gap-1 text-[10px] text-white/40 mt-2">
+        <span className="material-symbols-outlined text-[14px]">cancel</span>
+        <span>Sugerencia rechazada</span>
+      </div>
+    )}
+
+    {!isAccepted && !isRejected && (
+      <div className="flex gap-2 mt-3">
+        <button
+          onClick={onAccept}
+          className="flex-1 px-3 py-2 rounded-lg bg-[#ec6d13] text-white text-[10px] font-[800] uppercase tracking-widest hover:bg-[#d4600f] transition-all"
+        >
+          Generar variantes
+        </button>
+        <button
+          onClick={onReject}
+          className="px-3 py-2 rounded-lg border border-white/20 text-white/60 text-[10px] font-[700] hover:text-white hover:border-white/40 transition-all"
+        >
+          No aplica
+        </button>
+      </div>
+    )}
+  </div>
+);
 
 // ── Step4SuggestionCard ───────────────────────────────────────────────────────
 

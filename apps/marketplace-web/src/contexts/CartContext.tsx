@@ -8,6 +8,7 @@ interface CartItem {
   id: string;
   product_id: string;
   variant_id?: string;
+  variant_name?: string | null;
   quantity: number;
   isGiftCard?: boolean;
   giftCardAmount?: number;
@@ -24,6 +25,7 @@ interface CartItem {
 interface LocalCartItem {
   product_id: string;
   variant_id?: string;
+  variant_name?: string | null;
   quantity: number;
   isGiftCard?: boolean;
   giftCardAmount?: number;
@@ -287,14 +289,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // "5000000" → 50000.00
         const price = parseFloat(item.unitPriceMinor) / 100;
 
-        // Get primary image from product media
+        // Get primary image from product media (la foto de la variante manda)
         const primaryMedia = item.product?.media?.find(m => m.isPrimary);
-        const imageUrl = primaryMedia?.mediaUrl || item.product?.media?.[0]?.mediaUrl || '';
+        const imageUrl =
+          item.metadata?.variantImageUrl ||
+          primaryMedia?.mediaUrl ||
+          item.product?.media?.[0]?.mediaUrl ||
+          '';
 
         return {
           id: item.id,
           product_id: item.productId,
           variant_id: item.metadata?.variantId,
+          variant_name: item.metadata?.variantName ?? null,
           quantity: item.quantity,
           product: {
             name: item.product?.name || 'Producto no disponible',
@@ -342,17 +349,40 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       const imageUrl = product.images?.[0] || '';
 
+      // Resolver la variante: precio/nombre propios de la variante elegida
+      const activeVariants = (product.variants ?? []).filter(v => v.isActive);
+      const variantsWithOptions = activeVariants.filter(
+        v => Object.keys(v.optionValues).length > 0,
+      );
+      const selectedVariant = variantId
+        ? activeVariants.find(v => v.id === variantId)
+        : undefined;
+
+      // Producto con variantes reales: exigir selección (ej. add desde tarjeta)
+      if (!selectedVariant && variantsWithOptions.length > 1) {
+        toast.info('Este producto tiene variantes. Elige una en la página del producto.');
+        return;
+      }
+
+      const effectiveVariant =
+        selectedVariant ?? (activeVariants.length === 1 ? activeVariants[0] : undefined);
+      const unitPrice = effectiveVariant?.price ?? parseFloat(product.price.toString());
+      const variantName = effectiveVariant?.variantName ?? null;
+      // Preferir la foto propia de la variante para mostrar el item del carrito
+      const itemImageUrl = effectiveVariant?.imageUrl || imageUrl;
+
       // For guests, add to localStorage
       if (!user) {
         const newItem: CartItem = {
           id: `local-${Date.now()}`,
           product_id: productId,
-          variant_id: variantId,
+          variant_id: effectiveVariant?.id ?? variantId,
+          variant_name: variantName,
           quantity,
           product: {
             name: product.name,
-            price: parseFloat(product.price.toString()),
-            image_url: imageUrl
+            price: unitPrice,
+            image_url: itemImageUrl
           }
         };
 
@@ -368,7 +398,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (cartId) {
         // Add item to existing cart using backend
         // Backend handles duplicate checking and quantity merging
-        const unitPriceMinor = Math.round(parseFloat(product.price.toString()) * 100).toString();
+        const unitPriceMinor = Math.round(unitPrice * 100).toString();
 
         await CartActions.addCartItem({
           cartId: cartId,
@@ -378,7 +408,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           currency: 'COP',
           unitPriceMinor: unitPriceMinor,
           priceSource: 'product_base',
-          metadata: variantId ? { variantId } : undefined
+          priceRefId: effectiveVariant?.id,
+          metadata: effectiveVariant
+            ? {
+                variantId: effectiveVariant.id,
+                variantName: effectiveVariant.variantName ?? undefined,
+                optionValues: effectiveVariant.optionValues,
+                variantImageUrl: effectiveVariant.imageUrl ?? undefined,
+              }
+            : variantId
+              ? { variantId }
+              : undefined
         });
       } else {
         // No active cart, use sync-guest to create cart + item
