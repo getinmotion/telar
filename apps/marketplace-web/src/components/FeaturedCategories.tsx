@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTaxonomy } from '@/hooks/useTaxonomy';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
-import { getProductsNew, type ProductsNewPaginatedResponse } from '@/services/products-new.actions';
+import { getProductsNew, type MarketplacePaginatedResponse } from '@/services/products-new.actions';
 import type { CategoryWithChildren } from '@/services/taxonomy.actions';
 
 // ── Fallback images (local assets) ───────────────────
@@ -64,7 +64,7 @@ export const FeaturedCategories = () => {
       setLoadingCounts(true);
       try {
         // Fetch a big page to count per category
-        const res: ProductsNewPaginatedResponse = await getProductsNew({ page: 1, limit: 500 });
+        const res: MarketplacePaginatedResponse = await getProductsNew({ page: 1, limit: 500 });
 
         if (cancelled) return;
 

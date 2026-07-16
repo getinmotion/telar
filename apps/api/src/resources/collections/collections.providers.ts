@@ -4,12 +4,14 @@ import {
   CollectionDocument,
 } from './schemas/collection.schema';
 
-/** Reusa MONGO_DATA_SOURCE de cms-sections; sólo registra el modelo. */
+/**
+ * La conexión a Mongo se obtiene desde ConfigMongoModule (token DATA_SOURCE).
+ */
 export const collectionsProviders = [
   {
     provide: 'COLLECTION_MODEL',
     useFactory: (m: typeof mongoose) =>
       m.model<CollectionDocument>('Collection', CollectionSchema, 'collections'),
-    inject: ['MONGO_DATA_SOURCE'],
+    inject: ['DATA_SOURCE'],
   },
 ];

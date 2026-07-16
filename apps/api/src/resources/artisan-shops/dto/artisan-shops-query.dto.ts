@@ -4,13 +4,24 @@ import {
   IsString,
   IsBoolean,
   IsEnum,
+  IsUUID,
+  IsNotEmpty,
   Min,
   Max,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ArtisanShopsQueryDto {
+  // Filtro obligatorio por agreement
+  @ApiProperty({
+    description: 'ID del agreement para filtrar tiendas',
+    example: '42c48a1e-1463-4279-8753-72c5e96cb9ed',
+  })
+  @IsUUID('4', { message: 'agreementId debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'agreementId es obligatorio' })
+  agreementId: string;
+
   // Paginación
   @ApiPropertyOptional({
     description: 'Número de página',
