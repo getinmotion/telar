@@ -40,6 +40,57 @@ export class EmailVerificationsService {
   }
 
   /**
+   * Generar un código OTP numérico de 6 dígitos
+   */
+  generateOtpCode(): string {
+    return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+  }
+
+  /**
+   * Crear código OTP para un usuario (reutiliza la tabla email_verifications)
+   */
+  async createOtpToken(
+    userId: string,
+    expirationMinutes: number = 10,
+  ): Promise<EmailVerification> {
+    await this.invalidateUserTokens(userId);
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + expirationMinutes);
+
+    const maxAttempts = 5;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const code = this.generateOtpCode();
+      try {
+        return await this.create({
+          userId,
+          token: code,
+          expiresAt: expiresAt.toISOString(),
+        });
+      } catch (error) {
+        if (this.isUniqueViolation(error) && attempt < maxAttempts - 1) {
+          continue;
+        }
+        throw new InternalServerErrorException(
+          'Error al generar el código de verificación',
+        );
+      }
+    }
+
+    throw new InternalServerErrorException(
+      'Error al generar el código de verificación',
+    );
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      (error as { code?: string }).code === '23505'
+    );
+  }
+
+  /**
    * Crear token de verificación para un usuario
    */
   async createVerificationToken(
