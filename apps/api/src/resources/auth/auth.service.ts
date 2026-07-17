@@ -20,6 +20,7 @@ import { UserRolesService } from '../user-roles/user-roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -62,6 +63,28 @@ export class AuthService {
       isSuperAdmin: user.isSuperAdmin === true,
       roles: userRoles.map((r) => r.role),
     };
+  }
+
+  /**
+   * Genera una contraseña aleatoria que cumple mayúscula, minúscula y dígito.
+   */
+  private generateRandomPassword(): string {
+    const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const all = upper + lower + digits;
+
+    const pick = (chars: string): string =>
+      chars[crypto.randomInt(0, chars.length)];
+
+    const required = [pick(upper), pick(lower), pick(digits)];
+    const rest = Array.from({ length: 9 }, () => pick(all));
+
+    return [...required, ...rest]
+      .map((char) => ({ char, order: crypto.randomInt(0, 1_000_000) }))
+      .sort((a, b) => a.order - b.order)
+      .map((entry) => entry.char)
+      .join('');
   }
 
   // ─── Endpoints públicos ──────────────────────────────────────────────────────
@@ -853,5 +876,116 @@ export class AuthService {
         'Error interno del servidor durante el registro',
       );
     }
+  }
+
+  /**
+   * Registro por OTP: crea un usuario invitado y envía un código al correo
+   */
+  async registerOtp(email: string): Promise<{
+    success: boolean;
+    message: string;
+    userId: string;
+  }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await this.usersService.getByEmail(normalizedEmail);
+
+    if (existingUser?.emailConfirmedAt) {
+      throw new ConflictException('El email ya está registrado');
+    }
+
+    let userId: string;
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const newUser = await this.usersService.create({
+        email: normalizedEmail,
+        password: this.generateRandomPassword(),
+        role: 'user',
+      });
+
+      try {
+        await this.userProfilesService.create({
+          userId: newUser.id,
+          firstName: 'Invitado',
+          fullName: 'Invitado',
+        });
+      } catch (profileError) {
+        await this.usersService.hardDelete(newUser.id);
+        throw new InternalServerErrorException(
+          'Error al crear el perfil de usuario',
+        );
+      }
+
+      userId = newUser.id;
+    }
+
+    const otp = await this.emailVerificationsService.createOtpToken(userId, 10);
+
+    await this.mailService.sendOtpCode(normalizedEmail, 'Invitado', otp.token);
+
+    return {
+      success: true,
+      message:
+        'Te enviamos un código de verificación a tu correo. Ingrésalo para activar tu cuenta.',
+      userId,
+    };
+  }
+
+  /**
+   * Verificar OTP: confirma el email, genera y envía una contraseña, retorna JWT
+   */
+  async verifyOtp(
+    email: string,
+    code: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    userId: string;
+    user: Partial<User>;
+    access_token: string;
+  }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const verification =
+      await this.emailVerificationsService.getByToken(code);
+
+    if (
+      !verification ||
+      verification.user?.email?.toLowerCase() !== normalizedEmail
+    ) {
+      throw new BadRequestException('Código inválido');
+    }
+
+    await this.emailVerificationsService.verifyEmailWithToken(code);
+
+    const newPassword = this.generateRandomPassword();
+    await this.usersService.update(verification.userId, {
+      password: newPassword,
+    } as any);
+
+    try {
+      await this.mailService.sendGeneratedPassword(
+        normalizedEmail,
+        'Invitado',
+        newPassword,
+      );
+    } catch (emailError) {}
+
+    const user = await this.usersService.getById(verification.userId);
+
+    const payload = await this.buildJwtPayload(user);
+    const access_token = await this.jwtService.signAsync(payload);
+
+    const { encryptedPassword, ...userWithoutPassword } = user;
+
+    return {
+      success: true,
+      message: 'Cuenta verificada exitosamente. Te enviamos tu contraseña al correo.',
+      userId: user.id,
+      user: userWithoutPassword,
+      access_token,
+    };
   }
 }

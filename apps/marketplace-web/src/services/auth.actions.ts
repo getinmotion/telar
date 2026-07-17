@@ -4,13 +4,14 @@
  */
 
 import { telarApi, telarApiPublic } from "@/integrations/api/telarApi";
-import { supabase } from "@/integrations/supabase/client";
 import { toastError } from "@/utils/toast.utils";
 import {
   AuthResponse,
   GoogleAuthResponse,
   RegisterMarketplaceResponse,
+  RegisterOtpResponse,
   SignUpData,
+  VerifyOtpResponse,
 } from "@/types/auth.types";
 
 /**
@@ -118,22 +119,21 @@ export const getCurrentUser = async (): Promise<AuthResponse | null> => {
 };
 
 /**
- * Enviar OTP (One-Time Password)
+ * Registrar (o reutilizar) un usuario invitado y enviar código OTP al correo
  * @param email - Email del usuario
- * @param channel - Canal de envío ('email' o 'whatsapp')
+ * @returns {Promise<RegisterOtpResponse>} Confirmación de envío con userId
  *
- * Endpoint: POST /auth/send-otp (Supabase)
+ * @endpoint POST /auth/register-otp
  */
-export const sendOtp = async (
-  email: string,
-  channel: "email" | "whatsapp" = "email"
-): Promise<void> => {
+export const registerOtp = async (
+  email: string
+): Promise<RegisterOtpResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke("send-otp", {
-      body: { email, channel },
-    });
-
-    if (error) throw error;
+    const response = await telarApiPublic.post<RegisterOtpResponse>(
+      "/auth/register-otp",
+      { email }
+    );
+    return response.data;
   } catch (error: any) {
     toastError(error);
     throw error;
@@ -141,58 +141,28 @@ export const sendOtp = async (
 };
 
 /**
- * Verificar OTP y completar autenticación
+ * Verificar OTP, confirmar la cuenta y completar autenticación
  * @param email - Email del usuario
- * @param code - Código OTP recibido
- * @returns AuthResponse con datos del usuario y access_token
+ * @param code - Código OTP de 6 dígitos recibido
+ * @returns {Promise<VerifyOtpResponse>} Datos del usuario y access_token
  *
- * Endpoint: POST /auth/verify-otp (Supabase)
+ * @endpoint POST /auth/verify-otp
  */
 export const verifyOtp = async (
   email: string,
   code: string
-): Promise<AuthResponse> => {
+): Promise<VerifyOtpResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke("verify-otp", {
-      body: { email, code },
-    });
+    const response = await telarApiPublic.post<VerifyOtpResponse>(
+      "/auth/verify-otp",
+      { email, code }
+    );
 
-    if (error) throw error;
-
-    // Establecer la sesión usando el token_hash devuelto por el backend
-    if (data?.token_hash) {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        type: "magiclink",
-        token_hash: data.token_hash,
-      });
-
-      if (verifyError) {
-        throw verifyError;
-      }
+    if (response.data.access_token) {
+      localStorage.setItem("telar_token", response.data.access_token);
     }
 
-    // Retornar una respuesta compatible con AuthResponse
-    return {
-      user: {
-        id: data?.user_id || "",
-        email: email,
-        phone: null,
-        role: "user",
-        isSuperAdmin: false,
-        emailConfirmedAt: new Date().toISOString(),
-        lastSignInAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        rawUserMetaData: null,
-        bannedUntil: null,
-        deletedAt: null,
-        isSsoUser: false,
-      },
-      userMasterContext: null,
-      artisanShop: null,
-      userMaturityActions: [],
-      access_token: data?.token_hash || "",
-    };
+    return response.data;
   } catch (error: any) {
     toastError(error);
     throw error;

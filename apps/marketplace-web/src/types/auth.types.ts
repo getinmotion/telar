@@ -125,6 +125,46 @@ export interface AuthResponse {
 export interface GoogleAuthResponse extends AuthResponse {}
 
 /**
+ * Response de registro por OTP
+ * Response de POST /auth/register-otp
+ */
+export interface RegisterOtpResponse {
+  success: boolean;
+  message: string;
+  userId: string;
+}
+
+/**
+ * Usuario incluido en el response de verificación de OTP
+ * User object de POST /auth/verify-otp
+ */
+export interface VerifyOtpUser {
+  id: string;
+  role: string | null;
+  email: string | null;
+  emailConfirmedAt: string | null;
+  lastSignInAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  phone: string | null;
+  bannedUntil: string | null;
+  deletedAt: string | null;
+  isSuperAdmin: boolean;
+}
+
+/**
+ * Response de verificación de OTP
+ * Response de POST /auth/verify-otp
+ */
+export interface VerifyOtpResponse {
+  success: boolean;
+  message: string;
+  userId: string;
+  user: VerifyOtpUser;
+  access_token: string;
+}
+
+/**
  * Data para registro de nuevo usuario
  * Payload para POST /auth/register-marketplace
  */

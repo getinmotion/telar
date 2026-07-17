@@ -4,7 +4,7 @@ import {
   signUpWithEmail,
   signInWithEmail,
   initiateGoogleAuth,
-  sendOtp,
+  registerOtp,
   verifyOtp,
   requestPasswordReset,
   updatePassword as updatePasswordService,
@@ -19,7 +19,7 @@ interface AuthContextType {
   signUp: (data: SignUpData) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  sendCustomOTP: (email: string, channel: 'email' | 'whatsapp') => Promise<void>;
+  sendCustomOTP: (email: string) => Promise<void>;
   verifyCustomOTP: (email: string, code: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
@@ -112,13 +112,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const sendCustomOTP = async (email: string, channel: 'email' | 'whatsapp' = 'email') => {
+  const sendCustomOTP = async (email: string) => {
     try {
-      await sendOtp(email, channel);
-      toast.success(`Código enviado a ${email}`);
+      const response = await registerOtp(email);
+      toast.success(response.message);
     } catch (error: any) {
-      console.error('Error al enviar OTP:', error);
-      toast.error(error.response?.data?.message || 'Error al enviar código de verificación');
       throw error;
     }
   };
@@ -126,12 +124,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const verifyCustomOTP = async (email: string, code: string) => {
     try {
       const response = await verifyOtp(email, code);
-      setUser(response.user);
+      setUser({
+        ...response.user,
+        rawUserMetaData: null,
+        isSsoUser: false,
+      } as AuthUser);
       checkUserType(response.user.id);
-      toast.success('Verificación exitosa. Redirigiendo...');
+      toast.success(response.message);
     } catch (error: any) {
-      console.error('Error al verificar OTP:', error);
-      toast.error(error.response?.data?.message || 'Código inválido o expirado');
       throw error;
     }
   };
