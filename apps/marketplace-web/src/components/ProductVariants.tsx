@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/currencyUtils';
-import { VARIANT_AXES, type VariantAxisKey } from '@telar/shared-types/products';
+/** Labels fijos para los ejes de variación conocidos */
+const VARIANT_AXIS_LABELS: Record<string, string> = {
+  talla: 'Talla',
+  color: 'Color',
+  material: 'Material',
+};
 import type { MarketplaceVariant } from '@/types/products.types';
 
 interface ProductVariantsProps {
@@ -38,7 +43,7 @@ export const ProductVariants = ({ variants, onVariantSelect }: ProductVariantsPr
       })
       .map(key => ({
         key,
-        label: VARIANT_AXES[key as VariantAxisKey]?.label ?? capitalize(key),
+        label: VARIANT_AXIS_LABELS[key] ?? capitalize(key),
         values: [...new Set(
           activeVariants.map(v => v.optionValues[key]).filter(Boolean),
         )],
