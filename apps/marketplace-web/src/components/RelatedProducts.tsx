@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import {
   getProductsNew,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
 
@@ -15,15 +15,13 @@ interface RelatedProductsProps {
   category?: string;
   storeName?: string;
   categoryId?: string;
-  storeId?: string;
 }
 
 export const RelatedProducts = ({
   currentProductId,
   categoryId,
-  storeId,
 }: RelatedProductsProps) => {
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,16 +30,16 @@ export const RelatedProducts = ({
     const fetchRelated = async () => {
       setLoading(true);
       try {
-        // Fetch products — prefer same category, fallback to same store, then all
+        // Fetch products — prefer same category, fallback to all
         const res = await getProductsNew({
-          ...(categoryId ? { categoryId } : storeId ? { storeId } : {}),
+          ...(categoryId ? { categoryId } : {}),
           page: 1,
           limit: 20,
         });
 
         if (cancelled) return;
 
-        const all: ProductNewCore[] = Array.isArray(res)
+        const all: ProductFeatured[] = Array.isArray(res)
           ? res
           : res.data ?? [];
 
@@ -54,7 +52,7 @@ export const RelatedProducts = ({
         if (filtered.length < 4 && categoryId) {
           const generalRes = await getProductsNew({ page: 1, limit: 20 });
           if (!cancelled) {
-            const generalAll: ProductNewCore[] = Array.isArray(generalRes)
+            const generalAll: ProductFeatured[] = Array.isArray(generalRes)
               ? generalRes
               : generalRes.data ?? [];
             const existingIds = new Set(filtered.map((p) => p.id));
@@ -78,7 +76,7 @@ export const RelatedProducts = ({
     return () => {
       cancelled = true;
     };
-  }, [currentProductId, categoryId, storeId]);
+  }, [currentProductId, categoryId]);
 
   if (loading) {
     return (
