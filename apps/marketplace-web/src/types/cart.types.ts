@@ -64,6 +64,8 @@ export interface SyncGuestCartRequest {
  */
 export interface SyncGuestCartResponse {
   cartId: string;
+  success: boolean;
+  itemsCreated: number;
 }
 
 /**
