@@ -704,6 +704,30 @@ export class ProductsNewService {
    * Obtener productos por IDs (bulk)
    * Útil para cart sync y otras operaciones que necesiten múltiples productos
    */
+  /**
+   * Buscar productos por IDs incluyendo TODAS las variantes (activas o no).
+   * Usado por syncGuestCart para no perder items del carrito guest.
+   */
+  async findByIdsWithAllVariants(ids: string[]): Promise<ProductCore[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const products = await this.productCoreRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.artisanShop', 'artisanShop')
+      .leftJoinAndSelect(
+        'product.variants',
+        'variants',
+        'variants.deletedAt IS NULL',
+      )
+      .where('product.id IN (:...ids)', { ids })
+      .andWhere('product.deletedAt IS NULL')
+      .getMany();
+
+    return products;
+  }
+
   async findByIds(ids: string[]): Promise<ProductCore[]> {
     if (!ids || ids.length === 0) {
       return [];

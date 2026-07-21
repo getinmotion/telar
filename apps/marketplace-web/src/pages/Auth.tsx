@@ -18,6 +18,7 @@ import telarLogo from "@/assets/telar-vertical.svg";
 import { NavLink } from "@/components/NavLink";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { OtpLoginForm } from "@/components/auth/OtpLoginForm";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOtpLogin, setShowOtpLogin] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
 
   // Redirigir si ya está autenticado
@@ -51,9 +53,14 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background to-secondary/20">
-      <Card className={`w-full ${isRegistering ? 'max-w-2xl' : 'max-w-md'} transition-all duration-300`}>
+      <Card
+        className={`w-full ${isRegistering ? "max-w-2xl" : "max-w-md"} transition-all duration-300`}
+      >
         <CardHeader className="space-y-4 text-center pb-6">
-          <NavLink to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto">
+          <NavLink
+            to="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
+          >
             <ArrowLeft className="h-4 w-4" />
             Volver a la tienda
           </NavLink>
@@ -66,16 +73,20 @@ const Auth = () => {
             <CardTitle className="text-2xl">
               {showForgotPassword
                 ? "Recuperar contraseña"
-                : isRegistering
-                ? "Crear cuenta"
-                : "Iniciar sesión"}
+                : showOtpLogin
+                  ? "Ingresar con código"
+                  : isRegistering
+                    ? "Crear cuenta"
+                    : "Iniciar sesión"}
             </CardTitle>
             <CardDescription className="mt-2">
               {showForgotPassword
                 ? "Ingresa tu email para recuperar tu contraseña"
-                : isRegistering
-                ? "Únete a nuestra comunidad de artesanos y compradores"
-                : "Bienvenido de vuelta al marketplace de artesanías"}
+                : showOtpLogin
+                  ? "Te enviaremos un código de verificación a tu correo"
+                  : isRegistering
+                    ? "Únete a nuestra comunidad de artesanos y compradores"
+                    : "Bienvenido de vuelta al marketplace de artesanías"}
             </CardDescription>
           </div>
         </CardHeader>
@@ -111,6 +122,9 @@ const Auth = () => {
                 Volver al inicio de sesión
               </Button>
             </form>
+          ) : showOtpLogin ? (
+            // Formulario de login por OTP
+            <OtpLoginForm onToggleForm={() => setShowOtpLogin(false)} />
           ) : isRegistering ? (
             // Formulario de registro (componente separado)
             <RegisterForm onToggleForm={() => setIsRegistering(false)} />
@@ -119,25 +133,9 @@ const Auth = () => {
             <LoginForm
               onToggleForm={() => setIsRegistering(true)}
               onForgotPassword={() => setShowForgotPassword(true)}
+              onOtpLogin={() => setShowOtpLogin(true)}
             />
           )}
-
-          <Separator />
-
-          {/* Enlace a artesanos */}
-          <div className="text-center text-sm text-muted-foreground">
-            <p>
-              ¿Eres artesano y quieres vender tus productos?{" "}
-              <a
-                href="https://app.telar.co"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline font-medium"
-              >
-                Regístrate aquí
-              </a>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
