@@ -8,9 +8,10 @@ import { useAuth } from "@/contexts/AuthContext";
 interface LoginFormProps {
   onToggleForm: () => void; // Cambiar a registro
   onForgotPassword: () => void; // Mostrar reset password
+  onOtpLogin: () => void; // Cambiar a login por OTP
 }
 
-export function LoginForm({ onToggleForm, onForgotPassword }: LoginFormProps) {
+export function LoginForm({ onToggleForm, onForgotPassword, onOtpLogin }: LoginFormProps) {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -93,6 +94,18 @@ export function LoginForm({ onToggleForm, onForgotPassword }: LoginFormProps) {
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Iniciar sesión
       </Button>
+
+      {/* OTP login */}
+      <div className="text-center text-sm">
+        <Button
+          type="button"
+          variant="link"
+          onClick={onOtpLogin}
+          className="p-0 h-auto"
+        >
+          Ingresar con código al correo
+        </Button>
+      </div>
 
       {/* Toggle to register */}
       <div className="text-center text-sm">

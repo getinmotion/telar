@@ -138,4 +138,12 @@ export class User extends BaseEntity {
     name: 'is_super_admin',
   })
   isSuperAdmin: boolean;
+
+  @Column({
+    type: 'boolean',
+    nullable: false,
+    default: false,
+    name: 'is_buyer',
+  })
+  isBuyer: boolean;
 }

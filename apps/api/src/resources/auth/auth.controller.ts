@@ -272,7 +272,11 @@ export class AuthController {
           artisansCommercialId: '123e4567-e89b-12d3-a456-426614174000',
           artisansClientMarketId: '123e4567-e89b-12d3-a456-426614174000',
           artisansOperationGrowthId: '123e4567-e89b-12d3-a456-426614174000',
-          identityOne: { nameShop: 'Mi Tienda', artisanHistory: 'Historia...', ageExperience: 5 },
+          identityOne: {
+            nameShop: 'Mi Tienda',
+            artisanHistory: 'Historia...',
+            ageExperience: 5,
+          },
           commercialTwo: { salesChannels: ['online', 'physical'] },
           clientMarketThree: { targetMarket: 'nacional' },
           operationGrowthFour: { productionCapacity: 100 },
@@ -284,6 +288,34 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto.email, loginDto.password);
+  }
+
+  /**
+   * POST /auth/login-marketplace
+   * Login exclusivo para compradores de marketplace
+   */
+  @Post('login-marketplace')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login exclusivo para marketplace (compradores)',
+    description:
+      'Autentica al usuario y solo permite el acceso si tiene is_buyer = true',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login exitoso para comprador de marketplace',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Credenciales inválidas o no es comprador',
+  })
+  async loginMarketplace(@Body() loginDto: LoginDto) {
+    return await this.authService.loginMarketplace(
+      loginDto.email,
+      loginDto.password,
+    );
   }
 
   /**
@@ -357,7 +389,10 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  @ApiResponse({ status: 403, description: 'Sin rol de backoffice (admin, moderator o super_admin)' })
+  @ApiResponse({
+    status: 403,
+    description: 'Sin rol de backoffice (admin, moderator o super_admin)',
+  })
   async getBackofficeContext(@CurrentUser() user: any) {
     return await this.authService.getBackofficeContext(user.sub);
   }
