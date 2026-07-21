@@ -14,7 +14,7 @@ import {
   ShoppingCart,
   Heart,
 } from 'lucide-react';
-import { composeVariantName } from '@telar/shared-types/products';
+import { composeVariantName } from '@/types/products.types';
 import type { NewWizardState } from '../../hooks/useNewWizardState';
 import type { ResolvedNames } from '../../hooks/useResolvedNames';
 import { AVAILABILITY_LABELS, deriveAvailabilityType } from '../../utils/availability';

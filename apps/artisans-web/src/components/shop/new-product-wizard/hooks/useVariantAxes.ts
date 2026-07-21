@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   getVariantAxesForCategory,
   type VariantAxisConfig,
-} from '@telar/shared-types/products';
+} from '@/types/products.types';
 import { getAllCategories, type Category } from '@/services/categories.actions';
 import { getAllMaterials } from '@/services/materials.actions';
 

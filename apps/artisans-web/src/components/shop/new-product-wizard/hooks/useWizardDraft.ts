@@ -4,7 +4,7 @@ import { createProductNew, updateProductNew } from '@/services/products-new.acti
 import type { CreateProductsNewDto } from '@/services/products-new.types';
 import type { NewWizardState } from './useNewWizardState';
 import { deriveAvailabilityType } from '../utils/availability';
-import { composeVariantName } from '@telar/shared-types/products';
+import { composeVariantName } from '@/types/products.types';
 
 const priceToMinor = (price: number): string => String(Math.round(price * 100));
 

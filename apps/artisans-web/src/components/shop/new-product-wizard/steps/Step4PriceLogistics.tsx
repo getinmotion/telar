@@ -15,7 +15,7 @@ import {
   MissingFieldsBanner,
   fieldErrorClass,
 } from '../components/FieldValidation';
-import { MAX_VARIANTS_PER_PRODUCT } from '@telar/shared-types/products';
+import { MAX_VARIANTS_PER_PRODUCT } from '@/types/products.types';
 
 interface Props {
   state: NewWizardState;

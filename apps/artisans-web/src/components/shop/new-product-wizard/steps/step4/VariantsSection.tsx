@@ -4,7 +4,7 @@ import {
   composeVariantName,
   MAX_VARIANTS_PER_PRODUCT,
   type VariantAxisConfig,
-} from '@telar/shared-types/products';
+} from '@/types/products.types';
 import type { NewWizardState, WizardVariant } from '../../hooks/useNewWizardState';
 import { useVariantAxes } from '../../hooks/useVariantAxes';
 import { FieldErrorMessage } from '../../components/FieldValidation';
