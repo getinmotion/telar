@@ -140,7 +140,7 @@ const Index = () => {
               </span>
               {displayCategories.map((cat) => (
                 <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
-                  <Link to={`/categoria/${cat.slug}`}>
+                  <Link to={`/productos?categoria=${cat.slug}`}>
                     <div className="aspect-[16/10] bg-[#e5e1d8] mb-4 overflow-hidden relative">
                       {cat.imageUrl ? (
                         <img
@@ -154,7 +154,7 @@ const Index = () => {
                     </div>
                   </Link>
                   <Link
-                    to={`/categoria/${cat.slug}`}
+                    to={`/productos?categoria=${cat.slug}`}
                     className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
                   >
                     {cat.name}
