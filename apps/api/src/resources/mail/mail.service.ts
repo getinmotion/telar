@@ -40,6 +40,56 @@ export class MailService {
   }
 
   /**
+   * Enviar código OTP de verificación
+   */
+  async sendOtpCode(email: string, name: string, code: string): Promise<void> {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Tu código de verificación - GetInMotion',
+      template: './otp-code',
+      context: {
+        name,
+        code,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
+   * Enviar contraseña generada tras verificar la cuenta
+   */
+  async sendGeneratedPassword(
+    email: string,
+    name: string,
+    password: string,
+  ): Promise<void> {
+    const baseUrl = (
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:1010'
+    ).replace(/\/$/, '');
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Tu acceso a GetInMotion',
+      template: './account-password',
+      context: {
+        name,
+        email,
+        password,
+        loginUrl: `${baseUrl}/login`,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  /**
    * Enviar email de recuperación de contraseña
    */
   async sendPasswordRecovery(

@@ -19,6 +19,8 @@ import {
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterOtpDto } from './dto/register-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestPasswordRecoveryDto } from './dto/request-password-recovery.dto';
@@ -133,6 +135,78 @@ export class AuthController {
   }
 
   /**
+   * POST /auth/register-otp
+   * Registro por OTP: crea un usuario invitado y envía un código al correo
+   */
+  @Post('register-otp')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Registro por OTP (solo email)',
+    description:
+      'Crea un usuario invitado con contraseña aleatoria y envía un código OTP de 6 dígitos al correo para activar la cuenta.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Código OTP enviado al correo',
+    schema: {
+      example: {
+        success: true,
+        message:
+          'Te enviamos un código de verificación a tu correo. Ingrésalo para activar tu cuenta.',
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+      },
+    },
+  })
+  @ApiResponse({ status: 409, description: 'El email ya está registrado' })
+  @ApiResponse({ status: 400, description: 'Email inválido' })
+  async registerOtp(@Body() registerOtpDto: RegisterOtpDto) {
+    return await this.authService.registerOtp(registerOtpDto.email);
+  }
+
+  /**
+   * POST /auth/verify-otp
+   * Verifica el código OTP, confirma la cuenta, envía la contraseña y retorna JWT
+   */
+  @Post('verify-otp')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verificar código OTP',
+    description:
+      'Valida el código OTP, confirma el email, envía la contraseña generada al correo y retorna el token JWT para acceso inmediato.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Cuenta verificada. Retorna token JWT.',
+    schema: {
+      example: {
+        success: true,
+        message:
+          'Cuenta verificada exitosamente. Te enviamos tu contraseña al correo.',
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'user@example.com',
+          role: 'user',
+          emailConfirmedAt: '2026-07-17T10:00:00.000Z',
+          createdAt: '2026-07-17T10:00:00.000Z',
+        },
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Código inválido o expirado' })
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.authService.verifyOtp(
+      verifyOtpDto.email,
+      verifyOtpDto.code,
+    );
+  }
+
+  /**
    * POST /auth/login
    * Iniciar sesión
    */
@@ -198,7 +272,11 @@ export class AuthController {
           artisansCommercialId: '123e4567-e89b-12d3-a456-426614174000',
           artisansClientMarketId: '123e4567-e89b-12d3-a456-426614174000',
           artisansOperationGrowthId: '123e4567-e89b-12d3-a456-426614174000',
-          identityOne: { nameShop: 'Mi Tienda', artisanHistory: 'Historia...', ageExperience: 5 },
+          identityOne: {
+            nameShop: 'Mi Tienda',
+            artisanHistory: 'Historia...',
+            ageExperience: 5,
+          },
           commercialTwo: { salesChannels: ['online', 'physical'] },
           clientMarketThree: { targetMarket: 'nacional' },
           operationGrowthFour: { productionCapacity: 100 },
@@ -210,6 +288,34 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto.email, loginDto.password);
+  }
+
+  /**
+   * POST /auth/login-marketplace
+   * Login exclusivo para compradores de marketplace
+   */
+  @Post('login-marketplace')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login exclusivo para marketplace (compradores)',
+    description:
+      'Autentica al usuario y solo permite el acceso si tiene is_buyer = true',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login exitoso para comprador de marketplace',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Credenciales inválidas o no es comprador',
+  })
+  async loginMarketplace(@Body() loginDto: LoginDto) {
+    return await this.authService.loginMarketplace(
+      loginDto.email,
+      loginDto.password,
+    );
   }
 
   /**
@@ -283,7 +389,10 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'No autenticado' })
-  @ApiResponse({ status: 403, description: 'Sin rol de backoffice (admin, moderator o super_admin)' })
+  @ApiResponse({
+    status: 403,
+    description: 'Sin rol de backoffice (admin, moderator o super_admin)',
+  })
   async getBackofficeContext(@CurrentUser() user: any) {
     return await this.authService.getBackofficeContext(user.sub);
   }

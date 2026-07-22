@@ -5,17 +5,17 @@
  * Cada widget es independiente: trae su propia data (productos, talleres,
  * categorías) y se renderiza igual que estaba en Index.tsx.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTaxonomy } from '@/hooks/useTaxonomy';
-import { useArtisanShops } from '@/contexts/ArtisanShopsContext';
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
   getFeaturedProductsNew,
   type ProductFeatured,
-} from '@/services/products-new.actions';
-import { formatCurrency } from '@/lib/currencyUtils';
-import escuelasTallerLogo from '@/assets/escuelas-taller-logo.svg';
-import culturasLogo from '@/assets/culturas-logo.svg';
+} from "@/services/products-new.actions";
+import { formatCurrency } from "@/lib/currencyUtils";
+import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
+import culturasLogo from "@/assets/culturas-logo.svg";
 
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed++) * 10000;
@@ -45,8 +45,10 @@ const useFeaturedProducts = () => {
     getFeaturedProductsNew()
       .then((data) => {
         if (Array.isArray(data)) setProducts(data);
-        else if (data && Array.isArray((data as any).data)) setProducts((data as any).data);
-        else if (data && Array.isArray((data as any).products)) setProducts((data as any).products);
+        else if (data && Array.isArray((data as any).data))
+          setProducts((data as any).data);
+        else if (data && Array.isArray((data as any).products))
+          setProducts((data as any).products);
         else setProducts([]);
       })
       .catch(() => setProducts([]))
@@ -56,7 +58,7 @@ const useFeaturedProducts = () => {
   const featured = useMemo(() => {
     const safe = Array.isArray(products) ? products : [];
     const available = safe.filter(
-      (p) => !p.status || p.status === 'published' || p.status === 'approved',
+      (p) => !p.status || p.status === "published" || p.status === "approved",
     );
     if (available.length === 0 && safe.length > 0) {
       return shuffleArray(safe, dailySeed).slice(0, 3);
@@ -65,7 +67,7 @@ const useFeaturedProducts = () => {
     const seen = new Set<string>();
     const picked: ProductFeatured[] = [];
     for (const p of shuffled) {
-      const store = p.storeName ?? '';
+      const store = p.storeName ?? "";
       if (!seen.has(store)) {
         picked.push(p);
         seen.add(store);
@@ -92,7 +94,7 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
   const displayCategories = useMemo(
     () =>
       categoryHierarchy
-        .filter((c) => c.isActive && c.slug !== 'cuidado-personal')
+        .filter((c) => c.isActive && c.slug !== "cuidado-personal")
         .slice(0, 8),
     [categoryHierarchy],
   );
@@ -108,8 +110,8 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
           )}
           {displayCategories.map((cat) => (
             <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
-              <Link to={`/categoria/${cat.slug}`}>
-                <div className="aspect-[16/10] bg-muted mb-4 rounded-sm border border-foreground/10 overflow-hidden relative">
+              <Link to={`/productos?categoria=${cat.slug}`}>
+                <div className="aspect-[16/10] bg-[#e5e1d8] mb-4 overflow-hidden relative">
                   {cat.imageUrl ? (
                     <img
                       src={cat.imageUrl}
@@ -122,15 +124,18 @@ export function CategoriesGridWidget({ kicker }: { kicker?: string }) {
                 </div>
               </Link>
               <Link
-                to={`/categoria/${cat.slug}`}
-                className="text-xl font-serif hover:italic hover:text-primary transition-all"
+                to={`/productos?categoria=${cat.slug}`}
+                className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
               >
                 {cat.name}
               </Link>
               <p className="text-[10px] text-charcoal/60 uppercase tracking-widest">
                 {cat.subcategories.length > 0
-                  ? cat.subcategories.slice(0, 3).map((s) => s.name).join(', ')
-                  : 'Piezas artesanales únicas'}
+                  ? cat.subcategories
+                      .slice(0, 3)
+                      .map((s) => s.name)
+                      .join(", ")
+                  : "Piezas artesanales únicas"}
               </p>
             </div>
           ))}
@@ -160,7 +165,9 @@ export function FeaturedProductsWidget({
     <section className="py-24 max-w-[1400px] mx-auto px-6">
       {(title || subtitle) && (
         <div className="text-center mb-16 space-y-3">
-          {title && <h2 className="text-4xl md:text-5xl font-serif">{title}</h2>}
+          {title && (
+            <h2 className="text-4xl md:text-5xl font-serif">{title}</h2>
+          )}
           {subtitle && (
             <p className="text-charcoal/70 italic font-light">{subtitle}</p>
           )}
@@ -187,7 +194,7 @@ export function FeaturedProductsWidget({
           : featured.map((product, idx) => (
               <article
                 key={product.id}
-                className={`group ${idx === 1 ? 'mt-12 md:mt-24' : ''}`}
+                className={`group ${idx === 1 ? "mt-12 md:mt-24" : ""}`}
               >
                 <Link to={`/product/${product.id}`}>
                   <div className="aspect-[3/4] bg-muted mb-6 rounded-sm border border-foreground/10 transition-all duration-700 overflow-hidden relative">
@@ -205,14 +212,18 @@ export function FeaturedProductsWidget({
                     <span className="inline-block bg-primary/10 text-primary text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
                       Hecho a mano
                     </span>
-                    <h3 className="text-2xl font-serif leading-tight">{product.name}</h3>
+                    <h3 className="text-2xl font-serif leading-tight">
+                      {product.name}
+                    </h3>
                     <p className="text-xs uppercase tracking-widest text-charcoal/60">
                       {product.storeName}
-                      {product.department ? ` — ${product.department}` : ''}
+                      {product.department ? ` — ${product.department}` : ""}
                     </p>
                     <div className="pt-4 flex items-center justify-between border-t border-foreground/10">
                       <span className="font-medium">
-                        {product.price != null ? formatCurrency(product.price) : 'Consultar'}
+                        {product.price != null
+                          ? formatCurrency(product.price)
+                          : "Consultar"}
                       </span>
                     </div>
                   </div>
@@ -234,24 +245,47 @@ export function HuellaDigitalWidget() {
       <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
         <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
           {featured[1]?.imageUrl && (
-            <img src={featured[1].imageUrl} alt="Huella digital" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
+            <img
+              src={featured[1].imageUrl}
+              alt="Huella digital"
+              className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+            />
           )}
         </div>
         <div className="space-y-10">
-          <h2 className="text-5xl font-serif leading-tight">Cada pieza tiene una huella digital</h2>
+          <h2 className="text-5xl font-serif leading-tight">
+            Cada pieza tiene una huella digital
+          </h2>
           <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
-            Cada objeto en Cocrea conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
+            Cada objeto en Cocrea conserva un registro que documenta su origen
+            cultural, el taller que lo creó y su proceso artesanal.
           </p>
           <div className="space-y-8">
             {[
-              { n: '01', t: 'Taller artesanal', b: 'Ubicación geográfica exacta donde se produjo la pieza.' },
-              { n: '02', t: 'Maestro artesano', b: 'Nombre y rostro de los maestros artesanos detrás de la creación.' },
-              { n: '03', t: 'Proceso documentado', b: 'Detalles de la técnica, materiales y tiempo de elaboración.' },
+              {
+                n: "01",
+                t: "Taller artesanal",
+                b: "Ubicación geográfica exacta donde se produjo la pieza.",
+              },
+              {
+                n: "02",
+                t: "Maestro artesano",
+                b: "Nombre y rostro de los maestros artesanos detrás de la creación.",
+              },
+              {
+                n: "03",
+                t: "Proceso documentado",
+                b: "Detalles de la técnica, materiales y tiempo de elaboración.",
+              },
             ].map(({ n, t, b }) => (
               <div key={n} className="flex gap-6">
-                <span className="text-primary font-serif italic text-3xl">{n}</span>
+                <span className="text-primary font-serif italic text-3xl">
+                  {n}
+                </span>
                 <div>
-                  <h4 className="font-bold uppercase tracking-widest text-xs mb-2">{t}</h4>
+                  <h4 className="font-bold uppercase tracking-widest text-xs mb-2">
+                    {t}
+                  </h4>
                   <p className="text-charcoal/60 text-sm">{b}</p>
                 </div>
               </div>
@@ -279,7 +313,9 @@ export function FeaturedShopWidget() {
   }, []);
   const featuredShop = useMemo(() => {
     const safe = Array.isArray(shops) ? shops : [];
-    const karen = safe.find((s) => s.shopName?.toLowerCase().includes('karen dayana'));
+    const karen = safe.find((s) =>
+      s.shopName?.toLowerCase().includes("karen dayana"),
+    );
     return karen || safe[0] || null;
   }, [shops]);
 
@@ -292,9 +328,17 @@ export function FeaturedShopWidget() {
         <div className="grid lg:grid-cols-2 gap-20 items-stretch">
           <div className="min-h-[500px] bg-muted rounded-sm border border-foreground/10 overflow-hidden">
             {featuredShop?.bannerUrl ? (
-              <img src={featuredShop.bannerUrl} alt={featuredShop.shopName} className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
+              <img
+                src={featuredShop.bannerUrl}
+                alt={featuredShop.shopName}
+                className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+              />
             ) : featuredShop?.logoUrl ? (
-              <img src={featuredShop.logoUrl} alt={featuredShop.shopName} className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
+              <img
+                src={featuredShop.logoUrl}
+                alt={featuredShop.shopName}
+                className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+              />
             ) : null}
           </div>
           <div className="flex flex-col justify-center py-10 space-y-8">
@@ -304,23 +348,27 @@ export function FeaturedShopWidget() {
                   <span className="text-primary font-bold uppercase tracking-widest text-[11px]">
                     Taller del Mes
                   </span>
-                  <h3 className="text-5xl md:text-6xl font-serif">{featuredShop.shopName}</h3>
+                  <h3 className="text-5xl md:text-6xl font-serif">
+                    {featuredShop.shopName}
+                  </h3>
                   <p className="text-charcoal/60 italic font-serif text-xl">
                     {featuredShop.municipality && featuredShop.department
                       ? `${featuredShop.municipality}, ${featuredShop.department}`
-                      : featuredShop.department || 'Colombia'}
+                      : featuredShop.department || "Colombia"}
                   </p>
                 </div>
                 <div className="space-y-6">
                   {featuredShop.craftType && (
                     <div className="flex items-start gap-4 pb-6 border-b border-foreground/10">
                       <span className="text-primary mt-1 text-xl">★</span>
-                      <span className="text-lg font-serif">Especialidad: {featuredShop.craftType}</span>
+                      <span className="text-lg font-serif">
+                        Especialidad: {featuredShop.craftType}
+                      </span>
                     </div>
                   )}
                   <p className="text-lg leading-relaxed text-charcoal/80">
                     {featuredShop.story ||
-                      'Taller artesanal dedicado al tejido tradicional con técnicas transmitidas entre generaciones.'}
+                      "Taller artesanal dedicado al tejido tradicional con técnicas transmitidas entre generaciones."}
                   </p>
                   <Link
                     to={`/artesano/${featuredShop.shopSlug}`}
@@ -356,7 +404,9 @@ export function RegalosConHistoriaWidget() {
           <div className="flex-1 space-y-8">
             <h2 className="text-5xl font-serif">Regalos con historia</h2>
             <p className="text-xl text-charcoal/70 leading-relaxed font-light">
-              En Cocrea puedes encontrar piezas especiales para regalar en momentos importantes. Cada objeto hecho a mano lleva consigo tradición, conocimiento y dedicación.
+              En Cocrea puedes encontrar piezas especiales para regalar en
+              momentos importantes. Cada objeto hecho a mano lleva consigo
+              tradición, conocimiento y dedicación.
             </p>
             <Link
               to="/giftcards"
@@ -368,12 +418,20 @@ export function RegalosConHistoriaWidget() {
           <div className="flex-1 grid grid-cols-2 gap-4 w-full">
             <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
               {featured[1]?.imageUrl && (
-                <img src={featured[1].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
+                <img
+                  src={featured[1].imageUrl}
+                  alt="Regalo artesanal"
+                  className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+                />
               )}
             </div>
             <div className="aspect-square bg-muted rounded-sm border border-foreground/10 mt-12 overflow-hidden">
               {featured[2]?.imageUrl && (
-                <img src={featured[2].imageUrl} alt="Regalo artesanal" className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out" />
+                <img
+                  src={featured[2].imageUrl}
+                  alt="Regalo artesanal"
+                  className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+                />
               )}
             </div>
           </div>
@@ -391,7 +449,7 @@ export function ColeccionesOverviewWidget() {
   const displayCategories = useMemo(
     () =>
       categoryHierarchy
-        .filter((c) => c.isActive && c.slug !== 'cuidado-personal')
+        .filter((c) => c.isActive && c.slug !== "cuidado-personal")
         .slice(0, 8),
     [categoryHierarchy],
   );
@@ -404,9 +462,24 @@ export function ColeccionesOverviewWidget() {
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { to: '/productos', img: 0, title: 'Piezas para el hogar', sub: 'Objetos que cuentan historias' },
-            { to: '/productos', img: 1, title: 'Textiles con historia', sub: 'Tejidos a mano en telar' },
-            { to: '/giftcards', img: 2, title: 'Creaciones para regalar', sub: 'Detalles con alma' },
+            {
+              to: "/productos",
+              img: 0,
+              title: "Piezas para el hogar",
+              sub: "Objetos que cuentan historias",
+            },
+            {
+              to: "/productos",
+              img: 1,
+              title: "Textiles con historia",
+              sub: "Tejidos a mano en telar",
+            },
+            {
+              to: "/giftcards",
+              img: 2,
+              title: "Creaciones para regalar",
+              sub: "Detalles con alma",
+            },
           ].map(({ to, img, title, sub }) => (
             <Link key={to + title} to={to} className="group cursor-pointer">
               <div className="aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden relative">
@@ -419,7 +492,9 @@ export function ColeccionesOverviewWidget() {
                 )}
               </div>
               <h3 className="text-2xl font-serif italic">{title}</h3>
-              <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">{sub}</p>
+              <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">
+                {sub}
+              </p>
             </Link>
           ))}
         </div>
@@ -435,7 +510,9 @@ export function AliadosWidget() {
   return (
     <section className="py-24 border-t border-foreground/10">
       <div className="max-w-3xl mx-auto px-6 text-center space-y-10">
-        <h2 className="text-[10px] font-bold text-charcoal/50 uppercase tracking-[0.4em]">Una iniciativa de</h2>
+        <h2 className="text-[10px] font-bold text-charcoal/50 uppercase tracking-[0.4em]">
+          Una iniciativa de
+        </h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
           <img
             src={escuelasTallerLogo}
@@ -449,7 +526,8 @@ export function AliadosWidget() {
           />
         </div>
         <h3 className="text-2xl font-serif">
-          Programa Nacional Escuelas Taller de Colombia · Ministerio de las Culturas, las Artes y los Saberes
+          Programa Nacional Escuelas Taller de Colombia · Ministerio de las
+          Culturas, las Artes y los Saberes
         </h3>
       </div>
     </section>

@@ -36,7 +36,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   "decoracion-del-hogar": Home,
   "textiles-y-moda": Shirt,
   "bolsos-y-carteras": ShoppingBag,
-  "muebles": Armchair,
+  muebles: Armchair,
   "vajillas-y-cocina": UtensilsCrossed,
   "arte-y-esculturas": Palette,
 };
@@ -49,14 +49,32 @@ interface CategoriesMegaMenuProps {
 
 export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
   const { categoryHierarchy, loading } = useTaxonomy();
-  const [activeCategory, setActiveCategory] = useState<CategoryWithChildren | null>(null);
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryWithChildren | null>(null);
   const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [allProducts, setAllProducts] = useState<ProductFeatured[]>([]);
 
+  // IDs de categorías/subcategorías con al menos un producto. Mientras no haya
+  // cargado el prefetch, no filtramos (mostramos todo para no dejar el menú vacío).
+  const presentCatIds = new Set(allProducts.map((p) => p.categoryId));
+  const filterByPresence = allProducts.length > 0;
+
   const categories = categoryHierarchy.filter(
-    (c) => c.isActive && !EXCLUDED_SLUGS.includes(c.slug)
+    (c) =>
+      c.isActive &&
+      !EXCLUDED_SLUGS.includes(c.slug) &&
+      (!filterByPresence ||
+        presentCatIds.has(c.id) ||
+        c.subcategories.some((s) => presentCatIds.has(s.id))),
   );
+
+  // Subcategorías de la categoría activa que tienen productos.
+  const visibleSubcategories = activeCategory
+    ? activeCategory.subcategories.filter(
+        (s) => !filterByPresence || presentCatIds.has(s.id),
+      )
+    : [];
 
   // Pre-fetch products once
   useEffect(() => {
@@ -66,7 +84,9 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
         if (!cancelled) setAllProducts(res.data);
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Set first category as active on load
@@ -79,8 +99,13 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
   // Filter products when active category changes
   useEffect(() => {
     if (!activeCategory || allProducts.length === 0) return;
-    const catIds = new Set([activeCategory.id, ...activeCategory.subcategories.map((s) => s.id)]);
-    const filtered = allProducts.filter((p) => catIds.has(p.categoryId)).slice(0, 2);
+    const catIds = new Set([
+      activeCategory.id,
+      ...activeCategory.subcategories.map((s) => s.id),
+    ]);
+    const filtered = allProducts
+      .filter((p) => catIds.has(p.categoryId))
+      .slice(0, 2);
     setProducts(filtered);
   }, [activeCategory, allProducts]);
 
@@ -110,16 +135,15 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                 const isActive = activeCategory?.id === cat.id;
                 return (
                   <li key={cat.id}>
-                    <button
+                    <Link
+                      to={`/productos?categoria=${cat.slug}`}
                       className={`flex items-center space-x-4 p-3 -mx-3 rounded-sm w-full text-left transition-all ${
                         isActive
                           ? "bg-[#f2eee4] text-[#2e5424]"
                           : "text-foreground/60 hover:text-[#2e5424] hover:bg-[#f2eee4]/50"
                       }`}
                       onMouseEnter={() => setActiveCategory(cat)}
-                      onClick={() => {
-                        onClose();
-                      }}
+                      onClick={onClose}
                     >
                       <Icon className="w-5 h-5" />
                       <span
@@ -129,7 +153,7 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                       >
                         {cat.name}
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 );
               })}
@@ -157,30 +181,40 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                   <h3 className="font-serif text-3xl italic tracking-tight mb-2">
                     {activeCategory.name}
                   </h3>
-                  <p className="text-[9px] uppercase tracking-widest text-foreground/40">
-                    Subcategorias disponibles
-                  </p>
+                  {visibleSubcategories.length > 0 && (
+                    <p className="text-[9px] uppercase tracking-widest text-foreground/40">
+                      Subcategorias disponibles
+                    </p>
+                  )}
                 </div>
-                <ul className="space-y-6">
-                  {activeCategory.subcategories.slice(0, 7).map((sub, i) => (
-                    <li key={sub.id}>
-                      <Link
-                        to={`/productos?categoria=${sub.slug}`}
-                        onClick={onClose}
-                        className={`flex items-center justify-between group transition-colors ${
-                          i < 3
-                            ? "text-base font-bold text-foreground hover:text-[#2e5424]"
-                            : "text-sm font-medium text-foreground/60 hover:text-[#2e5424]"
-                        }`}
-                      >
-                        {sub.name}
-                        {i < 3 && (
-                          <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {visibleSubcategories.length > 0 ? (
+                  <ul className="space-y-6">
+                    {visibleSubcategories.slice(0, 7).map((sub, i) => (
+                      <li key={sub.id}>
+                        <Link
+                          to={`/productos?categoria=${sub.slug}`}
+                          onClick={onClose}
+                          className={`flex items-center justify-between group transition-colors ${
+                            i < 3
+                              ? "text-base font-bold text-foreground hover:text-[#ec6d13]"
+                              : "text-sm font-medium text-foreground/60 hover:text-[#ec6d13]"
+                          }`}
+                        >
+                          {sub.name}
+                          {i < 3 && (
+                            <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                          )}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  activeCategory.description && (
+                    <p className="text-sm text-foreground/60 leading-relaxed font-light">
+                      {activeCategory.description}
+                    </p>
+                  )
+                )}
                 <div className="mt-auto pt-10">
                   <Link
                     to={`/productos?categoria=${activeCategory.slug}`}
@@ -242,7 +276,9 @@ export const CategoriesMegaMenu = ({ onClose }: CategoriesMegaMenuProps) => {
                             </span>
                           )}
                           {technique && department && (
-                            <span className="text-[10px] text-foreground/20">·</span>
+                            <span className="text-[10px] text-foreground/20">
+                              ·
+                            </span>
                           )}
                           {department && (
                             <span className="text-[9px] font-medium uppercase tracking-widest text-foreground/40">

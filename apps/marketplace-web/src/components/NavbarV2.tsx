@@ -37,7 +37,11 @@ interface NavbarV2Props {
 }
 
 // ── Nav links config ────────────────────────────────
-const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[] = [
+const NAV_LINKS: readonly {
+  to: string;
+  label: string;
+  hasMegaMenu?: boolean;
+}[] = [
   { to: "/explorar", label: "Explorar" },
   { to: "/categorias", label: "Categorías", hasMegaMenu: true },
   { to: "/colecciones", label: "Colecciones" },
@@ -94,11 +98,7 @@ export const NavbarV2 = ({
   }, [mobileMenuOpen]);
 
   const handleCartClick = () => {
-    if (!user) {
-      navigate("/auth");
-    } else {
-      openCart();
-    }
+    openCart();
   };
 
   const toggleSearch = () => setSearchVisible(!searchVisible);
@@ -127,7 +127,8 @@ export const NavbarV2 = ({
         {!isScrolled && (
           <div className="w-full bg-primary text-primary-foreground">
             <p className="container mx-auto px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.25em]">
-              Programa Nacional Escuelas Taller de Colombia · Herramientas de paz
+              Programa Nacional Escuelas Taller de Colombia · Herramientas de
+              paz
             </p>
           </div>
         )}
@@ -146,19 +147,11 @@ export const NavbarV2 = ({
             {/* Center: Logo */}
             {onHomeClick ? (
               <button onClick={onHomeClick} className="flex items-center">
-                <img
-                  src={cocreaHorizontal}
-                  alt="CO·CREA"
-                  className="h-7"
-                />
+                <img src={telarHorizontal} alt="TELAR" className="h-7" />
               </button>
             ) : (
               <Link to="/?reset=true" className="flex items-center">
-                <img
-                  src={cocreaHorizontal}
-                  alt="CO·CREA"
-                  className="h-7"
-                />
+                <img src={telarHorizontal} alt="TELAR" className="h-7" />
               </Link>
             )}
 
@@ -365,9 +358,7 @@ export const NavbarV2 = ({
                     onClick={signOut}
                     title="Cerrar sesión"
                   >
-                    <LogOut
-                      className={isScrolled ? "h-4 w-4" : "h-5 w-5"}
-                    />
+                    <LogOut className={isScrolled ? "h-4 w-4" : "h-5 w-5"} />
                   </Button>
                 </>
               ) : (
@@ -443,8 +434,7 @@ export const NavbarV2 = ({
             <div
               className="hidden lg:block"
               onMouseEnter={() => {
-                if (megaMenuTimer.current)
-                  clearTimeout(megaMenuTimer.current);
+                if (megaMenuTimer.current) clearTimeout(megaMenuTimer.current);
               }}
               onMouseLeave={() => {
                 megaMenuTimer.current = setTimeout(

@@ -12,6 +12,8 @@ interface ProductPurchaseButtonProps {
   stock?: number;
   quantity?: number;
   variantId?: string;
+  /** El producto tiene variantes y aún no se eligió una combinación */
+  requiresVariantSelection?: boolean;
   variant?: "card" | "detail";
   className?: string;
 }
@@ -23,6 +25,7 @@ export const ProductPurchaseButton = ({
   stock,
   quantity = 1,
   variantId,
+  requiresVariantSelection = false,
   variant = "card",
   className = "",
 }: ProductPurchaseButtonProps) => {
@@ -130,13 +133,14 @@ export const ProductPurchaseButton = ({
   // DESPUÉS verificar si puede comprarse
   if (canPurchase) {
     return (
-      <Button 
+      <Button
         className={`w-full h-14 text-lg ${className}`}
-        size="lg" 
+        size="lg"
         onClick={handleAddToCart}
+        disabled={requiresVariantSelection}
       >
         <ShoppingCart className="mr-2 h-5 w-5" />
-        Agregar al carrito
+        {requiresVariantSelection ? "Selecciona una opción" : "Agregar al carrito"}
       </Button>
     );
   }

@@ -127,13 +127,13 @@ export const calculateShopProgress = (masterState: MasterAgentState): Milestone 
       id: 'contact_info',
       label: 'Información de contacto',
       completed: hasShop && hasContactInfo,
-      route: '/dashboard/shop-contact-wizard'
+      route: '/mi-tienda/configurar/contact'
     },
     {
       id: 'hero_slider',
       label: 'Hero slider personalizado',
       completed: hasShop && hasHeroSlider,
-      route: '/dashboard/shop-hero-wizard'
+      route: '/mi-tienda/configurar/hero'
     }
   ];
 
@@ -183,7 +183,7 @@ export const calculateCommunityProgress = (masterState: MasterAgentState): Miles
       id: 'social_links',
       label: 'Redes sociales agregadas',
       completed: hasSocialLinks,
-      route: '/dashboard/social-links-wizard'
+      route: '/mi-tienda/configurar/contact'
     }
   ];
 

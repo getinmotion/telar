@@ -1,6 +1,7 @@
 import {
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -23,6 +24,8 @@ import { PaymentIntent } from '../payment-intents/entities/payment-intent.entity
 
 @Injectable()
 export class CartService {
+  private readonly logger = new Logger(CartService.name);
+
   constructor(
     @Inject('CART_REPOSITORY')
     private readonly cartRepository: Repository<Cart>,
@@ -349,9 +352,17 @@ export class CartService {
       });
     }
 
-    // 2. Buscar productos en bulk
+    // 2. Buscar productos en bulk (con TODAS las variantes, no solo activas)
     const productIds = dto.items.map((item) => item.productId);
-    const products = await this.productsNewService.findByIds(productIds);
+    const products =
+      await this.productsNewService.findByIdsWithAllVariants(productIds);
+
+    this.logger.log(
+      `[syncGuestCart] productIds: ${JSON.stringify(productIds)}`,
+    );
+    this.logger.log(
+      `[syncGuestCart] products: ${JSON.stringify(products.map((p) => ({ id: p.id, status: p.status, variantsCount: p.variants?.length })))}`,
+    );
 
     // Crear Map para búsqueda rápida
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -376,22 +387,22 @@ export class CartService {
     for (const item of dto.items) {
       const product = productMap.get(item.productId);
 
-      // Omitir si el producto no existe o no está publicado
-      if (!product || product.status !== 'published') {
+      // Omitir si el producto no existe o no está publicado/aprobado
+      if (!product || !['published', 'approved'].includes(product.status)) {
         continue;
       }
 
-      // Obtener variante específica o primera variante activa
+      // Obtener variante: preferir activa, fallback a cualquiera
       let variant: ProductVariant | undefined = undefined;
       if (item.variantId && product.variants) {
-        variant = product.variants.find(
-          (v) => v.id === item.variantId && v.isActive,
-        );
-      } else if (product.variants && product.variants.length > 0) {
-        variant = product.variants.find((v) => v.isActive);
+        variant = product.variants.find((v) => v.id === item.variantId);
+      }
+      if (!variant && product.variants && product.variants.length > 0) {
+        variant =
+          product.variants.find((v) => v.isActive) ?? product.variants[0];
       }
 
-      // Si no hay variante activa, omitir este producto
+      // Si definitivamente no hay variante, omitir
       if (!variant) {
         continue;
       }
@@ -399,8 +410,15 @@ export class CartService {
       // Usar precio de la variante (ya está en centavos)
       const unitPriceMinor = variant.basePriceMinor.toString();
 
-      // Construir metadata para variante
-      const metadata = item.variantId ? { variantId: item.variantId } : {};
+      // Construir metadata para variante (nombre y opciones para mostrar en el carrito)
+      const metadata = item.variantId
+        ? {
+            variantId: item.variantId,
+            variantName: variant.variantName ?? undefined,
+            optionValues: variant.optionValues ?? undefined,
+            variantImageUrl: variant.imageUrl ?? undefined,
+          }
+        : {};
 
       // Verificar si el item ya existe en el carrito
       const itemKey = `${product.id}:${item.variantId || ''}`;
@@ -420,7 +438,7 @@ export class CartService {
           currency: variant.currency || 'COP',
           unitPriceMinor,
           priceSource: PriceSource.PRODUCT_BASE,
-          priceRefId: variant.id,
+          priceRefId: null,
           metadata,
         });
       }

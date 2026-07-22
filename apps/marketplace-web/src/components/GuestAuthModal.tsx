@@ -39,7 +39,7 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
     
     setLoadingState('sending');
     try {
-      await sendCustomOTP(email, 'email');
+      await sendCustomOTP(email);
       setLoadingState('sent');
       setTimeout(() => {
         setOtpSent(true);
@@ -72,7 +72,7 @@ const GuestAuthModal = ({ isOpen, onClose, onSuccess }: GuestAuthModalProps) => 
   const handleResendOTP = async () => {
     setLoadingState('sending');
     try {
-      await sendCustomOTP(email, 'email');
+      await sendCustomOTP(email);
       setLoadingState('sent');
       toast.success('Código reenviado');
       setTimeout(() => setLoadingState('idle'), 800);

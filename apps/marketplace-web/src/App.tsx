@@ -2,7 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
@@ -40,7 +46,6 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import GoogleAuthCallback from "./pages/GoogleAuthCallback";
-import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
 import Explorar from "./pages/Explorar";
@@ -63,6 +68,13 @@ import HistoriaDetail from "./pages/HistoriaDetail";
 
 const queryClient = new QueryClient();
 
+// La antigua ruta /categoria/:slug se unificó con /productos?categoria=slug.
+// Mantenemos un redirect para no romper enlaces guardados o externos.
+const CategoryRedirect = () => {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/productos?categoria=${slug ?? ""}`} replace />;
+};
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -82,52 +94,133 @@ const App = () => (
                         {/* Rutas con Layout (con Navbar) */}
                         <Route element={<Layout />}>
                           <Route path="/" element={<Index />} />
-                          <Route path="/productos" element={<ExploreProducts />} />
-                          <Route path="/product/:id" element={<ProductDetail />} />
-                          <Route path="/tienda/:shopSlug" element={<ShopDetail />} />
+                          <Route
+                            path="/productos"
+                            element={<ExploreProducts />}
+                          />
+                          <Route
+                            path="/product/:id"
+                            element={<ProductDetail />}
+                          />
+                          <Route
+                            path="/tienda/:shopSlug"
+                            element={<ShopDetail />}
+                          />
                           <Route path="/tiendas" element={<Shops />} />
-                          <Route path="/tiendas-favoritas" element={<FavoriteShops />} />
+                          <Route
+                            path="/tiendas-favoritas"
+                            element={<FavoriteShops />}
+                          />
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/profile" element={<Profile />} />
                           <Route path="/wishlist" element={<Wishlist />} />
                           <Route path="/categorias" element={<Categories />} />
                           <Route path="/giftcards" element={<GiftCards />} />
-                          <Route path="/confirm-purchase" element={<ConfirmPurchase />} />
-                          <Route path="/payment-pending" element={<PaymentPending />} />
-                          <Route path="/legal/politica-de-privacidad" element={<PoliticaDePrivacidad />} />
-                          <Route path="/legal/terminos-y-condiciones" element={<TerminosYCondiciones />} />
-                          <Route path="/legal/tratamiento-de-datos" element={<DataTreatment />} />
-                          <Route path="/legal/politica-de-cookies" element={<PoliticaDeCookies />} />
-                          <Route path="/legal/politica-de-garantias" element={<PoliticaDeGarantias />} />
+                          <Route
+                            path="/confirm-purchase"
+                            element={<ConfirmPurchase />}
+                          />
+                          <Route
+                            path="/payment-pending"
+                            element={<PaymentPending />}
+                          />
+                          <Route
+                            path="/legal/politica-de-privacidad"
+                            element={<PoliticaDePrivacidad />}
+                          />
+                          <Route
+                            path="/legal/terminos-y-condiciones"
+                            element={<TerminosYCondiciones />}
+                          />
+                          <Route
+                            path="/legal/tratamiento-de-datos"
+                            element={<DataTreatment />}
+                          />
+                          <Route
+                            path="/legal/politica-de-cookies"
+                            element={<PoliticaDeCookies />}
+                          />
+                          <Route
+                            path="/legal/politica-de-garantias"
+                            element={<PoliticaDeGarantias />}
+                          />
                           <Route path="/blog" element={<Blog />} />
                           <Route path="/blog/:slug" element={<BlogArticle />} />
-                          <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
+                          <Route
+                            path="/order-confirmed/:orderId"
+                            element={<OrderConfirmed />}
+                          />
                           <Route path="/explorar" element={<Explorar />} />
-                          <Route path="/categoria/:slug" element={<CategoryDetail />} />
-                          <Route path="/artesano/:slug" element={<ArtisanProfile />} />
+                          <Route
+                            path="/categoria/:slug"
+                            element={<CategoryRedirect />}
+                          />
+                          <Route
+                            path="/artesano/:slug"
+                            element={<ArtisanProfile />}
+                          />
                           <Route path="/newsletter" element={<Newsletter />} />
-                          <Route path="/territorios" element={<Territorios />} />
-                          <Route path="/territorio/:slug" element={<Territory />} />
+                          <Route
+                            path="/territorios"
+                            element={<Territorios />}
+                          />
+                          <Route
+                            path="/territorio/:slug"
+                            element={<Territory />}
+                          />
                           <Route path="/tecnicas" element={<Tecnicas />} />
-                          <Route path="/tecnica/:slug" element={<TecnicaDetail />} />
-                          <Route path="/colecciones" element={<Colecciones />} />
-                          <Route path="/coleccion/:slug" element={<ColeccionDetail />} />
+                          <Route
+                            path="/tecnica/:slug"
+                            element={<TecnicaDetail />}
+                          />
+                          <Route
+                            path="/colecciones"
+                            element={<Colecciones />}
+                          />
+                          <Route
+                            path="/coleccion/:slug"
+                            element={<ColeccionDetail />}
+                          />
                           <Route path="/historias" element={<Historias />} />
-                          <Route path="/historia/:slug" element={<HistoriaDetail />} />
-                          <Route path="/sobre-cocrea" element={<SobreTelar />} />
-                          <Route path="/sobre-telar" element={<Navigate to="/sobre-cocrea" replace />} />
+                          <Route
+                            path="/historia/:slug"
+                            element={<HistoriaDetail />}
+                          />
+                          <Route
+                            path="/sobre-cocrea"
+                            element={<SobreTelar />}
+                          />
+                          <Route
+                            path="/sobre-telar"
+                            element={<Navigate to="/sobre-cocrea" replace />}
+                          />
                           <Route path="/ayuda" element={<Ayuda />} />
                           <Route path="/ayuda/faqs" element={<FAQs />} />
-                          <Route path="/ayuda/como-comprar" element={<ComoComprar />} />
+                          <Route
+                            path="/ayuda/como-comprar"
+                            element={<ComoComprar />}
+                          />
                           <Route path="/ayuda/envios" element={<Envios />} />
-                          <Route path="/ayuda/devoluciones" element={<Devoluciones />} />
-                          <Route path="/ayuda/contacto" element={<Contacto />} />
+                          <Route
+                            path="/ayuda/devoluciones"
+                            element={<Devoluciones />}
+                          />
+                          <Route
+                            path="/ayuda/contacto"
+                            element={<Contacto />}
+                          />
                         </Route>
 
                         {/* Rutas SIN Layout (sin Navbar) */}
                         <Route path="/auth" element={<Auth />} />
-                        <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
-                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route
+                          path="/auth/google/callback"
+                          element={<GoogleAuthCallback />}
+                        />
+                        <Route
+                          path="/reset-password"
+                          element={<ResetPassword />}
+                        />
                         {/* <Route path="/recategorize" element={<RecategorizeProducts />} />
                         <Route path="/create-view" element={<CreateMarketplaceView />} /> */}
 

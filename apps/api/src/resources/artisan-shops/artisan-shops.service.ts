@@ -459,7 +459,7 @@ export class ArtisanShopsService {
       WHERE s.active = $1
         AND s.publish_status = $2
         AND s.marketplace_approved = $3
-        AND (ap.agreement_id = $5)
+        AND ($5::uuid IS NULL OR ap.agreement_id = $5)
         AND EXISTS (
           SELECT 1 FROM shop.products p
           WHERE p.shop_id = s.id

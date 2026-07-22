@@ -53,7 +53,7 @@ const Index = () => {
   useEffect(() => {
     getProductsNew({ page: 1, limit: 50 })
       .then((res) => {
-        const data = Array.isArray(res) ? res : res.data ?? [];
+        const data = Array.isArray(res) ? res : (res.data ?? []);
         setProducts(data as ProductFeatured[]);
       })
       .catch(() => setProducts([]))
@@ -127,8 +127,8 @@ const Index = () => {
       <div className="min-h-screen bg-editorial-bg text-charcoal font-sans selection:bg-primary/40 selection:text-white">
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
-          <HeroSectionV2 />
-      
+        <HeroSectionV2 />
+
         {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
         {/* {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />} */}
 
@@ -141,8 +141,8 @@ const Index = () => {
               </span>
               {displayCategories.map((cat) => (
                 <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
-                  <Link to={`/categoria/${cat.slug}`}>
-                    <div className="aspect-[16/10] bg-muted mb-4 rounded-sm border border-foreground/10 overflow-hidden relative">
+                  <Link to={`/productos?categoria=${cat.slug}`}>
+                    <div className="aspect-[16/10] bg-[#e5e1d8] mb-4 overflow-hidden relative">
                       {cat.imageUrl ? (
                         <img
                           src={cat.imageUrl}
@@ -155,8 +155,8 @@ const Index = () => {
                     </div>
                   </Link>
                   <Link
-                    to={`/categoria/${cat.slug}`}
-                    className="text-xl font-serif hover:italic hover:text-primary transition-all"
+                    to={`/productos?categoria=${cat.slug}`}
+                    className="text-xl font-serif hover:italic hover:text-[#ec6d13] transition-all"
                   >
                     {cat.name}
                   </Link>
@@ -261,9 +261,9 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-16">
               <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
                 <p className="text-2xl font-serif italic opacity-95">
-                  Cocrea conecta a compradores con las Escuelas Taller, artesanas
-                  y artesanos de todo el país. Cada pieza tiene origen, autor y
-                  proceso documentado.
+                  Cocrea conecta a compradores con las Escuelas Taller,
+                  artesanas y artesanos de todo el país. Cada pieza tiene
+                  origen, autor y proceso documentado.
                 </p>
                 <Link
                   to="/sobre-cocrea"

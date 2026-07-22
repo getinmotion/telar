@@ -860,7 +860,7 @@ export const ShopDashboard: React.FC = () => {
                 {/* Hero Slider Card */}
                 <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => navigate("/dashboard/shop-hero-wizard")}
+                  onClick={() => navigate("/mi-tienda/configurar/hero")}
                 >
                   <div className="flex items-center gap-3">
                     <div className="neumorphic-inset p-2 rounded-xl flex-shrink-0">
@@ -924,7 +924,7 @@ export const ShopDashboard: React.FC = () => {
                 {/* Contacto Card */}
                 <Card
                   className="p-3 hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => navigate("/dashboard/shop-contact-wizard")}
+                  onClick={() => navigate("/mi-tienda/configurar/contact")}
                 >
                   <div className="flex items-center gap-3">
                     <div className="neumorphic-inset p-2 rounded-xl flex-shrink-0">
