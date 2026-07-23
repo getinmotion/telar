@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "lan": "node scripts/set-lan-ip.mjs",
     "dev": "vite",
+    "dev:lan": "node scripts/set-lan-ip.mjs && vite --host",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
