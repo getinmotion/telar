@@ -1253,64 +1253,21 @@ export const ConfirmPurchase: React.FC = () => {
                         </CardHeader>
                         <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="shipping-service">
-                              Servicio de envío
-                            </Label>
+                            <Label htmlFor="shipping-service">Servicio de envío</Label>
                             <Select
                               value={selectedShippingService}
                               onValueChange={setSelectedShippingService}
                               disabled={!shippingInfo.daneCiudad}
                             >
-                              <SelectTrigger
-                                id="shipping-service"
-                                className="h-11"
-                              >
-                                <SelectValue
-                                  placeholder={
-                                    shippingInfo.daneCiudad
-                                      ? "Selecciona un servicio"
-                                      : "Completa la dirección primero"
-                                  }
-                                />
+                              <SelectTrigger id="shipping-service" className="h-11">
+                                <SelectValue placeholder={shippingInfo.daneCiudad ? "Selecciona un servicio" : "Completa la dirección primero"} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="servientrega">
-                                  Servientrega
-                                </SelectItem>
+                                <SelectItem value="servientrega">Servientrega</SelectItem>
+                                <SelectItem value="recoger">Recoger en local</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Shipping Service Selection */}
-                <Card>
-                  <CardHeader className="p-4 md:p-6">
-                    <h2 className="text-base md:text-lg font-medium flex items-center gap-2">
-                      <Truck className="h-5 w-5" />
-                      Seleccionar servicio de envío
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="shipping-service">Servicio de envío</Label>
-                      <Select 
-                        value={selectedShippingService} 
-                        onValueChange={setSelectedShippingService}
-                        disabled={!shippingInfo.daneCiudad}
-                      >
-                        <SelectTrigger id="shipping-service" className="h-11">
-                          <SelectValue placeholder={shippingInfo.daneCiudad ? "Selecciona un servicio" : "Completa la dirección primero"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="servientrega">Servientrega</SelectItem>
-                          <SelectItem value="recoger">Recoger en local</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
 
                           {/* Quote result info */}
                           {loadingShipping && (
