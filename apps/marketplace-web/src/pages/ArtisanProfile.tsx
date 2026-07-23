@@ -785,7 +785,11 @@ const ArtisanProfile = () => {
                           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
                             stock === 0 ? "grayscale" : ""
                           }`}
-                          onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+                          onError={(e) =>
+                            ((
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none")
+                          }
                         />
                       )}
                       {stock === 0 && (
@@ -795,7 +799,11 @@ const ArtisanProfile = () => {
                       )}
                       <button
                         type="button"
-                        aria-label={wished ? "Quitar de favoritos" : "Guardar en favoritos"}
+                        aria-label={
+                          wished
+                            ? "Quitar de favoritos"
+                            : "Guardar en favoritos"
+                        }
                         className={`absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center transition-all ${
                           wished
                             ? "opacity-100 scale-100 text-[#BC3F1C]"

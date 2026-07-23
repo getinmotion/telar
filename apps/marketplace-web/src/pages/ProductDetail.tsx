@@ -101,7 +101,11 @@ const ProductDetail = () => {
         const realStock = productData?.stock || productData.inventory || 0;
         const storeReadyToPurchase = productData.canPurchase ?? false;
         const realCanPurchase = storeReadyToPurchase && realStock > 0;
-        setProduct({ ...productData, stock: realStock, canPurchase: realCanPurchase });
+        setProduct({
+          ...productData,
+          stock: realStock,
+          canPurchase: realCanPurchase,
+        });
         if (productData.shopId) fetchShopInfo(productData.shopId);
       }
     } catch {
@@ -872,10 +876,17 @@ const ProductDetail = () => {
           const aboutStory = shop?.aboutContent?.story?.trim();
           const directStory = shop?.story?.trim();
           const description = shop?.description?.trim();
-          const identityStory = aboutStory || directStory || description || null;
-          const claim = shop?.brandClaim?.trim() || shop?.aboutContent?.title?.trim() || null;
+          const identityStory =
+            aboutStory || directStory || description || null;
+          const claim =
+            shop?.brandClaim?.trim() ||
+            shop?.aboutContent?.title?.trim() ||
+            null;
           // Si no hay tienda real ni copy alguno, no renderizamos la sección.
-          if (!product.storeName || (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)) {
+          if (
+            !product.storeName ||
+            (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)
+          ) {
             return null;
           }
           return (

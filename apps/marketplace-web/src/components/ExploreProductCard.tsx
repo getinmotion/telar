@@ -8,6 +8,9 @@ import {
   getCraftName,
   getTechniqueName,
   getProductStock,
+  getMaterialNames,
+  type AnyProduct,
+  type ProductFeatured,
   type ProductNewCore,
 } from "@/services/products-new.actions";
 
@@ -21,22 +24,31 @@ export function ExploreProductCard({
   product,
   className = "",
 }: {
-  product: ProductNewCore;
+  product: AnyProduct;
   className?: string;
 }) {
-  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
+  const {
+    isInWishlist,
+    toggleWishlist,
+    loading: wishlistLoading,
+  } = useWishlist();
   const isFavorite = isInWishlist(product.id);
   const imageUrl = getPrimaryImageUrl(product);
   const price = getProductPrice(product);
   const craft = getCraftName(product);
   const technique = getTechniqueName(product);
   const stock = getProductStock(product);
-  const shopName = product.artisanShop?.shopName;
-  const shopSlug = product.artisanShop?.shopSlug;
-  const department = product.artisanShop?.department;
-  const materialNames = (product.materials ?? [])
-    .map((m) => m.material?.name)
-    .filter(Boolean);
+  const isFeatured = "storeName" in product;
+  const shopName = isFeatured
+    ? (product as ProductFeatured).storeName
+    : (product as ProductNewCore).artisanShop?.shopName;
+  const shopSlug = isFeatured
+    ? (product as ProductFeatured).storeSlug
+    : (product as ProductNewCore).artisanShop?.shopSlug;
+  const department = isFeatured
+    ? (product as ProductFeatured).department
+    : (product as ProductNewCore).artisanShop?.department;
+  const materialNames = getMaterialNames(product);
   const primaryMaterial = materialNames[0];
 
   const isNew =
@@ -94,7 +106,9 @@ export function ExploreProductCard({
             }}
             disabled={wishlistLoading}
           >
-            <Heart className={`w-5 h-5 transition-colors ${isFavorite ? "fill-primary" : ""}`} />
+            <Heart
+              className={`w-5 h-5 transition-colors ${isFavorite ? "fill-primary" : ""}`}
+            />
           </button>
         </div>
 
@@ -102,11 +116,11 @@ export function ExploreProductCard({
         <div className="space-y-4">
           {/* L1: Identity */}
           <div className="space-y-1">
-            <h3 className="text-xl md:text-2xl font-serif tracking-tight leading-tight group-hover:text-primary transition-colors">
+            <h3 className="text-lg sm:text-2xl font-serif leading-tight group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            {shopName && (
-              shopSlug ? (
+            {shopName &&
+              (shopSlug ? (
                 <Link
                   to={`/artesano/${shopSlug}`}
                   className="text-[9px] font-bold uppercase tracking-[0.3em] text-charcoal/40 italic font-sans hover:text-primary transition-colors"
@@ -118,8 +132,7 @@ export function ExploreProductCard({
                 <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-charcoal/40 italic font-sans">
                   {shopName}
                 </p>
-              )
-            )}
+              ))}
             {(technique || craft || department) && (
               <div className="flex gap-1.5 items-center">
                 {(technique || craft) && (

@@ -8,24 +8,33 @@
 // ============= ENUMS =============
 
 export type ProductStatus =
-  | 'draft'
-  | 'pending_moderation'
-  | 'changes_requested'
-  | 'approved'
-  | 'approved_with_edits'
-  | 'rejected';
+  | "draft"
+  | "pending_moderation"
+  | "changes_requested"
+  | "approved"
+  | "approved_with_edits"
+  | "rejected";
 
-export type PieceType = 'funcional' | 'decorativa' | 'mixta';
+export type PieceType =
+  | "funcional"
+  | "decorativa"
+  | "mixta"
+  | "ritual"
+  | "coleccionable";
 
-export type StyleType = 'tradicional' | 'contemporaneo' | 'fusion';
+export type StyleType = "tradicional" | "contemporaneo" | "fusion";
 
-export type ProcessType = 'manual' | 'mixto' | 'asistido';
+export type ProcessType = "manual" | "mixto" | "asistido";
 
-export type AvailabilityType = 'en_stock' | 'bajo_pedido' | 'edicion_limitada';
+export type AvailabilityType =
+  | "en_stock"
+  | "bajo_pedido"
+  | "edicion_limitada"
+  | "pieza_unica";
 
-export type FragilityLevel = 'bajo' | 'medio' | 'alto';
+export type FragilityLevel = "bajo" | "medio" | "alto";
 
-export type MediaType = 'image' | 'video';
+export type MediaType = "image" | "video";
 
 // ============= DTO INTERFACES =============
 
@@ -38,11 +47,13 @@ export interface CreateProductsNewDto {
   productId?: string;
   storeId: string;
   categoryId?: string;
+  subcategoryId?: string;
   legacyProductId?: string;
   name: string;
   shortDescription: string;
   history?: string;
   careNotes?: string;
+  usageSuggestions?: string;
   status?: ProductStatus;
 
   // Capas relacionadas (OneToOne)
@@ -59,8 +70,8 @@ export interface CreateProductsNewDto {
 
   // Metadata de contenido (opcional, para analytics)
   contentMetadata?: {
-    shortDescriptionSource?: 'ia_accepted' | 'manual' | 'ia_modified';
-    historySource?: 'ia_accepted' | 'manual' | 'ia_modified';
+    shortDescriptionSource?: "ia_accepted" | "manual" | "ia_modified";
+    historySource?: "ia_accepted" | "manual" | "ia_modified";
   };
 }
 
@@ -75,7 +86,10 @@ export interface CreateProductArtisanalIdentityDto {
   curatorialCategoryId?: string;
   pieceType?: PieceType;
   style?: StyleType;
+  /** Estilos múltiples; `style` conserva el primero por compatibilidad */
+  styles?: StyleType[];
   isCollaboration?: boolean;
+  collaborationName?: string;
   processType?: ProcessType;
   estimatedElaborationTime?: string;
 }
@@ -115,6 +129,9 @@ export interface CreateProductProductionDto {
   productionTimeDays?: number;
   monthlyCapacity?: number;
   requirementsToStart?: string;
+  processDescription?: string;
+  processEvidenceUrls?: string[];
+  tools?: string[];
 }
 
 /**
@@ -154,7 +171,12 @@ export interface CreateProductMaterialLinkDto {
  * SKUs, precios, y stocks del producto
  */
 export interface CreateProductVariantDto {
+  id?: string; // variante existente → upsert (conserva id y SKU)
   sku?: string;
+  variantName?: string; // ej. "Talla M · Rojo"
+  optionValues?: Record<string, string>; // ej. {"talla":"M","color":"Rojo"}
+  minStock?: number;
+  imageUrl?: string; // foto propia de la variante (opcional)
   stockQuantity: number;
   basePriceMinor: string; // BIGINT como string (en centavos)
   currency?: string;
@@ -179,10 +201,12 @@ export interface ProductResponse {
   id: string;
   storeId: string;
   categoryId?: string;
+  subcategoryId?: string;
   name: string;
   shortDescription: string;
   history?: string;
   careNotes?: string;
+  usageSuggestions?: string;
   status: string;
   legacyProductId?: string;
   createdAt: string;
@@ -208,7 +232,9 @@ export interface ProductArtisanalIdentityResponse {
   curatorialCategoryId?: string;
   pieceType?: string;
   style?: string;
+  styles?: string[];
   isCollaboration: boolean;
+  collaborationName?: string;
   processType?: string;
   estimatedElaborationTime?: string;
 }
@@ -239,6 +265,9 @@ export interface ProductProductionResponse {
   productionTimeDays?: number;
   monthlyCapacity?: number;
   requirementsToStart?: string;
+  processDescription?: string;
+  processEvidenceUrls?: string[];
+  tools?: string[];
 }
 
 export interface ProductMediaResponse {
@@ -273,6 +302,10 @@ export interface ProductVariantResponse {
   id: string;
   productId: string;
   sku?: string;
+  variantName?: string | null;
+  optionValues?: Record<string, string>;
+  minStock?: number;
+  imageUrl?: string | null;
   stockQuantity: number;
   basePriceMinor: string;
   currency: string;

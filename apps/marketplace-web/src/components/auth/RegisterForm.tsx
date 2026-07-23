@@ -39,8 +39,6 @@ export function RegisterForm({ onToggleForm }: RegisterFormProps) {
     whatsapp: "", // Número sin código de país
     department: "",
     city: "",
-    hasRUT: false,
-    rut: "",
     acceptTerms: false,
     newsletterOptIn: false,
   });
@@ -106,12 +104,6 @@ export function RegisterForm({ onToggleForm }: RegisterFormProps) {
       return false;
     }
 
-    // RUT si hasRUT está marcado
-    if (signupData.hasRUT && !signupData.rut?.trim()) {
-      toast.error("Por favor ingresa tu número de RUT");
-      return false;
-    }
-
     // Términos aceptados
     if (!signupData.acceptTerms) {
       toast.error("Debes aceptar los términos y condiciones");
@@ -142,8 +134,7 @@ export function RegisterForm({ onToggleForm }: RegisterFormProps) {
         whatsapp: signupData.countryCode + signupData.whatsapp, // ⚠️ Concatenar código de país
         department: signupData.department,
         city: signupData.city,
-        hasRUT: signupData.hasRUT,
-        rut: signupData.hasRUT ? signupData.rut.trim() : undefined, // ⚠️ Solo enviar si hasRUT
+        hasRUT: false,
         acceptTerms: signupData.acceptTerms,
         newsletterOptIn: signupData.newsletterOptIn,
       };
@@ -336,36 +327,6 @@ export function RegisterForm({ onToggleForm }: RegisterFormProps) {
             )}
           </button>
         </div>
-      </div>
-
-      {/* RUT (opcional) */}
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="hasRUT"
-            checked={signupData.hasRUT}
-            onCheckedChange={(checked) =>
-              setSignupData({ ...signupData, hasRUT: checked as boolean, rut: "" })
-            }
-          />
-          <Label htmlFor="hasRUT" className="font-normal">
-            Tengo RUT
-          </Label>
-        </div>
-
-        {signupData.hasRUT && (
-          <div className="space-y-2">
-            <Label htmlFor="signup-rut">Número de RUT</Label>
-            <Input
-              id="signup-rut"
-              type="text"
-              placeholder="123456789-0"
-              value={signupData.rut}
-              onChange={(e) => setSignupData({ ...signupData, rut: e.target.value })}
-              className="h-10"
-            />
-          </div>
-        )}
       </div>
 
       {/* Términos y condiciones */}

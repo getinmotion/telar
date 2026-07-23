@@ -50,8 +50,9 @@ export const getArtisanShops = async (
   filters?: ArtisanShopsFilters
 ): Promise<ArtisanShopsResponse> => {
   try {
+    const agreementId = filters?.agreementId ?? import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get<ArtisanShopsResponse>('/artisan-shops', {
-      params: filters,
+      params: { ...filters, agreementId },
     });
     return response.data;
   } catch (error: any) {
@@ -81,8 +82,9 @@ export const getArtisanShops = async (
  */
 export const getFeaturedShops = async (limit: number = 8): Promise<ArtisanShop[]> => {
   try {
+    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get<ArtisanShop[]>('/artisan-shops/featured', {
-      params: { limit },
+      params: { agreementId, limit },
     });
     return response.data;
   } catch (error: any) {

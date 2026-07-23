@@ -13,7 +13,7 @@ import {
   getPrimaryImageUrl,
   getProductPrice,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
 import { formatCurrency } from "@/lib/currencyUtils";
@@ -154,8 +154,8 @@ export default function Territory() {
   const { slug } = useParams<{ slug: string }>();
   const { techniques: allTechniques } = useTaxonomy();
   const [shops, setShops] = useState<ArtisanShop[]>([]);
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
-  const [featuredProduct, setFeaturedProduct] = useState<ProductNewCore | null>(null);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
+  const [featuredProduct, setFeaturedProduct] = useState<ProductFeatured | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Prefer CMS data (Mongo) — fall back to the baked-in TERRITORY_DATA so the
@@ -228,7 +228,7 @@ export default function Territory() {
 
         const shopIds = new Set(filteredShops.map((s) => s.id));
         const filteredProducts = productsRes.data.filter((p) =>
-          shopIds.has(p.storeId)
+          shopIds.has(p.shopId)
         );
         setProducts(filteredProducts);
       } catch {
@@ -246,14 +246,11 @@ export default function Territory() {
 
   // Extract unique techniques
   const territoryTechniques = useMemo(() => {
-    const techMap = new Map<string, string>();
+    const techSet = new Set<string>();
     products.forEach((p) => {
-      const t = p.artisanalIdentity?.primaryTechnique;
-      if (t) techMap.set(t.id, t.name);
-      const t2 = p.artisanalIdentity?.secondaryTechnique;
-      if (t2) techMap.set(t2.id, t2.name);
+      if (p.primaryTechnique) techSet.add(p.primaryTechnique);
     });
-    return Array.from(techMap.entries()).map(([id, name]) => ({ id, name }));
+    return Array.from(techSet).map((name) => ({ id: name, name }));
   }, [products]);
 
   // Related territories (exclude current)
@@ -330,9 +327,9 @@ export default function Territory() {
                     </p>
                     <p className="font-serif italic text-2xl md:text-3xl leading-tight">
                       {featuredProduct!.name}
-                      {featuredProduct!.artisanShop?.shopName && (
+                      {featuredProduct!.storeName && (
                         <span className="block text-sm md:text-base not-italic font-sans font-normal opacity-70 mt-2 tracking-wide">
-                          Taller {featuredProduct!.artisanShop.shopName}
+                          Taller {featuredProduct!.storeName}
                         </span>
                       )}
                     </p>

@@ -1,6 +1,19 @@
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string | undefined;
+const rawBackendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined;
+
+// Si la app se sirvió desde un host que NO es localhost (p.ej. un iPad accede
+// por la IP de LAN) pero VITE_BACKEND_URL apunta a localhost/127.0.0.1,
+// reemplazar el host por el de la página para que la request sí llegue al API.
+const BACKEND_URL = (() => {
+  if (!rawBackendUrl || typeof window === 'undefined') return rawBackendUrl;
+  const pageHost = window.location.hostname;
+  const isLocalBackend = /\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(rawBackendUrl);
+  const pageIsRemote = pageHost !== 'localhost' && pageHost !== '127.0.0.1';
+  return isLocalBackend && pageIsRemote
+    ? rawBackendUrl.replace(/\/\/(localhost|127\.0\.0\.1)/, `//${pageHost}`)
+    : rawBackendUrl;
+})();
 
 if (!BACKEND_URL) {
   // Sin baseURL, axios manda las requests al mismo host del SPA → Vite responde

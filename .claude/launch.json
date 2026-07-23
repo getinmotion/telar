@@ -4,7 +4,12 @@
     {
       "name": "marketplace",
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "8080"],
+      "runtimeArgs": [
+        "node_modules/vite/bin/vite.js",
+        "--port",
+        "8080",
+        "--host"
+      ],
       "port": 8080,
       "autoPort": true,
       "cwd": "apps/marketplace-web"
@@ -12,7 +17,13 @@
     {
       "name": "storybook-artisans",
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": ["node_modules/storybook/bin/index.cjs", "dev", "-p", "6006", "--no-open"],
+      "runtimeArgs": [
+        "node_modules/storybook/bin/index.cjs",
+        "dev",
+        "-p",
+        "6006",
+        "--no-open"
+      ],
       "port": 6006,
       "autoPort": true,
       "cwd": "apps/artisans-web"
@@ -20,7 +31,12 @@
     {
       "name": "artisans-web",
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "8081"],
+      "runtimeArgs": [
+        "node_modules/vite/bin/vite.js",
+        "--port",
+        "8081",
+        "--host"
+      ],
       "port": 8081,
       "autoPort": true,
       "cwd": "apps/artisans-web"

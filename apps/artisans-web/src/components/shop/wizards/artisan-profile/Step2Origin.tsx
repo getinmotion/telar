@@ -5,7 +5,6 @@ import {
   ETHNIC_RELATION_OPTIONS,
 } from "@/types/artisanProfile";
 import { SpeechTextarea } from "@/components/ui/speech-textarea";
-import { VideoInput } from "./Step1Identity";
 
 interface Props {
   data: ArtisanProfileData;
@@ -112,22 +111,6 @@ export const Step2Origin: React.FC<Props> = ({ data, onChange }) => {
             />
           </div>
 
-          <div>
-            <label className={labelClass}>
-              Video de presentación
-              <span className="ml-2 text-[#54433e]/30 normal-case tracking-normal font-[500] text-[11px]">
-                — Opcional
-              </span>
-            </label>
-            <VideoInput
-              value={data.artisanVideo || ""}
-              onChange={(url) => onChange({ artisanVideo: url })}
-            />
-            <p className="font-['Manrope'] text-[11px] text-[#54433e]/35 mt-2 italic">
-              Un video corto aumenta significativamente la conexión con
-              compradores.
-            </p>
-          </div>
         </div>
       </section>
 

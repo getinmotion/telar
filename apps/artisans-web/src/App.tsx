@@ -115,17 +115,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { MasterAgentProvider } from "@/context/MasterAgentContext";
 import { DesignSystemProvider } from "@/contexts/DesignSystemContext";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
-import { useTaskAutoCompletion } from "@/hooks/useTaskAutoCompletion";
-
-// Global task auto-completion listener
-const TaskAutoCompletionWrapper = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  useTaskAutoCompletion();
-  return <>{children}</>;
-};
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardHome from "./pages/DashboardHome";
 import AgentDetails from "./pages/AgentDetails";
@@ -168,9 +157,6 @@ import { ProductEditPage } from "./pages/ProductEditPage";
 import { LatestShopRedirect } from "./components/shop/LatestShopRedirect";
 import InventoryPage from "./pages/InventoryPage";
 import { StockWizard } from "./pages/StockWizard";
-import HeroSliderWizardPage from "./pages/HeroSliderWizardPage";
-import ContactWizardPage from "./pages/ContactWizardPage";
-import SocialLinksWizardPage from "./pages/SocialLinksWizardPage";
 import ArtisanProfileWizardPage from "./pages/ArtisanProfileWizardPage";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import PublicArtisanProfile from "./pages/PublicArtisanProfile";
@@ -398,61 +384,43 @@ function App() {
                             path="/mi-tienda"
                             element={<Navigate to="/dashboard" replace />}
                           />
-                          <Route
-                            path="/stock-wizard"
-                            element={
-                              <ProtectedRoute>
-                                <StockWizard />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Brand Wizard Route — deprecated, redirects to store config */}
+                          {/* Brand wizard legado — redirige al config-wizard de marca */}
                           <Route
                             path="/dashboard/brand-wizard"
                             element={
-                              <Navigate to="/mi-tienda/configurar" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
-                          {/* Redirect old diagnosis results page to unified wizard */}
                           <Route
                             path="/brand-diagnosis-results"
                             element={
-                              <Navigate to="/dashboard/brand-wizard" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
                           <Route
                             path="/brand-wizard"
                             element={
-                              <Navigate to="/dashboard/brand-wizard" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
 
-                          {/* Shop Configuration Wizards */}
+                          {/* Wizards de configuración legados — reemplazados por /mi-tienda/configurar/* */}
                           <Route
                             path="/dashboard/shop-hero-wizard"
                             element={
-                              <ProtectedRoute>
-                                <HeroSliderWizardPage />
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/hero" replace />
                             }
                           />
                           <Route
                             path="/dashboard/shop-contact-wizard"
                             element={
-                              <ProtectedRoute>
-                                <ContactWizardPage />
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/contact" replace />
                             }
                           />
                           <Route
                             path="/dashboard/social-links-wizard"
                             element={
-                              <ProtectedRoute>
-                                <TaskAutoCompletionWrapper>
-                                  <SocialLinksWizardPage />
-                                </TaskAutoCompletionWrapper>
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/contact" replace />
                             }
                           />
                           <Route
@@ -516,6 +484,10 @@ function App() {
                             <Route
                               path="/dashboard/artisan-profile-wizard"
                               element={<ArtisanProfileWizardPage />}
+                            />
+                            <Route
+                              path="/stock-wizard"
+                              element={<StockWizard />}
                             />
                             <Route
                               path="/mi-tienda/configurar"

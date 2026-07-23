@@ -55,7 +55,8 @@ function getProductBadge(product: ProductNewCore): {
 function getLogisticsLabel(product: ProductNewCore): string | null {
   const stock = getProductStock(product);
   if (stock === 0) return "Bajo pedido";
-  if (stock > 0 && stock <= 5) return `${stock} disponible${stock > 1 ? "s" : ""}`;
+  if (stock > 0 && stock <= 5)
+    return `${stock} disponible${stock > 1 ? "s" : ""}`;
   return null;
 }
 

@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { useCategoryPresence } from "@/hooks/useCategoryPresence";
 import { useSearch } from "@/contexts/SearchContext";
 import { semanticSearch } from "@/lib/semanticSearchClient";
 import {
   getProductsNew,
   getProductPrice,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { Footer } from "@/components/Footer";
@@ -18,7 +19,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  LayoutList,
+  Grid2x2,
 } from "lucide-react";
+
+type MobileColumns = 1 | 2;
+const MOBILE_COLUMNS_KEY = "explore_mobile_columns";
+
+function getInitialMobileColumns(): MobileColumns {
+  if (typeof window === "undefined") return 2;
+  return window.localStorage.getItem(MOBILE_COLUMNS_KEY) === "1" ? 1 : 2;
+}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -29,10 +40,9 @@ const PAGE_SIZE = 24;
 interface ExploreFilters {
   categorySlug: string | null;
   subcategorySlug: string | null;
-  techniqueId: string | null;
-  materialId: string | null;
-  craftId: string | null;
-  curatorialId: string | null;
+  techniqueName: string | null;
+  materialName: string | null;
+  craftName: string | null;
   priceRange: [number, number];
   sortBy: "newest" | "price_asc" | "price_desc" | "name";
 }
@@ -40,10 +50,9 @@ interface ExploreFilters {
 const INITIAL_FILTERS: ExploreFilters = {
   categorySlug: null,
   subcategorySlug: null,
-  techniqueId: null,
-  materialId: null,
-  craftId: null,
-  curatorialId: null,
+  techniqueName: null,
+  materialName: null,
+  craftName: null,
   priceRange: [0, 0],
   sortBy: "newest",
 };
@@ -57,22 +66,27 @@ const ExploreProducts = () => {
     findCategoryWithChildren,
     loading: taxonomyLoading,
   } = useTaxonomy();
+  const { categoryHasProducts, subcategoryHasProducts } = useCategoryPresence();
 
-  const [allProducts, setAllProducts] = useState<ProductNewCore[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductFeatured[]>([]);
+  const [mobileColumns, setMobileColumns] = useState<MobileColumns>(
+    getInitialMobileColumns,
+  );
   const [loading, setLoading] = useState(true);
   const [totalFromApi, setTotalFromApi] = useState(0);
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const isInitialMount = useRef(true);
   const [isSearching, setIsSearching] = useState(false);
-  const [semanticResults, setSemanticResults] = useState<Array<{ id: string; similarity: number }>>([]);
+  const [semanticResults, setSemanticResults] = useState<
+    Array<{ id: string; similarity: number }>
+  >([]);
 
   // Initialize filters from URL params
   const [filters, setFilters] = useState<ExploreFilters>(() => ({
     ...INITIAL_FILTERS,
     categorySlug: searchParams.get("categoria") || null,
-    sortBy:
-      (searchParams.get("orden") as ExploreFilters["sortBy"]) || "newest",
+    sortBy: (searchParams.get("orden") as ExploreFilters["sortBy"]) || "newest",
   }));
 
   // Sync searchQuery from URL on mount and when URL changes
@@ -103,19 +117,19 @@ const ExploreProducts = () => {
           min_similarity: 0.3,
         });
 
-        console.log('[ExploreProducts] Semantic search results:', response);
+        console.log("[ExploreProducts] Semantic search results:", response);
 
         // Guardar IDs con scores, ya ordenados por relevancia
         const results = response.results
-          .filter(result => result.product_id)
-          .map(result => ({
+          .filter((result) => result.product_id)
+          .map((result) => ({
             id: result.product_id,
-            similarity: result.similarity
+            similarity: result.similarity,
           }));
 
         setSemanticResults(results);
       } catch (error) {
-        console.error('[ExploreProducts] Semantic search error:', error);
+        console.error("[ExploreProducts] Semantic search error:", error);
         setSemanticResults([]);
       } finally {
         setIsSearching(false);
@@ -137,6 +151,23 @@ const ExploreProducts = () => {
         ? findCategoryWithChildren(filters.categorySlug)
         : null,
     [filters.categorySlug, findCategoryWithChildren],
+  );
+
+  // Show the category photo in the header only when a category is active
+  // (not while searching) and it actually has an image.
+  const hasHeaderImage =
+    !(searchQuery && searchQuery.trim().length > 0) &&
+    !!activeCategory?.imageUrl;
+
+  // Subcategories that actually have products (avoid empty filters)
+  const visibleSubcategories = useMemo(
+    () =>
+      activeCategory
+        ? activeCategory.subcategories.filter((s) =>
+            subcategoryHasProducts(s.id),
+          )
+        : [],
+    [activeCategory, subcategoryHasProducts],
   );
 
   // Determine which categoryIds to match (parent + its subcategories)
@@ -164,9 +195,9 @@ const ExploreProducts = () => {
       // Always fetch all products — category filtering is done client-side
       // because the API only supports single categoryId, not parent+children
       const res = await getProductsNew({ page: 1, limit: 500 });
-      let products: ProductNewCore[] = [];
+      let products: ProductFeatured[] = [];
       if (Array.isArray(res)) {
-        products = res as ProductNewCore[];
+        products = res as ProductFeatured[];
       } else {
         products = res.data ?? [];
       }
@@ -199,79 +230,59 @@ const ExploreProducts = () => {
   const productsExcluding = useCallback(
     (exclude: keyof ExploreFilters) => {
       let result = allProducts;
-      if (exclude !== "techniqueId" && filters.techniqueId) {
+      if (exclude !== "techniqueName" && filters.techniqueName) {
         result = result.filter(
-          (p) =>
-            p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+          (p) => p.primaryTechnique === filters.techniqueName,
         );
       }
-      if (exclude !== "craftId" && filters.craftId) {
-        result = result.filter(
-          (p) => p.artisanalIdentity?.primaryCraft?.id === filters.craftId,
-        );
+      if (exclude !== "craftName" && filters.craftName) {
+        result = result.filter((p) => p.craftName === filters.craftName);
       }
-      if (exclude !== "materialId" && filters.materialId) {
+      if (exclude !== "materialName" && filters.materialName) {
         result = result.filter((p) =>
-          (p.materials ?? []).some(
-            (m) => m.material?.id === filters.materialId,
-          ),
-        );
-      }
-      if (exclude !== "curatorialId" && filters.curatorialId) {
-        result = result.filter(
-          (p) =>
-            p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
+          (p.materials ?? []).includes(filters.materialName!),
         );
       }
       return result;
     },
-    [allProducts, filters.techniqueId, filters.craftId, filters.materialId, filters.curatorialId],
+    [
+      allProducts,
+      filters.techniqueName,
+      filters.craftName,
+      filters.materialName,
+    ],
   );
 
   const availableTechniques = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("techniqueId").forEach((p) => {
-      const t = p.artisanalIdentity?.primaryTechnique;
-      if (t?.id && t.name) map.set(t.id, t.name);
+    const names = new Set<string>();
+    productsExcluding("techniqueName").forEach((p) => {
+      if (p.primaryTechnique) names.add(p.primaryTechnique);
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   const availableCrafts = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("craftId").forEach((p) => {
-      const c = p.artisanalIdentity?.primaryCraft;
-      if (c?.id && c.name) map.set(c.id, c.name);
+    const names = new Set<string>();
+    productsExcluding("craftName").forEach((p) => {
+      if (p.craftName) names.add(p.craftName);
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   const availableMaterials = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("materialId").forEach((p) => {
-      (p.materials ?? []).forEach((ml) => {
-        if (ml.material?.id && ml.material.name)
-          map.set(ml.material.id, ml.material.name);
+    const names = new Set<string>();
+    productsExcluding("materialName").forEach((p) => {
+      (p.materials ?? []).forEach((m) => {
+        if (m) names.add(m);
       });
     });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [productsExcluding]);
-
-  const availableCuratorial = useMemo(() => {
-    const map = new Map<string, string>();
-    productsExcluding("curatorialId").forEach((p) => {
-      const cc = p.artisanalIdentity?.curatorialCategory;
-      if (cc?.id && cc.name) map.set(cc.id, cc.name);
-    });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(names)
+      .map((name) => ({ id: name, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [productsExcluding]);
 
   // ── Dynamic price range from loaded products ──
@@ -315,26 +326,34 @@ const ExploreProducts = () => {
     let result = [...allProducts];
 
     // Semantic search filter (takes priority over local text search)
-    if (searchQuery && searchQuery.trim().length >= 3 && semanticResults.length > 0) {
+    if (
+      searchQuery &&
+      searchQuery.trim().length >= 3 &&
+      semanticResults.length > 0
+    ) {
       // Crear map de productos por ID para búsqueda rápida
-      const productMap = new Map(allProducts.map(p => [p.id, p]));
+      const productMap = new Map(allProducts.map((p) => [p.id, p]));
 
       // Mapear resultados semánticos a productos, MANTENIENDO EL ORDEN de relevancia
       result = semanticResults
-        .map(sr => productMap.get(sr.id))
-        .filter((p): p is ProductNewCore => p !== undefined);
+        .map((sr) => productMap.get(sr.id))
+        .filter((p): p is ProductFeatured => p !== undefined);
 
-      console.log('[ExploreProducts] Usando orden de búsqueda semántica:', result.length, 'productos');
+      console.log(
+        "[ExploreProducts] Usando orden de búsqueda semántica:",
+        result.length,
+        "productos",
+      );
     } else if (searchQuery && searchQuery.trim().length > 0) {
       // Fallback: búsqueda local si no hay resultados semánticos
       const query = searchQuery.toLowerCase();
       result = result.filter((p) => {
         const productName = p.name?.toLowerCase() || "";
-        const shopName = p.artisanShop?.shopName?.toLowerCase() || "";
-        const technique = p.artisanalIdentity?.primaryTechnique?.name?.toLowerCase() || "";
-        const craft = p.artisanalIdentity?.primaryCraft?.name?.toLowerCase() || "";
-        const description = p.description?.toLowerCase() || "";
-        const department = p.artisanShop?.department?.toLowerCase() || "";
+        const shopName = p.storeName?.toLowerCase() || "";
+        const technique = p.primaryTechnique?.toLowerCase() || "";
+        const craft = p.craftName?.toLowerCase() || "";
+        const description = p.shortDescription?.toLowerCase() || "";
+        const department = p.department?.toLowerCase() || "";
 
         return (
           productName.includes(query) ||
@@ -347,42 +366,30 @@ const ExploreProducts = () => {
       });
     }
 
-    if (filters.techniqueId) {
+    if (filters.techniqueName) {
       result = result.filter(
-        (p) =>
-          p.artisanalIdentity?.primaryTechnique?.id === filters.techniqueId,
+        (p) => p.primaryTechnique === filters.techniqueName,
       );
     }
-    if (filters.materialId) {
+    if (filters.materialName) {
       result = result.filter((p) =>
-        (p.materials ?? []).some(
-          (m) => m.material?.id === filters.materialId,
-        ),
+        (p.materials ?? []).includes(filters.materialName!),
       );
     }
-    if (filters.craftId) {
-      result = result.filter(
-        (p) => p.artisanalIdentity?.primaryCraft?.id === filters.craftId,
-      );
-    }
-    if (filters.curatorialId) {
-      result = result.filter(
-        (p) =>
-          p.artisanalIdentity?.curatorialCategory?.id === filters.curatorialId,
-      );
+    if (filters.craftName) {
+      result = result.filter((p) => p.craftName === filters.craftName);
     }
     // Price filter
     if (filters.priceRange[1] > 0) {
       result = result.filter((p) => {
         const price = getProductPrice(p) ?? 0;
-        return (
-          price >= filters.priceRange[0] && price <= filters.priceRange[1]
-        );
+        return price >= filters.priceRange[0] && price <= filters.priceRange[1];
       });
     }
 
     // Sort - NO reordenar si estamos usando búsqueda semántica con orden por defecto
-    const usingSemanticOrder = semanticResults.length > 0 && filters.sortBy === "newest";
+    const usingSemanticOrder =
+      semanticResults.length > 0 && filters.sortBy === "newest";
 
     if (!usingSemanticOrder) {
       switch (filters.sortBy) {
@@ -409,14 +416,19 @@ const ExploreProducts = () => {
           break;
       }
     } else {
-      console.log('[ExploreProducts] Manteniendo orden de relevancia semántica');
+      console.log(
+        "[ExploreProducts] Manteniendo orden de relevancia semántica",
+      );
     }
 
     return result;
   }, [allProducts, filters, searchQuery, semanticResults]);
 
   // ── Pagination ──
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / PAGE_SIZE),
+  );
   const paginatedProducts = useMemo(
     () => filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [filteredProducts, page],
@@ -428,10 +440,9 @@ const ExploreProducts = () => {
   }, [
     filters.categorySlug,
     filters.subcategorySlug,
-    filters.techniqueId,
-    filters.materialId,
-    filters.craftId,
-    filters.curatorialId,
+    filters.techniqueName,
+    filters.materialName,
+    filters.craftName,
     filters.priceRange[1],
     filters.sortBy,
     searchQuery,
@@ -441,10 +452,9 @@ const ExploreProducts = () => {
   const activeFilterCount = [
     filters.categorySlug,
     filters.subcategorySlug,
-    filters.techniqueId,
-    filters.materialId,
-    filters.craftId,
-    filters.curatorialId,
+    filters.techniqueName,
+    filters.materialName,
+    filters.craftName,
     filters.priceRange[1] > 0 && filters.priceRange[1] < priceExtent.max
       ? "price"
       : null,
@@ -466,14 +476,20 @@ const ExploreProducts = () => {
       ...(key === "categorySlug"
         ? {
             subcategorySlug: null,
-            techniqueId: null,
-            materialId: null,
-            craftId: null,
-            curatorialId: null,
+            techniqueName: null,
+            materialName: null,
+            craftName: null,
             priceRange: [0, 0] as [number, number],
           }
         : {}),
     }));
+  };
+
+  const changeMobileColumns = (cols: MobileColumns) => {
+    setMobileColumns(cols);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(MOBILE_COLUMNS_KEY, String(cols));
+    }
   };
 
   // ── Pagination helpers ──
@@ -507,6 +523,32 @@ const ExploreProducts = () => {
     const maxH = isMobile ? "max-h-40" : "max-h-48";
     return (
       <div className="space-y-8">
+        {/* Organizar — solo mobile (en desktop está en la toolbar) */}
+        {isMobile && (
+          <FilterSection title="Organizar" defaultOpen>
+            <div className="pt-4">
+              <div className="relative">
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) =>
+                    updateFilter(
+                      "sortBy",
+                      e.target.value as ExploreFilters["sortBy"],
+                    )
+                  }
+                  className="appearance-none w-full bg-transparent border border-charcoal/10 px-4 py-3 pr-10 rounded-full text-[10px] font-bold uppercase tracking-widest font-sans cursor-pointer hover:border-primary transition-colors"
+                >
+                  <option value="newest">Más recientes</option>
+                  <option value="price_asc">Precio: menor a mayor</option>
+                  <option value="price_desc">Precio: mayor a menor</option>
+                  <option value="name">Nombre A-Z</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none text-charcoal/40" />
+              </div>
+            </div>
+          </FilterSection>
+        )}
+
         {/* Oficio */}
         {availableCrafts.length > 0 && (
           <FilterSection title="Oficio" defaultOpen>
@@ -516,14 +558,14 @@ const ExploreProducts = () => {
               {availableCrafts.map((c) => (
                 <li
                   key={c.id}
-                  onClick={() => updateFilter("craftId", c.id)}
+                  onClick={() => updateFilter("craftName", c.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.craftId === c.id
+                    filters.craftName === c.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.craftId === c.id && (
+                  {filters.craftName === c.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {c.name}
@@ -542,14 +584,14 @@ const ExploreProducts = () => {
               {availableTechniques.map((t) => (
                 <li
                   key={t.id}
-                  onClick={() => updateFilter("techniqueId", t.id)}
+                  onClick={() => updateFilter("techniqueName", t.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.techniqueId === t.id
+                    filters.techniqueName === t.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.techniqueId === t.id && (
+                  {filters.techniqueName === t.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {t.name}
@@ -568,41 +610,17 @@ const ExploreProducts = () => {
               {availableMaterials.map((m) => (
                 <li
                   key={m.id}
-                  onClick={() => updateFilter("materialId", m.id)}
+                  onClick={() => updateFilter("materialName", m.name)}
                   className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.materialId === m.id
+                    filters.materialName === m.name
                       ? "font-bold text-charcoal"
                       : ""
                   }`}
                 >
-                  {filters.materialId === m.id && (
+                  {filters.materialName === m.name && (
                     <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                   )}
                   {m.name}
-                </li>
-              ))}
-            </ul>
-          </FilterSection>
-        )}
-
-        {/* Colección curatorial */}
-        {availableCuratorial.length > 0 && (
-          <FilterSection title="Colección">
-            <ul className="pt-4 space-y-3 text-[11px] uppercase tracking-widest text-charcoal/60 font-sans">
-              {availableCuratorial.map((cc) => (
-                <li
-                  key={cc.id}
-                  onClick={() => updateFilter("curatorialId", cc.id)}
-                  className={`hover:text-primary cursor-pointer transition-colors flex items-center gap-2 ${
-                    filters.curatorialId === cc.id
-                      ? "font-bold text-charcoal"
-                      : ""
-                  }`}
-                >
-                  {filters.curatorialId === cc.id && (
-                    <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
-                  )}
-                  {cc.name}
                 </li>
               ))}
             </ul>
@@ -650,7 +668,9 @@ const ExploreProducts = () => {
           </Link>
           <span>/</span>
           <span className="text-primary font-bold">
-            {searchQuery && searchQuery.trim().length > 0 ? "Búsqueda" : "Explorar"}
+            {searchQuery && searchQuery.trim().length > 0
+              ? "Búsqueda"
+              : "Explorar"}
           </span>
           {searchQuery && searchQuery.trim().length > 0 && (
             <>
@@ -668,40 +688,61 @@ const ExploreProducts = () => {
       </div>
 
       {/* Header */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-12">
-        <div className="py-8 border-b border-charcoal/5">
-          <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
-            {searchQuery && searchQuery.trim().length > 0 ? (
-              <>
-                RESULTADOS <br />
-                <span className="italic text-primary">DE BÚSQUEDA</span>
-              </>
-            ) : activeCategory ? (
-              <>
-                {activeCategory.name.split(" ")[0].toUpperCase()}
-                <br />
-                <span className="italic text-primary">
-                  {activeCategory.name.split(" ").slice(1).join(" ").toUpperCase() || "ARTESANAL"}
-                </span>
-              </>
-            ) : (
-              <>
-                EXPLORAR <br />
-                <span className="italic text-primary">PIEZAS</span>
-              </>
-            )}
-          </h1>
-          <p className="text-sm text-charcoal/70 max-w-lg font-sans leading-relaxed">
-            {searchQuery && searchQuery.trim().length > 0
-              ? `Mostrando resultados para "${searchQuery}"`
-              : activeCategory?.description ??
-                "Descubre piezas artesanales únicas de Colombia. Cada objeto cuenta la historia de un artesano, una técnica y un territorio."}
-          </p>
+      <section className="max-w-[1400px] mx-auto px-6 mb-6 md:mb-12">
+        <div
+          className={`py-6 md:py-8 border-b border-charcoal/5 ${
+            hasHeaderImage
+              ? "grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center"
+              : ""
+          }`}
+        >
+          <div>
+            <h1 className="text-4xl md:text-7xl leading-[0.9] md:leading-[0.85] font-serif mb-4 md:mb-6 text-charcoal tracking-tight">
+              {searchQuery && searchQuery.trim().length > 0 ? (
+                <>
+                  RESULTADOS <br />
+                  <span className="italic text-primary">DE BÚSQUEDA</span>
+                </>
+              ) : activeCategory ? (
+                <>
+                  {activeCategory.name.split(" ")[0].toUpperCase()}
+                  <br />
+                  <span className="italic text-primary">
+                    {activeCategory.name
+                      .split(" ")
+                      .slice(1)
+                      .join(" ")
+                      .toUpperCase() || "ARTESANAL"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  EXPLORAR <br />
+                  <span className="italic text-primary">PIEZAS</span>
+                </>
+              )}
+            </h1>
+            <p className="text-sm text-charcoal/70 max-w-lg font-sans leading-relaxed">
+              {searchQuery && searchQuery.trim().length > 0
+                ? `Mostrando resultados para "${searchQuery}"`
+                : (activeCategory?.description ??
+                  "Descubre piezas artesanales únicas de Colombia. Cada objeto cuenta la historia de un artesano, una técnica y un territorio.")}
+            </p>
+          </div>
+          {hasHeaderImage && (
+            <div className="aspect-[21/6] max-h-20 md:max-h-40 bg-[#e5e1d8] w-full rounded-sm relative overflow-hidden">
+              <img
+                src={activeCategory!.imageUrl!}
+                alt={activeCategory!.name}
+                className="w-full h-full object-cover rounded-sm"
+              />
+            </div>
+          )}
         </div>
       </section>
 
       {/* Category Pills */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-8 overflow-hidden">
+      <section className="max-w-[1400px] mx-auto px-6 mb-4 md:mb-8 overflow-hidden">
         <div className="flex gap-3 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <button
             onClick={() => updateFilter("categorySlug", null as any)}
@@ -713,7 +754,7 @@ const ExploreProducts = () => {
           >
             Todos
           </button>
-          {categoryHierarchy.map((cat) => (
+          {categoryHierarchy.filter(categoryHasProducts).map((cat) => (
             <button
               key={cat.id}
               onClick={() => updateFilter("categorySlug", cat.slug)}
@@ -729,7 +770,7 @@ const ExploreProducts = () => {
         </div>
 
         {/* Subcategory pills */}
-        {activeCategory && activeCategory.subcategories.length > 0 && (
+        {activeCategory && visibleSubcategories.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-4 mt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <button
               onClick={() => updateFilter("subcategorySlug", null as any)}
@@ -741,7 +782,7 @@ const ExploreProducts = () => {
             >
               Todos en {activeCategory.name}
             </button>
-            {activeCategory.subcategories.map((sub) => (
+            {visibleSubcategories.map((sub) => (
               <button
                 key={sub.id}
                 onClick={() => updateFilter("subcategorySlug", sub.slug)}
@@ -771,7 +812,7 @@ const ExploreProducts = () => {
           {/* Content Area */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-8 sticky top-0 z-20 bg-editorial-bg py-3 -my-3 lg:static lg:bg-transparent lg:py-0 lg:my-0 lg:mb-8">
               <div className="flex items-center gap-4">
                 {/* Mobile filter toggle */}
                 <button
@@ -787,6 +828,34 @@ const ExploreProducts = () => {
                   )}
                 </button>
 
+                {/* Mobile columns toggle */}
+                <div className="lg:hidden flex items-center border border-charcoal/10 rounded-full p-0.5">
+                  <button
+                    onClick={() => changeMobileColumns(1)}
+                    aria-label="Una columna"
+                    aria-pressed={mobileColumns === 1}
+                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                      mobileColumns === 1
+                        ? "bg-primary text-white"
+                        : "text-charcoal/50 hover:text-primary"
+                    }`}
+                  >
+                    <LayoutList className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => changeMobileColumns(2)}
+                    aria-label="Dos columnas"
+                    aria-pressed={mobileColumns === 2}
+                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                      mobileColumns === 2
+                        ? "bg-primary text-white"
+                        : "text-charcoal/50 hover:text-primary"
+                    }`}
+                  >
+                    <Grid2x2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
                 <span className="text-[11px] uppercase tracking-[0.2em] text-charcoal/50 font-sans">
                   {filteredProducts.length}{" "}
                   {filteredProducts.length === 1 ? "pieza" : "piezas"}
@@ -795,20 +864,22 @@ const ExploreProducts = () => {
                 {/* Search indicator */}
                 {searchQuery && searchQuery.trim().length > 0 && (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest">
-                    <Sparkles className={`h-3.5 w-3.5 ${isSearching ? 'animate-pulse' : ''}`} />
+                    <Sparkles
+                      className={`h-3.5 w-3.5 ${isSearching ? "animate-pulse" : ""}`}
+                    />
                     <span>
                       {isSearching
-                        ? 'Buscando con IA...'
+                        ? "Buscando con IA..."
                         : semanticResults.length > 0
                           ? `Búsqueda inteligente (${semanticResults.length})`
-                          : 'Búsqueda activa'}
+                          : "Búsqueda activa"}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Sort */}
-              <div className="relative">
+              {/* Sort — en mobile vive dentro del drawer de filtros */}
+              <div className="relative hidden lg:block">
                 <select
                   value={filters.sortBy}
                   onChange={(e) =>
@@ -829,10 +900,13 @@ const ExploreProducts = () => {
             </div>
 
             {/* Active filter chips */}
-            {(activeFilterCount > 0 || (searchQuery && searchQuery.trim().length > 0)) && (
+            {(activeFilterCount > 0 ||
+              (searchQuery && searchQuery.trim().length > 0)) && (
               <div className="flex flex-wrap items-center gap-3 mb-8 pb-6 border-b border-charcoal/5">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal/40">
-                  {searchQuery && searchQuery.trim().length > 0 ? "Búsqueda:" : "Filtros:"}
+                  {searchQuery && searchQuery.trim().length > 0
+                    ? "Búsqueda:"
+                    : "Filtros:"}
                 </span>
                 {searchQuery && searchQuery.trim().length > 0 && (
                   <FilterChip
@@ -843,54 +917,25 @@ const ExploreProducts = () => {
                 {filters.categorySlug && activeCategory && (
                   <FilterChip
                     label={activeCategory.name}
-                    onRemove={() =>
-                      updateFilter("categorySlug", null as any)
-                    }
+                    onRemove={() => updateFilter("categorySlug", null as any)}
                   />
                 )}
-                {filters.techniqueId && (
+                {filters.techniqueName && (
                   <FilterChip
-                    label={
-                      availableTechniques.find(
-                        (t) => t.id === filters.techniqueId,
-                      )?.name ?? ""
-                    }
-                    onRemove={() =>
-                      updateFilter("techniqueId", null as any)
-                    }
+                    label={filters.techniqueName}
+                    onRemove={() => updateFilter("techniqueName", null as any)}
                   />
                 )}
-                {filters.materialId && (
+                {filters.materialName && (
                   <FilterChip
-                    label={
-                      availableMaterials.find(
-                        (m) => m.id === filters.materialId,
-                      )?.name ?? ""
-                    }
-                    onRemove={() =>
-                      updateFilter("materialId", null as any)
-                    }
+                    label={filters.materialName}
+                    onRemove={() => updateFilter("materialName", null as any)}
                   />
                 )}
-                {filters.craftId && (
+                {filters.craftName && (
                   <FilterChip
-                    label={
-                      availableCrafts.find((c) => c.id === filters.craftId)
-                        ?.name ?? ""
-                    }
-                    onRemove={() => updateFilter("craftId", null as any)}
-                  />
-                )}
-                {filters.curatorialId && (
-                  <FilterChip
-                    label={
-                      availableCuratorial.find(
-                        (c) => c.id === filters.curatorialId,
-                      )?.name ?? ""
-                    }
-                    onRemove={() =>
-                      updateFilter("curatorialId", null as any)
-                    }
+                    label={filters.craftName}
+                    onRemove={() => updateFilter("craftName", null as any)}
                   />
                 )}
                 <button
@@ -907,7 +952,9 @@ const ExploreProducts = () => {
 
             {/* Product Grid */}
             {loading || taxonomyLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-24">
+              <div
+                className={`grid ${mobileColumns === 2 ? "grid-cols-2" : "grid-cols-1"} sm:grid-cols-2 xl:grid-cols-3 gap-x-6 sm:gap-x-10 gap-y-10 sm:gap-y-24`}
+              >
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
                     <div className="bg-[#F3E4D3] aspect-[3/4] mb-6 rounded-sm" />
@@ -917,7 +964,9 @@ const ExploreProducts = () => {
                 ))}
               </div>
             ) : paginatedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-24">
+              <div
+                className={`grid ${mobileColumns === 2 ? "grid-cols-2" : "grid-cols-1"} sm:grid-cols-2 xl:grid-cols-3 gap-x-6 sm:gap-x-12 gap-y-10 sm:gap-y-24`}
+              >
                 {paginatedProducts.map((product, idx) => (
                   <ExploreProductCard
                     key={product.id}
@@ -946,7 +995,10 @@ const ExploreProducts = () => {
                   }}
                   className="border border-primary text-primary px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-primary hover:text-white transition-all font-sans"
                 >
-                  Limpiar {searchQuery && searchQuery.trim().length > 0 ? "búsqueda y filtros" : "filtros"}
+                  Limpiar{" "}
+                  {searchQuery && searchQuery.trim().length > 0
+                    ? "búsqueda y filtros"
+                    : "filtros"}
                 </button>
               </div>
             )}

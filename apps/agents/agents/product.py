@@ -419,9 +419,10 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
         from src.database.supabase_client import db
 
         taxonomy = await db.get_taxonomy_options()
+        top_level_categories = [c for c in taxonomy["categories"] if not c.get("parent_id")]
 
         prompt_context = dict(artisan_context or {})
-        prompt_context["taxonomy_categories"] = taxonomy["categories"]
+        prompt_context["taxonomy_categories"] = top_level_categories
         prompt_context["taxonomy_crafts"] = taxonomy["crafts"]
         prompt_context["taxonomy_materials"] = taxonomy["materials"]
 
@@ -487,7 +488,9 @@ Incluye recomendaciones concretas y mejores prácticas basadas en tu experiencia
         if not isinstance(identity, dict):
             return
 
-        categories_by_id = {c["id"]: c["name"] for c in taxonomy["categories"]}
+        categories_by_id = {
+            c["id"]: c["name"] for c in taxonomy["categories"] if not c.get("parent_id")
+        }
         crafts_by_id = {c["id"]: c["name"] for c in taxonomy["crafts"]}
         materials_by_id = {m["id"]: m["name"] for m in taxonomy["materials"]}
 

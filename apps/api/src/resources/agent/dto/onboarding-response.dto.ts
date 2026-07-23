@@ -45,6 +45,43 @@ class NextPriorityActionDto {
   recommendations!: string[];
 }
 
+class DimensionScoreDto {
+  @ApiProperty({
+    example: 'en_desarrollo',
+    enum: ['emergente', 'en_desarrollo', 'consolidado'],
+  })
+  maturity_level!: string;
+
+  @ApiProperty({
+    type: MessageDto,
+    description: 'Mensaje amigable y profesional para mostrar al artesano sobre esta dimensión',
+  })
+  message!: MessageDto;
+
+  @ApiProperty({
+    type: [String],
+    example: [
+      'Crear una lista de 10 características únicas de tus productos',
+      'Definir tu historia de marca en un párrafo',
+    ],
+  })
+  tasks!: string[];
+}
+
+class DimensionsBreakdownDto {
+  @ApiProperty({ type: DimensionScoreDto })
+  identidad_artesanal!: DimensionScoreDto;
+
+  @ApiProperty({ type: DimensionScoreDto })
+  realidad_comercial!: DimensionScoreDto;
+
+  @ApiProperty({ type: DimensionScoreDto })
+  clientes_y_mercado!: DimensionScoreDto;
+
+  @ApiProperty({ type: DimensionScoreDto })
+  operacion_y_crecimiento!: DimensionScoreDto;
+}
+
 class OnboardingResponseDataDto {
   @ApiProperty({ type: MetadataDto })
   metadata!: MetadataDto;
@@ -55,11 +92,18 @@ class OnboardingResponseDataDto {
   @ApiProperty({
     example: 'emergente',
     enum: ['emergente', 'en_desarrollo', 'consolidado'],
+    description: 'Nivel de madurez general (promedio de las 4 dimensiones)',
   })
   maturity_level!: string;
 
   @ApiProperty({ type: MessageDto })
   message!: MessageDto;
+
+  @ApiProperty({
+    type: DimensionsBreakdownDto,
+    description: 'Detalle de madurez por cada una de las 4 dimensiones evaluadas',
+  })
+  dimensions!: DimensionsBreakdownDto;
 
   @ApiProperty({ type: NextPriorityActionDto })
   next_priority_action!: NextPriorityActionDto;

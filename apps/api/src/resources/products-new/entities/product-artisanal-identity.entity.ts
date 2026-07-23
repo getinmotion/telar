@@ -43,8 +43,14 @@ export class ProductArtisanalIdentity {
   @Column({ type: 'varchar', nullable: true })
   style: string; // 'tradicional', 'contemporaneo', 'fusion' — campo legacy, usar styleId
 
+  @Column({ type: 'text', array: true, nullable: true })
+  styles: string[] | null; // estilos múltiples elegidos en el wizard; `style` guarda el primero
+
   @Column({ name: 'is_collaboration', type: 'boolean', default: false })
   isCollaboration: boolean;
+
+  @Column({ name: 'collaboration_name', type: 'text', nullable: true })
+  collaborationName: string;
 
   @Column({ name: 'process_type', type: 'varchar', nullable: true })
   processType: string; // 'manual', 'mixto', 'asistido'

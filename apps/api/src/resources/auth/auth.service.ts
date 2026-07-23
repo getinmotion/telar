@@ -20,6 +20,7 @@ import { UserRolesService } from '../user-roles/user-roles.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -62,6 +63,28 @@ export class AuthService {
       isSuperAdmin: user.isSuperAdmin === true,
       roles: userRoles.map((r) => r.role),
     };
+  }
+
+  /**
+   * Genera una contraseña aleatoria que cumple mayúscula, minúscula y dígito.
+   */
+  private generateRandomPassword(): string {
+    const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const all = upper + lower + digits;
+
+    const pick = (chars: string): string =>
+      chars[crypto.randomInt(0, chars.length)];
+
+    const required = [pick(upper), pick(lower), pick(digits)];
+    const rest = Array.from({ length: 9 }, () => pick(all));
+
+    return [...required, ...rest]
+      .map((char) => ({ char, order: crypto.randomInt(0, 1_000_000) }))
+      .sort((a, b) => a.order - b.order)
+      .map((entry) => entry.char)
+      .join('');
   }
 
   // ─── Endpoints públicos ──────────────────────────────────────────────────────
@@ -255,6 +278,13 @@ export class AuthService {
       );
     }
 
+    // // Verificar que no sea un comprador de marketplace
+    // if (user.isBuyer) {
+    //   throw new UnauthorizedException(
+    //     'Esta cuenta es de comprador de marketplace. Usa el login de marketplace.',
+    //   );
+    // }
+
     // Actualizar última fecha de inicio de sesión
     await this.usersService.update(user.id, {
       lastSignInAt: new Date(),
@@ -294,6 +324,54 @@ export class AuthService {
       artisanShop,
       userMaturityActions,
       artisansIdentityProfile,
+      access_token,
+    };
+  }
+
+  /**
+   * Login exclusivo para marketplace (compradores)
+   * Solo permite login si el usuario tiene is_buyer = true
+   */
+  async loginMarketplace(
+    email: string,
+    password: string,
+  ): Promise<{
+    user: Partial<User>;
+    access_token: string;
+  }> {
+    const user = await this.usersService.validateCredentials(email, password);
+
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Esta cuenta ha sido desactivada');
+    }
+
+    if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+      throw new UnauthorizedException(
+        `Esta cuenta está suspendida hasta ${user.bannedUntil.toLocaleDateString()}`,
+      );
+    }
+
+    if (!user.isBuyer) {
+      throw new UnauthorizedException(
+        'Esta cuenta no está registrada como comprador de marketplace',
+      );
+    }
+
+    await this.usersService.update(user.id, {
+      lastSignInAt: new Date(),
+    } as any);
+
+    const payload = await this.buildJwtPayload(user);
+    const access_token = await this.jwtService.signAsync(payload);
+
+    const { encryptedPassword, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
       access_token,
     };
   }
@@ -350,7 +428,10 @@ export class AuthService {
     const isSuperAdmin = user.isSuperAdmin === true;
 
     // Calcular permisos disponibles según rol
-    const permissions = this.calculateBackofficePermissions(isSuperAdmin, roles);
+    const permissions = this.calculateBackofficePermissions(
+      isSuperAdmin,
+      roles,
+    );
 
     return {
       user: { id: user.id, email: user.email, isSuperAdmin },
@@ -379,35 +460,35 @@ export class AuthService {
     // Todos los roles de backoffice
     if (isModerator) {
       permissions.push(
-        'moderation',      // Cola de moderación de productos
-        'revisor',         // Revisor de productos
-        'analytics',       // Analytics
-        'envios',          // Envíos
-        'cms',             // CMS secciones
+        'moderation', // Cola de moderación de productos
+        'revisor', // Revisor de productos
+        'analytics', // Analytics
+        'envios', // Envíos
+        'cms', // CMS secciones
       );
     }
 
     // Admin y super_admin
     if (isAdmin) {
       permissions.push(
-        'historias',       // Blog / historias
-        'colecciones',     // Colecciones
-        'imagenes',        // Imágenes del sitio
-        'tiendas',         // Moderación de tiendas
-        'taxonomia',       // Taxonomía
+        'historias', // Blog / historias
+        'colecciones', // Colecciones
+        'imagenes', // Imágenes del sitio
+        'tiendas', // Moderación de tiendas
+        'taxonomia', // Taxonomía
       );
     }
 
     // Solo super_admin
     if (isSuperAdmin) {
       permissions.push(
-        'usuarios',        // Gestión de usuarios/roles
-        'ordenes',         // Órdenes admin
-        'cupones',         // Cupones / Gift Cards
-        'pagos',           // Pagos / Cobre
-        'diseno',          // Sistema de diseño
-        'auditoria',       // Log de auditoría
-        'dashboard',       // Dashboard general
+        'usuarios', // Gestión de usuarios/roles
+        'ordenes', // Órdenes admin
+        'cupones', // Cupones / Gift Cards
+        'pagos', // Pagos / Cobre
+        'diseno', // Sistema de diseño
+        'auditoria', // Log de auditoría
+        'dashboard', // Dashboard general
       );
     }
 
@@ -777,7 +858,8 @@ export class AuthService {
         phone: registerDto.whatsapp,
         role: 'user',
         emailConfirmedAt: new Date(), // Activar automáticamente
-      });
+        isBuyer: true, // Marcar como comprador de marketplace
+      } as any);
 
       createdUserId = newUser.id;
 
@@ -853,5 +935,121 @@ export class AuthService {
         'Error interno del servidor durante el registro',
       );
     }
+  }
+
+  /**
+   * Registro por OTP: crea un usuario invitado y envía un código al correo
+   */
+  async registerOtp(email: string): Promise<{
+    success: boolean;
+    message: string;
+    userId: string;
+  }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await this.usersService.getByEmail(normalizedEmail);
+
+    let userId: string;
+
+    if (existingUser) {
+      // Usuario ya existe: solo enviar OTP sin modificar la BD
+      userId = existingUser.id;
+    } else {
+      // Usuario nuevo: crear cuenta invitado
+      const newUser = await this.usersService.create({
+        email: normalizedEmail,
+        password: this.generateRandomPassword(),
+        role: 'user',
+        isBuyer: true,
+      } as any);
+
+      try {
+        await this.userProfilesService.create({
+          userId: newUser.id,
+          firstName: 'Invitado',
+          fullName: 'Invitado',
+        });
+      } catch (profileError) {
+        await this.usersService.hardDelete(newUser.id);
+        throw new InternalServerErrorException(
+          'Error al crear el perfil de usuario',
+        );
+      }
+
+      userId = newUser.id;
+    }
+
+    const otp = await this.emailVerificationsService.createOtpToken(userId, 10);
+
+    await this.mailService.sendOtpCode(normalizedEmail, 'Invitado', otp.token);
+
+    return {
+      success: true,
+      message:
+        'Te enviamos un código de verificación a tu correo. Ingrésalo para activar tu cuenta.',
+      userId,
+    };
+  }
+
+  /**
+   * Verificar OTP: confirma el email, genera y envía una contraseña, retorna JWT
+   */
+  async verifyOtp(
+    email: string,
+    code: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    userId: string;
+    user: Partial<User>;
+    access_token: string;
+  }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const verification = await this.emailVerificationsService.getByToken(code);
+
+    if (
+      !verification ||
+      verification.user?.email?.toLowerCase() !== normalizedEmail
+    ) {
+      throw new BadRequestException('Código inválido');
+    }
+
+    const user = await this.usersService.getById(verification.userId);
+    const alreadyVerified = !!user.emailConfirmedAt;
+
+    // Marcar email como verificado
+    await this.emailVerificationsService.verifyEmailWithToken(code);
+
+    // Solo generar y enviar contraseña si es la primera verificación
+    if (!alreadyVerified) {
+      const newPassword = this.generateRandomPassword();
+      await this.usersService.update(verification.userId, {
+        password: newPassword,
+      } as any);
+
+      try {
+        await this.mailService.sendGeneratedPassword(
+          normalizedEmail,
+          'Invitado',
+          newPassword,
+        );
+      } catch (emailError) {}
+    }
+
+    const payload = await this.buildJwtPayload(user);
+    const access_token = await this.jwtService.signAsync(payload);
+
+    const { encryptedPassword, ...userWithoutPassword } = user;
+
+    return {
+      success: true,
+      message: alreadyVerified
+        ? 'Verificación exitosa.'
+        : 'Cuenta verificada exitosamente. Te enviamos tu contraseña al correo.',
+      userId: user.id,
+      user: userWithoutPassword,
+      access_token,
+    };
   }
 }

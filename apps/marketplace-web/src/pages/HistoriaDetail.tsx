@@ -21,7 +21,7 @@ import {
   getProductsByStore,
   getPrimaryImageUrl,
   getProductPrice,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import {
@@ -42,7 +42,7 @@ function normalize(s: string | null | undefined): string {
 }
 
 function productKeywordScore(
-  product: ProductNewCore,
+  product: ProductFeatured,
   keywords: string[],
 ): number {
   if (!keywords.length) return 0;
@@ -50,16 +50,14 @@ function productKeywordScore(
     [
       product.name,
       product.shortDescription,
-      product.history,
-      product.artisanalIdentity?.primaryTechnique?.name,
-      product.artisanalIdentity?.secondaryTechnique?.name,
-      product.artisanalIdentity?.primaryCraft?.name,
-      product.artisanalIdentity?.pieceType,
-      product.artisanalIdentity?.style,
-      product.artisanShop?.department,
-      product.artisanShop?.municipality,
-      product.artisanShop?.shopName,
-      ...(product.materials || []).map((m) => m.material?.name),
+      product.primaryTechnique,
+      product.craftName,
+      product.pieceType,
+      product.style,
+      product.department,
+      product.municipality,
+      product.storeName,
+      ...(product.materials || []),
     ]
       .filter(Boolean)
       .join(" "),
@@ -83,8 +81,8 @@ const HistoriaDetail = () => {
     return null;
   }, [apiArticle, error, slug]);
 
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
-  const [shopProducts, setShopProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
+  const [shopProducts, setShopProducts] = useState<ProductFeatured[]>([]);
 
   const isAlcides = slug === ALCIDES_STORY_SLUG;
 
@@ -92,7 +90,7 @@ const HistoriaDetail = () => {
     getProductsNew({ page: 1, limit: 100 })
       .then((res) => {
         const d = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(d as ProductNewCore[]);
+        setProducts(d as ProductFeatured[]);
       })
       .catch(() => {});
   }, []);

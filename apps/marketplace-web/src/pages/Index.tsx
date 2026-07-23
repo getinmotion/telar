@@ -15,7 +15,7 @@ import {
   getProductPrice,
   getCraftName,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
@@ -41,7 +41,7 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
   const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
   const dailySeed = useMemo(() => {
@@ -53,8 +53,8 @@ const Index = () => {
   useEffect(() => {
     getProductsNew({ page: 1, limit: 50 })
       .then((res) => {
-        const data = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(data as ProductNewCore[]);
+        const data = Array.isArray(res) ? res : (res.data ?? []);
+        setProducts(data as ProductFeatured[]);
       })
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false));
@@ -80,9 +80,9 @@ const Index = () => {
     const shuffled = shuffleArray(available, dailySeed);
     // Pick from different stores
     const seen = new Set<string>();
-    const picked: ProductNewCore[] = [];
+    const picked: ProductFeatured[] = [];
     for (const p of shuffled) {
-      const store = p.artisanShop?.shopName ?? "";
+      const store = p.storeName ?? "";
       if (!seen.has(store)) {
         picked.push(p);
         seen.add(store);
@@ -127,8 +127,8 @@ const Index = () => {
       <div className="min-h-screen bg-editorial-bg text-charcoal font-sans selection:bg-primary/40 selection:text-white">
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
-          <HeroSectionV2 />
-      
+        <HeroSectionV2 />
+
         {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
         {/* {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />} */}
 
@@ -141,8 +141,8 @@ const Index = () => {
               </span>
               {displayCategories.map((cat) => (
                 <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
-                  <Link to={`/categoria/${cat.slug}`}>
-                    <div className="aspect-[16/10] bg-muted mb-4 rounded-sm border border-foreground/10 overflow-hidden relative">
+                  <Link to={`/productos?categoria=${cat.slug}`}>
+                    <div className="aspect-[16/10] bg-[#F3E4D3] mb-4 overflow-hidden relative">
                       {cat.imageUrl ? (
                         <img
                           src={cat.imageUrl}
@@ -155,8 +155,8 @@ const Index = () => {
                     </div>
                   </Link>
                   <Link
-                    to={`/categoria/${cat.slug}`}
-                    className="text-xl font-serif hover:italic hover:text-primary transition-all"
+                    to={`/productos?categoria=${cat.slug}`}
+                    className="text-xl font-serif hover:italic hover:text-[#BC3F1C] transition-all"
                   >
                     {cat.name}
                   </Link>
@@ -205,8 +205,8 @@ const Index = () => {
               : featuredProducts.map((product, idx) => {
                   const imageUrl = getPrimaryImageUrl(product);
                   const price = getProductPrice(product);
-                  const shopName = product.artisanShop?.shopName;
-                  const department = product.artisanShop?.department;
+                  const shopName = product.storeName;
+                  const department = product.department;
                   const technique = getTechniqueName(product);
 
                   return (

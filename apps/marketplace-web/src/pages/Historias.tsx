@@ -18,7 +18,7 @@ import {
   getProductsNew,
   getPrimaryImageUrl,
   getProductPrice,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { cn } from "@/lib/utils";
@@ -133,7 +133,7 @@ const FALLBACK_HISTORIAS_SECTIONS: CmsSection[] = [
 const Historias = () => {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useBlogPosts({ page, perPage: PER_PAGE });
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const { data: cmsSections } = useCmsSections("historias");
   const sections =
     cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_HISTORIAS_SECTIONS;
@@ -152,7 +152,7 @@ const Historias = () => {
     getProductsNew({ page: 1, limit: 8 })
       .then((res) => {
         const d = Array.isArray(res) ? res : res.data ?? [];
-        setProducts(d as ProductNewCore[]);
+        setProducts(d as ProductFeatured[]);
       })
       .catch(() => {});
   }, []);

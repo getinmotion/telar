@@ -86,6 +86,11 @@ const Cart = () => {
                       <h3 className="font-semibold mb-1">
                         {item.product.name}
                       </h3>
+                      {item.variant_name && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {item.variant_name}
+                        </p>
+                      )}
                       <p className="text-lg font-bold text-primary mb-2">
                         ${item.product.price.toLocaleString("es-MX")}
                       </p>

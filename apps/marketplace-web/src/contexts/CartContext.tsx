@@ -8,6 +8,7 @@ interface CartItem {
   id: string;
   product_id: string;
   variant_id?: string;
+  variant_name?: string | null;
   quantity: number;
   isGiftCard?: boolean;
   giftCardAmount?: number;
@@ -24,6 +25,7 @@ interface CartItem {
 interface LocalCartItem {
   product_id: string;
   variant_id?: string;
+  variant_name?: string | null;
   quantity: number;
   isGiftCard?: boolean;
   giftCardAmount?: number;
@@ -145,19 +147,29 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
-      
+
       // Also check current items state (for gift cards added directly)
       const currentGiftCards = items.filter(item => item.isGiftCard);
-      
+
       const localItems: LocalCartItem[] = stored ? JSON.parse(stored) : [];
-      
+
+      console.log('[CartContext] syncGuestCartToUser starting:', {
+        localItemsCount: localItems.length,
+        currentGiftCardsCount: currentGiftCards.length,
+        userId: user.id,
+        hasToken: !!localStorage.getItem('telar_token'),
+      });
+
       // If no local items and no gift cards in state, nothing to sync
-      if (localItems.length === 0 && currentGiftCards.length === 0) return;
+      if (localItems.length === 0 && currentGiftCards.length === 0) {
+        console.log('[CartContext] No items to sync, skipping');
+        return;
+      }
 
       // Separate gift cards from regular items
       const regularItems = localItems.filter(item => !item.isGiftCard);
       const giftCardItemsFromStorage = localItems.filter(item => item.isGiftCard);
-      
+
       // Combine gift cards from storage and state
       const allGiftCards = [
         ...giftCardItemsFromStorage,
@@ -180,14 +192,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         quantity: item.quantity
       }));
 
+      console.log('[CartContext] Items to sync:', itemsToSync);
+
+      // Save a copy of local items before sync in case we need to preserve them in state
+      const localItemsBackup: CartItem[] = localItems.map((item, index) => ({
+        id: `local-${index}`,
+        ...item
+      }));
+
       let cartId = activeCartId;
 
       // Call the backend to sync regular cart items OR create empty cart for gift-card-only purchases
+      let itemsCreated = 0;
       if (itemsToSync.length > 0 || (!cartId && allGiftCards.length > 0)) {
         try {
           const response = await CartActions.syncGuestCart({
             buyerUserId: user.id,
-            items: itemsToSync.length > 0 ? itemsToSync : [] // Empty array will still create a cart
+            items: itemsToSync.length > 0 ? itemsToSync : []
+          });
+
+          itemsCreated = response.itemsCreated ?? 0;
+          console.log('[CartContext] syncGuestCart response:', {
+            cartId: response.cartId,
+            itemsCreated,
+            itemsSent: itemsToSync.length,
           });
 
           // Store the cart_id from the response
@@ -196,24 +224,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             setActiveCartId(cartId);
           }
         } catch (error) {
-          console.error('Error syncing guest cart:', error);
+          console.error('[CartContext] Error syncing guest cart:', error);
           toast.error('Error al sincronizar el carrito');
+          // Keep items in state so they don't disappear
           return;
         }
       }
 
-      // Clear local cart after successful sync
+      // Clear local storage — items are now in DB or were unavailable
       localStorage.removeItem(CART_STORAGE_KEY);
-      
+
+      if (itemsToSync.length > 0 && itemsCreated === 0) {
+        // Backend skipped all items (products unpublished or no active variants)
+        console.warn('[CartContext] syncGuestCart: sent', itemsToSync.length, 'items but none were created. Products may be unpublished or lack active variants.');
+        toast.error('Los productos del carrito no pudieron sincronizarse. Verifica que estén publicados y tengan variantes activas.');
+        // Keep the items visible in the UI by preserving local state
+        setItems(localItemsBackup);
+        return;
+      }
+
       // Refresh cart from database (preserve cart_id if we have gift cards)
       await fetchCart(allGiftCards.length > 0);
-      
+
       // IMPORTANT: Restore activeCartId after fetchCart if we have gift cards
       // fetchCart may reset it if there are no cart_items in the database
       if (allGiftCards.length > 0 && cartId) {
         setActiveCartId(cartId);
       }
-      
+
       // Add back gift card items to state
       if (allGiftCards.length > 0) {
         setItems(prev => {
@@ -235,10 +273,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           ];
         });
       }
-      
+
       toast.success('Carrito sincronizado');
     } catch (error) {
-      console.error('Error syncing guest cart:', error);
+      console.error('[CartContext] Error syncing guest cart:', error);
       toast.error('Error al sincronizar el carrito');
     }
   };
@@ -287,14 +325,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // "5000000" → 50000.00
         const price = parseFloat(item.unitPriceMinor) / 100;
 
-        // Get primary image from product media
+        // Get primary image from product media (la foto de la variante manda)
         const primaryMedia = item.product?.media?.find(m => m.isPrimary);
-        const imageUrl = primaryMedia?.mediaUrl || item.product?.media?.[0]?.mediaUrl || '';
+        const imageUrl =
+          item.metadata?.variantImageUrl ||
+          primaryMedia?.mediaUrl ||
+          item.product?.media?.[0]?.mediaUrl ||
+          '';
 
         return {
           id: item.id,
           product_id: item.productId,
           variant_id: item.metadata?.variantId,
+          variant_name: item.metadata?.variantName ?? null,
           quantity: item.quantity,
           product: {
             name: item.product?.name || 'Producto no disponible',
@@ -342,17 +385,40 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       const imageUrl = product.images?.[0] || '';
 
+      // Resolver la variante: precio/nombre propios de la variante elegida
+      const activeVariants = (product.variants ?? []).filter(v => v.isActive);
+      const variantsWithOptions = activeVariants.filter(
+        v => Object.keys(v.optionValues).length > 0,
+      );
+      const selectedVariant = variantId
+        ? activeVariants.find(v => v.id === variantId)
+        : undefined;
+
+      // Producto con variantes reales: exigir selección (ej. add desde tarjeta)
+      if (!selectedVariant && variantsWithOptions.length > 1) {
+        toast.info('Este producto tiene variantes. Elige una en la página del producto.');
+        return;
+      }
+
+      const effectiveVariant =
+        selectedVariant ?? (activeVariants.length === 1 ? activeVariants[0] : undefined);
+      const unitPrice = effectiveVariant?.price ?? parseFloat(product.price.toString());
+      const variantName = effectiveVariant?.variantName ?? null;
+      // Preferir la foto propia de la variante para mostrar el item del carrito
+      const itemImageUrl = effectiveVariant?.imageUrl || imageUrl;
+
       // For guests, add to localStorage
       if (!user) {
         const newItem: CartItem = {
           id: `local-${Date.now()}`,
           product_id: productId,
-          variant_id: variantId,
+          variant_id: effectiveVariant?.id ?? variantId,
+          variant_name: variantName,
           quantity,
           product: {
             name: product.name,
-            price: parseFloat(product.price.toString()),
-            image_url: imageUrl
+            price: unitPrice,
+            image_url: itemImageUrl
           }
         };
 
@@ -368,7 +434,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (cartId) {
         // Add item to existing cart using backend
         // Backend handles duplicate checking and quantity merging
-        const unitPriceMinor = Math.round(parseFloat(product.price.toString()) * 100).toString();
+        const unitPriceMinor = Math.round(unitPrice * 100).toString();
 
         await CartActions.addCartItem({
           cartId: cartId,
@@ -378,7 +444,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           currency: 'COP',
           unitPriceMinor: unitPriceMinor,
           priceSource: 'product_base',
-          metadata: variantId ? { variantId } : undefined
+          priceRefId: effectiveVariant?.id,
+          metadata: effectiveVariant
+            ? {
+                variantId: effectiveVariant.id,
+                variantName: effectiveVariant.variantName ?? undefined,
+                optionValues: effectiveVariant.optionValues,
+                variantImageUrl: effectiveVariant.imageUrl ?? undefined,
+              }
+            : variantId
+              ? { variantId }
+              : undefined
         });
       } else {
         // No active cart, use sync-guest to create cart + item

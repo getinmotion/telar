@@ -450,7 +450,7 @@ const PrefillBanner: React.FC = () => (
 // ─── Page component ───────────────────────────────────────────────────────────
 
 export const AgentFormPage: React.FC = () => {
-  const { user, artisanShop, artisansIdentityProfile } = useAuthStore();
+  const { user, artisanShop, artisansIdentityProfile, updateArtisansIdentityProfile } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -901,7 +901,10 @@ export const AgentFormPage: React.FC = () => {
       const completion = checkProfileCompletion(updated);
 
       if (completion.step4Complete && completion.isComplete) {
-        // Perfil completo, procesar onboarding con el servicio de agentes
+        // Perfil completo — actualizar auth store para que getRedirectPath no redirija de vuelta
+        updateArtisansIdentityProfile(updated);
+
+        // Procesar onboarding con el servicio de agentes
         try {
           const response = await processOnboarding(updated);
           console.log('[Onboarding] Respuesta del agente:', response);

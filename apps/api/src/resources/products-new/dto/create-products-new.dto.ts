@@ -29,6 +29,8 @@ export enum PieceType {
   FUNCIONAL = 'funcional',
   DECORATIVA = 'decorativa',
   MIXTA = 'mixta',
+  RITUAL = 'ritual',
+  COLECCIONABLE = 'coleccionable',
 }
 
 export enum StyleType {
@@ -89,8 +91,17 @@ export class CreateProductArtisanalIdentityDto {
   style?: StyleType;
 
   @IsOptional()
+  @IsArray()
+  @IsEnum(StyleType, { each: true })
+  styles?: StyleType[];
+
+  @IsOptional()
   @IsBoolean()
   isCollaboration?: boolean;
+
+  @IsOptional()
+  @IsString()
+  collaborationName?: string;
 
   @IsOptional()
   @IsEnum(ProcessType)
@@ -179,6 +190,20 @@ export class CreateProductProductionDto {
   @IsOptional()
   @IsString()
   requirementsToStart?: string;
+
+  @IsOptional()
+  @IsString()
+  processDescription?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  processEvidenceUrls?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tools?: string[];
 }
 
 export class CreateProductMediaDto {
@@ -233,9 +258,34 @@ export class CreateProductMaterialLinkDto {
 }
 
 export class CreateProductVariantDto {
+  // ID de variante existente → upsert (conserva referencias de carrito)
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @IsOptional()
   @IsString()
   sku?: string;
+
+  // Nombre legible, ej. "Talla M · Rojo"; se compone en el servidor si falta
+  @IsOptional()
+  @IsString()
+  variantName?: string;
+
+  // Ejes de variación, ej. {"talla":"M","color":"Rojo"}
+  @IsOptional()
+  @IsObject()
+  optionValues?: Record<string, string>;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minStock?: number;
+
+  // Foto propia de la variante (opcional)
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 
   @IsNotEmpty()
   @IsNumber()
@@ -314,6 +364,10 @@ export class CreateProductsNewDto {
 
   @IsOptional()
   @IsUUID()
+  subcategoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
   legacyProductId?: string;
 
   @IsNotEmpty()
@@ -334,6 +388,10 @@ export class CreateProductsNewDto {
   @IsOptional()
   @IsString()
   careNotes?: string;
+
+  @IsOptional()
+  @IsString()
+  usageSuggestions?: string;
 
   @IsOptional()
   @IsEnum(ProductStatus)

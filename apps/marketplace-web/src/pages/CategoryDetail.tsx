@@ -9,7 +9,7 @@ import {
   getMaterialNames,
   getCraftName,
   getTechniqueName,
-  type ProductNewCore,
+  type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
@@ -170,7 +170,7 @@ const CategoryDetail = () => {
     loading: taxonomyLoading,
   } = useTaxonomy();
 
-  const [products, setProducts] = useState<ProductNewCore[]>([]);
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
@@ -213,8 +213,8 @@ const CategoryDetail = () => {
       .then((res) => {
         // res could be paginated or array
         if (Array.isArray(res)) {
-          setProducts(res as ProductNewCore[]);
-          setTotalProducts((res as ProductNewCore[]).length);
+          setProducts(res as ProductFeatured[]);
+          setTotalProducts((res as ProductFeatured[]).length);
         } else {
           setProducts(res.data ?? []);
           setTotalProducts(res.total ?? 0);
@@ -611,11 +611,17 @@ const CategoryDetail = () => {
           {(() => {
             const shopsMap = new Map<
               string,
-              NonNullable<ProductNewCore["artisanShop"]>
+              { shopId: string; storeName: string; storeSlug: string; logoUrl?: string; department?: string }
             >();
             products.forEach((p) => {
-              if (p.artisanShop && !shopsMap.has(p.artisanShop.id)) {
-                shopsMap.set(p.artisanShop.id, p.artisanShop);
+              if (p.shopId && !shopsMap.has(p.shopId)) {
+                shopsMap.set(p.shopId, {
+                  shopId: p.shopId,
+                  storeName: p.storeName,
+                  storeSlug: p.storeSlug,
+                  logoUrl: p.logoUrl,
+                  department: p.department,
+                });
               }
             });
             const shops = Array.from(shopsMap.values()).slice(0, 3);
@@ -635,21 +641,21 @@ const CategoryDetail = () => {
 
             return shops.map((shop) => (
               <Link
-                key={shop.id}
-                to={`/artesano/${shop.shopSlug}`}
+                key={shop.shopId}
+                to={`/artesano/${shop.storeSlug}`}
                 className="bg-white p-8 rounded-sm border border-primary/10 hover:shadow-xl transition-all cursor-pointer group"
               >
                 <div className="w-full aspect-square bg-[#FBEFE1] rounded-sm border border-foreground/10 mb-8 overflow-hidden">
                   {shop.logoUrl && (
                     <img
                       src={shop.logoUrl}
-                      alt={shop.shopName}
-                      className="w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
+                      alt={shop.storeName}
+                      className="w-full h-full object-cover"
                     />
                   )}
                 </div>
                 <h3 className="font-bold text-xl mb-1 font-sans">
-                  {shop.shopName}
+                  {shop.storeName}
                 </h3>
                 <p className="text-primary text-[10px] uppercase tracking-widest mb-4 font-bold font-sans">
                   {shop.department ?? ""}
@@ -689,7 +695,7 @@ function ProductNewCard({
   product,
   className = "",
 }: {
-  product: ProductNewCore;
+  product: ProductFeatured;
   className?: string;
 }) {
   const imageUrl = getPrimaryImageUrl(product);
@@ -697,7 +703,7 @@ function ProductNewCard({
   const craft = getCraftName(product);
   const technique = getTechniqueName(product);
   const stock = getProductStock(product);
-  const shopName = product.artisanShop?.shopName;
+  const shopName = product.storeName;
 
   return (
     <div className={className}>
