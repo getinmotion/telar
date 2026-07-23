@@ -267,6 +267,19 @@ export const ConfirmPurchase: React.FC = () => {
       // Filter out gift cards - they don't need shipping
       const physicalItems = items.filter((item) => !item.isGiftCard);
 
+      // Recoger en local: sin costo de envío, no se consulta la cotización
+      if (selectedShippingService === 'recoger') {
+        setShippingQuotes([]);
+        setShippingCost(0);
+        setEstimatedDays(0);
+        localStorage.setItem('pending_shipping_costs', JSON.stringify({
+          valor_flete: 0,
+          valor_sobre_flete: 0,
+          valor_total_flete: 0,
+        }));
+        return;
+      }
+
       // Servientrega quote requires a real cart_id (the function reads cart items from backend)
       if (
         !selectedShippingService ||
@@ -797,7 +810,7 @@ export const ConfirmPurchase: React.FC = () => {
                           </span>
                           {loadingShipping ? (
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          ) : shippingCost > 0 ? (
+                          ) : selectedShippingService ? (
                             <span>{fmt(shippingCost)}</span>
                           ) : (
                             <span className="text-muted-foreground text-xs">
@@ -1267,6 +1280,37 @@ export const ConfirmPurchase: React.FC = () => {
                               </SelectContent>
                             </Select>
                           </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Shipping Service Selection */}
+                <Card>
+                  <CardHeader className="p-4 md:p-6">
+                    <h2 className="text-base md:text-lg font-medium flex items-center gap-2">
+                      <Truck className="h-5 w-5" />
+                      Seleccionar servicio de envío
+                    </h2>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="shipping-service">Servicio de envío</Label>
+                      <Select 
+                        value={selectedShippingService} 
+                        onValueChange={setSelectedShippingService}
+                        disabled={!shippingInfo.daneCiudad}
+                      >
+                        <SelectTrigger id="shipping-service" className="h-11">
+                          <SelectValue placeholder={shippingInfo.daneCiudad ? "Selecciona un servicio" : "Completa la dirección primero"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="servientrega">Servientrega</SelectItem>
+                          <SelectItem value="recoger">Recoger en local</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                           {/* Quote result info */}
                           {loadingShipping && (
