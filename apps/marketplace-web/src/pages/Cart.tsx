@@ -151,7 +151,7 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Envío</span>
-                    <span className="font-medium">Gratis</span>
+                    <span className="font-medium text-sm text-muted-foreground">Se calcula en el siguiente paso</span>
                   </div>
                 </div>
 

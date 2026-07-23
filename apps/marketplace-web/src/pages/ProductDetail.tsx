@@ -38,7 +38,6 @@ import { ProductVariants } from "@/components/ProductVariants";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { ProductPurchaseButton } from "@/components/ProductPurchaseButton";
-import { CartDrawer } from "@/components/CartDrawer";
 import { Footer } from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -1000,7 +999,6 @@ const ProductDetail = () => {
         />
       </div>
 
-      <CartDrawer />
       <Footer />
     </div>
   );
