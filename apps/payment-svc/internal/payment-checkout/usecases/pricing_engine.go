@@ -46,7 +46,7 @@ func (pe *PricingEngine) CalculateTotalsOrchestrator(ctx context.Context, cartID
 
 	// 5. Totalizar
 	chargesTotal := shippingCost + vatAmount
-	grandTotal := subtotal + chargesTotal
+	grandTotal := subtotal 
 
 	// 6. Construir Estructura Checkout (Sin ID aún)
 	checkout := &domain.Checkout{
