@@ -46,7 +46,8 @@ export const ProductPurchaseButton = ({
 
   // Determinar el tipo de indisponibilidad
   const isOutOfStock = stock === 0;
-  const isComingSoon = !canPurchase && (stock === undefined || stock > 0);
+
+  console.log(canPurchase, isOutOfStock, requiresVariantSelection, variantId);
 
   // Versión para tarjeta de producto (compacta)
   if (variant === "card") {
@@ -54,8 +55,8 @@ export const ProductPurchaseButton = ({
     if (isOutOfStock) {
       return (
         <>
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="bg-red-500 hover:bg-red-500 text-white border-0 cursor-pointer"
             onClick={handleNotifyClick}
           >
@@ -86,9 +87,7 @@ export const ProductPurchaseButton = ({
 
     // Por defecto: Próximamente (tiene stock pero tienda no lista)
     return (
-      <Badge 
-        className="bg-amber-500 hover:bg-amber-500 text-white border-0"
-      >
+      <Badge className="bg-amber-500 hover:bg-amber-500 text-white border-0">
         Próximamente
       </Badge>
     );
@@ -109,8 +108,8 @@ export const ProductPurchaseButton = ({
               Este producto no está disponible actualmente.
             </p>
           </div>
-          
-          <Button 
+
+          <Button
             variant="outline"
             className={`w-full h-12 ${className}`}
             onClick={handleNotifyClick}
@@ -119,7 +118,7 @@ export const ProductPurchaseButton = ({
             Avísame cuando esté disponible
           </Button>
         </div>
-        
+
         <NotifyWhenAvailableModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -140,7 +139,9 @@ export const ProductPurchaseButton = ({
         disabled={requiresVariantSelection}
       >
         <ShoppingCart className="mr-2 h-5 w-5" />
-        {requiresVariantSelection ? "Selecciona una opción" : "Agregar al carrito"}
+        {requiresVariantSelection
+          ? "Selecciona una opción"
+          : "Agregar al carrito"}
       </Button>
     );
   }

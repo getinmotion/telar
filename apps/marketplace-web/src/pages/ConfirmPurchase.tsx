@@ -244,6 +244,19 @@ export const ConfirmPurchase: React.FC = () => {
       // Filter out gift cards - they don't need shipping
       const physicalItems = items.filter((item) => !item.isGiftCard);
 
+      // Recoger en local: sin costo de envío, no se consulta la cotización
+      if (selectedShippingService === 'recoger') {
+        setShippingQuotes([]);
+        setShippingCost(0);
+        setEstimatedDays(0);
+        localStorage.setItem('pending_shipping_costs', JSON.stringify({
+          valor_flete: 0,
+          valor_sobre_flete: 0,
+          valor_total_flete: 0,
+        }));
+        return;
+      }
+
       // Servientrega quote requires a real cart_id (the function reads cart items from backend)
       if (
         !selectedShippingService ||
@@ -731,7 +744,7 @@ export const ConfirmPurchase: React.FC = () => {
                           </span>
                           {loadingShipping ? (
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          ) : shippingCost > 0 ? (
+                          ) : selectedShippingService ? (
                             <span>{fmt(shippingCost)}</span>
                           ) : (
                             <span className="text-muted-foreground text-xs">Selecciona servicio</span>
@@ -1084,6 +1097,7 @@ export const ConfirmPurchase: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="servientrega">Servientrega</SelectItem>
+                          <SelectItem value="recoger">Recoger en local</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

@@ -46,7 +46,8 @@ import { geocodeArtisan } from "@/lib/colombia-geocodes";
 import { Product, MarketplaceVariant } from "@/types/products.types";
 import { ArtisanShop } from "@/types/artisan-shops.types";
 
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const MAP_STYLE =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 const PIECE_TYPE_LABELS: Record<string, string> = {
   funcional: "Funcional",
@@ -74,7 +75,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [loadingShop, setLoadingShop] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<MarketplaceVariant | null>(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState<MarketplaceVariant | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
 
   const { addToCart } = useCart();
@@ -82,7 +84,10 @@ const ProductDetail = () => {
   const { fetchShopById } = useArtisanShops();
   const { fetchProductById } = useProducts();
   const isFavorite = product ? isInWishlist(product.id) : false;
-  const shopCoords = useMemo(() => (shop ? geocodeArtisan(shop) : null), [shop]);
+  const shopCoords = useMemo(
+    () => (shop ? geocodeArtisan(shop) : null),
+    [shop],
+  );
 
   // Reset scroll to top when product ID changes
   useEffect(() => {
@@ -98,10 +103,7 @@ const ProductDetail = () => {
     try {
       const productData = await fetchProductById(id);
       if (productData) {
-        const realStock = productData?.stock || productData.inventory || 0;
-        const storeReadyToPurchase = productData.canPurchase ?? false;
-        const realCanPurchase = storeReadyToPurchase && realStock > 0;
-        setProduct({ ...productData, stock: realStock, canPurchase: realCanPurchase });
+        setProduct(productData);
         if (productData.shopId) fetchShopInfo(productData.shopId);
       }
     } catch {
@@ -139,11 +141,16 @@ const ProductDetail = () => {
 
   const maxStock = selectedVariant?.stock ?? product?.stock ?? 0;
 
+  console.log("Max Stock:", maxStock);
+
   // Disponibilidad comercial (availabilityType de producción)
   const availabilityInfo = (() => {
     switch (product?.availabilityType) {
       case "pieza_unica":
-        return { label: "Pieza única", note: "Existe un solo ejemplar de esta pieza." };
+        return {
+          label: "Pieza única",
+          note: "Existe un solo ejemplar de esta pieza.",
+        };
       case "edicion_limitada":
         return { label: "Edición limitada", note: null };
       case "bajo_pedido":
@@ -247,9 +254,10 @@ const ProductDetail = () => {
                 </h2>
                 {(shop?.region || product.storeName) && (
                   <p className="text-sm text-[#2c2c2c]/80 italic">
-                    Hecho a mano en {shop?.municipality || shop?.region || "Colombia"}
-                    {shop?.department ? `, ${shop.department}` : ""} por el taller{" "}
-                    {product.storeName}
+                    Hecho a mano en{" "}
+                    {shop?.municipality || shop?.region || "Colombia"}
+                    {shop?.department ? `, ${shop.department}` : ""} por el
+                    taller {product.storeName}
                   </p>
                 )}
                 {product.isCollaboration && product.collaborationName && (
@@ -283,8 +291,8 @@ const ProductDetail = () => {
                 Ver certificado de autenticidad
               </button>
               <p className="text-[10px] text-[#2c2c2c]/40 max-w-xs leading-relaxed">
-                Al adquirir esta pieza, usted recibe un certificado de autenticidad
-                digital que garantiza su origen y autoría.
+                Al adquirir esta pieza, usted recibe un certificado de
+                autenticidad digital que garantiza su origen y autoría.
               </p>
 
               {/* Coming Soon Card */}
@@ -301,9 +309,9 @@ const ProductDetail = () => {
                     <h4 className="font-serif italic text-lg">Próximamente</h4>
                   </div>
                   <p className="text-sm text-[#2c2c2c]/70 leading-relaxed">
-                    Estamos construyendo un sistema de certificados digitales que
-                    permitirá verificar la autenticidad, el origen y la trazabilidad
-                    de cada pieza artesanal.
+                    Estamos construyendo un sistema de certificados digitales
+                    que permitirá verificar la autenticidad, el origen y la
+                    trazabilidad de cada pieza artesanal.
                   </p>
                   <p className="text-[10px] uppercase tracking-widest text-[#2c2c2c]/40 font-bold">
                     Lanzamiento próximo · 2026
@@ -380,7 +388,9 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="text-4xl font-serif mb-12 text-[#2c2c2c]">
               {!selectedVariant && hasPriceRange && (
-                <span className="text-lg text-[#2c2c2c]/50 italic mr-2">Desde</span>
+                <span className="text-lg text-[#2c2c2c]/50 italic mr-2">
+                  Desde
+                </span>
               )}
               {formatCurrency(getFinalPrice())}
             </div>
@@ -429,7 +439,9 @@ const ProductDetail = () => {
                   </span>
                   <button
                     className="w-10 h-10 flex items-center justify-center text-[#2c2c2c]/60 hover:text-[#2c2c2c] transition-colors disabled:opacity-30"
-                    onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
+                    onClick={() =>
+                      setQuantity(Math.min(maxStock, quantity + 1))
+                    }
                     disabled={quantity >= maxStock}
                   >
                     +
@@ -450,8 +462,10 @@ const ProductDetail = () => {
               <ProductPurchaseButton
                 productId={product.id}
                 productName={product.name}
-                canPurchase={product.canPurchase ?? true}
-                stock={product.stock}
+                canPurchase={
+                  product.stock !== undefined ? product.stock > 0 : maxStock > 0
+                }
+                stock={maxStock}
                 quantity={quantity}
                 variantId={selectedVariant?.id}
                 requiresVariantSelection={needsVariantSelection}
@@ -535,10 +549,14 @@ const ProductDetail = () => {
                       Materiales
                     </span>
                     <span className="italic">
-                      {(product.materialsDetailed ?? []).some((m) => m.percentage != null)
-                        ? product.materialsDetailed!
-                            .map((m) =>
-                              m.percentage != null ? `${m.name} (${m.percentage}%)` : m.name
+                      {(product.materialsDetailed ?? []).some(
+                        (m) => m.percentage != null,
+                      )
+                        ? product
+                            .materialsDetailed!.map((m) =>
+                              m.percentage != null
+                                ? `${m.name} (${m.percentage}%)`
+                                : m.name,
                             )
                             .join(", ")
                         : product.materials?.join(", ") || product.material}
@@ -568,7 +586,9 @@ const ProductDetail = () => {
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Requisitos para iniciar
                     </span>
-                    <span className="italic">{product.requirementsToStart}</span>
+                    <span className="italic">
+                      {product.requirementsToStart}
+                    </span>
                   </span>
                 </li>
               )}
@@ -658,7 +678,8 @@ const ProductDetail = () => {
                     Capacidad mensual
                   </span>
                   <span className="italic">
-                    {product.monthlyCapacity} unidad{product.monthlyCapacity !== 1 ? "es" : ""}/mes
+                    {product.monthlyCapacity} unidad
+                    {product.monthlyCapacity !== 1 ? "es" : ""}/mes
                   </span>
                 </li>
               )}
@@ -872,10 +893,17 @@ const ProductDetail = () => {
           const aboutStory = shop?.aboutContent?.story?.trim();
           const directStory = shop?.story?.trim();
           const description = shop?.description?.trim();
-          const identityStory = aboutStory || directStory || description || null;
-          const claim = shop?.brandClaim?.trim() || shop?.aboutContent?.title?.trim() || null;
+          const identityStory =
+            aboutStory || directStory || description || null;
+          const claim =
+            shop?.brandClaim?.trim() ||
+            shop?.aboutContent?.title?.trim() ||
+            null;
           // Si no hay tienda real ni copy alguno, no renderizamos la sección.
-          if (!product.storeName || (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)) {
+          if (
+            !product.storeName ||
+            (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)
+          ) {
             return null;
           }
           return (
@@ -927,7 +955,13 @@ const ProductDetail = () => {
                   </div>
                 )}
                 <Link
-                  to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
+                  to={
+                    shop?.shopSlug
+                      ? `/artesano/${shop.shopSlug}`
+                      : product.storeSlug
+                        ? `/artesano/${product.storeSlug}`
+                        : "#"
+                  }
                   className="inline-block border border-[#2c2c2c] text-[#2c2c2c] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2c2c2c] hover:text-white transition-all"
                 >
                   Ver perfil del taller
@@ -954,8 +988,8 @@ const ProductDetail = () => {
             </h3>
             <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed">
               Trabajamos directamente con talleres artesanales para que las
-              personas que crean cada pieza reciban una compensación justa por su
-              trabajo.
+              personas que crean cada pieza reciban una compensación justa por
+              su trabajo.
             </p>
             <Link
               to="/newsletter"
@@ -974,8 +1008,8 @@ const ProductDetail = () => {
                 ¿Es para un regalo?
               </h3>
               <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed max-w-md">
-                Ofrecemos opciones de empaque especial que cuentan la historia de
-                la pieza y una nota personalizada.
+                Ofrecemos opciones de empaque especial que cuentan la historia
+                de la pieza y una nota personalizada.
               </p>
               <Link
                 to="/giftcards"

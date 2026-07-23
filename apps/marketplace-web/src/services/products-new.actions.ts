@@ -4,7 +4,7 @@
  * Estos son los productos con la nueva arquitectura multi-capa
  */
 
-import { telarApiPublic } from '@/integrations/api/telarApi';
+import { telarApiPublic } from "@/integrations/api/telarApi";
 
 // ── Types matching backend entities ───────────────────
 
@@ -170,6 +170,8 @@ export interface ProductFeatured {
 
   // Pricing (flattened from variant)
   price: number;
+  priceMax?: number;
+  hasPriceRange?: boolean;
   currency: string;
   stock: number;
 
@@ -225,9 +227,9 @@ function coercePaginatedMarketplace(raw: any): MarketplacePaginatedResponse {
   const data = coerceArr<ProductFeatured>(raw);
   return {
     data,
-    total: typeof raw?.total === 'number' ? raw.total : data.length,
-    page: typeof raw?.page === 'number' ? raw.page : 1,
-    limit: typeof raw?.limit === 'number' ? raw.limit : data.length,
+    total: typeof raw?.total === "number" ? raw.total : data.length,
+    page: typeof raw?.page === "number" ? raw.page : 1,
+    limit: typeof raw?.limit === "number" ? raw.limit : data.length,
   };
 }
 
@@ -235,9 +237,9 @@ function coercePaginated(raw: any): ProductsNewPaginatedResponse {
   const data = coerceArr<ProductNewCore>(raw);
   return {
     data,
-    total: typeof raw?.total === 'number' ? raw.total : data.length,
-    page: typeof raw?.page === 'number' ? raw.page : 1,
-    limit: typeof raw?.limit === 'number' ? raw.limit : data.length,
+    total: typeof raw?.total === "number" ? raw.total : data.length,
+    page: typeof raw?.page === "number" ? raw.page : 1,
+    limit: typeof raw?.limit === "number" ? raw.limit : data.length,
   } as ProductsNewPaginatedResponse;
 }
 
@@ -248,17 +250,20 @@ export const getProductsNew = async (params?: {
   categoryId?: string;
   featured?: boolean;
   sortBy?: string;
-  order?: 'ASC' | 'DESC';
+  order?: "ASC" | "DESC";
 }): Promise<MarketplacePaginatedResponse> => {
   try {
     const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get<MarketplacePaginatedResponse>(
-      '/products-new/marketplace',
+      "/products-new/marketplace",
       { params: { agreementId, ...params } },
     );
     return coercePaginatedMarketplace(response.data);
   } catch (err: any) {
-    console.warn('[products-new] GET /products-new/marketplace falló:', err?.message ?? err);
+    console.warn(
+      "[products-new] GET /products-new/marketplace falló:",
+      err?.message ?? err,
+    );
     return { data: [], total: 0, page: 1, limit: 0 };
   }
 };
@@ -272,55 +277,90 @@ export const getProductsNewLegacy = async (params?: {
   status?: string;
 }): Promise<ProductsNewPaginatedResponse> => {
   try {
-    const response = await telarApiPublic.get<ProductsNewPaginatedResponse>('/products-new', {
-      params,
-    });
+    const response = await telarApiPublic.get<ProductsNewPaginatedResponse>(
+      "/products-new",
+      {
+        params,
+      },
+    );
     return coercePaginated(response.data);
   } catch (err: any) {
-    console.warn('[products-new] GET /products-new falló:', err?.message ?? err);
-    return { data: [], total: 0, page: 1, limit: 0 } as ProductsNewPaginatedResponse;
+    console.warn(
+      "[products-new] GET /products-new falló:",
+      err?.message ?? err,
+    );
+    return {
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 0,
+    } as ProductsNewPaginatedResponse;
   }
 };
 
 /** GET /products-new/:id — single product with all layers */
-export const getProductNewById = async (id: string): Promise<ProductNewCore> => {
-  const response = await telarApiPublic.get<ProductNewCore>(`/products-new/${id}`);
+export const getProductNewById = async (
+  id: string,
+): Promise<ProductNewCore> => {
+  const response = await telarApiPublic.get<ProductNewCore>(
+    `/products-new/${id}`,
+  );
   return response.data;
 };
 
 /** GET /products-new/category/:categoryId — products by category */
-export const getProductsByCategory = async (categoryId: string): Promise<ProductNewCore[]> => {
+export const getProductsByCategory = async (
+  categoryId: string,
+): Promise<ProductNewCore[]> => {
   try {
-    const response = await telarApiPublic.get(`/products-new/category/${categoryId}`);
+    const response = await telarApiPublic.get(
+      `/products-new/category/${categoryId}`,
+    );
     return coerceArr<ProductNewCore>(response.data);
   } catch (err: any) {
-    console.warn(`[products-new] GET /products-new/category/${categoryId} falló:`, err?.message ?? err);
+    console.warn(
+      `[products-new] GET /products-new/category/${categoryId} falló:`,
+      err?.message ?? err,
+    );
     return [];
   }
 };
 
 /** POST /products-new/by-ids — hidrata productos por IDs (usado por bloques CMS) */
-export const getProductsByIds = async (ids: string[]): Promise<ProductNewCore[]> => {
+export const getProductsByIds = async (
+  ids: string[],
+): Promise<ProductNewCore[]> => {
   if (!ids || ids.length === 0) return [];
   try {
-    const response = await telarApiPublic.post('/products-new/by-ids', { ids });
+    const response = await telarApiPublic.post("/products-new/by-ids", { ids });
     return coerceArr<ProductNewCore>(response.data);
   } catch (err: any) {
-    console.warn('[products-new] POST /products-new/by-ids falló:', err?.message ?? err);
+    console.warn(
+      "[products-new] POST /products-new/by-ids falló:",
+      err?.message ?? err,
+    );
     return [];
   }
 };
 
 /** GET /products-new/marketplace/store/:storeId — products by store */
-export const getProductsByStore = async (storeId: string): Promise<ProductFeatured[]> => {
+export const getProductsByStore = async (
+  storeId: string,
+): Promise<ProductFeatured[]> => {
   try {
     const agreementId = import.meta.env.VITE_AGREEMENT_ID;
-    const response = await telarApiPublic.get(`/products-new/marketplace/store/${storeId}`, {
-      params: { agreementId },
-    });
+    const response = await telarApiPublic.get(
+      `/products-new/marketplace/store/${storeId}`,
+      {
+        params: { agreementId },
+      },
+    );
     return coerceArr<ProductFeatured>(response.data);
   } catch (err: any) {
-    console.warn(`[products-new] GET store/${storeId} falló:`, err?.message ?? err);
+    console.warn(
+      `[products-new] GET store/${storeId} falló:`,
+      err?.message ?? err,
+    );
     return [];
   }
 };
@@ -329,12 +369,18 @@ export const getProductsByStore = async (storeId: string): Promise<ProductFeatur
 export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
   try {
     const agreementId = import.meta.env.VITE_AGREEMENT_ID;
-    const response = await telarApiPublic.get('/products-new/marketplace/featured', {
-      params: { agreementId },
-    });
+    const response = await telarApiPublic.get(
+      "/products-new/marketplace/featured",
+      {
+        params: { agreementId },
+      },
+    );
     return coerceArr<ProductFeatured>(response.data);
   } catch (err: any) {
-    console.warn('[products-new] GET marketplace/featured falló:', err?.message ?? err);
+    console.warn(
+      "[products-new] GET marketplace/featured falló:",
+      err?.message ?? err,
+    );
     return [];
   }
 };
@@ -343,7 +389,7 @@ export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
 
 /** Check if a product is the flat marketplace shape */
 function isMarketplaceProduct(product: AnyProduct): product is ProductFeatured {
-  return 'storeName' in product;
+  return "storeName" in product;
 }
 
 /**
@@ -351,8 +397,11 @@ function isMarketplaceProduct(product: AnyProduct): product is ProductFeatured {
  * Preserves the full file key including double-extensions (those are the real S3 keys).
  */
 function fixImageHost(url: string): string {
-  return url.startsWith('https://cdn.telar.co/')
-    ? url.replace('https://cdn.telar.co/', 'https://telar-prod-bucket.s3.us-east-1.amazonaws.com/')
+  return url.startsWith("https://cdn.telar.co/")
+    ? url.replace(
+        "https://cdn.telar.co/",
+        "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/",
+      )
     : url;
 }
 
@@ -363,7 +412,7 @@ export function getPrimaryImageUrl(product: AnyProduct): string | null {
     if (product.images?.length > 0) return fixImageHost(product.images[0]);
     return null;
   }
-  const primary = product.media?.find(m => m.isPrimary);
+  const primary = product.media?.find((m) => m.isPrimary);
   if (primary) return fixImageHost(primary.mediaUrl);
   const first = product.media?.[0];
   return first?.mediaUrl ? fixImageHost(first.mediaUrl) : null;
@@ -372,12 +421,12 @@ export function getPrimaryImageUrl(product: AnyProduct): string | null {
 /** Get all image URLs sorted by display order */
 export function getAllImageUrls(product: AnyProduct): string[] {
   if (isMarketplaceProduct(product)) {
-    return (product.images ?? []).map(url => fixImageHost(url));
+    return (product.images ?? []).map((url) => fixImageHost(url));
   }
   return (product.media ?? [])
-    .filter(m => m.mediaType === 'image')
+    .filter((m) => m.mediaType === "image")
     .sort((a, b) => a.displayOrder - b.displayOrder)
-    .map(m => fixImageHost(m.mediaUrl));
+    .map((m) => fixImageHost(m.mediaUrl));
 }
 
 /** Get the price from variants (first variant or min price).
@@ -387,9 +436,10 @@ export function getAllImageUrls(product: AnyProduct): string[] {
 /** Precio de una variante en pesos, con heurística de centavos-vs-pesos */
 export function variantPriceInPesos(v: ProductVariant): number | null {
   if (v.basePriceMinor != null) {
-    const raw = typeof v.basePriceMinor === 'string'
-      ? parseInt(v.basePriceMinor, 10)
-      : Number(v.basePriceMinor);
+    const raw =
+      typeof v.basePriceMinor === "string"
+        ? parseInt(v.basePriceMinor, 10)
+        : Number(v.basePriceMinor);
     if (!isNaN(raw) && raw > 0) {
       const asPesos = raw / 100;
       // Sanity: COP artisan products are typically ≥ $1,000. If dividing
@@ -400,7 +450,9 @@ export function variantPriceInPesos(v: ProductVariant): number | null {
   return v.price ?? null;
 }
 
-export function getProductPrice(product: ProductNewCore): number | null {
+export function getProductPrice(product: AnyProduct): number | null {
+  if (isMarketplaceProduct(product)) return product.price ?? null;
+
   const prices = (product.variants ?? [])
     .map(variantPriceInPesos)
     .filter((p): p is number => p != null && p > 0);
@@ -410,7 +462,9 @@ export function getProductPrice(product: ProductNewCore): number | null {
 }
 
 /** Precio máximo entre variantes (para rangos "Desde $X") */
-export function getProductPriceMax(product: ProductNewCore): number | null {
+export function getProductPriceMax(product: AnyProduct): number | null {
+  if (isMarketplaceProduct(product)) return product.priceMax ?? product.price ?? null;
+
   const prices = (product.variants ?? [])
     .map(variantPriceInPesos)
     .filter((p): p is number => p != null && p > 0);
@@ -420,16 +474,20 @@ export function getProductPriceMax(product: ProductNewCore): number | null {
 }
 
 /** Get total stock from variants */
-export function getProductStock(product: ProductNewCore): number {
-  return (product.variants ?? [])
-    .reduce((sum, v) => sum + (v.stockQuantity ?? v.stock ?? 0), 0);
+export function getProductStock(product: AnyProduct): number {
+  if (isMarketplaceProduct(product)) return product.stock ?? 0;
+
+  return (product.variants ?? []).reduce(
+    (sum, v) => sum + (v.stockQuantity ?? v.stock ?? 0),
+    0,
+  );
 }
 
 /** Get material names from product */
 export function getMaterialNames(product: AnyProduct): string[] {
   if (isMarketplaceProduct(product)) return product.materials ?? [];
   return (product.materials ?? [])
-    .map(m => m.material?.name)
+    .map((m) => m.material?.name)
     .filter(Boolean) as string[];
 }
 
