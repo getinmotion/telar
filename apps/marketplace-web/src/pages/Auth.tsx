@@ -59,7 +59,7 @@ const Auth = () => {
           </NavLink>
 
           <div className="flex justify-center">
-            <img src={cocreaLogo} alt="CO·CREA" className="h-12" />
+            <img src={cocreaLogo} alt="Villa Adelaida" className="h-24" />
           </div>
 
           <div>

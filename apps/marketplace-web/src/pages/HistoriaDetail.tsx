@@ -159,12 +159,12 @@ const HistoriaDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6]">
+      <div className="min-h-screen bg-[#F7E7D7]">
         <div className="max-w-[1400px] mx-auto px-6 py-32 animate-pulse space-y-16">
           <div className="max-w-5xl mx-auto text-center space-y-8">
-            <div className="h-4 w-40 bg-[#e5e1d8] mx-auto rounded" />
-            <div className="h-20 w-full bg-[#e5e1d8] rounded" />
-            <div className="h-6 w-96 bg-[#e5e1d8] mx-auto rounded" />
+            <div className="h-4 w-40 bg-[#F3E4D3] mx-auto rounded" />
+            <div className="h-20 w-full bg-[#F3E4D3] rounded" />
+            <div className="h-6 w-96 bg-[#F3E4D3] mx-auto rounded" />
           </div>
         </div>
       </div>
@@ -173,14 +173,14 @@ const HistoriaDetail = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6] flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-[#F7E7D7] flex flex-col items-center justify-center gap-6">
         <h1 className="font-serif text-4xl italic">Historia no encontrada</h1>
-        <p className="text-[#2b2f26]/60">
+        <p className="text-[#1a1a1a]/60">
           La historia que buscas no existe o ha sido eliminada.
         </p>
         <Link
           to="/historias"
-          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#2e5424] transition-colors"
+          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-[#BC3F1C] transition-colors"
         >
           <ArrowLeft className="w-3 h-3" />
           Volver a Historias
@@ -200,7 +200,7 @@ const HistoriaDetail = () => {
   return (
     <>
       <Helmet>
-        <title>{article.title} | Historias COCREA</title>
+        <title>{article.title} | Historias Villa Adelaida</title>
         {article.excerpt && (
           <meta name="description" content={article.excerpt} />
         )}
@@ -210,42 +210,42 @@ const HistoriaDetail = () => {
         <meta property="og:type" content="article" />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
+      <div className="min-h-screen bg-[#F7E7D7] text-[#1a1a1a]">
         {/* HERO */}
         <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28 flex flex-col items-center text-center">
           <div className="space-y-12 max-w-5xl mx-auto">
-            <nav className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-[#2b2f26]/40 font-medium">
-              <Link to="/" className="hover:text-[#2b2f26] transition-colors">
+            <nav className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-[#1a1a1a]/40 font-medium">
+              <Link to="/" className="hover:text-[#1a1a1a] transition-colors">
                 Inicio
               </Link>
               <span>/</span>
               <Link
                 to="/historias"
-                className="hover:text-[#2b2f26] transition-colors"
+                className="hover:text-[#1a1a1a] transition-colors"
               >
                 Historias
               </Link>
               <span>/</span>
-              <span className="text-[#2e5424] truncate max-w-[200px]">
+              <span className="text-[#BC3F1C] truncate max-w-[200px]">
                 {article.title}
               </span>
             </nav>
 
             <div className="space-y-8">
-              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-[#2e5424] font-bold">
+              <span className="inline-block text-[10px] uppercase tracking-[0.4em] text-[#BC3F1C] font-bold">
                 {article.category || "Crónica del Territorio"}
               </span>
               <h1 className="text-5xl md:text-7xl lg:text-8xl leading-[0.9] font-serif italic tracking-tight">
                 {article.title}
               </h1>
               {article.excerpt && (
-                <p className="text-xl md:text-2xl text-[#2b2f26]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
+                <p className="text-xl md:text-2xl text-[#1a1a1a]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
                   {article.excerpt}
                 </p>
               )}
             </div>
 
-            <div className="flex flex-wrap justify-center items-center gap-8 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2b2f26]/50 pt-12 border-t border-[#2b2f26]/10">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#1a1a1a]/50 pt-12 border-t border-[#1a1a1a]/10">
               {publishDate && (
                 <span>
                   {format(new Date(publishDate), "d 'de' MMMM, yyyy", {
@@ -262,7 +262,7 @@ const HistoriaDetail = () => {
               )}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 hover:text-[#2e5424] transition-colors"
+                className="flex items-center gap-2 hover:text-[#BC3F1C] transition-colors"
               >
                 <Share2 className="w-3 h-3" />
                 Compartir
@@ -281,7 +281,7 @@ const HistoriaDetail = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <p className="mt-4 text-[10px] tracking-widest text-[#2b2f26]/40 uppercase text-center">
+            <p className="mt-4 text-[10px] tracking-widest text-[#1a1a1a]/40 uppercase text-center">
               {article.coverAlt ?? article.title}
             </p>
           </section>
@@ -289,13 +289,13 @@ const HistoriaDetail = () => {
 
         {/* BLOCKQUOTE OPENER */}
         {article.excerpt && (
-          <section className="py-24 md:py-32 px-6 flex justify-center bg-white/50 border-y border-[#2b2f26]/5">
+          <section className="py-24 md:py-32 px-6 flex justify-center bg-white/50 border-y border-[#1a1a1a]/5">
             <div className="max-w-3xl text-center">
-              <div className="w-16 h-px bg-[#2e5424]/40 mx-auto mb-16" />
-              <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#2b2f26]">
+              <div className="w-16 h-px bg-[#BC3F1C]/40 mx-auto mb-16" />
+              <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#1a1a1a]">
                 "{article.excerpt}"
               </blockquote>
-              <div className="w-16 h-px bg-[#2e5424]/40 mx-auto mt-16" />
+              <div className="w-16 h-px bg-[#BC3F1C]/40 mx-auto mt-16" />
             </div>
           </section>
         )}
@@ -303,7 +303,7 @@ const HistoriaDetail = () => {
         {/* MAIN CONTENT (Markdown) */}
         {article.body && (
           <section className="py-24 md:py-32 px-6">
-            <div className="max-w-3xl mx-auto prose prose-lg prose-neutral prose-headings:font-serif prose-headings:italic prose-a:text-[#2e5424]">
+            <div className="max-w-3xl mx-auto prose prose-lg prose-neutral prose-headings:font-serif prose-headings:italic prose-a:text-[#BC3F1C]">
               <ReactMarkdown>{article.body}</ReactMarkdown>
             </div>
           </section>
@@ -311,9 +311,9 @@ const HistoriaDetail = () => {
 
         {/* AUTHOR */}
         {article.authorName && (
-          <section className="py-20 bg-[#2b2f26] text-[#f5f1e6] px-6">
+          <section className="py-20 bg-[#1a1a1a] text-[#F7E7D7] px-6">
             <div className="max-w-[1400px] mx-auto flex flex-col items-center text-center space-y-6">
-              <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+              <span className="text-[10px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                 Escrito por
               </span>
               <h3 className="font-serif text-3xl italic">
@@ -327,7 +327,7 @@ const HistoriaDetail = () => {
         {relatedProducts.length > 0 && (
           <section className="max-w-[1400px] mx-auto px-6 py-24 md:py-32">
             <div className="mb-16 text-center">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#2b2f26]/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#1a1a1a]/40">
                 Del Relato al Objeto
               </h3>
               <p className="text-3xl md:text-4xl font-serif italic">
@@ -344,7 +344,7 @@ const HistoriaDetail = () => {
                     to={`/product/${product.id}`}
                     className="group space-y-4"
                   >
-                    <div className="aspect-square overflow-hidden bg-[#e5e1d8]">
+                    <div className="aspect-square overflow-hidden bg-[#F3E4D3]">
                       {img && (
                         <img
                           src={img}
@@ -354,11 +354,11 @@ const HistoriaDetail = () => {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#2e5424] transition-colors line-clamp-2">
+                      <h4 className="font-serif text-lg leading-tight group-hover:text-[#BC3F1C] transition-colors line-clamp-2">
                         {product.name}
                       </h4>
                       {price != null && (
-                        <p className="text-sm font-bold text-[#2b2f26]">
+                        <p className="text-sm font-bold text-[#1a1a1a]">
                           {formatCurrency(price)}
                         </p>
                       )}
@@ -371,47 +371,47 @@ const HistoriaDetail = () => {
         )}
 
         {/* SYSTEM NAVIGATION */}
-        <section className="py-24 bg-white border-y border-[#2b2f26]/5">
+        <section className="py-24 bg-white border-y border-[#1a1a1a]/5">
           <div className="max-w-4xl mx-auto px-6">
-            <h4 className="text-[10px] font-bold tracking-[0.4em] text-center text-[#2b2f26]/30 mb-16 uppercase">
+            <h4 className="text-[10px] font-bold tracking-[0.4em] text-center text-[#1a1a1a]/30 mb-16 uppercase">
               Profundizar en la huella
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <Link to="/tiendas" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Store className="w-8 h-8 text-[#2e5424]" />
+                  <Store className="w-8 h-8 text-[#BC3F1C]" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Conocer el taller
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#1a1a1a]/40 font-bold">
                     Artesanos de Colombia
                   </span>
                 </div>
               </Link>
               <Link to="/tecnicas" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Waypoints className="w-8 h-8 text-[#2e5424]" />
+                  <Waypoints className="w-8 h-8 text-[#BC3F1C]" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Explorar técnica
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#1a1a1a]/40 font-bold">
                     Archivo de técnicas
                   </span>
                 </div>
               </Link>
               <Link to="/territorios" className="group text-center space-y-6">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                  <Map className="w-8 h-8 text-[#2e5424]" />
+                  <Map className="w-8 h-8 text-[#BC3F1C]" />
                 </div>
                 <div>
                   <span className="block text-2xl font-serif group-hover:italic transition-all">
                     Ver territorio
                   </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#2b2f26]/40 font-bold">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-[#1a1a1a]/40 font-bold">
                     Mapa de regiones
                   </span>
                 </div>
@@ -421,14 +421,14 @@ const HistoriaDetail = () => {
         </section>
 
         {/* CLOSING */}
-        <section className="py-32 md:py-40 px-6 text-center bg-[#f5f1e6]">
+        <section className="py-32 md:py-40 px-6 text-center bg-[#F7E7D7]">
           <div className="max-w-3xl mx-auto space-y-16">
-            <blockquote className="text-4xl md:text-5xl font-serif italic text-[#2b2f26] leading-[1.1]">
+            <blockquote className="text-4xl md:text-5xl font-serif italic text-[#1a1a1a] leading-[1.1]">
               "Cada puntada es un susurro de nuestros ancestros."
             </blockquote>
             <Link
               to="/historias"
-              className="inline-block bg-[#2b2f26] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#2e5424] transition-all duration-500 shadow-lg"
+              className="inline-block bg-[#1a1a1a] text-white px-12 py-5 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#BC3F1C] transition-all duration-500 shadow-lg"
             >
               Descubrir más relatos del territorio
             </Link>

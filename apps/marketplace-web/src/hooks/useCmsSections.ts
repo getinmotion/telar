@@ -8,11 +8,11 @@ import { getCmsSections, type CmsSection } from '@/services/cms-sections.actions
  */
 const LEGACY_BRAND_REPLACEMENTS: [RegExp, string][] = [
   [/El Telar Digital/g, 'El Taller Digital'],
-  [/TELAR © /g, 'COCREA © '],
-  [/Telar\.co/gi, 'Cocrea'],
-  [/Sobre Telar/g, 'Sobre Cocrea'],
-  [/Historias TELAR/g, 'Historias COCREA'],
-  [/Curada por TELAR/g, 'Curada por COCREA'],
+  [/TELAR © /g, 'Villa Adelaida © '],
+  [/Telar\.co/gi, 'Villa Adelaida'],
+  [/Sobre Telar/g, 'Sobre Villa Adelaida'],
+  [/Historias TELAR/g, 'Historias Villa Adelaida'],
+  [/Curada por TELAR/g, 'Curada por Villa Adelaida'],
 ];
 
 function scrubLegacyBrand(value: unknown): unknown {

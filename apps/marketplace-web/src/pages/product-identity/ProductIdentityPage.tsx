@@ -536,7 +536,7 @@ export const ProductIdentityPage = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-2">
-                        Sello de Validación COCREA
+                        Sello de Validación Villa Adelaida
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Este producto ha sido registrado y verificado en nuestra
@@ -655,7 +655,7 @@ export const ProductIdentityPage = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-8">
-          <p>Pasaporte Digital generado por COCREA</p>
+          <p>Pasaporte Digital generado por Villa Adelaida</p>
         </div>
       </div>
     </div>

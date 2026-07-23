@@ -45,10 +45,10 @@ function getProductBadge(product: ProductNewCore): {
   const isNew =
     Date.now() - new Date(product.createdAt).getTime() < 30 * 86400000;
 
-  if (stock === 0) return { label: "Agotado", className: "bg-[#2b2f26] text-white" };
+  if (stock === 0) return { label: "Agotado", className: "bg-[#1a1a1a] text-white" };
   if (stock > 0 && stock <= 3)
-    return { label: "Últimas piezas", className: "bg-[#2e5424] text-white" };
-  if (isNew) return { label: "Nuevo", className: "bg-[#2e5424] text-white" };
+    return { label: "Últimas piezas", className: "bg-[#BC3F1C] text-white" };
+  if (isNew) return { label: "Nuevo", className: "bg-[#BC3F1C] text-white" };
   return null;
 }
 
@@ -192,21 +192,21 @@ export default function ShopDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6]">
+      <div className="min-h-screen bg-[#F7E7D7]">
         <div className="max-w-[1400px] mx-auto px-6 py-20 animate-pulse space-y-16">
           <div className="grid lg:grid-cols-12 gap-16">
             <div className="lg:col-span-5 space-y-6">
-              <div className="h-4 w-32 bg-[#e5e1d8] rounded" />
-              <div className="h-16 w-80 bg-[#e5e1d8] rounded" />
-              <div className="h-6 w-64 bg-[#e5e1d8] rounded" />
+              <div className="h-4 w-32 bg-[#F3E4D3] rounded" />
+              <div className="h-16 w-80 bg-[#F3E4D3] rounded" />
+              <div className="h-6 w-64 bg-[#F3E4D3] rounded" />
             </div>
-            <div className="lg:col-span-7 aspect-[16/10] bg-[#e5e1d8] rounded" />
+            <div className="lg:col-span-7 aspect-[16/10] bg-[#F3E4D3] rounded" />
           </div>
           <div className="grid grid-cols-3 gap-12">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="space-y-4">
-                <div className="aspect-[3/4] bg-[#e5e1d8] rounded" />
-                <div className="h-4 w-3/4 bg-[#e5e1d8] rounded" />
+                <div className="aspect-[3/4] bg-[#F3E4D3] rounded" />
+                <div className="h-4 w-3/4 bg-[#F3E4D3] rounded" />
               </div>
             ))}
           </div>
@@ -217,12 +217,12 @@ export default function ShopDetail() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7E7D7] flex items-center justify-center">
         <div className="text-center space-y-4">
           <h1 className="font-serif text-4xl">Taller no encontrado</h1>
           <Link
             to="/tiendas"
-            className="text-[#2e5424] text-sm font-bold uppercase tracking-widest"
+            className="text-[#BC3F1C] text-sm font-bold uppercase tracking-widest"
           >
             Volver a talleres
           </Link>
@@ -274,26 +274,26 @@ export default function ShopDetail() {
   const hasOficio = !!(primaryTechnique || primaryCraft || materialsText);
 
   const eyebrowClass =
-    "text-[#2e5424] font-bold uppercase tracking-[0.4em] text-[10px]";
+    "text-[#BC3F1C] font-bold uppercase tracking-[0.4em] text-[10px]";
 
   return (
-    <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
+    <div className="min-h-screen bg-[#F7E7D7] text-[#1a1a1a]">
       {/* Breadcrumb */}
       <nav className="max-w-[1400px] mx-auto px-6 py-8">
-        <ol className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
+        <ol className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-[#1a1a1a]/40 font-bold">
           <li>
-            <Link to="/" className="hover:text-[#2b2f26]">
+            <Link to="/" className="hover:text-[#1a1a1a]">
               Inicio
             </Link>
           </li>
           <li>/</li>
           <li>
-            <Link to="/tiendas" className="hover:text-[#2b2f26]">
+            <Link to="/tiendas" className="hover:text-[#1a1a1a]">
               Talleres
             </Link>
           </li>
           <li>/</li>
-          <li className="text-[#2b2f26]">{shop.shopName}</li>
+          <li className="text-[#1a1a1a]">{shop.shopName}</li>
         </ol>
       </nav>
 
@@ -306,17 +306,17 @@ export default function ShopDetail() {
               {shop.shopName}
             </h1>
             {shop.brandClaim && (
-              <p className="text-2xl font-serif italic text-[#2e5424]">
+              <p className="text-2xl font-serif italic text-[#BC3F1C]">
                 {shop.brandClaim}
               </p>
             )}
             {shop.craftType && (
-              <p className="text-xl font-serif italic text-[#2b2f26]/70">
+              <p className="text-xl font-serif italic text-[#1a1a1a]/70">
                 {shop.craftType}
               </p>
             )}
             {shop.description && (
-              <p className="text-lg text-[#2b2f26]/60 leading-relaxed font-light max-w-md">
+              <p className="text-lg text-[#1a1a1a]/60 leading-relaxed font-light max-w-md">
                 {shop.description}
               </p>
             )}
@@ -324,13 +324,13 @@ export default function ShopDetail() {
           <div className="flex flex-col sm:flex-row gap-4">
             <a
               href="#productos"
-              className="bg-[#2b2f26] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2e5424] transition-colors text-center"
+              className="bg-[#1a1a1a] text-white px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#BC3F1C] transition-colors text-center"
             >
               Explorar piezas del taller
             </a>
             <Link
               to={`/artesano/${shop.shopSlug}`}
-              className="border border-[#2b2f26]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#2b2f26] transition-colors text-center"
+              className="border border-[#1a1a1a]/20 px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:border-[#1a1a1a] transition-colors text-center"
             >
               Conocer al artesano
             </Link>
@@ -340,17 +340,17 @@ export default function ShopDetail() {
                 "border px-10 py-4 uppercase text-[10px] tracking-widest font-bold transition-colors flex items-center justify-center gap-2",
                 isShopInWishlist(shop.id)
                   ? "bg-red-500 text-white border-red-500"
-                  : "border-[#2b2f26]/20 hover:border-[#2b2f26]",
+                  : "border-[#1a1a1a]/20 hover:border-[#1a1a1a]",
               )}
             >
               <Heart className={cn("w-3 h-3", isShopInWishlist(shop.id) && "fill-current")} />
               {isShopInWishlist(shop.id) ? "Guardado" : "Guardar taller"}
             </button>
           </div>
-          <div className="flex items-center gap-12 pt-8 border-t border-[#2b2f26]/5">
+          <div className="flex items-center gap-12 pt-8 border-t border-[#1a1a1a]/5">
             {primaryTechnique && (
               <div className="flex items-center gap-3">
-                <span className="text-[#2e5424] text-lg">✦</span>
+                <span className="text-[#BC3F1C] text-lg">✦</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {primaryTechnique}
                 </span>
@@ -358,7 +358,7 @@ export default function ShopDetail() {
             )}
             {shop.department && (
               <div className="flex items-center gap-3">
-                <span className="text-[#2e5424] text-lg">◆</span>
+                <span className="text-[#BC3F1C] text-lg">◆</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                   {shop.department}, {shop.municipality || shop.region}
                 </span>
@@ -368,7 +368,7 @@ export default function ShopDetail() {
         </div>
         <div className="lg:col-span-7">
           {heroImages.length > 0 ? (
-            <div className="aspect-[16/10] overflow-hidden shadow-sm rounded-sm bg-[#e5e1d8]">
+            <div className="aspect-[16/10] overflow-hidden shadow-sm rounded-sm bg-[#F3E4D3]">
               <img
                 src={heroImages[0]}
                 alt={shop.shopName}
@@ -376,18 +376,18 @@ export default function ShopDetail() {
               />
             </div>
           ) : (
-            <div className="aspect-[16/10] bg-[#e5e1d8] rounded-sm" />
+            <div className="aspect-[16/10] bg-[#F3E4D3] rounded-sm" />
           )}
         </div>
       </section>
 
       {/* Franja de confianza — certificaciones reales si hay, si no señales de plataforma */}
-      <section className="py-12 bg-[#2b2f26]/5 border-y border-[#2b2f26]/5">
+      <section className="py-12 bg-[#1a1a1a]/5 border-y border-[#1a1a1a]/5">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex flex-wrap justify-between items-center gap-8">
             {trustSignals.map((signal) => (
               <div key={signal} className="flex items-center gap-3 opacity-60">
-                <span className="text-[#2e5424]">✦</span>
+                <span className="text-[#BC3F1C]">✦</span>
                 <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
                   {signal}
                 </span>
@@ -399,7 +399,7 @@ export default function ShopDetail() {
 
       {/* Productos */}
       <section id="productos" className="scroll-mt-24 max-w-[1400px] mx-auto px-6 mt-24 lg:mt-32 mb-32">
-        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 border-b border-[#2b2f26]/5 pb-8">
+        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8 border-b border-[#1a1a1a]/5 pb-8">
           <div className="max-w-xl">
             <h2 className="text-4xl md:text-5xl font-serif mb-6">
               Colección {shop.shopName}
@@ -410,8 +410,8 @@ export default function ShopDetail() {
                 className={cn(
                   "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                   activeFilter === "all"
-                    ? "bg-[#2e5424] text-white"
-                    : "border border-[#2b2f26]/10 hover:border-[#2e5424]",
+                    ? "bg-[#BC3F1C] text-white"
+                    : "border border-[#1a1a1a]/10 hover:border-[#BC3F1C]",
                 )}
               >
                 Todos
@@ -423,8 +423,8 @@ export default function ShopDetail() {
                   className={cn(
                     "px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-colors",
                     activeFilter === slug
-                      ? "bg-[#2e5424] text-white"
-                      : "border border-[#2b2f26]/10 hover:border-[#2e5424]",
+                      ? "bg-[#BC3F1C] text-white"
+                      : "border border-[#1a1a1a]/10 hover:border-[#BC3F1C]",
                   )}
                 >
                   {name}
@@ -433,7 +433,7 @@ export default function ShopDetail() {
             </div>
           </div>
           <div className="flex items-center gap-8 w-full lg:w-auto justify-between lg:justify-end">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[#2b2f26]/40 font-bold hidden sm:inline">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#1a1a1a]/40 font-bold hidden sm:inline">
               {paginatedProducts.length} de {filteredProducts.length} piezas artesanales
             </span>
             <select
@@ -452,10 +452,10 @@ export default function ShopDetail() {
         {paginatedProducts.length === 0 ? (
           <div className="py-32 text-center space-y-6">
             <div className="space-y-3">
-              <p className="text-4xl md:text-5xl font-serif italic text-[#2b2f26]/30">
+              <p className="text-4xl md:text-5xl font-serif italic text-[#1a1a1a]/30">
                 Sin productos disponibles
               </p>
-              <p className="text-base text-[#2b2f26]/50 max-w-md mx-auto">
+              <p className="text-base text-[#1a1a1a]/50 max-w-md mx-auto">
                 {activeFilter !== "all"
                   ? "No hay productos en esta categoría. Prueba con otra categoría o revisa todos los productos."
                   : "Este taller aún no tiene productos publicados. Vuelve pronto para ver sus creaciones."}
@@ -464,7 +464,7 @@ export default function ShopDetail() {
             {activeFilter !== "all" && (
               <button
                 onClick={() => setActiveFilter("all")}
-                className="inline-block mt-8 px-8 py-3 bg-[#2b2f26] text-white text-xs uppercase tracking-widest hover:bg-[#2e5424] transition-colors"
+                className="inline-block mt-8 px-8 py-3 bg-[#1a1a1a] text-white text-xs uppercase tracking-widest hover:bg-[#BC3F1C] transition-colors"
               >
                 Ver todos los productos
               </button>
@@ -489,7 +489,7 @@ export default function ShopDetail() {
                     i % 3 === 1 && i > 3 ? "md:-mt-16" : "",
                   )}
                 >
-                  <div className="aspect-[3/4] mb-6 relative overflow-hidden bg-[#e5e1d8] rounded-sm">
+                  <div className="aspect-[3/4] mb-6 relative overflow-hidden bg-[#F3E4D3] rounded-sm">
                     {imageUrl && (
                       <img
                         src={imageUrl}
@@ -511,7 +511,7 @@ export default function ShopDetail() {
                       </div>
                     )}
                     <button
-                      className="absolute top-4 right-4 z-10 text-[#2b2f26] hover:text-[#2e5424] transition-colors opacity-0 group-hover:opacity-100"
+                      className="absolute top-4 right-4 z-10 text-[#1a1a1a] hover:text-[#BC3F1C] transition-colors opacity-0 group-hover:opacity-100"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -522,29 +522,29 @@ export default function ShopDetail() {
                   </div>
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <h3 className="text-2xl font-serif leading-tight group-hover:text-[#2e5424] transition-colors">
+                      <h3 className="text-2xl font-serif leading-tight group-hover:text-[#BC3F1C] transition-colors">
                         {product.name}
                       </h3>
-                      <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#2e5424]">
+                      <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#BC3F1C]">
                         {shop.shopName}
                       </p>
-                      <p className="text-[9px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
+                      <p className="text-[9px] uppercase tracking-widest text-[#1a1a1a]/40 font-bold">
                         {shop.region || shop.department}
                       </p>
                     </div>
-                    <div className="pt-4 border-t border-[#2b2f26]/5 space-y-3">
+                    <div className="pt-4 border-t border-[#1a1a1a]/5 space-y-3">
                       <p className="text-lg font-bold tracking-tight">
                         {price ? formatCurrency(price) : "Consultar"}
                       </p>
                       {primaryMaterial && (
                         <div className="flex flex-wrap gap-1">
-                          <span className="text-[8px] bg-[#2e5424]/5 text-[#2e5424] border border-[#2e5424]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
+                          <span className="text-[8px] bg-[#BC3F1C]/5 text-[#BC3F1C] border border-[#BC3F1C]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
                             {primaryMaterial}
                           </span>
                         </div>
                       )}
                       {logistics && (
-                        <p className="text-[8px] uppercase tracking-widest text-[#2b2f26]/40 italic font-bold">
+                        <p className="text-[8px] uppercase tracking-widest text-[#1a1a1a]/40 italic font-bold">
                           {logistics}
                         </p>
                       )}
@@ -573,8 +573,8 @@ export default function ShopDetail() {
                   className={cn(
                     "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
                     page === currentPage
-                      ? "bg-[#2b2f26] text-white"
-                      : "text-[#2b2f26]/40 hover:text-[#2b2f26]",
+                      ? "bg-[#1a1a1a] text-white"
+                      : "text-[#1a1a1a]/40 hover:text-[#1a1a1a]",
                   )}
                 >
                   {page}
@@ -607,9 +607,9 @@ export default function ShopDetail() {
                       : "Oficio artesanal"}
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-x-12 gap-y-8 py-8 border-y border-[#2b2f26]/10">
+              <div className="grid grid-cols-2 gap-x-12 gap-y-8 py-8 border-y border-[#1a1a1a]/10">
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
                     Región
                   </span>
                   <p className="font-serif text-xl italic">
@@ -617,7 +617,7 @@ export default function ShopDetail() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
                     Oficio
                   </span>
                   <p className="font-serif text-xl italic">
@@ -626,7 +626,7 @@ export default function ShopDetail() {
                 </div>
                 {materialsText && (
                   <div className="space-y-2 col-span-2">
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
                       Materiales
                     </span>
                     <p className="font-serif text-xl italic">{materialsText}</p>
@@ -635,7 +635,7 @@ export default function ShopDetail() {
               </div>
               <a
                 href="#productos"
-                className="border border-[#2b2f26] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#2b2f26] hover:text-white transition-all inline-block"
+                className="border border-[#1a1a1a] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#1a1a1a] hover:text-white transition-all inline-block"
               >
                 Ver las piezas del taller
               </a>
@@ -645,7 +645,7 @@ export default function ShopDetail() {
                 <div
                   key={i}
                   className={cn(
-                    "aspect-[3/4] bg-[#e5e1d8] overflow-hidden rounded-sm",
+                    "aspect-[3/4] bg-[#F3E4D3] overflow-hidden rounded-sm",
                     i === 0 && "mt-12",
                   )}
                 >
@@ -657,7 +657,7 @@ export default function ShopDetail() {
                 </div>
               ))}
               {heroImages.length < 3 && (
-                <div className="aspect-[3/4] bg-[#e5e1d8] rounded-sm" />
+                <div className="aspect-[3/4] bg-[#F3E4D3] rounded-sm" />
               )}
             </div>
           </div>
@@ -666,16 +666,16 @@ export default function ShopDetail() {
 
       {/* Historia del taller — editorial */}
       {editorialStory && (
-        <section className="bg-white py-24 lg:py-32 border-y border-[#2b2f26]/5 overflow-hidden">
+        <section className="bg-white py-24 lg:py-32 border-y border-[#1a1a1a]/5 overflow-hidden">
           <div className="max-w-[1400px] mx-auto px-6 grid lg:grid-cols-12 gap-12 lg:gap-24 items-center">
             <div className="lg:col-span-5 relative">
               <span
-                className="hidden lg:block absolute -left-16 top-0 font-serif text-6xl text-[#2e5424]/10 select-none"
+                className="hidden lg:block absolute -left-16 top-0 font-serif text-6xl text-[#BC3F1C]/10 select-none"
                 style={{ writingMode: "vertical-rl" }}
               >
                 HISTORIA
               </span>
-              <div className="aspect-[4/5] bg-[#e5e1d8] shadow-sm overflow-hidden rounded-sm">
+              <div className="aspect-[4/5] bg-[#F3E4D3] shadow-sm overflow-hidden rounded-sm">
                 {heroImages[1] ? (
                   <img
                     src={heroImages[1]}
@@ -683,7 +683,7 @@ export default function ShopDetail() {
                     className={imgFitClass(heroImages[1])}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#2b2f26]/20 font-serif italic">
+                  <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]/20 font-serif italic">
                     {shop.shopName}
                   </div>
                 )}
@@ -694,12 +694,12 @@ export default function ShopDetail() {
               <h2 className="text-4xl lg:text-6xl font-serif italic leading-[1.05]">
                 {editorialTitle}
               </h2>
-              <p className="text-lg lg:text-xl text-[#2b2f26]/70 leading-relaxed font-light whitespace-pre-line">
+              <p className="text-lg lg:text-xl text-[#1a1a1a]/70 leading-relaxed font-light whitespace-pre-line">
                 {editorialStory}
               </p>
               <Link
                 to={`/artesano/${shop.shopSlug}`}
-                className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#2e5424] pb-3 hover:text-[#2e5424] transition-colors group"
+                className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#BC3F1C] pb-3 hover:text-[#BC3F1C] transition-colors group"
               >
                 Conocer al artesano
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -711,11 +711,11 @@ export default function ShopDetail() {
 
       {/* Sobre el taller — misión / visión / valores (editorial) */}
       {hasAbout && (
-        <section className="bg-[#20291a] text-[#f5f1e6] py-24 lg:py-32">
+        <section className="bg-[#111111] text-[#F7E7D7] py-24 lg:py-32">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
               <div className="lg:col-span-4">
-                <span className="text-[#2e5424] font-bold uppercase tracking-[0.4em] text-[10px]">
+                <span className="text-[#BC3F1C] font-bold uppercase tracking-[0.4em] text-[10px]">
                   Sobre el taller
                 </span>
                 <h2 className="text-4xl lg:text-5xl font-serif italic leading-[1.05] mt-6">
@@ -726,20 +726,20 @@ export default function ShopDetail() {
                 <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
                   {aboutContent?.mission && (
                     <div className="space-y-3">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#2e5424]">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C]">
                         Misión
                       </h3>
-                      <p className="text-lg text-[#f5f1e6]/70 leading-relaxed font-light">
+                      <p className="text-lg text-[#F7E7D7]/70 leading-relaxed font-light">
                         {aboutContent.mission}
                       </p>
                     </div>
                   )}
                   {aboutContent?.vision && (
                     <div className="space-y-3">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#2e5424]">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C]">
                         Visión
                       </h3>
-                      <p className="text-lg text-[#f5f1e6]/70 leading-relaxed font-light">
+                      <p className="text-lg text-[#F7E7D7]/70 leading-relaxed font-light">
                         {aboutContent.vision}
                       </p>
                     </div>
@@ -747,23 +747,23 @@ export default function ShopDetail() {
                 </div>
                 {aboutValues.length > 0 && (
                   <div className="pt-12 border-t border-white/10">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f5f1e6]/40 mb-8">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#F7E7D7]/40 mb-8">
                       Valores
                     </h3>
                     {aboutValues.some((v) => v.description) ? (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
                         {aboutValues.map((v, i) => (
                           <div key={`${v.name}-${i}`} className="space-y-3">
-                            <p className="font-serif text-2xl text-[#2e5424]/40">
+                            <p className="font-serif text-2xl text-[#BC3F1C]/40">
                               {String(i + 1).padStart(2, "0")}
                             </p>
                             {v.name && (
-                              <p className="font-serif italic text-xl text-[#f5f1e6]">
+                              <p className="font-serif italic text-xl text-[#F7E7D7]">
                                 {v.name}
                               </p>
                             )}
                             {v.description && (
-                              <p className="text-sm text-[#f5f1e6]/50 leading-relaxed font-light">
+                              <p className="text-sm text-[#F7E7D7]/50 leading-relaxed font-light">
                                 {v.description}
                               </p>
                             )}
@@ -775,7 +775,7 @@ export default function ShopDetail() {
                         {aboutValues.map((v, i) => (
                           <span
                             key={`${v.name}-${i}`}
-                            className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-[#f5f1e6]/80"
+                            className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-[#F7E7D7]/80"
                           >
                             {v.name}
                           </span>
@@ -792,7 +792,7 @@ export default function ShopDetail() {
 
       {/* FAQ */}
       {faq.length > 0 && (
-        <section className="bg-white py-24 border-y border-[#2b2f26]/5">
+        <section className="bg-white py-24 border-y border-[#1a1a1a]/5">
           <div className="max-w-3xl mx-auto px-6">
             <span className={eyebrowClass}>Preguntas frecuentes</span>
             <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight mt-6 mb-10">
@@ -803,12 +803,12 @@ export default function ShopDetail() {
                 <AccordionItem
                   key={i}
                   value={`faq-${i}`}
-                  className="border-[#2b2f26]/10"
+                  className="border-[#1a1a1a]/10"
                 >
-                  <AccordionTrigger className="text-left text-xl lg:text-2xl font-serif italic py-6 hover:no-underline hover:text-[#2e5424]">
+                  <AccordionTrigger className="text-left text-xl lg:text-2xl font-serif italic py-6 hover:no-underline hover:text-[#BC3F1C]">
                     {item.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-base text-[#2b2f26]/70 leading-relaxed font-light pb-6">
+                  <AccordionContent className="text-base text-[#1a1a1a]/70 leading-relaxed font-light pb-6">
                     {item.a}
                   </AccordionContent>
                 </AccordionItem>
@@ -820,13 +820,13 @@ export default function ShopDetail() {
 
       {/* Política de devoluciones */}
       {returnPolicy && (
-        <section className="bg-white border-y border-[#2b2f26]/5 py-24">
+        <section className="bg-white border-y border-[#1a1a1a]/5 py-24">
           <div className="max-w-3xl mx-auto px-6">
             <span className={eyebrowClass}>Política de devoluciones</span>
             <h2 className="text-3xl lg:text-4xl font-serif italic leading-tight mt-6 mb-8">
               Compra con tranquilidad
             </h2>
-            <div className="text-lg text-[#2b2f26]/70 leading-relaxed font-light whitespace-pre-line">
+            <div className="text-lg text-[#1a1a1a]/70 leading-relaxed font-light whitespace-pre-line">
               {returnPolicy}
             </div>
           </div>
@@ -834,18 +834,18 @@ export default function ShopDetail() {
       )}
 
       {/* CTA — conocer al artesano */}
-      <section className="py-32 bg-[#f5f1e6] border-t border-[#2b2f26]/5">
+      <section className="py-32 bg-[#F7E7D7] border-t border-[#1a1a1a]/5">
         <div className="max-w-[1400px] mx-auto px-6 text-center">
           <div className="max-w-2xl mx-auto space-y-10">
             <h2 className="text-4xl lg:text-5xl font-serif italic">
               Conoce a la persona detras del taller
             </h2>
-            <p className="text-xl text-[#2b2f26]/50 leading-relaxed font-light">
+            <p className="text-xl text-[#1a1a1a]/50 leading-relaxed font-light">
               Descubre la historia, la técnica y el territorio de {shop.shopName}.
             </p>
             <Link
               to={`/artesano/${shop.shopSlug}`}
-              className="inline-block bg-[#2b2f26] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#2e5424] transition-colors"
+              className="inline-block bg-[#1a1a1a] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#BC3F1C] transition-colors"
             >
               Ver perfil del artesano
             </Link>
@@ -854,13 +854,13 @@ export default function ShopDetail() {
       </section>
 
       {/* Navegación — otros talleres */}
-      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#2b2f26]/5">
+      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#1a1a1a]/5">
         <Link
           to="/tiendas"
-          className="group border border-[#2b2f26]/10 p-12 flex items-center justify-between hover:border-[#2b2f26] transition-colors bg-white/50"
+          className="group border border-[#1a1a1a]/10 p-12 flex items-center justify-between hover:border-[#1a1a1a] transition-colors bg-white/50"
         >
           <div className="space-y-2">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-[#2b2f26]/30">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
               Explorar mas
             </span>
             <h4 className="text-3xl font-serif italic">Ver todos los talleres</h4>

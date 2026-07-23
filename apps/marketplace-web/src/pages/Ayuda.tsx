@@ -7,7 +7,7 @@ const helpCategories = [
   {
     id: "faqs",
     title: "FAQs",
-    description: "Preguntas frecuentes sobre COCREA",
+    description: "Preguntas frecuentes sobre Villa Adelaida",
     icon: MessageCircle,
   },
   {

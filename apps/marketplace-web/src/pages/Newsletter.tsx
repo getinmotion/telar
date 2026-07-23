@@ -63,7 +63,7 @@ const Newsletter = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-5 rounded-full hover:bg-[#1f3a15] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60 font-sans"
+                className="w-full bg-primary text-white font-bold uppercase tracking-[0.2em] text-[11px] py-5 rounded-full hover:bg-[#27423F] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-60 font-sans"
               >
                 {loading ? "Suscribiendo..." : "Suscribirme Gratis"}
               </button>

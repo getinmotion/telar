@@ -164,7 +164,7 @@ export function CmsHeroCarousel({
               type="button"
               aria-label="Slide anterior"
               onClick={() => emblaApi?.scrollPrev()}
-              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#1a1a1a] w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -172,7 +172,7 @@ export function CmsHeroCarousel({
               type="button"
               aria-label="Siguiente slide"
               onClick={() => emblaApi?.scrollNext()}
-              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#1a1a1a] w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

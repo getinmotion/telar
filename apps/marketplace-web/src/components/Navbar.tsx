@@ -63,7 +63,7 @@ export const Navbar = ({
             <button onClick={onHomeClick} className="flex items-center gap-2 shrink-0">
               <img 
                 src={cocreaHorizontal}
-                alt="CO·CREA" 
+                alt="Villa Adelaida" 
                 className="h-6 sm:h-8 md:h-12"
               />
             </button>
@@ -71,7 +71,7 @@ export const Navbar = ({
             <Link to="/?reset=true" className="flex items-center gap-2 shrink-0">
               <img 
                 src={cocreaHorizontal}
-                alt="CO·CREA" 
+                alt="Villa Adelaida" 
                 className="h-6 sm:h-8 md:h-12"
               />
             </Link>

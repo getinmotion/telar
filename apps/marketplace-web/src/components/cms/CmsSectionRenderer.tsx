@@ -1,5 +1,5 @@
 /**
- * CmsSectionRenderer — renders a single CmsSection of a known type. Unknown
+ * CmsSectionRenderer â€” renders a single CmsSection of a known type. Unknown
  * types render nothing so the page degrades gracefully when we prototype new
  * payload shapes from the admin UI before adding a renderer.
  */
@@ -30,7 +30,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.kicker && (
             <span
               className="text-[11px] uppercase tracking-[0.4em] font-bold font-sans"
-              style={{ color: '#122b0e' }}
+              style={{ color: '#27423F' }}
             >
               {p.kicker}
             </span>
@@ -38,7 +38,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.title && (
             <h1
               className="text-5xl md:text-6xl font-serif font-bold leading-tight"
-              style={{ letterSpacing: '-0.02em', color: '#14150f' }}
+              style={{ letterSpacing: '-0.02em', color: '#1a1a1a' }}
             >
               {p.title}
             </h1>
@@ -46,7 +46,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.subtitle && (
             <p
               className="text-xl md:text-2xl font-serif italic leading-relaxed"
-              style={{ color: '#3d4a30' }}
+              style={{ color: '#27423F' }}
             >
               {p.subtitle}
             </p>
@@ -62,8 +62,8 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.ctaLabel && p.ctaHref && (
             <Link
               to={p.ctaHref}
-              className="inline-block mt-4 px-10 py-4 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#14150f] transition-colors duration-300"
-              style={{ backgroundColor: '#122b0e' }}
+              className="inline-block mt-4 px-10 py-4 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a1a1a] transition-colors duration-300"
+              style={{ backgroundColor: '#27423F' }}
             >
               {p.ctaLabel}
             </Link>
@@ -74,7 +74,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         <div className="flex-1">
           <div
             className="aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-sm border border-foreground/10"
-            style={{ backgroundColor: '#ece9e2' }}
+            style={{ backgroundColor: '#FBEFE1' }}
           >
             {p.imageUrl && (
               <img
@@ -102,7 +102,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.kicker && (
             <span
               className="text-[11px] uppercase tracking-[0.4em] mb-6 block font-bold font-sans"
-              style={{ color: '#122b0e' }}
+              style={{ color: '#27423F' }}
             >
               {p.kicker}
             </span>
@@ -119,7 +119,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-lg leading-relaxed max-w-xl opacity-90"
-                style={{ color: '#3d4a30' }}
+                style={{ color: '#27423F' }}
               >
                 {p.body}
               </p>
@@ -130,7 +130,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 style={{ borderColor: 'rgba(140,114,101,0.3)' }}
               >
                 <span className="text-4xl font-serif font-bold">
-                  {totalTechniqueCount ?? '—'}
+                  {totalTechniqueCount ?? 'â€”'}
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 font-sans">
                   {p.totalCountLabel}
@@ -145,7 +145,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       return (
         <section
           className="mb-48 -mx-8 md:-mx-16 py-32 px-8 md:px-16 overflow-hidden"
-          style={{ backgroundColor: '#14150f', color: '#f5f1e6' }}
+          style={{ backgroundColor: '#1a1a1a', color: '#F7E7D7' }}
         >
           <div className="max-w-5xl">
             {p.kicker && (
@@ -176,7 +176,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.kicker && (
               <span
                 className="text-[10px] uppercase tracking-[0.5em] mb-6 block font-bold font-sans"
-                style={{ color: '#122b0e' }}
+                style={{ color: '#27423F' }}
               >
                 {p.kicker}
               </span>
@@ -192,7 +192,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-lg leading-relaxed opacity-90"
-                style={{ color: '#3d4a30' }}
+                style={{ color: '#27423F' }}
               >
                 {p.body}
               </p>
@@ -204,12 +204,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 <div
                   key={i}
                   className="p-10 border-t-2"
-                  style={{ backgroundColor: '#f2f0ea', borderColor: '#122b0e' }}
+                  style={{ backgroundColor: '#FDF2E7', borderColor: '#27423F' }}
                 >
                   {col.kicker && (
                     <span
                       className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
-                      style={{ color: '#122b0e' }}
+                      style={{ color: '#27423F' }}
                     >
                       {col.kicker}
                     </span>
@@ -222,7 +222,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   {col.body && (
                     <p
                       className="text-sm leading-relaxed opacity-80"
-                      style={{ color: '#3d4a30' }}
+                      style={{ color: '#27423F' }}
                     >
                       {col.body}
                     </p>
@@ -266,7 +266,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 <>
                   <div
                     className="aspect-[4/3] overflow-hidden mb-6 rounded-sm border border-foreground/10"
-                    style={{ backgroundColor: '#ece9e2' }}
+                    style={{ backgroundColor: '#FBEFE1' }}
                   >
                     {img ? (
                       <img
@@ -289,12 +289,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                       </div>
                     )}
                   </div>
-                  <h4 className="font-serif text-2xl font-bold mb-3 group-hover:text-[#122b0e] transition-colors">
+                  <h4 className="font-serif text-2xl font-bold mb-3 group-hover:text-[#27423F] transition-colors">
                     {card.title}
                   </h4>
                   <p
                     className="text-sm leading-relaxed opacity-80"
-                    style={{ color: '#3d4a30' }}
+                    style={{ color: '#27423F' }}
                   >
                     {card.body}
                   </p>
@@ -323,13 +323,13 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       return (
         <div
           className="p-10 md:p-12 flex flex-col justify-center"
-          style={{ backgroundColor: '#f2f0ea' }}
+          style={{ backgroundColor: '#FDF2E7' }}
         >
           <div
             className="mb-6 flex items-center justify-center w-10 h-10"
             style={{
               backgroundColor: 'rgba(18,43,14,0.1)',
-              color: '#122b0e',
+              color: '#27423F',
             }}
           >
             <svg
@@ -355,7 +355,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.body && (
             <p
               className="text-xs leading-relaxed opacity-80 mb-6"
-              style={{ color: '#3d4a30' }}
+              style={{ color: '#27423F' }}
             >
               {p.body}
             </p>
@@ -365,14 +365,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <Link
                 to={p.ctaHref}
                 className="text-[10px] uppercase tracking-[0.3em] font-bold w-fit border-b font-sans"
-                style={{ borderColor: '#14150f' }}
+                style={{ borderColor: '#1a1a1a' }}
               >
                 {p.ctaLabel}
               </Link>
             ) : (
               <button
                 className="text-[10px] uppercase tracking-[0.3em] font-bold w-fit border-b font-sans"
-                style={{ borderColor: '#14150f' }}
+                style={{ borderColor: '#1a1a1a' }}
               >
                 {p.ctaLabel}
               </button>
@@ -384,7 +384,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       return (
         <div
           className="col-span-12 md:col-span-3 p-10 flex flex-col justify-between aspect-square md:aspect-auto"
-          style={{ backgroundColor: '#122b0e', color: '#fff' }}
+          style={{ backgroundColor: '#27423F', color: '#fff' }}
         >
           {p.kicker && (
             <span className="text-[10px] uppercase tracking-[0.3em] font-sans">
@@ -426,7 +426,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.kicker && (
             <span
               className="text-[10px] uppercase tracking-[0.5em] mb-4 block font-bold font-sans"
-              style={{ color: '#122b0e' }}
+              style={{ color: '#27423F' }}
             >
               {p.kicker}
             </span>
@@ -442,7 +442,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.body && (
             <p
               className="mt-4 text-base leading-relaxed opacity-80"
-              style={{ color: '#3d4a30' }}
+              style={{ color: '#27423F' }}
             >
               {p.body}
             </p>
@@ -454,7 +454,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       return (
         <h2
           className="text-[10px] uppercase tracking-[0.5em] mb-10 block font-bold text-center font-sans"
-          style={{ color: '#122b0e' }}
+          style={{ color: '#27423F' }}
         >
           {p.kicker}
         </h2>
@@ -472,7 +472,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {p.kicker && (
                 <p
                   className="text-[10px] uppercase tracking-[0.5em] mb-8 block font-bold font-sans"
-                  style={{ color: '#122b0e' }}
+                  style={{ color: '#27423F' }}
                 >
                   {p.kicker}
                 </p>
@@ -488,7 +488,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {p.body && (
                 <p
                   className="leading-relaxed opacity-80 text-lg mb-10"
-                  style={{ color: '#3d4a30' }}
+                  style={{ color: '#27423F' }}
                 >
                   {p.body}
                 </p>
@@ -500,7 +500,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                       key={i}
                       to={l.href || '#'}
                       className="text-[10px] uppercase tracking-[0.2em] font-bold border-b font-sans"
-                      style={{ borderColor: '#14150f' }}
+                      style={{ borderColor: '#1a1a1a' }}
                     >
                       {l.label}
                     </Link>
@@ -510,7 +510,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
             <div
               className="p-12 flex flex-col justify-between"
-              style={{ backgroundColor: '#ece9e0' }}
+              style={{ backgroundColor: '#FBEFE1' }}
             >
               <div className="max-w-xs">
                 {p.asideTitle && (
@@ -526,8 +526,8 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               </div>
               {p.asideCtaLabel && (
                 <button
-                  className="w-full py-4 border text-[10px] uppercase tracking-[0.3em] font-bold transition-colors hover:bg-[#14150f] hover:text-[#f5f1e6] font-sans"
-                  style={{ borderColor: '#14150f' }}
+                  className="w-full py-4 border text-[10px] uppercase tracking-[0.3em] font-bold transition-colors hover:bg-[#1a1a1a] hover:text-[#F7E7D7] font-sans"
+                  style={{ borderColor: '#1a1a1a' }}
                 >
                   {p.asideCtaLabel}
                 </button>
@@ -574,12 +574,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'home_value_props': {
       const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
       return (
-        <section className="py-12 bg-[#f2f0ea]/50 border-b border-[#14150f]/5">
+        <section className="py-12 bg-[#FDF2E7]/50 border-b border-[#1a1a1a]/5">
           <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-3 gap-12">
             {cards.map((c, i) => (
               <div key={i} className="space-y-3">
                 {c.imageUrl && (
-                  <div className="aspect-square bg-[#ece9e2] overflow-hidden mb-4 rounded-sm border border-foreground/10 group">
+                  <div className="aspect-square bg-[#FBEFE1] overflow-hidden mb-4 rounded-sm border border-foreground/10 group">
                     <img
                       src={c.imageUrl}
                       alt={c.title ?? ''}
@@ -592,7 +592,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   <h4 className="font-serif italic text-xl">{c.title}</h4>
                 )}
                 {c.body && (
-                  <p className="text-xs text-[#14150f]/60 leading-relaxed uppercase tracking-wider">
+                  <p className="text-xs text-[#1a1a1a]/60 leading-relaxed uppercase tracking-wider">
                     {c.body}
                   </p>
                 )}
@@ -616,7 +616,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <h2 className={`text-5xl font-serif mb-4 ${p.italicTitle ? 'italic' : ''}`}>{p.title}</h2>
             )}
             {p.subtitle && (
-              <p className="text-[#14150f]/60 italic font-serif">
+              <p className="text-[#1a1a1a]/60 italic font-serif">
                 {p.subtitle}
               </p>
             )}
@@ -624,7 +624,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.ctaLabel && p.ctaHref && (
             <Link
               to={p.ctaHref}
-              className="text-xs font-bold uppercase tracking-widest border-b border-[#14150f] flex items-center gap-2 pb-1 hover:text-[#122b0e] hover:border-[#122b0e] transition-colors w-fit"
+              className="text-xs font-bold uppercase tracking-widest border-b border-[#1a1a1a] flex items-center gap-2 pb-1 hover:text-[#27423F] hover:border-[#27423F] transition-colors w-fit"
             >
               {p.ctaLabel}
             </Link>
@@ -636,7 +636,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       const variant = (p.variant as string) || 'light';
       if (variant === 'dark') {
         return (
-          <section className="bg-[#14150f] text-[#f2f0ea] py-32">
+          <section className="bg-[#1a1a1a] text-[#FDF2E7] py-32">
             <div className="max-w-[1400px] mx-auto px-6">
               {p.kicker && (
                 <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-20 opacity-70">
@@ -655,7 +655,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 {p.ctaLabel && p.ctaHref && (
                   <Link
                     to={p.ctaHref}
-                    className="inline-block border border-[#aab89c] text-[#aab89c] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#aab89c] hover:text-[#122b0e] transition-all"
+                    className="inline-block border border-[#91BCB3] text-[#91BCB3] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#91BCB3] hover:text-[#27423F] transition-all"
                   >
                     {p.ctaLabel}
                   </Link>
@@ -668,7 +668,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       if (variant === 'bordered') {
         return (
           <section className="py-24 px-6 max-w-[1400px] mx-auto">
-            <div className="border border-[#14150f]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
+            <div className="border border-[#1a1a1a]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
               <div className="max-w-xl space-y-8 relative z-10">
                 {p.kicker && (
                   <span className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-50">
@@ -679,7 +679,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   <h2 className="text-4xl md:text-5xl font-serif">{p.title}</h2>
                 )}
                 {p.body && (
-                  <p className="text-xl text-[#14150f]/70 leading-relaxed italic">
+                  <p className="text-xl text-[#1a1a1a]/70 leading-relaxed italic">
                     {p.body}
                   </p>
                 )}
@@ -687,7 +687,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
                     <Link
                       to={p.ctaHref}
-                      className="border-b border-[#14150f] pb-1 hover:text-[#122b0e] hover:border-[#122b0e] transition-colors"
+                      className="border-b border-[#1a1a1a] pb-1 hover:text-[#27423F] hover:border-[#27423F] transition-colors"
                     >
                       {p.ctaLabel}
                     </Link>
@@ -707,7 +707,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       }
       if (variant === 'cream') {
         return (
-          <section className="py-24 px-6 bg-[#f2f0ea]">
+          <section className="py-24 px-6 bg-[#FDF2E7]">
             <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 items-center">
               {p.imageUrl && (
                 <img
@@ -726,14 +726,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   <h2 className="text-5xl font-serif">{p.title}</h2>
                 )}
                 {p.body && (
-                  <p className="text-xl text-[#14150f]/70 leading-relaxed font-light">
+                  <p className="text-xl text-[#1a1a1a]/70 leading-relaxed font-light">
                     {p.body}
                   </p>
                 )}
                 {p.ctaLabel && p.ctaHref && (
                   <Link
                     to={p.ctaHref}
-                    className="inline-block border-b border-[#14150f] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#122b0e] hover:border-[#122b0e] transition-colors"
+                    className="inline-block border-b border-[#1a1a1a] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#27423F] hover:border-[#27423F] transition-colors"
                   >
                     {p.ctaLabel}
                   </Link>
@@ -756,14 +756,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <h2 className="text-4xl md:text-5xl font-serif">{p.title}</h2>
             )}
             {p.body && (
-              <p className="text-xl text-[#14150f]/70 leading-relaxed italic">
+              <p className="text-xl text-[#1a1a1a]/70 leading-relaxed italic">
                 {p.body}
               </p>
             )}
             {p.ctaLabel && p.ctaHref && (
               <Link
                 to={p.ctaHref}
-                className="inline-block border-b border-[#14150f] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#122b0e] hover:border-[#122b0e] transition-colors w-fit"
+                className="inline-block border-b border-[#1a1a1a] pb-1 text-xs font-bold uppercase tracking-widest hover:text-[#27423F] hover:border-[#27423F] transition-colors w-fit"
               >
                 {p.ctaLabel}
               </Link>
@@ -776,7 +776,10 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'about_hero': {
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
-          <div className="relative rounded-sm overflow-hidden border border-foreground/10">
+          <div
+            className="relative rounded-sm overflow-hidden border border-foreground/10"
+            style={{ backgroundColor: '#27423F' }}
+          >
             {p.bgImageUrl && (
               <img
                 src={p.bgImageUrl}
@@ -786,11 +789,11 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#14150f]/85 via-[#14150f]/60 to-[#14150f]/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a1a]/85 via-[#1a1a1a]/60 to-[#1a1a1a]/30" />
             <div className="relative px-8 md:px-16 py-20 md:py-32">
               <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-white tracking-tight">
                 {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-                {p.titleLineItalic && <span className="italic text-[#aab89c]">{p.titleLineItalic}</span>}
+                {p.titleLineItalic && <span className="italic text-[#91BCB3]">{p.titleLineItalic}</span>}
                 {p.titleLineBottom && <><br />{p.titleLineBottom}</>}
               </h1>
               {p.body && (
@@ -811,23 +814,23 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       const textCol = (
         <div className={imageOnRight ? '' : 'order-1 md:order-2'}>
           {p.kicker && (
-            <div className="inline-flex items-center gap-2 bg-[#122b0e]/10 px-4 py-2 rounded-full mb-6">
-              <span className="text-[10px] uppercase tracking-widest font-sans text-[#122b0e] font-bold">
+            <div className="inline-flex items-center gap-2 bg-[#27423F]/10 px-4 py-2 rounded-full mb-6">
+              <span className="text-[10px] uppercase tracking-widest font-sans text-[#27423F] font-bold">
                 {p.kicker}
               </span>
             </div>
           )}
-          <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 text-[#14150f] tracking-tight">
+          <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 text-[#1a1a1a] tracking-tight">
             {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-            {p.titleLineItalic && <span className="italic text-[#122b0e]">{p.titleLineItalic}</span>}
+            {p.titleLineItalic && <span className="italic text-[#27423F]">{p.titleLineItalic}</span>}
           </h2>
           {p.intro && (
-            <p className="text-sm md:text-base text-[#14150f]/70 font-sans leading-relaxed mb-4">
+            <p className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed mb-4">
               {p.intro}
             </p>
           )}
           {paragraphs.map((para, i) => (
-            <p key={i} className="text-sm md:text-base text-[#14150f]/70 font-sans leading-relaxed mb-4">
+            <p key={i} className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed mb-4">
               {para}
             </p>
           ))}
@@ -835,14 +838,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             <ul className="space-y-3 mb-6">
               {bullets.map((b, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <div className="h-1.5 w-1.5 rounded-full bg-[#122b0e] mt-2 flex-shrink-0" />
-                  <span className="text-sm text-[#14150f]/70 font-sans leading-relaxed">{b}</span>
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#27423F] mt-2 flex-shrink-0" />
+                  <span className="text-sm text-[#1a1a1a]/70 font-sans leading-relaxed">{b}</span>
                 </li>
               ))}
             </ul>
           )}
           {p.outro && (
-            <p className="text-sm md:text-base text-[#14150f]/70 font-sans leading-relaxed">
+            <p className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed">
               {p.outro}
             </p>
           )}
@@ -854,18 +857,23 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           className={`relative h-[400px] md:h-[500px] rounded-sm overflow-hidden border border-foreground/10 group ${
             imageOnRight ? '' : 'order-2 md:order-1'
           }`}
+          style={{ backgroundColor: '#FBEFE1' }}
         >
-          {p.imageUrl && (
+          {p.imageUrl ? (
             <img
               src={p.imageUrl}
               alt={p.imageAlt || ''}
               className="absolute inset-0 w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-serif italic text-2xl text-[#27423F]/25">Imagen</span>
+            </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#122b0e]/20 to-[#122b0e]/5 -z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#27423F]/20 to-[#27423F]/5 -z-10" />
           {(p.statValue || p.statLabel) && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#14150f]/80 via-[#14150f]/30 to-transparent p-6 md:p-8">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8">
               {p.statValue && (
                 <div className="text-5xl md:text-6xl font-bold text-white mb-1 font-serif">
                   {p.statValue}
@@ -879,7 +887,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
           )}
           {(p.overlayKicker || p.overlayTitle) && !p.statValue && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#14150f]/80 via-[#14150f]/30 to-transparent p-6 md:p-8">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8">
               {p.overlayKicker && (
                 <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-sans text-white/70 font-bold mb-2">
                   {p.overlayKicker}
@@ -918,21 +926,21 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       const paragraphs: string[] = Array.isArray(p.paragraphs) ? p.paragraphs : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
-          <div className="bg-white rounded-sm p-8 md:p-12 border border-[#14150f]/5">
+          <div className="bg-white rounded-sm p-8 md:p-12 border border-[#1a1a1a]/5">
             {p.kicker && (
-              <div className="inline-flex items-center gap-2 bg-[#122b0e]/10 px-4 py-2 rounded-full mb-6">
-                <span className="text-[10px] uppercase tracking-widest font-sans text-[#122b0e] font-bold">
+              <div className="inline-flex items-center gap-2 bg-[#27423F]/10 px-4 py-2 rounded-full mb-6">
+                <span className="text-[10px] uppercase tracking-widest font-sans text-[#27423F] font-bold">
                   {p.kicker}
                 </span>
               </div>
             )}
-            <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-8 text-[#14150f] tracking-tight">
+            <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-8 text-[#1a1a1a] tracking-tight">
               {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-              {p.titleLineItalic && <span className="italic text-[#122b0e]">{p.titleLineItalic}</span>}
+              {p.titleLineItalic && <span className="italic text-[#27423F]">{p.titleLineItalic}</span>}
             </h2>
             <div className="space-y-5 max-w-3xl">
               {paragraphs.map((para, i) => (
-                <p key={i} className="text-base md:text-lg text-[#14150f]/70 font-sans leading-relaxed">
+                <p key={i} className="text-base md:text-lg text-[#1a1a1a]/70 font-sans leading-relaxed">
                   {para}
                 </p>
               ))}
@@ -946,7 +954,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       const ctas: any[] = Array.isArray(p.ctas) ? p.ctas : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-32">
-          <div className="bg-gradient-to-r from-[#122b0e] to-[#122b0e]/80 rounded-sm p-12 md:p-16 text-center text-white">
+          <div className="bg-gradient-to-r from-[#27423F] to-[#27423F]/80 rounded-sm p-12 md:p-16 text-center text-white">
             <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 tracking-tight">
               {p.titleLineTop && <>{p.titleLineTop}<br /></>}
               {p.titleLineItalic && <span className="italic">{p.titleLineItalic}</span>}
@@ -971,7 +979,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     <Link
                       key={i}
                       to={cta.href}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-11 px-8 bg-white text-[#122b0e] hover:bg-white/90 transition-colors"
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-11 px-8 bg-white text-[#27423F] hover:bg-white/90 transition-colors"
                     >
                       {cta.label}
                     </Link>
@@ -992,7 +1000,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.kicker && (
               <span
                 className="text-sm tracking-[0.3em] uppercase mb-6 block font-sans font-bold"
-                style={{ color: '#122b0e' }}
+                style={{ color: '#27423F' }}
               >
                 {p.kicker}
               </span>
@@ -1000,7 +1008,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.title && (
               <h1
                 className="text-6xl md:text-8xl font-serif font-bold leading-tight mb-8"
-                style={{ letterSpacing: '-0.02em', color: '#14150f' }}
+                style={{ letterSpacing: '-0.02em', color: '#1a1a1a' }}
               >
                 {p.title}
               </h1>
@@ -1008,7 +1016,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-xl md:text-2xl font-serif italic max-w-2xl leading-relaxed"
-                style={{ color: '#3d4a30' }}
+                style={{ color: '#27423F' }}
               >
                 {p.body}
               </p>
@@ -1018,12 +1026,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             <div className="md:col-span-4 flex flex-col justify-end items-start md:items-end text-left md:text-right space-y-4">
               {stats.map((s, i) => (
                 <div key={i}>
-                  <span className="block text-4xl font-serif" style={{ color: '#122b0e' }}>
+                  <span className="block text-4xl font-serif" style={{ color: '#27423F' }}>
                     {s.value}
                   </span>
                   <span
                     className="text-xs tracking-widest uppercase font-sans"
-                    style={{ color: '#3d4a30' }}
+                    style={{ color: '#27423F' }}
                   >
                     {s.label}
                   </span>
@@ -1038,15 +1046,15 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'territorios_dark_quote': {
       const leftStats: any[] = Array.isArray(p.leftStats) ? p.leftStats : [];
       return (
-        <section className="py-32" style={{ backgroundColor: '#14150f', color: '#ece9e2' }}>
+        <section className="py-32" style={{ backgroundColor: '#1a1a1a', color: '#FBEFE1' }}>
           <div className="max-w-[1400px] mx-auto px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
               <div className="space-y-12">
                 {p.quote && (
                   <div className="max-w-md">
-                    <span className="text-4xl mb-6 block" style={{ color: '#aab89c' }}>"</span>
+                    <span className="text-4xl mb-6 block" style={{ color: '#91BCB3' }}>"</span>
                     <p className="text-3xl font-serif leading-snug mb-6">{p.quote}</p>
-                    <div className="w-16 h-[2px]" style={{ backgroundColor: '#aab89c' }} />
+                    <div className="w-16 h-[2px]" style={{ backgroundColor: '#91BCB3' }} />
                   </div>
                 )}
                 {leftStats.length > 0 && (
@@ -1059,7 +1067,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                       >
                         <span
                           className="block text-5xl font-serif mb-2"
-                          style={{ color: s.color || '#aab89c' }}
+                          style={{ color: s.color || '#91BCB3' }}
                         >
                           {s.value}
                         </span>
@@ -1085,7 +1093,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 />
                 <div className="relative z-10 text-center">
                   {p.rightTitle && (
-                    <h4 className="text-4xl font-serif mb-6" style={{ color: '#f5f1e6' }}>
+                    <h4 className="text-4xl font-serif mb-6" style={{ color: '#F7E7D7' }}>
                       {p.rightTitle}
                     </h4>
                   )}
@@ -1098,7 +1106,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     </p>
                   )}
                   <div className="mt-12 flex justify-center gap-4">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#aab89c' }} />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#91BCB3' }} />
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(170,184,156,0.4)' }} />
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(170,184,156,0.2)' }} />
                   </div>
@@ -1115,7 +1123,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
             {p.kicker && (
-              <span className="text-[10px] uppercase tracking-[0.4em] text-[#14150f]/40 font-bold">
+              <span className="text-[10px] uppercase tracking-[0.4em] text-[#1a1a1a]/40 font-bold">
                 {p.kicker}
               </span>
             )}
@@ -1125,7 +1133,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               </h1>
             )}
             {p.body && (
-              <p className="text-xl md:text-2xl text-[#14150f]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl text-[#1a1a1a]/70 leading-relaxed font-light italic font-serif max-w-3xl mx-auto">
                 {p.body}
               </p>
             )}
@@ -1133,7 +1141,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <div className="pt-4">
                 <a
                   href={p.ctaHref}
-                  className="inline-block px-10 py-4 bg-[#122b0e] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#14150f] transition-colors duration-300"
+                  className="inline-block px-10 py-4 bg-[#27423F] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a1a1a] transition-colors duration-300"
                 >
                   {p.ctaLabel}
                 </a>
@@ -1147,10 +1155,10 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'historias_story_types_grid': {
       const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
       return (
-        <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#14150f]/5">
+        <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#1a1a1a]/5">
           <div className="mb-16">
             {p.kicker && (
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#14150f]/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.4em] mb-4 text-[#1a1a1a]/40">
                 {p.kicker}
               </h3>
             )}
@@ -1163,16 +1171,16 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <Link
                 key={i}
                 to={card.href}
-                className="group p-8 md:p-10 border border-[#14150f]/10 hover:border-[#122b0e]/30 hover:bg-white transition-all duration-300 text-center"
+                className="group p-8 md:p-10 border border-[#1a1a1a]/10 hover:border-[#27423F]/30 hover:bg-white transition-all duration-300 text-center"
               >
-                <div className="w-12 h-px bg-[#122b0e]/40 mx-auto mb-6 group-hover:w-16 transition-all" />
+                <div className="w-12 h-px bg-[#27423F]/40 mx-auto mb-6 group-hover:w-16 transition-all" />
                 {card.title && (
-                  <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-[#122b0e] transition-colors">
+                  <h4 className="font-serif text-xl md:text-2xl italic mb-2 group-hover:text-[#27423F] transition-colors">
                     {card.title}
                   </h4>
                 )}
                 {card.subtitle && (
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#14150f]/40 font-bold">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#1a1a1a]/40 font-bold">
                     {card.subtitle}
                   </p>
                 )}
@@ -1185,13 +1193,13 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
 
     case 'historias_capsule_quote': {
       return (
-        <section className="py-20 md:py-20 px-6 bg-white/50 border-y border-[#14150f]/5">
+        <section className="py-20 md:py-20 px-6 bg-white/50 border-y border-[#1a1a1a]/5">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-px bg-[#122b0e]/40 mx-auto mb-16" />
-            <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#14150f]">
+            <div className="w-16 h-px bg-[#27423F]/40 mx-auto mb-16" />
+            <blockquote className="font-serif italic text-3xl md:text-4xl leading-relaxed text-[#1a1a1a]">
               {p.body}
             </blockquote>
-            <div className="w-16 h-px bg-[#122b0e]/40 mx-auto mt-16" />
+            <div className="w-16 h-px bg-[#27423F]/40 mx-auto mt-16" />
           </div>
         </section>
       );
@@ -1200,16 +1208,16 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
     case 'historias_final_cta': {
       const ctas: any[] = Array.isArray(p.ctas) ? p.ctas : [];
       return (
-        <section className="bg-[#122b0e] py-24 md:py-32">
+        <section className="bg-[#27423F] py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-12 px-6">
             <div className="space-y-6">
               {p.kicker && (
-                <p className="text-[10px] uppercase tracking-[0.5em] text-[#aab89c] font-bold">
+                <p className="text-[10px] uppercase tracking-[0.5em] text-[#91BCB3] font-bold">
                   {p.kicker}
                 </p>
               )}
               {(p.titleLineTop || p.titleLineBottom) && (
-                <h2 className="text-4xl md:text-6xl font-serif leading-[1.1] text-[#f5f1e6] italic">
+                <h2 className="text-4xl md:text-6xl font-serif leading-[1.1] text-[#F7E7D7] italic">
                   {p.titleLineTop && <>{p.titleLineTop}<br /></>}
                   {p.titleLineBottom}
                 </h2>
@@ -1222,7 +1230,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     <Link
                       key={i}
                       to={cta.href}
-                      className="px-12 py-4 bg-white text-[#122b0e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#f5f1e6] transition-all"
+                      className="px-12 py-4 bg-white text-[#27423F] text-[10px] font-bold uppercase tracking-widest hover:bg-[#F7E7D7] transition-all"
                     >
                       {cta.label}
                     </Link>
@@ -1230,7 +1238,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     <Link
                       key={i}
                       to={cta.href}
-                      className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#aab89c] hover:text-[#aab89c] transition-all"
+                      className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#91BCB3] hover:text-[#91BCB3] transition-all"
                     >
                       {cta.label}
                     </Link>

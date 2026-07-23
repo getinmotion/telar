@@ -240,7 +240,7 @@ export function HuellaDigitalWidget() {
         <div className="space-y-10">
           <h2 className="text-5xl font-serif leading-tight">Cada pieza tiene una huella digital</h2>
           <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
-            Cada objeto en Cocrea conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
+            Cada objeto en Villa Adelaida conserva un registro que documenta su origen cultural, el taller que lo creó y su proceso artesanal.
           </p>
           <div className="space-y-8">
             {[
@@ -356,7 +356,7 @@ export function RegalosConHistoriaWidget() {
           <div className="flex-1 space-y-8">
             <h2 className="text-5xl font-serif">Regalos con historia</h2>
             <p className="text-xl text-charcoal/70 leading-relaxed font-light">
-              En Cocrea puedes encontrar piezas especiales para regalar en momentos importantes. Cada objeto hecho a mano lleva consigo tradición, conocimiento y dedicación.
+              En Villa Adelaida puedes encontrar piezas especiales para regalar en momentos importantes. Cada objeto hecho a mano lleva consigo tradición, conocimiento y dedicación.
             </p>
             <Link
               to="/giftcards"
@@ -445,7 +445,7 @@ export function AliadosWidget() {
           <img
             src={culturasLogo}
             alt="Ministerio de las Culturas, las Artes y los Saberes"
-            className="w-44 h-auto object-contain"
+            className="w-[22rem] h-auto object-contain"
           />
         </div>
         <h3 className="text-2xl font-serif">

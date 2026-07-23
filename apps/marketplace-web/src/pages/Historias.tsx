@@ -176,14 +176,14 @@ const Historias = () => {
   return (
     <>
       <Helmet>
-        <title>Historias — Crónicas del Territorio | COCREA</title>
+        <title>Historias — Crónicas del Territorio | Villa Adelaida</title>
         <meta
           name="description"
           content="Descubre las historias, tradiciones y técnicas detrás de las artesanías colombianas. Relatos de vida, oficio y territorio."
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
+      <div className="min-h-screen bg-[#F7E7D7] text-[#1a1a1a]">
         {/* HERO (CMS) */}
         {heroSection && <CmsSectionRenderer section={heroSection} />}
 
@@ -191,12 +191,12 @@ const Historias = () => {
           <section className="max-w-[1400px] mx-auto px-6 pb-32 animate-pulse">
             <div className="grid grid-cols-12 gap-8">
               <div className="col-span-12 lg:col-span-7">
-                <div className="aspect-[16/10] bg-[#e5e1d8] rounded-sm" />
-                <div className="mt-6 h-8 w-3/4 bg-[#e5e1d8] rounded" />
+                <div className="aspect-[16/10] bg-[#F3E4D3] rounded-sm" />
+                <div className="mt-6 h-8 w-3/4 bg-[#F3E4D3] rounded" />
               </div>
               <div className="col-span-12 lg:col-span-5 space-y-8">
-                <div className="aspect-[16/9] bg-[#e5e1d8] rounded-sm" />
-                <div className="aspect-[16/9] bg-[#e5e1d8] rounded-sm" />
+                <div className="aspect-[16/9] bg-[#F3E4D3] rounded-sm" />
+                <div className="aspect-[16/9] bg-[#F3E4D3] rounded-sm" />
               </div>
             </div>
           </section>
@@ -205,7 +205,7 @@ const Historias = () => {
             <h2 className="font-serif text-3xl italic mb-4">
               Pronto publicaremos nuevas historias
             </h2>
-            <p className="text-[#2b2f26]/60">
+            <p className="text-[#1a1a1a]/60">
               Estamos documentando los relatos de nuestros artesanos.
             </p>
           </section>
@@ -222,7 +222,7 @@ const Historias = () => {
                     to={`/historia/${featured.slug}`}
                     className="col-span-12 lg:col-span-7 group"
                   >
-                    <div className="aspect-[16/10] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                    <div className="aspect-[16/10] bg-[#F3E4D3] overflow-hidden rounded-sm">
                       {featured.coverUrl && (
                         <img
                           src={featured.coverUrl}
@@ -233,19 +233,19 @@ const Historias = () => {
                     </div>
                     <div className="mt-6 space-y-3">
                       {featured.category && (
-                        <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                        <span className="text-[10px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                           {featured.category}
                         </span>
                       )}
-                      <h2 className="font-serif text-4xl md:text-5xl italic leading-tight group-hover:text-[#2e5424] transition-colors">
+                      <h2 className="font-serif text-4xl md:text-5xl italic leading-tight group-hover:text-[#BC3F1C] transition-colors">
                         {featured.title}
                       </h2>
                       {featured.excerpt && (
-                        <p className="text-lg text-[#2b2f26]/60 leading-relaxed font-light line-clamp-2 max-w-xl">
+                        <p className="text-lg text-[#1a1a1a]/60 leading-relaxed font-light line-clamp-2 max-w-xl">
                           {featured.excerpt}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 text-[9px] tracking-[0.2em] font-semibold uppercase text-[#2b2f26]/40 pt-4 border-t border-[#2b2f26]/5">
+                      <div className="flex items-center gap-4 text-[9px] tracking-[0.2em] font-semibold uppercase text-[#1a1a1a]/40 pt-4 border-t border-[#1a1a1a]/5">
                         {featured.category && <span>{featured.category}</span>}
                         {featured.readingTimeMin && (
                           <span className="flex items-center gap-1">
@@ -265,7 +265,7 @@ const Historias = () => {
                       to={`/historia/${article.slug}`}
                       className="group flex flex-col"
                     >
-                      <div className="aspect-[16/9] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                      <div className="aspect-[16/9] bg-[#F3E4D3] overflow-hidden rounded-sm">
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
@@ -276,7 +276,7 @@ const Historias = () => {
                       </div>
                       <div className="mt-4 space-y-2">
                         {article.category && (
-                          <span className="text-[9px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[9px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
@@ -284,7 +284,7 @@ const Historias = () => {
                           {article.title}
                         </h3>
                         {article.readingTimeMin && (
-                          <div className="flex items-center gap-3 text-[9px] tracking-widest font-semibold uppercase text-[#2b2f26]/30 pt-2">
+                          <div className="flex items-center gap-3 text-[9px] tracking-widest font-semibold uppercase text-[#1a1a1a]/30 pt-2">
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {article.readingTimeMin} min
@@ -303,23 +303,23 @@ const Historias = () => {
 
             {/* IMMERSIVE DARK BLOCK — GRAN RELATO */}
             {featured && (
-              <section className="bg-[#2b2f26] text-[#f5f1e6] py-24 md:py-32">
+              <section className="bg-[#1a1a1a] text-[#F7E7D7] py-24 md:py-32">
                 <div className="max-w-[1400px] mx-auto px-6 grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
                   <div className="space-y-8">
-                    <span className="text-[10px] uppercase tracking-[0.4em] text-[#f5f1e6]/40 font-bold">
+                    <span className="text-[10px] uppercase tracking-[0.4em] text-[#F7E7D7]/40 font-bold">
                       Gran Relato
                     </span>
                     <h2 className="text-4xl md:text-6xl font-serif italic leading-tight">
                       {featured.title}
                     </h2>
                     {featured.excerpt && (
-                      <p className="text-xl text-[#f5f1e6]/70 leading-relaxed font-light italic max-w-lg">
+                      <p className="text-xl text-[#F7E7D7]/70 leading-relaxed font-light italic max-w-lg">
                         {featured.excerpt}
                       </p>
                     )}
                     <Link
                       to={`/historia/${featured.slug}`}
-                      className="inline-block px-10 py-4 border-2 border-[#f5f1e6] text-[#f5f1e6] text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#f5f1e6] hover:text-[#2b2f26] transition-all duration-300"
+                      className="inline-block px-10 py-4 border-2 border-[#F7E7D7] text-[#F7E7D7] text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#F7E7D7] hover:text-[#1a1a1a] transition-all duration-300"
                     >
                       Leer la historia completa
                     </Link>
@@ -355,7 +355,7 @@ const Historias = () => {
                         to={`/product/${product.id}`}
                         className="group space-y-4"
                       >
-                        <div className="aspect-square overflow-hidden bg-[#e5e1d8]">
+                        <div className="aspect-square overflow-hidden bg-[#F3E4D3]">
                           {img && (
                             <img
                               src={img}
@@ -365,11 +365,11 @@ const Historias = () => {
                           )}
                         </div>
                         <div className="space-y-1">
-                          <h4 className="font-serif text-lg leading-tight group-hover:text-[#2e5424] transition-colors line-clamp-2">
+                          <h4 className="font-serif text-lg leading-tight group-hover:text-[#BC3F1C] transition-colors line-clamp-2">
                             {product.name}
                           </h4>
                           {price != null && (
-                            <p className="text-sm font-bold text-[#2b2f26]">
+                            <p className="text-sm font-bold text-[#1a1a1a]">
                               {formatCurrency(price)}
                             </p>
                           )}
@@ -397,7 +397,7 @@ const Historias = () => {
                       to={`/historia/${article.slug}`}
                       className="group space-y-6"
                     >
-                      <div className="aspect-[4/5] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                      <div className="aspect-[4/5] bg-[#F3E4D3] overflow-hidden rounded-sm">
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
@@ -408,7 +408,7 @@ const Historias = () => {
                       </div>
                       <div className="space-y-3">
                         {article.category && (
-                          <span className="text-[9px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[9px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
@@ -416,11 +416,11 @@ const Historias = () => {
                           {article.title}
                         </h3>
                         {article.excerpt && (
-                          <p className="text-sm text-[#2b2f26]/60 leading-relaxed font-light line-clamp-3">
+                          <p className="text-sm text-[#1a1a1a]/60 leading-relaxed font-light line-clamp-3">
                             {article.excerpt}
                           </p>
                         )}
-                        <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2b2f26]/30 pt-4 border-t border-[#2b2f26]/5">
+                        <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#1a1a1a]/30 pt-4 border-t border-[#1a1a1a]/5">
                           {article.publishedAt && (
                             <span>
                               {format(
@@ -451,7 +451,7 @@ const Historias = () => {
                       to={`/historia/${article.slug}`}
                       className="group space-y-6"
                     >
-                      <div className="aspect-[16/10] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                      <div className="aspect-[16/10] bg-[#F3E4D3] overflow-hidden rounded-sm">
                         {article.coverUrl && (
                           <img
                             src={article.coverUrl}
@@ -462,14 +462,14 @@ const Historias = () => {
                       </div>
                       <div className="space-y-3">
                         {article.category && (
-                          <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                          <span className="text-[10px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                             {article.category}
                           </span>
                         )}
                         <h3 className="font-serif text-2xl leading-tight group-hover:italic transition-all">
                           {article.title}
                         </h3>
-                        <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2b2f26]/30 pt-4 border-t border-[#2b2f26]/5">
+                        <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#1a1a1a]/30 pt-4 border-t border-[#1a1a1a]/5">
                           {article.publishedAt && (
                             <span>
                               {format(
@@ -509,8 +509,8 @@ const Historias = () => {
                         className={cn(
                           "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
                           p === page
-                            ? "bg-[#2b2f26] text-white"
-                            : "text-[#2b2f26]/40 hover:text-[#2b2f26]",
+                            ? "bg-[#1a1a1a] text-white"
+                            : "text-[#1a1a1a]/40 hover:text-[#1a1a1a]",
                         )}
                       >
                         {p}

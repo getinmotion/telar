@@ -134,12 +134,12 @@ const COLLECTION_META: CollectionMeta[] = [
       {
         eyebrow: "Educación y futuro",
         title: "El relevo generacional",
-        body: "Desde 1972, con la creación de la Institución Educativa Técnica La Chamba, los niños y jóvenes reciben formación especializada. En Cocrea potenciamos esta base educativa integrando herramientas digitales y de comercialización directa, asegurando que el talento de estos jóvenes se convierta en una empresa global sin tener que abandonar su vereda.",
+        body: "Desde 1972, con la creación de la Institución Educativa Técnica La Chamba, los niños y jóvenes reciben formación especializada. En Villa Adelaida potenciamos esta base educativa integrando herramientas digitales y de comercialización directa, asegurando que el talento de estos jóvenes se convierta en una empresa global sin tener que abandonar su vereda.",
       },
       {
         eyebrow: "De la utilidad al culto",
         title: "Denominación de origen",
-        body: "Lo que comenzó en 1937 como la creación de ollas y platos para las cocinas típicas de Colombia, hoy es una Denominación de Origen reconocida mundialmente. En Cocrea eliminamos los intermediarios para que el valor de estas piezas —que llevan el alma, la vida y el corazón de los artesanos del Tolima— regrese de manera justa y transparente al territorio.",
+        body: "Lo que comenzó en 1937 como la creación de ollas y platos para las cocinas típicas de Colombia, hoy es una Denominación de Origen reconocida mundialmente. En Villa Adelaida eliminamos los intermediarios para que el valor de estas piezas —que llevan el alma, la vida y el corazón de los artesanos del Tolima— regrese de manera justa y transparente al territorio.",
       },
     ],
     stories: [
@@ -276,13 +276,13 @@ function CmsCollectionView({ collection }: { collection: import('@/services/coll
     : undefined;
   const isDark = collection.layoutVariant === 'dark' || !!heroBg;
   return (
-    <div className="min-h-screen bg-[#f5f1e6]">
+    <div className="min-h-screen bg-[#F7E7D7]">
       <Helmet>
-        <title>{collection.title} · Cocrea</title>
+        <title>{collection.title} · Villa Adelaida</title>
         {collection.excerpt && <meta name="description" content={collection.excerpt} />}
       </Helmet>
       <header
-        className={`relative px-4 py-24 text-center ${isDark ? 'text-white' : 'text-[#2b2f26]'}`}
+        className={`relative px-4 py-24 text-center ${isDark ? 'text-white' : 'text-[#1a1a1a]'}`}
         style={
           heroBg
             ? { backgroundImage: heroBg, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -303,7 +303,7 @@ function CmsCollectionView({ collection }: { collection: import('@/services/coll
       <div className="border-t bg-white py-12 text-center">
         <Link
           to="/colecciones"
-          className="text-sm font-bold uppercase tracking-widest text-[#2e5424]"
+          className="text-sm font-bold uppercase tracking-widest text-[#BC3F1C]"
         >
           ← Ver todas las colecciones
         </Link>
@@ -365,8 +365,8 @@ function LegacyColeccionDetail() {
 
   if (taxonomyLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
-        <p className="text-[#2b2f26]/40 text-sm uppercase tracking-widest">
+      <div className="min-h-screen bg-[#F7E7D7] flex items-center justify-center">
+        <p className="text-[#1a1a1a]/40 text-sm uppercase tracking-widest">
           Cargando colección…
         </p>
       </div>
@@ -375,11 +375,11 @@ function LegacyColeccionDetail() {
 
   if (!category && !taxonomyLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6] flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-[#F7E7D7] flex flex-col items-center justify-center gap-6">
         <h1 className="text-4xl font-serif">Colección no encontrada</h1>
         <Link
           to="/colecciones"
-          className="text-[#2e5424] text-sm uppercase tracking-widest font-bold"
+          className="text-[#BC3F1C] text-sm uppercase tracking-widest font-bold"
         >
           Volver a colecciones
         </Link>
@@ -390,37 +390,37 @@ function LegacyColeccionDetail() {
   return (
     <>
       <Helmet>
-        <title>{displayTitle} — Colecciones COCREA</title>
+        <title>{displayTitle} — Colecciones Villa Adelaida</title>
         <meta name="description" content={displayDescription} />
       </Helmet>
 
-      <div className="bg-[#f5f1e6] text-[#2b2f26] min-h-screen">
+      <div className="bg-[#F7E7D7] text-[#1a1a1a] min-h-screen">
         {/* ═══════════════ HEADER ═══════════════ */}
         <header className="max-w-[1400px] mx-auto px-6 pt-20 mb-24 grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
           <div className="md:col-span-7 space-y-6">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#2b2f26]/40 font-medium mb-4">
-              <Link to="/" className="hover:text-[#2b2f26] transition-colors">
+            <nav className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#1a1a1a]/40 font-medium mb-4">
+              <Link to="/" className="hover:text-[#1a1a1a] transition-colors">
                 Inicio
               </Link>
               <span>/</span>
               <Link
                 to="/colecciones"
-                className="hover:text-[#2b2f26] transition-colors"
+                className="hover:text-[#1a1a1a] transition-colors"
               >
                 Colecciones
               </Link>
               <span>/</span>
-              <span className="text-[#2e5424]">{displayTitle}</span>
+              <span className="text-[#BC3F1C]">{displayTitle}</span>
             </nav>
 
-            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#2e5424] block">
+            <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C] block">
               Colección
             </span>
             <h1 className="text-6xl md:text-7xl font-serif leading-[0.9] italic tracking-tighter">
               {displayTitle}
             </h1>
-            <p className="text-lg md:text-xl text-[#2b2f26]/70 leading-relaxed font-light max-w-xl">
+            <p className="text-lg md:text-xl text-[#1a1a1a]/70 leading-relaxed font-light max-w-xl">
               {displayDescription}
             </p>
             {meta?.tags && (
@@ -428,7 +428,7 @@ function LegacyColeccionDetail() {
                 {meta.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-4 py-1.5 bg-[#2b2f26]/5 rounded-full text-[10px] uppercase tracking-widest text-[#2b2f26]/60"
+                    className="px-4 py-1.5 bg-[#1a1a1a]/5 rounded-full text-[10px] uppercase tracking-widest text-[#1a1a1a]/60"
                   >
                     {tag}
                   </span>
@@ -450,7 +450,7 @@ function LegacyColeccionDetail() {
                   className="aspect-[4/3] w-full object-cover shadow-[20px_20px_60px_rgba(0,0,0,0.03)]"
                 />
               ) : (
-                <div className="aspect-[4/3] w-full bg-[#e5e1d8]" />
+                <div className="aspect-[4/3] w-full bg-[#F3E4D3]" />
               );
             })()}
           </div>
@@ -469,7 +469,7 @@ function LegacyColeccionDetail() {
                     key={src}
                     className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
                   >
-                    <div className="aspect-[4/5] overflow-hidden bg-[#e5e1d8] group">
+                    <div className="aspect-[4/5] overflow-hidden bg-[#F3E4D3] group">
                       <img
                         src={src}
                         alt={`${displayTitle} — pieza ${i + 1}`}
@@ -480,18 +480,18 @@ function LegacyColeccionDetail() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-2 md:-left-6 bg-white/90 border-[#2b2f26]/10 hover:bg-white" />
-              <CarouselNext className="right-2 md:-right-6 bg-white/90 border-[#2b2f26]/10 hover:bg-white" />
+              <CarouselPrevious className="left-2 md:-left-6 bg-white/90 border-[#1a1a1a]/10 hover:bg-white" />
+              <CarouselNext className="right-2 md:-right-6 bg-white/90 border-[#1a1a1a]/10 hover:bg-white" />
             </Carousel>
           ) : loadingProducts ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="space-y-6">
-                  <div className="aspect-[4/5] bg-[#e5e1d8] animate-pulse" />
+                  <div className="aspect-[4/5] bg-[#F3E4D3] animate-pulse" />
                   <div className="space-y-2">
-                    <div className="h-3 bg-[#e5e1d8] w-1/3 animate-pulse" />
-                    <div className="h-5 bg-[#e5e1d8] w-2/3 animate-pulse" />
-                    <div className="h-4 bg-[#e5e1d8] w-1/4 animate-pulse" />
+                    <div className="h-3 bg-[#F3E4D3] w-1/3 animate-pulse" />
+                    <div className="h-5 bg-[#F3E4D3] w-2/3 animate-pulse" />
+                    <div className="h-4 bg-[#F3E4D3] w-1/4 animate-pulse" />
                   </div>
                 </div>
               ))}
@@ -504,12 +504,12 @@ function LegacyColeccionDetail() {
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-[#2b2f26]/40 text-lg font-serif italic">
+              <p className="text-[#1a1a1a]/40 text-lg font-serif italic">
                 Próximamente — piezas de esta colección
               </p>
               <Link
                 to="/productos"
-                className="inline-block mt-6 text-[#2e5424] text-xs font-bold uppercase tracking-widest"
+                className="inline-block mt-6 text-[#BC3F1C] text-xs font-bold uppercase tracking-widest"
               >
                 Explorar todas las piezas →
               </Link>
@@ -520,12 +520,12 @@ function LegacyColeccionDetail() {
             <div className="mt-20 flex justify-center">
               <Link
                 to="/productos"
-                className="group relative px-12 py-4 border border-[#2b2f26] overflow-hidden transition-all duration-300 hover:text-white"
+                className="group relative px-12 py-4 border border-[#1a1a1a] overflow-hidden transition-all duration-300 hover:text-white"
               >
                 <span className="relative z-10 text-xs font-bold uppercase tracking-[0.2em]">
                   Ver toda la colección
                 </span>
-                <div className="absolute inset-0 bg-[#2b2f26] translate-y-full transition-transform duration-300 group-hover:translate-y-0" />
+                <div className="absolute inset-0 bg-[#1a1a1a] translate-y-full transition-transform duration-300 group-hover:translate-y-0" />
               </Link>
             </div>
           )}
@@ -533,7 +533,7 @@ function LegacyColeccionDetail() {
 
         {/* ═══════════════ CURATORIAL CONTEXT (DARK) ═══════════════ */}
         {meta && (
-          <section className="w-full bg-[#2b2f26] py-32 text-[#f5f1e6] overflow-hidden">
+          <section className="w-full bg-[#1a1a1a] py-32 text-[#F7E7D7] overflow-hidden">
             <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center gap-24">
               <div className="w-full md:w-[45%] space-y-10">
                 <h2 className="text-5xl font-serif leading-tight italic">
@@ -579,7 +579,7 @@ function LegacyColeccionDetail() {
                 >
                   <div className="md:col-span-4">
                     {sec.eyebrow && (
-                      <p className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans mb-4 text-[#2e5424]">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.4em] font-sans mb-4 text-[#BC3F1C]">
                         {sec.eyebrow}
                       </p>
                     )}
@@ -588,7 +588,7 @@ function LegacyColeccionDetail() {
                     </h3>
                   </div>
                   <div className="md:col-span-8">
-                    <p className="text-lg md:text-xl leading-relaxed font-light text-[#2b2f26]/75">
+                    <p className="text-lg md:text-xl leading-relaxed font-light text-[#1a1a1a]/75">
                       {sec.body}
                     </p>
                   </div>
@@ -599,47 +599,47 @@ function LegacyColeccionDetail() {
         )}
 
         {/* ═══════════════ SYSTEM CONNECTIONS ═══════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-32 border-b border-[#2b2f26]/5">
+        <section className="max-w-[1400px] mx-auto px-6 py-32 border-b border-[#1a1a1a]/5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <Link
               to="/territorios"
-              className="p-16 border border-[#2b2f26]/10 hover:bg-gradient-to-br hover:from-[#2e5424]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#1a1a1a]/10 hover:bg-gradient-to-br hover:from-[#BC3F1C]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Map className="w-10 h-10 text-[#2e5424] mb-8" />
+                <Map className="w-10 h-10 text-[#BC3F1C] mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Ver productos por territorio relacionado
                 </h4>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2b2f26]/40 group-hover:text-[#2b2f26] group-hover:translate-x-2 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/40 group-hover:text-[#1a1a1a] group-hover:translate-x-2 transition-all">
                 Ir al mapa de regiones
               </span>
             </Link>
             <Link
               to="/tecnicas"
-              className="p-16 border border-[#2b2f26]/10 hover:bg-gradient-to-br hover:from-[#2e5424]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#1a1a1a]/10 hover:bg-gradient-to-br hover:from-[#BC3F1C]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Waypoints className="w-10 h-10 text-[#2e5424] mb-8" />
+                <Waypoints className="w-10 h-10 text-[#BC3F1C] mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Explorar técnica de tejeduría
                 </h4>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2b2f26]/40 group-hover:text-[#2b2f26] group-hover:translate-x-2 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/40 group-hover:text-[#1a1a1a] group-hover:translate-x-2 transition-all">
                 Ver archivo de técnicas
               </span>
             </Link>
             <Link
               to="/tiendas"
-              className="p-16 border border-[#2b2f26]/10 hover:bg-gradient-to-br hover:from-[#2e5424]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
+              className="p-16 border border-[#1a1a1a]/10 hover:bg-gradient-to-br hover:from-[#BC3F1C]/[0.08] hover:to-transparent transition-all duration-400 group cursor-pointer flex flex-col justify-between aspect-square"
             >
               <div>
-                <Store className="w-10 h-10 text-[#2e5424] mb-8" />
+                <Store className="w-10 h-10 text-[#BC3F1C] mb-8" />
                 <h4 className="text-3xl font-serif italic leading-tight">
                   Conocer talleres y maestros
                 </h4>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2b2f26]/40 group-hover:text-[#2b2f26] group-hover:translate-x-2 transition-all">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a]/40 group-hover:text-[#1a1a1a] group-hover:translate-x-2 transition-all">
                 Lista de artesanos
               </span>
             </Link>
@@ -653,7 +653,7 @@ function LegacyColeccionDetail() {
               <h2 className="text-4xl md:text-5xl font-serif italic">
                 Seguir explorando historias
               </h2>
-              <div className="w-12 h-px bg-[#2e5424] mx-auto mt-6" />
+              <div className="w-12 h-px bg-[#BC3F1C] mx-auto mt-6" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
               {meta.stories.map((story, i) => {
@@ -666,7 +666,7 @@ function LegacyColeccionDetail() {
                     key={story.title}
                     className="flex flex-col space-y-8 group cursor-pointer"
                   >
-                    <div className="aspect-[4/5] overflow-hidden shadow-[20px_20px_60px_rgba(0,0,0,0.03)] bg-[#e5e1d8] transition-transform duration-500 group-hover:scale-[1.02]">
+                    <div className="aspect-[4/5] overflow-hidden shadow-[20px_20px_60px_rgba(0,0,0,0.03)] bg-[#F3E4D3] transition-transform duration-500 group-hover:scale-[1.02]">
                       {storyImg && (
                         <img
                           src={storyImg}
@@ -676,13 +676,13 @@ function LegacyColeccionDetail() {
                       )}
                     </div>
                     <div className="space-y-4">
-                      <h3 className="text-3xl font-serif italic leading-tight group-hover:text-[#2e5424] transition-colors">
+                      <h3 className="text-3xl font-serif italic leading-tight group-hover:text-[#BC3F1C] transition-colors">
                         {story.title}
                       </h3>
-                      <p className="text-[#2b2f26]/60 leading-relaxed font-light line-clamp-2">
+                      <p className="text-[#1a1a1a]/60 leading-relaxed font-light line-clamp-2">
                         {story.excerpt}
                       </p>
-                      <div className="inline-flex items-center gap-2 text-[#2e5424] group-hover:gap-4 transition-all">
+                      <div className="inline-flex items-center gap-2 text-[#BC3F1C] group-hover:gap-4 transition-all">
                         <span className="text-[10px] font-bold tracking-widest uppercase">
                           Leer el relato
                         </span>

@@ -25,7 +25,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Verifica tu cuenta - GetInMotion',
+      subject: 'Verifica tu cuenta - Telar',
       template: './verify-email',
       context: {
         name,
@@ -51,7 +51,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Recupera tu contraseña - GetInMotion',
+      subject: 'Recupera tu contraseña - Telar',
       template: './password-recovery',
       context: {
         name,
@@ -67,7 +67,7 @@ export class MailService {
   async sendWelcomeEmail(email: string, name: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: '¡Bienvenido a GetInMotion!',
+      subject: '¡Bienvenido a Telar!',
       template: './welcome',
       context: {
         name,
@@ -86,7 +86,7 @@ export class MailService {
   ): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu contraseña ha sido cambiada - GetInMotion',
+      subject: 'Tu contraseña ha sido cambiada - Telar',
       template: './password-changed',
       context: {
         name,
@@ -121,7 +121,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: '¡Compra Confirmada! - GetInMotion',
+      subject: '¡Compra Confirmada! - Telar',
       template: './payment-confirmation',
       context: {
         buyerName,

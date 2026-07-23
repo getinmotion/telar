@@ -69,8 +69,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
           <FooterLink to="/colecciones">Colecciones</FooterLink>
         </FooterNav>
 
-        <FooterNav title="Cocrea">
-          <FooterLink to="/sobre-cocrea">Sobre Cocrea</FooterLink>
+        <FooterNav title="Villa Adelaida">
+          <FooterLink to="/sobre-villa-adelaida">Sobre Villa Adelaida</FooterLink>
           <FooterLink to="/historias">Historias</FooterLink>
           <FooterLink to="/talleres">Talleres</FooterLink>
           <FooterLink to="/trazabilidad">Trazabilidad</FooterLink>
@@ -111,8 +111,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
             <div className="mb-10">
               <img
                 src={cocreaFooterLogo}
-                alt="CO·CREA"
-                className="h-10 w-auto"
+                alt="Villa Adelaida"
+                className="h-20 w-auto"
               />
             </div>
             <p className="font-serif text-4xl md:text-5xl text-white leading-tight">
@@ -129,7 +129,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
               <img
                 src={culturasLogoCream}
                 alt="Ministerio de las Culturas, las Artes y los Saberes"
-                className="h-12 w-auto object-contain"
+                className="h-24 w-auto object-contain"
               />
             </div>
             <span className="text-white/75 text-[10px] font-bold tracking-[0.3em] uppercase">
@@ -147,7 +147,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
             <p>Ministerio de las Culturas, las Artes y los Saberes</p>
           </div>
           <div className="text-white/55 text-[9px] font-bold tracking-[0.2em] uppercase">
-            <p>&copy; {new Date().getFullYear()} COCREA. TODOS LOS DERECHOS RESERVADOS.</p>
+            <p>&copy; {new Date().getFullYear()} Villa Adelaida. TODOS LOS DERECHOS RESERVADOS.</p>
           </div>
         </div>
       </div>

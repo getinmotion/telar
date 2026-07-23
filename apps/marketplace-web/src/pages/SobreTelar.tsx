@@ -4,16 +4,14 @@ import { useCmsSections } from "@/hooks/useCmsSections";
 import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 import type { CmsSection } from "@/services/cms-sections.actions";
 
-// ── S3 image constants (used by the fallback below) ─────────────────────
-const S3_ABOUT_BASE =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/about";
-const ABOUT_1_URL = `${S3_ABOUT_BASE}/about_1.jpeg`;
-const ABOUT_2_URL = `${S3_ABOUT_BASE}/about_2.jpeg`;
-const ARTESANA_TEJIENDO_URL =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/hero-images/last-version/artisan_capture.png";
+// Fotos retiradas: se dejan vacías para que el renderer muestre placeholders
+// hasta contar con imágenes propias de Villa Adelaida.
+const ABOUT_1_URL = "";
+const ABOUT_2_URL = "";
+const ARTESANA_TEJIENDO_URL = "";
 
 /* ── Fallback editorial — se renderiza solo si CMS no responde ────────── */
-const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
+const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
   {
     id: "fallback-about-hero",
     pageKey: "sobre-telar",
@@ -22,18 +20,18 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     published: true,
     payload: {
       bgImageUrl: ABOUT_1_URL,
-      bgImageAlt: "Oficios y saberes de las Escuelas Taller de Colombia",
+      bgImageAlt: "Diseño, oficios y saberes de Colombia",
       bgObjectPosition: "center 30%",
-      titleLineTop: "COCREA ES LA VITRINA",
-      titleLineItalic: "DEL PATRIMONIO VIVO",
-      titleLineBottom: "DE COLOMBIA",
-      body: "Somos el marketplace de las Escuelas Taller de Colombia, una iniciativa del Programa Nacional Escuelas Taller (PNET) del Ministerio de las Culturas, las Artes y los Saberes. Conectamos los productos elaborados por egresados y egresadas, maestras y maestros de los oficios culturales con personas que valoran el trabajo hecho a mano, la tradición y la construcción de paz.",
+      titleLineTop: "VILLA ADELAIDA",
+      titleLineItalic: "Centro Nacional de Diseño",
+      titleLineBottom: "e Innovación",
+      body: "Villa Adelaida es una iniciativa del Ministerio de las Culturas, las Artes y los Saberes, en alianza con la Corporación Colombia Crea Talento (CoCrea), que impulsa el diseño como herramienta para la creación, la innovación y el fortalecimiento de las economías culturales y creativas. Desde un espacio de encuentro, experimentación e intercambio de saberes, promueve el diálogo entre las prácticas tradicionales y contemporáneas para fortalecer procesos creativos, emprendimientos y comunidades de todo el país.",
     },
     createdAt: "",
     updatedAt: "",
   },
   {
-    id: "fallback-about-purpose",
+    id: "fallback-about-history",
     pageKey: "sobre-telar",
     position: 10,
     type: "about_two_col",
@@ -41,62 +39,63 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     payload: {
       imageSide: "right",
       kicker: "Nuestra historia",
-      titleLineTop: "Tres décadas salvaguardando",
-      titleLineItalic: "los oficios",
+      titleLineTop: "Una casa patrimonial",
+      titleLineItalic: "que resignifica su legado",
       paragraphs: [
-        "El modelo de Escuelas Taller llegó a Colombia en 1992 gracias a la cooperación entre la Agencia Española de Cooperación Internacional para el Desarrollo (AECID) y el Gobierno de Colombia. Entre 2005 y 2009 el Ministerio de Cultura lo transformó en el Programa Nacional Escuelas Taller, ampliando su alcance hacia la salvaguardia del patrimonio cultural inmaterial, los oficios tradicionales y las economías culturales.",
-        "En 2019, la estrategia “Salvaguardia de los oficios tradicionales para la construcción de paz” fue inscrita por la UNESCO en el Registro de Buenas Prácticas de Salvaguardia del Patrimonio Cultural Inmaterial. Hoy el Programa sigue evolucionando bajo el Plan Nacional de Cultura 2024–2038, con enfoque de Patrimonio Vivo, economías populares y comunitarias y Talleres Escuela.",
+        "Villa Adelaida es una casa patrimonial construida a comienzos del siglo XX, reconocida por su valor arquitectónico e histórico en Bogotá. Durante varias décadas fue la residencia de la familia de Agustín Nieto Caballero, pedagogo colombiano y fundador del Gimnasio Moderno, y escenario de importantes encuentros intelectuales y culturales asociados al pensamiento, la educación y la construcción de nuevas ideas.",
+        "Tras un proceso de recuperación liderado por el Ministerio de las Culturas, las Artes y los Saberes, en articulación con la Sociedad de Activos Especiales (SAE), la casa inició una nueva etapa como Villa Adelaida, Centro Nacional de Diseño e Innovación. Este propósito resignifica su historia y mantiene su vocación como lugar de encuentro e intercambio de ideas, ahora desde el diseño, la creación y la innovación.",
       ],
       imageUrl: ABOUT_2_URL,
-      imageAlt: "Aprendices y maestros de las Escuelas Taller",
-      statValue: "2019",
-      statLabel: "Reconocimiento UNESCO como buena práctica de salvaguardia",
+      imageAlt: "Villa Adelaida, casa patrimonial en Bogotá",
+      statValue: "Siglo XX",
+      statLabel: "Casa patrimonial recuperada como Centro Nacional de Diseño e Innovación",
     },
     createdAt: "",
     updatedAt: "",
   },
   {
-    id: "fallback-about-wide",
+    id: "fallback-about-purpose",
     pageKey: "sobre-telar",
     position: 20,
     type: "about_wide_block",
     published: true,
     payload: {
-      kicker: "Misión y visión",
-      titleLineTop: "Herramientas",
-      titleLineItalic: "de paz",
+      kicker: "Nuestro propósito",
+      titleLineTop: "El diseño como",
+      titleLineItalic: "herramienta de transformación",
       paragraphs: [
-        "Nuestra misión es la salvaguardia de los saberes y oficios culturales, patrimoniales y artísticos, a través de procesos formativos orientados a la educación para el trabajo, la gestión cultural y el desarrollo humano, impulsando la dinamización de las economías culturales, populares y comunitarias, la circulación de la oferta artística y cultural, el ejercicio de derechos culturales, la sostenibilidad y la gestión del conocimiento.",
-        "Buscamos consolidarnos como referente en la salvaguardia de los saberes y oficios culturales, reconocidos por fortalecer el patrimonio vivo, impulsar las economías culturales y populares, promover el desarrollo territorial y contribuir a la construcción de paz mediante la formación, la innovación social y la gestión del conocimiento.",
+        "Impulsamos el diseño como herramienta para la creación, la innovación y el fortalecimiento de las economías culturales y creativas, mediante procesos de formación, experimentación, intercambio de saberes, desarrollo de producto, circulación y articulación entre actores.",
+        "Contribuimos a generar oportunidades para creadores, artesanas, artesanos, diseñadores, organizaciones y emprendimientos culturales, fortaleciendo sus capacidades y ampliando sus posibilidades de circulación y comercialización.",
       ],
     },
     createdAt: "",
     updatedAt: "",
   },
   {
-    id: "fallback-about-intelligence",
+    id: "fallback-about-axes",
     pageKey: "sobre-telar",
     position: 30,
     type: "about_two_col",
     published: true,
     payload: {
       imageSide: "left",
-      kicker: "Nuestro modelo",
-      titleLineTop: "Cinco ejes que articulan",
-      titleLineItalic: "el ecosistema cultural",
-      intro: "El modelo integral del Programa Nacional Escuelas Taller se desarrolla a partir de cinco ejes estratégicos:",
+      kicker: "Líneas de acción",
+      titleLineTop: "Seis ejes que articulan",
+      titleLineItalic: "el diseño y la innovación",
+      intro: "El trabajo de Villa Adelaida se organiza en torno a seis ejes estratégicos:",
       bullets: [
-        "Formación para el trabajo",
-        "Gestión del conocimiento",
-        "Incidencia local y regional",
-        "Economías culturales, populares y comunitarias",
-        "Integración al ecosistema cultural y territorial",
+        "Diseño e innovación",
+        "Formación e intercambio de saberes",
+        "Investigación, experimentación y desarrollo de producto",
+        "Circulación y apropiación social del diseño",
+        "Fortalecimiento de las economías culturales y creativas",
+        "Articulación interinstitucional y cooperación",
       ],
-      outro: "Nuestro trabajo se guía por la diversidad cultural, la inclusión social, la construcción de paz, la innovación, el desarrollo territorial, la gestión colaborativa del conocimiento y la sostenibilidad.",
+      outro: "Nuestro trabajo se guía por el diseño como herramienta de transformación, la innovación, la colaboración, la diversidad cultural, el patrimonio vivo, la sostenibilidad, el intercambio de saberes y la inclusión.",
       imageUrl: ARTESANA_TEJIENDO_URL,
-      imageAlt: "Artesana tejiendo con lanas de colores",
-      overlayKicker: "Saberes que se transmiten",
-      overlayTitle: "de generación en generación",
+      imageAlt: "Saberes que dialogan entre lo tradicional y lo contemporáneo",
+      overlayKicker: "Saberes que dialogan",
+      overlayTitle: "entre lo tradicional y lo contemporáneo",
     },
     createdAt: "",
     updatedAt: "",
@@ -108,38 +107,40 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     type: "about_wide_block",
     published: true,
     payload: {
-      kicker: "Un ecosistema articulado",
-      titleLineTop: "De la transmisión de saberes",
-      titleLineItalic: "a la comercialización",
+      kicker: "Parte de un ecosistema",
+      titleLineTop: "Del conocimiento y el diseño",
+      titleLineItalic: "a la circulación",
       paragraphs: [
-        "Las estrategias lideradas por el Ministerio de las Culturas, las Artes y los Saberes no funcionan como proyectos independientes, sino como un ecosistema articulado que acompaña el ciclo completo de fortalecimiento de las economías culturales: desde el reconocimiento de maestras, maestros, sabedoras y sabedores, pasando por la formación, la creación y la innovación, hasta la producción, la circulación y la comercialización de bienes y servicios culturales.",
-        "Cada iniciativa responde a una etapa del proceso, pero todas se articulan para generar oportunidades de formación, creación, innovación, circulación y sostenibilidad económica para las comunidades y los territorios. Cocrea es el eslabón de circulación y comercialización de esa ruta: el canal digital donde los productos y servicios culturales encuentran nuevos mercados.",
+        "Villa Adelaida articula el componente de diseño e innovación dentro del ecosistema del Ministerio de las Culturas, las Artes y los Saberes. Desde este espacio convergen procesos de investigación, creación, formación, desarrollo de producto, circulación y fortalecimiento de capacidades que complementan otras estrategias institucionales como Escuelas Taller, País Raíz y Circuitos Vivos.",
+        "Esta articulación permite acompañar iniciativas culturales desde la generación de conocimiento y el diseño hasta su circulación y comercialización, fortaleciendo las economías culturales, populares y comunitarias.",
       ],
     },
     createdAt: "",
     updatedAt: "",
   },
   {
-    id: "fallback-about-projects",
+    id: "fallback-about-audiences",
     pageKey: "sobre-telar",
     position: 50,
     type: "about_two_col",
     published: true,
     payload: {
       imageSide: "right",
-      kicker: "Proyectos del ecosistema",
-      titleLineTop: "Iniciativas que",
-      titleLineItalic: "caminan juntas",
-      intro: "Cocrea se articula con los programas y proyectos del Ministerio que fortalecen el diseño, la circulación y el turismo cultural:",
+      kicker: "Para quién",
+      titleLineTop: "Un espacio para todo",
+      titleLineItalic: "el ecosistema creativo",
+      intro: "Villa Adelaida tiene vocación nacional y está dirigida a un ecosistema diverso de personas, organizaciones e instituciones:",
       bullets: [
-        "Kasa Raíz — Centro Nacional de Diseño e Innovación Cultural: diseño, innovación y emprendimiento creativo en Villa Adelaida, Bogotá",
-        "Villa Adelaida: espacio nacional para la formación, creación y fortalecimiento de emprendimientos del diseño, los oficios y las artes",
-        "País Raíz: turismo biocultural en territorios como La Guajira, Guaviare, San Andrés, Santa Marta y el Alto Magdalena",
-        "Circuitos Vivos: circulación cultural mediante rutas regionales en el Caribe, el Pacífico, los Llanos, el Eje Cafetero y el centro del país",
+        "Diseñadoras y diseñadores de todas las disciplinas",
+        "Artesanas, artesanos, maestras, maestros, sabedoras y sabedores",
+        "Artistas, creadoras y creadores interdisciplinarios",
+        "Emprendedores culturales y unidades productivas",
+        "Organizaciones culturales, comunitarias y sociales",
+        "Academia, instituciones, cooperación y sector creativo",
       ],
-      outro: "Juntas conforman una ruta que acompaña a las personas, organizaciones y territorios desde la transmisión de saberes hasta la sostenibilidad económica.",
+      outro: "También abre sus puertas a la ciudadanía, las comunidades locales y los visitantes interesados en la cultura, el diseño y el patrimonio.",
       imageUrl: ABOUT_1_URL,
-      imageAlt: "Oficios culturales de las Escuelas Taller",
+      imageAlt: "Comunidades y creadores del ecosistema cultural",
     },
     createdAt: "",
     updatedAt: "",
@@ -153,10 +154,10 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     payload: {
       kicker: "Quiénes estamos detrás",
       titleLineTop: "Una apuesta",
-      titleLineItalic: "institucional y territorial",
+      titleLineItalic: "institucional",
       paragraphs: [
-        "Cocrea es liderada por el Ministerio de las Culturas, las Artes y los Saberes, a través de la Dirección de Estrategia, Desarrollo y Emprendimiento (DEDE) y su Grupo Escuelas Taller. La implementación territorial se realiza mediante la red de Escuelas Taller presentes en diferentes regiones del país, en articulación con entidades territoriales, organizaciones sociales, comunidades, maestras y maestros, sabedoras y sabedores y aliados estratégicos.",
-        "La plataforma está pensada para todas las personas que participan en las economías culturales: compradores, compradores institucionales, artesanas y artesanos, emprendimientos culturales, Escuelas Taller, turistas culturales, diseñadores, cooperación internacional, entidades públicas y academia.",
+        "Villa Adelaida, Centro Nacional de Diseño e Innovación, es una iniciativa del Ministerio de las Culturas, las Artes y los Saberes, liderada por la Dirección de Estrategia, Desarrollo y Emprendimiento (DEDE), en alianza con la Corporación Colombia Crea Talento (CoCrea) y en articulación con los equipos técnicos, administrativos y de programación del Centro.",
+        "Entre sus aliados clave se encuentran la Corporación Colombia Crea Talento (CoCrea), universidades, organizaciones culturales, colectivos y redes de diseño, el sector creativo y entidades públicas y privadas según cada proyecto.",
       ],
     },
     createdAt: "",
@@ -169,9 +170,9 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
     type: "about_cta",
     published: true,
     payload: {
-      titleLineTop: "Cada compra fortalece",
-      titleLineItalic: "el patrimonio vivo",
-      body: "Explora los productos elaborados por artesanas, artesanos, Escuelas Taller y emprendimientos culturales de todo el país; conoce las historias, los saberes y los procesos detrás de cada pieza; descubre experiencias, rutas y talleres asociados a los oficios tradicionales, y conecta directamente con sus creadores.",
+      titleLineTop: "Cada pieza conecta",
+      titleLineItalic: "diseño, territorio y personas",
+      body: "Explora los productos elaborados por artesanas, artesanos, Escuelas Taller, diseñadores y emprendimientos culturales de todo el país; conoce las historias, los saberes y los procesos detrás de cada pieza, y conecta directamente con sus creadores.",
       ctas: [
         { label: "Explorar productos", href: "/productos", variant: "secondary" },
         { label: "Conocer las historias", href: "/historias", variant: "outline" },
@@ -184,14 +185,14 @@ const FALLBACK_SOBRE_COCREA_SECTIONS: CmsSection[] = [
 
 export default function SobreTelar() {
   const { data: cmsSections } = useCmsSections("sobre-telar");
-  // El CMS aún guarda el "about" de la marca anterior (Telar). Hasta que el
-  // contenido se actualice desde el admin, cualquier mención de esa marca en
-  // el payload invalida las secciones remotas y se usa el contenido de Cocrea.
+  // El CMS aún guarda el "about" de marcas anteriores (Telar / Cocrea). Hasta que
+  // el contenido se actualice desde el admin, cualquier mención de esas marcas en
+  // el payload invalida las secciones remotas y se usa el contenido de Villa Adelaida.
   const cmsIsStale =
     !cmsSections ||
     cmsSections.length === 0 ||
-    /Telar/i.test(JSON.stringify(cmsSections.map((s) => s.payload)));
-  const sections = cmsIsStale ? FALLBACK_SOBRE_COCREA_SECTIONS : cmsSections;
+    /Telar|Cocrea/i.test(JSON.stringify(cmsSections.map((s) => s.payload)));
+  const sections = cmsIsStale ? FALLBACK_SOBRE_VA_SECTIONS : cmsSections;
 
   return (
     <div className="bg-editorial-bg text-charcoal min-h-screen">
@@ -202,7 +203,7 @@ export default function SobreTelar() {
             Inicio
           </Link>
           <span>/</span>
-          <span className="text-primary font-bold">Sobre Cocrea</span>
+          <span className="text-primary font-bold">Sobre Villa Adelaida</span>
         </nav>
       </div>
 

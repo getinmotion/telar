@@ -176,9 +176,9 @@ const PaymentPending = () => {
       <div className="max-w-md w-full text-center space-y-8">
         {/* Telar Logo */}
         <img 
-          src={cocreaLogo} 
-          alt="CO·CREA" 
-          className="h-16 mx-auto"
+          src={cocreaLogo}
+          alt="Villa Adelaida"
+          className="h-32 mx-auto"
         />
         
         {/* Status Icon */}

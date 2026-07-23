@@ -1,5 +1,5 @@
 /**
- * Blog / Historias Listing Page — Editorial Design
+ * Blog / Historias Listing Page â€” Editorial Design
  * Route: /blog
  */
 
@@ -60,28 +60,28 @@ const Blog = () => {
   return (
     <>
       <Helmet>
-        <title>Historias - Cronicas del Territorio | COCREA</title>
+        <title>Historias - Cronicas del Territorio | Villa Adelaida</title>
         <meta
           name="description"
           content="Descubre las historias, tradiciones y tecnicas detras de las artesanias colombianas."
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26]">
+      <div className="min-h-screen bg-[#F7E7D7] text-[#1a1a1a]">
         {/* Hero */}
         <header className="max-w-[1400px] mx-auto px-6 py-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
-            <span className="text-[10px] uppercase tracking-[0.4em] text-[#2b2f26]/40 font-bold">
+            <span className="text-[10px] uppercase tracking-[0.4em] text-[#1a1a1a]/40 font-bold">
               El Taller Digital
             </span>
             <h1 className="text-6xl md:text-8xl font-serif italic leading-[0.9] tracking-tight">
               Historias
             </h1>
-            <p className="text-xl text-[#2b2f26]/70 leading-relaxed font-light italic font-serif max-w-2xl mx-auto">
+            <p className="text-xl text-[#1a1a1a]/70 leading-relaxed font-light italic font-serif max-w-2xl mx-auto">
               Cronicas de origen, tecnicas ancestrales y los rostros detras de
               cada pieza artesanal colombiana.
             </p>
-            <div className="w-24 h-px bg-[#2e5424] mx-auto mt-8" />
+            <div className="w-24 h-px bg-[#BC3F1C] mx-auto mt-8" />
           </div>
         </header>
 
@@ -93,7 +93,7 @@ const Blog = () => {
               placeholder="Buscar historias..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b border-[#2b2f26]/20 py-3 text-center text-sm focus:ring-0 focus:border-[#2b2f26] outline-none placeholder:text-[#2b2f26]/30 transition-colors"
+              className="w-full bg-transparent border-b border-[#1a1a1a]/20 py-3 text-center text-sm focus:ring-0 focus:border-[#1a1a1a] outline-none placeholder:text-[#1a1a1a]/30 transition-colors"
             />
           </div>
         </div>
@@ -102,7 +102,7 @@ const Blog = () => {
           <section className="py-32 px-6 text-center">
             <div className="max-w-xl mx-auto space-y-6">
               <h2 className="font-serif text-4xl italic">Proximamente</h2>
-              <p className="text-[#2b2f26]/60 leading-relaxed">
+              <p className="text-[#1a1a1a]/60 leading-relaxed">
                 Estamos preparando contenido increible sobre nuestros artesanos
                 y sus tecnicas ancestrales.
               </p>
@@ -113,10 +113,10 @@ const Blog = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 animate-pulse">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="space-y-6">
-                  <div className="aspect-[16/10] bg-[#e5e1d8] rounded-sm" />
-                  <div className="h-4 w-24 bg-[#e5e1d8] rounded" />
-                  <div className="h-8 w-3/4 bg-[#e5e1d8] rounded" />
-                  <div className="h-4 w-full bg-[#e5e1d8] rounded" />
+                  <div className="aspect-[16/10] bg-[#F3E4D3] rounded-sm" />
+                  <div className="h-4 w-24 bg-[#F3E4D3] rounded" />
+                  <div className="h-8 w-3/4 bg-[#F3E4D3] rounded" />
+                  <div className="h-4 w-full bg-[#F3E4D3] rounded" />
                 </div>
               ))}
             </div>
@@ -126,7 +126,7 @@ const Blog = () => {
             <h2 className="font-serif text-3xl italic mb-4">
               Sin resultados
             </h2>
-            <p className="text-[#2b2f26]/60">
+            <p className="text-[#1a1a1a]/60">
               {searchQuery
                 ? "No se encontraron historias con esa busqueda"
                 : "Pronto publicaremos nuevas historias"}
@@ -140,7 +140,7 @@ const Blog = () => {
                 to={`/blog/${featured.slug}`}
                 className="group grid grid-cols-1 lg:grid-cols-2 gap-16 mb-32 items-center"
               >
-                <div className="aspect-[16/10] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                <div className="aspect-[16/10] bg-[#F3E4D3] overflow-hidden rounded-sm">
                   {featured.coverUrl && (
                     <img
                       src={featured.coverUrl}
@@ -151,19 +151,19 @@ const Blog = () => {
                 </div>
                 <div className="space-y-6">
                   {featured.category && (
-                    <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                    <span className="text-[10px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                       {featured.category}
                     </span>
                   )}
-                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-[#2e5424] transition-colors">
+                  <h2 className="font-serif text-4xl lg:text-5xl italic leading-tight group-hover:text-[#BC3F1C] transition-colors">
                     {featured.title}
                   </h2>
                   {featured.description && (
-                    <p className="text-lg text-[#2b2f26]/70 leading-relaxed font-light">
+                    <p className="text-lg text-[#1a1a1a]/70 leading-relaxed font-light">
                       {featured.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-6 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#2b2f26]/40 pt-6 border-t border-[#2b2f26]/5">
+                  <div className="flex items-center gap-6 text-[10px] tracking-[0.2em] font-semibold uppercase text-[#1a1a1a]/40 pt-6 border-t border-[#1a1a1a]/5">
                     <span>
                       {format(
                         new Date(featured.publishedAt),
@@ -192,7 +192,7 @@ const Blog = () => {
                     to={`/blog/${article.slug}`}
                     className="group space-y-6"
                   >
-                    <div className="aspect-[16/10] bg-[#e5e1d8] overflow-hidden rounded-sm">
+                    <div className="aspect-[16/10] bg-[#F3E4D3] overflow-hidden rounded-sm">
                       {article.coverUrl && (
                         <img
                           src={article.coverUrl}
@@ -203,7 +203,7 @@ const Blog = () => {
                     </div>
                     <div className="space-y-3">
                       {article.category && (
-                        <span className="text-[10px] text-[#2e5424] uppercase tracking-[0.3em] font-bold">
+                        <span className="text-[10px] text-[#BC3F1C] uppercase tracking-[0.3em] font-bold">
                           {article.category}
                         </span>
                       )}
@@ -211,11 +211,11 @@ const Blog = () => {
                         {article.title}
                       </h3>
                       {article.description && (
-                        <p className="text-sm text-[#2b2f26]/60 leading-relaxed font-light line-clamp-3">
+                        <p className="text-sm text-[#1a1a1a]/60 leading-relaxed font-light line-clamp-3">
                           {article.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#2b2f26]/30 pt-4 border-t border-[#2b2f26]/5">
+                      <div className="flex items-center gap-4 text-[9px] tracking-widest font-semibold uppercase text-[#1a1a1a]/30 pt-4 border-t border-[#1a1a1a]/5">
                         <span>
                           {format(
                             new Date(article.publishedAt),
@@ -250,8 +250,8 @@ const Blog = () => {
                         className={cn(
                           "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
                           p === page
-                            ? "bg-[#2b2f26] text-white"
-                            : "text-[#2b2f26]/40 hover:text-[#2b2f26]"
+                            ? "bg-[#1a1a1a] text-white"
+                            : "text-[#1a1a1a]/40 hover:text-[#1a1a1a]"
                         )}
                       >
                         {p}
@@ -272,7 +272,7 @@ const Blog = () => {
         )}
 
         {/* CTA Section */}
-        <section className="py-32 bg-[#2b2f26] text-[#f5f1e6] text-center">
+        <section className="py-32 bg-[#1a1a1a] text-[#F7E7D7] text-center">
           <div className="max-w-3xl mx-auto px-6 space-y-10">
             <h2 className="font-serif text-4xl md:text-5xl italic leading-tight">
               Cada pieza tiene una historia. Cada historia, un territorio.
@@ -280,13 +280,13 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link
                 to="/productos"
-                className="px-12 py-4 bg-[#2e5424] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#2b2f26] transition-all"
+                className="px-12 py-4 bg-[#BC3F1C] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-[#1a1a1a] transition-all"
               >
                 Explorar piezas
               </Link>
               <Link
                 to="/tiendas"
-                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#c8d5b9] hover:text-[#c8d5b9] transition-all"
+                className="px-12 py-4 border border-white/30 text-white text-[10px] font-bold uppercase tracking-widest hover:border-[#C4D6CF] hover:text-[#C4D6CF] transition-all"
               >
                 Conocer talleres
               </Link>

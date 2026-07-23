@@ -118,7 +118,7 @@ function ContentPickItem({ pick }: { pick: PickPayload }) {
     return (
       <Link
         to={href}
-        className="relative block w-full overflow-hidden rounded-xl bg-[#20291a] text-white"
+        className="relative block w-full overflow-hidden rounded-xl bg-[#111111] text-white"
       >
         {imageUrl && (
           <img
@@ -130,7 +130,7 @@ function ContentPickItem({ pick }: { pick: PickPayload }) {
         )}
         <div className="relative z-10 px-8 py-16 md:px-12 md:py-24">
           {pick.label && (
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#2e5424]">
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C]">
               {pick.label}
             </p>
           )}
@@ -165,7 +165,7 @@ function ContentPickItem({ pick }: { pick: PickPayload }) {
         )}
         <div className="min-w-0 flex-1">
           {pick.label && (
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#2e5424]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#BC3F1C]">
               {pick.label}
             </p>
           )}
@@ -193,15 +193,15 @@ function ContentPickItem({ pick }: { pick: PickPayload }) {
       )}
       <div className="space-y-2 p-5">
         {pick.label && (
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#2e5424]">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#BC3F1C]">
             {pick.label}
           </p>
         )}
         <h3 className="font-serif text-2xl">{title}</h3>
         {excerpt && (
-          <p className="line-clamp-3 text-sm text-[#2b2f26]/70">{excerpt}</p>
+          <p className="line-clamp-3 text-sm text-[#1a1a1a]/70">{excerpt}</p>
         )}
-        <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#2e5424]">
+        <span className="inline-flex items-center gap-1 pt-2 text-xs font-bold uppercase tracking-widest text-[#BC3F1C]">
           {ctaLabel} <ArrowRight className="h-3 w-3" />
         </span>
       </div>

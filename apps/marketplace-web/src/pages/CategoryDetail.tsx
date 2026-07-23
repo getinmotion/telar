@@ -304,7 +304,7 @@ const CategoryDetail = () => {
               {editorial.description}
             </p>
           </div>
-          <div className="aspect-[21/6] bg-[#ece9e2] w-full rounded-sm border border-foreground/10 relative overflow-hidden group">
+          <div className="aspect-[21/6] bg-[#FBEFE1] w-full rounded-sm border border-foreground/10 relative overflow-hidden group">
             {parentCategory?.imageUrl && (
               <img
                 src={parentCategory.imageUrl}
@@ -510,9 +510,9 @@ const CategoryDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-24">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="bg-[#ece9e2] aspect-[3/4] mb-6 rounded-sm border border-foreground/10" />
-                    <div className="h-4 bg-[#ece9e2] rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-[#ece9e2] rounded w-1/2" />
+                    <div className="bg-[#FBEFE1] aspect-[3/4] mb-6 rounded-sm border border-foreground/10" />
+                    <div className="h-4 bg-[#FBEFE1] rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-[#FBEFE1] rounded w-1/2" />
                   </div>
                 ))}
               </div>
@@ -557,7 +557,7 @@ const CategoryDetail = () => {
       <section className="bg-primary/5 py-32 mb-32">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <div className="aspect-[5/6] w-full bg-[#ece9e2] shadow-2xl rounded-sm border border-foreground/10" />
+            <div className="aspect-[5/6] w-full bg-[#FBEFE1] shadow-2xl rounded-sm border border-foreground/10" />
             <div className="space-y-10">
               <h2 className="text-5xl md:text-7xl font-serif leading-tight">
                 {editorial.storyTitle} <br />
@@ -626,9 +626,9 @@ const CategoryDetail = () => {
                   key={i}
                   className="bg-white p-8 rounded-sm border border-primary/10"
                 >
-                  <div className="w-full aspect-square bg-[#ece9e2] rounded-sm border border-foreground/10 mb-8" />
-                  <div className="h-5 bg-[#ece9e2] rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-[#ece9e2] rounded w-1/2" />
+                  <div className="w-full aspect-square bg-[#FBEFE1] rounded-sm border border-foreground/10 mb-8" />
+                  <div className="h-5 bg-[#FBEFE1] rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-[#FBEFE1] rounded w-1/2" />
                 </div>
               ));
             }
@@ -639,7 +639,7 @@ const CategoryDetail = () => {
                 to={`/artesano/${shop.shopSlug}`}
                 className="bg-white p-8 rounded-sm border border-primary/10 hover:shadow-xl transition-all cursor-pointer group"
               >
-                <div className="w-full aspect-square bg-[#ece9e2] rounded-sm border border-foreground/10 mb-8 overflow-hidden">
+                <div className="w-full aspect-square bg-[#FBEFE1] rounded-sm border border-foreground/10 mb-8 overflow-hidden">
                   {shop.logoUrl && (
                     <img
                       src={shop.logoUrl}
@@ -663,7 +663,7 @@ const CategoryDetail = () => {
       {/* Piezas para regalar */}
       <section className="max-w-[1400px] mx-auto px-6 mb-32">
         <div className="relative rounded-sm overflow-hidden border border-foreground/10 h-[450px] flex items-center px-16 group">
-          <div className="absolute inset-0 bg-[#ece9e2]" />
+          <div className="absolute inset-0 bg-[#FBEFE1]" />
           <div className="relative z-10 max-w-xl">
             <h2 className="font-serif text-6xl mb-6 leading-tight text-charcoal">
               Piezas para regalar
@@ -706,7 +706,7 @@ function ProductNewCard({
         className="group block"
       >
         {/* Image */}
-        <div className="relative aspect-[3/4] bg-[#ece9e2] mb-6 rounded-sm border border-foreground/10 overflow-hidden">
+        <div className="relative aspect-[3/4] bg-[#FBEFE1] mb-6 rounded-sm border border-foreground/10 overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}

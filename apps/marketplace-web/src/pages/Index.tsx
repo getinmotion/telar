@@ -117,7 +117,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>COCREA — Artesanía Colombiana</title>
+        <title>Villa Adelaida — Artesanía Colombiana</title>
         <meta
           name="description"
           content="Objetos auténticos creados por talleres artesanales de Colombia. Cada pieza conserva la historia, el origen y el conocimiento de quienes la crean."
@@ -261,15 +261,15 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-16">
               <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
                 <p className="text-2xl font-serif italic opacity-95">
-                  Cocrea conecta a compradores con las Escuelas Taller, artesanas
+                  Villa Adelaida conecta a compradores con las Escuelas Taller, artesanas
                   y artesanos de todo el país. Cada pieza tiene origen, autor y
                   proceso documentado.
                 </p>
                 <Link
-                  to="/sobre-cocrea"
+                  to="/sobre-villa-adelaida"
                   className="inline-block border border-sage text-sage px-10 py-4 uppercase text-xs tracking-widest hover:bg-sage hover:text-charcoal transition-all"
                 >
-                  Descubrir cómo funciona Cocrea
+                  Descubrir cómo funciona Villa Adelaida
                 </Link>
               </div>
             </div>
@@ -299,7 +299,7 @@ const Index = () => {
                 Cada pieza tiene una huella digital
               </h2>
               <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
-                Cada objeto en Cocrea conserva un registro que documenta su
+                Cada objeto en Villa Adelaida conserva un registro que documenta su
                 origen cultural, el taller que lo creó y su proceso artesanal.
               </p>
               <div className="space-y-8">
@@ -435,7 +435,7 @@ const Index = () => {
               <div className="flex-1 space-y-8">
                 <h2 className="text-5xl font-serif">Regalos con historia</h2>
                 <p className="text-xl text-charcoal/70 leading-relaxed font-light">
-                  En Cocrea puedes encontrar piezas especiales para regalar en
+                  En Villa Adelaida puedes encontrar piezas especiales para regalar en
                   momentos importantes. Cada objeto hecho a mano lleva consigo
                   tradición, conocimiento y dedicación.
                 </p>
@@ -549,7 +549,7 @@ const Index = () => {
               <img
                 src={culturasLogo}
                 alt="Ministerio de las Culturas, las Artes y los Saberes"
-                className="w-44 h-auto object-contain"
+                className="w-[22rem] h-auto object-contain"
               />
             </div>
             <h3 className="text-2xl font-serif">

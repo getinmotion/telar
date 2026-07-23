@@ -48,7 +48,7 @@ const FALLBACK_TERRITORIOS_SECTIONS: CmsSection[] = [
       quote:
         "La geografía dicta la técnica. Donde hay palma, hay cestería; donde hay volcán, hay barro negro.",
       leftStats: [
-        { value: "+120", caption: "Talleres en el Pacífico", color: "#2e5424" },
+        { value: "+120", caption: "Talleres en el Pacífico", color: "#BC3F1C" },
         { value: "45", caption: "Técnicas en riesgo de desaparición", color: "#ba1a1a" },
       ],
       rightTitle: "El rastro de la fibra",
@@ -94,7 +94,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Tejeduría Wayúu · Desierto y Mar",
     lat: 11.55,
     lng: -72.9,
-    color: "#2e5424",
+    color: "#BC3F1C",
     size: 16,
     techniques: "Tejeduría Wayúu",
     region: "Caribe",
@@ -105,7 +105,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Hamacas y Telar · Montes de María",
     lat: 9.83,
     lng: -75.12,
-    color: "#2e5424",
+    color: "#BC3F1C",
     size: 22,
     techniques: "Telar vertical, Macramé",
     region: "Caribe",
@@ -116,7 +116,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Tradición Textil · Altiplano",
     lat: 5.53,
     lng: -73.36,
-    color: "#2e5424",
+    color: "#BC3F1C",
     size: 18,
     techniques: "Hilado manual, Ruanas",
     region: "Andina",
@@ -138,7 +138,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Barro Negro · Río Magdalena",
     lat: 3.68,
     lng: -75.02,
-    color: "#55603c",
+    color: "#4D4D4D",
     size: 14,
     techniques: "Cerámica de barro negro",
     region: "Andina",
@@ -160,7 +160,7 @@ const TERRITORIES: TerritoryPoint[] = [
     subtitle: "Seda y Tintes de Paz · Popayán · Timbío · El Tambo",
     lat: 2.44,
     lng: -76.61,
-    color: "#2e5424",
+    color: "#BC3F1C",
     size: 20,
     techniques: "Sericultura, Tintes Naturales, Telar",
     region: "Pacífico",
@@ -246,12 +246,12 @@ const Territorios = () => {
   const spotlight = selectedTerritory || TERRITORIES.find((t) => t.slug === "san-jacinto")!;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f5f1e6", color: "#1b1c19" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F7E7D7", color: "#1a1a1a" }}>
       {/* ═══════════════ HERO (CMS) ═══════════════ */}
       {heroSection && <CmsSectionRenderer section={heroSection} />}
 
       {/* ═══════════════ REAL MAP ═══════════════ */}
-      <section className="w-full py-24 relative overflow-hidden" style={{ backgroundColor: "#f5f3ee" }}>
+      <section className="w-full py-24 relative overflow-hidden" style={{ backgroundColor: "#F7E7D7" }}>
         <div className="max-w-[1400px] mx-auto px-8 relative z-10 flex flex-col items-center">
           <div
             className="w-full rounded-xl overflow-hidden relative"
@@ -304,8 +304,8 @@ const Territorios = () => {
                       <div
                         className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 text-[10px] tracking-widest uppercase font-bold font-sans z-20"
                         style={{
-                          backgroundColor: "#1b1c19",
-                          color: "#f5f1e6",
+                          backgroundColor: "#1a1a1a",
+                          color: "#F7E7D7",
                         }}
                       >
                         {shop.shopName}
@@ -358,8 +358,8 @@ const Territorios = () => {
                       <div
                         className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 text-[10px] tracking-widest uppercase font-bold font-sans"
                         style={{
-                          backgroundColor: "#1b1c19",
-                          color: "#f5f1e6",
+                          backgroundColor: "#1a1a1a",
+                          color: "#F7E7D7",
                         }}
                       >
                         {t.name}
@@ -373,7 +373,7 @@ const Territorios = () => {
             {/* Map caption overlay */}
             <div className="absolute bottom-4 left-4 flex items-center gap-4 z-10">
               <div className="w-12 h-[1px]" style={{ backgroundColor: "#8c7265" }} />
-              <span className="text-[10px] uppercase tracking-widest font-sans" style={{ color: "#55603c" }}>
+              <span className="text-[10px] uppercase tracking-widest font-sans" style={{ color: "#4D4D4D" }}>
                 Diagrama de Densidad Artesanal / 2025
               </span>
             </div>
@@ -384,8 +384,8 @@ const Territorios = () => {
                 onClick={resetView}
                 className="absolute top-4 left-4 z-10 px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold font-sans transition-colors"
                 style={{
-                  backgroundColor: "#1b1c19",
-                  color: "#f5f1e6",
+                  backgroundColor: "#1a1a1a",
+                  color: "#F7E7D7",
                 }}
               >
                 ← Ver todo Colombia
@@ -400,7 +400,7 @@ const Territorios = () => {
         <section className="max-w-[1400px] mx-auto px-8 py-12">
           <span
             className="text-xs tracking-widest uppercase mb-4 block font-sans font-bold"
-            style={{ color: "#55603c" }}
+            style={{ color: "#4D4D4D" }}
           >
             Tiendas sin ubicación cartográfica
           </span>
@@ -409,8 +409,8 @@ const Territorios = () => {
               <Link
                 key={s.id}
                 to={`/artesano/${s.shopSlug}`}
-                className="px-3 py-1.5 text-xs font-sans border rounded-full hover:bg-[#1b1c19] hover:text-white transition-colors"
-                style={{ borderColor: "rgba(140,114,101,0.3)", color: "#1b1c19" }}
+                className="px-3 py-1.5 text-xs font-sans border rounded-full hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                style={{ borderColor: "rgba(140,114,101,0.3)", color: "#1a1a1a" }}
               >
                 {s.shopName}
               </Link>
@@ -425,14 +425,14 @@ const Territorios = () => {
           <div className="lg:col-span-5 order-2 lg:order-1">
             <span
               className="text-sm tracking-widest uppercase mb-4 block font-sans font-bold"
-              style={{ color: "#2e5424" }}
+              style={{ color: "#BC3F1C" }}
             >
               Foco Regional
             </span>
             <h3 className="text-5xl font-serif font-bold mb-6" style={{ letterSpacing: "-0.02em" }}>
               {spotlight.name}
             </h3>
-            <p className="text-lg italic leading-relaxed mb-8" style={{ color: "#55603c" }}>
+            <p className="text-lg italic leading-relaxed mb-8" style={{ color: "#4D4D4D" }}>
               {spotlight.slug === "san-jacinto"
                 ? '"Donde la hamaca se teje con notas de gaita: la tierra de la hamaca grande, cuna del Reino Finzenú."'
                 : `Región: ${spotlight.region}. Tradiciones artesanales arraigadas en el paisaje y la memoria.`}
@@ -440,26 +440,26 @@ const Territorios = () => {
 
             <div className="space-y-6 mb-10">
               <div className="flex items-start gap-4">
-                <span className="mt-1 text-[#2e5424]">
+                <span className="mt-1 text-[#BC3F1C]">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                     <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                   </svg>
                 </span>
                 <div>
-                  <span className="block text-[10px] uppercase tracking-widest mb-1 font-sans" style={{ color: "#55603c" }}>
+                  <span className="block text-[10px] uppercase tracking-widest mb-1 font-sans" style={{ color: "#4D4D4D" }}>
                     Técnicas Clave
                   </span>
                   <p className="font-medium">{spotlight.techniques}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <span className="mt-1 text-[#2e5424]">
+                <span className="mt-1 text-[#BC3F1C]">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                     <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                   </svg>
                 </span>
                 <div>
-                  <span className="block text-[10px] uppercase tracking-widest mb-1 font-sans" style={{ color: "#55603c" }}>
+                  <span className="block text-[10px] uppercase tracking-widest mb-1 font-sans" style={{ color: "#4D4D4D" }}>
                     Región
                   </span>
                   <p className="font-medium">{spotlight.region}</p>
@@ -470,7 +470,7 @@ const Territorios = () => {
             <Link
               to={`/territorio/${spotlight.slug}`}
               className="inline-block px-10 py-4 rounded-md text-sm tracking-widest uppercase font-sans font-bold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#2e5424", color: "#fff" }}
+              style={{ backgroundColor: "#BC3F1C", color: "#fff" }}
             >
               Explorar Colección
             </Link>
@@ -480,7 +480,7 @@ const Territorios = () => {
             <div
               className="relative aspect-[4/5] rounded-md overflow-hidden"
               style={{
-                backgroundColor: "#eae8e3",
+                backgroundColor: "#FBEFE1",
                 boxShadow: "0 20px 40px rgba(27, 28, 25, 0.06)",
               }}
             >
@@ -516,7 +516,7 @@ const Territorios = () => {
             <div
               className="w-full md:w-1/2 mb-4 h-[1px]"
               style={{
-                background: "linear-gradient(90deg, #2e5424 0%, transparent 100%)",
+                background: "linear-gradient(90deg, #BC3F1C 0%, transparent 100%)",
                 opacity: 0.2,
               }}
             />
@@ -540,11 +540,11 @@ const Territorios = () => {
             >
               <div className="flex flex-col md:flex-row justify-between items-baseline gap-4">
                 <div className="flex items-baseline gap-8">
-                  <span className="text-xs font-sans" style={{ color: "#55603c" }}>
+                  <span className="text-xs font-sans" style={{ color: "#4D4D4D" }}>
                     {String(i + 1).padStart(2, "0")}.
                   </span>
                   <h4 className="text-4xl md:text-6xl font-serif group-hover:italic transition-all" style={{
-                    color: hoveredTerritory === t.slug ? "#2e5424" : "#1b1c19",
+                    color: hoveredTerritory === t.slug ? "#BC3F1C" : "#1a1a1a",
                   }}>
                     {t.name}
                   </h4>

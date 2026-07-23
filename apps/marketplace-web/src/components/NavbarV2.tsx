@@ -44,7 +44,7 @@ const NAV_LINKS: readonly { to: string; label: string; hasMegaMenu?: boolean }[]
   { to: "/giftcards", label: "Regalos" },
   { to: "/tiendas", label: "Talleres" },
   { to: "/historias", label: "Historias" },
-  { to: "/sobre-cocrea", label: "Sobre Cocrea" },
+  { to: "/sobre-villa-adelaida", label: "Sobre Villa Adelaida" },
 ];
 
 export const NavbarV2 = ({
@@ -148,16 +148,16 @@ export const NavbarV2 = ({
               <button onClick={onHomeClick} className="flex items-center">
                 <img
                   src={cocreaHorizontal}
-                  alt="CO·CREA"
-                  className="h-7"
+                  alt="Villa Adelaida"
+                  className="h-14"
                 />
               </button>
             ) : (
               <Link to="/?reset=true" className="flex items-center">
                 <img
                   src={cocreaHorizontal}
-                  alt="CO·CREA"
-                  className="h-7"
+                  alt="Villa Adelaida"
+                  className="h-14"
                 />
               </Link>
             )}
@@ -222,16 +222,16 @@ export const NavbarV2 = ({
                 <button onClick={onHomeClick} className="flex items-center">
                   <img
                     src={cocreaHorizontal}
-                    alt="CO·CREA"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                    alt="Villa Adelaida"
+                    className={`transition-all duration-300 ${isScrolled ? "h-12 md:h-14" : "h-16 md:h-18"}`}
                   />
                 </button>
               ) : (
                 <Link to="/?reset=true" className="flex items-center">
                   <img
                     src={cocreaHorizontal}
-                    alt="CO·CREA"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-9"}`}
+                    alt="Villa Adelaida"
+                    className={`transition-all duration-300 ${isScrolled ? "h-12 md:h-14" : "h-16 md:h-18"}`}
                   />
                 </Link>
               )}
@@ -473,7 +473,7 @@ export const NavbarV2 = ({
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-5 border-b border-border/20">
               <Link to="/?reset=true" onClick={closeMobileMenu}>
-                <img src={cocreaHorizontal} alt="CO·CREA" className="h-7" />
+                <img src={cocreaHorizontal} alt="Villa Adelaida" className="h-14" />
               </Link>
               <button
                 onClick={closeMobileMenu}

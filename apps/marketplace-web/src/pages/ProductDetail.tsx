@@ -38,7 +38,6 @@ import { ProductVariants } from "@/components/ProductVariants";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { ProductPurchaseButton } from "@/components/ProductPurchaseButton";
-import { CartDrawer } from "@/components/CartDrawer";
 import { Footer } from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -164,7 +163,7 @@ const ProductDetail = () => {
   // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6]">
+      <div className="min-h-screen bg-[#F7E7D7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
             <Skeleton className="aspect-square w-full rounded-xl" />
@@ -183,14 +182,14 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7E7D7] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-serif italic text-[#2b2f26]">
+          <h1 className="text-3xl font-serif italic text-[#1a1a1a]">
             Producto no encontrado
           </h1>
           <Link
             to="/"
-            className="inline-block bg-[#2b2f26] text-white px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#2e5424] transition-colors"
+            className="inline-block bg-[#1a1a1a] text-white px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#BC3F1C] transition-colors"
           >
             Volver al inicio
           </Link>
@@ -215,7 +214,7 @@ const ProductDetail = () => {
     : productImages;
 
   return (
-    <div className="min-h-screen bg-[#f5f1e6] text-[#2b2f26] font-sans">
+    <div className="min-h-screen bg-[#F7E7D7] text-[#1a1a1a] font-sans">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
         {/* ═══════════════ PRODUCT HERO ═══════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 mb-24">
@@ -234,7 +233,7 @@ const ProductDetail = () => {
             {product.storeName && (
               <Link
                 to={product.storeSlug ? `/tienda/${product.storeSlug}` : "#"}
-                className="mb-2 text-[#2e5424] font-bold tracking-widest text-[10px] uppercase hover:underline"
+                className="mb-2 text-[#BC3F1C] font-bold tracking-widest text-[10px] uppercase hover:underline"
               >
                 Taller: {product.storeName}
               </Link>
@@ -243,18 +242,18 @@ const ProductDetail = () => {
             <div className="flex flex-col gap-4 mb-6">
               {/* Title + subtitle */}
               <div className="flex flex-col gap-4">
-                <h2 className="text-5xl font-serif italic text-[#2b2f26]">
+                <h2 className="text-5xl font-serif italic text-[#1a1a1a]">
                   {product.name}
                 </h2>
                 {(shop?.region || product.storeName) && (
-                  <p className="text-sm text-[#2b2f26]/80 italic">
+                  <p className="text-sm text-[#1a1a1a]/80 italic">
                     Hecho a mano en {shop?.municipality || shop?.region || "Colombia"}
                     {shop?.department ? `, ${shop.department}` : ""} por el taller{" "}
                     {product.storeName}
                   </p>
                 )}
                 {product.isCollaboration && product.collaborationName && (
-                  <p className="text-sm text-[#2b2f26]/60 italic">
+                  <p className="text-sm text-[#1a1a1a]/60 italic">
                     En colaboración con {product.collaborationName}
                   </p>
                 )}
@@ -263,15 +262,15 @@ const ProductDetail = () => {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowComingSoon(true)}
-                    className="bg-[#2b2f26] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#2b2f26]/80 transition-colors"
+                    className="bg-[#1a1a1a] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#1a1a1a]/80 transition-colors"
                   >
                     Huella Digital Registrada
                   </button>
                   <button
                     onClick={() => setShowComingSoon(true)}
-                    className="bg-[#2e5424] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#2e5424]/80 transition-colors"
+                    className="bg-[#BC3F1C] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#BC3F1C]/80 transition-colors"
                   >
-                    Certificado de autenticidad COCREA
+                    Certificado de autenticidad Villa Adelaida
                   </button>
                 </div>
               </div>
@@ -279,34 +278,34 @@ const ProductDetail = () => {
               {/* Certificate link */}
               <button
                 onClick={() => setShowComingSoon(true)}
-                className="text-xs text-[#2b2f26]/60 underline underline-offset-4 hover:text-[#2e5424] transition-colors font-bold w-fit"
+                className="text-xs text-[#1a1a1a]/60 underline underline-offset-4 hover:text-[#BC3F1C] transition-colors font-bold w-fit"
               >
                 Ver certificado de autenticidad
               </button>
-              <p className="text-[10px] text-[#2b2f26]/40 max-w-xs leading-relaxed">
+              <p className="text-[10px] text-[#1a1a1a]/40 max-w-xs leading-relaxed">
                 Al adquirir esta pieza, usted recibe un certificado de autenticidad
                 digital que garantiza su origen y autoría.
               </p>
 
               {/* Coming Soon Card */}
               {showComingSoon && (
-                <div className="relative border border-[#2e5424]/30 bg-[#2e5424]/5 p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative border border-[#BC3F1C]/30 bg-[#BC3F1C]/5 p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                   <button
                     onClick={() => setShowComingSoon(false)}
-                    className="absolute top-3 right-3 text-[#2b2f26]/40 hover:text-[#2b2f26] transition-colors"
+                    className="absolute top-3 right-3 text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#2e5424]" />
+                    <Sparkles className="w-5 h-5 text-[#BC3F1C]" />
                     <h4 className="font-serif italic text-lg">Próximamente</h4>
                   </div>
-                  <p className="text-sm text-[#2b2f26]/70 leading-relaxed">
+                  <p className="text-sm text-[#1a1a1a]/70 leading-relaxed">
                     Estamos construyendo un sistema de certificados digitales que
                     permitirá verificar la autenticidad, el origen y la trazabilidad
                     de cada pieza artesanal.
                   </p>
-                  <p className="text-[10px] uppercase tracking-widest text-[#2b2f26]/40 font-bold">
+                  <p className="text-[10px] uppercase tracking-widest text-[#1a1a1a]/40 font-bold">
                     Lanzamiento próximo · 2026
                   </p>
                 </div>
@@ -314,7 +313,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Location + Category */}
-            <div className="flex flex-wrap gap-2 mb-8 text-xs text-[#2b2f26]/50 uppercase tracking-widest font-bold">
+            <div className="flex flex-wrap gap-2 mb-8 text-xs text-[#1a1a1a]/50 uppercase tracking-widest font-bold">
               {(shop?.municipality || shop?.region || product.department) && (
                 <span>
                   {shop?.municipality || shop?.region || product.department}
@@ -337,41 +336,41 @@ const ProductDetail = () => {
 
             {/* Feature pills */}
             <div className="flex flex-wrap gap-3 mb-12">
-              <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+              <span className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                 Hecho a mano en Colombia
               </span>
               {product.craft && (
-                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   {product.craft}
                 </span>
               )}
               {product.materials && product.materials.length > 0 && (
-                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   {product.materials.slice(0, 2).join(" · ")}
                 </span>
               )}
               {product.pieceType && (
-                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   {PIECE_TYPE_LABELS[product.pieceType] ?? product.pieceType}
                 </span>
               )}
               {(product.styles ?? []).map((style) => (
                 <span
                   key={style}
-                  className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest"
+                  className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest"
                 >
                   {STYLE_LABELS[style] ?? style}
                 </span>
               ))}
               {product.history && (
-                <span className="border border-[#2b2f26]/10 text-[#2b2f26]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
+                <span className="border border-[#1a1a1a]/10 text-[#1a1a1a]/60 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
                   Pieza con historia
                 </span>
               )}
               {(product.badges ?? []).map((badge) => (
                 <span
                   key={badge.id}
-                  className="border border-[#2e5424]/30 text-[#2e5424] px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold"
+                  className="border border-[#BC3F1C]/30 text-[#BC3F1C] px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold"
                 >
                   {badge.name}
                 </span>
@@ -379,9 +378,9 @@ const ProductDetail = () => {
             </div>
 
             {/* Price */}
-            <div className="text-4xl font-serif mb-12 text-[#2b2f26]">
+            <div className="text-4xl font-serif mb-12 text-[#1a1a1a]">
               {!selectedVariant && hasPriceRange && (
-                <span className="text-lg text-[#2b2f26]/50 italic mr-2">Desde</span>
+                <span className="text-lg text-[#1a1a1a]/50 italic mr-2">Desde</span>
               )}
               {formatCurrency(getFinalPrice())}
             </div>
@@ -389,11 +388,11 @@ const ProductDetail = () => {
             {/* Availability */}
             {availabilityInfo && (
               <div className="mb-8 -mt-6 flex flex-wrap items-center gap-3">
-                <span className="bg-[#2b2f26] text-white px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold">
+                <span className="bg-[#1a1a1a] text-white px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold">
                   {availabilityInfo.label}
                 </span>
                 {availabilityInfo.note && (
-                  <span className="text-xs text-[#2b2f26]/50 italic">
+                  <span className="text-xs text-[#1a1a1a]/50 italic">
                     {availabilityInfo.note}
                   </span>
                 )}
@@ -414,29 +413,29 @@ const ProductDetail = () => {
             {/* Quantity */}
             {maxStock > 0 && (
               <div className="mb-6 flex items-center gap-4">
-                <span className="text-[10px] uppercase tracking-widest font-bold text-[#2b2f26]/40">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-[#1a1a1a]/40">
                   Cantidad
                 </span>
-                <div className="flex items-center border border-[#2b2f26]/10">
+                <div className="flex items-center border border-[#1a1a1a]/10">
                   <button
-                    className="w-10 h-10 flex items-center justify-center text-[#2b2f26]/60 hover:text-[#2b2f26] transition-colors disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center text-[#1a1a1a]/60 hover:text-[#1a1a1a] transition-colors disabled:opacity-30"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
                   >
                     −
                   </button>
-                  <span className="w-10 h-10 flex items-center justify-center text-sm font-bold border-x border-[#2b2f26]/10">
+                  <span className="w-10 h-10 flex items-center justify-center text-sm font-bold border-x border-[#1a1a1a]/10">
                     {quantity}
                   </span>
                   <button
-                    className="w-10 h-10 flex items-center justify-center text-[#2b2f26]/60 hover:text-[#2b2f26] transition-colors disabled:opacity-30"
+                    className="w-10 h-10 flex items-center justify-center text-[#1a1a1a]/60 hover:text-[#1a1a1a] transition-colors disabled:opacity-30"
                     onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
                     disabled={quantity >= maxStock}
                   >
                     +
                   </button>
                 </div>
-                <span className="text-xs text-[#2b2f26]/40 italic">
+                <span className="text-xs text-[#1a1a1a]/40 italic">
                   {maxStock <= 3
                     ? `¡Solo ${maxStock} disponible${maxStock > 1 ? "s" : ""}!`
                     : maxStock > 10
@@ -459,18 +458,18 @@ const ProductDetail = () => {
                 variant="detail"
               />
               <button
-                className="w-full border border-[#2b2f26]/20 text-[#2b2f26] font-bold py-5 uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:border-[#2b2f26] transition-all"
+                className="w-full border border-[#1a1a1a]/20 text-[#1a1a1a] font-bold py-5 uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:border-[#1a1a1a] transition-all"
                 onClick={() => toggleWishlist(product.id)}
               >
                 <Heart
-                  className={`w-4 h-4 ${isFavorite ? "fill-[#2e5424] text-[#2e5424]" : ""}`}
+                  className={`w-4 h-4 ${isFavorite ? "fill-[#BC3F1C] text-[#BC3F1C]" : ""}`}
                 />
                 {isFavorite ? "Guardado" : "Guardar"}
               </button>
             </div>
 
             {/* Handmade notice */}
-            <p className="text-xs text-[#2b2f26]/60 leading-relaxed italic border-l border-[#2e5424]/30 pl-4">
+            <p className="text-xs text-[#1a1a1a]/60 leading-relaxed italic border-l border-[#BC3F1C]/30 pl-4">
               "Las piezas hechas a mano pueden tener tiempos de preparación
               diferentes dependiendo del proceso artesanal."
             </p>
@@ -479,12 +478,12 @@ const ProductDetail = () => {
 
         {/* ═══════════════ DESCRIPCIÓN ═══════════════ */}
         {product.shortDescription && (
-          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#2b2f26]/5">
-            <span className="inline-flex items-center gap-2 text-[#2e5424] font-bold uppercase text-[10px] tracking-[0.3em] mb-6">
+          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#1a1a1a]/5">
+            <span className="inline-flex items-center gap-2 text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-6">
               <Quote className="w-4 h-4" />
               Descripción
             </span>
-            <blockquote className="font-serif text-xl lg:text-2xl text-[#2b2f26] leading-relaxed italic px-8">
+            <blockquote className="font-serif text-xl lg:text-2xl text-[#1a1a1a] leading-relaxed italic px-8">
               {product.shortDescription}
             </blockquote>
           </section>
@@ -494,19 +493,19 @@ const ProductDetail = () => {
         {product.history && (
           <section className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24 items-center bg-white rounded-3xl p-8 lg:p-16 shadow-sm">
             <div>
-              <span className="inline-flex items-center gap-2 text-[#2e5424] font-bold uppercase text-[10px] tracking-[0.3em] mb-4">
+              <span className="inline-flex items-center gap-2 text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-4">
                 <BookOpen className="w-4 h-4" />
                 Historia
               </span>
-              <h3 className="text-4xl font-serif mb-8 text-[#2b2f26]">
+              <h3 className="text-4xl font-serif mb-8 text-[#1a1a1a]">
                 Historia de la pieza
               </h3>
-              <div className="space-y-6 text-[#2b2f26]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
+              <div className="space-y-6 text-[#1a1a1a]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
                 {product.history}
               </div>
             </div>
             {productImages[1] && (
-              <div className="aspect-[4/3] bg-[#e5e1d8] rounded-2xl overflow-hidden">
+              <div className="aspect-[4/3] bg-[#F3E4D3] rounded-2xl overflow-hidden">
                 <img
                   src={productImages[1]}
                   alt="Detalle artesanal"
@@ -518,18 +517,18 @@ const ProductDetail = () => {
         )}
 
         {/* ═══════════════ PROCESS + DETAILS ═══════════════ */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8 border-y border-[#2b2f26]/10 py-16">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8 border-y border-[#1a1a1a]/10 py-16">
           {/* Proceso artesanal */}
           <div className="space-y-6">
-            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#2b2f26]">
-              <Hammer className="w-5 h-5 text-[#2e5424]" />
+            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a]">
+              <Hammer className="w-5 h-5 text-[#BC3F1C]" />
               Proceso artesanal
             </h5>
-            <ul className="space-y-5 text-sm text-[#2b2f26]/70">
+            <ul className="space-y-5 text-sm text-[#1a1a1a]/70">
               {(product.materials?.length > 0 || product.material) && (
                 <li className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                    <Layers className="w-4 h-4 text-[#2e5424]" />
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Layers className="w-4 h-4 text-[#BC3F1C]" />
                   </span>
                   <span className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -549,8 +548,8 @@ const ProductDetail = () => {
               )}
               {(product.tools?.length ?? 0) > 0 && (
                 <li className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                    <Wrench className="w-4 h-4 text-[#2e5424]" />
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Wrench className="w-4 h-4 text-[#BC3F1C]" />
                   </span>
                   <span className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -562,8 +561,8 @@ const ProductDetail = () => {
               )}
               {product.requirementsToStart && (
                 <li className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                    <ClipboardCheck className="w-4 h-4 text-[#2e5424]" />
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <ClipboardCheck className="w-4 h-4 text-[#BC3F1C]" />
                   </span>
                   <span className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -575,8 +574,8 @@ const ProductDetail = () => {
               )}
               {(product.techniques?.length > 0 || product.craft) && (
                 <li className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                    <Scissors className="w-4 h-4 text-[#2e5424]" />
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Scissors className="w-4 h-4 text-[#BC3F1C]" />
                   </span>
                   <span className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -592,8 +591,8 @@ const ProductDetail = () => {
               )}
               {(product.leadTimeDays || product.productionTime) && (
                 <li className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                    <Clock className="w-4 h-4 text-[#2e5424]" />
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Clock className="w-4 h-4 text-[#BC3F1C]" />
                   </span>
                   <span className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
@@ -611,12 +610,12 @@ const ProductDetail = () => {
           </div>
 
           {/* Detalles técnicos — ficha técnica destacada */}
-          <div className="space-y-6 bg-white rounded-2xl border border-[#2b2f26]/10 shadow-sm p-8">
-            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#2b2f26]">
-              <Ruler className="w-5 h-5 text-[#2e5424]" />
+          <div className="space-y-6 bg-white rounded-2xl border border-[#1a1a1a]/10 shadow-sm p-8">
+            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a]">
+              <Ruler className="w-5 h-5 text-[#BC3F1C]" />
               Ficha técnica
             </h5>
-            <ul className="space-y-4 text-sm text-[#2b2f26]/70">
+            <ul className="space-y-4 text-sm text-[#1a1a1a]/70">
               {(() => {
                 const d = product.dimensions;
                 if (!d) return null;
@@ -668,23 +667,23 @@ const ProductDetail = () => {
 
           {/* Cuidados y uso */}
           {(product.careNotes || product.usageSuggestions) && (
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl border border-[#2b2f26]/10 shadow-sm p-8">
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl border border-[#1a1a1a]/10 shadow-sm p-8">
               {toLines(product.careNotes).length > 0 && (
                 <div className="space-y-5">
                   <div>
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Para que dure toda la vida
                     </span>
-                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#2b2f26] mt-1">
-                      <Droplets className="w-5 h-5 text-[#2e5424]" />
+                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a] mt-1">
+                      <Droplets className="w-5 h-5 text-[#BC3F1C]" />
                       Cuidados
                     </h5>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#2b2f26]/70">
+                  <ul className="space-y-3 text-sm text-[#1a1a1a]/70">
                     {toLines(product.careNotes).map((line) => (
                       <li key={line} className="flex items-start gap-3">
-                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                          <Droplets className="w-4 h-4 text-[#2e5424]" />
+                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                          <Droplets className="w-4 h-4 text-[#BC3F1C]" />
                         </span>
                         <span className="italic pt-1.5">{line}</span>
                       </li>
@@ -698,16 +697,16 @@ const ProductDetail = () => {
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Cómo disfrutarla
                     </span>
-                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#2b2f26] mt-1">
-                      <Sparkles className="w-5 h-5 text-[#2e5424]" />
+                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a] mt-1">
+                      <Sparkles className="w-5 h-5 text-[#BC3F1C]" />
                       Sugerencias de uso
                     </h5>
                   </div>
-                  <ul className="space-y-3 text-sm text-[#2b2f26]/70">
+                  <ul className="space-y-3 text-sm text-[#1a1a1a]/70">
                     {toLines(product.usageSuggestions).map((line) => (
                       <li key={line} className="flex items-start gap-3">
-                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#2e5424]/10">
-                          <Sparkles className="w-4 h-4 text-[#2e5424]" />
+                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                          <Sparkles className="w-4 h-4 text-[#BC3F1C]" />
                         </span>
                         <span className="italic pt-1.5">{line}</span>
                       </li>
@@ -721,12 +720,12 @@ const ProductDetail = () => {
           {/* Así se hizo esta pieza */}
           {(product.processDescription ||
             (product.processEvidenceUrls?.length ?? 0) > 0) && (
-            <div className="md:col-span-2 space-y-6 pt-12 border-t border-[#2b2f26]/10">
-              <h5 className="text-xl font-serif italic text-[#2b2f26]">
+            <div className="md:col-span-2 space-y-6 pt-12 border-t border-[#1a1a1a]/10">
+              <h5 className="text-xl font-serif italic text-[#1a1a1a]">
                 Así se hizo esta pieza
               </h5>
               {product.processDescription && (
-                <p className="text-sm text-[#2b2f26]/70 leading-relaxed italic max-w-3xl whitespace-pre-line">
+                <p className="text-sm text-[#1a1a1a]/70 leading-relaxed italic max-w-3xl whitespace-pre-line">
                   {product.processDescription}
                 </p>
               )}
@@ -735,7 +734,7 @@ const ProductDetail = () => {
                   {product.processEvidenceUrls!.map((url) => (
                     <div
                       key={url}
-                      className="aspect-square bg-[#e5e1d8] rounded-xl overflow-hidden"
+                      className="aspect-square bg-[#F3E4D3] rounded-xl overflow-hidden"
                     >
                       <img
                         src={url}
@@ -752,34 +751,34 @@ const ProductDetail = () => {
         </section>
 
         {/* Envío consciente — nota breve, no compite con la ficha técnica */}
-        <p className="text-xs text-[#2b2f26]/50 italic text-center max-w-2xl mx-auto mb-24">
+        <p className="text-xs text-[#1a1a1a]/50 italic text-center max-w-2xl mx-auto mb-24">
           Envío consciente: las piezas se preparan cuidadosamente respetando
           tanto la integridad de la creación como el impacto ambiental del
           proceso.
         </p>
 
         {/* ═══════════════ DIGITAL TRACEABILITY (franja compacta) ═══════════════ */}
-        <section className="mb-24 bg-[#2b2f26] text-white py-8 px-6 rounded-2xl">
+        <section className="mb-24 bg-[#1a1a1a] text-white py-8 px-6 rounded-2xl">
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 max-w-4xl mx-auto text-sm">
             <span className="text-[10px] uppercase tracking-widest font-bold text-white/50">
               Huella digital de la pieza
             </span>
             {(shop?.municipality || shop?.region || product.department) && (
               <span className="flex items-center gap-2 text-white/80">
-                <MapPin className="w-4 h-4 text-[#2e5424]" />
+                <MapPin className="w-4 h-4 text-[#BC3F1C]" />
                 {shop?.municipality || shop?.region || product.department}
                 {shop?.department ? `, ${shop.department}` : ""}
               </span>
             )}
             {product.storeName && (
               <span className="flex items-center gap-2 text-white/80">
-                <Hammer className="w-4 h-4 text-[#2e5424]" />
+                <Hammer className="w-4 h-4 text-[#BC3F1C]" />
                 {product.storeName}
               </span>
             )}
             {product.craft && (
               <span className="flex items-center gap-2 text-white/80">
-                <Sparkles className="w-4 h-4 text-[#2e5424]" />
+                <Sparkles className="w-4 h-4 text-[#BC3F1C]" />
                 {product.craft}
               </span>
             )}
@@ -788,23 +787,23 @@ const ProductDetail = () => {
 
         {/* ═══════════════ CULTURAL RECORD + MAP ═══════════════ */}
         {(shop?.region || shop?.municipality) && (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#2b2f26]/5 shadow-sm">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#1a1a1a]/5 shadow-sm">
             <div className="p-12 lg:p-20 flex flex-col justify-center">
-              <span className="text-[#2e5424] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
+              <span className="text-[#BC3F1C] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
                 Registro cultural
               </span>
-              <h3 className="text-4xl font-serif text-[#2b2f26] mb-8">
+              <h3 className="text-4xl font-serif text-[#1a1a1a] mb-8">
                 {shop?.municipality || shop?.region}
                 {shop?.department ? `, ${shop.department}` : ""}
               </h3>
               {shop?.description && (
-                <p className="text-[#2b2f26]/70 leading-relaxed mb-10 text-lg font-light italic">
+                <p className="text-[#1a1a1a]/70 leading-relaxed mb-10 text-lg font-light italic">
                   {shop.description}
                 </p>
               )}
               <div className="flex flex-col gap-4">
                 {product.craft && (
-                  <div className="flex justify-between border-b border-[#2b2f26]/10 pb-2">
+                  <div className="flex justify-between border-b border-[#1a1a1a]/10 pb-2">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Tradición
                     </span>
@@ -812,7 +811,7 @@ const ProductDetail = () => {
                   </div>
                 )}
                 {(shop?.department || shop?.region) && (
-                  <div className="flex justify-between border-b border-[#2b2f26]/10 pb-2">
+                  <div className="flex justify-between border-b border-[#1a1a1a]/10 pb-2">
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Ubicación
                     </span>
@@ -823,7 +822,7 @@ const ProductDetail = () => {
                 )}
               </div>
             </div>
-            <div className="bg-[#e5e1d8] min-h-[400px] relative">
+            <div className="bg-[#F3E4D3] min-h-[400px] relative">
               {shopCoords ? (
                 <Map
                   initialViewState={{
@@ -839,19 +838,19 @@ const ProductDetail = () => {
                   style={{ width: "100%", height: "100%" }}
                 >
                   <Marker longitude={shopCoords.lng} latitude={shopCoords.lat}>
-                    <MapPin className="w-8 h-8 text-[#2e5424] fill-[#2e5424]/20" />
+                    <MapPin className="w-8 h-8 text-[#BC3F1C] fill-[#BC3F1C]/20" />
                   </Marker>
                 </Map>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <MapPin className="w-16 h-16 text-[#2e5424] opacity-40" />
+                  <MapPin className="w-16 h-16 text-[#BC3F1C] opacity-40" />
                 </div>
               )}
               <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md pointer-events-none">
-                <p className="text-sm font-semibold text-[#2b2f26]">
+                <p className="text-sm font-semibold text-[#1a1a1a]">
                   {shop?.municipality || shop?.region || "Colombia"}
                 </p>
-                <p className="text-xs text-[#2b2f26]/50 mt-1">
+                <p className="text-xs text-[#1a1a1a]/50 mt-1">
                   Origen artesanal
                 </p>
               </div>
@@ -882,7 +881,7 @@ const ProductDetail = () => {
           return (
             <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div className="order-2 lg:order-1">
-                <div className="aspect-square bg-[#e5e1d8] rounded-2xl overflow-hidden">
+                <div className="aspect-square bg-[#F3E4D3] rounded-2xl overflow-hidden">
                   {shop?.bannerUrl ? (
                     <img
                       src={shop.bannerUrl}
@@ -900,18 +899,18 @@ const ProductDetail = () => {
               </div>
               <div className="order-1 lg:order-2 space-y-8">
                 <div>
-                  <span className="text-[#2e5424] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
+                  <span className="text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
                     Conoce al artesano
                   </span>
-                  <h3 className="text-4xl font-serif text-[#2b2f26] mb-6">
+                  <h3 className="text-4xl font-serif text-[#1a1a1a] mb-6">
                     {claim || `El taller que creó esta pieza`}
                   </h3>
-                  <h4 className="text-2xl font-serif italic text-[#2b2f26]/80 mb-6">
+                  <h4 className="text-2xl font-serif italic text-[#1a1a1a]/80 mb-6">
                     {product.storeName}
                   </h4>
                 </div>
                 {identityStory && (
-                  <div className="space-y-4 text-[#2b2f26]/70 text-lg font-light italic leading-relaxed">
+                  <div className="space-y-4 text-[#1a1a1a]/70 text-lg font-light italic leading-relaxed">
                     <p>{identityStory}</p>
                   </div>
                 )}
@@ -920,7 +919,7 @@ const ProductDetail = () => {
                     {shop.certifications.map((cert) => (
                       <span
                         key={cert}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#2b2f26]/15 text-[#2b2f26]/70"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#1a1a1a]/15 text-[#1a1a1a]/70"
                       >
                         {cert}
                       </span>
@@ -929,7 +928,7 @@ const ProductDetail = () => {
                 )}
                 <Link
                   to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
-                  className="inline-block border border-[#2b2f26] text-[#2b2f26] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#2b2f26] hover:text-white transition-all"
+                  className="inline-block border border-[#1a1a1a] text-[#1a1a1a] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#1a1a1a] hover:text-white transition-all"
                 >
                   Ver perfil del taller
                 </Link>
@@ -939,8 +938,8 @@ const ProductDetail = () => {
         })()}
 
         {/* ═══════════════ FAIR TRADE BLOCK ═══════════════ */}
-        <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 bg-[#2b2f26] rounded-2xl overflow-hidden shadow-lg">
-          <div className="h-40 bg-[#e5e1d8] relative overflow-hidden">
+        <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-lg">
+          <div className="h-40 bg-[#F3E4D3] relative overflow-hidden">
             {productImages[0] && (
               <img
                 src={productImages[0]}
@@ -960,15 +959,15 @@ const ProductDetail = () => {
             </p>
             <Link
               to="/newsletter"
-              className="inline-block bg-[#2e5424] text-white px-6 py-3 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#2b2f26] transition-all"
+              className="inline-block bg-[#BC3F1C] text-white px-6 py-3 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#1a1a1a] transition-all"
             >
-              Conoce más de Cocrea
+              Conoce más de Villa Adelaida
             </Link>
           </div>
         </section>
 
         {/* ═══════════════ GIFT BLOCK ═══════════════ */}
-        <section className="relative bg-[#20291a] text-white rounded-2xl overflow-hidden mb-24">
+        <section className="relative bg-[#111111] text-white rounded-2xl overflow-hidden mb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[20vh]">
             <div className="p-8 lg:p-12 flex flex-col justify-center items-start z-10">
               <h3 className="text-2xl lg:text-3xl font-serif italic text-white mb-3">
@@ -980,12 +979,12 @@ const ProductDetail = () => {
               </p>
               <Link
                 to="/giftcards"
-                className="bg-[#2e5424] text-white px-6 py-3 uppercase text-[11px] tracking-[0.2em] font-bold hover:bg-white hover:text-[#2b2f26] transition-all"
+                className="bg-[#BC3F1C] text-white px-6 py-3 uppercase text-[11px] tracking-[0.2em] font-bold hover:bg-white hover:text-[#1a1a1a] transition-all"
               >
                 Explorar regalos
               </Link>
             </div>
-            <div className="hidden lg:block bg-[#2b2f26]" />
+            <div className="hidden lg:block bg-[#1a1a1a]" />
           </div>
         </section>
       </main>
@@ -1000,7 +999,6 @@ const ProductDetail = () => {
         />
       </div>
 
-      <CartDrawer />
       <Footer />
     </div>
   );

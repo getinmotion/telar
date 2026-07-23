@@ -217,10 +217,10 @@ export default function Contacto() {
                 ¿Eres artesano?
               </h3>
               <p className="text-charcoal/70 font-sans leading-relaxed mb-4">
-                Si eres artesano y quieres vender en COCREA, contáctanos para conocer más sobre nuestro programa.
+                Si eres artesano y quieres vender en Villa Adelaida, contáctanos para conocer más sobre nuestro programa.
               </p>
               <Button variant="outline" className="w-full">
-                Quiero vender en COCREA
+                Quiero vender en Villa Adelaida
               </Button>
             </div>
           </div>

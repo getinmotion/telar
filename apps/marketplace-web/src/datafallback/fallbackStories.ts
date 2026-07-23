@@ -43,7 +43,7 @@ const caucaSedaContent: RichTextContent = {
 
     heading("Diseño, Resistencia y Relevo Generacional"),
     paragraph(
-      "Si Colteseda entrega la pureza de la fibra, Agroarte le otorga el alma. Sus maestras tejedoras crean piezas de culto que narran la resiliencia caucana. Al integrar a los jóvenes en este proceso, aseguran que el conocimiento no muera, sino que evolucione con nuevas herramientas digitales. En Cocrea, potenciamos esta Economía Popular brindando la infraestructura necesaria para que este lujo ético llegue a mercados globales."
+      "Si Colteseda entrega la pureza de la fibra, Agroarte le otorga el alma. Sus maestras tejedoras crean piezas de culto que narran la resiliencia caucana. Al integrar a los jóvenes en este proceso, aseguran que el conocimiento no muera, sino que evolucione con nuevas herramientas digitales. En Villa Adelaida, potenciamos esta Economía Popular brindando la infraestructura necesaria para que este lujo ético llegue a mercados globales."
     ),
 
     paragraph(
@@ -65,7 +65,7 @@ export const CAUCA_SEDA_STORY: BlogArticle = {
       "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
     alt: "Tejedoras de seda del Cauca trabajando en el telar",
   },
-  author_name: "Redacción Cocrea",
+  author_name: "Redacción Villa Adelaida",
   category: "Crónica del Territorio",
   reading_time: 8,
   content: caucaSedaContent,
@@ -189,7 +189,7 @@ const alcidesContent: RichTextContent = {
 
     heading("Relevo Generacional: Un Legado de Orgullo"),
     paragraph(
-      "Con ocho hijos, Alcides tiene claro su propósito: ser un ejemplo de tenacidad. Para él, la artesanía es el camino para que los jóvenes no \"agarren el mal camino\", sino que vean en el trabajo manual una forma digna y creativa de habitar su territorio. En Cocrea, potenciamos este legado brindando la infraestructura digital para que el Taller Artesol conecte su creatividad de ciénaga con el mundo."
+      "Con ocho hijos, Alcides tiene claro su propósito: ser un ejemplo de tenacidad. Para él, la artesanía es el camino para que los jóvenes no \"agarren el mal camino\", sino que vean en el trabajo manual una forma digna y creativa de habitar su territorio. En Villa Adelaida, potenciamos este legado brindando la infraestructura digital para que el Taller Artesol conecte su creatividad de ciénaga con el mundo."
     ),
 
     {
@@ -222,7 +222,7 @@ export const ALCIDES_VIDES_STORY: BlogArticle = {
     filename: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1765475664530_0_IMG_4019.jpeg.jpeg",
     alt: "Alcides Vides tejiendo palma de seje en el Taller Artesol",
   },
-  author_name: "Redacción Cocrea",
+  author_name: "Redacción Villa Adelaida",
   category: "Crónica del Territorio",
   reading_time: 7,
   content: alcidesContent,

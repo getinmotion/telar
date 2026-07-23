@@ -296,7 +296,7 @@ const FALLBACK_TECNICAS_SECTIONS: CmsSection[] = [
   fb("fb-muestra", 6, "muestra_intro", {
     kicker: "Muestra de Técnicas",
     title: "Técnicas con piezas disponibles ahora.",
-    body: "Solo aparecen técnicas que tienen al menos un producto publicado en Cocrea. Cada tarjeta abre el detalle de la técnica.",
+    body: "Solo aparecen técnicas que tienen al menos un producto publicado en Villa Adelaida. Cada tarjeta abre el detalle de la técnica.",
   }),
   fb("fb-archive-label", 7, "archive_label", {
     kicker: "Exploración del Archivo",
@@ -313,7 +313,7 @@ const FALLBACK_TECNICAS_SECTIONS: CmsSection[] = [
     asideTitle: "Colabora",
     asideBody: "¿Conoces una técnica que aún no hemos documentado? Ayúdanos a expandir el archivo maestro.",
     asideCtaLabel: "Postular Técnica",
-    copyright: "COCREA © 2025 · Colombia",
+    copyright: "Villa Adelaida © 2025 · Colombia",
     edition: "Edición 01: El gesto primordial",
   }),
 ];
@@ -425,7 +425,7 @@ export default function Tecnicas() {
   return (
     <div
       className="min-h-screen font-body"
-      style={{ backgroundColor: "#f5f1e6", color: "#1b1c19" }}
+      style={{ backgroundColor: "#F7E7D7", color: "#1a1a1a" }}
     >
       <main className="max-w-[1536px] mx-auto px-8 md:px-16 pt-24">
         {/* ═══════════════ HERO (CMS) ═══════════════ */}
@@ -455,8 +455,8 @@ export default function Tecnicas() {
                         : "opacity-40 hover:opacity-100"
                     }`}
                     style={{
-                      borderColor: active ? "#1b1c19" : "transparent",
-                      color: "#1b1c19",
+                      borderColor: active ? "#1a1a1a" : "transparent",
+                      color: "#1a1a1a",
                     }}
                   >
                     {dim.label}
@@ -487,7 +487,7 @@ export default function Tecnicas() {
               <div className="lg:w-[65%] group">
                 <div
                   className="aspect-[16/10] mb-10 overflow-hidden"
-                  style={{ backgroundColor: "#e4e2dd" }}
+                  style={{ backgroundColor: "#F3E4D3" }}
                 >
                   {(() => {
                     const imgUrl = getTechniqueImage(techImages, primary.name);
@@ -515,7 +515,7 @@ export default function Tecnicas() {
                   <div className="flex items-center gap-4 mb-4">
                     <span
                       className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans"
-                      style={{ color: "#2e5424" }}
+                      style={{ color: "#BC3F1C" }}
                     >
                       {getEditorial(primary.name).region}
                     </span>
@@ -535,7 +535,7 @@ export default function Tecnicas() {
                   </h2>
                   <p
                     className="leading-relaxed text-lg mb-8 opacity-90 italic font-serif"
-                    style={{ color: "#55603c" }}
+                    style={{ color: "#4D4D4D" }}
                   >
                     "{getEditorial(primary.name).tagline}"
                   </p>
@@ -586,7 +586,7 @@ export default function Tecnicas() {
                   <div className="group">
                     <div
                       className="aspect-[4/5] mb-6 overflow-hidden"
-                      style={{ backgroundColor: "#e4e2dd" }}
+                      style={{ backgroundColor: "#F3E4D3" }}
                     >
                       {(() => {
                         const imgUrl = getTechniqueImage(techImages, secondary.name);
@@ -612,13 +612,13 @@ export default function Tecnicas() {
                     </div>
                     <span
                       className="text-[9px] uppercase tracking-[0.3em] font-bold mb-2 block font-sans"
-                      style={{ color: "#2e5424" }}
+                      style={{ color: "#BC3F1C" }}
                     >
                       {getEditorial(secondary.name).origin}
                     </span>
                     <Link
                       to={`/tecnica/${getEditorial(secondary.name).slug}`}
-                      className="block hover:text-[#2e5424] transition-colors"
+                      className="block hover:text-[#BC3F1C] transition-colors"
                     >
                       <h3 className="font-serif text-2xl font-bold mb-3">
                         {secondary.name}
@@ -626,7 +626,7 @@ export default function Tecnicas() {
                     </Link>
                     <p
                       className="text-sm leading-relaxed opacity-70 mb-6"
-                      style={{ color: "#55603c" }}
+                      style={{ color: "#4D4D4D" }}
                     >
                       {getEditorial(secondary.name).description}
                     </p>
@@ -671,7 +671,7 @@ export default function Tecnicas() {
                   >
                     <div
                       className="aspect-[4/3] overflow-hidden mb-4"
-                      style={{ backgroundColor: "#e4e2dd" }}
+                      style={{ backgroundColor: "#F3E4D3" }}
                     >
                       {img ? (
                         <img
@@ -694,12 +694,12 @@ export default function Tecnicas() {
                         </div>
                       )}
                     </div>
-                    <h3 className="font-serif text-2xl font-bold group-hover:text-[#2e5424] transition-colors">
+                    <h3 className="font-serif text-2xl font-bold group-hover:text-[#BC3F1C] transition-colors">
                       {t.name}
                     </h3>
                     <span
                       className="text-[10px] uppercase tracking-widest font-bold font-sans block mt-1"
-                      style={{ color: "#55603c" }}
+                      style={{ color: "#4D4D4D" }}
                     >
                       {t.productCount}{" "}
                       {t.productCount === 1 ? "pieza disponible" : "piezas disponibles"}
@@ -781,7 +781,7 @@ export default function Tecnicas() {
                 >
                   <span
                     className="w-24 h-[1px] origin-left transition-transform group-hover:scale-x-150"
-                    style={{ backgroundColor: "#1b1c19" }}
+                    style={{ backgroundColor: "#1a1a1a" }}
                   />
                   <span className="text-[11px] uppercase tracking-[0.5em] font-bold font-sans">
                     Cargar más registros
@@ -799,15 +799,15 @@ export default function Tecnicas() {
                 <div key={i} className="animate-pulse">
                   <div
                     className="aspect-square mb-4"
-                    style={{ backgroundColor: "#e4e2dd" }}
+                    style={{ backgroundColor: "#F3E4D3" }}
                   />
                   <div
                     className="h-4 w-24 mb-2"
-                    style={{ backgroundColor: "#e4e2dd" }}
+                    style={{ backgroundColor: "#F3E4D3" }}
                   />
                   <div
                     className="h-6 w-40"
-                    style={{ backgroundColor: "#e4e2dd" }}
+                    style={{ backgroundColor: "#F3E4D3" }}
                   />
                 </div>
               ))}
@@ -856,7 +856,7 @@ function ArchiveSquareCard({
       <Link to={`/tecnica/${ed.slug}`}>
         <div
           className="aspect-square overflow-hidden"
-          style={{ backgroundColor: "#e4e2dd" }}
+          style={{ backgroundColor: "#F3E4D3" }}
         >
           {img ? (
             <img
@@ -881,19 +881,19 @@ function ArchiveSquareCard({
       <div>
         <span
           className="text-[9px] uppercase tracking-widest mb-1 block font-bold font-sans"
-          style={{ color: "#2e5424" }}
+          style={{ color: "#BC3F1C" }}
         >
           {ed.origin}
         </span>
         <Link
           to={`/tecnica/${ed.slug}`}
-          className="block hover:text-[#2e5424] transition-colors"
+          className="block hover:text-[#BC3F1C] transition-colors"
         >
           <h3 className="font-serif text-2xl font-bold mb-2">{tech.name}</h3>
         </Link>
         <p
           className="text-xs opacity-60 leading-relaxed mb-4"
-          style={{ color: "#55603c" }}
+          style={{ color: "#4D4D4D" }}
         >
           {ed.tagline}
         </p>
@@ -919,7 +919,7 @@ function ArchiveHorizontalCard({
         <Link to={`/tecnica/${ed.slug}`} className="md:w-1/2 block">
           <div
             className="aspect-[4/3] overflow-hidden"
-            style={{ backgroundColor: "#e4e2dd" }}
+            style={{ backgroundColor: "#F3E4D3" }}
           >
             {img ? (
               <img
@@ -944,19 +944,19 @@ function ArchiveHorizontalCard({
         <div className="md:w-1/2 flex flex-col justify-center">
           <span
             className="text-[9px] uppercase tracking-widest mb-2 block font-bold font-sans"
-            style={{ color: "#2e5424" }}
+            style={{ color: "#BC3F1C" }}
           >
             {ed.origin}
           </span>
           <Link
             to={`/tecnica/${ed.slug}`}
-            className="block hover:text-[#2e5424] transition-colors"
+            className="block hover:text-[#BC3F1C] transition-colors"
           >
             <h3 className="font-serif text-3xl font-bold mb-4">{tech.name}</h3>
           </Link>
           <p
             className="text-sm opacity-70 leading-relaxed mb-8"
-            style={{ color: "#55603c" }}
+            style={{ color: "#4D4D4D" }}
           >
             {ed.description}
           </p>
@@ -995,7 +995,7 @@ function ArchiveThumbCard({ tech, techImages }: ArchiveCardProps) {
     >
       <div
         className="aspect-square overflow-hidden"
-        style={{ backgroundColor: "#e4e2dd" }}
+        style={{ backgroundColor: "#F3E4D3" }}
       >
         {img ? (
           <img
@@ -1017,7 +1017,7 @@ function ArchiveThumbCard({ tech, techImages }: ArchiveCardProps) {
         )}
       </div>
       <div>
-        <h4 className="font-serif text-lg font-bold group-hover:text-[#2e5424] transition-colors">
+        <h4 className="font-serif text-lg font-bold group-hover:text-[#BC3F1C] transition-colors">
           {tech.name}
         </h4>
         <span className="text-[9px] uppercase tracking-widest opacity-50 font-sans">

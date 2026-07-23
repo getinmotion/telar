@@ -114,8 +114,9 @@ const App = () => (
                           <Route path="/coleccion/:slug" element={<ColeccionDetail />} />
                           <Route path="/historias" element={<Historias />} />
                           <Route path="/historia/:slug" element={<HistoriaDetail />} />
-                          <Route path="/sobre-cocrea" element={<SobreTelar />} />
-                          <Route path="/sobre-telar" element={<Navigate to="/sobre-cocrea" replace />} />
+                          <Route path="/sobre-villa-adelaida" element={<SobreTelar />} />
+                          <Route path="/sobre-cocrea" element={<Navigate to="/sobre-villa-adelaida" replace />} />
+                          <Route path="/sobre-telar" element={<Navigate to="/sobre-villa-adelaida" replace />} />
                           <Route path="/ayuda" element={<Ayuda />} />
                           <Route path="/ayuda/faqs" element={<FAQs />} />
                           <Route path="/ayuda/como-comprar" element={<ComoComprar />} />

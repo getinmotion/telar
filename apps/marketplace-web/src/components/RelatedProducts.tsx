@@ -80,15 +80,15 @@ export const RelatedProducts = ({
 
   if (loading) {
     return (
-      <section className="py-20 px-4" style={{ backgroundColor: "#f5f1e6" }}>
+      <section className="py-20 px-4" style={{ backgroundColor: "#F7E7D7" }}>
         <div className="max-w-7xl mx-auto">
-          <div className="h-8 w-64 bg-[#e5e1d8] rounded mb-12 animate-pulse" />
+          <div className="h-8 w-64 bg-[#F3E4D3] rounded mb-12 animate-pulse" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-4">
-                <div className="aspect-[3/4] bg-[#e5e1d8] rounded-sm animate-pulse" />
-                <div className="h-5 bg-[#e5e1d8] rounded w-3/4 animate-pulse" />
-                <div className="h-4 bg-[#e5e1d8] rounded w-1/2 animate-pulse" />
+                <div className="aspect-[3/4] bg-[#F3E4D3] rounded-sm animate-pulse" />
+                <div className="h-5 bg-[#F3E4D3] rounded w-3/4 animate-pulse" />
+                <div className="h-4 bg-[#F3E4D3] rounded w-1/2 animate-pulse" />
               </div>
             ))}
           </div>
@@ -102,19 +102,19 @@ export const RelatedProducts = ({
   }
 
   return (
-    <section className="py-20 px-4" style={{ backgroundColor: "#f5f1e6" }}>
+    <section className="py-20 px-4" style={{ backgroundColor: "#F7E7D7" }}>
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="mb-12">
           <p
             className="text-[9px] font-bold uppercase tracking-[0.3em] mb-3 font-sans"
-            style={{ color: "#2e5424" }}
+            style={{ color: "#BC3F1C" }}
           >
             Descubre más
           </p>
           <h2
             className="text-3xl lg:text-4xl font-serif"
-            style={{ color: "#2b2f26" }}
+            style={{ color: "#1a1a1a" }}
           >
             Piezas que también te pueden inspirar
           </h2>

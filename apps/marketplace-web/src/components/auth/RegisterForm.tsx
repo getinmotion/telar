@@ -425,7 +425,7 @@ export function RegisterForm({ onToggleForm }: RegisterFormProps) {
             className="mt-1"
           />
           <Label htmlFor="newsletterOptIn" className="font-normal text-sm leading-relaxed">
-            Deseo recibir novedades y promociones de Cocrea
+            Deseo recibir novedades y promociones de Villa Adelaida
           </Label>
         </div>
       </div>

@@ -53,7 +53,7 @@ export function HeroCarousel() {
   if (isLoading && slides.length === 0) {
     return (
       <section className="max-w-[1400px] mx-auto px-6 py-16">
-        <div className="aspect-[16/9] w-full bg-[#e5e1d8] animate-pulse" />
+        <div className="aspect-[16/9] w-full bg-[#F3E4D3] animate-pulse" />
       </section>
     );
   }
@@ -73,7 +73,7 @@ export function HeroCarousel() {
                 key={slide._uid ?? slide.title}
                 className="relative flex-[0_0_100%] min-w-0"
               >
-                <div className="relative aspect-[16/9] md:aspect-[21/9] bg-[#e5e1d8] overflow-hidden">
+                <div className="relative aspect-[16/9] md:aspect-[21/9] bg-[#F3E4D3] overflow-hidden">
                   {imgUrl && (
                     <img
                       src={imgUrl}
@@ -83,7 +83,7 @@ export function HeroCarousel() {
                     />
                   )}
                   <div
-                    className="absolute inset-0 bg-[#2b2f26]"
+                    className="absolute inset-0 bg-[#1a1a1a]"
                     style={{ opacity: overlay }}
                   />
                   <div className="absolute inset-0 flex items-center">
@@ -103,14 +103,14 @@ export function HeroCarousel() {
                               href={href}
                               target={slide.cta_link?.target ?? "_self"}
                               rel="noopener noreferrer"
-                              className="inline-block bg-white text-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-colors"
+                              className="inline-block bg-white text-[#1a1a1a] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#BC3F1C] hover:text-white transition-colors"
                             >
                               {slide.cta_text}
                             </a>
                           ) : (
                             <Link
                               to={href.startsWith("/") ? href : `/${href}`}
-                              className="inline-block bg-white text-[#2b2f26] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#2e5424] hover:text-white transition-colors"
+                              className="inline-block bg-white text-[#1a1a1a] px-10 py-4 uppercase text-xs tracking-widest hover:bg-[#BC3F1C] hover:text-white transition-colors"
                             >
                               {slide.cta_text}
                             </Link>
@@ -131,7 +131,7 @@ export function HeroCarousel() {
             type="button"
             aria-label="Slide anterior"
             onClick={() => emblaApi?.scrollPrev()}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#1a1a1a] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -139,7 +139,7 @@ export function HeroCarousel() {
             type="button"
             aria-label="Siguiente slide"
             onClick={() => emblaApi?.scrollNext()}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#2b2f26] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-[#1a1a1a] w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

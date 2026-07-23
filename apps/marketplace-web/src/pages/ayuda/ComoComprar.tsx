@@ -79,7 +79,7 @@ export default function ComoComprar() {
           <h1 className="text-5xl md:text-6xl leading-tight font-serif mb-6 text-charcoal tracking-tight">
             ¿Cómo comprar
             <br />
-            <span className="italic text-primary">en COCREA?</span>
+            <span className="italic text-primary">en Villa Adelaida?</span>
           </h1>
           <p className="text-base md:text-lg text-charcoal/70 max-w-2xl font-sans leading-relaxed">
             Guía paso a paso para realizar tu compra y apoyar a artesanos colombianos

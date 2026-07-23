@@ -910,9 +910,9 @@ const ExploreProducts = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-24">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="bg-[#e5e1d8] aspect-[3/4] mb-6 rounded-sm" />
-                    <div className="h-4 bg-[#e5e1d8] rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-[#e5e1d8] rounded w-1/2" />
+                    <div className="bg-[#F3E4D3] aspect-[3/4] mb-6 rounded-sm" />
+                    <div className="h-4 bg-[#F3E4D3] rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-[#F3E4D3] rounded w-1/2" />
                   </div>
                 ))}
               </div>

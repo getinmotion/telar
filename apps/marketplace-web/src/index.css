@@ -7,90 +7,94 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* Villa Adelaida — Centro Nacional de Diseño e Innovación
+     Paleta de marca: naranja-rojo #DB3D12 (primario), crema #FEE9D8,
+     teal #08403D, amarillo #F4CA54, salvia #91BCB3, naranja #FFA636,
+     rosa #EFABAC, gris #4D4D4D, negro #000000. Todos los tokens en HSL. */
   :root {
-    --background: 40 22% 97%;
-    --foreground: 90 10% 9%;
+    --background: 30 67% 91%;
+    --foreground: 0 0% 10%;
 
-    --card: 40 26% 99%;
-    --card-foreground: 90 10% 9%;
+    --card: 30 55% 96%;
+    --card-foreground: 0 0% 10%;
 
-    --popover: 40 26% 99%;
-    --popover-foreground: 90 10% 9%;
+    --popover: 30 55% 96%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 108 46% 16%;
-    --primary-foreground: 40 30% 98%;
+    --primary: 13 74% 42%;
+    --primary-foreground: 30 67% 95%;
 
-    --secondary: 90 14% 10%;
-    --secondary-foreground: 40 30% 98%;
+    --secondary: 173 26% 21%;
+    --secondary-foreground: 30 67% 95%;
 
-    --muted: 40 15% 91%;
-    --muted-foreground: 90 8% 32%;
+    --muted: 30 28% 86%;
+    --muted-foreground: 0 0% 31%;
 
-    --accent: 100 20% 92%;
-    --accent-foreground: 108 46% 14%;
+    --accent: 30 45% 87%;
+    --accent-foreground: 13 70% 30%;
 
-    --destructive: 4 62% 38%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 14% 88%;
-    --input: 40 14% 88%;
-    --ring: 108 46% 16%;
+    --border: 30 24% 83%;
+    --input: 30 24% 83%;
+    --ring: 13 74% 42%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 40 20% 96%;
+    --sidebar-background: 30 55% 94%;
 
-    --sidebar-foreground: 90 10% 14%;
+    --sidebar-foreground: 0 0% 14%;
 
-    --sidebar-primary: 108 46% 16%;
+    --sidebar-primary: 13 74% 42%;
 
-    --sidebar-primary-foreground: 40 30% 98%;
+    --sidebar-primary-foreground: 30 67% 95%;
 
-    --sidebar-accent: 100 18% 91%;
+    --sidebar-accent: 30 45% 89%;
 
-    --sidebar-accent-foreground: 90 10% 14%;
+    --sidebar-accent-foreground: 0 0% 14%;
 
-    --sidebar-border: 40 14% 88%;
+    --sidebar-border: 30 24% 83%;
 
-    --sidebar-ring: 108 46% 16%;
+    --sidebar-ring: 13 74% 42%;
   }
 
   .dark {
-    --background: 215 35% 15%;
-    --foreground: 30 20% 95%;
+    --background: 173 32% 8%;
+    --foreground: 30 60% 93%;
 
-    --card: 215 30% 18%;
-    --card-foreground: 30 20% 95%;
+    --card: 173 28% 11%;
+    --card-foreground: 30 60% 93%;
 
-    --popover: 215 30% 18%;
-    --popover-foreground: 30 20% 95%;
+    --popover: 173 28% 11%;
+    --popover-foreground: 30 60% 93%;
 
-    --primary: 108 30% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 14 80% 52%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 215 40% 35%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 162 18% 62%;
+    --secondary-foreground: 173 30% 10%;
 
-    --muted: 215 20% 22%;
-    --muted-foreground: 30 15% 70%;
+    --muted: 173 24% 17%;
+    --muted-foreground: 30 20% 75%;
 
-    --accent: 108 25% 26%;
-    --accent-foreground: 30 20% 95%;
+    --accent: 173 30% 19%;
+    --accent-foreground: 30 60% 93%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 25%;
-    --input: 215 20% 25%;
-    --ring: 108 30% 45%;
-    --sidebar-background: 215 40% 12%;
-    --sidebar-foreground: 30 15% 85%;
-    --sidebar-primary: 108 30% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 20%;
-    --sidebar-accent-foreground: 30 15% 85%;
-    --sidebar-border: 215 20% 22%;
-    --sidebar-ring: 108 30% 45%;
+    --border: 173 24% 19%;
+    --input: 173 24% 19%;
+    --ring: 14 80% 52%;
+    --sidebar-background: 173 30% 7%;
+    --sidebar-foreground: 30 55% 88%;
+    --sidebar-primary: 14 80% 52%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 173 26% 15%;
+    --sidebar-accent-foreground: 30 55% 88%;
+    --sidebar-border: 173 24% 17%;
+    --sidebar-ring: 14 80% 52%;
   }
 }
 

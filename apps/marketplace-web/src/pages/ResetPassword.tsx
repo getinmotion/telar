@@ -87,7 +87,7 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <NavLink to="/" className="mx-auto">
-            <img src={cocreaLogo} alt="CO·CREA" className="h-16" />
+            <img src={cocreaLogo} alt="Villa Adelaida" className="h-32" />
           </NavLink>
           <div>
             <CardTitle className="text-2xl">Nueva contraseña</CardTitle>
