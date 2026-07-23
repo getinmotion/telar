@@ -24,6 +24,7 @@ import { SkuGeneratorService } from './sku-generator.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
+import { UpdateVariantStockDto } from './dto/update-variant-stock.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('products-new')
@@ -360,6 +361,22 @@ export class ProductsNewController {
     @Body('status') status: string,
   ) {
     return this.productsNewService.updateStatus(id, status);
+  }
+
+  /**
+   * PATCH /products-new/variants/:variantId/stock
+   * Ajustar el stock de una variante sin pasar por moderación.
+   */
+  @Patch('variants/:variantId/stock')
+  @ApiOperation({ summary: 'Ajustar stock de una variante (sin moderación)' })
+  updateVariantStock(
+    @Param('variantId') variantId: string,
+    @Body() updateVariantStockDto: UpdateVariantStockDto,
+  ) {
+    return this.productsNewService.updateVariantStock(
+      variantId,
+      updateVariantStockDto.stockQuantity,
+    );
   }
 
   /**

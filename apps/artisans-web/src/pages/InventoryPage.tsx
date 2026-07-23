@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { formatCurrency } from "@/utils/currency";
 import { useNavigate } from "react-router-dom";
-import { useInventory } from "@/hooks/useInventory";
+import { useInventory, type Product as InventoryProduct } from "@/hooks/useInventory";
+import { InlineStockEditor } from "@/components/inventory/InlineStockEditor";
 import { useArtisanShop } from "@/hooks/useArtisanShop";
 import { useMasterAgent } from "@/context/MasterAgentContext";
 import { EventBus } from "@/utils/eventBus";
@@ -105,9 +106,10 @@ export const InventoryPage: React.FC = () => {
     deleteProduct,
     bulkDeleteProducts,
     duplicateProduct,
+    setVariantStock,
   } = useInventory();
 
-  const [products,           setProducts]           = useState<LegacyProduct[]>([]);
+  const [products,           setProducts]           = useState<InventoryProduct[]>([]);
   const [searchQuery,        setSearchQuery]         = useState("");
   const [statusFilter,       setStatusFilter]        = useState("all");
   const [stockFilter,        setStockFilter]         = useState("all");
@@ -235,13 +237,28 @@ export const InventoryPage: React.FC = () => {
     } finally { setBulkProcessing(false); setBulkProgress(0); }
   };
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
-  const stockDot = (inventory: number | null) => {
-    const n = inventory ?? 0;
-    const color = n === 0 ? "#ef4444" : n < 4 ? "#eab308" : "#22c55e";
-    return <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, display: "inline-block", flexShrink: 0 }} />;
+  const handleStockSave = async (
+    productId: string,
+    variantId: string,
+    newStock: number
+  ): Promise<boolean> => {
+    const ok = await setVariantStock(variantId, newStock);
+    if (ok) {
+      setProducts(prev => prev.map(p => {
+        if (p.id !== productId) return p;
+        const variants = (p.variants ?? []).map(v =>
+          v.id === variantId ? { ...v, stock_quantity: newStock } : v
+        );
+        // inventory refleja la variante primaria (primera activa o primera)
+        const primary = variants.find(v => v.is_active) ?? variants[0];
+        return { ...p, variants, inventory: primary?.stock_quantity ?? newStock };
+      }));
+      EventBus.publish("inventory.updated", { productId });
+    }
+    return ok;
   };
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const moderationPill = (product: LegacyProduct) => {
     if (product.moderation_status === "draft")    return <Pill variant="draft">Borrador</Pill>;
     if (product.moderation_status === "rejected") return <Pill variant="error">Rechazado</Pill>;
@@ -473,10 +490,18 @@ export const InventoryPage: React.FC = () => {
                           {product.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          {stockDot(product.inventory)}
                           <span style={{ fontFamily: SANS, fontSize: 11, color: "rgba(84,67,62,0.55)" }}>
-                            {inventory} uds · {product.price ? formatCurrency(product.price) : "Sin precio"}
+                            {product.price ? formatCurrency(product.price) : "Sin precio"}
                           </span>
+                        </div>
+                        <div className="mt-1.5">
+                          <InlineStockEditor
+                            productName={product.name}
+                            inventory={inventory}
+                            variants={product.variants}
+                            disabled={loading}
+                            onSave={(variantId, newStock) => handleStockSave(product.id, variantId, newStock)}
+                          />
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
@@ -578,7 +603,7 @@ export const InventoryPage: React.FC = () => {
                     <div
                       className="grid items-center px-5 py-3"
                       style={{
-                        gridTemplateColumns: "40px 72px 1fr 140px 110px 90px 110px 72px",
+                        gridTemplateColumns: "40px 72px 1fr 140px 110px 160px 110px 72px",
                         gap: 12,
                         borderBottom: "1px solid rgba(21,27,45,0.06)",
                         background: "rgba(21,27,45,0.02)",
@@ -611,7 +636,7 @@ export const InventoryPage: React.FC = () => {
                           key={product.id}
                           className="grid items-center px-5 py-3 transition-colors"
                           style={{
-                            gridTemplateColumns: "40px 72px 1fr 140px 110px 90px 110px 72px",
+                            gridTemplateColumns: "40px 72px 1fr 140px 110px 160px 110px 72px",
                             gap: 12,
                             borderBottom: i < filteredProducts.length - 1 ? "1px solid rgba(21,27,45,0.04)" : "none",
                             background: isSelected ? "rgba(236,109,19,0.04)" : "transparent",
@@ -644,10 +669,13 @@ export const InventoryPage: React.FC = () => {
                           <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: "#151b2d" }}>
                             {product.price ? formatCurrency(product.price) : <span style={{ color: "rgba(84,67,62,0.3)", fontStyle: "italic" }}>Sin precio</span>}
                           </p>
-                          <div className="flex items-center gap-2">
-                            {stockDot(product.inventory)}
-                            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: "#151b2d" }}>{inventory}</span>
-                          </div>
+                          <InlineStockEditor
+                            productName={product.name}
+                            inventory={inventory}
+                            variants={product.variants}
+                            disabled={loading}
+                            onSave={(variantId, newStock) => handleStockSave(product.id, variantId, newStock)}
+                          />
                           <div>
                             {product.moderation_status ? (
                               <ModerationFeedbackBadge

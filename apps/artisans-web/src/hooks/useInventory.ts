@@ -12,6 +12,7 @@ import {
   getProductsNewByStoreId,
   mapProductResponseToLegacy,
   getProductNewById,
+  setVariantStockNew,
 } from '@/services/products-new.actions';
 import {
   getVariantsByProductId,
@@ -42,6 +43,15 @@ export interface MarketplaceLinks {
   }>;
 }
 
+// Variante mínima expuesta a la fila del inventario (para editar stock sin refetch)
+export interface InventoryVariant {
+  id: string;
+  variant_name?: string | null;
+  stock_quantity: number;
+  sku?: string;
+  is_active?: boolean;
+}
+
 // Extender LegacyProduct con campos específicos de inventario
 export interface Product extends LegacyProduct {
   made_to_order?: boolean;
@@ -49,6 +59,7 @@ export interface Product extends LegacyProduct {
   production_time_hours?: number;
   requires_customization?: boolean;
   marketplace_links?: MarketplaceLinks;
+  variants?: InventoryVariant[];
 }
 
 export interface ProductVariant {
@@ -124,7 +135,8 @@ export function useInventory() {
     try {
       setLoading(true);
 
-      // Si se está actualizando solo el inventory, usar products-new con variants
+      // Si se está actualizando solo el inventory, ajustar el stock de la
+      // variante primaria vía products-new (shop.product_variants) SIN moderación.
       if (updates.inventory !== undefined && Object.keys(updates).length === 1) {
         // Obtener el producto con sus variantes
         const product = await getProductNewById(productId);
@@ -135,8 +147,7 @@ export function useInventory() {
         const firstVariant = product.variants[0];
         const newInventory = updates.inventory;
 
-        // Usar operation 'set' para establecer el inventario exacto
-        await adjustVariantStock(firstVariant.id, newInventory, 'set');
+        await setVariantStockNew(firstVariant.id, newInventory);
 
         // Retornar producto actualizado en formato legacy
         const updatedProduct = await getProductNewById(productId);
@@ -311,6 +322,26 @@ export function useInventory() {
     }
   };
 
+  /**
+   * Establece el stock exacto de una variante (shop.product_variants) sin
+   * pasar por moderación. Usado por el editor inline del inventario.
+   */
+  const setVariantStock = async (
+    variantId: string,
+    stockQuantity: number
+  ): Promise<boolean> => {
+    try {
+      setLoading(true);
+      await setVariantStockNew(variantId, stockQuantity);
+      return true;
+    } catch {
+      toast.error('Error al actualizar el stock');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchMovements = async (variantId: string): Promise<InventoryMovement[]> => {
     try {
       const data = await getMovementsByVariantId(variantId);
@@ -353,6 +384,7 @@ export function useInventory() {
     updateVariant,
     // Stock (NestJS)
     adjustStock,
+    setVariantStock,
     fetchMovements,
     fetchLowStockVariants,
   };

@@ -225,6 +225,22 @@ export const updateProductNew = async (
 };
 
 /**
+ * Ajusta el stock de una variante (shop.product_variants) sin pasar por moderación.
+ * Endpoint: PATCH /products-new/variants/:variantId/stock
+ * NO modifica el estado del producto (no lo reenvía a revisión).
+ */
+export const setVariantStockNew = async (
+  variantId: string,
+  stockQuantity: number
+): Promise<{ id: string; stockQuantity: number }> => {
+  const response = await telarApi.patch<{ id: string; stockQuantity: number }>(
+    `/products-new/variants/${variantId}/stock`,
+    { stockQuantity }
+  );
+  return response.data;
+};
+
+/**
  * Obtiene un producto por ID
  * @param productId ID del producto
  * @returns Producto con todas sus relaciones

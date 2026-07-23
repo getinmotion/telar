@@ -944,6 +944,35 @@ export class ProductsNewService {
   }
 
   /**
+   * Ajusta directamente el stock de una variante (shop.product_variants).
+   * NO modifica el estado de moderación del producto: permite al artesano
+   * gestionar inventario sin reenviar la pieza a revisión.
+   */
+  async updateVariantStock(
+    variantId: string,
+    stockQuantity: number,
+  ): Promise<ProductVariant> {
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+      throw new BadRequestException(
+        'stockQuantity debe ser un entero mayor o igual a 0',
+      );
+    }
+
+    const variant = await this.variantsRepository.findOne({
+      where: { id: variantId },
+    });
+
+    if (!variant) {
+      throw new NotFoundException(
+        `Variante con ID ${variantId} no encontrada`,
+      );
+    }
+
+    variant.stockQuantity = stockQuantity;
+    return await this.variantsRepository.save(variant);
+  }
+
+  /**
    * Genera y guarda el embedding del producto
    * Solo se ejecuta si el status !== 'draft' y hay datos suficientes
    */
