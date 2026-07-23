@@ -66,7 +66,7 @@ const PublicShopCatalog: React.FC = () => {
     // availability filter
     if (filter === 'disponible') list = list.filter(p => {
       const t = p.production?.availabilityType ?? p.availabilityType ?? '';
-      return t === 'en_stock' || t === 'pieza_unica' || t === '';
+      return t === 'en_stock' || t === '';
     });
     else if (filter === 'pedido') list = list.filter(p =>
       (p.production?.availabilityType ?? p.availabilityType) === 'bajo_pedido');

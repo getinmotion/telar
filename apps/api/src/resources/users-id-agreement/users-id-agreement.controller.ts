@@ -109,11 +109,13 @@ export class UsersIdAgreementController {
     exists: boolean;
     record?: UsersIdAgreement;
   }> {
-    return await this.usersIdAgreementService.validateNumId(
-      dto.idType,
-      dto.numId,
-      dto.agreementId,
-    );
+    // TODO: Temporal - siempre retorna true. Restaurar la validación real cuando se requiera.
+    return { exists: true };
+    // return await this.usersIdAgreementService.validateNumId(
+    //   dto.idType,
+    //   dto.numId,
+    //   dto.agreementId,
+    // );
   }
 
   @Get()

@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
-import { useCategoryPresence } from "@/hooks/useCategoryPresence";
 import { useSearch } from "@/contexts/SearchContext";
 import { semanticSearch } from "@/lib/semanticSearchClient";
 import {
@@ -19,17 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  LayoutList,
-  Grid2x2,
 } from "lucide-react";
-
-type MobileColumns = 1 | 2;
-const MOBILE_COLUMNS_KEY = "explore_mobile_columns";
-
-function getInitialMobileColumns(): MobileColumns {
-  if (typeof window === "undefined") return 2;
-  return window.localStorage.getItem(MOBILE_COLUMNS_KEY) === "1" ? 1 : 2;
-}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -66,12 +55,8 @@ const ExploreProducts = () => {
     findCategoryWithChildren,
     loading: taxonomyLoading,
   } = useTaxonomy();
-  const { categoryHasProducts, subcategoryHasProducts } = useCategoryPresence();
 
   const [allProducts, setAllProducts] = useState<ProductFeatured[]>([]);
-  const [mobileColumns, setMobileColumns] = useState<MobileColumns>(
-    getInitialMobileColumns,
-  );
   const [loading, setLoading] = useState(true);
   const [totalFromApi, setTotalFromApi] = useState(0);
   const [page, setPage] = useState(1);
@@ -150,23 +135,6 @@ const ExploreProducts = () => {
         ? findCategoryWithChildren(filters.categorySlug)
         : null,
     [filters.categorySlug, findCategoryWithChildren],
-  );
-
-  // Show the category photo in the header only when a category is active
-  // (not while searching) and it actually has an image.
-  const hasHeaderImage =
-    !(searchQuery && searchQuery.trim().length > 0) &&
-    !!activeCategory?.imageUrl;
-
-  // Subcategories that actually have products (avoid empty filters)
-  const visibleSubcategories = useMemo(
-    () =>
-      activeCategory
-        ? activeCategory.subcategories.filter((s) =>
-            subcategoryHasProducts(s.id),
-          )
-        : [],
-    [activeCategory, subcategoryHasProducts],
   );
 
   // Determine which categoryIds to match (parent + its subcategories)
@@ -471,13 +439,6 @@ const ExploreProducts = () => {
     }));
   };
 
-  const changeMobileColumns = (cols: MobileColumns) => {
-    setMobileColumns(cols);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(MOBILE_COLUMNS_KEY, String(cols));
-    }
-  };
-
   // ── Pagination helpers ──
   const goToPage = (p: number) => {
     setPage(p);
@@ -509,32 +470,6 @@ const ExploreProducts = () => {
     const maxH = isMobile ? "max-h-40" : "max-h-48";
     return (
       <div className="space-y-8">
-        {/* Organizar — solo mobile (en desktop está en la toolbar) */}
-        {isMobile && (
-          <FilterSection title="Organizar" defaultOpen>
-            <div className="pt-4">
-              <div className="relative">
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) =>
-                    updateFilter(
-                      "sortBy",
-                      e.target.value as ExploreFilters["sortBy"],
-                    )
-                  }
-                  className="appearance-none w-full bg-transparent border border-charcoal/10 px-4 py-3 pr-10 rounded-full text-[10px] font-bold uppercase tracking-widest font-sans cursor-pointer hover:border-primary transition-colors"
-                >
-                  <option value="newest">Más recientes</option>
-                  <option value="price_asc">Precio: menor a mayor</option>
-                  <option value="price_desc">Precio: mayor a menor</option>
-                  <option value="name">Nombre A-Z</option>
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none text-charcoal/40" />
-              </div>
-            </div>
-          </FilterSection>
-        )}
-
         {/* Oficio */}
         {availableCrafts.length > 0 && (
           <FilterSection title="Oficio" defaultOpen>
@@ -672,16 +607,9 @@ const ExploreProducts = () => {
       </div>
 
       {/* Header */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-6 md:mb-12">
-        <div
-          className={`py-6 md:py-8 border-b border-charcoal/5 ${
-            hasHeaderImage
-              ? "grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center"
-              : ""
-          }`}
-        >
-          <div>
-          <h1 className="text-4xl md:text-7xl leading-[0.9] md:leading-[0.85] font-serif mb-4 md:mb-6 text-charcoal tracking-tight">
+      <section className="max-w-[1400px] mx-auto px-6 mb-12">
+        <div className="py-8 border-b border-charcoal/5">
+          <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
             {searchQuery && searchQuery.trim().length > 0 ? (
               <>
                 RESULTADOS <br />
@@ -708,21 +636,11 @@ const ExploreProducts = () => {
               : activeCategory?.description ??
                 "Descubre piezas artesanales únicas de Colombia. Cada objeto cuenta la historia de un artesano, una técnica y un territorio."}
           </p>
-          </div>
-          {hasHeaderImage && (
-            <div className="aspect-[21/6] max-h-20 md:max-h-40 bg-[#e5e1d8] w-full rounded-sm relative overflow-hidden">
-              <img
-                src={activeCategory!.imageUrl!}
-                alt={activeCategory!.name}
-                className="w-full h-full object-cover rounded-sm"
-              />
-            </div>
-          )}
         </div>
       </section>
 
       {/* Category Pills */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-4 md:mb-8 overflow-hidden">
+      <section className="max-w-[1400px] mx-auto px-6 mb-8 overflow-hidden">
         <div className="flex gap-3 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <button
             onClick={() => updateFilter("categorySlug", null as any)}
@@ -734,7 +652,7 @@ const ExploreProducts = () => {
           >
             Todos
           </button>
-          {categoryHierarchy.filter(categoryHasProducts).map((cat) => (
+          {categoryHierarchy.map((cat) => (
             <button
               key={cat.id}
               onClick={() => updateFilter("categorySlug", cat.slug)}
@@ -750,7 +668,7 @@ const ExploreProducts = () => {
         </div>
 
         {/* Subcategory pills */}
-        {activeCategory && visibleSubcategories.length > 0 && (
+        {activeCategory && activeCategory.subcategories.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-4 mt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <button
               onClick={() => updateFilter("subcategorySlug", null as any)}
@@ -762,7 +680,7 @@ const ExploreProducts = () => {
             >
               Todos en {activeCategory.name}
             </button>
-            {visibleSubcategories.map((sub) => (
+            {activeCategory.subcategories.map((sub) => (
               <button
                 key={sub.id}
                 onClick={() => updateFilter("subcategorySlug", sub.slug)}
@@ -792,7 +710,7 @@ const ExploreProducts = () => {
           {/* Content Area */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="flex flex-wrap justify-between items-center gap-4 mb-8 sticky top-0 z-20 bg-editorial-bg py-3 -my-3 lg:static lg:bg-transparent lg:py-0 lg:my-0 lg:mb-8">
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
               <div className="flex items-center gap-4">
                 {/* Mobile filter toggle */}
                 <button
@@ -807,34 +725,6 @@ const ExploreProducts = () => {
                     </span>
                   )}
                 </button>
-
-                {/* Mobile columns toggle */}
-                <div className="lg:hidden flex items-center border border-charcoal/10 rounded-full p-0.5">
-                  <button
-                    onClick={() => changeMobileColumns(1)}
-                    aria-label="Una columna"
-                    aria-pressed={mobileColumns === 1}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                      mobileColumns === 1
-                        ? "bg-primary text-white"
-                        : "text-charcoal/50 hover:text-primary"
-                    }`}
-                  >
-                    <LayoutList className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => changeMobileColumns(2)}
-                    aria-label="Dos columnas"
-                    aria-pressed={mobileColumns === 2}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                      mobileColumns === 2
-                        ? "bg-primary text-white"
-                        : "text-charcoal/50 hover:text-primary"
-                    }`}
-                  >
-                    <Grid2x2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
                 <span className="text-[11px] uppercase tracking-[0.2em] text-charcoal/50 font-sans">
                   {filteredProducts.length}{" "}
@@ -856,8 +746,8 @@ const ExploreProducts = () => {
                 )}
               </div>
 
-              {/* Sort — en mobile vive dentro del drawer de filtros */}
-              <div className="relative hidden lg:block">
+              {/* Sort */}
+              <div className="relative">
                 <select
                   value={filters.sortBy}
                   onChange={(e) =>
@@ -933,9 +823,7 @@ const ExploreProducts = () => {
 
             {/* Product Grid */}
             {loading || taxonomyLoading ? (
-              <div
-                className={`grid ${mobileColumns === 2 ? "grid-cols-2" : "grid-cols-1"} sm:grid-cols-2 xl:grid-cols-3 gap-x-6 sm:gap-x-10 gap-y-10 sm:gap-y-24`}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-24">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="animate-pulse">
                     <div className="bg-[#e5e1d8] aspect-[3/4] mb-6 rounded-sm" />
@@ -945,9 +833,7 @@ const ExploreProducts = () => {
                 ))}
               </div>
             ) : paginatedProducts.length > 0 ? (
-              <div
-                className={`grid ${mobileColumns === 2 ? "grid-cols-2" : "grid-cols-1"} sm:grid-cols-2 xl:grid-cols-3 gap-x-6 sm:gap-x-12 gap-y-10 sm:gap-y-24`}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-24">
                 {paginatedProducts.map((product, idx) => (
                   <ExploreProductCard
                     key={product.id}

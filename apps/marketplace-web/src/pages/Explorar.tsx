@@ -113,7 +113,7 @@ const Explorar = () => {
                   {topCategories.map((cat) => (
                     <Link
                       key={cat.id}
-                      to={`/productos?categoria=${cat.slug}`}
+                      to={`/categoria/${cat.slug}`}
                       className="text-[10px] uppercase tracking-widest hover:text-[#ec6d13] transition-colors"
                       style={{ color: "rgba(27,28,25,0.4)" }}
                       onClick={(e) => e.stopPropagation()}

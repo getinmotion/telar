@@ -25,7 +25,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Verifica tu cuenta - Telar',
+      subject: 'Verifica tu cuenta - GetInMotion',
       template: './verify-email',
       context: {
         name,
@@ -45,7 +45,7 @@ export class MailService {
   async sendOtpCode(email: string, name: string, code: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu código de verificación - Telar',
+      subject: 'Tu código de verificación - GetInMotion',
       template: './otp-code',
       context: {
         name,
@@ -73,7 +73,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu acceso a Telar',
+      subject: 'Tu acceso a GetInMotion',
       template: './account-password',
       context: {
         name,
@@ -101,7 +101,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Recupera tu contraseña - Telar',
+      subject: 'Recupera tu contraseña - GetInMotion',
       template: './password-recovery',
       context: {
         name,
@@ -117,7 +117,7 @@ export class MailService {
   async sendWelcomeEmail(email: string, name: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: '¡Bienvenido a Telar!',
+      subject: '¡Bienvenido a GetInMotion!',
       template: './welcome',
       context: {
         name,
@@ -136,7 +136,7 @@ export class MailService {
   ): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu contraseña ha sido cambiada - Telar',
+      subject: 'Tu contraseña ha sido cambiada - GetInMotion',
       template: './password-changed',
       context: {
         name,
@@ -171,7 +171,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: '¡Compra Confirmada! - Telar',
+      subject: '¡Compra Confirmada! - GetInMotion',
       template: './payment-confirmation',
       context: {
         buyerName,

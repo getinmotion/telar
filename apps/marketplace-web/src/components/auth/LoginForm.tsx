@@ -95,15 +95,17 @@ export function LoginForm({ onToggleForm, onForgotPassword, onOtpLogin }: LoginF
         Iniciar sesión
       </Button>
 
-      {/* OTP login / invitado */}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onOtpLogin}
-        className="w-full h-10"
-      >
-        Ingresar como invitado
-      </Button>
+      {/* OTP login */}
+      <div className="text-center text-sm">
+        <Button
+          type="button"
+          variant="link"
+          onClick={onOtpLogin}
+          className="p-0 h-auto"
+        >
+          Ingresar con código al correo
+        </Button>
+      </div>
 
       {/* Toggle to register */}
       <div className="text-center text-sm">

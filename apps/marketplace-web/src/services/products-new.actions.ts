@@ -43,10 +43,6 @@ export interface ProductBadgeLink {
 export interface ProductVariant {
   id: string;
   sku?: string;
-  variantName?: string | null;
-  optionValues?: Record<string, string>;
-  minStock?: number;
-  imageUrl?: string | null;
   basePriceMinor?: number | string; // bigint from DB — price in COP cents
   currency?: string;
   stockQuantity?: number;
@@ -94,7 +90,6 @@ export interface ProductNewCore {
   shortDescription?: string;
   history?: string;
   careNotes?: string;
-  usageSuggestions?: string;
   status: string; // 'draft' | 'published' | 'archived'
   isFeatured?: boolean;
   createdAt: string;

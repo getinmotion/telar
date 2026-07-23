@@ -19,8 +19,8 @@ export interface ServientregaQuoteRequest {
   NumeroPiezas: number;
   Piezas: ServientregaPiece[];
   ValorDeclarado: number; // Valor en pesos COP
-  IdDaneCiudadOrigen: string; // Código DANE + 000
-  IdDaneCiudadDestino: string; // Código DANE + 000
+  IdDaneCiudadOrigen: number; // Código DANE + 000
+  IdDaneCiudadDestino: number; // Código DANE + 000
   EnvioConCobro: boolean;
   FormaPago: number; // 2 = Crédito
   TiempoEntrega: number; // 1 = Normal

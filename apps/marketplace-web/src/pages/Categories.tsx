@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
-import { useCategoryPresence } from "@/hooks/useCategoryPresence";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
@@ -56,11 +55,10 @@ function getCategoryImage(cat: {
 
 export default function Categories() {
   const { categoryHierarchy, loading } = useTaxonomy();
-  const { categoryHasProducts } = useCategoryPresence();
 
   const activeCategories = useMemo(
-    () => categoryHierarchy.filter((c) => c.isActive && categoryHasProducts(c)),
-    [categoryHierarchy, categoryHasProducts],
+    () => categoryHierarchy.filter((c) => c.isActive),
+    [categoryHierarchy],
   );
 
   return (

@@ -139,10 +139,6 @@ export function getAvailabilityInfo(p: any): AvailabilityInfo {
     label: 'EDICIÓN LIMITADA', color: T.orange, bg: T.orange,
     dark: false, ctaLabel: 'Comprar ahora',
   };
-  if (type === 'pieza_unica') return {
-    label: 'PIEZA ÚNICA', color: T.orange, bg: T.orange,
-    dark: false, ctaLabel: 'Comprar ahora',
-  };
   return {
     label: 'DISPONIBLE', color: T.orange, bg: T.orange,
     dark: false, ctaLabel: 'Comprar ahora',

@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Wishlist } from './entities/wishlist.entity';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
-import { ProductCore } from '../products-new/entities/product-core.entity';
+import { Product } from '../products/entities/product.entity';
 
 export const wishlistProviders = [
   {
@@ -17,8 +17,7 @@ export const wishlistProviders = [
   },
   {
     provide: 'PRODUCTS_REPOSITORY',
-    useFactory: (dataSource: DataSource) =>
-      dataSource.getRepository(ProductCore),
+    useFactory: (dataSource: DataSource) => dataSource.getRepository(Product),
     inject: ['DATA_SOURCE'],
   },
 ];
