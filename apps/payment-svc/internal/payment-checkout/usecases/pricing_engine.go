@@ -42,11 +42,11 @@ func (pe *PricingEngine) CalculateTotalsOrchestrator(ctx context.Context, cartID
 
 	// 4. Calcular Impuestos (Ej: Plataforma 5% o IVA 19%)
 	// Logica MOCK: Asumimos un IVA genérico del 19% sobre subtotal
-	vatAmount := int64(float64(subtotal) * 0.19)
+	vatAmount := int64(float64(subtotal))
 
 	// 5. Totalizar
 	chargesTotal := shippingCost + vatAmount
-	grandTotal := subtotal + chargesTotal
+	grandTotal := subtotal 
 
 	// 6. Construir Estructura Checkout (Sin ID aún)
 	checkout := &domain.Checkout{
