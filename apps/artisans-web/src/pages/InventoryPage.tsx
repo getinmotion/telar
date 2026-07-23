@@ -603,7 +603,7 @@ export const InventoryPage: React.FC = () => {
                     <div
                       className="grid items-center px-5 py-3"
                       style={{
-                        gridTemplateColumns: "40px 72px 1fr 140px 110px 160px 110px 72px",
+                        gridTemplateColumns: "40px 72px 1fr 120px 170px 110px 72px",
                         gap: 12,
                         borderBottom: "1px solid rgba(21,27,45,0.06)",
                         background: "rgba(21,27,45,0.02)",
@@ -618,7 +618,6 @@ export const InventoryPage: React.FC = () => {
                       />
                       <span style={th}>Foto</span>
                       <span style={th}>Producto</span>
-                      <span style={th}>Categoría</span>
                       <span style={th}>Precio</span>
                       <span style={th}>Stock</span>
                       <span style={th}>Estado</span>
@@ -636,7 +635,7 @@ export const InventoryPage: React.FC = () => {
                           key={product.id}
                           className="grid items-center px-5 py-3 transition-colors"
                           style={{
-                            gridTemplateColumns: "40px 72px 1fr 140px 110px 160px 110px 72px",
+                            gridTemplateColumns: "40px 72px 1fr 120px 170px 110px 72px",
                             gap: 12,
                             borderBottom: i < filteredProducts.length - 1 ? "1px solid rgba(21,27,45,0.04)" : "none",
                             background: isSelected ? "rgba(236,109,19,0.04)" : "transparent",
@@ -663,9 +662,6 @@ export const InventoryPage: React.FC = () => {
                               </p>
                             )}
                           </div>
-                          <p style={{ fontFamily: SANS, fontSize: 12, color: "rgba(84,67,62,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {product.category || "—"}
-                          </p>
                           <p style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: "#151b2d" }}>
                             {product.price ? formatCurrency(product.price) : <span style={{ color: "rgba(84,67,62,0.3)", fontStyle: "italic" }}>Sin precio</span>}
                           </p>

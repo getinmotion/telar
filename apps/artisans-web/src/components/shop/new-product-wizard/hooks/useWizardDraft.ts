@@ -144,6 +144,10 @@ export const mapNewStateToDto = (
     dto.variants = [
       {
         ...(isUUID(state.primaryVariantId) && { id: state.primaryVariantId }),
+        // Variante única: sin ejes de variación. Se envían vacíos para limpiar
+        // cualquier combinación previa si se reusa una variante que tenía opciones.
+        variantName: null,
+        optionValues: {},
         stockQuantity: state.inventory ?? 1,
         minStock: state.minimumStockAlert ?? 0,
         basePriceMinor: toBuyerPriceMinor(state.price),

@@ -362,7 +362,11 @@ const minorToPrice = (priceMinor: string): number => {
  * @returns Product en formato legacy
  */
 export const mapProductResponseToLegacy = (product: ProductResponse): any => {
-  const firstVariant = product.variants?.[0];
+  // Solo variantes activas (las pausadas isActive:false son leftovers de combinaciones
+  // anteriores que se conservan para no romper referencias del carrito; no deben verse
+  // en inventario ni contar para stock, igual que en el marketplace).
+  const activeVariants = (product.variants || []).filter((v) => v.isActive !== false);
+  const firstVariant = activeVariants[0] || product.variants?.[0];
   const firstImage = product.media
     ?.filter((m) => m.mediaType === 'image')
     .sort((a, b) => a.displayOrder - b.displayOrder)[0];
@@ -387,6 +391,15 @@ export const mapProductResponseToLegacy = (product: ProductResponse): any => {
     updated_at: product.updatedAt,
     // Agregar variantId para facilitar actualizaciones
     _variantId: firstVariant?.id,
+    // Variantes activas (auxiliar para el editor de stock del inventario, sin refetch)
+    variants: activeVariants.map((v) => ({
+      id: v.id,
+      variant_name: v.variantName ?? null,
+      option_values: v.optionValues ?? {},
+      stock_quantity: v.stockQuantity,
+      sku: v.sku,
+      is_active: v.isActive,
+    })),
   };
 };
 

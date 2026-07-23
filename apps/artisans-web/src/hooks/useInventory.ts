@@ -47,6 +47,7 @@ export interface MarketplaceLinks {
 export interface InventoryVariant {
   id: string;
   variant_name?: string | null;
+  option_values?: Record<string, string>;
   stock_quantity: number;
   sku?: string;
   is_active?: boolean;

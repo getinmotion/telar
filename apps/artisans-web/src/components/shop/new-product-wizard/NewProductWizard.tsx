@@ -239,7 +239,26 @@ export const NewProductWizard: React.FC = () => {
         // Variantes: precio del vendedor = precio guardado ÷ 1.05 (recargo comprador)
         const toSellerPrice = (basePriceMinor: string) =>
           Math.round(parseInt(basePriceMinor) / 100 / 1.05);
-        const allVariants = product.variants ?? [];
+        // Solo variantes activas: las pausadas (isActive:false) son leftovers de
+        // combinaciones anteriores. Si se cargaran, sus ejes/valores "eliminados"
+        // reaparecerían y se realimentarían a buildVariants, duplicando variantes.
+        // Al no reenviarlas, el upsert del backend las limpia (soft-remove).
+        // Además se deduplican por combinación de opciones: si un producto quedó
+        // con variantes activas repetidas (misma combinación), al re-guardar se
+        // envía una sola por combinación y el upsert elimina las sobrantes.
+        const variantKeyOf = (ov?: Record<string, string>) =>
+          JSON.stringify(
+            Object.entries(ov ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+          );
+        const seenVariantKeys = new Set<string>();
+        const allVariants = (product.variants ?? [])
+          .filter((v) => v.isActive !== false)
+          .filter((v) => {
+            const k = variantKeyOf(v.optionValues);
+            if (seenVariantKeys.has(k)) return false;
+            seenVariantKeys.add(k);
+            return true;
+          });
         const hasRealVariants = allVariants.some(
           (v) => Object.keys(v.optionValues ?? {}).length > 0,
         );

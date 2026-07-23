@@ -68,8 +68,13 @@ export const buildVariants = (
   }
 
   const comboKeys = new Set(combos.map(keyOf));
+  // Ids ya usadas por filas activas (incluye la primaryVariantId reasignada arriba).
+  // Sin esto, la variante original quedaría duplicada: una activa con las opciones
+  // completas y otra "pausada" con las opciones antiguas/parciales, y el backend
+  // sobrescribiría la buena con la parcial (bug "Talla S sin material").
+  const usedIds = new Set(rows.filter(r => r.id).map(r => r.id));
   const paused = existing
-    .filter(v => v.id && !comboKeys.has(keyOf(v.optionValues)))
+    .filter(v => v.id && !usedIds.has(v.id) && !comboKeys.has(keyOf(v.optionValues)))
     .map(v => ({ ...v, isActive: false }));
 
   return [...rows, ...paused];
@@ -173,6 +178,24 @@ export const VariantsSection: React.FC<Props> = ({ state, update, showError }) =
     if (value && enabledAxes.length === 0 && axes.length > 0) {
       // Pre-activar el primer eje para guiar a la artesana
       update({ hasVariants: true, variantAxes: [axes[0].key] });
+    } else if (!value) {
+      // Colapsar a variante única: reusar la 1a variante existente (conserva su id
+      // para el carrito) y LIMPIAR la matriz, para que el guardado envíe una sola
+      // variante y el backend elimine las demás. Sin esto quedaban variantes viejas.
+      const first = activeVariants[0] ?? variants[0];
+      update({
+        hasVariants: false,
+        variantAxes: [],
+        variantAxisValues: {},
+        variants: [],
+        primaryVariantId: first?.id ?? state.primaryVariantId,
+        inventory: activeVariants.length
+          ? activeVariants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+          : state.inventory,
+        price: first?.price ?? state.price,
+        sku: first?.sku ?? state.sku,
+        minimumStockAlert: first?.minStock ?? state.minimumStockAlert,
+      });
     } else {
       update({ hasVariants: value });
     }

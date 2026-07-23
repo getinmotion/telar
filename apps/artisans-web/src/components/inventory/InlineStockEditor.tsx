@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Minus, Plus, Check, Package } from "lucide-react";
 import type { InventoryVariant } from "@/hooks/useInventory";
+import { composeVariantName } from "@/types/products.types";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,13 @@ import {
 const SANS = "'Manrope', sans-serif";
 
 const dotColor = (n: number) => (n === 0 ? "#ef4444" : n < 4 ? "#eab308" : "#22c55e");
+
+// Nombre legible de la variante (ej. "Talla M · Rojo"), con fallbacks.
+const variantLabel = (v: InventoryVariant): string =>
+  v.variant_name ||
+  composeVariantName(v.option_values || {}) ||
+  v.sku ||
+  "Variante";
 
 const StockDot: React.FC<{ n: number }> = ({ n }) => (
   <span
@@ -216,6 +224,7 @@ const MultiVariantEditor: React.FC<{
             {variants.map((v) => {
               const val = draft[v.id] ?? "";
               const n = Math.max(0, parseInt(val, 10) || 0);
+              const label = variantLabel(v);
               return (
                 <div
                   key={v.id}
@@ -235,9 +244,9 @@ const MultiVariantEditor: React.FC<{
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {v.variant_name || v.sku || "Variante"}
+                      {label}
                     </p>
-                    {v.sku && v.variant_name && (
+                    {v.sku && v.sku !== label && (
                       <p style={{ fontFamily: SANS, fontSize: 10, color: "rgba(84,67,62,0.4)" }}>
                         {v.sku}
                       </p>

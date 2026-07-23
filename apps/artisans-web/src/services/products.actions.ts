@@ -127,16 +127,7 @@ export function mapProductResponseToLegacy(product: ProductResponse): Product {
     // Timestamps
     created_at: product.createdAt,
     updated_at: product.updatedAt,
-
-    // Variantes (auxiliar para el editor de stock del inventario, sin refetch)
-    variants: (product.variants || []).map(v => ({
-      id: v.id,
-      variant_name: v.variantName ?? null,
-      stock_quantity: v.stockQuantity,
-      sku: v.sku,
-      is_active: v.isActive,
-    })),
-  } as Product;
+  };
 }
 
 /**
