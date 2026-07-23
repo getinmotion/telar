@@ -10,6 +10,7 @@ import { ProductPurchaseButton } from "./ProductPurchaseButton";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { Product } from "@/types/products.types";
 
+
 export const ProductListItem = ({
   id,
   name,
@@ -29,11 +30,7 @@ export const ProductListItem = ({
   stock,
 }: Product) => {
   const { addToCart } = useCart();
-  const {
-    isInWishlist,
-    toggleWishlist,
-    loading: wishlistLoading,
-  } = useWishlist();
+  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
   const isFavorite = isInWishlist(id);
 
   return (
@@ -41,8 +38,8 @@ export const ProductListItem = ({
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Image */}
-          <Link
-            to={`/product/${id}`}
+          <Link 
+            to={`/product/${id}`} 
             state={{ returnUrl: window.location.search }}
             className="relative w-full sm:w-48 h-48 flex-shrink-0 overflow-hidden bg-muted"
           >
@@ -57,7 +54,7 @@ export const ProductListItem = ({
                 Sin imagen
               </div>
             )}
-
+            
             {/* Badges */}
             <div className="absolute top-2 left-2 flex flex-col gap-2">
               {stock === 0 && (
@@ -67,18 +64,19 @@ export const ProductListItem = ({
               )}
               {stock !== undefined && stock > 0 && stock <= 3 && (
                 <Badge className="bg-orange-500 hover:bg-orange-500 text-white border-0">
-                  {stock === 1 ? "¡Última unidad!" : `¡Últimas ${stock}!`}
+                  {stock === 1 ? '¡Última unidad!' : `¡Últimas ${stock}!`}
                 </Badge>
               )}
               {isNew && (
-                <Badge
-                  variant="default"
-                  className="bg-primary text-primary-foreground"
-                >
+                <Badge variant="default" className="bg-primary text-primary-foreground">
                   Nuevo
                 </Badge>
               )}
-              {freeShipping && <Badge variant="secondary">Envío gratis</Badge>}
+              {freeShipping && (
+                <Badge variant="secondary">
+                  Envío gratis
+                </Badge>
+              )}
             </div>
           </Link>
 
@@ -88,15 +86,12 @@ export const ProductListItem = ({
               {/* Category */}
               {category && (
                 <p className="text-xs text-muted-foreground">
-                  {formatCategoryName(category.split("/")[0])}
+                  {formatCategoryName(category.split('/')[0])}
                 </p>
               )}
 
               {/* Title */}
-              <Link
-                to={`/product/${id}`}
-                state={{ returnUrl: window.location.search }}
-              >
+              <Link to={`/product/${id}`} state={{ returnUrl: window.location.search }}>
                 <h3 className="font-semibold text-lg line-clamp-2 hover:text-primary transition-colors">
                   {name}
                 </h3>
@@ -104,7 +99,9 @@ export const ProductListItem = ({
 
               {/* Store */}
               {storeName && (
-                <p className="text-sm text-muted-foreground">por {storeName}</p>
+                <p className="text-sm text-muted-foreground">
+                  por {storeName}
+                </p>
               )}
 
               {/* Description */}
@@ -115,7 +112,7 @@ export const ProductListItem = ({
               )}
 
               {/* Materiales y Técnicas - Vista Lista */}
-              {materials?.length || techniques?.length || craft ? (
+              {(materials?.length || techniques?.length || craft) ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {craft && (
                     <Badge variant="outline" className="text-xs">
@@ -128,21 +125,13 @@ export const ProductListItem = ({
                     </Badge>
                   ))}
                   {techniques?.slice(0, 2).map((technique) => (
-                    <Badge
-                      key={technique}
-                      variant="secondary"
-                      className="text-xs"
-                    >
+                    <Badge key={technique} variant="secondary" className="text-xs">
                       ✨ {technique}
                     </Badge>
                   ))}
-                  {((materials?.length || 0) > 3 ||
-                    (techniques?.length || 0) > 2) && (
+                  {((materials?.length || 0) > 3 || (techniques?.length || 0) > 2) && (
                     <Badge variant="secondary" className="text-xs opacity-60">
-                      +
-                      {Math.max(0, (materials?.length || 0) - 3) +
-                        Math.max(0, (techniques?.length || 0) - 2)}{" "}
-                      más
+                      +{Math.max(0, (materials?.length || 0) - 3) + Math.max(0, (techniques?.length || 0) - 2)} más
                     </Badge>
                   )}
                 </div>
@@ -192,9 +181,7 @@ export const ProductListItem = ({
                   disabled={wishlistLoading}
                   className="hover:bg-primary hover:text-primary-foreground"
                 >
-                  <Heart
-                    className={`h-4 w-4 ${isFavorite ? "fill-primary text-primary" : ""}`}
-                  />
+                  <Heart className={`h-4 w-4 ${isFavorite ? "fill-primary text-primary" : ""}`} />
                 </Button>
                 <ProductPurchaseButton
                   productId={id}
