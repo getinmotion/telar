@@ -575,12 +575,6 @@ export class AgentService {
           type: 'bajo_pedido',
           stock_quantity: 0,
         },
-        ...(data.variants && {
-          confirmed_variants: {
-            source: data.variants.source,
-            original_ai_value: data.variants.originalAiValue,
-          },
-        }),
       },
     };
   }

@@ -2,11 +2,9 @@ import { useLocation } from 'react-router-dom';
 
 const WIZARD_ROUTE_PREFIXES = [
   '/productos/subir',
-  '/productos/editar',
   '/dashboard/artisan-profile',
-  // Con slash final: /mi-tienda/configurar exacto es el hub, no un wizard
-  '/mi-tienda/configurar/',
-  '/stock-wizard',
+  '/dashboard/brand-wizard',
+  '/config-wizards/',
 ];
 
 export const useIsWizardRoute = (): boolean => {

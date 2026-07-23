@@ -157,22 +157,7 @@ export interface Step1InitialCaptureResponse {
       confidence: number;
     }>;
   };
-  variant_suggestions?: VariantSuggestions;
   oraculo?: OraculoMessage;
-}
-
-/**
- * Sugerencia de variantes detectadas por el oráculo en el paso 1
- * (ejes válidos: talla | color | material)
- */
-export interface VariantSuggestions {
-  has_variants: boolean;
-  reasoning?: string;
-  axes: Array<{
-    axis: 'talla' | 'color' | 'material';
-    values: string[];
-    confidence: number;
-  }>;
 }
 
 /**
@@ -246,7 +231,6 @@ export interface Step2CaptureResponse {
       phases: string[];
       tools?: string[];
       care_instructions?: string;
-      usage_suggestions?: string;
     };
   };
   pricing_suggestions: {
@@ -322,12 +306,6 @@ export interface Step2ConfirmRequest {
     timestamp: string;
   };
   weightKg: {
-    source: FieldSource;
-    originalAiValue: string;
-    timestamp: string;
-  };
-  /** Aceptación/rechazo de las variantes sugeridas por el oráculo */
-  variants?: {
     source: FieldSource;
     originalAiValue: string;
     timestamp: string;

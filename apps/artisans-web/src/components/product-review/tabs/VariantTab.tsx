@@ -27,7 +27,6 @@ const AVAILABILITY_OPTIONS: { value: AvailabilityType; label: string }[] = [
   { value: 'en_stock', label: 'En Stock' },
   { value: 'bajo_pedido', label: 'Bajo Pedido' },
   { value: 'edicion_limitada', label: 'Edición Limitada' },
-  { value: 'pieza_unica', label: 'Pieza Única' },
 ];
 
 export const VariantTab: React.FC<VariantTabProps> = ({
@@ -67,32 +66,16 @@ export const VariantTab: React.FC<VariantTabProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Re-enviar TODAS las variantes con su id: el backend soft-elimina las que
-    // no lleguen. Solo la primera se edita desde este tab; el resto pasa igual.
-    const toDto = (v: CreateProductVariantDto): CreateProductVariantDto => ({
-      id: v.id,
-      sku: v.sku,
-      variantName: v.variantName,
-      optionValues: v.optionValues,
-      minStock: v.minStock,
-      imageUrl: v.imageUrl,
-      stockQuantity: v.stockQuantity,
-      basePriceMinor: String(v.basePriceMinor),
-      currency: v.currency ?? 'COP',
-      isActive: v.isActive,
-    });
     onSave({
-      variants: (product.variants ?? []).map((v, i) =>
-        i === 0
-          ? {
-              ...toDto(v),
-              sku: sku.trim() || undefined,
-              basePriceMinor: String(Math.round(priceMinor * 100)),
-              stockQuantity: stock,
-              isActive,
-            }
-          : toDto(v),
-      ),
+      variants: [
+        {
+          sku: sku.trim() || undefined,
+          basePriceMinor: String(Math.round(priceMinor * 100)),
+          stockQuantity: stock,
+          currency: 'COP',
+          isActive,
+        },
+      ],
       production: {
         availabilityType,
         productionTimeDays: productionDays || undefined,

@@ -104,7 +104,7 @@ export function ExploreProductCard({
         <div className="space-y-4">
           {/* L1: Identity */}
           <div className="space-y-1">
-            <h3 className="text-lg sm:text-2xl font-serif leading-tight group-hover:text-primary transition-colors">
+            <h3 className="text-2xl font-serif leading-tight group-hover:text-primary transition-colors">
               {product.name}
             </h3>
             {shopName && (

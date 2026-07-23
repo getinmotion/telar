@@ -29,40 +29,6 @@ export interface ProductShop {
 }
 
 /**
- * Variante normalizada para el marketplace (precio ABSOLUTO en pesos)
- */
-export interface MarketplaceVariant {
-  id: string;
-  sku?: string;
-  variantName?: string | null;
-  optionValues: Record<string, string>;
-  price: number;
-  stock: number;
-  minStock?: number;
-  /** Foto propia de la variante (null = usa las del producto) */
-  imageUrl?: string | null;
-  isActive: boolean;
-}
-
-/**
- * Badge otorgado a un producto (curaduría, certificaciones internas)
- */
-export interface ProductBadge {
-  id: string;
-  name: string;
-  icon?: string | null;
-}
-
-/**
- * Material con detalle de composición
- */
-export interface ProductMaterialDetail {
-  id?: string;
-  name: string;
-  percentage?: number | null;
-}
-
-/**
  * Producto individual de Marketplace
  * Response de /products/marketplace (cada item en el array data)
  */
@@ -73,13 +39,9 @@ export interface Product {
   description: string;
   shortDescription: string;
   history?: string | null;
-  price: string;              // Precio como string (mínimo entre variantes)
-  priceMax?: number;          // Precio máximo entre variantes (rango "Desde $X")
+  price: string;              // Precio como string
   imageUrl: string | null;
   images: string[];
-
-  // Variantes (color/talla/material) — precio absoluto por variante
-  variants?: MarketplaceVariant[];
 
   // Calculados (enriquecidos)
   stock: number;              // Desde variantes o inventory
@@ -128,23 +90,6 @@ export interface Product {
 
   // New architecture fields
   careNotes?: string | null;
-  usageSuggestions?: string | null;
-
-  // Detalle marketplace (solo presentes en GET /products-new/marketplace/:id)
-  processDescription?: string | null;
-  processEvidenceUrls?: string[];
-  availabilityType?: string | null;   // 'en_stock' | 'bajo_pedido' | 'edicion_limitada' | 'pieza_unica'
-  secondaryTechnique?: string | null;
-  badges?: ProductBadge[];
-  isCollaboration?: boolean;
-  collaborationName?: string | null;
-  monthlyCapacity?: number | null;
-  materialsDetailed?: ProductMaterialDetail[];
-  subcategoryName?: string | null;
-  pieceType?: string | null;
-  styles?: string[];
-  tools?: string[];
-  requirementsToStart?: string | null;
 
   // Otros campos
   compactMode?: boolean; // Para mostrar versión compacta en ProductCard
