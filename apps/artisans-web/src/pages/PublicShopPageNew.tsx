@@ -67,7 +67,7 @@ export default function PublicShopPageNew() {
     if (filter === 'all')        return products;
     if (filter === 'disponible') return products.filter(p => {
       const t = p.production?.availabilityType ?? p.availabilityType ?? '';
-      return t === 'en_stock' || t === 'pieza_unica' || t === '';
+      return t === 'en_stock' || t === '';
     });
     if (filter === 'pedido')     return products.filter(p =>
       (p.production?.availabilityType ?? p.availabilityType) === 'bajo_pedido');

@@ -19,17 +19,6 @@ export type {
   ProductVariant,
 } from './product-layers.types';
 
-// Variant options (ejes de variación por categoría)
-export type { VariantAxisKey, VariantAxisConfig } from './variant-options';
-export {
-  VARIANT_AXES,
-  VARIANT_AXES_BY_CATEGORY_SLUG,
-  DEFAULT_VARIANT_AXES,
-  MAX_VARIANTS_PER_PRODUCT,
-  getVariantAxesForCategory,
-  composeVariantName,
-} from './variant-options';
-
 // Response types
 export type { ProductResponse } from './product-response.types';
 

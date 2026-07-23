@@ -2,22 +2,12 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { NewWizardState } from "../hooks/useNewWizardState";
 import { WizardFooter } from "../components/WizardFooter";
+import { WizardHeader } from "../components/WizardHeader";
 import { AiBadge } from "../components/AiBadge";
-import { useStepValidation } from "../hooks/useStepValidation";
-import {
-  RequiredMark,
-  FieldErrorMessage,
-  MissingFieldsBanner,
-} from "../components/FieldValidation";
 import { useOraculo } from "@/components/oraculo/OraculoContext";
 import { ToolPicker } from "../components/TaxonomyPicker";
-import {
-  getCareSuggestions,
-  getUsageSuggestions,
-} from "../utils/careUsageSuggestions";
 import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
 import { step2Capture } from "@/services/agent.actions";
-import { getAllCategories } from "@/services/categories.actions";
 import {
   getStoriesByArtisan,
   createStory,
@@ -357,8 +347,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
     | "processDescription"
     | "elaborationTime"
     | "monthlyCapacity"
-    | "careNotes"
-    | "usageSuggestions";
+    | "careNotes";
 
   const handleAcceptSuggestion = useCallback(
     (field: Step3Field, value: string) => {
@@ -376,8 +365,6 @@ export const Step3ProcessTime: React.FC<Props> = ({
         fieldUpdates.monthlyCapacity = Number(value);
       } else if (field === "careNotes") {
         fieldUpdates.careNotes = value;
-      } else if (field === "usageSuggestions") {
-        fieldUpdates.usageSuggestions = value;
       }
 
       update({
@@ -412,38 +399,6 @@ export const Step3ProcessTime: React.FC<Props> = ({
     [update, state.fieldMetadata],
   );
 
-  // ── Chips de sugerencias por categoría / tipo de pieza ───────────
-  // El label viene del paso 2; en modo edición se resuelve por id.
-  const [categoryName, setCategoryName] = useState<string | undefined>(
-    state.fieldMetadata?.category?.label || undefined,
-  );
-  useEffect(() => {
-    if (categoryName || !state.categoryId) return;
-    getAllCategories()
-      .then((cats) => {
-        const found = cats.find((c) => c.id === state.categoryId);
-        if (found) setCategoryName(found.name);
-      })
-      .catch(() => {});
-  }, [categoryName, state.categoryId]);
-
-  const appendSuggestion = useCallback(
-    (field: "careNotes" | "usageSuggestions", text: string) => {
-      const current = (state[field] ?? "").replace(/\s+$/, "");
-      update({
-        [field]: current ? `${current}\n${text}` : text,
-        fieldMetadata: {
-          ...state.fieldMetadata,
-          [field]: {
-            source: "manual" as const,
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-    },
-    [update, state],
-  );
-
   // Process library state
   const [processes, setProcesses] = useState<Story[]>([]);
   const [showPicker, setShowPicker] = useState(false);
@@ -452,20 +407,21 @@ export const Step3ProcessTime: React.FC<Props> = ({
   const [saveTitle, setSaveTitle] = useState("");
   const [isSavingProcess, setIsSavingProcess] = useState(false);
 
-  // Validation: require at least elaboration time
-  const { missing, attemptNext, fieldError } = useStepValidation([
-    {
-      key: "elaborationTime",
-      label: "Tiempo total estimado",
-      isValid:
-        !!state.elaborationTime && state.elaborationTime.trim().length > 0,
-      errorMessage: "Indica el tiempo de elaboración",
-    },
-  ]);
+  // Validation: require process description + elaboration time + agent not loading
+  const hasProcessDesc = (state.processDescription ?? "").trim().length > 0;
+  const hasElaborationTime =
+    !!state.elaborationTime && state.elaborationTime.trim().length > 0;
+  const canContinue = hasProcessDesc && hasElaborationTime && !agentLoading;
 
   const handleNext = () => {
-    if (!attemptNext()) {
-      toast.error("Completa los campos marcados en rojo");
+    // Strict validation with user feedback
+    if (!state.processDescription || state.processDescription.trim().length === 0) {
+      toast.error("Por favor describe el proceso de elaboración");
+      return;
+    }
+
+    if (!state.elaborationTime || state.elaborationTime.trim().length === 0) {
+      toast.error("Por favor ingresa el tiempo de elaboración de la pieza");
       return;
     }
 
@@ -609,21 +565,6 @@ export const Step3ProcessTime: React.FC<Props> = ({
               state.fieldMetadata?.careNotes?.source === "ia_accepted"
             }
             isRejected={state.fieldMetadata?.careNotes?.source === "manual"}
-          />
-        )}
-        {pa?.structured_process?.usage_suggestions && (
-          <Step3SuggestionCard
-            label="Sugerencias de uso"
-            value={pa.structured_process.usage_suggestions}
-            fieldKey="usageSuggestions"
-            onAccept={handleAcceptSuggestion}
-            onReject={handleRejectSuggestion}
-            isAccepted={
-              state.fieldMetadata?.usageSuggestions?.source === "ia_accepted"
-            }
-            isRejected={
-              state.fieldMetadata?.usageSuggestions?.source === "manual"
-            }
           />
         )}
 
@@ -810,7 +751,18 @@ export const Step3ProcessTime: React.FC<Props> = ({
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
-      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:pt-6 md:pb-10">
+      <main className="max-w-[1200px] mx-auto px-6 md:px-10 pt-4 pb-10 md:py-10">
+        <div className="hidden md:block">
+          <WizardHeader
+            step={step}
+            totalSteps={totalSteps}
+            onBack={onBack}
+            icon="history_edu"
+            title="Proceso y tiempo"
+            subtitle="Evidencia y descripción para la trazabilidad TELAR"
+          />
+        </div>
+
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* AI Sidebar — Oráculo */}
           <aside className="hidden lg:block lg:col-span-3 sticky top-8">
@@ -949,29 +901,6 @@ export const Step3ProcessTime: React.FC<Props> = ({
                       }
                       isRejected={
                         state.fieldMetadata?.careNotes?.source === "manual"
-                      }
-                    />
-                  )}
-
-                  {/* Usage suggestions suggestion */}
-                  {state.agentStep2Response?.process_analysis
-                    ?.structured_process?.usage_suggestions && (
-                    <Step3SuggestionCard
-                      label="Sugerencias de uso"
-                      value={
-                        state.agentStep2Response.process_analysis
-                          .structured_process.usage_suggestions
-                      }
-                      fieldKey="usageSuggestions"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={
-                        state.fieldMetadata?.usageSuggestions?.source ===
-                        "ia_accepted"
-                      }
-                      isRejected={
-                        state.fieldMetadata?.usageSuggestions?.source ===
-                        "manual"
                       }
                     />
                   )}
@@ -1446,10 +1375,9 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <div id="wizard-field-elaborationTime">
+                  <div>
                     <label className="font-['Manrope'] text-[9px] font-[700] text-[#54433e]/50 uppercase tracking-wider block mb-3">
                       Tiempo total estimado
-                      <RequiredMark />
                     </label>
                     <div className="grid grid-cols-5 gap-2">
                       {TIME_OPTIONS.map((opt) => {
@@ -1519,9 +1447,6 @@ export const Step3ProcessTime: React.FC<Props> = ({
                         style={{ background: "rgba(247,244,239,0.4)" }}
                       />
                     )}
-                    {fieldError("elaborationTime") && (
-                      <FieldErrorMessage message="Indica el tiempo de elaboración" />
-                    )}
                   </div>
 
                   <div>
@@ -1585,7 +1510,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 />
               </section>
             </div>
-            {/* 6. Cuidados y uso */}
+            {/* 6. Cuidados del producto */}
             <section className="p-6 rounded-2xl" style={cardStyle}>
               <div className="flex items-center gap-3 mb-1">
                 <span className="material-symbols-outlined text-[#54433e]/40">
@@ -1600,14 +1525,8 @@ export const Step3ProcessTime: React.FC<Props> = ({
               </div>
               <p className="text-[11px] text-[#54433e]/50 mb-3">
                 Instrucciones para mantener la pieza en buen estado: limpieza,
-                almacenamiento, materiales a evitar. Toca una sugerencia para
-                agregarla.
+                almacenamiento, materiales a evitar.
               </p>
-              <SuggestionChips
-                suggestions={getCareSuggestions(categoryName, state.purpose)}
-                currentText={state.careNotes ?? ""}
-                onPick={(text) => appendSuggestion("careNotes", text)}
-              />
               <textarea
                 rows={3}
                 value={state.careNotes ?? ""}
@@ -1616,40 +1535,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 className={`${inputClass} resize-none`}
                 style={{ background: "rgba(247,244,239,0.4)" }}
               />
-
-              <div className="my-5 border-t border-[#54433e]/10" />
-
-              <div className="flex items-center gap-3 mb-1">
-                <span className="material-symbols-outlined text-[#54433e]/40">
-                  lightbulb
-                </span>
-                <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                  Sugerencias de uso
-                </label>
-                <span className="ml-auto text-[9px] font-[600] text-[#54433e]/40 uppercase tracking-wider">
-                  Opcional
-                </span>
-              </div>
-              <p className="text-[11px] text-[#54433e]/50 mb-3">
-                Cuéntale al comprador cómo disfrutar la pieza: ocasiones,
-                ambientes, combinaciones. Toca una sugerencia para agregarla.
-              </p>
-              <SuggestionChips
-                suggestions={getUsageSuggestions(categoryName, state.purpose)}
-                currentText={state.usageSuggestions ?? ""}
-                onPick={(text) => appendSuggestion("usageSuggestions", text)}
-              />
-              <textarea
-                rows={3}
-                value={state.usageSuggestions ?? ""}
-                onChange={(e) => update({ usageSuggestions: e.target.value })}
-                placeholder="Ej: Ideal para servir bebidas frías, perfecto como centro de mesa..."
-                className={`${inputClass} resize-none`}
-                style={{ background: "rgba(247,244,239,0.4)" }}
-              />
             </section>
-
-            {missing.length > 0 && <MissingFieldsBanner missing={missing} />}
           </div>
         </div>
       </main>
@@ -1661,47 +1547,18 @@ export const Step3ProcessTime: React.FC<Props> = ({
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={agentLoading}
+        nextDisabled={!canContinue}
         disabledReason={
-          agentLoading ? "Analizando proceso con IA..." : undefined
+          agentLoading
+            ? "Analizando proceso con IA..."
+            : !hasProcessDesc
+              ? "Describe el proceso de elaboración"
+              : !hasElaborationTime
+                ? "Ingresa el tiempo de elaboración"
+                : undefined
         }
         leftOffset={leftOffset}
       />
-    </div>
-  );
-};
-
-// ── SuggestionChips ───────────────────────────────────────────────────────────
-
-interface SuggestionChipsProps {
-  suggestions: string[];
-  currentText: string;
-  onPick: (text: string) => void;
-}
-
-const SuggestionChips: React.FC<SuggestionChipsProps> = ({
-  suggestions,
-  currentText,
-  onPick,
-}) => {
-  const lower = currentText.toLowerCase();
-  const pending = suggestions.filter((s) => !lower.includes(s.toLowerCase()));
-  if (pending.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5 mb-3">
-      {pending.map((text) => (
-        <button
-          key={text}
-          type="button"
-          onClick={() => onPick(text)}
-          className="inline-flex items-center gap-1 rounded-full border border-[#ec6d13]/30 text-[11px] text-[#54433e] px-3 py-1 hover:bg-[#ec6d13]/10 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[13px] text-[#ec6d13]">
-            add
-          </span>
-          {text}
-        </button>
-      ))}
     </div>
   );
 };
@@ -1715,8 +1572,7 @@ interface Step3SuggestionCardProps {
     | "processDescription"
     | "elaborationTime"
     | "monthlyCapacity"
-    | "careNotes"
-    | "usageSuggestions";
+    | "careNotes";
   onAccept: (field: any, value: string) => void;
   onReject: (field: any) => void;
   isAccepted: boolean;

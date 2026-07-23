@@ -11,11 +11,7 @@ interface LoginFormProps {
   onOtpLogin: () => void; // Cambiar a login por OTP
 }
 
-export function LoginForm({
-  onToggleForm,
-  onForgotPassword,
-  onOtpLogin,
-}: LoginFormProps) {
+export function LoginForm({ onToggleForm, onForgotPassword, onOtpLogin }: LoginFormProps) {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,9 +40,7 @@ export function LoginForm({
           type="email"
           placeholder="tu@email.com"
           value={loginData.email}
-          onChange={(e) =>
-            setLoginData({ ...loginData, email: e.target.value })
-          }
+          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
           required
           className="h-10"
         />
@@ -61,9 +55,7 @@ export function LoginForm({
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             value={loginData.password}
-            onChange={(e) =>
-              setLoginData({ ...loginData, password: e.target.value })
-            }
+            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
             required
             className="h-10 pr-10"
           />
@@ -94,20 +86,26 @@ export function LoginForm({
       </div>
 
       {/* Submit button */}
-      <Button type="submit" className="w-full h-10" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-10"
+        disabled={loading}
+      >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Iniciar sesión
       </Button>
 
-      {/* OTP login / invitado */}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onOtpLogin}
-        className="w-full h-10"
-      >
-        Ingresar como invitado
-      </Button>
+      {/* OTP login */}
+      <div className="text-center text-sm">
+        <Button
+          type="button"
+          variant="link"
+          onClick={onOtpLogin}
+          className="p-0 h-auto"
+        >
+          Ingresar con código al correo
+        </Button>
+      </div>
 
       {/* Toggle to register */}
       <div className="text-center text-sm">

@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
-import { ProductCore } from '../../products-new/entities/product-core.entity';
+import { Product } from '../../products/entities/product.entity';
 
 @Entity({ name: 'wishlist', schema: 'shop' })
 @Unique(['userId', 'productId']) // Un usuario no puede tener el mismo producto dos veces
@@ -43,9 +43,9 @@ export class Wishlist extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  // Relación N:1 con ProductCore (muchos wishlist items pueden tener el mismo producto)
+  // Relación N:1 con Product (muchos wishlist items pueden tener el mismo producto)
   @ApiProperty({ description: 'Producto en wishlist' })
-  @ManyToOne(() => ProductCore, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Product, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id' })
-  product!: ProductCore;
+  product!: Product;
 }

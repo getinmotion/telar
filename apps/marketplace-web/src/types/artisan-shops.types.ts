@@ -2,21 +2,17 @@
  * Artisan Shops Types
  * Tipos para el módulo de tiendas artesanales del marketplace
  */
-import type { ArtisanProfileDisplayData } from './artisanProfile.types';
 
 /**
  * Bloque editable "Acerca de" del taller (proviene de artisan_shops.about_content jsonb).
  * Refleja la estructura que persiste el backend en NestJS.
  */
-/** Valor de marca: puede venir como string simple o como {name, description} */
-export type ArtisanShopValue = string | { name?: string; description?: string };
-
 export interface ArtisanShopAboutContent {
   title?: string;
   story?: string;
   mission?: string;
   vision?: string;
-  values?: ArtisanShopValue[];
+  values?: string[];
 }
 
 /**
@@ -46,16 +42,6 @@ export interface ArtisanShop {
     instagram?: string;
     facebook?: string;
   };
-  /** Contacto extendido del taller (artisan_shops.contact_config jsonb) */
-  contactConfig?: {
-    email?: string;
-    hours?: string;
-    suggestedHours?: string;
-    phone?: string;
-    address?: string;
-    whatsapp?: string;
-    map_embed?: string;
-  };
   /** Redes sociales (artisan_shops.social_links jsonb) */
   socialLinks?: Record<string, string>;
   /** Eslogan/claim de la marca (artisan_shops.brand_claim) */
@@ -65,9 +51,7 @@ export interface ArtisanShop {
   /** Bloque editorial completo (artisan_shops.about_content jsonb) */
   aboutContent?: ArtisanShopAboutContent;
   /** Perfil libre del artesano (artisan_shops.artisan_profile jsonb) */
-  artisanProfile?: ArtisanProfileDisplayData;
-  /** FK a store_policies_config (para leer FAQ y política de devoluciones) */
-  idPoliciesConfig?: string;
+  artisanProfile?: Record<string, unknown>;
   active: boolean;
   featured: boolean;
   publishStatus: 'draft' | 'published' | 'archived';
