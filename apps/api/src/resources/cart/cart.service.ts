@@ -357,8 +357,12 @@ export class CartService {
     const products =
       await this.productsNewService.findByIdsWithAllVariants(productIds);
 
-    this.logger.log(`[syncGuestCart] productIds: ${JSON.stringify(productIds)}`);
-    this.logger.log(`[syncGuestCart] products: ${JSON.stringify(products.map((p) => ({ id: p.id, status: p.status, variantsCount: p.variants?.length })))}`);
+    this.logger.log(
+      `[syncGuestCart] productIds: ${JSON.stringify(productIds)}`,
+    );
+    this.logger.log(
+      `[syncGuestCart] products: ${JSON.stringify(products.map((p) => ({ id: p.id, status: p.status, variantsCount: p.variants?.length })))}`,
+    );
 
     // Crear Map para búsqueda rápida
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -406,8 +410,15 @@ export class CartService {
       // Usar precio de la variante (ya está en centavos)
       const unitPriceMinor = variant.basePriceMinor.toString();
 
-      // Construir metadata para variante
-      const metadata = item.variantId ? { variantId: item.variantId } : {};
+      // Construir metadata para variante (nombre y opciones para mostrar en el carrito)
+      const metadata = item.variantId
+        ? {
+            variantId: item.variantId,
+            variantName: variant.variantName ?? undefined,
+            optionValues: variant.optionValues ?? undefined,
+            variantImageUrl: variant.imageUrl ?? undefined,
+          }
+        : {};
 
       // Verificar si el item ya existe en el carrito
       const itemKey = `${product.id}:${item.variantId || ''}`;

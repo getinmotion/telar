@@ -18,6 +18,8 @@ export interface WizardFooterProps {
   submitDisabled?: boolean;
   submitDisabledReason?: string;
   leftOffset?: number;
+  /** Distancia extra (px) desde el borde inferior en mobile (ej. 60 para MobileBottomNav). Default 60. */
+  bottomOffset?: number;
   onSaveAndExit?: () => void;
   isSavingAndExiting?: boolean;
   showSaveDraftOnAllSteps?: boolean;
@@ -41,6 +43,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   submitDisabled,
   submitDisabledReason,
   leftOffset,
+  bottomOffset,
   onSaveAndExit,
   isSavingAndExiting,
   showSaveDraftOnAllSteps,
@@ -127,7 +130,9 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
         className="fixed bottom-0 right-0 z-50 border-t border-[#e2d5cf]/40 bg-[#fdfaf6]"
         style={{
           left: leftOffset ?? 0,
-          bottom: isMobile ? "calc(60px + env(safe-area-inset-bottom))" : 0,
+          bottom: isMobile
+            ? `calc(${bottomOffset ?? 60}px + env(safe-area-inset-bottom))`
+            : 0,
         }}
       >
         <ProgressBar />
@@ -136,7 +141,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
           <div className="flex items-center gap-4">
             {/* <SaveDraftButton disabled={isSubmitting} /> */}
             {submitDisabledReason && submitDisabled && (
-              <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">
+              <span className="text-[9px] text-[#54433e]/40 italic max-w-[45vw] sm:max-w-none truncate text-right">
                 {submitDisabledReason}
               </span>
             )}
@@ -178,8 +183,8 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
           <div className="hidden md:block">
             <SaveAndExitButton />
           </div>
-          {disabledReason && (
-            <span className="text-[9px] text-[#54433e]/40 italic hidden sm:block">
+          {disabledReason && nextDisabled && (
+            <span className="text-[9px] text-[#54433e]/40 italic max-w-[45vw] sm:max-w-none truncate text-right">
               {disabledReason}
             </span>
           )}

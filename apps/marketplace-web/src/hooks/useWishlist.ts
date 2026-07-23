@@ -1,32 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as WishlistActions from '@/services/wishlist.actions';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const useWishlist = () => {
   const { user } = useAuth();
-  const [wishlistItems, setWishlistItems] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchWishlist();
-    } else {
-      setWishlistItems(new Set());
-    }
-  }, [user]);
+  // Query compartida: todas las instancias del hook (una por tarjeta) usan la
+  // misma queryKey, así que la wishlist se pide una sola vez y queda en cache.
+  const { data: wishlistItems = new Set<string>() } = useQuery({
+    queryKey: ['wishlist', user?.id],
+    queryFn: async () => {
+      const wishlistData = await WishlistActions.getUserWishlist(user!.id);
+      return new Set(wishlistData.map(item => item.productId));
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const fetchWishlist = async () => {
-    if (!user) return;
-
-    try {
-      const wishlistData = await WishlistActions.getUserWishlist(user.id);
-      const ids = new Set(wishlistData.map(item => item.productId));
-      setWishlistItems(ids);
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      setWishlistItems(new Set());
-    }
+  const setWishlistCache = (updater: (prev: Set<string>) => Set<string>) => {
+    queryClient.setQueryData<Set<string>>(
+      ['wishlist', user?.id],
+      prev => updater(prev ?? new Set()),
+    );
   };
 
   const toggleWishlist = async (productId: string) => {
@@ -42,7 +41,7 @@ export const useWishlist = () => {
       if (isInList) {
         await WishlistActions.removeFromWishlist(user.id, productId);
 
-        setWishlistItems(prev => {
+        setWishlistCache(prev => {
           const newSet = new Set(prev);
           newSet.delete(productId);
           return newSet;
@@ -54,7 +53,7 @@ export const useWishlist = () => {
           productId: productId
         });
 
-        setWishlistItems(prev => new Set(prev).add(productId));
+        setWishlistCache(prev => new Set(prev).add(productId));
         toast.success('Agregado a favoritos');
       }
     } catch (error) {
