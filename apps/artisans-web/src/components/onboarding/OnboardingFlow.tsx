@@ -135,7 +135,6 @@ export function OnboardingFlow() {
           onSubmit={isLast ? handleFinalSubmit : undefined}
           isSubmitting={saving}
           submitLabel="Activar mi taller digital"
-          variant="standalone"
         >
           <BlockComponent control={control} />
         </ArtisanStepShell>

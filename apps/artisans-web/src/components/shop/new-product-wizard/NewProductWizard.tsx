@@ -10,13 +10,8 @@ import {
   getProductNewById,
   createProductNew,
 } from "@/services/products-new.actions";
-import {
-  useNewWizardState,
-  type NewWizardState,
-  type WizardVariant,
-} from "./hooks/useNewWizardState";
+import { useNewWizardState } from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
-import { deriveProductionType } from "./utils/availability";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
 import { Step3ProcessTime } from "./steps/Step3ProcessTime";
@@ -178,14 +173,6 @@ export const NewProductWizard: React.FC = () => {
           if (dept && !state.department) update({ department: dept });
           if (shop.municipality && !state.municipality)
             update({ municipality: shop.municipality });
-          // Origen y taller vienen del perfil de la tienda, no se capturan por pieza
-          if (shop.shopName && !state.workshopName)
-            update({ workshopName: shop.shopName });
-          const shopOrigin = [shop.municipality, dept]
-            .filter(Boolean)
-            .join(", ");
-          if (shopOrigin && !state.shippingOrigin)
-            update({ shippingOrigin: shopOrigin });
 
           // Pre-fill process and tools from artisan profile only for NEW products (not edit mode)
           if (!isEditMode) {
@@ -236,82 +223,8 @@ export const NewProductWizard: React.FC = () => {
           toast.error("No se encontró el producto para editar");
           return;
         }
-        // Variantes: precio del vendedor = precio guardado ÷ 1.05 (recargo comprador)
-        const toSellerPrice = (basePriceMinor: string) =>
-          Math.round(parseInt(basePriceMinor) / 100 / 1.05);
-        // Solo variantes activas: las pausadas (isActive:false) son leftovers de
-        // combinaciones anteriores. Si se cargaran, sus ejes/valores "eliminados"
-        // reaparecerían y se realimentarían a buildVariants, duplicando variantes.
-        // Al no reenviarlas, el upsert del backend las limpia (soft-remove).
-        // Además se deduplican por combinación de opciones: si un producto quedó
-        // con variantes activas repetidas (misma combinación), al re-guardar se
-        // envía una sola por combinación y el upsert elimina las sobrantes.
-        const variantKeyOf = (ov?: Record<string, string>) =>
-          JSON.stringify(
-            Object.entries(ov ?? {}).sort(([a], [b]) => a.localeCompare(b)),
-          );
-        const seenVariantKeys = new Set<string>();
-        const allVariants = (product.variants ?? [])
-          .filter((v) => v.isActive !== false)
-          .filter((v) => {
-            const k = variantKeyOf(v.optionValues);
-            if (seenVariantKeys.has(k)) return false;
-            seenVariantKeys.add(k);
-            return true;
-          });
-        const hasRealVariants = allVariants.some(
-          (v) => Object.keys(v.optionValues ?? {}).length > 0,
-        );
         const primaryVariant =
-          allVariants.find((v) => v.isActive) || allVariants[0];
-
-        let variantUpdates: Partial<NewWizardState> = {};
-        if (hasRealVariants) {
-          const wizardVariants: WizardVariant[] = allVariants.map((v) => ({
-            id: v.id,
-            optionValues: v.optionValues ?? {},
-            price: v.basePriceMinor ? toSellerPrice(v.basePriceMinor) : undefined,
-            stock: v.stockQuantity,
-            minStock: v.minStock ?? 0,
-            imageUrl: v.imageUrl || undefined,
-            isActive: v.isActive,
-            sku: v.sku || undefined,
-          }));
-          // Derivar ejes y valores desde los optionValues existentes
-          const axisValues: Record<string, string[]> = {};
-          for (const v of wizardVariants) {
-            for (const [axis, value] of Object.entries(v.optionValues)) {
-              if (!value) continue;
-              if (!axisValues[axis]) axisValues[axis] = [];
-              if (!axisValues[axis].includes(value)) axisValues[axis].push(value);
-            }
-          }
-          const activePrices = wizardVariants
-            .filter((v) => v.isActive && v.price)
-            .map((v) => v.price!);
-          variantUpdates = {
-            hasVariants: true,
-            variants: wizardVariants,
-            variantAxes: Object.keys(axisValues),
-            variantAxisValues: axisValues,
-            price: activePrices.length ? Math.min(...activePrices) : undefined,
-            inventory: wizardVariants
-              .filter((v) => v.isActive)
-              .reduce((sum, v) => sum + (v.stock ?? 0), 0),
-          };
-        } else {
-          variantUpdates = {
-            hasVariants: false,
-            primaryVariantId: primaryVariant?.id,
-            price: primaryVariant?.basePriceMinor
-              ? toSellerPrice(primaryVariant.basePriceMinor)
-              : undefined,
-            sku: primaryVariant?.sku || undefined,
-            inventory: primaryVariant?.stockQuantity || undefined,
-            minimumStockAlert: primaryVariant?.minStock || undefined,
-          };
-        }
-
+          product.variants?.find((v) => v.isActive) || product.variants?.[0];
         const images =
           product.media
             ?.filter((m) => m.mediaType === "image")
@@ -325,10 +238,8 @@ export const NewProductWizard: React.FC = () => {
           shortDescription: product.shortDescription,
           artisanalHistory: product.history || undefined,
           careNotes: product.careNotes || undefined,
-          usageSuggestions: product.usageSuggestions || undefined,
           images,
           categoryId: product.categoryId || undefined,
-          subcategoryId: product.subcategoryId || undefined,
           materials: product.materials?.map((m) => m.materialId) || [],
           // artisanal identity
           craftId: product.artisanalIdentity?.primaryCraftId || undefined,
@@ -343,11 +254,9 @@ export const NewProductWizard: React.FC = () => {
             ? { name: product.artisanalIdentity.collaborationName }
             : undefined,
           purpose: product.artisanalIdentity?.pieceType as any,
-          styles: (product.artisanalIdentity?.styles?.length
-            ? product.artisanalIdentity.styles
-            : product.artisanalIdentity?.style
-              ? [product.artisanalIdentity.style]
-              : undefined) as any,
+          styles: product.artisanalIdentity?.style
+            ? [product.artisanalIdentity.style as any]
+            : undefined,
           // physical specs
           heightCm: product.physicalSpecs?.heightCm || undefined,
           widthCm: product.physicalSpecs?.widthCm || undefined,
@@ -363,15 +272,17 @@ export const NewProductWizard: React.FC = () => {
           specialHandling: product.logistics?.fragility === "alto",
           // production
           availabilityType: product.production?.availabilityType as any,
-          productionType: deriveProductionType(product.production?.availabilityType),
           monthlyCapacity: product.production?.monthlyCapacity || undefined,
           processDescription:
             product.production?.processDescription || undefined,
           processEvidenceUrls:
             product.production?.processEvidenceUrls || undefined,
-          tools: product.production?.tools || [],
-          // pricing + variantes
-          ...variantUpdates,
+          // pricing
+          price: primaryVariant?.basePriceMinor
+            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100 / 1.05)
+            : undefined,
+          sku: primaryVariant?.sku || undefined,
+          inventory: primaryVariant?.stockQuantity || undefined,
         });
 
         // Also restore agent suggestions from backend
@@ -693,9 +604,9 @@ export const NewProductWizard: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Header en flujo — siempre visible en mobile y desktop; el scroll ocurre debajo */}
+      {/* Header fixed — solo mobile; desktop usa el header propio de cada step */}
       <div
-        className="shrink-0 z-30 border-b border-[#e2d5cf]/40"
+        className="md:hidden fixed top-0 left-0 right-0 z-30 border-b border-[#e2d5cf]/40"
         style={{
           background: "rgba(249,247,242,0.95)",
           backdropFilter: "blur(12px)",
@@ -715,7 +626,7 @@ export const NewProductWizard: React.FC = () => {
       </div>
 
       {/* Contenido scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
         {currentStep === 1 && <Step1NewPiece {...stepProps} shopId={shopId} />}
         {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
         {currentStep === 3 && <Step3ProcessTime {...stepProps} />}

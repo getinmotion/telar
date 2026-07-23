@@ -94,11 +94,6 @@ export const CartDrawer = () => {
                       <h4 className="font-medium text-sm leading-tight truncate">
                         {item.product.name}
                       </h4>
-                      {item.variant_name && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {item.variant_name}
-                        </p>
-                      )}
                       {item.recipientEmail && (
                         <p className="text-xs text-muted-foreground truncate">
                           Para: {item.recipientEmail}

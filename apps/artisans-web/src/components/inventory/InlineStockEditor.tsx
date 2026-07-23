@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Minus, Plus, Check, Package } from "lucide-react";
 import type { InventoryVariant } from "@/hooks/useInventory";
-import { composeVariantName } from "@/types/products.types";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +13,20 @@ import {
 const SANS = "'Manrope', sans-serif";
 
 const dotColor = (n: number) => (n === 0 ? "#ef4444" : n < 4 ? "#eab308" : "#22c55e");
+
+// Nombre legible de una combinación de opciones, ej. {talla:"M",color:"Rojo"} → "Talla M · Rojo".
+const AXIS_ORDER = ["talla", "color", "material"];
+const composeVariantName = (optionValues: Record<string, string>): string => {
+  const keys = [
+    ...AXIS_ORDER.filter((k) => optionValues[k]),
+    ...Object.keys(optionValues).filter(
+      (k) => !AXIS_ORDER.includes(k) && optionValues[k],
+    ),
+  ];
+  return keys
+    .map((k) => (k === "talla" ? `Talla ${optionValues[k]}` : optionValues[k]))
+    .join(" · ");
+};
 
 // Nombre legible de la variante (ej. "Talla M · Rojo"), con fallbacks.
 const variantLabel = (v: InventoryVariant): string =>

@@ -1,11 +1,14 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Milestone } from '@/types/unifiedProgress';
 import { AgentTask } from '@/hooks/types/agentTaskTypes';
-import { Lightbulb, ChevronRight, Clock, ArrowRight } from 'lucide-react';
+import { MILESTONE_CATEGORIES } from '@/utils/milestoneAgentMapping';
+import { IntelligentBrandWizard } from '@/components/brand/IntelligentBrandWizard';
+import { Lightbulb, ChevronRight, Target, Clock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getAgentDisplayInfo, isAllowedAgent, normalizeAgentId } from '@/config/allowedAgents';
 import { SystemIcon } from '@/components/ui/SystemIcon';
@@ -84,8 +87,8 @@ export const MilestoneProgressCard: React.FC<MilestoneProgressCardProps> = ({
   milestone,
   tasks
 }) => {
-  const navigate = useNavigate();
-
+  const [showBrandWizard, setShowBrandWizard] = useState(false);
+  
   const timeSpent = calculateTimeSpent(tasks);
   const tasksInProgress = tasks.filter(t => t.status === 'in_progress').length;
   const agentBreakdown = getAgentBreakdown(milestone, tasks);
@@ -198,8 +201,8 @@ export const MilestoneProgressCard: React.FC<MilestoneProgressCardProps> = ({
             <span className="text-sm font-medium text-foreground">
               Crear/Mejorar Marca
             </span>
-            <button
-              onClick={() => navigate('/mi-tienda/configurar/brand')}
+            <button 
+              onClick={() => setShowBrandWizard(true)}
               className="w-10 h-10 rounded-full bg-foreground flex items-center justify-center hover:bg-foreground/90 transition-colors shadow-lg"
             >
               <ArrowRight className="w-5 h-5 text-background" />
@@ -213,6 +216,15 @@ export const MilestoneProgressCard: React.FC<MilestoneProgressCardProps> = ({
           </p>
         )}
       </div>
+      
+      {/* Brand Wizard Modal */}
+      {isBrandMilestone && (
+        <Dialog open={showBrandWizard} onOpenChange={setShowBrandWizard}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <IntelligentBrandWizard />
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 };

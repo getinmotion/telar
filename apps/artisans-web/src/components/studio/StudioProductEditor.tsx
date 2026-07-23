@@ -3,9 +3,12 @@
  * Pasos: Nueva Pieza · Identidad Artesanal · Proceso y Tiempo · Precio y Logística · Datos Legado
  * Campos de sistema (id, storeId, timestamps) → sólo lectura, griseados.
  */
-import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { telarApi } from '@/integrations/api/telarApi';
+import { Dialog, DialogPortal, DialogOverlay } from '@/components/ui/dialog';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import type {
   ProductResponse,
   CreateProductsNewDto,
@@ -298,22 +301,12 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
       },
       logistics: { packWeightKg: packWeight ? parseFloat(packWeight) : undefined },
       production: { availabilityType: availability },
-      // Re-enviar TODAS las variantes con su id: el backend soft-elimina las
-      // que no lleguen. Este editor solo modifica la primera.
-      variants: variant
-        ? (product.variants ?? []).map((v, i) => ({
-            id: v.id,
-            sku: i === 0 ? (sku || undefined) : (v.sku || undefined),
-            variantName: v.variantName ?? undefined,
-            optionValues: v.optionValues,
-            minStock: v.minStock,
-            imageUrl: v.imageUrl ?? undefined,
-            stockQuantity: i === 0 && stock ? parseInt(stock) : v.stockQuantity,
-            basePriceMinor: i === 0 && basePrice ? basePrice : String(v.basePriceMinor),
-            currency: v.currency ?? 'COP',
-            isActive: v.isActive,
-          }))
-        : undefined,
+      variants: variant ? [{
+        sku: sku || undefined,
+        stockQuantity: stock ? parseInt(stock) : undefined,
+        basePriceMinor: basePrice,
+        isActive: true,
+      }] : undefined,
     };
     await onUpdate(dto);
   };
@@ -330,6 +323,27 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
   const images = product.media
     ?.filter((m) => m.mediaType === 'image')
     .sort((a, b) => a.displayOrder - b.displayOrder) ?? [];
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const lightboxPrev = useCallback(() => {
+    setLightboxIndex((i) => (i !== null && i > 0 ? i - 1 : images.length - 1));
+  }, [images.length]);
+
+  const lightboxNext = useCallback(() => {
+    setLightboxIndex((i) => (i !== null && i < images.length - 1 ? i + 1 : 0));
+  }, [images.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') lightboxPrev();
+      else if (e.key === 'ArrowRight') lightboxNext();
+      else if (e.key === 'Escape') setLightboxIndex(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [lightboxIndex, lightboxPrev, lightboxNext]);
 
   const categoryName  = taxonomy.categories.find((c) => c.id === product.categoryId)?.name;
   const craftName     = taxonomy.crafts.find((c) => c.id === ai?.primaryCraftId)?.name;
@@ -451,14 +465,89 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
                   <div className="rounded-2xl p-5" style={glassCard}>
                     <FieldLabel label="Imágenes" />
                     <div className="flex flex-wrap gap-2">
-                      {images.map((m) => (
-                        <img key={m.id} src={m.mediaUrl} alt=""
-                          className="h-20 w-20 rounded-xl object-cover border border-[#e2d5cf]/40" />
+                      {images.map((m, idx) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setLightboxIndex(idx)}
+                          className="relative h-20 w-20 rounded-xl overflow-hidden border border-[#e2d5cf]/40 cursor-pointer group transition-all hover:border-[#ec6d13]/50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#ec6d13]/30"
+                        >
+                          <img src={m.mediaUrl} alt="" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                        </button>
                       ))}
                     </div>
                     <p className="mt-2 text-[10px]" style={{ color: `${WARM}50` }}>
-                      Para editar imágenes usa la sección Medios del producto.
+                      Haz clic en una imagen para ampliarla.
                     </p>
+
+                    {/* Lightbox */}
+                    <Dialog open={lightboxIndex !== null} onOpenChange={(open) => { if (!open) setLightboxIndex(null); }}>
+                      <DialogPortal>
+                        <DialogOverlay />
+                        <DialogPrimitive.Content
+                          className="fixed inset-0 z-50 flex items-center justify-center focus:outline-none"
+                          onPointerDownOutside={() => setLightboxIndex(null)}
+                        >
+                          <VisuallyHidden.Root>
+                            <DialogPrimitive.Title>Visor de imágenes</DialogPrimitive.Title>
+                          </VisuallyHidden.Root>
+                          {/* Close */}
+                          <button type="button" onClick={() => setLightboxIndex(null)}
+                            className="absolute top-4 right-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors">
+                            <X className="h-5 w-5" />
+                          </button>
+
+                          {/* Counter */}
+                          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1">
+                            <span className="text-white text-xs font-semibold font-['Manrope']">
+                              {lightboxIndex !== null ? lightboxIndex + 1 : 0} / {images.length}
+                            </span>
+                          </div>
+
+                          {/* Prev */}
+                          {images.length > 1 && (
+                            <button type="button" onClick={lightboxPrev}
+                              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors">
+                              <ChevronLeft className="h-6 w-6" />
+                            </button>
+                          )}
+
+                          {/* Image */}
+                          {lightboxIndex !== null && images[lightboxIndex] && (
+                            <img
+                              src={images[lightboxIndex].mediaUrl}
+                              alt=""
+                              className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+                            />
+                          )}
+
+                          {/* Next */}
+                          {images.length > 1 && (
+                            <button type="button" onClick={lightboxNext}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors">
+                              <ChevronRight className="h-6 w-6" />
+                            </button>
+                          )}
+
+                          {/* Thumbnail strip */}
+                          {images.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-1.5 rounded-xl bg-black/50 p-2 max-w-[90vw] overflow-x-auto">
+                              {images.map((m, idx) => (
+                                <button key={m.id} type="button" onClick={() => setLightboxIndex(idx)}
+                                  className="h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 transition-all"
+                                  style={{
+                                    border: idx === lightboxIndex ? '2px solid white' : '2px solid transparent',
+                                    opacity: idx === lightboxIndex ? 1 : 0.5,
+                                  }}>
+                                  <img src={m.mediaUrl} alt="" className="h-full w-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </DialogPrimitive.Content>
+                      </DialogPortal>
+                    </Dialog>
                   </div>
                 )}
 
@@ -762,12 +851,11 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
                 {/* Disponibilidad */}
                 <div className="rounded-2xl p-5" style={glassCard}>
                   <FieldLabel label="Disponibilidad comercial" />
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+                  <div className="grid grid-cols-3 gap-2 mt-1">
                     {([
                       { id: 'en_stock',         label: 'En stock',     icon: 'inventory_2' },
                       { id: 'bajo_pedido',      label: 'Bajo pedido',  icon: 'assignment' },
                       { id: 'edicion_limitada', label: 'Ed. limitada', icon: 'layers' },
-                      { id: 'pieza_unica',      label: 'Pieza única',  icon: 'fiber_manual_record' },
                     ] as { id: AvailabilityType; label: string; icon: string }[]).map((opt) => (
                       <button
                         key={opt.id}

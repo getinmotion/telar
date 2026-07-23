@@ -18,9 +18,9 @@ export class ArtisanShopsQueryDto {
     description: 'ID del agreement para filtrar tiendas',
     example: '42c48a1e-1463-4279-8753-72c5e96cb9ed',
   })
+  @IsOptional()
   @IsUUID('4', { message: 'agreementId debe ser un UUID válido' })
-  @IsNotEmpty({ message: 'agreementId es obligatorio' })
-  agreementId: string;
+  agreementId?: string;
 
   // Paginación
   @ApiPropertyOptional({

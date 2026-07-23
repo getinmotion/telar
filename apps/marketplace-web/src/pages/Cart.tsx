@@ -86,11 +86,6 @@ const Cart = () => {
                       <h3 className="font-semibold mb-1">
                         {item.product.name}
                       </h3>
-                      {item.variant_name && (
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {item.variant_name}
-                        </p>
-                      )}
                       <p className="text-lg font-bold text-primary mb-2">
                         ${item.product.price.toLocaleString("es-MX")}
                       </p>
@@ -151,7 +146,7 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Envío</span>
-                    <span className="font-medium text-sm text-muted-foreground">Se calcula en el siguiente paso</span>
+                    <span className="font-medium">Gratis</span>
                   </div>
                 </div>
 

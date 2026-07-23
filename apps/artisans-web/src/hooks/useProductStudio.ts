@@ -22,6 +22,7 @@ export interface StudioShop {
   createdAt: string;
   userId: string;
   idContraparty: string | null;
+  agreementName: string | null;
   healthScore: number;
 }
 

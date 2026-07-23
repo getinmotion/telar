@@ -4,7 +4,12 @@ import { HttpService } from '@nestjs/axios';
 import { DataSource, Repository } from 'typeorm';
 import { firstValueFrom } from 'rxjs';
 import { QuoteShippingDto } from './dto/quote-shipping.dto';
-import { GenerateGuideDto, GenerateGuideResponse, GuideResult, ShippingDataDto } from './dto/generate-guide.dto';
+import {
+  GenerateGuideDto,
+  GenerateGuideResponse,
+  GuideResult,
+  ShippingDataDto,
+} from './dto/generate-guide.dto';
 import { CartItem } from '../cart-items/entities/cart-item.entity';
 import { ProductCore } from '../products-new/entities/product-core.entity';
 import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
@@ -57,9 +62,12 @@ export class ServientregaService {
     this.quoteUrl =
       this.configService.get<string>('SERVIENTREGA_QUOTE_URL') ||
       'http://web.servientrega.com:8058/CotizadorCorporativo/api/cotizacion/cotizar';
-    this.soapUrl = this.configService.get<string>('SERVIENTREGA_SOAP_URL') || '';
-    this.soapActionCargue = this.configService.get<string>('SERVIENTREGA_SOAP_ACTION_CARGUE') || '';
-    this.soapActionSticker = this.configService.get<string>('SERVIENTREGA_SOAP_ACTION_STICKER') || '';
+    this.soapUrl =
+      this.configService.get<string>('SERVIENTREGA_SOAP_URL') || '';
+    this.soapActionCargue =
+      this.configService.get<string>('SERVIENTREGA_SOAP_ACTION_CARGUE') || '';
+    this.soapActionSticker =
+      this.configService.get<string>('SERVIENTREGA_SOAP_ACTION_STICKER') || '';
     this.login = this.configService.get<string>('SERVIENTREGA_LOGIN') || '';
     this.password =
       this.configService.get<string>('SERVIENTREGA_PASSWORD') || '';
@@ -105,8 +113,8 @@ export class ServientregaService {
       NumeroPiezas: shopGroup.itemsCount,
       Piezas: shopGroup.pieces,
       ValorDeclarado: shopGroup.totalValue,
-      IdDaneCiudadOrigen: `${shopGroup.originCity}000`,
-      IdDaneCiudadDestino: `${destinationCity}000`,
+      IdDaneCiudadOrigen: parseInt(`${shopGroup.originCity}000`, 10),
+      IdDaneCiudadDestino: parseInt(`${destinationCity}000`, 10),
       EnvioConCobro: false,
       FormaPago: 2, // Crédito
       TiempoEntrega: 1, // Normal
@@ -194,13 +202,15 @@ export class ServientregaService {
           ps.width_cm,
           ps.length_or_diameter_cm,
           s.shop_name,
-          s.department,
-          s.municipality
+          up.department,
+          up.city,
+          up.dane_city
         FROM payments.cart_items ci
         INNER JOIN shop.products_core pc ON ci.product_id = pc.id
         LEFT JOIN shop.product_variants pv ON pc.id = pv.product_id AND pv.is_active = true
         LEFT JOIN shop.product_physical_specs ps ON pc.id = ps.product_id
         INNER JOIN shop.artisan_shops s ON ci.seller_shop_id = s.id
+        LEFT JOIN artesanos.artisan_profile up ON s.user_id = up.user_id
         WHERE ci.cart_id = $1
       `;
 
@@ -224,9 +234,9 @@ export class ServientregaService {
         const shopId = item.seller_shop_id || 'default';
         const shopName = item.shop_name || shopId;
 
-        // Mapear department a código DANE (simplificado - en producción usar tabla de códigos)
-        // Por ahora usar Bogotá por defecto
-        const originCity = '11001'; // TODO: Mapear department/municipality a código DANE
+        // Usar dane_city del perfil del artesano, fallback a Bogotá
+        const daneCity = item.dane_city ? `${item.dane_city}` : '11001';
+        const originCity = daneCity;
 
         if (!shopsMap.has(shopId)) {
           shopsMap.set(shopId, {
@@ -255,15 +265,22 @@ export class ServientregaService {
         }
 
         // Obtener dimensiones del producto desde campos individuales
-        const largo = item.length_or_diameter_cm > 0 ? item.length_or_diameter_cm : 20;
-        const ancho = item.width_cm > 0 ? item.width_cm : 20;
-        const alto = item.height_cm > 0 ? item.height_cm : 20;
+        // parseFloat porque PostgreSQL retorna decimales como strings
+        const largo =
+          parseFloat(item.length_or_diameter_cm) > 0
+            ? parseFloat(item.length_or_diameter_cm)
+            : 20;
+        const ancho =
+          parseFloat(item.width_cm) > 0 ? parseFloat(item.width_cm) : 20;
+        const alto =
+          parseFloat(item.height_cm) > 0 ? parseFloat(item.height_cm) : 20;
+        const peso = Math.max(parseFloat(item.weight) || 1, 1);
 
         // Agregar piezas (una por cada unidad)
         for (let i = 0; i < item.quantity; i++) {
           group.itemsCount += 1;
           group.pieces.push({
-            Peso: item.weight > 0 ? item.weight : 1, // Usar peso real o default 1 kg
+            Peso: peso,
             Largo: largo,
             Ancho: ancho,
             Alto: alto,
@@ -272,8 +289,8 @@ export class ServientregaService {
       }
 
       // 4. Cotizar con Servientrega para cada tienda
-      const quotesPromises = Array.from(shopsMap.values()).map((group) =>
-        this.quoteForShop(token, group, idCityDestino),
+      const quotesPromises = Array.from(shopsMap.values()).map(
+        async (group) => await this.quoteForShop(token, group, idCityDestino),
       );
 
       const quotesResults = await Promise.all(quotesPromises);
@@ -306,7 +323,9 @@ export class ServientregaService {
   /**
    * Cotizar envio standalone (sin carrito)
    */
-  async quoteStandalone(dto: QuoteStandaloneDto): Promise<StandaloneQuoteResponse> {
+  async quoteStandalone(
+    dto: QuoteStandaloneDto,
+  ): Promise<StandaloneQuoteResponse> {
     try {
       const token = await this.getServientregaToken();
 
@@ -324,7 +343,11 @@ export class ServientregaService {
         })),
       };
 
-      const result = await this.quoteForShop(token, shopGroup, dto.idCityDestino);
+      const result = await this.quoteForShop(
+        token,
+        shopGroup,
+        dto.idCityDestino,
+      );
 
       return {
         success: !result.error || result.shippingCost > 0,
@@ -383,8 +406,6 @@ export class ServientregaService {
    * Genera guías de Servientrega para un carrito (llamado después del pago)
    */
   async generateGuides(dto: GenerateGuideDto): Promise<GenerateGuideResponse> {
-    this.logger.log(`[Servientrega] Iniciando generación de guías para cart: ${dto.cart_id}`);
-
     try {
       // 1. Obtener items del carrito con productos y tiendas
       const cartItems = await this.cartItemRepository.find({
@@ -400,20 +421,24 @@ export class ServientregaService {
         };
       }
 
-      this.logger.log(`[Servientrega] Encontrados ${cartItems.length} items`);
-
       // 2. Agrupar items por tienda
       const itemsByShop = await this.groupItemsByShopForGuides(cartItems);
-      this.logger.log(`[Servientrega] Items agrupados en ${itemsByShop.size} tiendas`);
 
       // 3. Generar guía para cada tienda
       const guides: GuideResult[] = [];
       for (const [shopId, group] of itemsByShop) {
         try {
-          const guideResult = await this.generateGuideForShop(shopId, group, dto.shipping_data);
+          const guideResult = await this.generateGuideForShop(
+            shopId,
+            group,
+            dto.shipping_data,
+          );
           guides.push(guideResult);
         } catch (error) {
-          this.logger.error(`[Servientrega] Error generando guía para tienda ${shopId}`, error instanceof Error ? error.stack : String(error));
+          this.logger.error(
+            `[Servientrega] Error generando guía para tienda ${shopId}`,
+            error instanceof Error ? error.stack : String(error),
+          );
           guides.push({
             shop_id: shopId,
             shop_name: group.shop.shopName,
@@ -427,14 +452,11 @@ export class ServientregaService {
       const allSuccess = guides.length > 0 && guides.every((g) => g.success);
       const someSuccess = guides.some((g) => g.success);
 
-      this.logger.log(`[Servientrega] Completado. Éxito: ${allSuccess || someSuccess}`);
-
       return {
         success: allSuccess || someSuccess,
         guides,
       };
     } catch (error) {
-      this.logger.error('[Servientrega] Error en generateGuides', error instanceof Error ? error.stack : String(error));
       return {
         success: false,
         guides: [],
@@ -446,7 +468,9 @@ export class ServientregaService {
   /**
    * Agrupa items del carrito por tienda (para generación de guías)
    */
-  private async groupItemsByShopForGuides(cartItems: CartItem[]): Promise<Map<string, any>> {
+  private async groupItemsByShopForGuides(
+    cartItems: CartItem[],
+  ): Promise<Map<string, any>> {
     const itemsByShop = new Map<string, any>();
 
     for (const item of cartItems) {
@@ -455,10 +479,12 @@ export class ServientregaService {
         relations: ['variants', 'physicalSpecs'],
       });
 
-       this.logger.warn(`[Servientrega] ESTRUCTURA DEL Producto ${item}`);
+      this.logger.warn(`[Servientrega] ESTRUCTURA DEL Producto ${item}`);
 
       if (!product || !product.storeId) {
-        this.logger.warn(`[Servientrega] Producto ${item.productId} sin tienda`);
+        this.logger.warn(
+          `[Servientrega] Producto ${item.productId} sin tienda`,
+        );
         continue;
       }
 
@@ -481,15 +507,27 @@ export class ServientregaService {
       group.totalValue += unitPrice * item.quantity;
 
       // Obtener peso de variantes o physical specs
-      const weight = product.variants?.[0]?.realWeightKg || product.physicalSpecs?.realWeightKg || 1;
+      const weight =
+        product.variants?.[0]?.realWeightKg ||
+        product.physicalSpecs?.realWeightKg ||
+        1;
       group.totalWeight += weight * item.quantity;
 
       // Actualizar dimensiones máximas desde physicalSpecs
       if (product.physicalSpecs) {
         const specs = product.physicalSpecs;
-        group.maxDimensions.width = Math.max(group.maxDimensions.width, specs.widthCm || 20);
-        group.maxDimensions.height = Math.max(group.maxDimensions.height, specs.heightCm || 20);
-        group.maxDimensions.length = Math.max(group.maxDimensions.length, specs.lengthOrDiameterCm || 20);
+        group.maxDimensions.width = Math.max(
+          group.maxDimensions.width,
+          specs.widthCm || 20,
+        );
+        group.maxDimensions.height = Math.max(
+          group.maxDimensions.height,
+          specs.heightCm || 20,
+        );
+        group.maxDimensions.length = Math.max(
+          group.maxDimensions.length,
+          specs.lengthOrDiameterCm || 20,
+        );
       }
     }
 
@@ -513,7 +551,11 @@ export class ServientregaService {
     // Extraer contacto de contactInfo (JSONB)
     if (shop.contactInfo) {
       const contactInfo = shop.contactInfo as Record<string, any>;
-      shopWithContact.phone = contactInfo.phone || contactInfo.telefono || contactInfo.celular || contactInfo.whatsapp;
+      shopWithContact.phone =
+        contactInfo.phone ||
+        contactInfo.telefono ||
+        contactInfo.celular ||
+        contactInfo.whatsapp;
       shopWithContact.email = contactInfo.email || contactInfo.correo;
       shopWithContact.address = contactInfo.address || contactInfo.direccion;
     }
@@ -524,7 +566,11 @@ export class ServientregaService {
   /**
    * Genera una guía para una tienda específica
    */
-  private async generateGuideForShop(shopId: string, group: any, shippingData: ShippingDataDto): Promise<GuideResult> {
+  private async generateGuideForShop(
+    shopId: string,
+    group: any,
+    shippingData: ShippingDataDto,
+  ): Promise<GuideResult> {
     // Construir descripción de productos (max 20 chars)
     const productNames = group.items
       .map((i: any) => i.product?.name || 'Artesania')
@@ -544,7 +590,9 @@ export class ServientregaService {
       group.maxDimensions,
     );
 
-    this.logger.log(`[Servientrega] Enviando solicitud SOAP para tienda ${shopId}`);
+    this.logger.log(
+      `[Servientrega] Enviando solicitud SOAP para tienda ${shopId}`,
+    );
 
     // Llamar a la API SOAP
     const response = await fetch(this.soapUrl, {
@@ -587,7 +635,12 @@ export class ServientregaService {
     const stickerBytes = await this.fetchGuideSticker(numGuia);
 
     // Enviar notificaciones
-    await this.sendNotifications(numGuia, group.shop, shippingData, stickerBytes);
+    await this.sendNotifications(
+      numGuia,
+      group.shop,
+      shippingData,
+      stickerBytes,
+    );
 
     return {
       shop_id: shopId,
@@ -797,11 +850,15 @@ export class ServientregaService {
       const responseText = await response.text();
 
       if (!response.ok) {
-        this.logger.warn(`[Servientrega] Error obteniendo PDF: HTTP ${response.status}`);
+        this.logger.warn(
+          `[Servientrega] Error obteniendo PDF: HTTP ${response.status}`,
+        );
         return null;
       }
 
-      const bytesMatch = responseText.match(/<bytesReport>([^<]+)<\/bytesReport>/);
+      const bytesMatch = responseText.match(
+        /<bytesReport>([^<]+)<\/bytesReport>/,
+      );
       if (bytesMatch && bytesMatch[1]) {
         return Buffer.from(bytesMatch[1], 'base64');
       }
@@ -830,9 +887,14 @@ export class ServientregaService {
         numGuia,
         shop.shopName,
       );
-      this.logger.log(`[Servientrega] Email enviado al destinatario: ${shippingData.email}`);
+      this.logger.log(
+        `[Servientrega] Email enviado al destinatario: ${shippingData.email}`,
+      );
     } catch (error) {
-      this.logger.error('[Servientrega] Error enviando email al destinatario', error);
+      this.logger.error(
+        '[Servientrega] Error enviando email al destinatario',
+        error,
+      );
     }
 
     // Email al artesano con PDF
@@ -857,9 +919,14 @@ export class ServientregaService {
           shippingData.desc_ciudad,
           pdfBytes,
         );
-        this.logger.log(`[Servientrega] Email enviado al artesano: ${shop.email}`);
+        this.logger.log(
+          `[Servientrega] Email enviado al artesano: ${shop.email}`,
+        );
       } catch (error) {
-        this.logger.error('[Servientrega] Error enviando email al artesano', error);
+        this.logger.error(
+          '[Servientrega] Error enviando email al artesano',
+          error,
+        );
       }
     }
   }
