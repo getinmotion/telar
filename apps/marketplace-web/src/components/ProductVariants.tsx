@@ -1,76 +1,27 @@
-import { useEffect, useState } from 'react';
-import { getProductVariants } from '@/services/product-variants.actions';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/currencyUtils';
-
-interface Variant {
-  id: string;
-  name: string;
-  price_adjustment: number;
-  stock: number;
-  attributes: Record<string, any>;
-}
+import type { MarketplaceVariant } from '@/types/products.types';
 
 interface ProductVariantsProps {
-  productId: string;
-  basePrice: number;
-  onVariantSelect: (variant: Variant | null) => void;
+  variants: MarketplaceVariant[];
+  onVariantSelect: (variant: MarketplaceVariant | null) => void;
 }
 
-export const ProductVariants = ({ productId, basePrice, onVariantSelect }: ProductVariantsProps) => {
-  const [variants, setVariants] = useState<Variant[]>([]);
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
-  const [loading, setLoading] = useState(true);
+export const ProductVariants = ({ variants, onVariantSelect }: ProductVariantsProps) => {
+  const [selectedVariant, setSelectedVariant] = useState<MarketplaceVariant | null>(null);
 
-  useEffect(() => {
-    fetchVariants();
-  }, [productId]);
+  const activeVariants = variants.filter((v) => v.isActive);
 
-  const fetchVariants = async () => {
-    try {
-      const data = await getProductVariants(productId);
-
-      // Mapear los datos del backend al formato esperado por el componente
-      const mappedVariants: Variant[] = data
-        .filter((v) => v.status === 'active') // Solo variantes activas
-        .map((v) => ({
-          id: v.id,
-          name: v.name || v.sku,
-          price_adjustment: v.price || 0,
-          stock: v.stock,
-          attributes: v.optionValues || {},
-        }));
-
-      setVariants(mappedVariants);
-    } catch (error) {
-      setVariants([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectVariant = (variant: Variant) => {
-    const newVariant = selectedVariant?.id === variant.id ? null : variant;
-    setSelectedVariant(newVariant);
-    onVariantSelect(newVariant);
-  };
-
-  if (loading) {
+  if (activeVariants.length === 0) {
     return null;
   }
 
-  if (variants.length === 0) {
-    return null;
-  }
-
-  const hasMeaningfulOptions = variants.some((v) => {
-    const anyV = v as any;
-    const options = anyV.attributes ?? anyV.option_values;
+  const hasMeaningfulOptions = activeVariants.some((v) => {
     const hasOptions =
-      options && typeof options === 'object' && Object.keys(options).length > 0;
-
-    const label = String(anyV.name ?? anyV.sku ?? '').trim();
+      v.optionValues && Object.keys(v.optionValues).length > 0;
+    const label = String(v.variantName ?? v.sku ?? '').trim();
     const isDefaultish = !label || /default/i.test(label);
 
     return hasOptions || !isDefaultish;
@@ -81,16 +32,25 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
     return null;
   }
 
+  const handleSelectVariant = (variant: MarketplaceVariant) => {
+    const newVariant = selectedVariant?.id === variant.id ? null : variant;
+    setSelectedVariant(newVariant);
+    onVariantSelect(newVariant);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="font-semibold">Variantes disponibles</h3>
-      
+
       <div className="grid grid-cols-2 gap-3">
-        {variants.map((variant) => {
+        {activeVariants.map((variant) => {
           const isSelected = selectedVariant?.id === variant.id;
-          const priceAdjustment = variant.price_adjustment ?? 0;
-          const finalPrice = basePrice + priceAdjustment;
           const isOutOfStock = (variant.stock ?? 0) <= 0;
+          const label =
+            variant.variantName ||
+            Object.values(variant.optionValues ?? {}).join(' · ') ||
+            variant.sku ||
+            'Opción';
 
           return (
             <Button
@@ -100,24 +60,17 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
               onClick={() => handleSelectVariant(variant)}
               disabled={isOutOfStock}
             >
-              <span className="font-semibold">{variant.name}</span>
+              <span className="font-semibold">{label}</span>
               <span className="text-sm text-primary">
-                {formatCurrency(finalPrice)}
+                {formatCurrency(variant.price)}
               </span>
-
-              {priceAdjustment !== 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {priceAdjustment > 0 ? '+' : ''}
-                  {formatCurrency(priceAdjustment)}
-                </span>
-              )}
 
               {isOutOfStock && (
                 <Badge variant="destructive" className="absolute top-2 right-2">
                   Agotado
                 </Badge>
               )}
-              
+
               {!isOutOfStock && (variant.stock ?? 0) < 5 && (
                 <span className="text-xs text-destructive">
                   Solo {variant.stock} disponibles
@@ -130,7 +83,7 @@ export const ProductVariants = ({ productId, basePrice, onVariantSelect }: Produ
 
       {selectedVariant && (
         <div className="text-sm text-muted-foreground">
-          Precio final: {formatCurrency(basePrice + (selectedVariant.price_adjustment ?? 0))}
+          Precio: {formatCurrency(selectedVariant.price)}
         </div>
       )}
     </div>
