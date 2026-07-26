@@ -1,5 +1,6 @@
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useWizardMode } from "../context/WizardModeContext";
 
 export interface WizardFooterProps {
   step: number;
@@ -50,7 +51,12 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   saveDraftLabel,
 }) => {
   const isMobile = useIsMobile();
+  const mode = useWizardMode();
   const progress = Math.round((step / totalSteps) * 100);
+
+  // En moderación la navegación la controla el shell del Studio (step-rail +
+  // barra de decisión), no el pie de autoría del wizard.
+  if (mode !== "author") return null;
 
   const ProgressBar = () => (
     <div className="relative h-[2px] bg-[#e2d5cf]/30">

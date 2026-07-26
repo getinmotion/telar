@@ -36,6 +36,7 @@ export interface ModerationProduct {
     height: number | null;
   } | null;
   shipping_data_complete: boolean;
+  agreementName: string | null;
   artisan_shops: {
     id: string;
     shop_name: string;
@@ -74,6 +75,7 @@ export interface AdvancedFilters {
   category: string;
   region: string;
   onlyNonMarketplace: boolean;
+  agreementId?: string;
 }
 
 interface ProductPagination {
@@ -122,6 +124,7 @@ function mapProduct(p: ModerationProductApi): ModerationProduct {
     weight: p.weight,
     dimensions: p.dimensions ?? null,
     shipping_data_complete: p.shippingDataComplete,
+    agreementName: p.agreementName ?? null,
     artisan_shops: {
       id: p.shop?.id ?? '',
       shop_name: p.shop?.shopName ?? '',
@@ -172,6 +175,7 @@ export const useProductModeration = () => {
         category: advancedFilters?.category,
         region: advancedFilters?.region,
         onlyNonMarketplace: advancedFilters?.onlyNonMarketplace,
+        agreementId: advancedFilters?.agreementId,
       });
 
       setProducts((result.data ?? []).map(mapProduct));

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Store,
   Package,
@@ -6,19 +7,18 @@ import {
   Search,
   Loader2,
   ArrowLeft,
-  CheckCheck,
-  Edit3,
-  MessageCircle,
-  XCircle,
-  ArrowUpDown,
-  SlidersHorizontal,
+  ChevronLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { useProductStudio, type StudioShop } from '@/hooks/useProductStudio';
-import { StudioProductEditor } from '@/components/studio/StudioProductEditor';
+import { useProductStudio } from '@/hooks/useProductStudio';
+import { useShopRailFilters } from '@/hooks/useShopRailFilters';
+import { StudioShopRail } from '@/components/studio/StudioShopRail';
+import { ProductReviewWizard } from '@/components/studio/ProductReviewWizard';
+import { ModerationActionBar } from '@/components/moderation/ModerationActionBar';
+import { ReadinessPanel } from '@/components/studio/ReadinessPanel';
+import { computeProductReadiness } from '@/components/studio/readiness';
 import type { ModerationAction } from '@/hooks/useProductStudio';
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
@@ -39,11 +39,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
 
-function HealthDot({ score }: { score: number }) {
-  const color = score >= 80 ? '#22c55e' : score >= 50 ? GOLDEN : '#ef4444';
-  return <span className="inline-block h-2 w-2 rounded-full flex-shrink-0" style={{ background: color }} />;
-}
-
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
   return (
@@ -51,118 +46,6 @@ function StatusBadge({ status }: { status: string }) {
       style={{ color: cfg.color, background: cfg.bg }}>
       {cfg.label}
     </span>
-  );
-}
-
-function ShopRow({ shop, selected, onClick }: { shop: StudioShop; selected: boolean; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors rounded-md',
-        selected ? 'bg-white/15 text-white' : 'text-blue-200 hover:bg-white/10 hover:text-white',
-      )}>
-      {shop.logoUrl ? (
-        <img src={shop.logoUrl} alt={shop.shopName} className="h-7 w-7 rounded-md object-cover flex-shrink-0" />
-      ) : (
-        <div className="h-7 w-7 rounded-md flex-shrink-0 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <Store className="h-3.5 w-3.5 opacity-60" />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate leading-tight">
-          {shop.shopName}
-          {shop.agreementName && (
-            <span className="ml-1.5 text-[9px] font-normal opacity-50">· {shop.agreementName}</span>
-          )}
-        </p>
-        <p className="text-[10px] opacity-50 truncate">{shop.region ?? shop.craftType ?? '–'}</p>
-      </div>
-      <HealthDot score={shop.healthScore} />
-    </button>
-  );
-}
-
-// ─── Decision bar ───────────────────────────────────────────────────────────────
-
-function DecisionBar({ status, moderating, onAction }: {
-  status: string;
-  moderating: boolean;
-  onAction: (action: ModerationAction, comment?: string) => void;
-}) {
-  const [showComment, setShowComment] = useState<ModerationAction | null>(null);
-  const [comment, setComment] = useState('');
-
-  const handleAction = (action: ModerationAction) => {
-    if (action === 'approve' || action === 'approve_with_edits') {
-      onAction(action);
-    } else {
-      setShowComment(action);
-    }
-  };
-
-  const handleConfirm = () => {
-    if (showComment && comment.trim().length >= 10) {
-      onAction(showComment, comment.trim());
-      setShowComment(null);
-      setComment('');
-    }
-  };
-
-  return (
-    <div className="border-t px-4 py-3 space-y-2 flex-shrink-0"
-      style={{ borderColor: 'rgba(20,34,57,0.12)', background: '#f8fafc' }}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Decisión</span>
-          <StatusBadge status={status} />
-        </div>
-        {moderating && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
-      </div>
-
-      {!showComment && (
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('approve')}
-            className="gap-1.5 text-xs bg-green-700 hover:bg-green-800 text-white">
-            <CheckCheck className="h-3.5 w-3.5" /> Aprobar
-          </Button>
-          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('request_changes')}
-            className="gap-1.5 text-xs bg-amber-600 hover:bg-amber-700 text-white">
-            <MessageCircle className="h-3.5 w-3.5" /> Pedir cambios
-          </Button>
-          <Button type="button" size="sm" disabled={moderating} onClick={() => handleAction('approve_with_edits')}
-            className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white">
-            <Edit3 className="h-3.5 w-3.5" /> Aprobar con ajustes
-          </Button>
-          <Button type="button" size="sm" variant="destructive" disabled={moderating} onClick={() => handleAction('reject')}
-            className="gap-1.5 text-xs">
-            <XCircle className="h-3.5 w-3.5" /> No publicar
-          </Button>
-        </div>
-      )}
-
-      {showComment && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-700">
-              {showComment === 'request_changes' ? 'Mensaje al artesano' : 'Motivo de rechazo'}
-            </p>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setShowComment(null)}
-              className="h-auto py-0 text-[10px] text-slate-400 hover:text-slate-600">Cancelar</Button>
-          </div>
-          <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2}
-            placeholder="Mín. 10 caracteres…"
-            className="text-xs resize-none border-slate-200 bg-white" />
-          <Button type="button" size="sm" disabled={comment.trim().length < 10 || moderating} onClick={handleConfirm}
-            className={cn('w-full text-xs font-semibold text-white',
-              showComment === 'request_changes'
-                ? 'bg-amber-600 hover:bg-amber-700'
-                : 'bg-red-600 hover:bg-red-700',
-            )}>
-            Confirmar
-          </Button>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -176,12 +59,10 @@ export default function ProductStudioPage() {
     selectedProduct, loadingProduct, selectProduct, clearProduct,
     saving, updateProduct,
     moderating, moderateProductAction,
-    taxonomy, loadTaxonomy,
+    loadTaxonomy,
   } = useProductStudio();
 
-  const [shopSearch, setShopSearch] = useState('');
-  const [shopSort, setShopSort] = useState<'az' | 'za' | 'recent' | 'health'>('az');
-  const [shopFilter, setShopFilter] = useState<'all' | 'approved' | 'pending'>('all');
+  const rail = useShopRailFilters(shops);
   const [productStatusFilter, setProductStatusFilter] = useState('all');
   const [productSearch, setProductSearch] = useState('');
 
@@ -190,24 +71,20 @@ export default function ProductStudioPage() {
     loadTaxonomy();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filteredShops = useMemo(() => {
-    let list = shops;
-    if (shopFilter === 'approved') list = list.filter((s) => s.marketplaceApproved);
-    else if (shopFilter === 'pending') list = list.filter((s) => !s.marketplaceApproved);
-    if (shopSearch.trim()) {
-      const q = shopSearch.toLowerCase();
-      list = list.filter((s) =>
-        s.shopName.toLowerCase().includes(q) || (s.region ?? '').toLowerCase().includes(q),
-      );
-    }
-    return [...list].sort((a, b) => {
-      if (shopSort === 'az') return a.shopName.localeCompare(b.shopName);
-      if (shopSort === 'za') return b.shopName.localeCompare(a.shopName);
-      if (shopSort === 'recent') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (shopSort === 'health') return b.healthScore - a.healthScore;
-      return 0;
-    });
-  }, [shops, shopSearch, shopSort, shopFilter]);
+  // Deep-link desde el Inbox: /backoffice/studio?shopId=…&productId=…
+  const [searchParams] = useSearchParams();
+  const deepLinkedRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkedRef.current || shops.length === 0) return;
+    const shopId = searchParams.get('shopId');
+    const productId = searchParams.get('productId');
+    if (!shopId || !productId) return;
+    const shop = shops.find((s) => s.id === shopId);
+    if (!shop) return;
+    deepLinkedRef.current = true;
+    selectShop(shop);
+    selectProduct(productId);
+  }, [shops, searchParams, selectShop, selectProduct]);
 
   const filteredProducts = useMemo(() => {
     let list = products;
@@ -225,93 +102,40 @@ export default function ProductStudioPage() {
     return list;
   }, [products, productStatusFilter, productSearch]);
 
+  // Navegación por la cola de pendientes de la tienda seleccionada.
+  const adjacentPendingId = (dir: 1 | -1): string | null => {
+    if (!selectedProduct) return null;
+    const idx = products.findIndex((p) => p.id === selectedProduct.id);
+    if (idx === -1) return null;
+    for (let i = idx + dir; i >= 0 && i < products.length; i += dir) {
+      if (products[i].status === 'pending_moderation') return products[i].id;
+    }
+    return null;
+  };
+  const goAdjacentPending = (dir: 1 | -1) => {
+    const id = adjacentPendingId(dir);
+    if (id) selectProduct(id);
+  };
+
   const handleModerate = async (action: ModerationAction, comment?: string) => {
     if (!selectedProduct) return;
     await moderateProductAction(selectedProduct.id, action, comment);
+    // Tras decidir, avanzar automáticamente al siguiente pendiente.
+    goAdjacentPending(1);
   };
 
   return (
     <div className="flex h-full overflow-hidden" style={{ fontFamily: "'Manrope', sans-serif" }}>
 
-      {/* ── Sidebar tiendas ──────────────────────────────────────────────── */}
-      <aside className="w-72 flex-shrink-0 flex flex-col overflow-hidden" style={{ background: NAVY }}>
-        {/* Header */}
-        <div className="px-4 pt-5 pb-3 flex-shrink-0">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: ORANGE }}>
-              <Store className="h-3.5 w-3.5 text-white" />
-            </div>
-            <span className="text-sm font-bold text-white">Product Studio</span>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-300" />
-            <input type="text" placeholder="Buscar tienda…" value={shopSearch}
-              onChange={(e) => setShopSearch(e.target.value)}
-              className="w-full rounded-md pl-7 pr-2 py-1.5 text-xs text-white placeholder-blue-400 focus:outline-none focus:ring-1 focus:ring-white/30"
-              style={{ background: 'rgba(255,255,255,0.1)' }} />
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="px-3 pb-3 flex-shrink-0 grid grid-cols-2 gap-1.5">
-          <div className="rounded-lg px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
-            <p className="text-xs font-bold text-white">{shops.length}</p>
-            <p className="text-[10px] text-blue-300">Tiendas</p>
-          </div>
-          <div className="rounded-lg px-2 py-1.5 text-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
-            <p className="text-xs font-bold" style={{ color: ORANGE }}>{shops.filter((s) => s.marketplaceApproved).length}</p>
-            <p className="text-[10px] text-blue-300">Aprobadas</p>
-          </div>
-        </div>
-
-        {/* Filtro + Orden */}
-        <div className="px-3 pb-3 flex-shrink-0 space-y-2">
-          {/* Filtro estado */}
-          <div className="flex items-center gap-1.5">
-            <SlidersHorizontal className="h-3 w-3 text-blue-400 flex-shrink-0" />
-            <div className="flex flex-1 rounded-md overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              {(['all', 'approved', 'pending'] as const).map((val) => (
-                <button key={val} type="button" onClick={() => setShopFilter(val)}
-                  className="flex-1 py-1 text-[10px] font-semibold transition-colors"
-                  style={shopFilter === val
-                    ? { background: ORANGE, color: '#fff' }
-                    : { color: 'rgba(255,255,255,0.5)' }}>
-                  {val === 'all' ? 'Todas' : val === 'approved' ? 'Aprobadas' : 'Pendientes'}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Orden */}
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown className="h-3 w-3 text-blue-400 flex-shrink-0" />
-            <select value={shopSort} onChange={(e) => setShopSort(e.target.value as typeof shopSort)}
-              className="flex-1 rounded-md px-2 py-1 text-[11px] font-medium text-white focus:outline-none focus:ring-1 focus:ring-white/30 appearance-none cursor-pointer"
-              style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <option value="az" style={{ background: NAVY }}>A → Z</option>
-              <option value="za" style={{ background: NAVY }}>Z → A</option>
-              <option value="recent" style={{ background: NAVY }}>Más recientes</option>
-              <option value="health" style={{ background: NAVY }}>Mejor health score</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Lista */}
-        <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5">
-          {loadingShops ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-300" />
-            </div>
-          ) : filteredShops.length === 0 ? (
-            <p className="text-center py-6 text-xs text-blue-400">Sin resultados</p>
-          ) : (
-            filteredShops.map((shop) => (
-              <ShopRow key={shop.id} shop={shop}
-                selected={selectedShop?.id === shop.id}
-                onClick={() => selectShop(shop)} />
-            ))
-          )}
-        </div>
-      </aside>
+      {/* ── Sidebar tiendas (rail compartido, colapsable) ────────────────── */}
+      <StudioShopRail
+        title="Product Studio"
+        controller={rail}
+        selectedId={selectedShop?.id ?? null}
+        onSelect={(s) => selectShop(s)}
+        loading={loadingShops}
+        showHealth
+      />
 
       {/* ── Área principal ────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f0ec]">
@@ -328,6 +152,23 @@ export default function ProductStudioPage() {
               <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
               <span className="text-sm font-semibold text-slate-800 truncate max-w-xs">{selectedProduct.name}</span>
               <StatusBadge status={selectedProduct.status} />
+              {selectedShop?.agreementName && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                  title="Convenio">
+                  <span className="material-symbols-outlined text-[12px]">handshake</span>
+                  {selectedShop.agreementName}
+                </span>
+              )}
+              <div className="ml-auto flex items-center gap-1.5">
+                <Button type="button" variant="outline" size="sm" disabled={!adjacentPendingId(-1)}
+                  onClick={() => goAdjacentPending(-1)} className="h-7 gap-1 text-xs">
+                  <ChevronLeft className="h-3.5 w-3.5" /> Anterior
+                </Button>
+                <Button type="button" variant="outline" size="sm" disabled={!adjacentPendingId(1)}
+                  onClick={() => goAdjacentPending(1)} className="h-7 gap-1 text-xs">
+                  Siguiente <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </>
           ) : selectedShop ? (
             <>
@@ -454,23 +295,42 @@ export default function ProductStudioPage() {
           )}
 
           {/* Editor de producto */}
-          {selectedShop && selectedProduct && !loadingProduct && (
-            <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-hidden min-h-0">
-                <StudioProductEditor
-                  product={selectedProduct}
-                  taxonomy={taxonomy}
-                  saving={saving}
-                  onUpdate={updateProduct}
-                />
+          {selectedShop && selectedProduct && !loadingProduct && (() => {
+            const readiness = computeProductReadiness(selectedProduct);
+            const guardedModerate = (action: ModerationAction, comment?: string) => {
+              if (action === 'approve' && !readiness.ready &&
+                  !window.confirm('Faltan requisitos para este producto. ¿Aprobar de todas formas?')) {
+                return;
+              }
+              handleModerate(action, comment);
+            };
+            return (
+              <div className="flex h-full min-h-0">
+                {/* Centro: wizard */}
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="min-h-0 flex-1 overflow-hidden">
+                    <ProductReviewWizard
+                      product={selectedProduct}
+                      shopUserId={selectedShop?.userId}
+                      shopId={selectedShop?.id}
+                      onSave={updateProduct}
+                      saving={saving}
+                    />
+                  </div>
+                </div>
+                {/* Derecha: panel "¿listo para aprobar?" + acciones */}
+                <aside className="w-80 flex-shrink-0 border-l border-slate-200">
+                  <ReadinessPanel title="¿Listo para aprobar?" items={readiness.items} ready={readiness.ready}>
+                    <ModerationActionBar
+                      status={selectedProduct.status}
+                      busy={moderating}
+                      onAction={guardedModerate}
+                    />
+                  </ReadinessPanel>
+                </aside>
               </div>
-              <DecisionBar
-                status={selectedProduct.status}
-                moderating={moderating}
-                onAction={handleModerate}
-              />
-            </div>
-          )}
+            );
+          })()}
 
           {selectedShop && selectedProduct && loadingProduct && (
             <div className="flex h-full items-center justify-center">
