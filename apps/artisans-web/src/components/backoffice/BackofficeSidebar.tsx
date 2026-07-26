@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, Wand2, Shield, BarChart2, Package,
-  Database, BookOpen, Grid2X2, Store, Tags, Sparkles,
+  Database, BookOpen, Grid2X2, Tags, Sparkles,
   LayoutDashboard, TrendingUp, ShoppingCart, Users, Ticket, CreditCard,
   Palette, FileSearch, Layers, ChevronLeft, ChevronRight, ArrowLeft,
   HeartPulse, Handshake,
@@ -37,8 +37,9 @@ const MAIN_GROUPS: NavGroup[] = [
     items: [
       { label: 'Lista de aprobación', to: '/backoffice/moderacion-os', section: 'moderation', icon: Shield   },
       { label: 'Product Studio', to: '/backoffice/studio',        section: 'revisor',    icon: Wand2    },
-      { label: 'Tiendas',        to: '/backoffice/tiendas',       section: 'tiendas',    icon: Store    },
-      { label: 'Taxonomía',      to: '/backoffice/taxonomia',     section: 'taxonomia',  icon: Tags     },
+      { label: 'Store Studio',   to: '/backoffice/store-studio',  section: 'tiendas',    icon: Wand2    },
+      { label: 'Taxonomy Studio', to: '/backoffice/taxonomia',    section: 'taxonomia',  icon: Tags     },
+      { label: 'Gestión',        to: '/backoffice/gestion',       section: 'taxonomia',  icon: BarChart2 },
     ],
   },
   {

@@ -12,6 +12,7 @@ import {
 } from "@/services/products-new.actions";
 import { useNewWizardState } from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
+import { mapProductResponseToWizardState } from "./hooks/mapProductToWizardState";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
 import { Step3ProcessTime } from "./steps/Step3ProcessTime";
@@ -223,67 +224,7 @@ export const NewProductWizard: React.FC = () => {
           toast.error("No se encontró el producto para editar");
           return;
         }
-        const primaryVariant =
-          product.variants?.find((v) => v.isActive) || product.variants?.[0];
-        const images =
-          product.media
-            ?.filter((m) => m.mediaType === "image")
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .map((m) => m.mediaUrl) || [];
-
-        update({
-          productId: product.id,
-          status: product.status as any,
-          name: product.name,
-          shortDescription: product.shortDescription,
-          artisanalHistory: product.history || undefined,
-          careNotes: product.careNotes || undefined,
-          images,
-          categoryId: product.categoryId || undefined,
-          materials: product.materials?.map((m) => m.materialId) || [],
-          // artisanal identity
-          craftId: product.artisanalIdentity?.primaryCraftId || undefined,
-          primaryTechniqueId:
-            product.artisanalIdentity?.primaryTechniqueId || undefined,
-          secondaryTechniqueId:
-            product.artisanalIdentity?.secondaryTechniqueId || undefined,
-          elaborationTime:
-            product.artisanalIdentity?.estimatedElaborationTime || undefined,
-          isCollaboration: product.artisanalIdentity?.isCollaboration ?? false,
-          collaboration: product.artisanalIdentity?.collaborationName
-            ? { name: product.artisanalIdentity.collaborationName }
-            : undefined,
-          purpose: product.artisanalIdentity?.pieceType as any,
-          styles: product.artisanalIdentity?.style
-            ? [product.artisanalIdentity.style as any]
-            : undefined,
-          // physical specs
-          heightCm: product.physicalSpecs?.heightCm || undefined,
-          widthCm: product.physicalSpecs?.widthCm || undefined,
-          lengthCm: product.physicalSpecs?.lengthOrDiameterCm || undefined,
-          weightKg: product.physicalSpecs?.realWeightKg || undefined,
-          // logistics
-          packagedWeightKg: product.logistics?.packWeightKg || undefined,
-          packagedWidthCm: product.logistics?.packWidthCm || undefined,
-          packagedHeightCm: product.logistics?.packHeightCm || undefined,
-          packagedLengthCm: product.logistics?.packLengthCm || undefined,
-          shippingRestrictions:
-            product.logistics?.specialProtectionNotes || undefined,
-          specialHandling: product.logistics?.fragility === "alto",
-          // production
-          availabilityType: product.production?.availabilityType as any,
-          monthlyCapacity: product.production?.monthlyCapacity || undefined,
-          processDescription:
-            product.production?.processDescription || undefined,
-          processEvidenceUrls:
-            product.production?.processEvidenceUrls || undefined,
-          // pricing
-          price: primaryVariant?.basePriceMinor
-            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100 / 1.05)
-            : undefined,
-          sku: primaryVariant?.sku || undefined,
-          inventory: primaryVariant?.stockQuantity || undefined,
-        });
+        update(mapProductResponseToWizardState(product));
 
         // Also restore agent suggestions from backend
         getSuggestProductsDraft(product.id)

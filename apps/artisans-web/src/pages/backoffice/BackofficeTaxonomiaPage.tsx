@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { getPendingTaxonomies, getTaxonomySummary, type TaxonomyType } from '@/services/taxonomy.actions';
-import { TaxonomyHealthDashboard } from '@/components/backoffice/taxonomy/TaxonomyHealthDashboard';
-import { TaxonomyGrafoTab }         from '@/components/backoffice/taxonomy/TaxonomyGrafoTab';
-import { TaxonomyModeracionTab }     from '@/components/backoffice/taxonomy/TaxonomyModeracionTab';
-import { TaxonomyImpactoTab }        from '@/components/backoffice/taxonomy/TaxonomyImpactoTab';
-import { TaxonomyCulturaTab }        from '@/components/backoffice/taxonomy/TaxonomyCulturaTab';
-import { TaxonomyCrudTab }           from '@/components/backoffice/taxonomy/TaxonomyCrudTab';
-import { TaxonomyTecnicasTab }       from '@/components/backoffice/taxonomy/TaxonomyTecnicasTab';
-import { TaxonomyCategoriasTab }     from '@/components/backoffice/taxonomy/TaxonomyCategoriasTab';
-import { TaxonomyBadgesTab }         from '@/components/backoffice/taxonomy/TaxonomyBadgesTab';
-import { TaxonomyAliasTab }          from '@/components/backoffice/taxonomy/TaxonomyAliasTab';
+import { getTaxonomySummary, type TaxonomyType } from '@/services/taxonomy.actions';
+import { TaxonomyManager, type TaxonomyManagerConfig } from '@/components/backoffice/taxonomy/TaxonomyManager';
 
 type TabValue =
-  | 'health' | 'grafo' | 'moderacion' | 'impacto' | 'cultura'
   | 'oficios' | 'tecnicas' | 'materiales' | 'estilos' | 'herramientas'
-  | 'categorias' | 'curatorial' | 'badges' | 'aliases';
+  | 'categorias' | 'subcategorias' | 'curatorial';
 
 const PURPLE = '#7c3aed';
 const SANS   = "'Manrope', sans-serif";
@@ -30,70 +20,47 @@ interface SidebarItem {
 interface Section {
   label?: string;
   collapsible?: boolean;
-  collapseKey?: 'terms' | 'clasificacion';
+  collapseKey?: 'terms';
   items: SidebarItem[];
 }
 
+// Un solo grupo: TODO vive en Términos (sin "Clasificación").
 const SECTIONS: Section[] = [
-  {
-    label: 'Sistema de conocimiento',
-    items: [
-      { value: 'health',    label: 'Salud del sistema', dot: PURPLE     },
-      { value: 'grafo',     label: 'Relaciones',        dot: '#0369a1'  },
-    ],
-  },
-  {
-    label: 'Moderación',
-    items: [
-      { value: 'moderacion', label: 'Cola inteligente', dot: '#d97706' },
-    ],
-  },
   {
     label: 'Términos',
     collapsible: true,
     collapseKey: 'terms',
     items: [
-      { value: 'oficios',      label: 'Oficios',      dot: PURPLE,    type: 'crafts'       },
-      { value: 'tecnicas',     label: 'Técnicas',     dot: '#0369a1', type: 'techniques'   },
-      { value: 'materiales',   label: 'Materiales',   dot: '#15803d', type: 'materials'    },
-      { value: 'estilos',      label: 'Estilos',      dot: '#b45309', type: 'styles'       },
-      { value: 'herramientas', label: 'Herramientas', dot: '#be185d', type: 'herramientas' },
-    ],
-  },
-  {
-    label: 'Clasificación',
-    collapsible: true,
-    collapseKey: 'clasificacion',
-    items: [
-      { value: 'categorias', label: 'Categorías',        dot: '#0f766e' },
-      { value: 'curatorial', label: 'Cat. Curatoriales', dot: '#6366f1' },
-      { value: 'badges',     label: 'Badges',            dot: PURPLE    },
-      { value: 'aliases',    label: 'Aliases',           dot: '#6b7280' },
-    ],
-  },
-  {
-    label: 'Análisis',
-    items: [
-      { value: 'impacto', label: 'Impacto Marketplace',  dot: '#15803d' },
-      { value: 'cultura', label: 'Cultura y Territorio', dot: '#b45309' },
+      { value: 'oficios',       label: 'Oficios',           dot: PURPLE,    type: 'crafts'       },
+      { value: 'tecnicas',      label: 'Técnicas',          dot: '#0369a1', type: 'techniques'   },
+      { value: 'materiales',    label: 'Materiales',        dot: '#15803d', type: 'materials'    },
+      { value: 'estilos',       label: 'Estilos',           dot: '#b45309', type: 'styles'       },
+      { value: 'herramientas',  label: 'Herramientas',      dot: '#be185d', type: 'herramientas' },
+      { value: 'categorias',    label: 'Categorías',        dot: '#0f766e' },
+      { value: 'subcategorias', label: 'Subcategorías',     dot: '#0891b2' },
+      { value: 'curatorial',    label: 'Cat. Curatoriales', dot: '#6366f1' },
     ],
   },
 ];
 
+// Config del componente genérico por tab.
+const CONFIGS: Record<TabValue, TaxonomyManagerConfig> = {
+  oficios:       { kind: 'taxonomy', label: 'Oficios',      singular: 'Oficio',      taxonomyType: 'crafts',       parent: 'category', count: 'product' },
+  tecnicas:      { kind: 'taxonomy', label: 'Técnicas',     singular: 'Técnica',     taxonomyType: 'techniques',   parent: 'craft',    count: 'product' },
+  materiales:    { kind: 'taxonomy', label: 'Materiales',   singular: 'Material',    taxonomyType: 'materials',    parent: 'global',   count: 'product' },
+  estilos:       { kind: 'taxonomy', label: 'Estilos',      singular: 'Estilo',      taxonomyType: 'styles',       parent: 'global',   count: 'artisan' },
+  herramientas:  { kind: 'taxonomy', label: 'Herramientas', singular: 'Herramienta', taxonomyType: 'herramientas', parent: 'global',   count: 'artisan' },
+  categorias:    { kind: 'category',  label: 'Categorías',            singular: 'Categoría',            parent: 'global',       scope: 'root' },
+  subcategorias: { kind: 'category',  label: 'Subcategorías',         singular: 'Subcategoría',         parent: 'categorySelf', scope: 'sub'  },
+  curatorial:    { kind: 'curatorial', label: 'Categorías Curatoriales', singular: 'Categoría curatorial', parent: 'global' },
+};
+
 export default function BackofficeTaxonomiaPage() {
-  const [activeTab,    setActiveTab]    = useState<TabValue>('health');
-  const [pendingCount, setPendingCount] = useState(0);
-  const [counts,       setCounts]       = useState<Partial<Record<string, number>>>({});
-  const [termsOpen,    setTermsOpen]    = useState(true);
-  const [clasifOpen,   setClasifOpen]   = useState(true);
+  const [activeTab, setActiveTab] = useState<TabValue>('oficios');
+  const [counts,    setCounts]    = useState<Partial<Record<string, number>>>({});
+  const [termsOpen, setTermsOpen] = useState(true);
 
   useEffect(() => {
-    getPendingTaxonomies()
-      .then((data) => {
-        setPendingCount(Object.values(data).reduce((acc, arr) => acc + arr.length, 0));
-      })
-      .catch(() => {});
-
     getTaxonomySummary()
       .then((summary) => {
         const map: Record<string, number> = {};
@@ -103,14 +70,8 @@ export default function BackofficeTaxonomiaPage() {
       .catch(() => {});
   }, []);
 
-  const isOpen = (key?: 'terms' | 'clasificacion') => {
-    if (!key) return true;
-    return key === 'terms' ? termsOpen : clasifOpen;
-  };
-  const toggle = (key?: 'terms' | 'clasificacion') => {
-    if (key === 'terms') setTermsOpen((v) => !v);
-    else if (key === 'clasificacion') setClasifOpen((v) => !v);
-  };
+  const isOpen = (key?: 'terms') => (key ? termsOpen : true);
+  const toggle = (key?: 'terms') => { if (key === 'terms') setTermsOpen((v) => !v); };
 
   return (
     <div style={{
@@ -147,32 +108,16 @@ export default function BackofficeTaxonomiaPage() {
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: '#151b2d', fontFamily: SANS }}>
-              Taxonomías
+              Taxonomy Studio
             </div>
             <div style={{
               fontSize: 9, color: 'rgba(84,67,62,0.45)', marginTop: 1,
               fontFamily: SANS, fontWeight: 600, letterSpacing: '0.08em',
             }}>
-              El cerebro ontológico de TELAR
+              Administrar términos y clasificación · La moderación vive en el Inbox · La analítica en Gestión
             </div>
           </div>
         </div>
-        {pendingCount > 0 && (
-          <button
-            onClick={() => setActiveTab('moderacion')}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-              background: 'rgba(245,158,11,0.1)',
-              border: '1px solid rgba(245,158,11,0.3)',
-              color: '#b45309', borderRadius: 20, padding: '5px 14px',
-              fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              fontFamily: SANS,
-              boxShadow: '0 0 12px rgba(245,158,11,0.15)',
-            }}
-          >
-            ⚠ {pendingCount} término{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''} →
-          </button>
-        )}
       </div>
 
       {/* Body: sidebar + main */}
@@ -224,7 +169,6 @@ export default function BackofficeTaxonomiaPage() {
                 {open && section.items.map((item) => {
                   const isActive = activeTab === item.value;
                   const count    = item.type ? counts[item.type] : undefined;
-                  const isMod    = item.value === 'moderacion';
 
                   return (
                     <div
@@ -256,17 +200,7 @@ export default function BackofficeTaxonomiaPage() {
                         </span>
                       </div>
 
-                      {isMod && pendingCount > 0 ? (
-                        <span style={{
-                          fontSize: 10, fontWeight: 800,
-                          background: isActive ? '#f59e0b' : 'rgba(245,158,11,0.15)',
-                          color: isActive ? 'white' : '#b45309',
-                          borderRadius: 20, padding: '1px 7px',
-                          minWidth: 22, textAlign: 'center',
-                        }}>
-                          {pendingCount}
-                        </span>
-                      ) : count !== undefined ? (
+                      {count !== undefined ? (
                         <span style={{
                           fontSize: 11, fontWeight: 700,
                           background: isActive ? PURPLE : 'rgba(21,27,45,0.06)',
@@ -290,20 +224,7 @@ export default function BackofficeTaxonomiaPage() {
 
         {/* Main content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 28 }}>
-          {activeTab === 'health'       && <TaxonomyHealthDashboard onNavigate={(tab) => setActiveTab(tab as TabValue)} />}
-          {activeTab === 'grafo'        && <TaxonomyGrafoTab />}
-          {activeTab === 'moderacion'   && <TaxonomyModeracionTab />}
-          {activeTab === 'impacto'      && <TaxonomyImpactoTab />}
-          {activeTab === 'cultura'      && <TaxonomyCulturaTab />}
-          {activeTab === 'oficios'      && <TaxonomyCrudTab type="crafts"       label="Oficios"                />}
-          {activeTab === 'tecnicas'     && <TaxonomyTecnicasTab />}
-          {activeTab === 'materiales'   && <TaxonomyCrudTab type="materials"    label="Materiales"             />}
-          {activeTab === 'estilos'      && <TaxonomyCrudTab type="styles"       label="Estilos"                />}
-          {activeTab === 'herramientas' && <TaxonomyCrudTab type="herramientas" label="Herramientas"           />}
-          {activeTab === 'categorias'   && <TaxonomyCategoriasTab />}
-          {activeTab === 'curatorial'   && <TaxonomyCrudTab type="curatorial"   label="Categorías Curatoriales"/>}
-          {activeTab === 'badges'       && <TaxonomyBadgesTab />}
-          {activeTab === 'aliases'      && <TaxonomyAliasTab />}
+          <TaxonomyManager key={activeTab} config={CONFIGS[activeTab]} />
         </div>
       </div>
     </div>

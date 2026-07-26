@@ -25,6 +25,8 @@ export interface ModerationProductApi {
   weight: number | null;
   dimensions: { length: number | null; width: number | null; height: number | null } | null;
   shippingDataComplete: boolean;
+  /** Nombre del convenio (transversal), vía artisan_profile.agreement_id. */
+  agreementName: string | null;
   shop: {
     id: string;
     shopName: string;
@@ -45,6 +47,7 @@ export interface ModerationQueueParams {
   category?: string;
   region?: string;
   onlyNonMarketplace?: boolean;
+  agreementId?: string;
 }
 
 export interface ModerationQueueResponse {
@@ -73,6 +76,7 @@ export interface ModerationShopApi {
   createdAt: string;
   userId: string;
   idContraparty: string | null;
+  agreementName: string | null;
   contactConfig?: {
     phone?: string;
     email?: string;
@@ -143,6 +147,8 @@ function mapProductResponseToModerationApi(product: ProductResponse): Moderation
       height: product.physicalSpecs.heightCm || null,
     } : null,
     shippingDataComplete: !!(product.physicalSpecs && product.logistics),
+    agreementName:
+      (product as { agreementName?: string | null }).agreementName ?? null,
     shop: product.artisanShop ? {
       id: product.artisanShop.id,
       shopName: product.artisanShop.shopName,
@@ -169,6 +175,7 @@ export async function getModerationQueue(
     category,
     region,
     onlyNonMarketplace,
+    agreementId,
   } = params;
 
   const queryParams: Record<string, string> = {
@@ -179,13 +186,11 @@ export async function getModerationQueue(
   // Usar products-new endpoint en lugar de products legacy
   if (status !== 'all') queryParams.status = status;
 
-  // TODO: El endpoint /products-new actualmente no soporta estos filtros:
-  // - search (q)
-  // - category
-  // - region
-  // - onlyNonMarketplace
-  // Estos deberían agregarse al backend en products-new.controller.ts
-  if (search) console.warn('Search filter not yet supported in products-new');
+  // Búsqueda universal + convenio ya soportados server-side en /products-new.
+  if (search && search.trim()) queryParams.search = search.trim();
+  if (agreementId) queryParams.agreementId = agreementId;
+
+  // TODO: category / region / onlyNonMarketplace aún no soportados server-side.
   if (category && category !== 'all') console.warn('Category filter not yet supported in products-new');
   if (region && region !== 'all') console.warn('Region filter not yet supported in products-new');
   if (onlyNonMarketplace) console.warn('onlyNonMarketplace filter not yet supported in products-new');

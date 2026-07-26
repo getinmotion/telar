@@ -28,6 +28,7 @@ export interface ModerationShop {
   active: boolean;
   createdAt: string;
   idContraparty: string | null;
+  agreementName: string | null;
   contactConfig: {
     phone?: string;
     email?: string;
@@ -128,6 +129,7 @@ export const useShopModeration = () => {
             active: shop.active,
             createdAt: shop.createdAt,
             idContraparty: shop.idContraparty,
+            agreementName: shop.agreementName ?? null,
             contactConfig: (shop.contactConfig as ModerationShop['contactConfig']) ?? null,
             hasBankData: shop.idContraparty != null,
             productCounts,
@@ -152,6 +154,65 @@ export const useShopModeration = () => {
 
       const regions = [...new Set(shopsEnriched.map((s) => s.region).filter(Boolean) as string[])];
       const craftTypes = [...new Set(shopsEnriched.map((s) => s.craftType).filter(Boolean) as string[])];
+      setAvailableRegions(regions);
+      setAvailableCraftTypes(craftTypes);
+    } catch {
+      toast.error('Error al cargar tiendas');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Carga TODAS las tiendas (multi-página) SIN el enriquecimiento N+1 de conteos
+  // de producto. El rail de Store Studio solo muestra nombre/logo/región/convenio,
+  // así que dispararle 3 requests por tienda a getShopProductCounts sería inútil y lento.
+  const fetchAllShops = useCallback(async () => {
+    setLoading(true);
+    try {
+      const pageSize = 100;
+      let page = 1;
+      let all: ModerationShop[] = [];
+      let total = 0;
+
+      do {
+        const result = await getModerationShops({ filter: 'all', page, pageSize });
+        const raw = result.data ?? [];
+        total = result.total ?? 0;
+
+        const mapped: ModerationShop[] = raw.map((shop) => ({
+          id: shop.id,
+          userId: shop.userId,
+          shopName: shop.shopName,
+          shopSlug: shop.shopSlug,
+          logoUrl: shop.logoUrl,
+          bannerUrl: shop.bannerUrl ?? null,
+          description: shop.description,
+          region: shop.region,
+          craftType: shop.craftType,
+          marketplaceApproved: shop.marketplaceApproved,
+          marketplaceApprovedAt: shop.marketplaceApprovedAt ?? null,
+          marketplaceApprovedBy: shop.marketplaceApprovedBy ?? null,
+          publishStatus: shop.publishStatus,
+          active: shop.active,
+          createdAt: shop.createdAt,
+          idContraparty: shop.idContraparty,
+          agreementName: shop.agreementName ?? null,
+          contactConfig: (shop.contactConfig as ModerationShop['contactConfig']) ?? null,
+          hasBankData: shop.idContraparty != null,
+        }));
+        all = [...all, ...mapped];
+        page++;
+      } while (all.length < total);
+
+      setShops(all);
+
+      const approvedCount = all.filter((s) => s.marketplaceApproved === true).length;
+      const notApprovedCount = all.filter((s) => !s.marketplaceApproved).length;
+      setCounts({ all: all.length, approved: approvedCount, not_approved: notApprovedCount });
+      setPagination({ page: 1, pageSize, total: all.length, totalPages: 1 });
+
+      const regions = [...new Set(all.map((s) => s.region).filter(Boolean) as string[])];
+      const craftTypes = [...new Set(all.map((s) => s.craftType).filter(Boolean) as string[])];
       setAvailableRegions(regions);
       setAvailableCraftTypes(craftTypes);
     } catch {
@@ -265,6 +326,7 @@ export const useShopModeration = () => {
     availableRegions,
     availableCraftTypes,
     fetchShops,
+    fetchAllShops,
     toggleMarketplaceApproval,
     bulkToggleMarketplaceApproval,
     deleteShop,

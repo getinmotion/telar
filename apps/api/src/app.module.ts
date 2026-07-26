@@ -76,6 +76,7 @@ import { TaxonomyHerramientasModule } from './resources/taxonomy-herramientas/ta
 import { StoryLibraryModule } from './resources/story-library/story-library.module';
 import { ArtisanProfileHistoryModule } from './resources/artisan-profile-history/artisan-profile-history.module';
 import { AdminStatsModule } from './resources/admin-stats/admin-stats.module';
+import { GestionModule } from './resources/gestion/gestion.module';
 import { ShopModerationHistoryModule } from './resources/shop-moderation-history/shop-moderation-history.module';
 import { ModerationQueueModule } from './resources/moderation-queue/moderation-queue.module';
 import { TaxonomyAliasesModule } from './resources/taxonomy-aliases/taxonomy-aliases.module';
@@ -208,6 +209,7 @@ import { SuggestProductsDraftModule } from './resources/suggest-products-draft/s
     StoryLibraryModule,
     ArtisanProfileHistoryModule,
     AdminStatsModule,
+    GestionModule,
     ShopModerationHistoryModule,
     ModerationQueueModule,
     TaxonomyAliasesModule,

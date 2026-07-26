@@ -51,14 +51,17 @@ const BlogPostsAdminPage_lazy = lazy(
 const CollectionsAdminPage_lazy = lazy(
   () => import("@/pages/CollectionsAdminPage"),
 );
-const TaxonomyModerationPage_lazy = lazy(
-  () => import("@/pages/admin/TaxonomyModerationPage"),
-);
 const BackofficeTaxonomiaPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeTaxonomiaPage"),
 );
 const ProductStudioPage_lazy = lazy(
   () => import("@/pages/admin/ProductStudioPage"),
+);
+const StoreStudioPage_lazy = lazy(
+  () => import("@/pages/admin/StoreStudioPage"),
+);
+const GestionPage_lazy = lazy(
+  () => import("@/pages/backoffice/GestionPage"),
 );
 const MarketplaceCurationPage_lazy = lazy(
   () => import("@/pages/admin/MarketplaceCurationPage"),
@@ -77,9 +80,6 @@ const BackofficeCuponesPage_lazy = lazy(
 );
 const BackofficeAuditoriaPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeAuditoriaPage"),
-);
-const BackofficeTiendasPage_lazy = lazy(
-  () => import("@/pages/backoffice/BackofficeTiendasPage"),
 );
 const BackofficePagosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficePagosPage"),
@@ -709,6 +709,30 @@ function App() {
                                 }
                               />
                               <Route
+                                path="/backoffice/store-studio"
+                                element={
+                                  <BackofficeProtectedRoute section="tiendas">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <StoreStudioPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/gestion"
+                                element={
+                                  <BackofficeProtectedRoute section="taxonomia">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <GestionPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
                                 path="/backoffice/analytics"
                                 element={
                                   <BackofficeProtectedRoute section="analytics">
@@ -782,17 +806,10 @@ function App() {
                                   </BackofficeProtectedRoute>
                                 }
                               />
+                              {/* Ruta legacy: la moderación de taxonomía vive ahora en el Inbox */}
                               <Route
                                 path="/backoffice/taxonomia/moderacion"
-                                element={
-                                  <BackofficeProtectedRoute section="taxonomia">
-                                    <Suspense
-                                      fallback={<BackofficePageSkeleton />}
-                                    >
-                                      <TaxonomyModerationPage_lazy />
-                                    </Suspense>
-                                  </BackofficeProtectedRoute>
-                                }
+                                element={<Navigate to="/backoffice/moderacion-os" replace />}
                               />
 
                               <Route
@@ -923,17 +940,10 @@ function App() {
                                   </BackofficeProtectedRoute>
                                 }
                               />
+                              {/* Ruta legacy: Store Studio reemplaza la gestión de tiendas */}
                               <Route
                                 path="/backoffice/tiendas"
-                                element={
-                                  <BackofficeProtectedRoute section="tiendas">
-                                    <Suspense
-                                      fallback={<BackofficePageSkeleton />}
-                                    >
-                                      <BackofficeTiendasPage_lazy />
-                                    </Suspense>
-                                  </BackofficeProtectedRoute>
-                                }
+                                element={<Navigate to="/backoffice/store-studio" replace />}
                               />
                               <Route
                                 path="/backoffice/pagos"
