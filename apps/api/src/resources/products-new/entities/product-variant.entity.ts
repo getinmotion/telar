@@ -25,6 +25,21 @@ export class ProductVariant {
   @Column({ type: 'text', unique: true, nullable: true })
   sku: string;
 
+  // Nombre legible de la variante, ej. "Talla M · Rojo"
+  @Column({ name: 'variant_name', type: 'text', nullable: true })
+  variantName: string | null;
+
+  // Ejes de variación, ej. {"talla":"M","color":"Rojo","material":"Fique"}
+  @Column({ name: 'option_values', type: 'jsonb', default: () => "'{}'" })
+  optionValues: Record<string, string>;
+
+  @Column({ name: 'min_stock', type: 'int', default: 0 })
+  minStock: number;
+
+  // Foto propia de la variante (opcional; si falta se usa la del producto)
+  @Column({ name: 'image_url', type: 'text', nullable: true })
+  imageUrl: string | null;
+
   @Column({ name: 'stock_quantity', type: 'int', default: 0 })
   stockQuantity: number;
 

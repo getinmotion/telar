@@ -174,6 +174,14 @@ export const NewProductWizard: React.FC = () => {
           if (dept && !state.department) update({ department: dept });
           if (shop.municipality && !state.municipality)
             update({ municipality: shop.municipality });
+          // Origen y taller vienen del perfil de la tienda, no se capturan por pieza
+          if (shop.shopName && !state.workshopName)
+            update({ workshopName: shop.shopName });
+          const shopOrigin = [shop.municipality, dept]
+            .filter(Boolean)
+            .join(", ");
+          if (shopOrigin && !state.shippingOrigin)
+            update({ shippingOrigin: shopOrigin });
 
           // Pre-fill process and tools from artisan profile only for NEW products (not edit mode)
           if (!isEditMode) {
@@ -545,9 +553,9 @@ export const NewProductWizard: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Header fixed — solo mobile; desktop usa el header propio de cada step */}
+      {/* Header en flujo — siempre visible en mobile y desktop; el scroll ocurre debajo */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-30 border-b border-[#e2d5cf]/40"
+        className="shrink-0 z-30 border-b border-[#e2d5cf]/40"
         style={{
           background: "rgba(249,247,242,0.95)",
           backdropFilter: "blur(12px)",
@@ -567,7 +575,7 @@ export const NewProductWizard: React.FC = () => {
       </div>
 
       {/* Contenido scrollable */}
-      <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <div className="flex-1 overflow-y-auto">
         {currentStep === 1 && <Step1NewPiece {...stepProps} shopId={shopId} />}
         {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
         {currentStep === 3 && <Step3ProcessTime {...stepProps} />}

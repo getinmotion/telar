@@ -10,7 +10,7 @@ import { Wishlist } from './entities/wishlist.entity';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
-import { Product } from '../products/entities/product.entity';
+import { ProductCore } from '../products-new/entities/product-core.entity';
 
 @Injectable()
 export class WishlistService {
@@ -20,7 +20,7 @@ export class WishlistService {
     @Inject('USER_PROFILES_REPOSITORY')
     private readonly userProfileRepository: Repository<UserProfile>,
     @Inject('PRODUCTS_REPOSITORY')
-    private readonly productRepository: Repository<Product>,
+    private readonly productRepository: Repository<ProductCore>,
   ) {}
 
   /**
@@ -105,11 +105,53 @@ export class WishlistService {
       throw new BadRequestException('El userId es requerido');
     }
 
-    return await this.wishlistRepository.find({
+    const items = await this.wishlistRepository.find({
       where: { userId },
-      relations: ['product', 'product.shop'],
+      relations: ['product', 'product.media', 'product.variants', 'product.artisanShop'],
       order: { createdAt: 'DESC' },
     });
+
+    // Mapear el producto a la forma que consume el marketplace (ProductCard)
+    return items.map((item) => ({
+      ...item,
+      product: item.product ? this.mapProductForMarketplace(item.product) : null,
+    })) as any;
+  }
+
+  /**
+   * Proyección mínima de ProductCore con los campos que espera el frontend
+   * del marketplace (misma convención que getMarketplaceProducts)
+   */
+  private mapProductForMarketplace(product: any) {
+    const variants = (product.variants || []).filter(
+      (v: any) => v.isActive && !v.deletedAt,
+    );
+    const totalStock = variants.reduce(
+      (sum: number, v: any) => sum + (v.stockQuantity || 0),
+      0,
+    );
+    const prices = variants
+      .map((v: any) => Number(v.basePriceMinor) / 100)
+      .filter((p: number) => p > 0);
+
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.shortDescription,
+      shortDescription: product.shortDescription,
+      status: product.status,
+      createdAt: product.createdAt,
+      price: prices.length ? Math.min(...prices) : 0,
+      stock: totalStock,
+      images: product.media?.map((m: any) => m.mediaUrl) || [],
+      imageUrl: product.media?.[0]?.mediaUrl || null,
+      shopId: product.artisanShop?.id,
+      storeName: product.artisanShop?.shopName,
+      storeSlug: product.artisanShop?.shopSlug,
+      logoUrl: product.artisanShop?.logoUrl,
+      canPurchase:
+        product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
+    };
   }
 
   /**

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsNotEmpty, IsString, ValidateNested, IsDateString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsUUID, IsNotEmpty, IsOptional, IsString, ValidateNested, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 /**
@@ -73,4 +73,11 @@ export class Step2ConfirmRequestDto {
   @ValidateNested()
   @Type(() => ContentFieldDto)
   weightKg: ContentFieldDto;
+
+  // Aceptación/rechazo de las variantes sugeridas por el oráculo (paso 1)
+  @ApiPropertyOptional({ type: ContentFieldDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ContentFieldDto)
+  variants?: ContentFieldDto;
 }
