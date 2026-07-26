@@ -43,7 +43,6 @@ const BASE_STATE: NewWizardState = {
   shortDescription: "",
   materials: [],
   country: "Colombia",
-  processStages: [],
   tools: [],
   processEvidenceUrls: [],
 };
