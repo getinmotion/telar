@@ -45,7 +45,7 @@ export class MailService {
   async sendOtpCode(email: string, name: string, code: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu código de verificación - GetInMotion',
+      subject: 'Tu código de verificación - Telar',
       template: './otp-code',
       context: {
         name,
@@ -73,7 +73,7 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Tu acceso a GetInMotion',
+      subject: 'Tu acceso a Telar',
       template: './account-password',
       context: {
         name,

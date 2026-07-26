@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { Product } from "@/types/products.types";
 
-
 export const ProductCard = ({
   id,
   name,
@@ -41,9 +40,7 @@ export const ProductCard = ({
   const isFavorite = isInWishlist(id);
 
   return (
-    
     <Link to={`/product/${id}`} state={{ returnUrl: window.location.search }}>
-
       <Card className="group overflow-hidden h-full rounded-sm border-foreground/10 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
         {/* Image Container */}
         <div className="relative aspect-[4/5] overflow-hidden bg-muted border-b border-foreground/10">

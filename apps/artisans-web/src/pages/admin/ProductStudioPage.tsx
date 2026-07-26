@@ -69,7 +69,12 @@ function ShopRow({ shop, selected, onClick }: { shop: StudioShop; selected: bool
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate leading-tight">{shop.shopName}</p>
+        <p className="text-xs font-medium truncate leading-tight">
+          {shop.shopName}
+          {shop.agreementName && (
+            <span className="ml-1.5 text-[9px] font-normal opacity-50">· {shop.agreementName}</span>
+          )}
+        </p>
         <p className="text-[10px] opacity-50 truncate">{shop.region ?? shop.craftType ?? '–'}</p>
       </div>
       <HealthDot score={shop.healthScore} />

@@ -170,6 +170,8 @@ export interface ProductFeatured {
 
   // Pricing (flattened from variant)
   price: number;
+  priceMax?: number;
+  hasPriceRange?: boolean;
   currency: string;
   stock: number;
 
@@ -448,7 +450,9 @@ export function variantPriceInPesos(v: ProductVariant): number | null {
   return v.price ?? null;
 }
 
-export function getProductPrice(product: ProductNewCore): number | null {
+export function getProductPrice(product: AnyProduct): number | null {
+  if (isMarketplaceProduct(product)) return product.price ?? null;
+
   const prices = (product.variants ?? [])
     .map(variantPriceInPesos)
     .filter((p): p is number => p != null && p > 0);
@@ -458,7 +462,9 @@ export function getProductPrice(product: ProductNewCore): number | null {
 }
 
 /** Precio máximo entre variantes (para rangos "Desde $X") */
-export function getProductPriceMax(product: ProductNewCore): number | null {
+export function getProductPriceMax(product: AnyProduct): number | null {
+  if (isMarketplaceProduct(product)) return product.priceMax ?? product.price ?? null;
+
   const prices = (product.variants ?? [])
     .map(variantPriceInPesos)
     .filter((p): p is number => p != null && p > 0);
@@ -468,7 +474,9 @@ export function getProductPriceMax(product: ProductNewCore): number | null {
 }
 
 /** Get total stock from variants */
-export function getProductStock(product: ProductNewCore): number {
+export function getProductStock(product: AnyProduct): number {
+  if (isMarketplaceProduct(product)) return product.stock ?? 0;
+
   return (product.variants ?? []).reduce(
     (sum, v) => sum + (v.stockQuantity ?? v.stock ?? 0),
     0,

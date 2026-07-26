@@ -46,7 +46,8 @@ import { geocodeArtisan } from "@/lib/colombia-geocodes";
 import { Product, MarketplaceVariant } from "@/types/products.types";
 import { ArtisanShop } from "@/types/artisan-shops.types";
 
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const MAP_STYLE =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 const PIECE_TYPE_LABELS: Record<string, string> = {
   funcional: "Funcional",
@@ -74,7 +75,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [loadingShop, setLoadingShop] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<MarketplaceVariant | null>(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState<MarketplaceVariant | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
 
   const { addToCart } = useCart();
@@ -82,7 +84,10 @@ const ProductDetail = () => {
   const { fetchShopById } = useArtisanShops();
   const { fetchProductById } = useProducts();
   const isFavorite = product ? isInWishlist(product.id) : false;
-  const shopCoords = useMemo(() => (shop ? geocodeArtisan(shop) : null), [shop]);
+  const shopCoords = useMemo(
+    () => (shop ? geocodeArtisan(shop) : null),
+    [shop],
+  );
 
   // Reset scroll to top when product ID changes
   useEffect(() => {
@@ -98,14 +103,7 @@ const ProductDetail = () => {
     try {
       const productData = await fetchProductById(id);
       if (productData) {
-        const realStock = productData?.stock || productData.inventory || 0;
-        const storeReadyToPurchase = productData.canPurchase ?? false;
-        const realCanPurchase = storeReadyToPurchase && realStock > 0;
-        setProduct({
-          ...productData,
-          stock: realStock,
-          canPurchase: realCanPurchase,
-        });
+        setProduct(productData);
         if (productData.shopId) fetchShopInfo(productData.shopId);
       }
     } catch {
@@ -147,7 +145,10 @@ const ProductDetail = () => {
   const availabilityInfo = (() => {
     switch (product?.availabilityType) {
       case "pieza_unica":
-        return { label: "Pieza única", note: "Existe un solo ejemplar de esta pieza." };
+        return {
+          label: "Pieza única",
+          note: "Existe un solo ejemplar de esta pieza.",
+        };
       case "edicion_limitada":
         return { label: "Edición limitada", note: null };
       case "bajo_pedido":
@@ -454,8 +455,10 @@ const ProductDetail = () => {
               <ProductPurchaseButton
                 productId={product.id}
                 productName={product.name}
-                canPurchase={product.canPurchase ?? true}
-                stock={product.stock}
+                canPurchase={
+                  product.stock !== undefined ? product.stock > 0 : maxStock > 0
+                }
+                stock={maxStock}
                 quantity={quantity}
                 variantId={selectedVariant?.id}
                 requiresVariantSelection={needsVariantSelection}
@@ -539,10 +542,14 @@ const ProductDetail = () => {
                       Materiales
                     </span>
                     <span className="italic">
-                      {(product.materialsDetailed ?? []).some((m) => m.percentage != null)
-                        ? product.materialsDetailed!
-                            .map((m) =>
-                              m.percentage != null ? `${m.name} (${m.percentage}%)` : m.name
+                      {(product.materialsDetailed ?? []).some(
+                        (m) => m.percentage != null,
+                      )
+                        ? product
+                            .materialsDetailed!.map((m) =>
+                              m.percentage != null
+                                ? `${m.name} (${m.percentage}%)`
+                                : m.name,
                             )
                             .join(", ")
                         : product.materials?.join(", ") || product.material}
@@ -572,7 +579,9 @@ const ProductDetail = () => {
                     <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
                       Requisitos para iniciar
                     </span>
-                    <span className="italic">{product.requirementsToStart}</span>
+                    <span className="italic">
+                      {product.requirementsToStart}
+                    </span>
                   </span>
                 </li>
               )}
@@ -662,7 +671,8 @@ const ProductDetail = () => {
                     Capacidad mensual
                   </span>
                   <span className="italic">
-                    {product.monthlyCapacity} unidad{product.monthlyCapacity !== 1 ? "es" : ""}/mes
+                    {product.monthlyCapacity} unidad
+                    {product.monthlyCapacity !== 1 ? "es" : ""}/mes
                   </span>
                 </li>
               )}
@@ -965,8 +975,8 @@ const ProductDetail = () => {
             </h3>
             <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed">
               Trabajamos directamente con talleres artesanales para que las
-              personas que crean cada pieza reciban una compensación justa por su
-              trabajo.
+              personas que crean cada pieza reciban una compensación justa por
+              su trabajo.
             </p>
             <Link
               to="/newsletter"
@@ -985,8 +995,8 @@ const ProductDetail = () => {
                 ¿Es para un regalo?
               </h3>
               <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed max-w-md">
-                Ofrecemos opciones de empaque especial que cuentan la historia de
-                la pieza y una nota personalizada.
+                Ofrecemos opciones de empaque especial que cuentan la historia
+                de la pieza y una nota personalizada.
               </p>
               <Link
                 to="/giftcards"

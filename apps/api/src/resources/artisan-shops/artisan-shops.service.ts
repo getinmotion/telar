@@ -173,7 +173,8 @@ export class ArtisanShopsService {
 
     // Manejo especial para hasApprovedProducts
     let fromClause = `shop.artisan_shops s
-      INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id`;
+      INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
+      LEFT JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id`;
     if (hasApprovedProducts === true) {
       fromClause += `
         INNER JOIN shop.products p ON p.shop_id = s.id`;
@@ -252,7 +253,8 @@ export class ArtisanShopsService {
         s.municipality,
         u.id as user_id_rel,
         u.email as user_email,
-        u.email_confirmed_at as user_email_confirmed_at
+        u.email_confirmed_at as user_email_confirmed_at,
+        ag.name as agreement_name
       FROM ${fromClause}
       LEFT JOIN auth.users u ON u.id = s.user_id
       ${whereClause}
@@ -338,6 +340,9 @@ export class ArtisanShopsService {
           emailConfirmedAt: row.user_email_confirmed_at,
         } as any;
       }
+
+      // Agreement name from artisan_profile → agreements
+      (shop as any).agreementName = row.agreement_name ?? null;
 
       return shop;
     });

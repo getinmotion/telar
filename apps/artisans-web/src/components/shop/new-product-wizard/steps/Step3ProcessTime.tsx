@@ -1128,7 +1128,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                     description
                   </span>
                   <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                    Descripción del proceso
+                    Descripción del proceso *
                   </label>
                   <AiBadge />
                 </div>
@@ -1441,7 +1441,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
                     schedule
                   </span>
                   <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] uppercase tracking-widest">
-                    Tiempos de elaboración
+                    Tiempos de elaboración *
                   </label>
                 </div>
 
