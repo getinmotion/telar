@@ -1,25 +1,34 @@
 import { useState, useCallback } from 'react';
 import { useUserLocalStorage } from '@/hooks/useUserLocalStorage';
 import type { ProductStatus, AvailabilityType } from '@/services/products-new.types';
+import { deriveAvailabilityType, deriveProductionType } from '../utils/availability';
 import type { FieldMetadata, IdentityFieldMetadata, MaterialFieldMetadata, Step1InitialCaptureResponse, Step1ConfirmResponse, Step2CaptureResponse } from '@/types/agent.types';
 
 export type PieceStyle = 'tradicional' | 'contemporaneo' | 'fusion';
 export type PiecePurpose = 'funcional' | 'decorativa' | 'ritual' | 'coleccionable';
 export type ProductionType = 'unica' | 'limitada' | 'continua' | 'bajo_pedido';
-export type ProcessMethodType =
-  | 'hecho_a_mano'
-  | 'herramientas_manuales'
-  | 'moldes'
-  | 'telar'
-  | 'torno'
-  | 'tallado'
-  | 'ensamble';
 
 export interface CollaborationData {
   type?: string;
   name?: string;
   role?: string;
   description?: string;
+}
+
+/** Una variante en el wizard (precio en COP del vendedor, sin recargo) */
+export interface WizardVariant {
+  /** id de backend cuando la variante ya existe (se preserva en edición) */
+  id?: string;
+  /** ej. {"talla":"M","color":"Rojo"} */
+  optionValues: Record<string, string>;
+  /** Precio del vendedor; undefined = hereda el precio base del producto */
+  price?: number;
+  stock?: number;
+  minStock?: number;
+  /** Foto propia de la variante (URL ya subida; opcional) */
+  imageUrl?: string;
+  isActive: boolean;
+  sku?: string;
 }
 
 export interface NewWizardState {
@@ -35,15 +44,11 @@ export interface NewWizardState {
   purpose?: PiecePurpose;
   style?: PieceStyle; // kept for backward-compat with localStorage; UI uses `styles`
   styles?: PieceStyle[];
-  culturalDenomination?: string;
-  collectionName?: string;
-  // Origin
+  // Origin y taller: se pre-cargan del perfil de la tienda, no se capturan por pieza
   country?: string;
   department?: string;
   municipality?: string;
-  community?: string;
   workshopName?: string;
-  ethnicGroup?: string;
   // Collaboration
   isCollaboration?: boolean;
   collaboration?: CollaborationData;
@@ -53,19 +58,15 @@ export interface NewWizardState {
   secondaryTechniqueId?: string;
   elaborationTime?: string;
   productionType?: ProductionType;
-  manualInterventionPercentage?: number;
   artisanalHistory?: string;
 
   // ── STEP 3: Proceso y Tiempo ──────────────────────────────
-  processMethod?: ProcessMethodType;
-  processStages?: string[];
   processDescription?: string;
-  requiresDrying?: boolean;
-  additionalDryingTime?: string;
   monthlyCapacity?: number;
   tools?: string[];
   processEvidenceUrls?: string[];
   careNotes?: string;
+  usageSuggestions?: string;
 
   // ── STEP 4: Precio, Disponibilidad y Logística ────────────
   price?: number;
@@ -73,6 +74,15 @@ export interface NewWizardState {
   inventory?: number;
   minimumStockAlert?: number;
   availabilityType?: AvailabilityType;
+  // Variantes (color/talla/material)
+  hasVariants?: boolean;
+  /** Ejes activos elegidos por la artesana, ej. ['talla','color'] */
+  variantAxes?: string[];
+  /** Valores elegidos por eje, ej. {talla:['S','M'], color:['Rojo']} */
+  variantAxisValues?: Record<string, string[]>;
+  variants?: WizardVariant[];
+  /** id de la variante única original (modo simple / edición) */
+  primaryVariantId?: string;
   // Physical specs
   heightCm?: number;
   widthCm?: number;
@@ -106,9 +116,11 @@ export interface NewWizardState {
     elaborationTime?: FieldMetadata;
     monthlyCapacity?: FieldMetadata;
     careNotes?: FieldMetadata;
+    usageSuggestions?: FieldMetadata;
     // Step 4 fields
     price?: FieldMetadata;
     weightKg?: FieldMetadata;
+    variants?: FieldMetadata;
   };
   agentStep1Response?: Step1InitialCaptureResponse;
   agentStep1ConfirmResponse?: Step1ConfirmResponse;
@@ -123,7 +135,6 @@ const initialState: NewWizardState = {
   shortDescription: '',
   materials: [],
   country: 'Colombia',
-  processStages: [],
   tools: [],
   processEvidenceUrls: [],
 };
@@ -137,6 +148,12 @@ export const useNewWizardState = (autoRestore = false) => {
       if (saved) {
         try {
           const parsed = JSON.parse(saved) as Partial<NewWizardState>;
+          // La disponibilidad se deriva del tipo de producción; normaliza borradores viejos
+          if (parsed.productionType) {
+            parsed.availabilityType = deriveAvailabilityType(parsed.productionType);
+          } else if (parsed.availabilityType) {
+            parsed.productionType = deriveProductionType(parsed.availabilityType);
+          }
           return { ...initialState, ...parsed, images: [] };
         } catch {
           // ignore corrupt data

@@ -301,12 +301,22 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
       },
       logistics: { packWeightKg: packWeight ? parseFloat(packWeight) : undefined },
       production: { availabilityType: availability },
-      variants: variant ? [{
-        sku: sku || undefined,
-        stockQuantity: stock ? parseInt(stock) : undefined,
-        basePriceMinor: basePrice,
-        isActive: true,
-      }] : undefined,
+      // Re-enviar TODAS las variantes con su id: el backend soft-elimina las
+      // que no lleguen. Este editor solo modifica la primera.
+      variants: variant
+        ? (product.variants ?? []).map((v, i) => ({
+            id: v.id,
+            sku: i === 0 ? (sku || undefined) : (v.sku || undefined),
+            variantName: v.variantName ?? undefined,
+            optionValues: v.optionValues,
+            minStock: v.minStock,
+            imageUrl: v.imageUrl ?? undefined,
+            stockQuantity: i === 0 && stock ? parseInt(stock) : v.stockQuantity,
+            basePriceMinor: i === 0 && basePrice ? basePrice : String(v.basePriceMinor),
+            currency: v.currency ?? 'COP',
+            isActive: v.isActive,
+          }))
+        : undefined,
     };
     await onUpdate(dto);
   };
@@ -851,11 +861,12 @@ export const StudioProductEditor: React.FC<Props> = ({ product, taxonomy, saving
                 {/* Disponibilidad */}
                 <div className="rounded-2xl p-5" style={glassCard}>
                   <FieldLabel label="Disponibilidad comercial" />
-                  <div className="grid grid-cols-3 gap-2 mt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
                     {([
                       { id: 'en_stock',         label: 'En stock',     icon: 'inventory_2' },
                       { id: 'bajo_pedido',      label: 'Bajo pedido',  icon: 'assignment' },
                       { id: 'edicion_limitada', label: 'Ed. limitada', icon: 'layers' },
+                      { id: 'pieza_unica',      label: 'Pieza única',  icon: 'fiber_manual_record' },
                     ] as { id: AvailabilityType; label: string; icon: string }[]).map((opt) => (
                       <button
                         key={opt.id}

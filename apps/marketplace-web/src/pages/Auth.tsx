@@ -74,7 +74,7 @@ const Auth = () => {
               {showForgotPassword
                 ? "Recuperar contraseña"
                 : showOtpLogin
-                  ? "Ingresar con código"
+                  ? "Ingresar como invitado"
                   : isRegistering
                     ? "Crear cuenta"
                     : "Iniciar sesión"}
