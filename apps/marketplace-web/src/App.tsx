@@ -59,6 +59,7 @@ import Devoluciones from "./pages/ayuda/Devoluciones";
 import Contacto from "./pages/ayuda/Contacto";
 import Historias from "./pages/Historias";
 import HistoriaDetail from "./pages/HistoriaDetail";
+import { CertificateRegistrationPage } from "./pages/product-identity";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +134,7 @@ const App = () => (
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
                         <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/certificate/register" element={<CertificateRegistrationPage />} />
                         {/* <Route path="/recategorize" element={<RecategorizeProducts />} />
                         <Route path="/create-view" element={<CreateMarketplaceView />} /> */}
 

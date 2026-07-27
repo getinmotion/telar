@@ -352,4 +352,44 @@ export class MailService {
       },
     });
   }
+
+  /**
+   * Enviar certificado digital completado con PDF adjunto
+   */
+  async sendCertificateCompleted(
+    email: string,
+    buyerName: string,
+    productName: string,
+    identityKey: string,
+    pdfBuffer: Buffer,
+  ): Promise<void> {
+    const mailOptions: any = {
+      to: email,
+      subject: '🎨 Tu Certificado Digital está listo - Telar',
+      template: './certificate-completed',
+      context: {
+        buyerName,
+        productName,
+        identityKey,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    };
+
+    // Adjuntar PDF del certificado
+    if (pdfBuffer && pdfBuffer.length > 0) {
+      mailOptions.attachments = [
+        {
+          filename: `certificado-${identityKey}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ];
+    }
+
+    await this.mailerService.sendMail(mailOptions);
+  }
 }
