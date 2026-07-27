@@ -88,6 +88,9 @@ import { AchievementsCatalogModule } from './resources/achievements-catalog/achi
 import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
 import { UsersIdAgreementModule } from './resources/users-id-agreement/users-id-agreement.module';
 import { SuggestProductsDraftModule } from './resources/suggest-products-draft/suggest-products-draft.module';
+import { ProductIdentityModule } from './resources/product-identity/product-identity.module';
+import { UsersPassportModule } from './resources/users-passport/users-passport.module';
+import { PassportUserModule } from './resources/passport-user/passport-user.module';
 
 @Module({
   imports: [
@@ -221,6 +224,9 @@ import { SuggestProductsDraftModule } from './resources/suggest-products-draft/s
     ArtisansKnowledgeModule,
     UsersIdAgreementModule,
     SuggestProductsDraftModule,
+    ProductIdentityModule,
+    UsersPassportModule,
+    PassportUserModule,
   ],
   controllers: [],
   providers: [],

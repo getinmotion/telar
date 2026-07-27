@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Certificado Digital - TELAR</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #142239 0%, #1a2f4a 100%); padding: 32px; text-align: center;">
+                            {{#if logoUrl}}
+                            <img src="{{logoUrl}}" alt="TELAR" style="height: 50px; margin-bottom: 15px;">
+                            {{/if}}
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">✨ ¡Certificado Registrado!</h1>
+                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Tu certificado digital está listo</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 32px;">
+                            <h2 style="margin: 0 0 8px; color: #142239; font-size: 20px;">¡Hola, {{buyerName}}! 🎉</h2>
+                            <p style="margin: 0 0 16px; color: #666; font-size: 16px; line-height: 1.5;">
+                                Tu certificado digital de autenticidad ha sido registrado exitosamente. Este documento certifica que eres el propietario legítimo de esta pieza artesanal única.
+                            </p>
+
+                            <!-- Product Info -->
+                            <div style="background: linear-gradient(135deg, #f48c5f 0%, #e67a51 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
+                                <p style="margin: 0 0 8px; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Producto Certificado</p>
+                                <p style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">{{productName}}</p>
+                            </div>
+
+                            <!-- Certificate Code -->
+                            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: center;">
+                                <p style="margin: 0 0 8px; color: #666; font-size: 14px;">Código de Certificado</p>
+                                <p style="margin: 0; color: #142239; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; letter-spacing: 1px;">{{identityKey}}</p>
+                            </div>
+
+                            <p style="margin: 0 0 24px; color: #666; font-size: 16px; line-height: 1.5;">
+                                Adjunto encontrarás tu <strong>Certificado Digital en PDF</strong> con toda la información y código QR único. Guárdalo en un lugar seguro.
+                            </p>
+
+                            <div style="background-color: #fff7ed; border-left: 4px solid #f48c5f; border-radius: 4px; padding: 16px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 8px; color: #142239; font-size: 14px; font-weight: 600;">📱 ¿Qué incluye tu certificado?</p>
+                                <ul style="margin: 8px 0 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                    <li>Código QR único e intransferible</li>
+                                    <li>Información completa del producto</li>
+                                    <li>Datos del artesano creador</li>
+                                    <li>Tu información como propietario</li>
+                                    <li>Fecha de registro oficial</li>
+                                </ul>
+                            </div>
+
+                            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px; padding: 16px;">
+                                <p style="margin: 0; color: #065f46; font-size: 14px; line-height: 1.5;">
+                                    <strong>🔐 Autenticidad garantizada:</strong> Este certificado está registrado permanentemente en nuestra base de datos y puede ser verificado en cualquier momento usando el código QR.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #142239; text-align: center;">
+                            <p style="margin: 0 0 8px; color: #ffffff; font-size: 14px;">Certificado por TELAR 🇨🇴</p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">Conectando artesanos con el mundo</p>
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">TELAR © {{year}}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
