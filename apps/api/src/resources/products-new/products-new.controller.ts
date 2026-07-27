@@ -83,6 +83,7 @@ export class ProductsNewController {
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('agreementId') agreementId?: string,
   ) {
     // Si se especifican parámetros de paginación, usar método paginado
     if (page || limit || storeId || categoryId || status || search) {
@@ -94,11 +95,12 @@ export class ProductsNewController {
         categoryId,
         status,
         search,
+        agreementId,
       });
     }
 
     // De lo contrario, obtener todos
-    return this.productsNewService.findAll();
+    return this.productsNewService.findAll(agreementId);
   }
 
   /**
@@ -107,10 +109,10 @@ export class ProductsNewController {
    */
   @Post('by-ids')
   @HttpCode(HttpStatus.OK)
-  async findByIdsBatch(@Body() body: { ids: string[] }) {
+  async findByIdsBatch(@Body() body: { ids: string[]; agreementId?: string }) {
     const ids = Array.isArray(body?.ids) ? body.ids.filter(Boolean) : [];
     if (ids.length === 0) return [];
-    return this.productsNewService.findByIds(ids);
+    return this.productsNewService.findByIds(ids, body?.agreementId);
   }
 
  
@@ -139,8 +141,11 @@ export class ProductsNewController {
    * Obtener productos de una categoría específica
    */
   @Get('category/:categoryId')
-  findByCategoryId(@Param('categoryId') categoryId: string) {
-    return this.productsNewService.findByCategoryId(categoryId);
+  findByCategoryId(
+    @Param('categoryId') categoryId: string,
+    @Query('agreementId') agreementId?: string,
+  ) {
+    return this.productsNewService.findByCategoryId(categoryId, agreementId);
   }
 
   /**
@@ -157,8 +162,11 @@ export class ProductsNewController {
    * Obtener un producto por su legacy_product_id (ID de shop.products legacy)
    */
   @Get('legacy/:legacyId')
-  findByLegacyId(@Param('legacyId') legacyId: string) {
-    return this.productsNewService.findByLegacyId(legacyId);
+  findByLegacyId(
+    @Param('legacyId') legacyId: string,
+    @Query('agreementId') agreementId?: string,
+  ) {
+    return this.productsNewService.findByLegacyId(legacyId, agreementId);
   }
 
   /**
@@ -335,8 +343,11 @@ export class ProductsNewController {
    * Obtener un producto por ID con todas sus capas y relaciones
    */
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsNewService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Query('agreementId') agreementId?: string,
+  ) {
+    return this.productsNewService.findOne(id, agreementId);
   }
 
   /**

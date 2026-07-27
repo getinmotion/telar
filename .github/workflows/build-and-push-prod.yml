@@ -264,6 +264,7 @@ jobs:
             VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY }}
             VITE_API_PAYMENT_URL=${{ secrets.PROD_MARKETPLACE_VITE_API_PAYMENT_URL }}
             VITE_BACKEND_URL=${{ secrets.PROD_VITE_BACKEND_URL }}
+            VITE_AGREEMENT_ID=${{ secrets.PROD_MARKETPLACE_VITE_AGREEMENT_ID }}
           cache-from: type=gha,scope=gim-marketplace-web-prod
           cache-to: type=gha,scope=gim-marketplace-web-prod,mode=max
 

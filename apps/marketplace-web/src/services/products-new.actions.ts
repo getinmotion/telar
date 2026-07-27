@@ -5,6 +5,7 @@
  */
 
 import { telarApiPublic } from "@/integrations/api/telarApi";
+import { AGREEMENT_ID } from "@/lib/agreement";
 
 // ── Types matching backend entities ───────────────────
 
@@ -253,10 +254,9 @@ export const getProductsNew = async (params?: {
   order?: "ASC" | "DESC";
 }): Promise<MarketplacePaginatedResponse> => {
   try {
-    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get<MarketplacePaginatedResponse>(
       "/products-new/marketplace",
-      { params: { agreementId, ...params } },
+      { params: { agreementId: AGREEMENT_ID, ...params } },
     );
     return coercePaginatedMarketplace(response.data);
   } catch (err: any) {
@@ -280,7 +280,7 @@ export const getProductsNewLegacy = async (params?: {
     const response = await telarApiPublic.get<ProductsNewPaginatedResponse>(
       "/products-new",
       {
-        params,
+        params: { agreementId: AGREEMENT_ID, ...params },
       },
     );
     return coercePaginated(response.data);
@@ -304,6 +304,7 @@ export const getProductNewById = async (
 ): Promise<ProductNewCore> => {
   const response = await telarApiPublic.get<ProductNewCore>(
     `/products-new/${id}`,
+    { params: { agreementId: AGREEMENT_ID } },
   );
   return response.data;
 };
@@ -315,6 +316,7 @@ export const getProductsByCategory = async (
   try {
     const response = await telarApiPublic.get(
       `/products-new/category/${categoryId}`,
+      { params: { agreementId: AGREEMENT_ID } },
     );
     return coerceArr<ProductNewCore>(response.data);
   } catch (err: any) {
@@ -332,7 +334,10 @@ export const getProductsByIds = async (
 ): Promise<ProductNewCore[]> => {
   if (!ids || ids.length === 0) return [];
   try {
-    const response = await telarApiPublic.post("/products-new/by-ids", { ids });
+    const response = await telarApiPublic.post("/products-new/by-ids", {
+      ids,
+      agreementId: AGREEMENT_ID,
+    });
     return coerceArr<ProductNewCore>(response.data);
   } catch (err: any) {
     console.warn(
@@ -348,11 +353,10 @@ export const getProductsByStore = async (
   storeId: string,
 ): Promise<ProductFeatured[]> => {
   try {
-    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get(
       `/products-new/marketplace/store/${storeId}`,
       {
-        params: { agreementId },
+        params: { agreementId: AGREEMENT_ID },
       },
     );
     return coerceArr<ProductFeatured>(response.data);
@@ -368,11 +372,10 @@ export const getProductsByStore = async (
 /** GET /products-new/marketplace/featured — featured products (isFeatured = true) */
 export const getFeaturedProductsNew = async (): Promise<ProductFeatured[]> => {
   try {
-    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get(
       "/products-new/marketplace/featured",
       {
-        params: { agreementId },
+        params: { agreementId: AGREEMENT_ID },
       },
     );
     return coerceArr<ProductFeatured>(response.data);

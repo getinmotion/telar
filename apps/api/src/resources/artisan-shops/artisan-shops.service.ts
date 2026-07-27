@@ -358,7 +358,7 @@ export class ArtisanShopsService {
   /**
    * Obtener una tienda por ID
    */
-  async getById(id: string): Promise<ArtisanShop> {
+  async getById(id: string, agreementId?: string): Promise<ArtisanShop> {
     if (!id) {
       throw new BadRequestException('El ID es requerido');
     }
@@ -372,7 +372,38 @@ export class ArtisanShopsService {
       throw new NotFoundException(`Tienda con ID ${id} no encontrada`);
     }
 
+    await this.assertShopBelongsToAgreement(shop, agreementId);
+
     return shop;
+  }
+
+  /**
+   * Verifica que el artesano dueño de la tienda pertenezca al convenio dado.
+   *
+   * Los marketplaces por convenio (cocrea.telar.co, …) pasan agreementId para
+   * que una URL directa a una tienda de otro convenio no sea visible. Sin
+   * agreementId no se aplica ninguna restricción (comportamiento previo).
+   */
+  private async assertShopBelongsToAgreement(
+    shop: ArtisanShop,
+    agreementId?: string,
+  ): Promise<void> {
+    if (!agreementId) return;
+
+    const rows = await this.artisanShopsRepository.query(
+      `SELECT 1
+         FROM artesanos.artisan_profile ap
+        WHERE ap.user_id = $1
+          AND ap.agreement_id = $2
+        LIMIT 1`,
+      [shop.userId, agreementId],
+    );
+
+    if (rows.length === 0) {
+      throw new NotFoundException(
+        `Tienda ${shop.id} no encontrada en este convenio`,
+      );
+    }
   }
 
   /**
@@ -394,7 +425,7 @@ export class ArtisanShopsService {
   /**
    * Obtener tienda por slug
    */
-  async getBySlug(slug: string): Promise<ArtisanShop> {
+  async getBySlug(slug: string, agreementId?: string): Promise<ArtisanShop> {
     if (!slug) {
       throw new BadRequestException('El slug es requerido');
     }
@@ -407,6 +438,8 @@ export class ArtisanShopsService {
     if (!shop) {
       throw new NotFoundException(`Tienda con slug ${slug} no encontrada`);
     }
+
+    await this.assertShopBelongsToAgreement(shop, agreementId);
 
     return shop;
   }

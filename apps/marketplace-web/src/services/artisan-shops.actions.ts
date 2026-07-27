@@ -4,6 +4,7 @@
  */
 
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
+import { AGREEMENT_ID } from '@/lib/agreement';
 import { toastError } from '@/utils/toast.utils';
 import type {
   ArtisanShop,
@@ -50,7 +51,7 @@ export const getArtisanShops = async (
   filters?: ArtisanShopsFilters
 ): Promise<ArtisanShopsResponse> => {
   try {
-    const agreementId = filters?.agreementId ?? import.meta.env.VITE_AGREEMENT_ID;
+    const agreementId = filters?.agreementId ?? AGREEMENT_ID;
     const response = await telarApiPublic.get<ArtisanShopsResponse>('/artisan-shops', {
       params: { ...filters, agreementId },
     });
@@ -82,9 +83,8 @@ export const getArtisanShops = async (
  */
 export const getFeaturedShops = async (limit: number = 8): Promise<ArtisanShop[]> => {
   try {
-    const agreementId = import.meta.env.VITE_AGREEMENT_ID;
     const response = await telarApiPublic.get<ArtisanShop[]>('/artisan-shops/featured', {
-      params: { agreementId, limit },
+      params: { agreementId: AGREEMENT_ID, limit },
     });
     return response.data;
   } catch (error: any) {
@@ -106,7 +106,9 @@ export const getFeaturedShops = async (limit: number = 8): Promise<ArtisanShop[]
  */
 export const getArtisanShopById = async (id: string): Promise<ArtisanShop> => {
   try {
-    const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/${id}`);
+    const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/${id}`, {
+      params: { agreementId: AGREEMENT_ID },
+    });
     return response.data;
   } catch (error: any) {
     toastError(error);
@@ -127,7 +129,9 @@ export const getArtisanShopById = async (id: string): Promise<ArtisanShop> => {
  */
 export const getArtisanShopBySlug = async (slug: string): Promise<ArtisanShop> => {
   try {
-    const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/slug/${slug}`);
+    const response = await telarApiPublic.get<ArtisanShop>(`/artisan-shops/slug/${slug}`, {
+      params: { agreementId: AGREEMENT_ID },
+    });
     return response.data;
   } catch (error: any) {
     toastError(error);

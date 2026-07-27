@@ -6,6 +6,7 @@
  */
 
 import { telarApiPublic, telarApi } from '@/integrations/api/telarApi';
+import { AGREEMENT_ID } from '@/lib/agreement';
 import type {
   Product,
   MarketplaceVariant,
@@ -366,7 +367,7 @@ function mapMarketplaceDetailToProduct(p: MarketplaceDetailResponse): Product {
 export const getProducts = async (
   filters?: ProductsFilters
 ): Promise<ProductsResponse> => {
-  const params: Record<string, any> = {};
+  const params: Record<string, any> = { agreementId: AGREEMENT_ID };
   if (filters?.page) params.page = filters.page;
   if (filters?.limit) params.limit = filters.limit;
   if (filters?.categoryId) params.categoryId = filters.categoryId;
@@ -398,6 +399,7 @@ export const getProductById = async (id: string): Promise<Product> => {
   try {
     const response = await telarApiPublic.get<MarketplaceDetailResponse>(
       `/products-new/marketplace/${id}`,
+      { params: { agreementId: AGREEMENT_ID } },
     );
     return mapMarketplaceDetailToProduct(response.data);
   } catch (err: any) {
@@ -405,6 +407,7 @@ export const getProductById = async (id: string): Promise<Product> => {
     if (err?.response?.status === 404 || err?.response?.status === 400) {
       const fallback = await telarApiPublic.get<ProductNewCore>(
         `/products-new/legacy/${id}`,
+        { params: { agreementId: AGREEMENT_ID } },
       );
       return mapNewToLegacy(fallback.data);
     }
@@ -435,7 +438,8 @@ export const getProductsByShop = async (
   shopId: string,
 ): Promise<Product[]> => {
   const response = await telarApiPublic.get<ProductNewCore[]>(
-    `/products-new/store/${shopId}`,
+    `/products-new/marketplace/store/${shopId}`,
+    { params: { agreementId: AGREEMENT_ID } },
   );
   return (response.data ?? []).map(mapNewToLegacy);
 };

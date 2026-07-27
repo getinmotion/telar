@@ -1,6 +1,17 @@
 services:
   # ========================================
   # Marketplace Web (React) — cocrea.telar.co → :3002
+  #
+  # OJO: marketplace-web es un build estático de Vite. Las VITE_* se hornean
+  # en el bundle EN TIEMPO DE BUILD, no se leen del contenedor. Por eso aquí no
+  # hay bloque `environment:`: configurarlas en runtime no tiene ningún efecto.
+  #
+  # La imagen debe construirse con (como mínimo):
+  #   --build-arg VITE_BACKEND_URL=https://prod-api.telar.co/telar/server
+  #   --build-arg VITE_AGREEMENT_ID=b7a6d812-5dd7-4d7b-bec4-687d65234f4f  # CO-CREA
+  #
+  # Sin VITE_AGREEMENT_ID el marketplace muestra los productos y talleres de
+  # TODOS los convenios, no solo los de Cocrea.
   # ========================================
   marketplace-web:
     image: ghcr.io/getinmotion/gim-marketplace-web:${MARKETPLACE_IMAGE_TAG:-cocrea}
@@ -8,14 +19,6 @@ services:
     restart: unless-stopped
     ports:
       - "3002:80"
-    environment:
-      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
-      VITE_API_PAYMENT_URL: ${VITE_API_PAYMENT_URL}
-      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-      VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
-      VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL}
-      VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s

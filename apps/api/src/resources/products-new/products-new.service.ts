@@ -489,12 +489,62 @@ export class ProductsNewService {
     return { totalStock, priceMin, priceMax, currency };
   }
 
+  // ============= FILTRO POR CONVENIO (agreement) =============
+  //
+  // Los marketplaces por convenio (cocrea.telar.co, …) mandan agreementId para
+  // ver solo los productos de artesanos inscritos en ese convenio. Sin
+  // agreementId no se aplica ninguna restricción (comportamiento previo).
+
+  /**
+   * IDs de artisan_shops cuyos artesanos pertenecen al convenio dado.
+   * Devuelve null si no se pasó convenio, para distinguirlo de "ninguna tienda".
+   */
+  private async storeIdsInAgreement(
+    agreementId?: string,
+  ): Promise<string[] | null> {
+    if (!agreementId) return null;
+
+    const rows = await this.productCoreRepository.query(
+      `SELECT s.id
+         FROM shop.artisan_shops s
+         INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
+        WHERE ap.agreement_id = $1`,
+      [agreementId],
+    );
+
+    return rows.map((row: { id: string }) => row.id);
+  }
+
+  /** ¿La tienda del producto pertenece al convenio? Sin convenio, siempre sí. */
+  private async isStoreInAgreement(
+    storeId: string | null | undefined,
+    agreementId?: string,
+  ): Promise<boolean> {
+    if (!agreementId) return true;
+    if (!storeId) return false;
+
+    const rows = await this.productCoreRepository.query(
+      `SELECT 1
+         FROM shop.artisan_shops s
+         INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
+        WHERE s.id = $1
+          AND ap.agreement_id = $2
+        LIMIT 1`,
+      [storeId, agreementId],
+    );
+
+    return rows.length > 0;
+  }
+
   /**
    * Obtener todos los productos con todas sus capas y relaciones
    * Combina products_core + todas las capas (1:1) + relaciones (1:N y N:M)
    * Incluye artisanShop (tabla legacy shop.artisan_shops)
    */
-  async findAll(): Promise<ProductCore[]> {
+  async findAll(agreementId?: string): Promise<ProductCore[]> {
+    const storeIds = await this.storeIdsInAgreement(agreementId);
+    if (storeIds !== null && storeIds.length === 0) return [];
+
     const products = await this.productCoreRepository.find({
       relations: [
         'artisanShop',
@@ -514,7 +564,11 @@ export class ProductsNewService {
         'materials.material',
         'variants',
       ],
-      where: { deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
+      where: {
+        deletedAt: IsNull(),
+        status: In(PUBLIC_STATUSES),
+        ...(storeIds ? { storeId: In(storeIds) } : {}),
+      },
       order: { createdAt: 'DESC' },
     });
 
@@ -525,7 +579,7 @@ export class ProductsNewService {
    * Obtener un producto por ID con todas sus capas y relaciones
    * Incluye artisanShop (tabla legacy shop.artisan_shops)
    */
-  async findOne(id: string): Promise<ProductCore> {
+  async findOne(id: string, agreementId?: string): Promise<ProductCore> {
     const product = await this.productCoreRepository.findOne({
       where: { id, deletedAt: IsNull() },
       relations: [
@@ -549,6 +603,10 @@ export class ProductsNewService {
     });
 
     if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    if (!(await this.isStoreInAgreement(product.storeId, agreementId))) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
@@ -678,9 +736,20 @@ export class ProductsNewService {
   /**
    * Obtener productos por categoría
    */
-  async findByCategoryId(categoryId: string): Promise<ProductCore[]> {
+  async findByCategoryId(
+    categoryId: string,
+    agreementId?: string,
+  ): Promise<ProductCore[]> {
+    const storeIds = await this.storeIdsInAgreement(agreementId);
+    if (storeIds !== null && storeIds.length === 0) return [];
+
     const products = await this.productCoreRepository.find({
-      where: { categoryId, deletedAt: IsNull(), status: In(PUBLIC_STATUSES) },
+      where: {
+        categoryId,
+        deletedAt: IsNull(),
+        status: In(PUBLIC_STATUSES),
+        ...(storeIds ? { storeId: In(storeIds) } : {}),
+      },
       relations: [
         'artisanShop',
         'category',
@@ -739,7 +808,10 @@ export class ProductsNewService {
    * Obtener un producto por su legacyProductId
    * Este método permite buscar productos usando el ID de la tabla legacy shop.products
    */
-  async findByLegacyId(legacyId: string): Promise<ProductCore> {
+  async findByLegacyId(
+    legacyId: string,
+    agreementId?: string,
+  ): Promise<ProductCore> {
     const product = await this.productCoreRepository.findOne({
       where: { legacyProductId: legacyId, deletedAt: IsNull() },
       relations: [
@@ -762,7 +834,10 @@ export class ProductsNewService {
       ],
     });
 
-    if (!product) {
+    if (
+      !product ||
+      !(await this.isStoreInAgreement(product.storeId, agreementId))
+    ) {
       throw new NotFoundException(
         `Product with legacy ID ${legacyId} not found`,
       );
@@ -799,14 +874,17 @@ export class ProductsNewService {
     return products;
   }
 
-  async findByIds(ids: string[]): Promise<ProductCore[]> {
+  async findByIds(ids: string[], agreementId?: string): Promise<ProductCore[]> {
     if (!ids || ids.length === 0) {
       return [];
     }
 
+    const storeIds = await this.storeIdsInAgreement(agreementId);
+    if (storeIds !== null && storeIds.length === 0) return [];
+
     // Mismas relaciones que findWithPagination para que las cards de
     // marketplace tengan imagen, técnica, oficio, etc. al hidratarse.
-    const products = await this.productCoreRepository
+    const queryBuilder = this.productCoreRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.artisanShop', 'artisanShop')
       .leftJoinAndSelect('product.category', 'category')
@@ -838,8 +916,13 @@ export class ProductsNewService {
         'variants.isActive = true AND variants.deletedAt IS NULL',
       )
       .where('product.id IN (:...ids)', { ids })
-      .andWhere('product.deletedAt IS NULL')
-      .getMany();
+      .andWhere('product.deletedAt IS NULL');
+
+    if (storeIds) {
+      queryBuilder.andWhere('product.storeId IN (:...storeIds)', { storeIds });
+    }
+
+    const products = await queryBuilder.getMany();
 
     return products;
   }
@@ -1659,6 +1742,7 @@ export class ProductsNewService {
       categoryId?: string;
       status?: string;
       search?: string;
+      agreementId?: string;
     },
   ): Promise<{
     data: ProductCore[];
@@ -1697,6 +1781,19 @@ export class ProductsNewService {
       .where('product.deleted_at IS NULL');
 
     // Aplicar filtros
+    if (filters?.agreementId) {
+      const agreementStoreIds = await this.storeIdsInAgreement(
+        filters.agreementId,
+      );
+      if (!agreementStoreIds?.length) {
+        return { data: [], total: 0, page, limit, totalPages: 0 };
+      }
+      queryBuilder.andWhere(
+        'product.storeId IN (:...agreementStoreIds)',
+        { agreementStoreIds },
+      );
+    }
+
     if (filters?.storeId) {
       queryBuilder.andWhere('product.storeId = :storeId', {
         storeId: filters.storeId,

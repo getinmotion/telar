@@ -1,5 +1,6 @@
 # ========================================
 # Marketplace-Web (React/Vite) - Local Build Dockerfile
+# Contexto de build: raíz del repo
 # ========================================
 
 FROM node:18-alpine AS builder
@@ -23,6 +24,8 @@ ARG VITE_SUPABASE_PROJECT_ID
 ARG VITE_SUPABASE_PUBLISHABLE_KEY
 ARG VITE_SEMANTIC_SEARCH_API_URL
 ARG VITE_SEMANTIC_SEARCH_API_KEY
+# Convenio: filtra productos y talleres del marketplace. Obligatorio para Cocrea.
+ARG VITE_AGREEMENT_ID
 
 # Set environment variables for build
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL \
@@ -31,7 +34,13 @@ ENV VITE_BACKEND_URL=$VITE_BACKEND_URL \
     VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID \
     VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY \
     VITE_SEMANTIC_SEARCH_API_URL=$VITE_SEMANTIC_SEARCH_API_URL \
-    VITE_SEMANTIC_SEARCH_API_KEY=$VITE_SEMANTIC_SEARCH_API_KEY
+    VITE_SEMANTIC_SEARCH_API_KEY=$VITE_SEMANTIC_SEARCH_API_KEY \
+    VITE_AGREEMENT_ID=$VITE_AGREEMENT_ID
+
+# Falla el build si no se pasó el convenio: sin él el marketplace mostraría
+# los productos de todos los convenios.
+RUN test -n "$VITE_AGREEMENT_ID" || \
+    (echo "ERROR: VITE_AGREEMENT_ID es obligatorio (--build-arg VITE_AGREEMENT_ID=...)" && exit 1)
 
 # Build with increased memory
 ENV NODE_OPTIONS=--max_old_space_size=4096
@@ -44,6 +53,9 @@ FROM nginx:alpine
 
 # Copy built files
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Config de nginx con fallback SPA (sin esto, recargar una ruta profunda da 404)
+COPY apps/marketplace-web/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80

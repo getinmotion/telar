@@ -2,11 +2,24 @@ services:
   # ========================================
   # Marketplace Web (React) — cocrea.telar.co → :3002
   # Local build version
+  #
+  # Construye desde la raíz del repo:
+  #   docker compose -f experiments/cocrea/docker-compose.local.yml up -d --build
   # ========================================
   marketplace-web:
     build:
-      context: .
-      dockerfile: Dockerfile.marketplace-prebuilt
+      context: ../..
+      dockerfile: experiments/cocrea/Dockerfile.marketplace
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_API_PAYMENT_URL: ${VITE_API_PAYMENT_URL}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PROJECT_ID: ${VITE_SUPABASE_PROJECT_ID}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_SEMANTIC_SEARCH_API_URL: ${VITE_SEMANTIC_SEARCH_API_URL}
+        VITE_SEMANTIC_SEARCH_API_KEY: ${VITE_SEMANTIC_SEARCH_API_KEY}
+        # Convenio CO-CREA — obligatorio, filtra productos y talleres
+        VITE_AGREEMENT_ID: ${VITE_AGREEMENT_ID:-b7a6d812-5dd7-4d7b-bec4-687d65234f4f}
     container_name: cocrea-marketplace
     restart: unless-stopped
     ports:
