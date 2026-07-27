@@ -86,7 +86,7 @@ export class ProductsNewController {
     @Query('agreementId') agreementId?: string,
   ) {
     // Si se especifican parámetros de paginación, usar método paginado
-    if (page || limit || storeId || categoryId || status || search) {
+    if (page || limit || storeId || categoryId || status || search || agreementId) {
       const pageNum = page ? parseInt(page) : 1;
       const limitNum = limit ? parseInt(limit) : 20;
 

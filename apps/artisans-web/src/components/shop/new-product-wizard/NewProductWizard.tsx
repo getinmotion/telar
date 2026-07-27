@@ -10,13 +10,9 @@ import {
   getProductNewById,
   createProductNew,
 } from "@/services/products-new.actions";
-import {
-  useNewWizardState,
-  type NewWizardState,
-  type WizardVariant,
-} from "./hooks/useNewWizardState";
+import { useNewWizardState } from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
-import { deriveProductionType } from "./utils/availability";
+import { mapProductResponseToWizardState } from "./hooks/mapProductToWizardState";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
 import { Step3ProcessTime } from "./steps/Step3ProcessTime";
@@ -236,129 +232,7 @@ export const NewProductWizard: React.FC = () => {
           toast.error("No se encontró el producto para editar");
           return;
         }
-        // Variantes: precio del vendedor = precio guardado ÷ 1.05 (recargo comprador)
-        const toSellerPrice = (basePriceMinor: string) =>
-          Math.round(parseInt(basePriceMinor) / 100 / 1.05);
-        const allVariants = product.variants ?? [];
-        const hasRealVariants = allVariants.some(
-          (v) => Object.keys(v.optionValues ?? {}).length > 0,
-        );
-        const primaryVariant =
-          allVariants.find((v) => v.isActive) || allVariants[0];
-
-        let variantUpdates: Partial<NewWizardState> = {};
-        if (hasRealVariants) {
-          const wizardVariants: WizardVariant[] = allVariants.map((v) => ({
-            id: v.id,
-            optionValues: v.optionValues ?? {},
-            price: v.basePriceMinor
-              ? toSellerPrice(v.basePriceMinor)
-              : undefined,
-            stock: v.stockQuantity,
-            minStock: v.minStock ?? 0,
-            imageUrl: v.imageUrl || undefined,
-            isActive: v.isActive,
-            sku: v.sku || undefined,
-          }));
-          // Derivar ejes y valores desde los optionValues existentes
-          const axisValues: Record<string, string[]> = {};
-          for (const v of wizardVariants) {
-            for (const [axis, value] of Object.entries(v.optionValues)) {
-              if (!value) continue;
-              if (!axisValues[axis]) axisValues[axis] = [];
-              if (!axisValues[axis].includes(value))
-                axisValues[axis].push(value);
-            }
-          }
-          const activePrices = wizardVariants
-            .filter((v) => v.isActive && v.price)
-            .map((v) => v.price!);
-          variantUpdates = {
-            hasVariants: true,
-            variants: wizardVariants,
-            variantAxes: Object.keys(axisValues),
-            variantAxisValues: axisValues,
-            price: activePrices.length ? Math.min(...activePrices) : undefined,
-            inventory: wizardVariants
-              .filter((v) => v.isActive)
-              .reduce((sum, v) => sum + (v.stock ?? 0), 0),
-          };
-        } else {
-          variantUpdates = {
-            hasVariants: false,
-            primaryVariantId: primaryVariant?.id,
-            price: primaryVariant?.basePriceMinor
-              ? toSellerPrice(primaryVariant.basePriceMinor)
-              : undefined,
-            sku: primaryVariant?.sku || undefined,
-            inventory: primaryVariant?.stockQuantity || undefined,
-            minimumStockAlert: primaryVariant?.minStock || undefined,
-          };
-        }
-
-        const images =
-          product.media
-            ?.filter((m) => m.mediaType === "image")
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .map((m) => m.mediaUrl) || [];
-
-        update({
-          productId: product.id,
-          status: product.status as any,
-          name: product.name,
-          shortDescription: product.shortDescription,
-          artisanalHistory: product.history || undefined,
-          careNotes: product.careNotes || undefined,
-          usageSuggestions: product.usageSuggestions || undefined,
-          images,
-          categoryId: product.categoryId || undefined,
-          subcategoryId: product.subcategoryId || undefined,
-          materials: product.materials?.map((m) => m.materialId) || [],
-          // artisanal identity
-          craftId: product.artisanalIdentity?.primaryCraftId || undefined,
-          primaryTechniqueId:
-            product.artisanalIdentity?.primaryTechniqueId || undefined,
-          secondaryTechniqueId:
-            product.artisanalIdentity?.secondaryTechniqueId || undefined,
-          elaborationTime:
-            product.artisanalIdentity?.estimatedElaborationTime || undefined,
-          isCollaboration: product.artisanalIdentity?.isCollaboration ?? false,
-          collaboration: product.artisanalIdentity?.collaborationName
-            ? { name: product.artisanalIdentity.collaborationName }
-            : undefined,
-          purpose: product.artisanalIdentity?.pieceType as any,
-          styles: (product.artisanalIdentity?.styles?.length
-            ? product.artisanalIdentity.styles
-            : product.artisanalIdentity?.style
-              ? [product.artisanalIdentity.style]
-              : undefined) as any,
-          // physical specs
-          heightCm: product.physicalSpecs?.heightCm || undefined,
-          widthCm: product.physicalSpecs?.widthCm || undefined,
-          lengthCm: product.physicalSpecs?.lengthOrDiameterCm || undefined,
-          weightKg: product.physicalSpecs?.realWeightKg || undefined,
-          // logistics
-          packagedWeightKg: product.logistics?.packWeightKg || undefined,
-          packagedWidthCm: product.logistics?.packWidthCm || undefined,
-          packagedHeightCm: product.logistics?.packHeightCm || undefined,
-          packagedLengthCm: product.logistics?.packLengthCm || undefined,
-          shippingRestrictions:
-            product.logistics?.specialProtectionNotes || undefined,
-          specialHandling: product.logistics?.fragility === "alto",
-          // production
-          availabilityType: product.production?.availabilityType as any,
-          productionType: deriveProductionType(
-            product.production?.availabilityType,
-          ),
-          monthlyCapacity: product.production?.monthlyCapacity || undefined,
-          processDescription:
-            product.production?.processDescription || undefined,
-          processEvidenceUrls:
-            product.production?.processEvidenceUrls || undefined,
-          tools: product.production?.tools || [],
-          // pricing + variantes
-          ...variantUpdates,
-        });
+        update(mapProductResponseToWizardState(product));
 
         // Also restore agent suggestions from backend
         getSuggestProductsDraft(product.id)

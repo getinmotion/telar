@@ -113,6 +113,7 @@ export class ArtisanShopsService {
       shopSlug,
       region,
       craftType,
+      q,
       sortBy = 'created_at',
       order = 'DESC',
     } = query;
@@ -164,6 +165,15 @@ export class ArtisanShopsService {
       paramIndex++;
     }
 
+    // Búsqueda universal: piensa como el moderador (tienda, email del dueño, ciudad).
+    if (q && q.trim()) {
+      whereConditions.push(
+        `(s.shop_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR s.municipality ILIKE $${paramIndex})`,
+      );
+      parameters.push(`%${q.trim()}%`);
+      paramIndex++;
+    }
+
     // Filtro obligatorio por agreementId
     if (agreementId) {
       whereConditions.push(`ap.agreement_id = $${paramIndex}`);
@@ -174,7 +184,8 @@ export class ArtisanShopsService {
     // Manejo especial para hasApprovedProducts
     let fromClause = `shop.artisan_shops s
       INNER JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
-      LEFT JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id`;
+      LEFT JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id
+      LEFT JOIN auth.users u ON u.id = s.user_id`;
     if (hasApprovedProducts === true) {
       fromClause += `
         INNER JOIN shop.products p ON p.shop_id = s.id`;
@@ -256,7 +267,6 @@ export class ArtisanShopsService {
         u.email_confirmed_at as user_email_confirmed_at,
         ag.name as agreement_name
       FROM ${fromClause}
-      LEFT JOIN auth.users u ON u.id = s.user_id
       ${whereClause}
       ${orderByClause}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

@@ -5,7 +5,7 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { Repository, IsNull, In, DataSource } from 'typeorm';
+import { Repository, IsNull, In, DataSource, Brackets } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -1781,19 +1781,7 @@ export class ProductsNewService {
       .where('product.deleted_at IS NULL');
 
     // Aplicar filtros
-    if (filters?.agreementId) {
-      const agreementStoreIds = await this.storeIdsInAgreement(
-        filters.agreementId,
-      );
-      if (!agreementStoreIds?.length) {
-        return { data: [], total: 0, page, limit, totalPages: 0 };
-      }
-      queryBuilder.andWhere(
-        'product.storeId IN (:...agreementStoreIds)',
-        { agreementStoreIds },
-      );
-    }
-
+    // (el filtro por convenio va más abajo, junto al de búsqueda)
     if (filters?.storeId) {
       queryBuilder.andWhere('product.storeId = :storeId', {
         storeId: filters.storeId,
@@ -1817,10 +1805,30 @@ export class ProductsNewService {
       });
     }
 
+    // Búsqueda universal: piensa como el moderador (nombre de pieza, tienda,
+    // SKU o ciudad). Se usan property-paths para que TypeORM mapee/quote los
+    // alias correctamente. (email de dueño / id quedan pendientes: requieren
+    // join cross-schema a auth.users.)
     if (filters?.search && filters.search.trim().length > 0) {
-      queryBuilder.andWhere('product.name ILIKE :search', {
-        search: `%${filters.search.trim()}%`,
-      });
+      const search = `%${filters.search.trim()}%`;
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('product.name ILIKE :search', { search })
+            .orWhere('artisanShop.shopName ILIKE :search', { search })
+            .orWhere('artisanShop.municipality ILIKE :search', { search })
+            .orWhere('variants.sku ILIKE :search', { search });
+        }),
+      );
+    }
+
+    // Filtro por convenio (transversal). Mismo patrón que las rutas de
+    // marketplace, vía artisan_profile.agreement_id. El alias del join
+    // (artisanShop, con mayúsculas) debe ir citado en el SQL crudo.
+    if (filters?.agreementId) {
+      queryBuilder.andWhere(
+        `EXISTS (SELECT 1 FROM artesanos.artisan_profile ap WHERE ap.user_id = "artisanShop".user_id AND ap.agreement_id = :agreementId)`,
+        { agreementId: filters.agreementId },
+      );
     }
 
     // Ordenar por fecha de creación (usar nombre de propiedad de entidad, no de columna SQL)
@@ -1834,6 +1842,35 @@ export class ProductsNewService {
     queryBuilder.orderBy('product.createdAt', 'DESC');
 
     const [data, total] = await queryBuilder.getManyAndCount();
+
+    // Adjuntar el nombre del convenio (transversal) por dueño de la tienda.
+    // Batch: una sola consulta para todos los user_id de la página.
+    const userIds = [
+      ...new Set(
+        data
+          .map((p) => p.artisanShop?.userId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    if (userIds.length > 0) {
+      const rows: Array<{ user_id: string; name: string }> =
+        await this.productCoreRepository.manager.query(
+          `SELECT ap.user_id, ag.name
+             FROM artesanos.artisan_profile ap
+             JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id
+            WHERE ap.user_id = ANY($1::uuid[])`,
+          [userIds],
+        );
+      const agreementByUser: Record<string, string> = Object.fromEntries(
+        rows.map((r) => [r.user_id, r.name]),
+      );
+      for (const p of data) {
+        (p as ProductCore & { agreementName?: string | null }).agreementName =
+          p.artisanShop?.userId
+            ? (agreementByUser[p.artisanShop.userId] ?? null)
+            : null;
+      }
+    }
 
     return {
       data,
