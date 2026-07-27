@@ -1,0 +1,93 @@
+name: Build & Push Cocrea Image
+
+# Construye la imagen del marketplace para cocrea.telar.co y la publica como
+# ghcr.io/getinmotion/gim-marketplace-web:cocrea — que es la que sirve el
+# docker-compose de experiments/cocrea.
+#
+# Es un workflow aparte porque Cocrea usa la MISMA app que telar.co pero con
+# un convenio distinto horneado en el bundle: sin VITE_AGREEMENT_ID el sitio
+# muestra los productos y talleres de todos los convenios.
+#
+# Se dispara a mano desde la pestaña Actions de GitHub ("Run workflow"),
+# porque el despliegue de Cocrea no va atado a ninguna rama.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Rama o commit a construir'
+        required: false
+        default: 'cocrea'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.repository_owner }}
+  # Convenio CO-CREA. No es un secreto: acaba horneado en el bundle que se
+  # descarga cualquier visitante. Se deja literal para que el despliegue sea
+  # reproducible sin configurar nada.
+  COCREA_AGREEMENT_ID: b7a6d812-5dd7-4d7b-bec4-687d65234f4f
+
+jobs:
+  build-cocrea:
+    name: Build Cocrea Marketplace (Vite/React)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || 'cocrea' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.IMAGE_OWNER }}/gim-marketplace-web
+          tags: |
+            type=raw,value=cocrea
+            type=sha,prefix=cocrea-sha-,format=short
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: apps/marketplace-web
+          file: apps/marketplace-web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.PROD_MARKETPLACE_VITE_SUPABASE_URL }}
+            VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SUPABASE_PUBLISHABLE_KEY }}
+            VITE_SEMANTIC_SEARCH_API_URL=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_URL }}
+            VITE_SEMANTIC_SEARCH_API_KEY=${{ secrets.PROD_MARKETPLACE_VITE_SEMANTIC_SEARCH_API_KEY }}
+            VITE_API_PAYMENT_URL=${{ secrets.PROD_MARKETPLACE_VITE_API_PAYMENT_URL }}
+            VITE_BACKEND_URL=${{ secrets.PROD_VITE_BACKEND_URL }}
+            VITE_AGREEMENT_ID=${{ env.COCREA_AGREEMENT_ID }}
+          cache-from: type=gha,scope=gim-marketplace-web-cocrea
+          cache-to: type=gha,scope=gim-marketplace-web-cocrea,mode=max
+
+      - name: Resumen
+        run: |
+          echo "### Imagen Cocrea publicada" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo "Tags: \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Convenio: \`${{ env.COCREA_AGREEMENT_ID }}\` (CO-CREA)" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo 'Para desplegar, en el servidor de cocrea:' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo 'cd ~/telar/experiments/cocrea' >> $GITHUB_STEP_SUMMARY
+          echo 'docker compose pull && docker compose up -d' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
