@@ -47,8 +47,6 @@ export const ProductPurchaseButton = ({
   // Determinar el tipo de indisponibilidad
   const isOutOfStock = stock === 0;
 
-  console.log(canPurchase, isOutOfStock, requiresVariantSelection, variantId);
-
   // Versión para tarjeta de producto (compacta)
   if (variant === "card") {
     // PRIMERO verificar si está agotado (stock = 0)
@@ -139,9 +137,7 @@ export const ProductPurchaseButton = ({
         disabled={requiresVariantSelection}
       >
         <ShoppingCart className="mr-2 h-5 w-5" />
-        {requiresVariantSelection
-          ? "Selecciona una opción"
-          : "Agregar al carrito"}
+        {requiresVariantSelection ? "Selecciona una opción" : "Agregar al carrito"}
       </Button>
     );
   }
