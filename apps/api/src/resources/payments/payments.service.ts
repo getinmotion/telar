@@ -10,6 +10,7 @@ import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 import { MailService } from '../mail/mail.service';
 import { ServientregaService } from '../servientrega/servientrega.service';
+import { ProductIdentityService } from '../product-identity/product-identity.service';
 
 @Injectable()
 export class PaymentsService {
@@ -32,6 +33,7 @@ export class PaymentsService {
     private readonly userProfileRepository: Repository<UserProfile>,
     private readonly mailService: MailService,
     private readonly servientregaService: ServientregaService,
+    private readonly productIdentityService: ProductIdentityService,
   ) {}
 
   /**
@@ -210,7 +212,10 @@ export class PaymentsService {
         `[PAID] Todos los emails enviados para cart: ${webhookData.cart_id}`,
       );
 
-      // 9. Generar guías de envío con Servientrega
+      // 9. Generar certificados digitales para cada producto comprado
+      await this.generateDigitalCertificates(cartItems, buyer.email, webhookData.cart_id);
+
+      // 10. Generar guías de envío con Servientrega
       // await this.generateShippingGuides(webhookData.cart_id);
 
       // TODO: Implementar lógica adicional
@@ -548,6 +553,74 @@ export class PaymentsService {
       // Las guías pueden generarse manualmente si falla
       this.logger.error(
         `[Servientrega] Error generando guías para cart: ${cartId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  /**
+   * Genera certificados digitales para cada producto comprado
+   * Se ejecuta después de un pago exitoso
+   * 
+   * @param cartItems - Items del carrito (productos comprados)
+   * @param buyerEmail - Email del comprador
+   * @param cartId - ID del carrito para logging
+   */
+  private async generateDigitalCertificates(
+    cartItems: CartItem[],
+    buyerEmail: string,
+    cartId: string,
+  ): Promise<void> {
+    try {
+      this.logger.log(
+        `[Certificate] Iniciando generación de certificados digitales para cart: ${cartId}`,
+      );
+
+      // Crear un certificado por cada producto en el carrito
+      // Considerando la cantidad: si quantity > 1, crear múltiples certificados
+      const certificatePromises: Promise<void>[] = [];
+
+      for (const item of cartItems) {
+        if (!item.productId) {
+          this.logger.warn(
+            `[Certificate] Cart item ${item.id} no tiene product_id, saltando certificado`,
+          );
+          continue;
+        }
+
+        // Crear certificados según la cantidad comprada
+        for (let i = 0; i < item.quantity; i++) {
+          const certificatePromise = this.productIdentityService
+            .createWithEmail(item.productId, buyerEmail)
+            .then((result) => {
+              this.logger.log(
+                `[Certificate] Certificado ${i + 1}/${item.quantity} creado para producto ${item.productId}: ${result.productIdentity.identityKey}`,
+              );
+            })
+            .catch((error) => {
+              this.logger.error(
+                `[Certificate] Error creando certificado ${i + 1}/${item.quantity} para producto ${item.productId}`,
+                error instanceof Error ? error.stack : String(error),
+              );
+              // No lanzar el error para permitir que otros certificados se creen
+            });
+
+          certificatePromises.push(certificatePromise);
+        }
+      }
+
+      // Esperar a que todos los certificados se creen
+      await Promise.all(certificatePromises);
+
+      const totalCertificates = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      this.logger.log(
+        `[Certificate] Proceso completado: ${totalCertificates} certificados generados para cart: ${cartId}`,
+      );
+    } catch (error) {
+      // No lanzar el error para no interrumpir el flujo del pago
+      // Los certificados pueden generarse manualmente si falla
+      this.logger.error(
+        `[Certificate] Error general generando certificados para cart: ${cartId}`,
         error instanceof Error ? error.stack : String(error),
       );
     }
