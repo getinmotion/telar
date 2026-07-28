@@ -20,6 +20,10 @@ import { SPARTAN, GREEN_MOD, PURPLE, RED, GRAY_200, GRAY_400, GRAY_500, purpleA 
 
 type Variant = 'taxonomy' | 'category' | 'badge' | 'curatorial';
 
+// Radix <SelectItem> NO permite value="" (lanza excepción y rompe el modal).
+// Usamos un centinela para la opción "sin selección".
+const NONE = '__none__';
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -255,12 +259,12 @@ export function TaxonomyItemFormModal({
           {variant === 'taxonomy' && taxonomyType === 'crafts' && (
             <div>
               <Label htmlFor="catId">Categoría</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select value={categoryId || NONE} onValueChange={(v) => setCategoryId(v === NONE ? '' : v)}>
                 <SelectTrigger id="catId" style={{ marginTop: 4 }}>
                   <SelectValue placeholder="Sin categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin categoría</SelectItem>
+                  <SelectItem value={NONE}>Sin categoría</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
@@ -336,12 +340,12 @@ export function TaxonomyItemFormModal({
           {variant === 'category' && (
             <div>
               <Label htmlFor="parentId">Categoría padre</Label>
-              <Select value={parentId} onValueChange={setParentId}>
+              <Select value={parentId || NONE} onValueChange={(v) => setParentId(v === NONE ? '' : v)}>
                 <SelectTrigger id="parentId" style={{ marginTop: 4 }}>
                   <SelectValue placeholder="Sin padre (raíz)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin padre (raíz)</SelectItem>
+                  <SelectItem value={NONE}>Sin padre (raíz)</SelectItem>
                   {availableCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}

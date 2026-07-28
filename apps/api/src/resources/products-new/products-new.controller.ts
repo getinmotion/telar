@@ -24,6 +24,7 @@ import { SkuGeneratorService } from './sku-generator.service';
 import { CreateProductsNewDto } from './dto/create-products-new.dto';
 import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
+import { UpdateVariantStockDto } from './dto/update-variant-stock.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('products-new')
@@ -82,9 +83,10 @@ export class ProductsNewController {
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('agreementId') agreementId?: string,
   ) {
     // Si se especifican parámetros de paginación, usar método paginado
-    if (page || limit || storeId || categoryId || status || search) {
+    if (page || limit || storeId || categoryId || status || search || agreementId) {
       const pageNum = page ? parseInt(page) : 1;
       const limitNum = limit ? parseInt(limit) : 20;
 
@@ -93,6 +95,7 @@ export class ProductsNewController {
         categoryId,
         status,
         search,
+        agreementId,
       });
     }
 
@@ -360,6 +363,22 @@ export class ProductsNewController {
     @Body('status') status: string,
   ) {
     return this.productsNewService.updateStatus(id, status);
+  }
+
+  /**
+   * PATCH /products-new/variants/:variantId/stock
+   * Ajustar el stock de una variante sin pasar por moderación.
+   */
+  @Patch('variants/:variantId/stock')
+  @ApiOperation({ summary: 'Ajustar stock de una variante (sin moderación)' })
+  updateVariantStock(
+    @Param('variantId') variantId: string,
+    @Body() updateVariantStockDto: UpdateVariantStockDto,
+  ) {
+    return this.productsNewService.updateVariantStock(
+      variantId,
+      updateVariantStockDto.stockQuantity,
+    );
   }
 
   /**

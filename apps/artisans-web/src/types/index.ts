@@ -19,9 +19,9 @@ export type {
   ProductMaterialLink,
   ProductVariant,
   LegacyProduct,
-} from '@telar/shared-types/products';
+} from './products.types';
 
-export { ProductStatusEnum as ProductStatus } from '@telar/shared-types/products';
+export { ProductStatusEnum as ProductStatus } from './products.types';
 
 // ============= Stores =============
 // Re-export de todos los tipos de tiendas

@@ -76,6 +76,7 @@ import { TaxonomyHerramientasModule } from './resources/taxonomy-herramientas/ta
 import { StoryLibraryModule } from './resources/story-library/story-library.module';
 import { ArtisanProfileHistoryModule } from './resources/artisan-profile-history/artisan-profile-history.module';
 import { AdminStatsModule } from './resources/admin-stats/admin-stats.module';
+import { GestionModule } from './resources/gestion/gestion.module';
 import { ShopModerationHistoryModule } from './resources/shop-moderation-history/shop-moderation-history.module';
 import { ModerationQueueModule } from './resources/moderation-queue/moderation-queue.module';
 import { TaxonomyAliasesModule } from './resources/taxonomy-aliases/taxonomy-aliases.module';
@@ -87,6 +88,9 @@ import { AchievementsCatalogModule } from './resources/achievements-catalog/achi
 import { ArtisansKnowledgeModule } from './resources/artisans-knowledge/artisans-knowledge.module';
 import { UsersIdAgreementModule } from './resources/users-id-agreement/users-id-agreement.module';
 import { SuggestProductsDraftModule } from './resources/suggest-products-draft/suggest-products-draft.module';
+import { ProductIdentityModule } from './resources/product-identity/product-identity.module';
+import { UsersPassportModule } from './resources/users-passport/users-passport.module';
+import { PassportUserModule } from './resources/passport-user/passport-user.module';
 
 @Module({
   imports: [
@@ -208,6 +212,7 @@ import { SuggestProductsDraftModule } from './resources/suggest-products-draft/s
     StoryLibraryModule,
     ArtisanProfileHistoryModule,
     AdminStatsModule,
+    GestionModule,
     ShopModerationHistoryModule,
     ModerationQueueModule,
     TaxonomyAliasesModule,
@@ -219,6 +224,9 @@ import { SuggestProductsDraftModule } from './resources/suggest-products-draft/s
     ArtisansKnowledgeModule,
     UsersIdAgreementModule,
     SuggestProductsDraftModule,
+    ProductIdentityModule,
+    UsersPassportModule,
+    PassportUserModule,
   ],
   controllers: [],
   providers: [],

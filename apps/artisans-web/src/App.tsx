@@ -51,14 +51,17 @@ const BlogPostsAdminPage_lazy = lazy(
 const CollectionsAdminPage_lazy = lazy(
   () => import("@/pages/CollectionsAdminPage"),
 );
-const TaxonomyModerationPage_lazy = lazy(
-  () => import("@/pages/admin/TaxonomyModerationPage"),
-);
 const BackofficeTaxonomiaPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeTaxonomiaPage"),
 );
 const ProductStudioPage_lazy = lazy(
   () => import("@/pages/admin/ProductStudioPage"),
+);
+const StoreStudioPage_lazy = lazy(
+  () => import("@/pages/admin/StoreStudioPage"),
+);
+const GestionPage_lazy = lazy(
+  () => import("@/pages/backoffice/GestionPage"),
 );
 const MarketplaceCurationPage_lazy = lazy(
   () => import("@/pages/admin/MarketplaceCurationPage"),
@@ -77,9 +80,6 @@ const BackofficeCuponesPage_lazy = lazy(
 );
 const BackofficeAuditoriaPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficeAuditoriaPage"),
-);
-const BackofficeTiendasPage_lazy = lazy(
-  () => import("@/pages/backoffice/BackofficeTiendasPage"),
 );
 const BackofficePagosPage_lazy = lazy(
   () => import("@/pages/backoffice/BackofficePagosPage"),
@@ -115,17 +115,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { MasterAgentProvider } from "@/context/MasterAgentContext";
 import { DesignSystemProvider } from "@/contexts/DesignSystemContext";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
-import { useTaskAutoCompletion } from "@/hooks/useTaskAutoCompletion";
-
-// Global task auto-completion listener
-const TaskAutoCompletionWrapper = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  useTaskAutoCompletion();
-  return <>{children}</>;
-};
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardHome from "./pages/DashboardHome";
 import AgentDetails from "./pages/AgentDetails";
@@ -168,9 +157,6 @@ import { ProductEditPage } from "./pages/ProductEditPage";
 import { LatestShopRedirect } from "./components/shop/LatestShopRedirect";
 import InventoryPage from "./pages/InventoryPage";
 import { StockWizard } from "./pages/StockWizard";
-import HeroSliderWizardPage from "./pages/HeroSliderWizardPage";
-import ContactWizardPage from "./pages/ContactWizardPage";
-import SocialLinksWizardPage from "./pages/SocialLinksWizardPage";
 import ArtisanProfileWizardPage from "./pages/ArtisanProfileWizardPage";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import PublicArtisanProfile from "./pages/PublicArtisanProfile";
@@ -398,61 +384,43 @@ function App() {
                             path="/mi-tienda"
                             element={<Navigate to="/dashboard" replace />}
                           />
-                          <Route
-                            path="/stock-wizard"
-                            element={
-                              <ProtectedRoute>
-                                <StockWizard />
-                              </ProtectedRoute>
-                            }
-                          />
-
-                          {/* Brand Wizard Route — deprecated, redirects to store config */}
+                          {/* Brand wizard legado — redirige al config-wizard de marca */}
                           <Route
                             path="/dashboard/brand-wizard"
                             element={
-                              <Navigate to="/mi-tienda/configurar" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
-                          {/* Redirect old diagnosis results page to unified wizard */}
                           <Route
                             path="/brand-diagnosis-results"
                             element={
-                              <Navigate to="/dashboard/brand-wizard" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
                           <Route
                             path="/brand-wizard"
                             element={
-                              <Navigate to="/dashboard/brand-wizard" replace />
+                              <Navigate to="/mi-tienda/configurar/brand" replace />
                             }
                           />
 
-                          {/* Shop Configuration Wizards */}
+                          {/* Wizards de configuración legados — reemplazados por /mi-tienda/configurar/* */}
                           <Route
                             path="/dashboard/shop-hero-wizard"
                             element={
-                              <ProtectedRoute>
-                                <HeroSliderWizardPage />
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/hero" replace />
                             }
                           />
                           <Route
                             path="/dashboard/shop-contact-wizard"
                             element={
-                              <ProtectedRoute>
-                                <ContactWizardPage />
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/contact" replace />
                             }
                           />
                           <Route
                             path="/dashboard/social-links-wizard"
                             element={
-                              <ProtectedRoute>
-                                <TaskAutoCompletionWrapper>
-                                  <SocialLinksWizardPage />
-                                </TaskAutoCompletionWrapper>
-                              </ProtectedRoute>
+                              <Navigate to="/mi-tienda/configurar/contact" replace />
                             }
                           />
                           <Route
@@ -516,6 +484,10 @@ function App() {
                             <Route
                               path="/dashboard/artisan-profile-wizard"
                               element={<ArtisanProfileWizardPage />}
+                            />
+                            <Route
+                              path="/stock-wizard"
+                              element={<StockWizard />}
                             />
                             <Route
                               path="/mi-tienda/configurar"
@@ -709,6 +681,30 @@ function App() {
                                 }
                               />
                               <Route
+                                path="/backoffice/store-studio"
+                                element={
+                                  <BackofficeProtectedRoute section="tiendas">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <StoreStudioPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
+                                path="/backoffice/gestion"
+                                element={
+                                  <BackofficeProtectedRoute section="taxonomia">
+                                    <Suspense
+                                      fallback={<BackofficePageSkeleton />}
+                                    >
+                                      <GestionPage_lazy />
+                                    </Suspense>
+                                  </BackofficeProtectedRoute>
+                                }
+                              />
+                              <Route
                                 path="/backoffice/analytics"
                                 element={
                                   <BackofficeProtectedRoute section="analytics">
@@ -782,17 +778,10 @@ function App() {
                                   </BackofficeProtectedRoute>
                                 }
                               />
+                              {/* Ruta legacy: la moderación de taxonomía vive ahora en el Inbox */}
                               <Route
                                 path="/backoffice/taxonomia/moderacion"
-                                element={
-                                  <BackofficeProtectedRoute section="taxonomia">
-                                    <Suspense
-                                      fallback={<BackofficePageSkeleton />}
-                                    >
-                                      <TaxonomyModerationPage_lazy />
-                                    </Suspense>
-                                  </BackofficeProtectedRoute>
-                                }
+                                element={<Navigate to="/backoffice/moderacion-os" replace />}
                               />
 
                               <Route
@@ -923,17 +912,10 @@ function App() {
                                   </BackofficeProtectedRoute>
                                 }
                               />
+                              {/* Ruta legacy: Store Studio reemplaza la gestión de tiendas */}
                               <Route
                                 path="/backoffice/tiendas"
-                                element={
-                                  <BackofficeProtectedRoute section="tiendas">
-                                    <Suspense
-                                      fallback={<BackofficePageSkeleton />}
-                                    >
-                                      <BackofficeTiendasPage_lazy />
-                                    </Suspense>
-                                  </BackofficeProtectedRoute>
-                                }
+                                element={<Navigate to="/backoffice/store-studio" replace />}
                               />
                               <Route
                                 path="/backoffice/pagos"

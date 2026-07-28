@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
@@ -40,7 +40,6 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import GoogleAuthCallback from "./pages/GoogleAuthCallback";
-import CategoryDetail from "./pages/CategoryDetail";
 import ArtisanProfile from "./pages/ArtisanProfile";
 import ExploreProducts from "./pages/ExploreProducts";
 import Explorar from "./pages/Explorar";
@@ -60,8 +59,16 @@ import Devoluciones from "./pages/ayuda/Devoluciones";
 import Contacto from "./pages/ayuda/Contacto";
 import Historias from "./pages/Historias";
 import HistoriaDetail from "./pages/HistoriaDetail";
+import { CertificateRegistrationPage } from "./pages/product-identity";
 
 const queryClient = new QueryClient();
+
+// La antigua ruta /categoria/:slug se unificó con /productos?categoria=slug.
+// Mantenemos un redirect para no romper enlaces guardados o externos.
+const CategoryRedirect = () => {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/productos?categoria=${slug ?? ""}`} replace />;
+};
 
 const App = () => (
   <HelmetProvider>
@@ -103,7 +110,7 @@ const App = () => (
                           <Route path="/blog/:slug" element={<BlogArticle />} />
                           <Route path="/order-confirmed/:orderId" element={<OrderConfirmed />} />
                           <Route path="/explorar" element={<Explorar />} />
-                          <Route path="/categoria/:slug" element={<CategoryDetail />} />
+                          <Route path="/categoria/:slug" element={<CategoryRedirect />} />
                           <Route path="/artesano/:slug" element={<ArtisanProfile />} />
                           <Route path="/newsletter" element={<Newsletter />} />
                           <Route path="/territorios" element={<Territorios />} />
@@ -127,6 +134,7 @@ const App = () => (
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
                         <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/certificate/register" element={<CertificateRegistrationPage />} />
                         {/* <Route path="/recategorize" element={<RecategorizeProducts />} />
                         <Route path="/create-view" element={<CreateMarketplaceView />} /> */}
 

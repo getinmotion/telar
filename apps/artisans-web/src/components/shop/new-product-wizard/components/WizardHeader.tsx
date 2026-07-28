@@ -1,4 +1,5 @@
 import React from "react";
+import { useWizardMode } from "../context/WizardModeContext";
 
 interface WizardHeaderProps {
   step: number;
@@ -23,8 +24,25 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
   isSavingProgress,
   onLogout,
 }) => {
+  const mode = useWizardMode();
+
+  // En moderación el encabezado lo pone el step-rail del Studio.
+  if (mode !== "author") return null;
+
   return (
     <div className="flex items-center gap-2 py-4 px-4 md:px-10 max-w-[1200px] mx-auto w-full">
+      {onBack && (
+        <button
+          onClick={onBack}
+          title="Volver"
+          className="flex items-center text-[#54433e]/60 hover:text-[#ec6d13] transition-colors group shrink-0 -ml-1"
+        >
+          <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">
+            arrow_back
+          </span>
+        </button>
+      )}
+
       <span className="material-symbols-outlined text-[18px] text-[#ec6d13] shrink-0">
         {icon}
       </span>

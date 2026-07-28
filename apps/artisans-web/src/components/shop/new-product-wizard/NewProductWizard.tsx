@@ -12,6 +12,7 @@ import {
 } from "@/services/products-new.actions";
 import { useNewWizardState } from "./hooks/useNewWizardState";
 import { useWizardDraft, mapNewStateToDto } from "./hooks/useWizardDraft";
+import { mapProductResponseToWizardState } from "./hooks/mapProductToWizardState";
 import { Step1NewPiece } from "./steps/Step1NewPiece";
 import { Step2ArtisanalIdentity } from "./steps/Step2ArtisanalIdentity";
 import { Step3ProcessTime } from "./steps/Step3ProcessTime";
@@ -173,6 +174,14 @@ export const NewProductWizard: React.FC = () => {
           if (dept && !state.department) update({ department: dept });
           if (shop.municipality && !state.municipality)
             update({ municipality: shop.municipality });
+          // Origen y taller vienen del perfil de la tienda, no se capturan por pieza
+          if (shop.shopName && !state.workshopName)
+            update({ workshopName: shop.shopName });
+          const shopOrigin = [shop.municipality, dept]
+            .filter(Boolean)
+            .join(", ");
+          if (shopOrigin && !state.shippingOrigin)
+            update({ shippingOrigin: shopOrigin });
 
           // Pre-fill process and tools from artisan profile only for NEW products (not edit mode)
           if (!isEditMode) {
@@ -223,67 +232,7 @@ export const NewProductWizard: React.FC = () => {
           toast.error("No se encontró el producto para editar");
           return;
         }
-        const primaryVariant =
-          product.variants?.find((v) => v.isActive) || product.variants?.[0];
-        const images =
-          product.media
-            ?.filter((m) => m.mediaType === "image")
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .map((m) => m.mediaUrl) || [];
-
-        update({
-          productId: product.id,
-          status: product.status as any,
-          name: product.name,
-          shortDescription: product.shortDescription,
-          artisanalHistory: product.history || undefined,
-          careNotes: product.careNotes || undefined,
-          images,
-          categoryId: product.categoryId || undefined,
-          materials: product.materials?.map((m) => m.materialId) || [],
-          // artisanal identity
-          craftId: product.artisanalIdentity?.primaryCraftId || undefined,
-          primaryTechniqueId:
-            product.artisanalIdentity?.primaryTechniqueId || undefined,
-          secondaryTechniqueId:
-            product.artisanalIdentity?.secondaryTechniqueId || undefined,
-          elaborationTime:
-            product.artisanalIdentity?.estimatedElaborationTime || undefined,
-          isCollaboration: product.artisanalIdentity?.isCollaboration ?? false,
-          collaboration: product.artisanalIdentity?.collaborationName
-            ? { name: product.artisanalIdentity.collaborationName }
-            : undefined,
-          purpose: product.artisanalIdentity?.pieceType as any,
-          styles: product.artisanalIdentity?.style
-            ? [product.artisanalIdentity.style as any]
-            : undefined,
-          // physical specs
-          heightCm: product.physicalSpecs?.heightCm || undefined,
-          widthCm: product.physicalSpecs?.widthCm || undefined,
-          lengthCm: product.physicalSpecs?.lengthOrDiameterCm || undefined,
-          weightKg: product.physicalSpecs?.realWeightKg || undefined,
-          // logistics
-          packagedWeightKg: product.logistics?.packWeightKg || undefined,
-          packagedWidthCm: product.logistics?.packWidthCm || undefined,
-          packagedHeightCm: product.logistics?.packHeightCm || undefined,
-          packagedLengthCm: product.logistics?.packLengthCm || undefined,
-          shippingRestrictions:
-            product.logistics?.specialProtectionNotes || undefined,
-          specialHandling: product.logistics?.fragility === "alto",
-          // production
-          availabilityType: product.production?.availabilityType as any,
-          monthlyCapacity: product.production?.monthlyCapacity || undefined,
-          processDescription:
-            product.production?.processDescription || undefined,
-          processEvidenceUrls:
-            product.production?.processEvidenceUrls || undefined,
-          // pricing
-          price: primaryVariant?.basePriceMinor
-            ? Math.round(parseInt(primaryVariant.basePriceMinor) / 100 / 1.05)
-            : undefined,
-          sku: primaryVariant?.sku || undefined,
-          inventory: primaryVariant?.stockQuantity || undefined,
-        });
+        update(mapProductResponseToWizardState(product));
 
         // Also restore agent suggestions from backend
         getSuggestProductsDraft(product.id)
@@ -604,9 +553,9 @@ export const NewProductWizard: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Header fixed — solo mobile; desktop usa el header propio de cada step */}
+      {/* Header en flujo — siempre visible en mobile y desktop; el scroll ocurre debajo */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-30 border-b border-[#e2d5cf]/40"
+        className="shrink-0 z-30 border-b border-[#e2d5cf]/40"
         style={{
           background: "rgba(249,247,242,0.95)",
           backdropFilter: "blur(12px)",
@@ -626,7 +575,7 @@ export const NewProductWizard: React.FC = () => {
       </div>
 
       {/* Contenido scrollable */}
-      <div className="flex-1 overflow-y-auto pt-14 md:pt-0">
+      <div className="flex-1 overflow-y-auto">
         {currentStep === 1 && <Step1NewPiece {...stepProps} shopId={shopId} />}
         {currentStep === 2 && <Step2ArtisanalIdentity {...stepProps} />}
         {currentStep === 3 && <Step3ProcessTime {...stepProps} />}

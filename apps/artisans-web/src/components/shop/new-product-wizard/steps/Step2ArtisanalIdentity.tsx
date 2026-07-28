@@ -15,8 +15,18 @@ import type {
 import { step1Confirm } from "@/services/agent.actions";
 import { WizardFooter } from "../components/WizardFooter";
 import { AiBadge } from "../components/AiBadge";
+import { useStepValidation } from "../hooks/useStepValidation";
+import {
+  RequiredMark,
+  FieldErrorMessage,
+  MissingFieldsBanner,
+} from "../components/FieldValidation";
 import { MaterialPicker } from "../components/TaxonomyPicker";
 import { CraftPicker, TechniquePicker } from "../components/CraftPicker";
+import {
+  deriveAvailabilityType,
+  AVAILABILITY_LABELS,
+} from "../utils/availability";
 import { getAllCategories, type Category } from "@/services/categories.actions";
 
 interface Props {
@@ -240,13 +250,32 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
     [state.fieldMetadata, update],
   );
 
-  const canContinue =
-    !!state.categoryId &&
-    !!state.craftId &&
-    !!state.primaryTechniqueId &&
-    state.materials.length > 0 &&
-    !!state.purpose &&
-    !!state.productionType;
+  const { missing, attemptNext, fieldError } = useStepValidation([
+    {
+      key: "category",
+      label: "Categoría TELAR",
+      isValid: !!state.categoryId,
+      errorMessage: "Selecciona una categoría",
+    },
+    {
+      key: "craft",
+      label: "Oficio",
+      isValid: !!state.craftId,
+      errorMessage: "Selecciona el oficio artesanal",
+    },
+    {
+      key: "technique",
+      label: "Técnica",
+      isValid: !!state.primaryTechniqueId,
+      errorMessage: "Selecciona la técnica principal",
+    },
+    {
+      key: "productionType",
+      label: "Tipo de producción",
+      isValid: !!state.productionType,
+      errorMessage: "Selecciona cómo se produce esta pieza",
+    },
+  ]);
 
   const telarCategories = allCategories
     .filter((c) => !c.parentId)
@@ -299,14 +328,8 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
   const [isConfirming, setIsConfirming] = useState(false);
 
   const handleNext = async () => {
-    // Strict validation with user feedback
-    if (!state.categoryId) {
-      toast.error("Por favor selecciona una categoría para la pieza");
-      return;
-    }
-
-    if (!state.craftId) {
-      toast.error("Por favor selecciona el oficio artesanal");
+    if (!attemptNext()) {
+      toast.error("Completa los campos marcados en rojo");
       return;
     }
 
@@ -599,10 +622,15 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
           {/* Main form */}
           <section className="lg:col-span-9 space-y-4">
             {/* ── 1. Categoría ──────────────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div
+              id="wizard-field-category"
+              className="p-5 rounded-2xl"
+              style={cardStyle}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                  Categoría TELAR *
+                  Categoría TELAR
+                  <RequiredMark />
                 </label>
                 <AiBadge />
               </div>
@@ -649,6 +677,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                     );
                   })}
                 </div>
+              )}
+              {fieldError("category") && (
+                <FieldErrorMessage message="Selecciona una categoría" />
               )}
 
               {state.categoryId && (
@@ -704,10 +735,15 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
             </div>
 
             {/* ── 2. Oficio + Técnicas ──────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div
+              id="wizard-field-craft"
+              className="p-5 rounded-2xl"
+              style={cardStyle}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                  Oficio *
+                  Oficio
+                  <RequiredMark />
                 </label>
                 <AiBadge />
               </div>
@@ -722,12 +758,19 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                 onChange={handleCraftChange}
                 onNameChange={setCraftName}
               />
+              {fieldError("craft") && (
+                <FieldErrorMessage message="Selecciona el oficio artesanal" />
+              )}
 
               {state.craftId && (
-                <div className="mt-5 pt-5 border-t border-[#e2d5cf]/25">
+                <div
+                  id="wizard-field-technique"
+                  className="mt-5 pt-5 border-t border-[#e2d5cf]/25"
+                >
                   <div className="flex items-center gap-2 mb-3">
                     <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] tracking-widest uppercase">
-                      Técnica *
+                      Técnica
+                      <RequiredMark />
                     </label>
                     <AiBadge />
                   </div>
@@ -740,6 +783,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                     }
                     onNameChange={setTechniqueName}
                   />
+                  {fieldError("technique") && (
+                    <FieldErrorMessage message="Selecciona la técnica principal" />
+                  )}
                 </div>
               )}
             </div>
@@ -890,12 +936,18 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
             </div>
 
             {/* ── 5. Tipo de producción ─────────────────── */}
-            <div className="p-5 rounded-2xl" style={cardStyle}>
+            <div
+              id="wizard-field-productionType"
+              className="p-5 rounded-2xl"
+              style={cardStyle}
+            >
               <label className="font-['Manrope'] text-[10px] font-[800] text-[#151b2d] block mb-1 uppercase tracking-widest">
-                Tipo de producción *
+                Tipo de producción
+                <RequiredMark />
               </label>
               <p className="text-[11px] text-[#54433e]/60 mb-4">
-                ¿Cómo se produce esta pieza?
+                ¿Cómo se produce esta pieza? Esto define su disponibilidad
+                comercial.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
                 {PRODUCTION_TYPES.map((pt) => {
@@ -903,7 +955,12 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                   return (
                     <button
                       key={pt.id}
-                      onClick={() => update({ productionType: pt.id })}
+                      onClick={() =>
+                        update({
+                          productionType: pt.id,
+                          availabilityType: deriveAvailabilityType(pt.id),
+                        })
+                      }
                       className="flex flex-col gap-1 p-3 rounded-xl text-left transition-all"
                       style={{
                         background: isSelected
@@ -933,6 +990,24 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                   );
                 })}
               </div>
+              {fieldError("productionType") && (
+                <FieldErrorMessage message="Selecciona cómo se produce esta pieza" />
+              )}
+              {state.productionType && (
+                <p className="text-[11px] text-[#54433e]/60 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-[#ec6d13]">
+                    storefront
+                  </span>
+                  Se venderá como:{" "}
+                  <span className="font-[800] text-[#151b2d]">
+                    {
+                      AVAILABILITY_LABELS[
+                        deriveAvailabilityType(state.productionType)
+                      ]
+                    }
+                  </span>
+                </p>
+              )}
             </div>
 
             {/* ── 6. Colaboración ───────────────────────── */}
@@ -994,6 +1069,12 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                 </div>
               )}
             </div>
+
+            {missing.length > 0 && (
+              <div className="mt-4">
+                <MissingFieldsBanner missing={missing} />
+              </div>
+            )}
           </section>
         </div>
       </main>
@@ -1005,22 +1086,8 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
         onNext={handleNext}
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
-        nextDisabled={!canContinue || isConfirming}
-        disabledReason={
-          !state.categoryId
-            ? "Selecciona una categoría"
-            : !state.craftId
-              ? "Selecciona el oficio artesanal"
-              : !state.primaryTechniqueId
-                ? "Selecciona la técnica"
-                : state.materials.length === 0
-                  ? "Agrega al menos un material"
-                  : !state.purpose
-                    ? "Selecciona el propósito de la pieza"
-                    : !state.productionType
-                      ? "Selecciona el tipo de producción"
-                      : undefined
-        }
+        nextDisabled={isConfirming}
+        disabledReason={isConfirming ? "Confirmando información..." : undefined}
         nextLabel="Confirmar y continuar"
         leftOffset={leftOffset}
       />
