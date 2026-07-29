@@ -5,9 +5,10 @@ import { paymentsProviders } from './payments.providers';
 import { DatabaseModule } from 'src/config/configOrm.module';
 import { MailModule } from '../mail/mail.module';
 import { ServientregaModule } from '../servientrega/servientrega.module';
+import { ProductIdentityModule } from '../product-identity/product-identity.module';
 
 @Module({
-  imports: [DatabaseModule, MailModule, ServientregaModule],
+  imports: [DatabaseModule, MailModule, ServientregaModule, ProductIdentityModule],
   controllers: [PaymentsController],
   providers: [...paymentsProviders, PaymentsService],
   exports: [PaymentsService],

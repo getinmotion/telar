@@ -18,6 +18,7 @@ import { MailService } from '../mail/mail.service';
 import { IdTypeUserService } from '../id-type-user/id-type-user.service';
 import { UserRolesService } from '../user-roles/user-roles.service';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterMarketplaceDto } from './dto/register-marketplace.dto';
 import { User } from '../users/entities/user.entity';
 import { AccountType } from '../user-profiles/entities/user-profile.entity';
 import * as crypto from 'crypto';
@@ -828,7 +829,7 @@ export class AuthService {
    * - Se activa automáticamente
    * - Retorna token JWT directamente
    */
-  async registerMarketplace(registerDto: RegisterDto): Promise<{
+  async registerMarketplace(registerDto: RegisterMarketplaceDto): Promise<{
     success: boolean;
     message: string;
     userId: string;
@@ -874,10 +875,7 @@ export class AuthService {
           department: registerDto.department.trim(),
           city: registerDto.city.trim(),
           accountType: AccountType.BUYER, // Tipo de cuenta para marketplace
-          rut:
-            registerDto.hasRUT && registerDto.rut
-              ? registerDto.rut.trim()
-              : undefined,
+          rut: registerDto.hasRUT ? undefined : undefined, // RUT no requerido en marketplace
           rutPendiente: !registerDto.hasRUT,
           newsletterOptIn: registerDto.newsletterOptIn || false,
         });
