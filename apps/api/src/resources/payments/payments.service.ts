@@ -176,7 +176,7 @@ export class PaymentsService {
         totalFormatted,
       };
 
-      // 8. Enviar emails en paralelo: comprador + artesanos
+      // 8. Enviar emails en paralelo: comprador + artesanos + gerencia
       const emailPromises: Promise<void>[] = [];
 
       // Email al comprador
@@ -205,6 +205,17 @@ export class PaymentsService {
       );
       emailPromises.push(artisanEmailsPromise);
 
+      // Email a gerencia con información completa de la venta
+      const managementEmailPromise = this.sendManagementNotification(
+        webhookData.cart_id,
+        buyer,
+        buyerName,
+        cartItems,
+        cart.currency,
+        totalFormatted,
+      );
+      emailPromises.push(managementEmailPromise);
+
       // Esperar a que todos los emails se envíen
       await Promise.all(emailPromises);
 
@@ -217,6 +228,8 @@ export class PaymentsService {
 
       // 10. Generar guías de envío con Servientrega
       // await this.generateShippingGuides(webhookData.cart_id);
+      // 9. Generar guías de envío con Servientrega
+      await this.generateShippingGuides(webhookData.cart_id);
 
       // TODO: Implementar lógica adicional
       // - await this.checkoutsService.updateStatus(cartId, 'PAID');
@@ -465,6 +478,122 @@ export class PaymentsService {
         error instanceof Error ? error.stack : String(error),
       );
       // No lanzar error para no interrumpir otras notificaciones
+    }
+  }
+
+  /**
+   * Envía notificación de venta a gerencia con información completa
+   */
+  private async sendManagementNotification(
+    cartId: string,
+    buyer: User,
+    buyerName: string,
+    cartItems: CartItem[],
+    currency: string,
+    grandTotalFormatted: string,
+  ): Promise<void> {
+    try {
+      // 1. Obtener información del perfil del comprador para nombre completo y teléfono
+      let buyerFullName = buyerName;
+      let buyerPhone = buyer.phone || 'No disponible';
+
+      if (buyer.id) {
+        const buyerProfile = await this.userProfileRepository.findOne({
+          where: { id: buyer.id },
+        });
+
+        if (buyerProfile) {
+          if (buyerProfile.fullName) {
+            buyerFullName = buyerProfile.fullName;
+          }
+          if (buyerProfile.whatsappE164) {
+            buyerPhone = buyerProfile.whatsappE164;
+          }
+        }
+      }
+
+      const buyerInfo = {
+        name: buyerFullName,
+        email: buyer.email || 'No disponible',
+        phone: buyerPhone,
+      };
+
+      // 2. Agrupar items por tienda
+      const itemsByShop = new Map<
+        string,
+        { 
+          shopName: string;
+          items: CartItem[]; 
+          total: number;
+        }
+      >();
+
+      for (const item of cartItems) {
+        const shopId = item.sellerShopId;
+        if (!shopId) {
+          this.logger.warn(
+            `[PAID] Cart item ${item.id} no tiene seller_shop_id`,
+          );
+          continue;
+        }
+
+        if (!itemsByShop.has(shopId)) {
+          // Obtener nombre de la tienda
+          const shop = await this.artisanShopRepository.findOne({
+            where: { id: shopId },
+          });
+
+          itemsByShop.set(shopId, { 
+            shopName: shop?.shopName || 'Tienda desconocida',
+            items: [], 
+            total: 0 
+          });
+        }
+
+        const group = itemsByShop.get(shopId)!;
+        group.items.push(item);
+        group.total += parseInt(item.unitPriceMinor, 10) * item.quantity;
+      }
+
+      // 3. Formatear datos de las tiendas
+      const shops = Array.from(itemsByShop.entries()).map(([shopId, group]) => {
+        const formattedItems = group.items.map((item) => {
+          const unitPrice = parseInt(item.unitPriceMinor, 10);
+          const subtotal = unitPrice * item.quantity;
+
+          return {
+            productName: item.product?.name || 'Producto sin nombre',
+            quantity: item.quantity,
+            formattedPrice: this.formatCurrency(unitPrice, currency),
+            formattedSubtotal: this.formatCurrency(subtotal, currency),
+          };
+        });
+
+        return {
+          shopId,
+          shopName: group.shopName,
+          items: formattedItems,
+          totalFormatted: this.formatCurrency(group.total, currency),
+        };
+      });
+
+      // 4. Enviar email a gerencia
+      await this.mailService.sendSaleNotificationToManagement(
+        cartId,
+        buyerInfo,
+        shops,
+        grandTotalFormatted,
+      );
+
+      this.logger.log(
+        `[PAID] Email de notificación enviado a gerencia para cart: ${cartId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `[PAID] Error enviando email a gerencia para cart: ${cartId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      // No lanzar error para no interrumpir el flujo
     }
   }
 

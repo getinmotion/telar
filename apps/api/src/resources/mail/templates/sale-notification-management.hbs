@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Venta - TELAR Gerencia</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 700px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
+                            {{#if logoUrl}}
+                            <img src="{{logoUrl}}" alt="TELAR" style="height: 50px; margin-bottom: 15px;">
+                            {{/if}}
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">🛒 Nueva Venta Registrada</h1>
+                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Notificación para Gerencia</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 32px;">
+                            <h2 style="margin: 0 0 8px; color: #142239; font-size: 20px;">Resumen de Venta</h2>
+                            <p style="margin: 0 0 24px; color: #666; font-size: 16px; line-height: 1.5;">
+                                Se ha registrado una nueva venta en el marketplace. A continuación encontrarás todos los detalles de la transacción.
+                            </p>
+
+                            <!-- Order Info -->
+                            <div style="background-color: #eff6ff; border-radius: 12px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #2563eb;">
+                                <h3 style="margin: 0 0 12px; color: #2563eb; font-size: 18px;">📋 Información del Pedido</h3>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #666; font-size: 14px;">ID del carrito:</span>
+                                    <span style="color: #142239; font-weight: 600; font-size: 14px; margin-left: 8px; font-family: monospace;">{{cartId}}</span>
+                                </div>
+                                <div>
+                                    <span style="color: #666; font-size: 14px;">Total de la venta:</span>
+                                    <span style="color: #16a34a; font-weight: 700; font-size: 18px; margin-left: 8px;">{{grandTotalFormatted}}</span>
+                                </div>
+                            </div>
+
+                            <!-- Buyer Info -->
+                            <div style="background-color: #f0fdf4; border-radius: 12px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #16a34a;">
+                                <h3 style="margin: 0 0 12px; color: #16a34a; font-size: 18px;">👤 Información del Comprador</h3>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #666; font-size: 14px;">Nombre:</span>
+                                    <span style="color: #142239; font-weight: 600; font-size: 14px; margin-left: 8px;">{{buyerInfo.name}}</span>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: #666; font-size: 14px;">Email:</span>
+                                    <span style="color: #142239; font-weight: 600; font-size: 14px; margin-left: 8px;">{{buyerInfo.email}}</span>
+                                </div>
+                                <div>
+                                    <span style="color: #666; font-size: 14px;">Teléfono:</span>
+                                    <span style="color: #142239; font-weight: 600; font-size: 14px; margin-left: 8px;">{{buyerInfo.phone}}</span>
+                                </div>
+                            </div>
+
+                            <!-- Shops and Products -->
+                            <h3 style="margin: 0 0 16px; color: #142239; font-size: 18px;">🏪 Tiendas y Productos</h3>
+
+                            {{#each shops}}
+                            <div style="background-color: #fafafa; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #e0e0e0;">
+                                <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e0e0e0;">
+                                    <h4 style="margin: 0 0 4px; color: #142239; font-size: 16px; font-weight: 600;">{{this.shopName}}</h4>
+                                    <span style="color: #666; font-size: 12px; font-family: monospace;">ID: {{this.shopId}}</span>
+                                </div>
+
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+                                    <thead>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 13px; color: #142239;">Producto</th>
+                                            <th style="padding: 10px 8px; text-align: center; font-weight: 600; font-size: 13px; color: #142239;">Cant.</th>
+                                            <th style="padding: 10px 8px; text-align: right; font-weight: 600; font-size: 13px; color: #142239;">P. Unit.</th>
+                                            <th style="padding: 10px 8px; text-align: right; font-weight: 600; font-size: 13px; color: #142239;">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each this.items}}
+                                        <tr style="border-bottom: 1px solid #e8e8e8;">
+                                            <td style="padding: 12px 8px; color: #142239; font-size: 13px;">{{this.productName}}</td>
+                                            <td style="padding: 12px 8px; text-align: center; color: #666; font-size: 13px;">{{this.quantity}}</td>
+                                            <td style="padding: 12px 8px; text-align: right; color: #666; font-size: 13px;">{{this.formattedPrice}}</td>
+                                            <td style="padding: 12px 8px; text-align: right; font-weight: 600; color: #142239; font-size: 13px;">{{this.formattedSubtotal}}</td>
+                                        </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+
+                                <div style="text-align: right; padding-top: 8px; border-top: 2px solid #e0e0e0;">
+                                    <span style="color: #666; font-size: 14px; margin-right: 12px;">Total tienda:</span>
+                                    <span style="color: #16a34a; font-weight: 700; font-size: 16px;">{{this.totalFormatted}}</span>
+                                </div>
+                            </div>
+                            {{/each}}
+
+                            <!-- Grand Total -->
+                            <div style="background-color: #f0fdf4; border-radius: 12px; padding: 20px; margin-top: 24px; text-align: right;">
+                                <span style="color: #142239; font-size: 18px; font-weight: 600; margin-right: 16px;">Total General:</span>
+                                <span style="color: #16a34a; font-weight: 700; font-size: 24px;">{{grandTotalFormatted}}</span>
+                            </div>
+
+                            <!-- Note -->
+                            <div style="padding: 16px; background-color: #fef3c7; border-radius: 8px; margin-top: 24px;">
+                                <p style="margin: 0; color: #78350f; font-size: 13px; line-height: 1.6;">
+                                    <strong>ℹ️ Nota:</strong> Este correo es únicamente informativo para gerencia. Los correos de confirmación ya fueron enviados al comprador y a cada artesano involucrado en la venta.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #142239; text-align: center;">
+                            <p style="margin: 0 0 8px; color: #ffffff; font-size: 14px;">TELAR - Sistema de Notificaciones</p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">Gestión de Marketplace</p>
+                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">TELAR © {{year}}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

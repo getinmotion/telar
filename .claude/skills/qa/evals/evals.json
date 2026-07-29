@@ -1,0 +1,64 @@
+{
+  "skill_name": "qa",
+  "evals": [
+    {
+      "id": 0,
+      "name": "checkout-area",
+      "prompt": "Haz QA del checkout del marketplace y dime todo lo que esté fallando.",
+      "expected_output": "Reporte en docs/qa/YYYY-MM-DD-checkout.md con plantilla del skill: resumen, incidencias con severidad y pasos, sospechas separadas, tabla de casos, bloqueos. Alcance limitado a checkout. Sin cambios en codigo fuente.",
+      "files": [],
+      "assertions": [
+        "No modificó ningún archivo de código fuente del repo (git status limpio fuera de docs/qa/)",
+        "Escribió un reporte de QA como archivo markdown en docs/qa/ con nombre fechado YYYY-MM-DD-<area>.md",
+        "El reporte incluye las 5 secciones de la plantilla: Resumen, Incidencias, Sospechas sin reproducir, Casos ejecutados y Bloqueos",
+        "Cada incidencia reportada trae Pasos, Esperado y Obtenido de forma explícita",
+        "Asigna severidad 🔴/🟡/🟢 a cada incidencia",
+        "Separa hallazgos confirmados en navegador de sospechas de código no reproducidas, en secciones distintas",
+        "Cita evidencia de consola o de red (status HTTP / endpoint), no solo lo que se ve en el DOM",
+        "Lo no probado por falta de credenciales o datos está marcado como bloqueo (⏸), no como falla",
+        "Limitó el alcance al checkout del marketplace, sin derivar a moderación ni backoffice",
+        "Ejecutó la app en el navegador (no solo revisión estática de código)",
+        "La respuesta final al usuario es un resumen corto (veredicto + 🔴 + bloqueos + ruta del reporte), sin volcar el reporte completo"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "moderacion-area",
+      "prompt": "Prueba la cola de moderación de productos en artisans-web y repórtame qué está roto.",
+      "expected_output": "Reporte en docs/qa/ del area moderacion. Login requerido sin credenciales -> debe marcarse como bloqueo (⏸) explicito en vez de inventar fallas. Sin cambios en codigo fuente.",
+      "files": [],
+      "assertions": [
+        "No modificó ningún archivo de código fuente del repo (git status limpio fuera de docs/qa/)",
+        "Escribió un reporte de QA como archivo markdown en docs/qa/ con nombre fechado YYYY-MM-DD-<area>.md",
+        "El reporte incluye las 5 secciones de la plantilla: Resumen, Incidencias, Sospechas sin reproducir, Casos ejecutados y Bloqueos",
+        "Identificó que la cola de moderación exige sesión con rol y que no hay credenciales disponibles",
+        "Marcó los casos no ejecutables como bloqueo (⏸) en vez de inventar fallas o reportar 'no carga' como incidencia",
+        "No presenta sospechas de código como si fueran fallas confirmadas",
+        "Asigna severidad 🔴/🟡/🟢 a cada incidencia",
+        "Ancló al menos un hallazgo o sospecha a archivo:línea del código",
+        "Limitó el alcance a moderación, sin derivar a otras áreas",
+        "Declaró explícitamente qué quedó sin cubrir en vez de presentar cobertura total",
+        "La respuesta final al usuario es un resumen corto con veredicto y lo que necesita para desbloquear la corrida"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "smoke-test",
+      "prompt": "Necesito correr un smoke test antes de desplegar, avísame si hay algo que bloquee el deploy.",
+      "expected_output": "Debe usar el Checklist de regresion rapida de QA_PLATFORM.md (no el mapa de 8 areas), reportar solo lo que falle, y dar veredicto de deploy. Sin cambios en codigo fuente.",
+      "files": [],
+      "assertions": [
+        "No modificó ningún archivo de código fuente del repo (git status limpio fuera de docs/qa/)",
+        "Usó el 'Checklist de regresión rápida (Smoke Test)' de QA_PLATFORM.md como guion, en vez del mapa de 8 áreas",
+        "Cubrió los ítems del checklist de smoke (homepage, logins, visibilidad de producto, carrito, checkout, cola de moderación, dashboard artesano)",
+        "Reporta solo lo que falla, sin volcar todos los casos que pasaron",
+        "Da un veredicto explícito de si el deploy está bloqueado o no",
+        "Ejecutó la app en el navegador (no solo revisión estática de código)",
+        "Verificó consola y/o red además del DOM",
+        "Lo no probado por falta de credenciales está marcado como bloqueo (⏸), no como falla",
+        "Distingue bloqueo de entorno (API/servidor/credenciales) de incidencia de producto",
+        "La respuesta final al usuario prioriza el veredicto de deploy y es breve"
+      ]
+    }
+  ]
+}
