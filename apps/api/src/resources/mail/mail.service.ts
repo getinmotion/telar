@@ -392,4 +392,47 @@ export class MailService {
 
     await this.mailerService.sendMail(mailOptions);
   }
+
+  /**
+   * Enviar notificación de venta a gerencia
+   */
+  async sendSaleNotificationToManagement(
+    cartId: string,
+    buyerInfo: {
+      name: string;
+      email: string;
+      phone: string;
+    },
+    shops: Array<{
+      shopId: string;
+      shopName: string;
+      items: Array<{
+        productName: string;
+        quantity: number;
+        formattedPrice: string;
+        formattedSubtotal: string;
+      }>;
+      totalFormatted: string;
+    }>,
+    grandTotalFormatted: string,
+  ): Promise<void> {
+    const managementEmail = 'cesar@getinmotion.io';
+
+    await this.mailerService.sendMail({
+      to: managementEmail,
+      subject: `🛒 Nueva Venta Registrada - Cart ${cartId}`,
+      template: './sale-notification-management',
+      context: {
+        cartId,
+        buyerInfo,
+        shops,
+        grandTotalFormatted,
+        logoUrl: ImageUrlBuilder.buildUrl(
+          this.configService.get<string>('LOGO_URL') ||
+            '/images/platform/telar-logo.png',
+        ),
+        year: new Date().getFullYear(),
+      },
+    });
+  }
 }
