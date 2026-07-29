@@ -19,6 +19,7 @@ import {
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterMarketplaceDto } from './dto/register-marketplace.dto';
 import { RegisterOtpDto } from './dto/register-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
@@ -130,7 +131,7 @@ export class AuthController {
     status: 500,
     description: 'Error al crear el perfil de usuario',
   })
-  async registerMarketplace(@Body() registerDto: RegisterDto) {
+  async registerMarketplace(@Body() registerDto: RegisterMarketplaceDto) {
     return await this.authService.registerMarketplace(registerDto);
   }
 

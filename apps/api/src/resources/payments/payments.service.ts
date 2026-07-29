@@ -10,6 +10,7 @@ import { ArtisanShop } from '../artisan-shops/entities/artisan-shop.entity';
 import { UserProfile } from '../user-profiles/entities/user-profile.entity';
 import { MailService } from '../mail/mail.service';
 import { ServientregaService } from '../servientrega/servientrega.service';
+import { ProductIdentityService } from '../product-identity/product-identity.service';
 
 @Injectable()
 export class PaymentsService {
@@ -32,6 +33,7 @@ export class PaymentsService {
     private readonly userProfileRepository: Repository<UserProfile>,
     private readonly mailService: MailService,
     private readonly servientregaService: ServientregaService,
+    private readonly productIdentityService: ProductIdentityService,
   ) {}
 
   /**
@@ -174,7 +176,7 @@ export class PaymentsService {
         totalFormatted,
       };
 
-      // 8. Enviar emails en paralelo: comprador + artesanos
+      // 8. Enviar emails en paralelo: comprador + artesanos + gerencia
       const emailPromises: Promise<void>[] = [];
 
       // Email al comprador
@@ -203,6 +205,17 @@ export class PaymentsService {
       );
       emailPromises.push(artisanEmailsPromise);
 
+      // Email a gerencia con información completa de la venta
+      const managementEmailPromise = this.sendManagementNotification(
+        webhookData.cart_id,
+        buyer,
+        buyerName,
+        cartItems,
+        cart.currency,
+        totalFormatted,
+      );
+      emailPromises.push(managementEmailPromise);
+
       // Esperar a que todos los emails se envíen
       await Promise.all(emailPromises);
 
@@ -210,8 +223,13 @@ export class PaymentsService {
         `[PAID] Todos los emails enviados para cart: ${webhookData.cart_id}`,
       );
 
-      // 9. Generar guías de envío con Servientrega
+      // 9. Generar certificados digitales para cada producto comprado
+      await this.generateDigitalCertificates(cartItems, buyer.email, webhookData.cart_id);
+
+      // 10. Generar guías de envío con Servientrega
       // await this.generateShippingGuides(webhookData.cart_id);
+      // 9. Generar guías de envío con Servientrega
+      await this.generateShippingGuides(webhookData.cart_id);
 
       // TODO: Implementar lógica adicional
       // - await this.checkoutsService.updateStatus(cartId, 'PAID');
@@ -464,6 +482,122 @@ export class PaymentsService {
   }
 
   /**
+   * Envía notificación de venta a gerencia con información completa
+   */
+  private async sendManagementNotification(
+    cartId: string,
+    buyer: User,
+    buyerName: string,
+    cartItems: CartItem[],
+    currency: string,
+    grandTotalFormatted: string,
+  ): Promise<void> {
+    try {
+      // 1. Obtener información del perfil del comprador para nombre completo y teléfono
+      let buyerFullName = buyerName;
+      let buyerPhone = buyer.phone || 'No disponible';
+
+      if (buyer.id) {
+        const buyerProfile = await this.userProfileRepository.findOne({
+          where: { id: buyer.id },
+        });
+
+        if (buyerProfile) {
+          if (buyerProfile.fullName) {
+            buyerFullName = buyerProfile.fullName;
+          }
+          if (buyerProfile.whatsappE164) {
+            buyerPhone = buyerProfile.whatsappE164;
+          }
+        }
+      }
+
+      const buyerInfo = {
+        name: buyerFullName,
+        email: buyer.email || 'No disponible',
+        phone: buyerPhone,
+      };
+
+      // 2. Agrupar items por tienda
+      const itemsByShop = new Map<
+        string,
+        { 
+          shopName: string;
+          items: CartItem[]; 
+          total: number;
+        }
+      >();
+
+      for (const item of cartItems) {
+        const shopId = item.sellerShopId;
+        if (!shopId) {
+          this.logger.warn(
+            `[PAID] Cart item ${item.id} no tiene seller_shop_id`,
+          );
+          continue;
+        }
+
+        if (!itemsByShop.has(shopId)) {
+          // Obtener nombre de la tienda
+          const shop = await this.artisanShopRepository.findOne({
+            where: { id: shopId },
+          });
+
+          itemsByShop.set(shopId, { 
+            shopName: shop?.shopName || 'Tienda desconocida',
+            items: [], 
+            total: 0 
+          });
+        }
+
+        const group = itemsByShop.get(shopId)!;
+        group.items.push(item);
+        group.total += parseInt(item.unitPriceMinor, 10) * item.quantity;
+      }
+
+      // 3. Formatear datos de las tiendas
+      const shops = Array.from(itemsByShop.entries()).map(([shopId, group]) => {
+        const formattedItems = group.items.map((item) => {
+          const unitPrice = parseInt(item.unitPriceMinor, 10);
+          const subtotal = unitPrice * item.quantity;
+
+          return {
+            productName: item.product?.name || 'Producto sin nombre',
+            quantity: item.quantity,
+            formattedPrice: this.formatCurrency(unitPrice, currency),
+            formattedSubtotal: this.formatCurrency(subtotal, currency),
+          };
+        });
+
+        return {
+          shopId,
+          shopName: group.shopName,
+          items: formattedItems,
+          totalFormatted: this.formatCurrency(group.total, currency),
+        };
+      });
+
+      // 4. Enviar email a gerencia
+      await this.mailService.sendSaleNotificationToManagement(
+        cartId,
+        buyerInfo,
+        shops,
+        grandTotalFormatted,
+      );
+
+      this.logger.log(
+        `[PAID] Email de notificación enviado a gerencia para cart: ${cartId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `[PAID] Error enviando email a gerencia para cart: ${cartId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      // No lanzar error para no interrumpir el flujo
+    }
+  }
+
+  /**
    * Genera guías de envío con Servientrega después de un pago exitoso
    */
   private async generateShippingGuides(cartId: string): Promise<void> {
@@ -548,6 +682,74 @@ export class PaymentsService {
       // Las guías pueden generarse manualmente si falla
       this.logger.error(
         `[Servientrega] Error generando guías para cart: ${cartId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  /**
+   * Genera certificados digitales para cada producto comprado
+   * Se ejecuta después de un pago exitoso
+   * 
+   * @param cartItems - Items del carrito (productos comprados)
+   * @param buyerEmail - Email del comprador
+   * @param cartId - ID del carrito para logging
+   */
+  private async generateDigitalCertificates(
+    cartItems: CartItem[],
+    buyerEmail: string,
+    cartId: string,
+  ): Promise<void> {
+    try {
+      this.logger.log(
+        `[Certificate] Iniciando generación de certificados digitales para cart: ${cartId}`,
+      );
+
+      // Crear un certificado por cada producto en el carrito
+      // Considerando la cantidad: si quantity > 1, crear múltiples certificados
+      const certificatePromises: Promise<void>[] = [];
+
+      for (const item of cartItems) {
+        if (!item.productId) {
+          this.logger.warn(
+            `[Certificate] Cart item ${item.id} no tiene product_id, saltando certificado`,
+          );
+          continue;
+        }
+
+        // Crear certificados según la cantidad comprada
+        for (let i = 0; i < item.quantity; i++) {
+          const certificatePromise = this.productIdentityService
+            .createWithEmail(item.productId, buyerEmail)
+            .then((result) => {
+              this.logger.log(
+                `[Certificate] Certificado ${i + 1}/${item.quantity} creado para producto ${item.productId}: ${result.productIdentity.identityKey}`,
+              );
+            })
+            .catch((error) => {
+              this.logger.error(
+                `[Certificate] Error creando certificado ${i + 1}/${item.quantity} para producto ${item.productId}`,
+                error instanceof Error ? error.stack : String(error),
+              );
+              // No lanzar el error para permitir que otros certificados se creen
+            });
+
+          certificatePromises.push(certificatePromise);
+        }
+      }
+
+      // Esperar a que todos los certificados se creen
+      await Promise.all(certificatePromises);
+
+      const totalCertificates = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      this.logger.log(
+        `[Certificate] Proceso completado: ${totalCertificates} certificados generados para cart: ${cartId}`,
+      );
+    } catch (error) {
+      // No lanzar el error para no interrumpir el flujo del pago
+      // Los certificados pueden generarse manualmente si falla
+      this.logger.error(
+        `[Certificate] Error general generando certificados para cart: ${cartId}`,
         error instanceof Error ? error.stack : String(error),
       );
     }

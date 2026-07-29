@@ -27,9 +27,7 @@ export class ProductIdentityService {
   /**
    * Crear una nueva identidad de producto
    */
-  async create(
-    createDto: CreateProductIdentityDto,
-  ): Promise<ProductIdentity> {
+  async create(createDto: CreateProductIdentityDto): Promise<ProductIdentity> {
     // Validar que la clave de identidad no exista
     const existing = await this.productIdentityRepository.findOne({
       where: { identityKey: createDto.identityKey },
@@ -155,7 +153,10 @@ export class ProductIdentityService {
     const identity = await this.getById(id);
 
     // Si se está actualizando la clave de identidad, validar que no exista
-    if (updateDto.identityKey && updateDto.identityKey !== identity.identityKey) {
+    if (
+      updateDto.identityKey &&
+      updateDto.identityKey !== identity.identityKey
+    ) {
       const existing = await this.productIdentityRepository.findOne({
         where: { identityKey: updateDto.identityKey },
       });
@@ -201,9 +202,7 @@ export class ProductIdentityService {
     const productIdentity = await this.getById(productIdentityId);
 
     // Obtener la URL del frontend
-    const baseUrl = (
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:1010'
-    ).replace(/\/$/, '');
+    const baseUrl = 'https://telar.co'.replace(/\/$/, '');
 
     // Construir el link con el identityKey
     const registrationLink = `${baseUrl}/certificate/register?key=${productIdentity.identityKey}`;
@@ -217,7 +216,9 @@ export class ProductIdentityService {
         registrationLink,
         identityKey: productIdentity.identityKey,
         supportEmail: this.configService.get<string>('MAIL_FROM_EMAIL'),
-        logoUrl: this.configService.get<string>('LOGO_URL') || '/images/platform/telar-logo.png',
+        logoUrl:
+          this.configService.get<string>('LOGO_URL') ||
+          '/images/platform/telar-logo.png',
       },
     );
 
@@ -256,23 +257,17 @@ export class ProductIdentityService {
     );
 
     if (!productCoreQuery || productCoreQuery.length === 0) {
-      throw new NotFoundException(
-        `Producto con ID ${productId} no encontrado`,
-      );
+      throw new NotFoundException(`Producto con ID ${productId} no encontrado`);
     }
 
     const productData = productCoreQuery[0];
 
     if (!productData.store_id) {
-      throw new BadRequestException(
-        'El producto no tiene una tienda asociada',
-      );
+      throw new BadRequestException('El producto no tiene una tienda asociada');
     }
 
     if (!productData.artisan_id) {
-      throw new BadRequestException(
-        'La tienda no tiene un artesano asociado',
-      );
+      throw new BadRequestException('La tienda no tiene un artesano asociado');
     }
 
     // 2. Generar identityKey único (formato: TELAR-{YEAR}-{UUID_SHORT})
@@ -299,9 +294,8 @@ export class ProductIdentityService {
       isActive: true,
     });
 
-    const savedIdentity = await this.productIdentityRepository.save(
-      newIdentity,
-    );
+    const savedIdentity =
+      await this.productIdentityRepository.save(newIdentity);
 
     // 4. Enviar email de invitación
     let invitationSent = false;
