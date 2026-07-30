@@ -260,6 +260,11 @@ const ProductDetail = () => {
                     En colaboración con {product.collaborationName}
                   </p>
                 )}
+                {product.isCollaboration && product.collaborationName && (
+                  <p className="text-sm text-[#2c2c2c]/60 italic">
+                    En colaboración con {product.collaborationName}
+                  </p>
+                )}
 
                 {/* Pasaporte de trazabilidad */}
                 <Link
@@ -956,7 +961,6 @@ const ProductDetail = () => {
           currentProductId={product.id}
           category={product.category}
           storeName={product.storeName}
-          storeId={product.shopId}
         />
       </div>
 

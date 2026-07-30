@@ -479,7 +479,9 @@ export class ServientregaService {
         relations: ['variants', 'physicalSpecs'],
       });
 
-      this.logger.warn(`[Servientrega] ESTRUCTURA DEL Producto ${item}`);
+      this.logger.warn(
+        `[Servientrega] ESTRUCTURA DEL Item: ${JSON.stringify(item, null, 2)}`,
+      );
 
       if (!product || !product.storeId) {
         this.logger.warn(
@@ -594,6 +596,8 @@ export class ServientregaService {
       `[Servientrega] Enviando solicitud SOAP para tienda ${shopId}`,
     );
 
+    this.logger.log(`[Servientrega] Soap ${JSON.stringify(soapEnvelope)}`);
+
     // Llamar a la API SOAP
     const response = await fetch(this.soapUrl, {
       method: 'POST',
@@ -605,6 +609,12 @@ export class ServientregaService {
     });
 
     const responseText = await response.text();
+
+    this.logger.log(`[Servientrega] response ${JSON.stringify(response)}`);
+
+    this.logger.log(
+      `[Servientrega] ResponseText ${JSON.stringify(responseText)}`,
+    );
 
     if (!response.ok) {
       return {
