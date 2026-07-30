@@ -28,7 +28,7 @@ const Cart = () => {
       await syncGuestCartToUser();
       navigate("/confirm-purchase");
     } catch (error) {
-      console.error('Error syncing cart:', error);
+      console.error("Error syncing cart:", error);
     } finally {
       setSyncing(false);
     }
@@ -63,7 +63,6 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-background">
-
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">
           Tu Carrito ({totalItems} productos)
@@ -116,6 +115,10 @@ const Cart = () => {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
+                          disabled={
+                            item.stock !== undefined &&
+                            item.quantity >= item.stock
+                          }
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -123,7 +126,7 @@ const Cart = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 ml-auto text-destructive"
+                          className="h-8 w-8 text-destructive"
                           onClick={() => removeFromCart(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -151,7 +154,9 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Envío</span>
-                    <span className="font-medium text-sm text-muted-foreground">Se calcula en el siguiente paso</span>
+                    <span className="font-medium text-sm text-muted-foreground">
+                      Se calcula en el siguiente paso
+                    </span>
                   </div>
                 </div>
 
@@ -166,18 +171,18 @@ const Cart = () => {
 
                 <div className="flex flex-col gap-2">
                   {user ? (
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       size="lg"
                       onClick={handleProceedToCheckout}
                       disabled={syncing}
                     >
-                      {syncing ? 'Sincronizando...' : 'Proceder al Pago'}
+                      {syncing ? "Sincronizando..." : "Proceder al Pago"}
                     </Button>
                   ) : (
                     <>
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         size="lg"
                         onClick={() => setGuestModalOpen(true)}
                       >
@@ -204,8 +209,8 @@ const Cart = () => {
       </div>
 
       {/* Guest Auth Modal */}
-      <GuestAuthModal 
-        isOpen={guestModalOpen} 
+      <GuestAuthModal
+        isOpen={guestModalOpen}
         onClose={() => setGuestModalOpen(false)}
         onSuccess={async () => {
           setGuestModalOpen(false);
