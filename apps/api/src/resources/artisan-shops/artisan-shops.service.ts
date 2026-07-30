@@ -187,10 +187,14 @@ export class ArtisanShopsService {
       LEFT JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id
       LEFT JOIN auth.users u ON u.id = s.user_id`;
     if (hasApprovedProducts === true) {
+      // El marketplace público lee `shop.products_core` (status
+      // approved/approved_with_edits), no la tabla legacy `shop.products`.
+      // Cruzar contra la legacy dejaba fuera del directorio a todo taller cuyos
+      // productos solo existen en la tabla nueva.
       fromClause += `
-        INNER JOIN shop.products p ON p.shop_id = s.id`;
+        INNER JOIN shop.products_core p ON p.store_id = s.id`;
       whereConditions.push(
-        `p.moderation_status IN ('approved', 'approved_with_edits')`,
+        `p.status IN ('approved', 'approved_with_edits') AND p.deleted_at IS NULL`,
       );
     }
 
@@ -509,9 +513,10 @@ export class ArtisanShopsService {
         AND s.marketplace_approved = $3
         AND ($5::uuid IS NULL OR ap.agreement_id = $5)
         AND EXISTS (
-          SELECT 1 FROM shop.products p
-          WHERE p.shop_id = s.id
-            AND p.moderation_status IN ('approved', 'approved_with_edits')
+          SELECT 1 FROM shop.products_core p
+          WHERE p.store_id = s.id
+            AND p.status IN ('approved', 'approved_with_edits')
+            AND p.deleted_at IS NULL
         )
       LIMIT $4
       `,

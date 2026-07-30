@@ -1225,7 +1225,6 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
-      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1374,7 +1373,6 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
-      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.subcategory', 'subcategory')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
@@ -1565,7 +1563,6 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
-      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
@@ -1655,7 +1652,6 @@ export class ProductsNewService {
     const queryBuilder = this.productCoreRepository
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.artisanShop', 'shop')
-      .leftJoin('artesanos.artisan_profile', 'ap', 'ap.user_id = shop.user_id')
       .leftJoinAndSelect('pc.category', 'category')
       .leftJoinAndSelect('pc.artisanalIdentity', 'identity')
       .leftJoinAndSelect('identity.primaryCraft', 'craft')
