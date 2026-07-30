@@ -38,16 +38,6 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
   return a;
 };
 
-// ── Categorías visibles en la home (en este orden) ──
-const HOME_CATEGORY_SLUGS = [
-  "joyeria-y-accesorios",
-  "textiles-y-moda",
-  "bolsos-y-carteras",
-  "decoracion-del-hogar",
-  "arte-y-esculturas",
-  "juguetes-e-instrumentos-musicales",
-] as const;
-
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
   const { categoryHasProducts } = useCategoryPresence();
@@ -118,15 +108,14 @@ const Index = () => {
     return karen || featuredShops[0] || null;
   }, [featuredShops]);
 
-  // Categories for display: allowlist fija, en este orden y solo las que
-  // tienen productos (misma lógica de presencia que "Explorar por categorías").
-  const displayCategories = useMemo(() => {
-    return HOME_CATEGORY_SLUGS.map((slug) =>
-      categoryHierarchy.find((c) => c.isActive && c.slug === slug),
-    )
-      .filter((c): c is (typeof categoryHierarchy)[number] => Boolean(c))
-      .filter((c) => categoryHasProducts(c));
-  }, [categoryHierarchy, categoryHasProducts]);
+  // Categories for display: las que están activas y tienen al menos una pieza
+  // (misma lógica de presencia que "Explorar por categorías"). Sin lista fija:
+  // la home se arma sola según el catálogo.
+  const displayCategories = useMemo(
+    () =>
+      categoryHierarchy.filter((c) => c.isActive && categoryHasProducts(c)),
+    [categoryHierarchy, categoryHasProducts],
+  );
 
   return (
     <>

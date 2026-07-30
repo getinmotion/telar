@@ -1,67 +1,160 @@
 /**
  * HeroSectionV2 Component
- * Hero con diseño de 2 columnas y slider/carrusel
+ * Tres slides construidos con datos reales, uno de cada tipo:
+ * un taller, una pieza y una categoría, elegidos al azar en cada carga.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { getFeaturedShops } from "@/services/artisan-shops.actions";
+import {
+  getProductsNew,
+  getPrimaryImageUrl,
+  type ProductFeatured,
+} from "@/services/products-new.actions";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Slides del hero (basados en FALLBACK_SLIDES de HeroCarousel)
 interface HeroSlide {
   id: string;
+  kicker: string;
   title: string;
   subtitle: string;
-  image: string;
-  origin: string;
-  quote: string;
-  action?: string;
+  body: string;
+  image: string | null;
+  origin: string | null;
+  ctaLabel: string;
+  ctaHref: string;
 }
 
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: "1",
-    title: "HISTORIAS HECHAS",
-    subtitle: "A MANO",
-    image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/telar_cat_v%20(4).png",
-    origin: "Nariño, Colombia",
-    quote: "Cada puntada es un susurro de nuestros ancestros.",
-  },
-  // {
-  //   id: "2",
-  //   title: "TRADICIÓN",
-  //   subtitle: "COLOMBIANA",
-  //   image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/marketplace-home/artesanias_de_colombia.png",
-  //   origin: "Bogotá, Colombia",
-  //   quote: "El arte de crear con las manos nunca muere.",
-  // },
-  {
-    id: "2",
-    title: "ARTESANÍA",
-    subtitle: "AUTÉNTICA",
-    image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1766278723378_0_WhatsApp_Image_2025-08-08_at_3.29.32_PM.jpeg.jpeg",
-    origin: "Valle del Cauca, Colombia",
-    quote: "Cada pieza cuenta una historia única.",
-  },
-    {
-    id: "3",
-    title: "COLECCIÓN",
-    subtitle: "DÍA DE LAS MADRES",
-    image: "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/images/1765405865051_0_IMG-20251206-WA0004.jpg.jpg",
-    origin: "Corregimiento La Mina, Cesar, Colombia",
-    quote: "Cada pieza cuenta una historia única.",
-    action: '/coleccion/dia-de-la-madre'
-  },
-];
+/** Elemento al azar; null si la lista viene vacía. */
+const pickRandom = <T,>(list: T[]): T | null =>
+  list.length > 0 ? list[Math.floor(Math.random() * list.length)] : null;
+
+/** Parte un nombre en dos líneas para el titular a dos tonos. */
+const splitTitle = (name: string): { title: string; subtitle: string } => {
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return { title: words[0], subtitle: "" };
+  const cut = Math.ceil(words.length / 2);
+  return {
+    title: words.slice(0, cut).join(" "),
+    subtitle: words.slice(cut).join(" "),
+  };
+};
 
 export const HeroSectionV2 = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: "start" },
-    [Autoplay({ delay: 6000, stopOnInteraction: false })]
-  );
+  const { categoryHierarchy } = useTaxonomy();
+  const [products, setProducts] = useState<ProductFeatured[]>([]);
+  const [shops, setShops] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      getProductsNew({ page: 1, limit: 60 })
+        .then((res) => (Array.isArray(res) ? res : (res.data ?? [])))
+        .catch(() => []),
+      getFeaturedShops(12).catch(() => []),
+    ])
+      .then(([prods, shopList]) => {
+        if (cancelled) return;
+        setProducts(prods as ProductFeatured[]);
+        setShops(shopList);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const slides = useMemo<HeroSlide[]>(() => {
+    const out: HeroSlide[] = [];
+
+    // ── Taller al azar ──
+    const shop = pickRandom(shops.filter((s) => s.bannerUrl || s.logoUrl));
+    if (shop) {
+      const { title, subtitle } = splitTitle(shop.shopName);
+      out.push({
+        id: `shop-${shop.id}`,
+        kicker: "Taller artesanal",
+        title,
+        subtitle,
+        body:
+          shop.description?.trim() ||
+          "Un taller que mantiene vivo su oficio y su territorio.",
+        image: shop.bannerUrl || shop.logoUrl,
+        origin: [shop.municipality || shop.region, shop.department]
+          .filter(Boolean)
+          .join(", "),
+        ctaLabel: "Conocer el taller",
+        ctaHref: `/tienda/${shop.shopSlug}`,
+      });
+    }
+
+    // ── Pieza al azar ──
+    const product = pickRandom(products.filter((p) => getPrimaryImageUrl(p)));
+    if (product) {
+      const { title, subtitle } = splitTitle(product.name || "Pieza artesanal");
+      out.push({
+        id: `product-${product.id}`,
+        kicker: "Una pieza",
+        title,
+        subtitle,
+        body:
+          product.shortDescription?.trim() ||
+          "Hecha a mano, con su origen y su proceso documentados.",
+        image: getPrimaryImageUrl(product),
+        origin: [product.storeName, product.department]
+          .filter(Boolean)
+          .join(" · "),
+        ctaLabel: "Ver la pieza",
+        ctaHref: `/product/${product.id}`,
+      });
+    }
+
+    // ── Categoría al azar, solo entre las que tienen piezas ──
+    const withProducts = categoryHierarchy.filter((c) => {
+      if (!c.isActive) return false;
+      const ids = new Set<string>([c.id, ...c.subcategories.map((s) => s.id)]);
+      return products.some((p) => ids.has((p as any).categoryId));
+    });
+    const category = pickRandom(withProducts);
+    if (category) {
+      const { title, subtitle } = splitTitle(category.name);
+      const ids = new Set<string>([
+        category.id,
+        ...category.subcategories.map((s) => s.id),
+      ]);
+      const sample = products.filter((p) => ids.has((p as any).categoryId));
+      out.push({
+        id: `category-${category.id}`,
+        kicker: "Explorar categoría",
+        title,
+        subtitle,
+        body: `${sample.length} ${sample.length === 1 ? "pieza" : "piezas"} de talleres artesanales de Colombia.`,
+        image:
+          category.imageUrl ||
+          (sample.length > 0 ? getPrimaryImageUrl(sample[0]) : null),
+        origin: null,
+        ctaLabel: "Explorar categoría",
+        ctaHref: `/productos?categoria=${category.slug}`,
+      });
+    }
+
+    return out;
+  }, [products, shops, categoryHierarchy]);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" }, [
+    Autoplay({ delay: 6000, stopOnInteraction: false }),
+  ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
@@ -76,97 +169,97 @@ export const HeroSectionV2 = () => {
     };
   }, [emblaApi]);
 
+  // El carrusel debe recalcular cuando los slides llegan después del montaje.
+  useEffect(() => {
+    emblaApi?.reInit();
+  }, [emblaApi, slides.length]);
+
+  if (loading) {
+    return (
+      <section className="w-full bg-background">
+        <div className="container mx-auto px-4 py-6 md:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start mx-[4%]">
+            <div className="flex flex-col gap-6">
+              <Skeleton className="h-20 w-3/4" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-11 w-48" />
+            </div>
+            <Skeleton className="h-[250px] md:h-[400px] w-full rounded-lg" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (slides.length === 0) return null;
+
   return (
     <section className="w-full bg-background relative">
       <div className="container mx-auto px-4 py-6 md:py-8">
-        {/* Carrusel */}
         <div className="relative overflow-hidden" ref={emblaRef}>
           <div className="flex">
-            {HERO_SLIDES.map((slide) => (
-              <div
-                key={slide.id}
-                className="relative flex-[0_0_100%] min-w-0"
-              >
-                {/* Grid de 2 columnas con margin lateral del 4% */}
+            {slides.map((slide) => (
+              <div key={slide.id} className="relative flex-[0_0_100%] min-w-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start mx-[4%]">
-                  {/* Columna 1: Contenido de texto */}
+                  {/* Columna 1: texto */}
                   <div className="flex flex-col gap-6">
-                    {/* Título principal */}
-                    <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-charcoal tracking-tight">
-                      {slide.title} <br />
-                      <span className="italic text-primary">{slide.subtitle}</span>
-                    </h1>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
+                      {slide.kicker}
+                    </span>
 
-                    {/* Descripción principal */}
-                    <p className="text-sm md:text-base text-charcoal/70 font-sans font-light leading-relaxed">
-                      Objetos auténticos creados por talleres artesanales de Colombia.
-                      Cada pieza conserva la historia, el origen y el conocimiento de
-                      quienes la crean.
-                    </p>
-
-                    {/* Subtítulo light */}
-                    <p className="text-sm md:text-base text-muted-foreground font-light tracking-wide uppercase">
-                      Hecho a mano por talleres artesanales de Colombia.
-                    </p>
-
-                    {/* Botones */}
-                    <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                      {slide.action ? (
-                        <Link to={slide.action}>
-                          <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
-                          >
-                            Explorar Colección
-                          </Button>
-                        </Link>
-                      ) : (
+                    <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-2 text-charcoal tracking-tight">
+                      {slide.title}
+                      {slide.subtitle && (
                         <>
-                          <Link to="/productos">
-                            <Button
-                              size="lg"
-                              className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
-                            >
-                              Explorar Piezas
-                            </Button>
-                          </Link>
-                          <Link to="/tiendas">
-                            <Button
-                              size="lg"
-                              variant="outline"
-                              className="w-full sm:w-auto border-2"
-                            >
-                              Conocer Talleres
-                            </Button>
-                          </Link>
+                          <br />
+                          <span className="italic text-primary">
+                            {slide.subtitle}
+                          </span>
                         </>
                       )}
+                    </h1>
+
+                    <p className="text-sm md:text-base text-charcoal/70 font-sans font-light leading-relaxed line-clamp-4">
+                      {slide.body}
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                      <Link to={slide.ctaHref}>
+                        <Button
+                          size="lg"
+                          className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
+                        >
+                          {slide.ctaLabel}
+                        </Button>
+                      </Link>
+                      <Link to="/productos">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="w-full sm:w-auto border-2"
+                        >
+                          Explorar piezas
+                        </Button>
+                      </Link>
                     </div>
                   </div>
 
-                  {/* Columna 2: Imagen y etiquetas */}
+                  {/* Columna 2: imagen */}
                   <div className="flex flex-col gap-4">
-                    {/* Imagen con transición */}
-                    <div className="relative rounded-lg overflow-hidden shadow-2xl h-[250px] md:h-[400px]">
-                      <img
-                        src={slide.image}
-                        alt={`${slide.title} - Artesanía colombiana`}
-                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
-                      />
+                    <div className="relative rounded-lg overflow-hidden shadow-2xl h-[250px] md:h-[400px] bg-muted">
+                      {slide.image && (
+                        <img
+                          src={slide.image}
+                          alt={`${slide.title} ${slide.subtitle}`.trim()}
+                          className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
+                        />
+                      )}
                     </div>
-
-                    {/* Etiquetas debajo de la imagen */}
-                    <div className="flex flex-col gap-2 px-2">
-                      {/* Origen */}
-                      <p className="text-sm font-semibold text-primary uppercase tracking-wide">
-                        Origen: {slide.origin}
+                    {slide.origin && (
+                      <p className="text-sm font-semibold text-primary uppercase tracking-wide px-2">
+                        {slide.origin}
                       </p>
-
-                      {/* Frase en cursiva */}
-                      <p className="text-lg md:text-xl font-serif italic text-foreground/80">
-                        "{slide.quote}"
-                      </p>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -174,10 +267,8 @@ export const HeroSectionV2 = () => {
           </div>
         </div>
 
-        {/* Controles del carrusel */}
-        {HERO_SLIDES.length > 1 && (
+        {slides.length > 1 && (
           <>
-            {/* Botones de navegación */}
             <button
               type="button"
               aria-label="Slide anterior"
@@ -195,11 +286,10 @@ export const HeroSectionV2 = () => {
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            {/* Indicadores de puntos */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-              {HERO_SLIDES.map((_, i) => (
+              {slides.map((s, i) => (
                 <button
-                  key={i}
+                  key={s.id}
                   type="button"
                   aria-label={`Ir al slide ${i + 1}`}
                   onClick={() => emblaApi?.scrollTo(i)}
