@@ -42,13 +42,10 @@ const NAV_LINKS: readonly {
   label: string;
   hasMegaMenu?: boolean;
 }[] = [
-  { to: "/explorar", label: "Explorar" },
+  { to: "/productos", label: "Explorar" },
   { to: "/categorias", label: "Categorías", hasMegaMenu: true },
-  { to: "/colecciones", label: "Colecciones" },
-  { to: "/giftcards", label: "Regalos" },
   { to: "/tiendas", label: "Talleres" },
-  { to: "/historias", label: "Historias" },
-  { to: "/sobre-villa-adelaida", label: "Sobre Villa Adelaida" },
+  { to: "/sobre-villa-adelaida", label: "Alianza Villa Adelaida" },
 ];
 
 export const NavbarV2 = ({
@@ -127,8 +124,7 @@ export const NavbarV2 = ({
         {!isScrolled && (
           <div className="w-full bg-primary text-primary-foreground">
             <p className="container mx-auto px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.25em]">
-              Programa Nacional Escuelas Taller de Colombia · Herramientas de
-              paz
+              Programa de fortalecimiento comercial – Villa Adelaida
             </p>
           </div>
         )}

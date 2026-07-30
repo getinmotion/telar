@@ -666,26 +666,6 @@ const CategoryDetail = () => {
         </div>
       </section>
 
-      {/* Piezas para regalar */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-32">
-        <div className="relative rounded-sm overflow-hidden border border-foreground/10 h-[450px] flex items-center px-16 group">
-          <div className="absolute inset-0 bg-[#FBEFE1]" />
-          <div className="relative z-10 max-w-xl">
-            <h2 className="font-serif text-6xl mb-6 leading-tight text-charcoal">
-              Piezas para regalar
-            </h2>
-            <p className="text-xl mb-10 font-sans text-charcoal/80">
-              Selección curada de textiles artesanales para momentos especiales.
-            </p>
-            <Link
-              to="/giftcards"
-              className="bg-primary text-white px-12 py-5 font-bold text-xs uppercase tracking-[0.2em] rounded-sm hover:bg-primary/90 transition-all font-sans inline-block"
-            >
-              VER TODO
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

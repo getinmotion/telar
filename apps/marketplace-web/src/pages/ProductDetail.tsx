@@ -11,7 +11,6 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
   Heart,
-  X,
   Sparkles,
   MapPin,
   Quote,
@@ -77,7 +76,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] =
     useState<MarketplaceVariant | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -263,58 +261,19 @@ const ProductDetail = () => {
                   </p>
                 )}
 
-                {/* Authenticity badges */}
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setShowComingSoon(true)}
-                    className="bg-[#1a1a1a] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#1a1a1a]/80 transition-colors"
-                  >
-                    Huella Digital Registrada
-                  </button>
-                  <button
-                    onClick={() => setShowComingSoon(true)}
-                    className="bg-[#BC3F1C] text-white text-[9px] px-2 py-1 uppercase tracking-widest hover:bg-[#BC3F1C]/80 transition-colors"
-                  >
-                    Certificado de autenticidad Villa Adelaida
-                  </button>
-                </div>
+                {/* Pasaporte de trazabilidad */}
+                <Link
+                  to={`/pasaporte/${product.id}`}
+                  className="w-fit bg-[#BC3F1C] text-white text-[10px] px-4 py-2 uppercase tracking-[0.2em] font-bold hover:bg-[#1a1a1a] transition-colors"
+                >
+                  Pasaporte de trazabilidad
+                </Link>
               </div>
 
-              {/* Certificate link */}
-              <button
-                onClick={() => setShowComingSoon(true)}
-                className="text-xs text-[#1a1a1a]/60 underline underline-offset-4 hover:text-[#BC3F1C] transition-colors font-bold w-fit"
-              >
-                Ver certificado de autenticidad
-              </button>
               <p className="text-[10px] text-[#1a1a1a]/40 max-w-xs leading-relaxed">
-                Al adquirir esta pieza, usted recibe un certificado de autenticidad
-                digital que garantiza su origen y autoría.
+                Al adquirir esta pieza, usted recibe su pasaporte de trazabilidad
+                digital, que registra su origen y autoría.
               </p>
-
-              {/* Coming Soon Card */}
-              {showComingSoon && (
-                <div className="relative border border-[#BC3F1C]/30 bg-[#BC3F1C]/5 p-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <button
-                    onClick={() => setShowComingSoon(false)}
-                    className="absolute top-3 right-3 text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#BC3F1C]" />
-                    <h4 className="font-serif italic text-lg">Próximamente</h4>
-                  </div>
-                  <p className="text-sm text-[#1a1a1a]/70 leading-relaxed">
-                    Estamos construyendo un sistema de certificados digitales que
-                    permitirá verificar la autenticidad, el origen y la trazabilidad
-                    de cada pieza artesanal.
-                  </p>
-                  <p className="text-[10px] uppercase tracking-widest text-[#1a1a1a]/40 font-bold">
-                    Lanzamiento próximo · 2026
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Location + Category */}
@@ -974,40 +933,21 @@ const ProductDetail = () => {
               Comercio justo
             </h3>
             <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed">
-              Trabajamos directamente con talleres artesanales para que las
-              personas que crean cada pieza reciban una compensación justa por
-              su trabajo.
+              En el programa de fortalecimiento comercial de Villa Adelaida
+              participaron de manera directa talleres artesanales y productores
+              del ecosistema del viche, para que cada persona que crea una pieza
+              o producto reciba sin intermediarios una compensación justa por su
+              oficio y saber.
             </p>
             <Link
-              to="/newsletter"
+              to="/sobre-villa-adelaida"
               className="inline-block bg-[#BC3F1C] text-white px-6 py-3 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#1a1a1a] transition-all"
             >
-              Conoce más de Villa Adelaida
+              Alianza Villa Adelaida
             </Link>
           </div>
         </section>
 
-        {/* ═══════════════ GIFT BLOCK ═══════════════ */}
-        <section className="relative bg-[#111111] text-white rounded-2xl overflow-hidden mb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[20vh]">
-            <div className="p-8 lg:p-12 flex flex-col justify-center items-start z-10">
-              <h3 className="text-2xl lg:text-3xl font-serif italic text-white mb-3">
-                ¿Es para un regalo?
-              </h3>
-              <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed max-w-md">
-                Ofrecemos opciones de empaque especial que cuentan la historia
-                de la pieza y una nota personalizada.
-              </p>
-              <Link
-                to="/giftcards"
-                className="bg-[#BC3F1C] text-white px-6 py-3 uppercase text-[11px] tracking-[0.2em] font-bold hover:bg-white hover:text-[#1a1a1a] transition-all"
-              >
-                Explorar regalos
-              </Link>
-            </div>
-            <div className="hidden lg:block bg-[#1a1a1a]" />
-          </div>
-        </section>
       </main>
 
       {/* ═══════════════ RELATED PRODUCTS ═══════════════ */}

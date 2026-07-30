@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Footer } from "@/components/Footer";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { useCategoryPresence } from "@/hooks/useCategoryPresence";
 import { useArtisanShops } from "@/contexts/ArtisanShopsContext";
 import {
   getProductsNew,
@@ -18,8 +19,7 @@ import {
   type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
-import culturasLogo from "@/assets/culturas-logo.svg";
+import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
 // import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 
@@ -38,8 +38,19 @@ const shuffleArray = <T,>(arr: T[], seed: number): T[] => {
   return a;
 };
 
+// ── Categorías visibles en la home (en este orden) ──
+const HOME_CATEGORY_SLUGS = [
+  "joyeria-y-accesorios",
+  "textiles-y-moda",
+  "bolsos-y-carteras",
+  "decoracion-del-hogar",
+  "arte-y-esculturas",
+  "juguetes-e-instrumentos-musicales",
+] as const;
+
 const Index = () => {
   const { categoryHierarchy, loading: taxonomyLoading } = useTaxonomy();
+  const { categoryHasProducts } = useCategoryPresence();
   const { shops: featuredShops, fetchFeaturedShops } = useArtisanShops();
   const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -107,12 +118,15 @@ const Index = () => {
     return karen || featuredShops[0] || null;
   }, [featuredShops]);
 
-  // Categories for display (up to 8 parent categories)
+  // Categories for display: allowlist fija, en este orden y solo las que
+  // tienen productos (misma lógica de presencia que "Explorar por categorías").
   const displayCategories = useMemo(() => {
-    return categoryHierarchy
-      .filter((c) => c.isActive && c.slug !== "cuidado-personal")
-      .slice(0, 8);
-  }, [categoryHierarchy]);
+    return HOME_CATEGORY_SLUGS.map((slug) =>
+      categoryHierarchy.find((c) => c.isActive && c.slug === slug),
+    )
+      .filter((c): c is (typeof categoryHierarchy)[number] => Boolean(c))
+      .filter((c) => categoryHasProducts(c));
+  }, [categoryHierarchy, categoryHasProducts]);
 
   return (
     <>
@@ -125,6 +139,13 @@ const Index = () => {
       </Helmet>
 
       <div className="min-h-screen bg-editorial-bg text-charcoal font-sans selection:bg-primary/40 selection:text-white">
+        {/* ═══════════════ BANDA INSTITUCIONAL ═══════════════ */}
+        <div className="border-b border-charcoal/10 bg-white/60">
+          <div className="max-w-[1400px] mx-auto px-6 py-4 flex justify-center md:justify-start">
+            <InstitutionalLogos size="sm" />
+          </div>
+        </div>
+
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
         <HeroSectionV2 />
@@ -135,12 +156,12 @@ const Index = () => {
         {/* ═══════════════ CATEGORIES ═══════════════ */}
         <section className="py-12 border-y border-foreground/10">
           <div className="max-w-[1400px] mx-auto px-6">
-            <div className="flex flex-wrap justify-between gap-y-12">
-              <span className="text-[11px] font-bold uppercase tracking-[0.3em] w-full mb-4 text-primary">
-                Explorar por categorías
-              </span>
+            <span className="block text-[11px] font-bold uppercase tracking-[0.3em] mb-8 text-primary">
+              Explorar por categorías
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12">
               {displayCategories.map((cat) => (
-                <div key={cat.id} className="w-full md:w-1/4 space-y-2 px-2">
+                <div key={cat.id} className="space-y-2">
                   <Link to={`/productos?categoria=${cat.slug}`}>
                     <div className="aspect-[16/10] bg-[#F3E4D3] mb-4 overflow-hidden relative">
                       {cat.imageUrl ? (
@@ -281,7 +302,7 @@ const Index = () => {
           <CmsSectionRenderer section={comercioJustoBlock} />
         )} */}
 
-        {/* ═══════════════ HUELLA DIGITAL ═══════════════ */}
+        {/* ═══════════════ PASAPORTE DE TRAZABILIDAD ═══════════════ */}
         <section className="py-24 bg-white">
           <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
             <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
@@ -289,14 +310,14 @@ const Index = () => {
               getPrimaryImageUrl(featuredProducts[1]) ? (
                 <img
                   src={getPrimaryImageUrl(featuredProducts[1])!}
-                  alt="Huella digital"
+                  alt="Pasaporte de trazabilidad"
                   className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                 />
               ) : null}
             </div>
             <div className="space-y-10">
               <h2 className="text-5xl font-serif leading-tight">
-                Cada pieza tiene una huella digital
+                Cada pieza tiene un pasaporte de trazabilidad
               </h2>
               <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
                 Cada objeto en Villa Adelaida conserva un registro que documenta su
@@ -345,12 +366,6 @@ const Index = () => {
                   </div>
                 </div>
               </div>
-              <Link
-                to="/productos"
-                className="inline-block border border-charcoal px-10 py-4 uppercase text-xs tracking-widest hover:bg-charcoal hover:text-white transition-all"
-              >
-                Explorar el registro de autenticidad
-              </Link>
             </div>
           </div>
         </section>
@@ -428,133 +443,16 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══════════════ REGALOS CON HISTORIA ═══════════════ */}
-        <section className="py-10 bg-editorial-bg">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <div className="flex flex-col md:flex-row gap-16 items-center">
-              <div className="flex-1 space-y-8">
-                <h2 className="text-5xl font-serif">Regalos con historia</h2>
-                <p className="text-xl text-charcoal/70 leading-relaxed font-light">
-                  En Villa Adelaida puedes encontrar piezas especiales para regalar en
-                  momentos importantes. Cada objeto hecho a mano lleva consigo
-                  tradición, conocimiento y dedicación.
-                </p>
-                <Link
-                  to="/giftcards"
-                  className="inline-block bg-charcoal text-white px-10 py-4 uppercase text-xs tracking-widest hover:bg-primary transition-colors"
-                >
-                  Explorar piezas para regalar
-                </Link>
-              </div>
-              <div className="flex-1 grid grid-cols-2 gap-4 w-full">
-                <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
-                  {featuredProducts[1] &&
-                  getPrimaryImageUrl(featuredProducts[1]) ? (
-                    <img
-                      src={getPrimaryImageUrl(featuredProducts[1])!}
-                      alt="Regalo artesanal"
-                      className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
-                    />
-                  ) : null}
-                </div>
-                <div className="aspect-square bg-muted rounded-sm border border-foreground/10 mt-12 overflow-hidden">
-                  {featuredProducts[2] &&
-                  getPrimaryImageUrl(featuredProducts[2]) ? (
-                    <img
-                      src={getPrimaryImageUrl(featuredProducts[2])!}
-                      alt="Regalo artesanal"
-                      className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
-                    />
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════ COLECCIONES ═══════════════ */}
-        <section className="py-10">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.5em] text-center mb-16 opacity-40">
-              Colecciones
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <Link to="/productos" className="group cursor-pointer">
-                <div className="aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden relative">
-                  {displayCategories[0]?.imageUrl && (
-                    <img
-                      src={displayCategories[0].imageUrl}
-                      alt="Piezas para el hogar"
-                      className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
-                    />
-                  )}
-                </div>
-                <h3 className="text-2xl font-serif italic">
-                  Piezas para el hogar
-                </h3>
-                <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">
-                  Objetos que cuentan historias
-                </p>
-              </Link>
-              <Link to="/productos" className="group cursor-pointer">
-                <div className="aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden relative">
-                  {displayCategories[1]?.imageUrl && (
-                    <img
-                      src={displayCategories[1].imageUrl}
-                      alt="Textiles con historia"
-                      className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
-                    />
-                  )}
-                </div>
-                <h3 className="text-2xl font-serif italic">
-                  Textiles con historia
-                </h3>
-                <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">
-                  Tejidos a mano en telar
-                </p>
-              </Link>
-              <Link to="/giftcards" className="group cursor-pointer">
-                <div className="aspect-[4/5] bg-muted mb-6 rounded-sm border border-foreground/10 overflow-hidden relative">
-                  {displayCategories[2]?.imageUrl && (
-                    <img
-                      src={displayCategories[2].imageUrl}
-                      alt="Creaciones para regalar"
-                      className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
-                    />
-                  )}
-                </div>
-                <h3 className="text-2xl font-serif italic">
-                  Creaciones para regalar
-                </h3>
-                <p className="text-[10px] uppercase tracking-widest mt-2 opacity-60">
-                  Detalles con alma
-                </p>
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* ═══════════════ INSTITUCIONAL ═══════════════ */}
         <section className="py-24 border-t border-foreground/10">
           <div className="max-w-3xl mx-auto px-6 text-center space-y-10">
             <h2 className="text-[10px] font-bold text-charcoal/50 uppercase tracking-[0.4em]">
               Una iniciativa de
             </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
-              <img
-                src={escuelasTallerLogo}
-                alt="Escuelas Taller de Colombia — Herramientas de paz"
-                className="w-32 h-32 object-contain"
-              />
-              <img
-                src={culturasLogo}
-                alt="Ministerio de las Culturas, las Artes y los Saberes"
-                className="w-[22rem] h-auto object-contain"
-              />
-            </div>
+            <InstitutionalLogos size="lg" className="justify-center" />
             <h3 className="text-2xl font-serif">
-              Programa Nacional Escuelas Taller de Colombia · Ministerio de las
-              Culturas, las Artes y los Saberes
+              Programa de fortalecimiento comercial – Villa Adelaida ·
+              Ministerio de las Culturas, las Artes y los Saberes
             </h3>
           </div>
         </section>

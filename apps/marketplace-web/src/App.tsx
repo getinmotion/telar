@@ -22,6 +22,7 @@ import { StoryblokBridgeListener } from "@/components/StoryblokBridgeListener";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
+import PassportPreview from "./pages/PassportPreview";
 import ShopDetail from "./pages/ShopDetail";
 import Shops from "./pages/Shops";
 import FavoriteShops from "./pages/FavoriteShops";
@@ -102,6 +103,10 @@ const App = () => (
                           <Route
                             path="/product/:id"
                             element={<ProductDetail />}
+                          />
+                          <Route
+                            path="/pasaporte/:id"
+                            element={<PassportPreview />}
                           />
                           <Route
                             path="/tienda/:shopSlug"

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { useWishlist } from "@/hooks/useWishlist";
+import { AllianceSeal } from "@/components/AllianceSeal";
 import {
   getPrimaryImageUrl,
   getProductPrice,
@@ -93,6 +94,9 @@ export function ExploreProductCard({
               </span>
             ) : null}
           </div>
+
+          {/* Sello del programa de fortalecimiento comercial */}
+          <AllianceSeal className="absolute bottom-3 left-3 z-10" />
 
           {/* Wishlist */}
           <button

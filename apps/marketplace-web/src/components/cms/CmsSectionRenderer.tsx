@@ -950,6 +950,47 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
+    case 'about_program_stats': {
+      const stats: any[] = Array.isArray(p.stats) ? p.stats : [];
+      return (
+        <section className="max-w-[1400px] mx-auto px-6 mb-24">
+          <div
+            className="rounded-sm p-8 md:p-12 text-white"
+            style={{ backgroundColor: '#27423F' }}
+          >
+            {p.kicker && (
+              <span className="text-[10px] uppercase tracking-[0.4em] font-sans font-bold text-white/60">
+                {p.kicker}
+              </span>
+            )}
+            {(p.titleLineTop || p.titleLineItalic) && (
+              <h2 className="text-3xl md:text-4xl leading-tight font-serif mt-4 mb-10 tracking-tight">
+                {p.titleLineTop && <>{p.titleLineTop}<br /></>}
+                {p.titleLineItalic && <span className="italic text-[#91BCB3]">{p.titleLineItalic}</span>}
+              </h2>
+            )}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+              {stats.map((s, i) => (
+                <div key={i} className="border-t border-white/20 pt-5">
+                  <div className="text-4xl md:text-5xl font-serif font-bold mb-2">
+                    {s.value}
+                  </div>
+                  <p className="text-[10px] uppercase tracking-widest font-sans font-bold text-white/70 leading-relaxed">
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {p.note && (
+              <p className="text-sm text-white/70 font-sans leading-relaxed mt-10 max-w-3xl">
+                {p.note}
+              </p>
+            )}
+          </div>
+        </section>
+      );
+    }
+
     case 'about_cta': {
       const ctas: any[] = Array.isArray(p.ctas) ? p.ctas : [];
       return (

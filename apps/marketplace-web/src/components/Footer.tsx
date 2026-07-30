@@ -1,9 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
-import cocreaFooterLogo from "@/assets/cocrea-footer-logo.svg";
-import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
-import culturasLogoCream from "@/assets/culturas-logo-cream.svg";
+import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 
 export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean }) => {
   const [email, setEmail] = useState("");
@@ -66,14 +64,11 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
           <FooterLink to="/categorias">Categorías</FooterLink>
-          <FooterLink to="/colecciones">Colecciones</FooterLink>
         </FooterNav>
 
         <FooterNav title="Villa Adelaida">
-          <FooterLink to="/sobre-villa-adelaida">Sobre Villa Adelaida</FooterLink>
-          <FooterLink to="/historias">Historias</FooterLink>
-          <FooterLink to="/talleres">Talleres</FooterLink>
-          <FooterLink to="/trazabilidad">Trazabilidad</FooterLink>
+          <FooterLink to="/sobre-villa-adelaida">Alianza Villa Adelaida</FooterLink>
+          <FooterLink to="/tiendas">Talleres</FooterLink>
         </FooterNav>
 
         <FooterNav title="Descubrir">
@@ -107,35 +102,10 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       {/* ── Brand Identity Section ── */}
       <div className="max-w-7xl mx-auto px-8 pb-16 pt-12 border-t border-white/10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-          <div className="max-w-2xl">
-            <div className="mb-10">
-              <img
-                src={cocreaFooterLogo}
-                alt="Villa Adelaida"
-                className="h-20 w-auto"
-              />
-            </div>
-            <p className="font-serif text-4xl md:text-5xl text-white leading-tight">
-              Saberes y oficios de las Escuelas Taller de Colombia: herramientas de paz.
-            </p>
-          </div>
-          <div className="flex flex-col items-start md:items-end gap-6">
-            <div className="flex items-center gap-8">
-              <img
-                src={escuelasTallerLogo}
-                alt="Escuelas Taller de Colombia — Herramientas de paz"
-                className="h-24 w-24 object-contain"
-              />
-              <img
-                src={culturasLogoCream}
-                alt="Ministerio de las Culturas, las Artes y los Saberes"
-                className="h-24 w-auto object-contain"
-              />
-            </div>
-            <span className="text-white/75 text-[10px] font-bold tracking-[0.3em] uppercase">
-              Colombia
-            </span>
-          </div>
+          <InstitutionalLogos variant="cream" size="lg" />
+          <span className="text-white/75 text-[10px] font-bold tracking-[0.3em] uppercase">
+            Colombia
+          </span>
         </div>
       </div>
 
@@ -143,7 +113,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       <div className="max-w-7xl mx-auto px-8 py-10 border-t border-white/10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
           <div className="flex flex-col gap-2 text-white/65 text-[9px] font-bold tracking-[0.2em] uppercase">
-            <p>Programa Nacional Escuelas Taller de Colombia</p>
+            <p>Programa de fortalecimiento comercial – Villa Adelaida</p>
             <p>Ministerio de las Culturas, las Artes y los Saberes</p>
           </div>
           <div className="text-white/55 text-[9px] font-bold tracking-[0.2em] uppercase">

@@ -51,27 +51,30 @@ const Shops = () => {
       sortBy: "created_at",
       order: "DESC",
       limit: 100,
-    }).catch(() => setLoading(false));
+    })
+      .catch(() => {})
+      // Cierra el loading también cuando la respuesta viene vacía: si solo se
+      // apagara al recibir tiendas, la página se quedaría en skeletons para
+      // siempre en un convenio sin talleres publicados.
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (Array.isArray(contextShops) && contextShops.length > 0) {
-      setShops(
-        contextShops.map((s) => ({
-          id: s.id,
-          shopName: s.shopName,
-          shopSlug: s.shopSlug,
-          description: s.description,
-          logoUrl: s.logoUrl,
-          bannerUrl: s.bannerUrl,
-          craftType: s.craftType,
-          region: s.region,
-          featured: s.featured,
-          productCount: 0,
-        })),
-      );
-      setLoading(false);
-    }
+    if (!Array.isArray(contextShops)) return;
+    setShops(
+      contextShops.map((s) => ({
+        id: s.id,
+        shopName: s.shopName,
+        shopSlug: s.shopSlug,
+        description: s.description,
+        logoUrl: s.logoUrl,
+        bannerUrl: s.bannerUrl,
+        craftType: s.craftType,
+        region: s.region,
+        featured: s.featured,
+        productCount: 0,
+      })),
+    );
   }, [contextShops]);
 
   // Unique filter values
@@ -176,38 +179,6 @@ const Shops = () => {
           <p className="text-sm text-charcoal/60 max-w-lg mx-auto font-sans mb-6">
             Descubre a quienes crean cada pieza y preservan nuestro legado.
           </p>
-        </div>
-      </section>
-
-      {/* Exploration Blocks */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link
-            to="/tecnicas"
-            className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
-          >
-            <div>
-              <h3 className="font-serif text-lg text-charcoal mb-0.5">
-                Explorar por técnica
-              </h3>
-              <span className="text-primary text-[8px] uppercase tracking-[0.2em] font-bold font-sans opacity-80 group-hover:opacity-100 transition-opacity">
-                Ver todas las artes →
-              </span>
-            </div>
-          </Link>
-          <Link
-            to="/territorios"
-            className="group relative flex items-center justify-between px-8 py-5 bg-white/50 border border-charcoal/5 hover:bg-white hover:border-primary/20 transition-all duration-300"
-          >
-            <div>
-              <h3 className="font-serif text-lg text-charcoal mb-0.5">
-                Explorar por territorio
-              </h3>
-              <span className="text-primary text-[8px] uppercase tracking-[0.2em] font-bold font-sans opacity-80 group-hover:opacity-100 transition-opacity">
-                Ver el mapa →
-              </span>
-            </div>
-          </Link>
         </div>
       </section>
 

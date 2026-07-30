@@ -35,23 +35,6 @@ const Arrow = () => (
   </svg>
 );
 
-const BookIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    className="w-5 h-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-    />
-  </svg>
-);
-
 /* ── component ───────────────────────────────────────── */
 const Explorar = () => {
   const { categoryHierarchy, techniques, loading: taxLoading } = useTaxonomy();
@@ -289,7 +272,7 @@ const Explorar = () => {
       {/* ═══════════════ GUIDED DISCOVERY ═══════════════ */}
       <section className="mb-32">
         <div className="max-w-[1400px] mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 gap-12">
             {/* Piezas Únicas */}
             <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#F7E7D7" }}>
               <div className="w-1/3">
@@ -321,36 +304,6 @@ const Explorar = () => {
               </div>
             </div>
 
-            {/* Regalos con Historia */}
-            <div className="flex gap-6 items-center p-6" style={{ backgroundColor: "#F7E7D7" }}>
-              <div className="w-1/3">
-                <div className="aspect-square overflow-hidden" style={{ backgroundColor: "#F3E4D3" }}>
-                  {getFeaturedImage(featuredProducts, 1) && (
-                    <img
-                      src={getFeaturedImage(featuredProducts, 1)!}
-                      alt="Regalos con Historia"
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="w-2/3">
-                <span className="text-[#BC3F1C] font-bold uppercase tracking-[0.4em] text-[8px] block mb-2">
-                  Selección
-                </span>
-                <h2 className="font-serif text-2xl mb-2 italic">Regalos con Historia</h2>
-                <p className="text-[11px] leading-relaxed mb-4 font-light italic" style={{ color: "#4D4D4D" }}>
-                  Curaduría especial para momentos que merecen perdurar.
-                </p>
-                <Link
-                  to="/giftcards"
-                  className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[#BC3F1C] hover:gap-3 transition-all"
-                >
-                  Ver Guía <Arrow />
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -459,16 +412,6 @@ const Explorar = () => {
                 style={{ backgroundColor: "#BC3F1C", color: "#fff" }}
               >
                 Ver piezas
-              </Link>
-              <Link
-                to="/historias"
-                className="flex items-center gap-2 hover:text-white transition-colors"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                <BookIcon />
-                <span className="text-[8px] uppercase tracking-widest font-bold">
-                  Leer Crónica
-                </span>
               </Link>
             </div>
           </div>

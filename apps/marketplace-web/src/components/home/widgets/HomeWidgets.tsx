@@ -14,8 +14,7 @@ import {
   type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
-import escuelasTallerLogo from "@/assets/escuelas-taller-logo.svg";
-import culturasLogo from "@/assets/culturas-logo.svg";
+import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed++) * 10000;
@@ -510,21 +509,10 @@ export function AliadosWidget() {
         <h2 className="text-[10px] font-bold text-charcoal/50 uppercase tracking-[0.4em]">
           Una iniciativa de
         </h2>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-16">
-          <img
-            src={escuelasTallerLogo}
-            alt="Escuelas Taller de Colombia — Herramientas de paz"
-            className="w-32 h-32 object-contain"
-          />
-          <img
-            src={culturasLogo}
-            alt="Ministerio de las Culturas, las Artes y los Saberes"
-            className="w-[22rem] h-auto object-contain"
-          />
-        </div>
+        <InstitutionalLogos size="lg" className="justify-center" />
         <h3 className="text-2xl font-serif">
-          Programa Nacional Escuelas Taller de Colombia · Ministerio de las
-          Culturas, las Artes y los Saberes
+          Programa de fortalecimiento comercial – Villa Adelaida · Ministerio de
+          las Culturas, las Artes y los Saberes
         </h3>
       </div>
     </section>
