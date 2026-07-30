@@ -71,7 +71,7 @@ export interface SyncGuestCartResponse {
 /**
  * Estados del carrito
  */
-export type CartStatus = 'open' | 'locked' | 'converted' | 'abandoned';
+export type CartStatus = "open" | "locked" | "converted" | "abandoned";
 
 /**
  * Información del comprador en el carrito
@@ -126,6 +126,25 @@ export interface ProductMedia {
 }
 
 /**
+ * Variante del producto
+ */
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  sku?: string;
+  variantName?: string | null;
+  optionValues?: Record<string, string>;
+  minStock?: number;
+  imageUrl?: string | null;
+  basePriceMinor?: number | string;
+  currency?: string;
+  stockQuantity?: number;
+  isActive?: boolean;
+  price?: number;
+  stock?: number;
+}
+
+/**
  * Producto completo (enriquecido en cart-items)
  */
 export interface CartProduct {
@@ -142,6 +161,7 @@ export interface CartProduct {
   updatedAt: string;
   deletedAt: string | null;
   media: ProductMedia[];
+  variants?: ProductVariant[];
 }
 
 /**
@@ -270,7 +290,7 @@ export interface CartItemDetailed {
   quantity: number;
   currency: string;
   unitPriceMinor: string; // Precio en centavos (ej: "5000000" = $50,000)
-  priceSource: 'product_base' | 'PRODUCT_BASE' | 'override' | 'OVERRIDE';
+  priceSource: "product_base" | "PRODUCT_BASE" | "override" | "OVERRIDE";
   priceRefId: string | null;
   metadata: Record<string, any>;
   createdAt: string;
@@ -289,7 +309,7 @@ export interface AddCartItemRequest {
   quantity: number; // Cantidad (min: 1)
   currency: string; // ISO 4217 (ej: 'COP'), 3 caracteres
   unitPriceMinor: string; // Precio en centavos (ej: '5000000' = $50,000)
-  priceSource: 'product_base' | 'override';
+  priceSource: "product_base" | "override";
   priceRefId?: string; // UUID opcional para referencia de precio
   metadata?: {
     variantId?: string;
@@ -310,7 +330,7 @@ export interface UpdateCartItemRequest {
   quantity?: number;
   currency?: string;
   unitPriceMinor?: string;
-  priceSource?: 'product_base' | 'override';
+  priceSource?: "product_base" | "override";
   priceRefId?: string;
   metadata?: {
     variantId?: string;
@@ -451,7 +471,7 @@ export interface CartItemFull {
   quantity: number;
   currency: string;
   unitPriceMinor: string;
-  priceSource: 'product_base' | 'PRODUCT_BASE' | 'override' | 'OVERRIDE';
+  priceSource: "product_base" | "PRODUCT_BASE" | "override" | "OVERRIDE";
   priceRefId: string | null;
   metadata: Record<string, any>;
   createdAt: string;
