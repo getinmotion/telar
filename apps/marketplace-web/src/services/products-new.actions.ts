@@ -152,6 +152,10 @@ export interface ProductFeatured {
   categoryId: string;
   categoryName: string;
 
+  // Convenio del artesano (null si no pertenece a ninguno)
+  agreementId?: string | null;
+  agreementName?: string | null;
+
   // Artisanal identity (flattened)
   craftName?: string;
   primaryTechnique?: string;

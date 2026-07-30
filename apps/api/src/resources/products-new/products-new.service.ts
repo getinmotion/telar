@@ -1193,11 +1193,21 @@ export class ProductsNewService {
     // Ejecutar query
     const [rawResults, total] = await queryBuilder.getManyAndCount();
 
+    // Convenio de cada producto (vía el dueño de la tienda). Una sola consulta
+    // para toda la página: el marketplace general lo usa para distinguir los
+    // productos que pertenecen a un convenio, p.ej. el sello de Villa Adelaida.
+    const agreementByUser =
+      await this.agreementsByShopOwner(rawResults);
+
     // Mapear resultados
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const data = rawResults.map((product: any) => {
+      const agreement = product.artisanShop?.userId
+        ? (agreementByUser[product.artisanShop.userId] ?? null)
+        : null;
+
       // Calcular precio y stock desde las variantes
       const variants = product.variants || [];
       const { totalStock, priceMin, priceMax, currency } =
@@ -1262,6 +1272,10 @@ export class ProductsNewService {
         craftType: product.artisanShop?.craftType,
         bankDataStatus: product.artisanShop?.bankDataStatus,
 
+        // Convenio al que pertenece el artesano (null si no tiene)
+        agreementId: agreement?.id ?? null,
+        agreementName: agreement?.name ?? null,
+
         // Cálculo de si se puede comprar
         canPurchase:
           product.artisanShop?.bankDataStatus === 'complete' && totalStock > 0,
@@ -1274,6 +1288,36 @@ export class ProductsNewService {
       page,
       limit,
     };
+  }
+
+  /**
+   * Convenio (id y nombre) indexado por el user_id dueño de cada tienda.
+   * Una sola consulta para todos los productos recibidos.
+   */
+  private async agreementsByShopOwner(
+    products: Array<{ artisanShop?: { userId?: string } }>,
+  ): Promise<Record<string, { id: string; name: string }>> {
+    const userIds = [
+      ...new Set(
+        products
+          .map((p) => p.artisanShop?.userId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    if (userIds.length === 0) return {};
+
+    const rows: Array<{ user_id: string; id: string; name: string }> =
+      await this.productCoreRepository.manager.query(
+        `SELECT ap.user_id, ag.id, ag.name
+           FROM artesanos.artisan_profile ap
+           JOIN taxonomy.agreements ag ON ag.id = ap.agreement_id
+          WHERE ap.user_id = ANY($1::uuid[])`,
+        [userIds],
+      );
+
+    return Object.fromEntries(
+      rows.map((r) => [r.user_id, { id: r.id, name: r.name }]),
+    );
   }
 
   /**
@@ -1342,6 +1386,12 @@ export class ProductsNewService {
     const { totalStock, priceMin, priceMax, currency } =
       this.summarizeVariants(variants);
 
+    // Convenio del artesano dueño de la tienda
+    const agreementByUser = await this.agreementsByShopOwner([product]);
+    const agreement = product.artisanShop?.userId
+      ? (agreementByUser[product.artisanShop.userId] ?? null)
+      : null;
+
     return {
       id: product.id,
       name: product.name,
@@ -1359,6 +1409,10 @@ export class ProductsNewService {
       categoryName: product.category?.name,
       subcategoryId: product.subcategory?.id,
       subcategoryName: product.subcategory?.name,
+
+      // Convenio al que pertenece el artesano (null si no tiene)
+      agreementId: agreement?.id ?? null,
+      agreementName: agreement?.name ?? null,
 
       // Identidad artesanal completa
       artisanalIdentity: {

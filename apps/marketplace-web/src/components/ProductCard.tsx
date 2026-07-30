@@ -8,6 +8,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { ProductPurchaseButton } from "./ProductPurchaseButton";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 import { Product } from "@/types/products.types";
 
 export const ProductCard = ({
@@ -29,6 +30,7 @@ export const ProductCard = ({
   canPurchase = false,
   stock,
   compactMode = false,
+  agreementId,
 }: Product) => {
   const { addToCart } = useCart();
   const {
@@ -97,6 +99,12 @@ export const ProductCard = ({
               </Badge>
             )}
           </div>
+
+          {/* Sello del convenio Villa Adelaida */}
+          <VillaAdelaidaBadge
+            product={{ agreementId }}
+            className="absolute bottom-3 left-3 z-10"
+          />
 
           {/* Favorite Button - Only visible element on image */}
           <div className="absolute top-3 right-3 z-10">
