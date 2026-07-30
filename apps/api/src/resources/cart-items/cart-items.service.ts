@@ -62,7 +62,27 @@ export class CartItemsService {
       );
     }
 
-    const newCartItem = this.cartItemsRepository.create(createDto);
+    // Si priceRefId está presente, verificar que existe en product_prices
+    // Si no existe, establecerlo como null para evitar violación de FK
+    let priceRefId = createDto.priceRefId || null;
+
+    if (priceRefId) {
+      // TODO: Agregar validación contra product_prices cuando esté disponible
+      // Por ahora, si el constraint falla, establecer como null
+      // const priceExists = await this.productPricesRepository.findOne({ where: { id: priceRefId } });
+      // if (!priceExists) {
+      //   priceRefId = null;
+      // }
+
+      // Temporalmente establecer como null si viene de variantId
+      // ya que product_prices y product_variants son tablas diferentes
+      priceRefId = null;
+    }
+
+    const newCartItem = this.cartItemsRepository.create({
+      ...createDto,
+      priceRefId,
+    });
     return await this.cartItemsRepository.save(newCartItem);
   }
 
@@ -108,7 +128,7 @@ export class CartItemsService {
 
     return await this.cartItemsRepository.find({
       where: { cartId },
-      relations: ['product', 'product.media', 'sellerShop'],
+      relations: ['product', 'product.media', 'product.variants', 'sellerShop'],
       order: { createdAt: 'DESC' },
     });
   }

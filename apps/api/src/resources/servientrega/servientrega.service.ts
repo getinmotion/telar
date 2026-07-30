@@ -127,6 +127,10 @@ export class ServientregaService {
     let error: string | undefined;
     let rawResponse: ServientregaQuoteResponse | undefined;
 
+    this.logger.log(
+      `[Servientrega] Quote servientrega ${JSON.stringify(payload, null, 2)}`,
+    );
+
     try {
       const response = await firstValueFrom(
         this.httpService.post<ServientregaQuoteResponse>(
