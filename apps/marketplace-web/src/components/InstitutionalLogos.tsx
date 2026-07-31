@@ -19,10 +19,11 @@ interface InstitutionalLogosProps {
   className?: string;
 }
 
+// `lg` se achica en móvil: a tamaño fijo el lockup hacía muy alto el footer.
 const SIZES = {
-  sm: { main: "h-12", cocrea: "h-4" },
-  md: { main: "h-16", cocrea: "h-5" },
-  lg: { main: "h-24", cocrea: "h-7" },
+  sm: { main: "h-10 md:h-12", cocrea: "h-3.5 md:h-4" },
+  md: { main: "h-14 md:h-16", cocrea: "h-4 md:h-5" },
+  lg: { main: "h-16 md:h-24", cocrea: "h-5 md:h-7" },
 } as const;
 
 export const InstitutionalLogos = ({
@@ -34,7 +35,9 @@ export const InstitutionalLogos = ({
   const s = SIZES[size];
 
   return (
-    <div className={`flex items-center gap-6 md:gap-8 ${className}`}>
+    <div
+      className={`flex flex-wrap items-center justify-center gap-4 md:gap-8 ${className}`}
+    >
       <img
         src={isCream ? culturasLogoCream : culturasLogo}
         alt="Ministerio de las Culturas, las Artes y los Saberes"
@@ -42,7 +45,7 @@ export const InstitutionalLogos = ({
       />
 
       <span
-        className={`h-12 w-px ${isCream ? "bg-white/25" : "bg-charcoal/20"}`}
+        className={`hidden sm:block h-12 w-px ${isCream ? "bg-white/25" : "bg-charcoal/20"}`}
         aria-hidden
       />
 

@@ -8,6 +8,7 @@
 
 // Nuevo NavbarV2
 import { NavbarV2 } from "@/components/NavbarV2";
+import { InstitutionalBand } from "@/components/InstitutionalBand";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSearch } from "@/contexts/SearchContext";
 
@@ -65,6 +66,7 @@ export const Layout = () => {
         onSemanticSearchToggle={handleSemanticToggle}
         onHomeClick={handleHomeClick}
       />
+      <InstitutionalBand />
       <Outlet />
     </>
   );

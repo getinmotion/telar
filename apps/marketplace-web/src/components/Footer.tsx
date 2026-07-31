@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
-import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 
 export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean }) => {
   const [email, setEmail] = useState("");
@@ -60,7 +59,7 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
       )} */}
 
       {/* ── 6-Column Navigation ── */}
-      <div className={`max-w-7xl mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-12 gap-y-16 ${showNewsletter ? "mt-10 md:mt-0" : ""}`}>
+      <div className={`max-w-7xl mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-10 gap-y-8 ${showNewsletter ? "mt-10 md:mt-0" : ""}`}>
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
           <FooterLink to="/categorias">Categorías</FooterLink>
@@ -71,8 +70,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
           <FooterLink to="/tiendas">Talleres</FooterLink>
         </FooterNav>
 
+        {/* Sin "Artesanos": apuntaba a /tiendas igual que "Talleres" */}
         <FooterNav title="Descubrir">
-          <FooterLink to="/tiendas">Artesanos</FooterLink>
           <FooterLink to="/tecnicas">Técnicas</FooterLink>
           <FooterLink to="/territorios">Territorios</FooterLink>
         </FooterNav>
@@ -92,32 +91,25 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
           <FooterLink to="/legal/politica-de-garantias">Garantías</FooterLink>
         </FooterNav>
 
+        {/* Sin "Pedidos": no hay ruta de pedidos, el link caía en la home */}
         <FooterNav title="Cuenta">
           <FooterLink to="/profile">Mi cuenta</FooterLink>
           <FooterLink to="/wishlist">Favoritos</FooterLink>
-          <FooterLink to="/">Pedidos</FooterLink>
         </FooterNav>
       </div>
 
-      {/* ── Brand Identity Section ── */}
-      <div className="max-w-7xl mx-auto px-8 pb-16 pt-12 border-t border-white/10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-          <InstitutionalLogos variant="cream" size="lg" />
-          <span className="text-white/75 text-[10px] font-bold tracking-[0.3em] uppercase">
-            Colombia
-          </span>
-        </div>
-      </div>
-
-      {/* ── Copyright ── */}
-      <div className="max-w-7xl mx-auto px-8 py-10 border-t border-white/10">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+      {/* ── Cierre institucional ──
+          Sin repetir el lockup de logos: ya va en la banda superior, que el
+          Layout renderiza en todas las páginas. Aquí basta el texto. */}
+      <div className="max-w-7xl mx-auto px-8 py-8 border-t border-white/10">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <div className="flex flex-col gap-2 text-white/65 text-[9px] font-bold tracking-[0.2em] uppercase">
             <p>Programa de fortalecimiento comercial – Villa Adelaida</p>
             <p>Ministerio de las Culturas, las Artes y los Saberes</p>
           </div>
-          <div className="text-white/55 text-[9px] font-bold tracking-[0.2em] uppercase">
+          <div className="flex flex-col gap-2 text-white/55 text-[9px] font-bold tracking-[0.2em] uppercase md:text-right">
             <p>&copy; {new Date().getFullYear()} Villa Adelaida. TODOS LOS DERECHOS RESERVADOS.</p>
+            <p className="text-white/75 tracking-[0.3em]">Colombia</p>
           </div>
         </div>
       </div>
@@ -135,11 +127,11 @@ function FooterNav({
   children: React.ReactNode;
 }) {
   return (
-    <nav className="flex flex-col gap-8">
+    <nav className="flex flex-col gap-4">
       <h3 className="font-serif text-xs font-bold uppercase tracking-[0.4em] text-sage">
         {title}
       </h3>
-      <ul className="flex flex-col gap-4">{children}</ul>
+      <ul className="flex flex-col gap-2.5">{children}</ul>
     </nav>
   );
 }

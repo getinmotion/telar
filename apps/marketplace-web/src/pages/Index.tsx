@@ -131,19 +131,8 @@ const Index = () => {
       </Helmet>
 
       <div className="min-h-screen bg-editorial-bg text-charcoal font-sans selection:bg-primary/40 selection:text-white">
-        {/* ═══════════════ BANDA INSTITUCIONAL ═══════════════ */}
-        <div className="border-b border-charcoal/10 bg-white/60">
-          <div className="max-w-[1400px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center gap-4 md:gap-6 justify-center md:justify-between">
-            <InstitutionalLogos size="sm" />
-            <a
-              href={TELAR_MARKETPLACE_URL}
-              className="inline-flex items-center gap-2 shrink-0 border border-charcoal/25 px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-charcoal hover:text-cream hover:border-charcoal transition-all"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Volver a Telar
-            </a>
-          </div>
-        </div>
+        {/* La banda institucional con la salida a Telar vive en el Layout,
+            así que aparece en todas las páginas y no solo aquí. */}
 
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
