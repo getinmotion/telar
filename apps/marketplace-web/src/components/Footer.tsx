@@ -58,8 +58,8 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
         </div>
       )} */}
 
-      {/* ── 6-Column Navigation ── */}
-      <div className={`max-w-7xl mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-10 gap-y-8 ${showNewsletter ? "mt-10 md:mt-0" : ""}`}>
+      {/* ── Navegación ── */}
+      <div className={`max-w-7xl mx-auto px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-8 ${showNewsletter ? "mt-10 md:mt-0" : ""}`}>
         <FooterNav title="Explorar">
           <FooterLink to="/productos">Todos los Productos</FooterLink>
           <FooterLink to="/categorias">Categorías</FooterLink>
@@ -68,20 +68,6 @@ export const Footer = ({ showNewsletter = false }: { showNewsletter?: boolean })
         <FooterNav title="Villa Adelaida">
           <FooterLink to="/sobre-villa-adelaida">Alianza Villa Adelaida</FooterLink>
           <FooterLink to="/tiendas">Talleres</FooterLink>
-        </FooterNav>
-
-        {/* Sin "Artesanos": apuntaba a /tiendas igual que "Talleres" */}
-        <FooterNav title="Descubrir">
-          <FooterLink to="/tecnicas">Técnicas</FooterLink>
-          <FooterLink to="/territorios">Territorios</FooterLink>
-        </FooterNav>
-
-        <FooterNav title="Ayuda">
-          <FooterLink to="/ayuda/como-comprar">Cómo comprar</FooterLink>
-          <FooterLink to="/ayuda">Centro de ayuda</FooterLink>
-          <FooterLink to="/ayuda/contacto">Contacto</FooterLink>
-          <FooterLink to="/ayuda/envios">Envíos</FooterLink>
-          <FooterLink to="/ayuda/devoluciones">Devoluciones</FooterLink>
         </FooterNav>
 
         <FooterNav title="Legal">

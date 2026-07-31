@@ -106,4 +106,26 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /**
+   * Franja vacía al final de las páginas cortas.
+   *
+   * Casi todas las páginas envuelven su contenido en `min-h-screen`, pero el
+   * Layout ya pone arriba el navbar y la banda institucional. Sumado da
+   * 100vh + alto del chrome, así que en páginas con poco contenido (el
+   * carrito vacío, por ejemplo) sobraba un scroll en blanco al final.
+   *
+   * Se convierte #root en columna flex y el envoltorio de página pasa a
+   * ocupar el espacio restante en vez de forzar 100vh.
+   */
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  #root > .min-h-screen {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
 }
