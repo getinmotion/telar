@@ -149,6 +149,10 @@ export interface Product {
   // Otros campos
   compactMode?: boolean; // Para mostrar versión compacta en ProductCard
 
+  // Convenio del artesano (null si no pertenece a ninguno)
+  agreementId?: string | null;
+  agreementName?: string | null;
+
 }
 
 /**

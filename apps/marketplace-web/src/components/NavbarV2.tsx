@@ -49,6 +49,7 @@ const NAV_LINKS: readonly {
   { to: "/tiendas", label: "Talleres" },
   { to: "/historias", label: "Historias" },
   { to: "/sobre-telar", label: "Sobre Telar" },
+  { to: "/alianza-villa-adelaida", label: "Alianza Villa Adelaida" },
 ];
 
 export const NavbarV2 = ({
