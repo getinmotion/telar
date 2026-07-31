@@ -115,20 +115,6 @@ export default function FAQs() {
           </Accordion>
         </div>
 
-        {/* CTA */}
-        <div className="mt-12 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-8 text-center border border-primary/20">
-          <h3 className="text-2xl font-serif mb-3 text-charcoal">
-            ¿No encontraste lo que buscabas?
-          </h3>
-          <p className="text-charcoal/70 font-sans mb-6">
-            Contacta a nuestro equipo de soporte
-          </p>
-          <Link to="/ayuda/contacto">
-            <Button size="lg">
-              Contáctanos
-            </Button>
-          </Link>
-        </div>
       </section>
 
       <Footer />

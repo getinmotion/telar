@@ -190,20 +190,6 @@ export default function Devoluciones() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-12 bg-white rounded-2xl p-8 text-center border border-charcoal/5">
-          <h3 className="text-2xl font-serif mb-3 text-charcoal">
-            ¿Necesitas ayuda con una devolución?
-          </h3>
-          <p className="text-charcoal/70 font-sans mb-6">
-            Contacta a nuestro equipo de soporte para asistencia personalizada
-          </p>
-          <Link to="/ayuda/contacto">
-            <Button size="lg">
-              Contáctanos
-            </Button>
-          </Link>
-        </div>
       </section>
 
       <Footer />

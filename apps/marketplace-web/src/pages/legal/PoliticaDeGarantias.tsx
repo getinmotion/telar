@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Mail, Calendar, Shield, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, Calendar, Shield, CheckCircle, XCircle } from "lucide-react";
 
 export default function PoliticaDeGarantias() {
   return (
@@ -224,27 +224,6 @@ export default function PoliticaDeGarantias() {
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-32">
-        <div className="bg-white rounded-2xl p-8 md:p-12 border border-charcoal/5">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-serif mb-3 text-charcoal">
-                ¿Necesitas hacer válida tu garantía?
-              </h2>
-              <p className="text-sm md:text-base text-charcoal/70 font-sans leading-relaxed">
-                Contáctanos y te ayudaremos con el proceso
-              </p>
-            </div>
-            <Link to="/ayuda/contacto">
-              <Button size="lg" className="group">
-                <Mail className="h-4 w-4 mr-2" />
-                Contáctanos
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>
