@@ -10,6 +10,7 @@ import {
   type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { getCategoryImage } from "@/lib/categoryImages";
 import { Footer } from "@/components/Footer";
 import { ExploreProductCard } from "@/components/ExploreProductCard";
 import {
@@ -153,11 +154,10 @@ const ExploreProducts = () => {
     [filters.categorySlug, findCategoryWithChildren],
   );
 
-  // Show the category photo in the header only when a category is active
-  // (not while searching) and it actually has an image.
+  // Show the category illustration in the header only when a category is
+  // active (not while searching).
   const hasHeaderImage =
-    !(searchQuery && searchQuery.trim().length > 0) &&
-    !!activeCategory?.imageUrl;
+    !(searchQuery && searchQuery.trim().length > 0) && !!activeCategory;
 
   // Subcategories that actually have products (avoid empty filters)
   const visibleSubcategories = useMemo(
@@ -732,7 +732,7 @@ const ExploreProducts = () => {
           {hasHeaderImage && (
             <div className="aspect-[21/6] max-h-20 md:max-h-40 bg-[#e5e1d8] w-full rounded-sm relative overflow-hidden">
               <img
-                src={activeCategory!.imageUrl!}
+                src={getCategoryImage(activeCategory!)}
                 alt={activeCategory!.name}
                 className="w-full h-full object-cover rounded-sm"
               />

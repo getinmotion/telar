@@ -45,6 +45,9 @@ const NAV_LINKS: readonly {
   { to: "/productos", label: "Explorar" },
   { to: "/categorias", label: "Categorías", hasMegaMenu: true },
   { to: "/tiendas", label: "Talleres" },
+  { to: "/historias", label: "Historias" },
+  // En el micrositio la marca es Villa Adelaida: el "sobre" canónico es
+  // /sobre-villa-adelaida (/sobre-telar redirige allí en App.tsx).
   { to: "/sobre-villa-adelaida", label: "Alianza Villa Adelaida" },
 ];
 

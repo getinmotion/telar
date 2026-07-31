@@ -54,6 +54,7 @@ import Newsletter from "./pages/Newsletter";
 import Territory from "./pages/Territory";
 import Territorios from "./pages/Territorios";
 import SobreTelar from "./pages/SobreTelar";
+import AlianzaVillaAdelaida from "./pages/AlianzaVillaAdelaida";
 import Tecnicas from "./pages/Tecnicas";
 import TecnicaDetail from "./pages/TecnicaDetail";
 import Colecciones from "./pages/Colecciones";
@@ -192,6 +193,10 @@ const App = () => (
                           <Route path="/sobre-villa-adelaida" element={<SobreTelar />} />
                           <Route path="/sobre-cocrea" element={<Navigate to="/sobre-villa-adelaida" replace />} />
                           <Route path="/sobre-telar" element={<Navigate to="/sobre-villa-adelaida" replace />} />
+                          <Route
+                            path="/alianza-villa-adelaida"
+                            element={<AlianzaVillaAdelaida />}
+                          />
                           <Route path="/ayuda" element={<Ayuda />} />
                           <Route path="/ayuda/faqs" element={<FAQs />} />
                           <Route

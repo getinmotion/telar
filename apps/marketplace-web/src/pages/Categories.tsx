@@ -6,30 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
 
-// Fallback images (same as FeaturedCategories)
-import joyeriaImg from "@/assets/categories/joyeria.png";
-import decoracionImg from "@/assets/categories/decoracion.png";
-import textilesImg from "@/assets/categories/textiles.png";
-import bolsosImg from "@/assets/categories/bolsos.png";
-import vajillasImg from "@/assets/categories/vajillas.png";
-import mueblesImg from "@/assets/categories/muebles.png";
-import arteImg from "@/assets/categories/arte.png";
-
-const FALLBACK_IMAGES: Record<string, string> = {
-  "joyeria-y-accesorios": joyeriaImg,
-  "decoracion-del-hogar": decoracionImg,
-  "textiles-y-moda": textilesImg,
-  "bolsos-y-carteras": bolsosImg,
-  "vajillas-y-cocina": vajillasImg,
-  muebles: mueblesImg,
-  "arte-y-esculturas": arteImg,
-  "joyería y accesorios": joyeriaImg,
-  "decoración del hogar": decoracionImg,
-  "textiles y moda": textilesImg,
-  "bolsos y carteras": bolsosImg,
-  "vajillas y cocina": vajillasImg,
-  "arte y esculturas": arteImg,
-};
+import { getCategoryImage } from "@/lib/categoryImages";
 
 const BENTO_LAYOUT: Record<string, string> = {
   "joyeria-y-accesorios": "md:col-span-2 md:row-span-2",
@@ -39,20 +16,8 @@ const BENTO_LAYOUT: Record<string, string> = {
   "vajillas-y-cocina": "md:col-span-2 md:row-span-1",
   muebles: "md:col-span-1 md:row-span-1",
   "arte-y-esculturas": "md:col-span-1 md:row-span-1",
+  "juguetes-e-instrumentos-musicales": "md:col-span-2 md:row-span-1",
 };
-
-function getCategoryImage(cat: {
-  slug: string;
-  name: string;
-  imageUrl: string | null;
-}): string {
-  if (cat.imageUrl) return cat.imageUrl;
-  return (
-    FALLBACK_IMAGES[cat.slug] ??
-    FALLBACK_IMAGES[cat.name.toLowerCase()] ??
-    decoracionImg
-  );
-}
 
 export default function Categories() {
   const { categoryHierarchy, loading } = useTaxonomy();

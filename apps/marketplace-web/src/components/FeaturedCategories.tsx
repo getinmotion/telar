@@ -6,36 +6,7 @@ import { Skeleton } from './ui/skeleton';
 import { getProductsNew, type MarketplacePaginatedResponse } from '@/services/products-new.actions';
 import type { CategoryWithChildren } from '@/services/taxonomy.actions';
 
-// ── Fallback images (local assets) ───────────────────
-import joyeriaImg from '@/assets/categories/joyeria.png';
-import decoracionImg from '@/assets/categories/decoracion.png';
-import textilesImg from '@/assets/categories/textiles.png';
-import bolsosImg from '@/assets/categories/bolsos.png';
-import vajillasImg from '@/assets/categories/vajillas.png';
-import mueblesImg from '@/assets/categories/muebles.png';
-import arteImg from '@/assets/categories/arte.png';
-
-const FALLBACK_IMAGES: Record<string, string> = {
-  'joyeria-y-accesorios': joyeriaImg,
-  'decoracion-del-hogar': decoracionImg,
-  'textiles-y-moda': textilesImg,
-  'bolsos-y-carteras': bolsosImg,
-  'vajillas-y-cocina': vajillasImg,
-  'muebles': mueblesImg,
-  'arte-y-esculturas': arteImg,
-  // Name-based fallbacks
-  'joyería y accesorios': joyeriaImg,
-  'decoración del hogar': decoracionImg,
-  'textiles y moda': textilesImg,
-  'bolsos y carteras': bolsosImg,
-  'vajillas y cocina': vajillasImg,
-  'arte y esculturas': arteImg,
-};
-
-function getCategoryImage(cat: { slug: string; name: string; imageUrl: string | null }): string {
-  if (cat.imageUrl) return cat.imageUrl;
-  return FALLBACK_IMAGES[cat.slug] ?? FALLBACK_IMAGES[cat.name.toLowerCase()] ?? decoracionImg;
-}
+import { getCategoryImage } from '@/lib/categoryImages';
 
 // Grid uniforme - todas las categorías del mismo tamaño
 

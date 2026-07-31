@@ -95,7 +95,9 @@ export function ExploreProductCard({
             ) : null}
           </div>
 
-          {/* Sello del programa de fortalecimiento comercial */}
+          {/* Sello del programa de fortalecimiento comercial.
+              Aquí (micrositio) el catálogo ya viene filtrado por convenio, así
+              que el sello se decide por despliegue y no por producto. */}
           <AllianceSeal className="absolute bottom-3 left-3 z-10" />
 
           {/* Wishlist */}

@@ -175,6 +175,8 @@ interface MarketplaceDetailResponse {
   categoryName?: string;
   subcategoryId?: string;
   subcategoryName?: string;
+  agreementId?: string | null;
+  agreementName?: string | null;
   artisanalIdentity?: {
     primaryCraft?: string | null;
     primaryTechnique?: string | null;
@@ -296,6 +298,10 @@ function mapMarketplaceDetailToProduct(p: MarketplaceDetailResponse): Product {
     category: p.categoryName ?? '',
     craft: identity?.primaryCraft ?? null,
     material: materialNames[0] ?? null,
+
+    // Convenio (para el sello de Villa Adelaida en el catálogo general)
+    agreementId: p.agreementId ?? null,
+    agreementName: p.agreementName ?? null,
 
     dimensions: psWidth || psHeight || psLength
       ? { width: psWidth, height: psHeight, length: psLength }

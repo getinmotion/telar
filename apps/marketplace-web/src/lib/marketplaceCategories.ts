@@ -1,13 +1,13 @@
 import * as Icons from 'lucide-react';
-import joyeriaImg from '@/assets/categories/joyeria.png';
-import decoracionImg from '@/assets/categories/decoracion.png';
-import textilesImg from '@/assets/categories/textiles.png';
-import bolsosImg from '@/assets/categories/bolsos.png';
-import vajillasImg from '@/assets/categories/vajillas.png';
-import mueblesImg from '@/assets/categories/muebles.png';
-import arteImg from '@/assets/categories/arte.png';
-// Placeholder para cuidado personal hasta que se agregue imagen
-const cuidadoPersonalImg = decoracionImg; // Temporal, usar imagen apropiada después
+import joyeriaImg from '@/assets/categories/joyeria.jpg';
+import decoracionImg from '@/assets/categories/decoracion.jpg';
+import textilesImg from '@/assets/categories/textiles.jpg';
+import bolsosImg from '@/assets/categories/bolsos.jpg';
+import vajillasImg from '@/assets/categories/vajillas.jpg';
+import mueblesImg from '@/assets/categories/muebles.jpg';
+import arteImg from '@/assets/categories/arte.jpg';
+import juguetesImg from '@/assets/categories/juguetes.jpg';
+import cuidadoPersonalImg from '@/assets/categories/cuidado-personal.jpg';
 
 export interface MarketplaceCategory {
   name: string;
@@ -74,6 +74,14 @@ export const FALLBACK_MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
     color: "from-indigo-500/20 to-violet-500/20",
     imageUrl: arteImg,
     keywords: ["arte", "escultura", "figura", "madera", "piedra", "metal", "artístico", "decorativo"]
+  },
+  {
+    name: "Juguetes e Instrumentos Musicales",
+    icon: "Music",
+    description: "Juego, música y tradición hechos a mano",
+    color: "from-teal-500/20 to-cyan-500/20",
+    imageUrl: juguetesImg,
+    keywords: ["juguete", "muñeco", "trompo", "instrumento", "tambor", "guitarra", "tiple", "bandola", "maraca", "luthería"]
   },
   {
     name: "Cuidado Personal",

@@ -56,8 +56,8 @@ func (pe *PricingEngine) CalculateTotalsOrchestrator(ctx context.Context, cartID
 		ContextShopID:     &cart.Items[0].SellerShopID,
 		Currency:          cart.Currency,
 		SubtotalMinor:     subtotal,
-		ChargesTotalMinor: chargesTotal,
-		TotalMinor:        grandTotal,
+		ChargesTotalMinor: grandTotal,
+		TotalMinor:        chargesTotal,
 		Charges: []domain.CheckoutCharge{
 			{
 				TypeCode:    "SHIPPING",

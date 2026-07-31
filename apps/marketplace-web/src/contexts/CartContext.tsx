@@ -1,8 +1,14 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
-import { toast } from 'sonner';
-import * as ProductsActions from '@/services/products.actions';
-import * as CartActions from '@/services/cart.actions';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { useAuth } from "./AuthContext";
+import { toast } from "sonner";
+import * as ProductsActions from "@/services/products.actions";
+import * as CartActions from "@/services/cart.actions";
 
 interface CartItem {
   id: string;
@@ -10,6 +16,7 @@ interface CartItem {
   variant_id?: string;
   variant_name?: string | null;
   quantity: number;
+  stock?: number; // Stock disponible de la variante
   isGiftCard?: boolean;
   giftCardAmount?: number;
   recipientEmail?: string;
@@ -46,8 +53,16 @@ interface CartContextType {
   isCartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addToCart: (productId: string, quantity: number, variantId?: string) => Promise<void>;
-  addGiftCardToCart: (amount: number, recipientEmail?: string, message?: string) => Promise<void>;
+  addToCart: (
+    productId: string,
+    quantity: number,
+    variantId?: string,
+  ) => Promise<void>;
+  addGiftCardToCart: (
+    amount: number,
+    recipientEmail?: string,
+    message?: string,
+  ) => Promise<void>;
   removeFromCart: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -62,8 +77,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'telar_guest_cart';
-const GIFT_CARD_SESSION_KEY = 'telar_gift_cards';
+const CART_STORAGE_KEY = "telar_guest_cart";
+const GIFT_CARD_SESSION_KEY = "telar_gift_cards";
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -94,7 +109,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         loadLocalCart();
       }
     };
-    
+
     initializeCart();
   }, [user]);
 
@@ -112,33 +127,44 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         const localItems: LocalCartItem[] = JSON.parse(stored);
         const cartItems: CartItem[] = localItems.map((item, index) => ({
           id: `local-${index}`,
-          ...item
+          ...item,
         }));
         setItems(cartItems);
       } else {
         setItems([]);
       }
     } catch (error) {
-      console.error('Error loading local cart:', error);
+      console.error("Error loading local cart:", error);
       setItems([]);
     }
   };
 
   const saveLocalCart = (cartItems: CartItem[]) => {
     try {
-      const localItems: LocalCartItem[] = cartItems.map(({ product_id, variant_id, quantity, product, isGiftCard, giftCardAmount, recipientEmail, giftMessage }) => ({
-        product_id,
-        variant_id,
-        quantity,
-        product,
-        isGiftCard,
-        giftCardAmount,
-        recipientEmail,
-        giftMessage
-      }));
+      const localItems: LocalCartItem[] = cartItems.map(
+        ({
+          product_id,
+          variant_id,
+          quantity,
+          product,
+          isGiftCard,
+          giftCardAmount,
+          recipientEmail,
+          giftMessage,
+        }) => ({
+          product_id,
+          variant_id,
+          quantity,
+          product,
+          isGiftCard,
+          giftCardAmount,
+          recipientEmail,
+          giftMessage,
+        }),
+      );
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(localItems));
     } catch (error) {
-      console.error('Error saving local cart:', error);
+      console.error("Error saving local cart:", error);
     }
   };
 
@@ -149,31 +175,33 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
 
       // Also check current items state (for gift cards added directly)
-      const currentGiftCards = items.filter(item => item.isGiftCard);
+      const currentGiftCards = items.filter((item) => item.isGiftCard);
 
       const localItems: LocalCartItem[] = stored ? JSON.parse(stored) : [];
 
-      console.log('[CartContext] syncGuestCartToUser starting:', {
+      console.log("[CartContext] syncGuestCartToUser starting:", {
         localItemsCount: localItems.length,
         currentGiftCardsCount: currentGiftCards.length,
         userId: user.id,
-        hasToken: !!localStorage.getItem('telar_token'),
+        hasToken: !!localStorage.getItem("telar_token"),
       });
 
       // If no local items and no gift cards in state, nothing to sync
       if (localItems.length === 0 && currentGiftCards.length === 0) {
-        console.log('[CartContext] No items to sync, skipping');
+        console.log("[CartContext] No items to sync, skipping");
         return;
       }
 
       // Separate gift cards from regular items
-      const regularItems = localItems.filter(item => !item.isGiftCard);
-      const giftCardItemsFromStorage = localItems.filter(item => item.isGiftCard);
+      const regularItems = localItems.filter((item) => !item.isGiftCard);
+      const giftCardItemsFromStorage = localItems.filter(
+        (item) => item.isGiftCard,
+      );
 
       // Combine gift cards from storage and state
       const allGiftCards = [
         ...giftCardItemsFromStorage,
-        ...currentGiftCards.map(item => ({
+        ...currentGiftCards.map((item) => ({
           product_id: item.product_id,
           variant_id: item.variant_id,
           quantity: item.quantity,
@@ -181,23 +209,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           giftCardAmount: item.giftCardAmount,
           recipientEmail: item.recipientEmail,
           giftMessage: item.giftMessage,
-          product: item.product
-        }))
+          product: item.product,
+        })),
       ];
 
       // Prepare regular items for sync
-      const itemsToSync = regularItems.map(item => ({
+      const itemsToSync = regularItems.map((item) => ({
         productId: item.product_id,
         variantId: item.variant_id,
-        quantity: item.quantity
+        quantity: item.quantity,
       }));
 
-      console.log('[CartContext] Items to sync:', itemsToSync);
+      console.log("[CartContext] Items to sync:", itemsToSync);
 
       // Save a copy of local items before sync in case we need to preserve them in state
       const localItemsBackup: CartItem[] = localItems.map((item, index) => ({
         id: `local-${index}`,
-        ...item
+        ...item,
       }));
 
       let cartId = activeCartId;
@@ -208,11 +236,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         try {
           const response = await CartActions.syncGuestCart({
             buyerUserId: user.id,
-            items: itemsToSync.length > 0 ? itemsToSync : []
+            items: itemsToSync.length > 0 ? itemsToSync : [],
           });
 
           itemsCreated = response.itemsCreated ?? 0;
-          console.log('[CartContext] syncGuestCart response:', {
+          console.log("[CartContext] syncGuestCart response:", {
             cartId: response.cartId,
             itemsCreated,
             itemsSent: itemsToSync.length,
@@ -224,8 +252,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             setActiveCartId(cartId);
           }
         } catch (error) {
-          console.error('[CartContext] Error syncing guest cart:', error);
-          toast.error('Error al sincronizar el carrito');
+          console.error("[CartContext] Error syncing guest cart:", error);
+          toast.error("Error al sincronizar el carrito");
           // Keep items in state so they don't disappear
           return;
         }
@@ -236,8 +264,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (itemsToSync.length > 0 && itemsCreated === 0) {
         // Backend skipped all items (products unpublished or no active variants)
-        console.warn('[CartContext] syncGuestCart: sent', itemsToSync.length, 'items but none were created. Products may be unpublished or lack active variants.');
-        toast.error('Los productos del carrito no pudieron sincronizarse. Verifica que estén publicados y tengan variantes activas.');
+        console.warn(
+          "[CartContext] syncGuestCart: sent",
+          itemsToSync.length,
+          "items but none were created. Products may be unpublished or lack active variants.",
+        );
+        toast.error(
+          "Los productos del carrito no pudieron sincronizarse. Verifica que estén publicados y tengan variantes activas.",
+        );
         // Keep the items visible in the UI by preserving local state
         setItems(localItemsBackup);
         return;
@@ -254,9 +288,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       // Add back gift card items to state
       if (allGiftCards.length > 0) {
-        setItems(prev => {
+        setItems((prev) => {
           // Filter out existing gift cards to avoid duplicates
-          const nonGiftCards = prev.filter(item => !item.isGiftCard);
+          const nonGiftCards = prev.filter((item) => !item.isGiftCard);
           return [
             ...nonGiftCards,
             ...allGiftCards.map((item, index) => ({
@@ -268,16 +302,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
               giftCardAmount: item.giftCardAmount,
               recipientEmail: item.recipientEmail,
               giftMessage: item.giftMessage,
-              product: item.product
-            }))
+              product: item.product,
+            })),
           ];
         });
       }
 
-      toast.success('Carrito sincronizado');
+      toast.success("Carrito sincronizado");
     } catch (error) {
-      console.error('[CartContext] Error syncing guest cart:', error);
-      toast.error('Error al sincronizar el carrito');
+      console.error("[CartContext] Error syncing guest cart:", error);
+      toast.error("Error al sincronizar el carrito");
     }
   };
 
@@ -296,12 +330,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const cart = await CartActions.getOpenCart(user.id);
 
       // Validate cart status
-      if (cart.status !== 'open') {
-        console.warn('[CartContext] Cart not open:', cart.status);
+      if (cart.status !== "open") {
+        console.warn("[CartContext] Cart not open:", cart.status);
         // Keep gift cards if any
-        setItems(prev => prev.filter(item => item.isGiftCard));
+        setItems((prev) => prev.filter((item) => item.isGiftCard));
 
-        const hasGiftCardsInState = items.some(item => item.isGiftCard);
+        const hasGiftCardsInState = items.some((item) => item.isGiftCard);
         if (!hasGiftCardsInState) {
           setActiveCartId(null);
         }
@@ -315,23 +349,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (!detailedItems || detailedItems.length === 0) {
         // Keep gift cards if any
-        setItems(prev => prev.filter(item => item.isGiftCard));
+        setItems((prev) => prev.filter((item) => item.isGiftCard));
         return;
       }
 
       // Map backend items to local CartItem format
-      const mappedItems: CartItem[] = detailedItems.map(item => {
+      const mappedItems: CartItem[] = detailedItems.map((item) => {
         // Convert unitPriceMinor (string) to price (number)
         // "5000000" → 50000.00
         const price = parseFloat(item.unitPriceMinor) / 100;
 
         // Get primary image from product media (la foto de la variante manda)
-        const primaryMedia = item.product?.media?.find(m => m.isPrimary);
+        const primaryMedia = item.product?.media?.find((m) => m.isPrimary);
         const imageUrl =
           item.metadata?.variantImageUrl ||
           primaryMedia?.mediaUrl ||
           item.product?.media?.[0]?.mediaUrl ||
-          '';
+          "";
+
+        // Get stock from variant if available
+        let stock: number | undefined;
+        if (item.metadata?.variantId && item.product?.variants) {
+          const variant = item.product.variants.find(
+            (v) => v.id === item.metadata?.variantId,
+          );
+          stock = variant?.stockQuantity ?? variant?.stock;
+        }
 
         return {
           id: item.id,
@@ -339,38 +382,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           variant_id: item.metadata?.variantId,
           variant_name: item.metadata?.variantName ?? null,
           quantity: item.quantity,
+          stock: stock,
           product: {
-            name: item.product?.name || 'Producto no disponible',
+            name: item.product?.name || "Producto no disponible",
             price: price,
             image_url: imageUrl,
-            allows_local_pickup: false // Este campo no viene en la nueva estructura
-          }
+            allows_local_pickup: false, // Este campo no viene en la nueva estructura
+          },
         };
       });
 
       // Preserve gift cards from state
-      const currentGiftCards = items.filter(item => item.isGiftCard);
+      const currentGiftCards = items.filter((item) => item.isGiftCard);
       setItems([...mappedItems, ...currentGiftCards]);
-
     } catch (error: any) {
       if (error.response?.status === 404) {
         // No cart found - new user or cart converted
-        console.log('[CartContext] No open cart found');
+        console.log("[CartContext] No open cart found");
 
         // Check if we have gift cards in state and should preserve the activeCartId
-        const hasGiftCardsInState = items.some(item => item.isGiftCard);
+        const hasGiftCardsInState = items.some((item) => item.isGiftCard);
         if (preserveCartIdForGiftCards && hasGiftCardsInState && activeCartId) {
           // Don't reset activeCartId - gift cards need it for checkout
           setLoading(false);
           return;
         }
 
-        setItems(prev => prev.filter(item => item.isGiftCard)); // Keep gift cards
+        setItems((prev) => prev.filter((item) => item.isGiftCard)); // Keep gift cards
         if (!hasGiftCardsInState) {
           setActiveCartId(null);
         }
       } else {
-        console.error('[CartContext] Error fetching cart:', error);
+        console.error("[CartContext] Error fetching cart:", error);
         setItems([]);
       }
     } finally {
@@ -378,31 +421,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addToCart = async (productId: string, quantity: number, variantId?: string) => {
+  const addToCart = async (
+    productId: string,
+    quantity: number,
+    variantId?: string,
+  ) => {
     try {
       // Fetch product details from products service
       const product = await ProductsActions.getProductById(productId);
 
-      const imageUrl = product.images?.[0] || '';
+      const imageUrl = product.images?.[0] || "";
 
       // Resolver la variante: precio/nombre propios de la variante elegida
-      const activeVariants = (product.variants ?? []).filter(v => v.isActive);
+      const activeVariants = (product.variants ?? []).filter((v) => v.isActive);
       const variantsWithOptions = activeVariants.filter(
-        v => Object.keys(v.optionValues).length > 0,
+        (v) => Object.keys(v.optionValues).length > 0,
       );
       const selectedVariant = variantId
-        ? activeVariants.find(v => v.id === variantId)
+        ? activeVariants.find((v) => v.id === variantId)
         : undefined;
 
       // Producto con variantes reales: exigir selección (ej. add desde tarjeta)
       if (!selectedVariant && variantsWithOptions.length > 1) {
-        toast.info('Este producto tiene variantes. Elige una en la página del producto.');
+        toast.info(
+          "Este producto tiene variantes. Elige una en la página del producto.",
+        );
         return;
       }
 
       const effectiveVariant =
-        selectedVariant ?? (activeVariants.length === 1 ? activeVariants[0] : undefined);
-      const unitPrice = effectiveVariant?.price ?? parseFloat(product.price.toString());
+        selectedVariant ??
+        (activeVariants.length === 1 ? activeVariants[0] : undefined);
+      const unitPrice =
+        effectiveVariant?.price ?? parseFloat(product.price.toString());
       const variantName = effectiveVariant?.variantName ?? null;
       // Preferir la foto propia de la variante para mostrar el item del carrito
       const itemImageUrl = effectiveVariant?.imageUrl || imageUrl;
@@ -418,12 +469,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           product: {
             name: product.name,
             price: unitPrice,
-            image_url: itemImageUrl
-          }
+            image_url: itemImageUrl,
+          },
         };
 
-        setItems(prev => [...prev, newItem]);
-        toast.success('Producto agregado al carrito');
+        setItems((prev) => [...prev, newItem]);
+        toast.success("Producto agregado al carrito");
         openCart();
         return;
       }
@@ -441,9 +492,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           productId: productId,
           sellerShopId: product.shopId,
           quantity: quantity,
-          currency: 'COP',
+          currency: "COP",
           unitPriceMinor: unitPriceMinor,
-          priceSource: 'product_base',
+          priceSource: "product_base",
           priceRefId: effectiveVariant?.id,
           metadata: effectiveVariant
             ? {
@@ -454,17 +505,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
               }
             : variantId
               ? { variantId }
-              : undefined
+              : undefined,
         });
       } else {
         // No active cart, use sync-guest to create cart + item
         const response = await CartActions.syncGuestCart({
           buyerUserId: user.id,
-          items: [{
-            productId: productId,
-            variantId: variantId,
-            quantity
-          }]
+          items: [
+            {
+              productId: productId,
+              variantId: variantId,
+              quantity,
+            },
+          ],
         });
 
         if (response.cartId) {
@@ -473,11 +526,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
 
       await fetchCart(true); // Preserve cart ID for gift cards
-      toast.success('Producto agregado al carrito');
+      toast.success("Producto agregado al carrito");
       openCart();
     } catch (error) {
-      console.error('[CartContext] Error adding to cart:', error);
-      toast.error('Error al agregar al carrito');
+      console.error("[CartContext] Error adding to cart:", error);
+      toast.error("Error al agregar al carrito");
     }
   };
 
@@ -486,7 +539,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       sessionStorage.setItem(GIFT_CARD_SESSION_KEY, JSON.stringify(giftCards));
     } catch (error) {
-      console.error('Error saving gift cards to session:', error);
+      console.error("Error saving gift cards to session:", error);
     }
   };
 
@@ -498,7 +551,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         return JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Error loading gift cards from session:', error);
+      console.error("Error loading gift cards from session:", error);
     }
     return [];
   };
@@ -508,7 +561,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       sessionStorage.removeItem(GIFT_CARD_SESSION_KEY);
     } catch (error) {
-      console.error('Error clearing gift cards from session:', error);
+      console.error("Error clearing gift cards from session:", error);
     }
   };
 
@@ -516,8 +569,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const savedGiftCards = loadGiftCardsFromSession();
     if (savedGiftCards.length > 0) {
-      setItems(prev => {
-        const nonGiftCards = prev.filter(item => !item.isGiftCard);
+      setItems((prev) => {
+        const nonGiftCards = prev.filter((item) => !item.isGiftCard);
         return [...nonGiftCards, ...savedGiftCards];
       });
     }
@@ -525,7 +578,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Persist gift cards to sessionStorage whenever items change
   useEffect(() => {
-    const giftCards = items.filter(item => item.isGiftCard);
+    const giftCards = items.filter((item) => item.isGiftCard);
     if (giftCards.length > 0) {
       saveGiftCardsToSession(giftCards);
     } else {
@@ -533,7 +586,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [items]);
 
-  const addGiftCardToCart = async (amount: number, recipientEmail?: string, message?: string) => {
+  const addGiftCardToCart = async (
+    amount: number,
+    recipientEmail?: string,
+    message?: string,
+  ) => {
     const giftCardItem: CartItem = {
       id: `giftcard-${Date.now()}`,
       product_id: `giftcard-${amount}`,
@@ -549,19 +606,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           minimumFractionDigits: 0,
         }).format(amount)}`,
         price: amount,
-        image_url: '' // Gift cards don't have images
-      }
+        image_url: "", // Gift cards don't have images
+      },
     };
 
-    setItems(prev => [...prev, giftCardItem]);
-    toast.success('Gift Card agregada al carrito');
+    setItems((prev) => [...prev, giftCardItem]);
+    toast.success("Gift Card agregada al carrito");
     openCart();
   };
 
   const removeFromCart = async (itemId: string) => {
     // Check if it's a gift card or local item (handled in state)
-    if (itemId.startsWith('giftcard-') || itemId.startsWith('local-')) {
-      const updatedItems = items.filter(item => item.id !== itemId);
+    if (itemId.startsWith("giftcard-") || itemId.startsWith("local-")) {
+      const updatedItems = items.filter((item) => item.id !== itemId);
       setItems(updatedItems);
 
       // Update localStorage for guests
@@ -573,7 +630,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      toast.success('Producto eliminado del carrito');
+      toast.success("Producto eliminado del carrito");
       return;
     }
 
@@ -581,10 +638,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       await CartActions.deleteCartItem(itemId);
       await fetchCart(true); // Preserve cart ID for gift cards
-      toast.success('Producto eliminado del carrito');
+      toast.success("Producto eliminado del carrito");
     } catch (error) {
-      console.error('[CartContext] Error removing from cart:', error);
-      toast.error('Error al eliminar del carrito');
+      console.error("[CartContext] Error removing from cart:", error);
+      toast.error("Error al eliminar del carrito");
     }
   };
 
@@ -592,10 +649,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (quantity < 1) return;
 
     // For gift cards or guests, update local state
-    if (itemId.startsWith('giftcard-') || itemId.startsWith('local-') || !user) {
-      setItems(prev => prev.map(item =>
-        item.id === itemId ? { ...item, quantity } : item
-      ));
+    if (
+      itemId.startsWith("giftcard-") ||
+      itemId.startsWith("local-") ||
+      !user
+    ) {
+      setItems((prev) =>
+        prev.map((item) => (item.id === itemId ? { ...item, quantity } : item)),
+      );
       return;
     }
 
@@ -604,8 +665,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       await CartActions.updateCartItem(itemId, { quantity });
       await fetchCart(true); // Preserve cart ID for gift cards
     } catch (error) {
-      console.error('[CartContext] Error updating quantity:', error);
-      toast.error('Error al actualizar cantidad');
+      console.error("[CartContext] Error updating quantity:", error);
+      toast.error("Error al actualizar cantidad");
     }
   };
 
@@ -622,36 +683,41 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
   // Total excluyendo gift cards - para validación de cupones
   const nonGiftCardTotal = items
-    .filter(item => !item.isGiftCard)
-    .reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const hasGiftCards = items.some(item => item.isGiftCard);
-  
-  const getGiftCardItems = () => items.filter(item => item.isGiftCard);
+    .filter((item) => !item.isGiftCard)
+    .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const hasGiftCards = items.some((item) => item.isGiftCard);
+
+  const getGiftCardItems = () => items.filter((item) => item.isGiftCard);
 
   return (
-    <CartContext.Provider value={{
-      items,
-      loading,
-      activeCartId,
-      isCartOpen,
-      openCart,
-      closeCart,
-      addToCart,
-      addGiftCardToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      resetCart,
-      syncGuestCartToUser,
-      totalItems,
-      totalPrice,
-      nonGiftCardTotal,
-      hasGiftCards,
-      getGiftCardItems
-    }}>
+    <CartContext.Provider
+      value={{
+        items,
+        loading,
+        activeCartId,
+        isCartOpen,
+        openCart,
+        closeCart,
+        addToCart,
+        addGiftCardToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        resetCart,
+        syncGuestCartToUser,
+        totalItems,
+        totalPrice,
+        nonGiftCardTotal,
+        hasGiftCards,
+        getGiftCardItems,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -660,7 +726,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };

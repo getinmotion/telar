@@ -19,6 +19,9 @@ import {
   type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { getCategoryImage } from "@/lib/categoryImages";
+import { TELAR_MARKETPLACE_URL } from "@/lib/villaAdelaida";
+import { ArrowLeft } from "lucide-react";
 import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
 // import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
@@ -153,15 +156,12 @@ const Index = () => {
                 <div key={cat.id} className="space-y-2">
                   <Link to={`/productos?categoria=${cat.slug}`}>
                     <div className="aspect-[16/10] bg-[#F3E4D3] mb-4 overflow-hidden relative">
-                      {cat.imageUrl ? (
-                        <img
-                          src={cat.imageUrl}
-                          alt={cat.name}
-                          className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-muted" />
-                      )}
+                      <img
+                        src={getCategoryImage(cat)}
+                        alt={cat.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
+                      />
                     </div>
                   </Link>
                   <Link
@@ -443,6 +443,29 @@ const Index = () => {
               Programa de fortalecimiento comercial – Villa Adelaida ·
               Ministerio de las Culturas, las Artes y los Saberes
             </h3>
+          </div>
+        </section>
+
+        {/* ═══════════════ VOLVER A TELAR ═══════════════ */}
+        <section className="bg-cream border-t border-foreground/10 py-20">
+          <div className="max-w-3xl mx-auto px-6 text-center space-y-8">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.4em] text-charcoal/50">
+              Este es el catálogo de Villa Adelaida
+            </span>
+            <h2 className="text-4xl font-serif leading-tight">
+              ¿Quieres ver toda la artesanía de Colombia?
+            </h2>
+            <p className="text-charcoal/70 font-serif italic text-lg">
+              En Telar encuentras el catálogo completo: los talleres de todas las
+              regiones del país y de todos los programas.
+            </p>
+            <a
+              href={TELAR_MARKETPLACE_URL}
+              className="inline-flex items-center gap-3 border border-charcoal px-10 py-4 uppercase text-xs font-bold tracking-widest hover:bg-charcoal hover:text-cream transition-all"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver a Telar
+            </a>
           </div>
         </section>
 
