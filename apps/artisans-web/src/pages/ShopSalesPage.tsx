@@ -9,6 +9,7 @@ import { useOraculo } from '@/components/oraculo/OraculoContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { exportCsv } from '@/utils/exportCsv';
 
 // ── TELAR Design System ───────────────────────────────────────────────────────
 const SERIF = "'Noto Serif', serif";
@@ -335,23 +336,22 @@ export default function ShopSalesPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Orden', 'Fecha', 'Cliente', 'Email', 'Total', 'Estado', 'Método Envío'];
-    const rows = orders.map(o => [
-      o.order_number,
-      format(new Date(o.created_at), 'dd/MM/yyyy HH:mm'),
-      o.customer_name,
-      o.customer_email,
-      o.total,
-      o.status,
-      orderRequiresShipping(o) ? 'Servientrega' : 'Retiro local',
+    // Helper compartido: escapa comas y comillas, y añade BOM para los acentos.
+    exportCsv(`ventas-${format(new Date(), 'yyyy-MM-dd')}`, orders, [
+      { header: 'Orden', value: (o) => o.order_number },
+      {
+        header: 'Fecha',
+        value: (o) => format(new Date(o.created_at), 'dd/MM/yyyy HH:mm'),
+      },
+      { header: 'Cliente', value: (o) => o.customer_name },
+      { header: 'Email', value: (o) => o.customer_email },
+      { header: 'Total', value: (o) => o.total },
+      { header: 'Estado', value: (o) => o.status },
+      {
+        header: 'Método Envío',
+        value: (o) => (orderRequiresShipping(o) ? 'Servientrega' : 'Retiro local'),
+      },
     ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ventas-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
   };
 
   const getStatusPill = (order: ShopOrder) => {

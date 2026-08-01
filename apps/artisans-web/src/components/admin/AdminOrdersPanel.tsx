@@ -27,12 +27,13 @@ import {
 import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  isPickupOrder, 
-  isGiftCardPayment, 
+import {
+  isPickupOrder,
+  isGiftCardPayment,
   getRealRevenueFromOrder,
-  getGiftCardAmount 
+  getGiftCardAmount
 } from '@/utils/orderHelpers';
+import { exportCsv } from '@/utils/exportCsv';
 
 interface Order {
   id: string;
@@ -234,27 +235,25 @@ export function AdminOrdersPanel() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   const exportToCSV = () => {
-    const headers = ['Orden', 'Cliente', 'Email', 'Tipo', 'Total', 'Ingreso Real', 'Estado Envío', 'Estado Pago', 'Guía', 'Tienda', 'Fecha'];
-    const rows = orders.map(order => [
-      order.order_number,
-      order.customer_name,
-      order.customer_email,
-      isPickupOrder(order) ? 'Pickup' : 'Envío',
-      order.total,
-      getRealRevenueFromOrder(order),
-      order.fulfillment_status || order.status,
-      order.payment_status || '',
-      order.tracking_number || '',
-      order.shop_name || '',
-      format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')
+    // Usa el helper compartido: escapa comas y comillas (antes una tienda con
+    // coma en el nombre partía la fila) y añade BOM para que Excel respete los
+    // acentos.
+    exportCsv(`ordenes_${format(new Date(), 'yyyyMMdd')}`, orders, [
+      { header: 'Orden', value: (o) => o.order_number },
+      { header: 'Cliente', value: (o) => o.customer_name },
+      { header: 'Email', value: (o) => o.customer_email },
+      { header: 'Tipo', value: (o) => (isPickupOrder(o) ? 'Pickup' : 'Envío') },
+      { header: 'Total', value: (o) => o.total },
+      { header: 'Ingreso Real', value: (o) => getRealRevenueFromOrder(o) },
+      { header: 'Estado Envío', value: (o) => o.fulfillment_status || o.status },
+      { header: 'Estado Pago', value: (o) => o.payment_status || '' },
+      { header: 'Guía', value: (o) => o.tracking_number || '' },
+      { header: 'Tienda', value: (o) => o.shop_name || '' },
+      {
+        header: 'Fecha',
+        value: (o) => format(new Date(o.created_at), 'dd/MM/yyyy HH:mm'),
+      },
     ]);
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `ordenes_${format(new Date(), 'yyyyMMdd')}.csv`;
-    link.click();
 
     toast({
       title: 'Exportación exitosa',
