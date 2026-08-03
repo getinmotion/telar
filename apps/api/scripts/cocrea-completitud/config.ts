@@ -4,8 +4,13 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-/** Convenio CO-CREA. Mismo id que hornea el micrositio cocrea.telar.co. */
-export const AGREEMENT_ID = 'b7a6d812-5dd7-4d7b-bec4-687d65234f4f';
+/**
+ * Convenio CO-CREA. Mismo id que hornea el micrositio cocrea.telar.co.
+ *
+ * Se puede sobreescribir con COCREA_AGREEMENT_ID para ensayar el script real
+ * contra staging, donde este convenio no existe.
+ */
+export const AGREEMENT_ID = process.env.COCREA_AGREEMENT_ID || 'b7a6d812-5dd7-4d7b-bec4-687d65234f4f';
 export const AGREEMENT_NAME = 'CO-CREA';
 
 /** Entornos de la API (hostnames tomados de infra/prod/nginx.conf e infra/dev/nginx.conf). */

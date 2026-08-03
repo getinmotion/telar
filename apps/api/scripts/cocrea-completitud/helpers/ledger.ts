@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { DRY_RUN, stateFile } from '../config';
+import { DRY_RUN, TARGET, stateFile } from '../config';
 
 /**
  * Registro de lo ya hecho, por artesano.
@@ -35,8 +35,14 @@ export interface Entrada {
   errores?: string[];
 }
 
-/** El ledger real, el único que decide qué se salta en una corrida con --apply. */
-const RUTA_REAL = () => stateFile('ledger.json');
+/**
+ * El ledger real, el único que decide qué se salta en una corrida con --apply.
+ *
+ * Va separado por entorno: un ensayo del script contra staging escribiría los
+ * mismos correos, y el siguiente `--apply` contra producción se los saltaría
+ * creyendo que ya estaban hechos.
+ */
+const RUTA_REAL = () => stateFile(`ledger.${TARGET}.json`);
 
 /**
  * El dry-run escribe en un archivo aparte.
@@ -44,7 +50,7 @@ const RUTA_REAL = () => stateFile('ledger.json');
  * Si volcara sobre el real, marcaría como cumplidos pasos que nunca se enviaron,
  * y el siguiente `--apply` se los saltaría dejando las tiendas a medias.
  */
-const RUTA_ESCRITURA = () => (DRY_RUN ? stateFile('ledger.dry-run.json') : RUTA_REAL());
+const RUTA_ESCRITURA = () => (DRY_RUN ? stateFile(`ledger.${TARGET}.dry-run.json`) : RUTA_REAL());
 
 export class Ledger {
   private entradas = new Map<string, Entrada>();

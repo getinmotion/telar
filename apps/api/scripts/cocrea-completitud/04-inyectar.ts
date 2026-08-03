@@ -46,6 +46,7 @@ const SOLO_COMPLETAR = flag('solo-completar');
 const PRECIO_COP = 80000;
 
 interface Contenido {
+  target?: string;
   crear: any[];
   completar: any[];
 }
@@ -65,6 +66,17 @@ async function main() {
   const ruta = stateFile('contenido.json');
   if (!fs.existsSync(ruta)) throw new Error('Falta state/contenido.json. Corre antes: npx ts-node 03-contenido.ts');
   const contenido = JSON.parse(fs.readFileSync(ruta, 'utf8')) as Contenido;
+
+  // El contenido lleva UUIDs del entorno donde se generó (país, tipo de documento,
+  // oficio, categoría, materiales). Usarlo contra otro entorno no falla claro: la
+  // API responde 500 genérico al violarse las claves foráneas.
+  if (contenido.target && contenido.target !== TARGET) {
+    throw new Error(
+      `state/contenido.json se generó contra "${contenido.target}" y estás apuntando a "${TARGET}".\n` +
+        `Los ids de taxonomía no coinciden entre entornos y la API responde 500 sin explicar por qué.\n` +
+        `Regenéralo:  COCREA_TARGET=${TARGET} npx ts-node scripts/cocrea-completitud/03-contenido.ts`,
+    );
+  }
 
   const shops = await getTiendasConvenio();
   const porId = new Map(shops.map((s) => [s.id, s]));
@@ -125,7 +137,7 @@ async function main() {
       .forEach(([k, v]) => console.log(`     ${String(v).padStart(4)}  ${k}`));
     console.log('\n  Para aplicarlo: añade --apply');
   }
-  console.log(`\n  Ledger: ${stateFile(DRY_RUN ? 'ledger.dry-run.json' : 'ledger.json')}`);
+  console.log(`\n  Ledger: ${stateFile(`ledger.${TARGET}${DRY_RUN ? '.dry-run' : ''}.json`)}`);
 }
 
 // ─────────────────────── completar tiendas existentes ───────────────────────
@@ -208,9 +220,10 @@ async function crearArtesano(item: any) {
         cuenta('usuario ya existía');
         console.log(`  = ${email} ya existe (${e.body.slice(0, 80)})`);
       } else {
-        ledger.error(email, `register: ${(e as Error).message}`);
+        const detalle = e instanceof ApiError ? `${e.message}\n      ${e.body}` : (e as Error).message;
+        ledger.error(email, `register: ${detalle}`);
         cuenta('ERROR al crear usuario');
-        console.log(`  ✗ ${email}: ${(e as Error).message}`);
+        console.log(`  ✗ ${email}: ${detalle}`);
         return;
       }
     }
