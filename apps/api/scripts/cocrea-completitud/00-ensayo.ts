@@ -6,7 +6,7 @@
  * correo, tienda, políticas, logo, producto, publicación— y reporta en qué paso
  * se rompe, si se rompe.
  *
- *   COCREA_TARGET=stage npx ts-node 00-ensayo.ts --apply
+ *   npm run cocrea:ensayo -- --target stage --apply   (desde apps/api)
  *
  * Deliberadamente NO apunta a prod: si TARGET es prod, aborta.
  */

@@ -39,6 +39,13 @@ npm run cocrea:reporte -- --target prod
 El `--` después del nombre del script es de npm: separa los argumentos del script
 de los de npm. Sin él, `--target` se lo queda npm y el script no lo ve.
 
+Desde la raíz del repo hay que pasar el prefijo, porque el monorepo **no tiene
+`package.json` en la raíz** y npm falla con `ENOENT ... package.json`:
+
+```
+npm --prefix apps/api run cocrea:inyectar -- --target prod --apply --limite 5
+```
+
 `--target` es `prod`, `stage` o `local` (por defecto `local`). También se acepta
 la variable `COCREA_TARGET` si prefieres exportarla.
 `COCREA_XLSX` apunta al Excel del padrón; por defecto lo busca en `~/Downloads`.

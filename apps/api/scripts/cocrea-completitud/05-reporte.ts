@@ -5,7 +5,7 @@
  *   docs/cocrea/04-reporte-final.md   agregados antes/después, sin datos personales
  *   state/credenciales.csv            correo + contraseña por artesano (NO se versiona)
  *
- *   COCREA_TARGET=prod npx ts-node 05-reporte.ts
+ *   npm run cocrea:reporte -- --target prod   (desde apps/api)
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -86,7 +86,7 @@ ${cumplen.length >= META ? `✅ Meta alcanzada (${cumplen.length} ≥ ${META}).`
 
 ${
   conErrores.length
-    ? `### Errores\n\nEl detalle lleva correos, así que está en \`state/ledger.json\`. Por tipo:\n\n${Object.entries(
+    ? `### Errores\n\nEl detalle lleva correos, así que está en \`state/ledger.${TARGET}.json\`. Por tipo:\n\n${Object.entries(
         conErrores
           .flatMap((e) => e.errores ?? [])
           .reduce<Record<string, number>>((acc, msg) => {
@@ -128,7 +128,7 @@ El correo queda verificado, así que el artesano puede entrar y cambiarla sin pa
 
   console.log(`Tiendas que cumplen la meta: ${cumplen.length} de ${shops.length} (meta ${META})`);
   if (antes !== null) console.log(`Al empezar eran ${antes}.`);
-  if (conErrores.length) console.log(`⚠️  ${conErrores.length} artesanos con errores — ver state/ledger.json`);
+  if (conErrores.length) console.log(`⚠️  ${conErrores.length} artesanos con errores — ver ${stateFile(`ledger.${TARGET}.json`)}`);
   console.log(`\nReporte:      ${destino}`);
   console.log(`Credenciales: ${stateFile('credenciales.csv')}`);
 }

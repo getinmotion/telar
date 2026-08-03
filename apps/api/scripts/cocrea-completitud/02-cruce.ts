@@ -6,7 +6,7 @@
  *   docs/cocrea/02-clasificacion.md   agregados y metodología, sin datos personales
  *   state/plan.json                   el plan por persona (NO se commitea)
  *
- *   COCREA_TARGET=prod npx ts-node 02-cruce.ts
+ *   npm run cocrea:cruce -- --target prod   (desde apps/api)
  */
 import * as fs from 'fs';
 import * as path from 'path';

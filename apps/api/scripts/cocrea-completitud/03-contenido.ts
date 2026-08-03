@@ -8,7 +8,7 @@
  * Lee   state/plan.json   (lo produce 02-cruce.ts)
  * Escribe state/contenido.json  y  docs/cocrea/03-contenido.md
  *
- *   COCREA_TARGET=prod npx ts-node 03-contenido.ts
+ *   npm run cocrea:contenido -- --target prod   (desde apps/api)
  */
 import * as fs from 'fs';
 import * as path from 'path';

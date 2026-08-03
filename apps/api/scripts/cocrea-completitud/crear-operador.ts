@@ -10,7 +10,7 @@
  * artesano, y sumaría un perfil al padrón del convenio que estamos midiendo.
  * Tampoco se le crea tienda, así que no altera el conteo de tiendas.
  *
- *   COCREA_TARGET=prod npx ts-node crear-operador.ts --apply
+ *   npm run cocrea:operador -- --target prod   (desde apps/api)
  */
 import { API_BASE, DRY_RUN, OPERADOR_EMAIL, OPERADOR_PASSWORD, TARGET, banner } from './config';
 import { ApiError, get } from './helpers/api';

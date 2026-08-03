@@ -5,8 +5,8 @@
  *   docs/cocrea/01-diagnostico.md   agregados, sin datos personales (se commitea)
  *   state/diagnostico.json          detalle por tienda (NO se commitea)
  *
- *   npx ts-node 01-diagnostico.ts            (contra local)
- *   COCREA_TARGET=prod npx ts-node 01-diagnostico.ts
+ *   npm run cocrea:diagnostico -- --target prod   (desde apps/api)
+ *   npm run cocrea:diagnostico -- --target prod   (desde apps/api)
  */
 import * as fs from 'fs';
 import * as path from 'path';

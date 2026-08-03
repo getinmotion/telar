@@ -4,8 +4,8 @@
  * Por defecto NO escribe: hay que pasar `--apply` explícitamente. En dry-run
  * recorre todo, resuelve cada paso y reporta cuántos registros tocaría.
  *
- *   COCREA_TARGET=prod npx ts-node 04-inyectar.ts            # dry-run
- *   COCREA_TARGET=prod npx ts-node 04-inyectar.ts --apply    # escribe de verdad
+ *   npm run cocrea:inyectar -- --target prod   (desde apps/api)
+ *   npm run cocrea:inyectar -- --target prod   (desde apps/api)
  *   ... --apply --limite 10                                  # por lotes
  *   ... --solo-completar   |   --solo-crear
  *
