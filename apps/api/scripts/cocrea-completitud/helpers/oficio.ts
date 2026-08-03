@@ -16,6 +16,14 @@ export interface Oficio {
   categoria: string;
   subcategoria?: string;
   materiales: string[];
+  /**
+   * Técnica principal, por nombre exacto del catálogo.
+   *
+   * Se fija a mano en vez de tomar la primera técnica asociada al oficio: esa
+   * asociación es floja (12 técnicas no tienen oficio) y "la primera" salía
+   * arbitraria — un tejedor podía terminar etiquetado con "Fieltrado".
+   */
+  tecnica: string;
   /** Sustantivo de la pieza placeholder, en singular. */
   pieza: string;
   /** Verbo del oficio en infinitivo, para redactar sin repetir fórmula. */
@@ -33,8 +41,12 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /viche|biche|curao|arrechon|tomaseca|destil|pacific|guarapo/,
     oficio: {
       craft: 'Viche',
+      tecnica: 'Viche',
       categoria: 'Bebidas ancestrales',
-      materiales: ['Caña de azúcar'],
+      // El catálogo de materiales no tiene caña de azúcar. "caña brava" es una
+      // fibra, no la caña del viche, así que se deja sin material antes que
+      // etiquetar 28 tiendas con algo falso. Ver docs/cocrea/03-contenido.md.
+      materiales: [],
       pieza: 'botella de viche artesanal',
       gesto: 'destilar',
       gesto3: 'destila',
@@ -44,9 +56,11 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /caña flecha|cana flecha|sombrero|vueltiao/,
     oficio: {
       craft: 'Trabajo en fibras naturales',
+      tecnica: 'Trenzado',
       categoria: 'Decoración del Hogar',
       subcategoria: 'Cestas',
-      materiales: ['Caña flecha'],
+      // El catálogo no tiene "caña flecha"; "Fibras Naturales" es lo más cercano real.
+      materiales: ['Fibras Naturales'],
       pieza: 'pieza tejida en caña flecha',
       gesto: 'trenzar',
       gesto3: 'trenza',
@@ -56,6 +70,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /macrame|macramé|anudad/,
     oficio: {
       craft: 'Macramé',
+      tecnica: 'Macramé',
       categoria: 'Decoración del Hogar',
       materiales: ['Algodón'],
       pieza: 'tapiz anudado en macramé',
@@ -67,6 +82,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /joyer|orfebr|plata|filigrana|aretes|collar/,
     oficio: {
       craft: 'Joyería artesanal',
+      tecnica: 'Filigrana',
       categoria: 'Joyería y Accesorios',
       subcategoria: 'Aretes',
       materiales: ['Plata'],
@@ -79,6 +95,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /marroquin|cuero|talabart/,
     oficio: {
       craft: 'Marroquinería artesanal',
+      tecnica: 'Trabajo En Cuero',
       categoria: 'Bolsos y Carteras',
       materiales: ['Cuero'],
       pieza: 'bolso en cuero',
@@ -90,6 +107,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /ceramic|cerámic|alfarer|barro|greda|arcilla/,
     oficio: {
       craft: 'Cerámica artesanal',
+      tecnica: 'Torno',
       categoria: 'Vajillas y Cocina',
       subcategoria: 'Platos',
       materiales: ['Arcilla'],
@@ -102,6 +120,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /jabon|jabón|aceite|aromater|cosmet|cosmét|esencia/,
     oficio: {
       craft: 'Cosmética artesanal',
+      tecnica: 'Saponificación',
       categoria: 'Cuidado personal',
       subcategoria: 'Jabones artesanales',
       materiales: ['Aceites Esenciales'],
@@ -114,6 +133,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /talla|madera|ebanist|escultur/,
     oficio: {
       craft: 'Tallado artesanal',
+      tecnica: 'Talla',
       categoria: 'Arte y Esculturas',
       subcategoria: 'Esculturas',
       materiales: ['Madera'],
@@ -126,6 +146,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /bordad/,
     oficio: {
       craft: 'Bordado artesanal',
+      tecnica: 'Bordado',
       categoria: 'Textiles y Moda',
       materiales: ['Hilo'],
       pieza: 'pieza bordada a mano',
@@ -137,6 +158,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /cester|canast|iraca|werregue|palma/,
     oficio: {
       craft: 'Cestería',
+      tecnica: 'Tejido en fibras',
       categoria: 'Decoración del Hogar',
       subcategoria: 'Cestas',
       materiales: ['Fibras naturales'],
@@ -149,6 +171,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /chaquira|mostacilla|abalorio/,
     oficio: {
       craft: 'Trabajo en chaquira',
+      tecnica: 'Tejido En Chaquira',
       categoria: 'Joyería y Accesorios',
       subcategoria: 'Collares',
       materiales: ['Chaquira'],
@@ -161,6 +184,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
     patron: /telar|tejed|tejid|lana|mochila|ruana|hamaca|textil|confec|costur/,
     oficio: {
       craft: 'Tejeduría',
+      tecnica: 'Telar vertical',
       categoria: 'Textiles y Moda',
       materiales: ['Lana'],
       pieza: 'pieza tejida en telar',
@@ -173,6 +197,7 @@ const REGLAS: Array<{ patron: RegExp; oficio: Oficio }> = [
 /** Cuando no hay ninguna señal, se cae aquí: textiles, el oficio más común del padrón. */
 const POR_DEFECTO: Oficio = {
   craft: 'Tejeduría',
+  tecnica: 'Telar vertical',
   categoria: 'Textiles y Moda',
   materiales: ['Algodón'],
   pieza: 'pieza tejida a mano',
@@ -194,6 +219,8 @@ export interface OficioResuelto extends Oficio {
   categoryId?: string;
   subcategoryId?: string;
   materialIds: string[];
+  /** Materiales declarados que no existen en el catálogo. Debería estar vacío. */
+  materialesSinResolver: string[];
 }
 
 /** Traduce los nombres del oficio a los UUIDs reales de la taxonomía. */
@@ -209,12 +236,19 @@ export function resolverOficio(cat: Catalogos, oficio: Oficio): OficioResuelto {
     )?.id;
   }
 
-  // La técnica principal: la primera del oficio, o la que se llame igual que él.
-  const tecnicas: Item[] = craftId ? tecnicasDe(cat, craftId) : [];
+  // Manda la técnica declarada por nombre. Buscar sólo entre las asociadas al
+  // oficio no sirve: 12 de las 104 técnicas tienen `craftId` nulo, y la de Viche
+  // es una de ellas. Como último recurso, una del oficio.
+  const tecnicasDelOficio: Item[] = craftId ? tecnicasDe(cat, craftId) : [];
   const primaryTechniqueId =
-    tecnicas.find((t) => sinTildes(t.name) === sinTildes(oficio.craft))?.id ?? tecnicas[0]?.id;
+    cat.techniques.find((t) => sinTildes(t.name) === sinTildes(oficio.tecnica))?.id ??
+    tecnicasDelOficio.find((t) => sinTildes(t.name) === sinTildes(oficio.craft))?.id ??
+    tecnicasDelOficio[0]?.id;
 
   const materialIds = oficio.materiales.map((m) => idDe(cat.materials, m)).filter((x): x is string => !!x);
+  // Un material declarado que no exista en el catálogo es un error de este script,
+  // no del dato: conviene verlo en vez de que desaparezca en silencio.
+  const materialesSinResolver = oficio.materiales.filter((m) => !idDe(cat.materials, m));
 
-  return { ...oficio, craftId, primaryTechniqueId, categoryId, subcategoryId, materialIds };
+  return { ...oficio, craftId, primaryTechniqueId, categoryId, subcategoryId, materialIds, materialesSinResolver };
 }

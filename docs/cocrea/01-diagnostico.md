@@ -17,7 +17,7 @@ Sin datos personales: el detalle por tienda queda en `state/diagnostico.json`, q
 | marketplaceApproved = true | 45 | 62% |
 | artisanProfileCompleted = true | 17 | 23% |
 | Con ≥1 producto (cualquier estado) | 23 | 32% |
-| Con ≥1 producto aprobado | 12 | 16% |
+| Con ≥1 producto aprobado | 11 | 15% |
 | **Cumplen la meta** | 16 | 22% |
 | logoUrl | 17 | 23% |
 | bannerUrl | 8 | 11% |
@@ -34,12 +34,12 @@ Sin datos personales: el detalle por tienda queda en `state/diagnostico.json`, q
 
 ## Productos
 
-110 productos en el convenio, repartidos en 23 tiendas.
+108 productos en el convenio, repartidos en 23 tiendas.
 
 | Estado | Productos |
 |---|---:|
-| `approved` | 84 |
-| `draft` | 26 |
+| `approved` | 83 |
+| `draft` | 25 |
 
 > `GET /products-new?agreementId=` **sin** parámetro `status` devuelve sólo los aprobados.
 > Los borradores hay que pedirlos aparte; si no, se subestima cuántas tiendas tienen producto.

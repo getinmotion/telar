@@ -151,8 +151,8 @@ async function completarTienda(shop: ShopProd, item: any) {
   }
 
   if (!conContenido(shop.idPoliciesConfig)) await ponerPoliticas(email, shop.id, t.politicas);
-  if (!conContenido(shop.logoUrl)) await subirLogo(email, shop.id, t.shopName, t.logoSvg);
-  if (item.producto) await crearProducto(email, shop.id, item.producto, item.oficio);
+  await subirImagenesTienda(email, shop.id, t, !conContenido(shop.logoUrl), !conContenido(shop.bannerUrl));
+  if (item.producto) await crearProducto(email, shop.id, item.producto, t.taxonomia, t.productoSvg);
   if (shop.publishStatus !== 'published') await publicar(email, shop.id);
 }
 
@@ -267,8 +267,8 @@ async function crearArtesano(item: any) {
   cuenta('tienda configurada');
 
   await ponerPoliticas(email, shopId ?? ':pendiente', t.politicas);
-  await subirLogo(email, shopId ?? ':pendiente', t.shopName, t.logoSvg);
-  await crearProducto(email, shopId ?? ':pendiente', item.producto, item.oficio);
+  await subirImagenesTienda(email, shopId ?? ':pendiente', t, true, true);
+  await crearProducto(email, shopId ?? ':pendiente', item.producto, t.taxonomia, t.productoSvg);
   await publicar(email, shopId ?? ':pendiente');
 
   setToken(null);
@@ -345,23 +345,40 @@ async function ponerPoliticas(email: string, shopId: string, politicas: { return
   }
 }
 
-async function subirLogo(email: string, shopId: string, marca: string, svg: string) {
-  if (ledger.hecho(email, 'logo')) return;
+/** Sube un SVG y devuelve su URL. En dry-run devuelve un marcador. */
+async function subirSvg(svg: string, nombre: string, folder: string): Promise<string> {
+  if (DRY_RUN) return `svg-generado://${folder}/${nombre}`;
+  const form = new FormData();
+  form.append('file', new Blob([svg], { type: 'image/svg+xml' }), `${nombre}.svg`);
+  form.append('folder', folder);
+  const res = await subirArchivo(form);
+  return res.url;
+}
+
+/**
+ * Logo y banner de la tienda. El banner importa tanto como el logo: es la
+ * cabecera del perfil, y sin él la tienda se ve vacía al entrar.
+ */
+async function subirImagenesTienda(email: string, shopId: string, t: any, faltaLogo: boolean, faltaBanner: boolean) {
+  if (ledger.hecho(email, 'logo') || (!faltaLogo && !faltaBanner)) return;
   try {
-    let url = `svg-generado://${marca}`;
-    if (!DRY_RUN) {
-      const form = new FormData();
-      form.append('file', new Blob([svg], { type: 'image/svg+xml' }), `${shopId}.svg`);
-      form.append('folder', 'shops');
-      const res = await subirArchivo(form);
-      url = res.url;
+    const parche: Record<string, unknown> = {};
+
+    if (faltaLogo) parche.logoUrl = await subirSvg(t.logoSvg, `${shopId}-logo`, 'shops');
+
+    if (faltaBanner) {
+      const bannerUrl = await subirSvg(t.bannerSvg, `${shopId}-banner`, 'hero');
+      parche.bannerUrl = bannerUrl;
+      // El hero del perfil lee heroConfig.slides, no bannerUrl.
+      parche.heroConfig = { slides: [{ imageUrl: bannerUrl, title: t.shopName, subtitle: t.brandClaim }], autoplay: true, duration: 5000 };
     }
-    await write('PATCH', `/artisan-shops/${shopId}`, { logoUrl: url });
-    ledger.marcar(email, 'logo', { logoUrl: url });
-    cuenta('logo');
+
+    await write('PATCH', `/artisan-shops/${shopId}`, parche);
+    ledger.marcar(email, 'logo', { logoUrl: String(parche.logoUrl ?? '') });
+    cuenta(faltaLogo && faltaBanner ? 'logo y banner' : faltaLogo ? 'logo' : 'banner');
   } catch (e) {
-    ledger.error(email, `logo: ${(e as Error).message}`);
-    cuenta('ERROR en logo');
+    ledger.error(email, `imágenes de tienda: ${(e as Error).message}`);
+    cuenta('ERROR en imágenes de tienda');
   }
 }
 
@@ -373,9 +390,13 @@ async function subirArchivo(form: FormData): Promise<{ url: string }> {
   return res.json();
 }
 
-async function crearProducto(email: string, shopId: string, producto: any, oficio: any) {
+async function crearProducto(email: string, shopId: string, producto: any, tax: any, imagenSvg: string) {
   if (!producto || ledger.hecho(email, 'producto')) return;
   try {
+    // Un producto sin foto se ve roto en el marketplace, así que la imagen se
+    // sube antes y viaja en el mismo payload.
+    const imagenUrl = await subirSvg(imagenSvg, `${shopId}-producto`, 'products');
+
     const cuerpo = {
       storeId: shopId,
       name: producto.name,
@@ -383,23 +404,37 @@ async function crearProducto(email: string, shopId: string, producto: any, ofici
       history: producto.history,
       careNotes: producto.careNotes,
       usageSuggestions: producto.usageSuggestions,
-      categoryId: oficio.categoryId,
+      categoryId: tax.categoryId,
+      subcategoryId: tax.subcategoryId,
       artisanalIdentity: {
-        primaryCraftId: oficio.craftId,
+        primaryCraftId: tax.craftId,
+        primaryTechniqueId: tax.primaryTechniqueId,
         pieceType: 'funcional',
         style: 'tradicional',
+        styles: ['tradicional'],
         processType: 'manual',
+        isCollaboration: false,
+        estimatedElaborationTime: producto.estimatedElaborationTime,
       },
+      physicalSpecs: producto.physicalSpecs,
+      logistics: producto.logistics,
       // `production` sin availabilityType da 400.
-      production: { availabilityType: 'bajo_pedido' },
+      production: producto.production,
+      media: [{ mediaUrl: imagenUrl, mediaType: 'image', isPrimary: true, displayOrder: 0 }],
+      materials: (tax.materialIds ?? []).map((materialId: string, i: number) => ({
+        materialId,
+        isPrimary: i === 0,
+      })),
       variants: [
         {
           // Stock 0: la pieza es representativa, no está a la venta.
           stockQuantity: 0,
           minStock: 0,
-          basePriceMinor: String(PRECIO_COP * 100),
+          basePriceMinor: String((producto.precioCop ?? PRECIO_COP) * 100),
           currency: 'COP',
           isActive: true,
+          imageUrl: imagenUrl,
+          realWeightKg: producto.physicalSpecs?.realWeightKg,
         },
       ],
       status: 'pending_moderation',

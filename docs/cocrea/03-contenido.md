@@ -56,6 +56,32 @@ Ambos rangos son reconocibles a simple vista y no pueden colisionar con datos re
 (`39` no es un prefijo móvil válido en Colombia). Quedan listados en `state/contenido.json`
 para que el equipo los reemplace cuando consiga los datos verdaderos.
 
+## Imágenes
+
+Todo se genera como SVG y se sube a S3 con `POST /file-upload/image`, que acepta
+`image/svg+xml` — no hace falta rasterizar.
+
+- **Logo**: monograma sobre color, uno de ocho de la paleta.
+- **Banner**: cabecera 1600×600 con el nombre y el oficio sobre una trama geométrica
+  distinta por marca. Va a `bannerUrl` **y** a `heroConfig.slides`, porque el perfil
+  del marketplace lee los slides, no `bannerUrl`.
+- **Foto de producto**: 1000×1000 con el monograma y el nombre de la pieza. Sin ella el
+  producto se ve roto en el listado.
+
+Son placeholders declarados, no arte final: sirven para que la tienda no salga vacía
+mientras el artesano sube sus fotos.
+
+## Ficha de producto
+
+Cada producto lleva medidas, peso, empaque, fragilidad, tiempo de producción, capacidad
+mensual, descripción del proceso, herramientas, técnica, materiales y foto. Los valores
+son representativos del oficio, con una pequeña variación por tienda para que las fichas
+no salgan clonadas; el artesano los corrige cuando entre.
+
+⚠️ **Los 28 productos de viche van sin material.** El catálogo de materiales no tiene
+caña de azúcar; lo más parecido es "caña brava", que es una fibra y sería un dato falso.
+Si se añade "Caña de azúcar" al catálogo, estos productos quedan completos.
+
 ## Contenido por tienda
 
 - **Marca**: la declarada en el Excel; si falta o es una frase, se deriva del apellido y el municipio. Se garantiza única contra los nombres de tienda existentes.
