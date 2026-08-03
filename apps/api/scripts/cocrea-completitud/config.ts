@@ -30,8 +30,13 @@ if (!API_BASE) {
 /** Nada escribe si no se pasa --apply. El dry-run es el default deliberado. */
 export const DRY_RUN = !process.argv.includes('--apply');
 
-/** Contraseña de las cuentas creadas/completadas (el equipo se la entrega al artesano para que la cambie). */
-export const DEFAULT_PASSWORD = 'telar123';
+/**
+ * Contraseña de las cuentas nuevas; el equipo se la entrega al artesano para que la cambie.
+ *
+ * NO es `telar123` a pesar de lo acordado: `RegisterDto` exige mayúscula,
+ * minúscula, dígito y carácter especial, y la API rechaza `telar123` con un 400.
+ */
+export const DEFAULT_PASSWORD = 'Telar123!';
 
 /** Buzón real de GET IN MOTION para los artesanos sin correo propio (subdireccionamiento con `+`). */
 export const ALIAS_MAILBOX = 'aloha@getinmotion.io';
