@@ -45,12 +45,19 @@ interface PlanPersona {
   email: string;
   emailEsAlias: boolean;
   marca: string;
+  telefono: string;
   cedulaExcel: string;
   cedulaUsable: boolean;
   municipio: string;
   origen: string;
   hoja: number;
 }
+
+/** Móvil colombiano válido para `RegisterDto`: +57 seguido de 10 dígitos que empiezan por 3. */
+const movilValido = (crudo: string): string | null => {
+  const d = (crudo || '').replace(/\D/g, '').replace(/^57/, '');
+  return /^3\d{9}$/.test(d) ? `+57${d}` : null;
+};
 
 interface PlanTienda {
   id: string;
@@ -133,11 +140,19 @@ async function main() {
   };
 
   // ─────────── cuentas nuevas ───────────
+  // `auth.users` exige teléfono único: si dos personas del padrón comparten
+  // número —pasa entre socios de un mismo taller— la segunda recibe un 409.
+  const telefonosUsados = new Set<string>();
+
   const crear = plan.crear.map((p, i) => {
     const d = armarDatos(p.nombre, p.marca, p.municipio, p.origen, []);
     const partes = p.nombre.trim().split(/\s+/);
     const cedula = p.cedulaUsable ? p.cedulaExcel.trim() : String(CEDULA_BASE + i + 1);
-    const telefono = `+57${TELEFONO_BASE + i + 1}`;
+
+    const real = movilValido(p.telefono);
+    const sintetico = `+57${TELEFONO_BASE + i + 1}`;
+    const telefono = real && !telefonosUsados.has(real) ? real : sintetico;
+    telefonosUsados.add(telefono);
 
     return {
       registro: {
@@ -154,7 +169,9 @@ async function main() {
         city: d.municipio,
         daneCity: resolverTerritorio(cat, p.municipio, p.origen)?.daneCity ?? null,
         whatsapp: telefono,
-        telefonoSintetico: true,
+        telefonoSintetico: telefono === sintetico,
+        /** Respaldo si el número real ya está tomado por otra cuenta en la BD. */
+        whatsappAlterno: sintetico,
       },
       tienda: contenidoTienda(d),
       producto: productoPlaceholder(d),

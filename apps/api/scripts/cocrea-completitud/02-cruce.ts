@@ -151,6 +151,7 @@ el municipio y el origen que le falten.`
           email: tieneEmail(p.email) ? p.email : alias.find((a) => a.persona === p)?.correo,
           emailEsAlias: !tieneEmail(p.email),
           marca: p.marca,
+          telefono: p.telefono,
           cedulaExcel: p.cedula,
           cedulaUsable: /^\d{5,}$/.test(p.cedula),
           municipio: p.municipio,

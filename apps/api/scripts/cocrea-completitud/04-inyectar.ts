@@ -29,7 +29,8 @@ import {
 } from './config';
 import { ApiError, ShopProd, escrituras, get, getTiendasConvenio, setToken, write } from './helpers/api';
 import { Ledger, Paso } from './helpers/ledger';
-import { conContenido, aboutTieneContenido, contactoTieneContenido } from './helpers/estado';
+import { conContenido } from './helpers/estado';
+import { parcheDeCompletitud } from './helpers/parche';
 
 const arg = (nombre: string): string | undefined => {
   const i = process.argv.indexOf(`--${nombre}`);
@@ -134,20 +135,7 @@ async function completarTienda(shop: ShopProd, item: any) {
   const t = item.tienda;
 
   // Sólo se rellena lo que está vacío: lo que el artesano ya escribió no se toca.
-  const parche: Record<string, unknown> = {};
-  if (!conContenido(shop.description)) parche.description = t.description;
-  if (!conContenido(shop.story)) parche.story = t.story;
-  if (!conContenido(shop.brandClaim)) parche.brandClaim = t.brandClaim;
-  if (!conContenido(shop.craftType)) parche.craftType = t.craftType;
-  if (!conContenido(shop.department) && t.department) parche.department = t.department;
-  if (!conContenido(shop.municipality) && t.municipality) parche.municipality = t.municipality;
-  if (!aboutTieneContenido(shop)) parche.aboutContent = t.aboutContent;
-  if (!contactoTieneContenido(shop)) parche.contactConfig = t.contactConfig;
-  if (!shop.artisanProfileCompleted) {
-    // Se conserva lo que el artesano ya hubiera escrito en su perfil.
-    parche.artisanProfile = { ...t.artisanProfile, ...(shop.artisanProfile ?? {}) };
-    parche.artisanProfileCompleted = true;
-  }
+  const parche = parcheDeCompletitud(shop, t);
 
   if (Object.keys(parche).length) {
     await write('PATCH', `/artisan-shops/${shop.id}`, parche);
@@ -196,7 +184,20 @@ async function crearArtesano(item: any) {
       newsletterOptIn: false,
     };
     try {
-      const res = await write<{ userId: string }>('POST', '/auth/register', cuerpo);
+      let res: { userId: string } | null;
+      try {
+        res = await write<{ userId: string }>('POST', '/auth/register', cuerpo);
+      } catch (e1) {
+        // El teléfono es único en auth.users. Si el número real del artesano ya
+        // está en otra cuenta, se reintenta con el sintético en vez de perder el alta.
+        if (e1 instanceof ApiError && e1.status === 409 && /tel[eé]fono/i.test(e1.body) && r.whatsappAlterno) {
+          console.log(`    ↻ ${email}: teléfono ocupado, se usa ${r.whatsappAlterno}`);
+          cuenta('teléfono sustituido por colisión');
+          res = await write<{ userId: string }>('POST', '/auth/register', { ...cuerpo, whatsapp: r.whatsappAlterno });
+        } else {
+          throw e1;
+        }
+      }
       userId = res?.userId;
       ledger.marcar(email, 'usuario', { userId, password: DEFAULT_PASSWORD });
       cuenta('usuario creado');
@@ -205,7 +206,7 @@ async function crearArtesano(item: any) {
       // 409 = el correo ya existe. No es un fallo: es la idempotencia funcionando.
       if (e instanceof ApiError && e.status === 409) {
         cuenta('usuario ya existía');
-        console.log(`  = ${email} ya existe`);
+        console.log(`  = ${email} ya existe (${e.body.slice(0, 80)})`);
       } else {
         ledger.error(email, `register: ${(e as Error).message}`);
         cuenta('ERROR al crear usuario');

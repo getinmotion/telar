@@ -11,13 +11,15 @@
  * Deliberadamente NO apunta a prod: si TARGET es prod, aborta.
  */
 import { API_BASE, DEFAULT_PASSWORD, DRY_RUN, TARGET, banner } from './config';
-import { ApiError, get, setToken } from './helpers/api';
+import { ApiError, ShopProd, get, setToken } from './helpers/api';
+import { parcheDeCompletitud } from './helpers/parche';
 import { cargarCatalogos, resolverTerritorio } from './helpers/catalogos';
 import { inferirOficio, resolverOficio } from './helpers/oficio';
 import {
   POLITICA_DEVOLUCION,
   aboutContent,
   brandClaim,
+  contactConfig,
   descripcionTienda,
   faq,
   historiaTienda,
@@ -100,7 +102,8 @@ async function main() {
       email,
       password: DEFAULT_PASSWORD,
       passwordConfirmation: DEFAULT_PASSWORD,
-      whatsapp: '+573900000001',
+      // El teléfono es único en auth.users: si se repite, la API responde 409.
+      whatsapp: `+573${String(sello).slice(-9)}`,
       countryId: cat.countryId,
       department: territorio.department,
       city: territorio.city,
@@ -246,7 +249,114 @@ async function main() {
     if (pd) console.log(`      status=${pd.status} · stock=${pd.variants?.[0]?.stockQuantity}`);
   }
 
-  console.log(`\n  Datos de prueba creados en ${TARGET}: usuario ${email}, tienda ${shop.id}`);
+  // ─────────── segunda fase: la ruta de COMPLETAR ───────────
+  // Crear desde cero y completar una tienda existente son códigos distintos.
+  // Esta fase ejercita el segundo: una tienda a medias, con un campo ya escrito
+  // por el "artesano", para comprobar que el parche rellena huecos y no pisa nada.
+  console.log('\n── Fase 2: completar una tienda existente ──\n');
+
+  const historiaPropia = 'HISTORIA ESCRITA POR EL ARTESANO — no se debe sobrescribir.';
+
+  // Hace falta un segundo usuario: `create()` rechaza con 409 si el usuario ya
+  // tiene tienda, así que no se puede reutilizar el de la fase 1.
+  const email2 = `cocrea-ensayo-b-${sello}@example.com`;
+  const reg2 = await intentar('POST /auth/register (segundo artesano)', () =>
+    pedir<{ userId: string }>('POST', '/auth/register', {
+      idTypeId: cat.idTypeCcId,
+      idNumber: String(9900000000 + ((sello + 7) % 100000)),
+      firstName: 'Artesano',
+      lastName: 'A Medias',
+      agreementId: agreement.id,
+      email: email2,
+      password: DEFAULT_PASSWORD,
+      passwordConfirmation: DEFAULT_PASSWORD,
+      whatsapp: `+573${String(sello + 1).slice(-9)}`,
+      countryId: cat.countryId,
+      department: territorio.department,
+      city: territorio.city,
+      daneCity: territorio.daneCity,
+      hasRUT: false,
+      acceptTerms: true,
+      newsletterOptIn: false,
+    }),
+  );
+
+  const media = reg2
+    ? await intentar('POST /artisan-shops (tienda a medias)', () =>
+        pedir<{ id: string }>(
+          'POST',
+          '/artisan-shops',
+          {
+            userId: reg2.userId,
+            shopName: `Ensayo Completar ${sello}`,
+            shopSlug: `ensayo-completar-${sello}`,
+            story: historiaPropia,
+          },
+          token,
+        ),
+      )
+    : null;
+
+  if (media) {
+    const antes = await intentar('GET /artisan-shops/:id (estado inicial)', () =>
+      pedir<Record<string, any>>('GET', `/artisan-shops/${media.id}`),
+    );
+    const shopAntes = ((antes as any)?.data ?? antes) as ShopProd;
+
+    const contenido = {
+      description: descripcionTienda(datos),
+      story: historiaTienda(datos),
+      brandClaim: brandClaim(datos),
+      craftType: oficio.craft,
+      department: datos.departamento,
+      municipality: datos.municipio,
+      aboutContent: aboutContent(datos),
+      contactConfig: contactConfig(datos, ''),
+      artisanProfile: perfilArtesanal(datos, new Date(sello).toISOString()),
+    };
+
+    const parche = parcheDeCompletitud(shopAntes, contenido);
+    console.log(`      campos a rellenar: ${Object.keys(parche).join(', ') || '(ninguno)'}`);
+
+    if ('story' in parche) {
+      pasos.push({ paso: 'el parche respeta la historia del artesano', ok: false, detalle: 'iba a sobrescribir `story`' });
+      console.log('  ✗ el parche iba a sobrescribir la historia que ya existía');
+    } else {
+      pasos.push({ paso: 'el parche respeta la historia del artesano', ok: true, detalle: 'story no se toca' });
+      console.log('  ✓ el parche respeta la historia que ya existía');
+    }
+
+    await intentar('PATCH /artisan-shops/:id (completar huecos)', () =>
+      pedir('PATCH', `/artisan-shops/${media.id}`, parche, token),
+    );
+
+    const despues = await intentar('GET /artisan-shops/:id (verificación)', () =>
+      pedir<Record<string, any>>('GET', `/artisan-shops/${media.id}`),
+    );
+    const d = (despues as any)?.data ?? despues;
+    if (d) {
+      const intacta = d.story === historiaPropia;
+      console.log(`      historia original intacta: ${intacta ? 'sí' : 'NO'} · perfilCompleto=${d.artisanProfileCompleted} · claim=${!!d.brandClaim}`);
+      pasos.push({
+        paso: 'la historia original sigue intacta tras el PATCH',
+        ok: intacta,
+        detalle: intacta ? 'ok' : `quedó: ${String(d.story).slice(0, 80)}`,
+      });
+    }
+
+    // Reejecutar el parche sobre la tienda ya completa no debe proponer nada:
+    // eso es la idempotencia a nivel de campo.
+    const segundaVuelta = parcheDeCompletitud((d ?? {}) as ShopProd, contenido);
+    const vacio = Object.keys(segundaVuelta).length === 0;
+    pasos.push({
+      paso: 'segunda pasada no propone cambios (idempotente)',
+      ok: vacio,
+      detalle: vacio ? 'ok' : `propondría: ${Object.keys(segundaVuelta).join(', ')}`,
+    });
+    console.log(`  ${vacio ? '✓' : '✗'} segunda pasada ${vacio ? 'no propone nada' : 'propondría: ' + Object.keys(segundaVuelta).join(', ')}`);
+  }
+
+  console.log(`\n  Datos de prueba creados en ${TARGET}: usuario ${email}, tiendas ${shop.id}${media ? ' y ' + media.id : ''}`);
   resumen();
 }
 

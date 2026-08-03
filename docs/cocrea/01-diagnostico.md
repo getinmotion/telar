@@ -34,12 +34,12 @@ Sin datos personales: el detalle por tienda queda en `state/diagnostico.json`, q
 
 ## Productos
 
-109 productos en el convenio, repartidos en 23 tiendas.
+110 productos en el convenio, repartidos en 23 tiendas.
 
 | Estado | Productos |
 |---|---:|
 | `approved` | 84 |
-| `draft` | 25 |
+| `draft` | 26 |
 
 > `GET /products-new?agreementId=` **sin** parámetro `status` devuelve sólo los aprobados.
 > Los borradores hay que pedirlos aparte; si no, se subestima cuántas tiendas tienen producto.
