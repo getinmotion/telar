@@ -1,0 +1,10 @@
+{
+  "name": "artisan-bulk-register",
+  "version": "1.0.0",
+  "description": "Script para registro masivo de artesanos en Telar",
+  "scripts": {
+    "check-reference": "echo 'Ejecuta el archivo check-reference.sql en tu cliente de BD'",
+    "register:test": "cd ../.. && npx ts-node scripts/artisan-bulk-register/register-single-artisan.ts",
+    "register:all": "cd ../.. && npx ts-node scripts/artisan-bulk-register/register-all-artisans.ts"
+  }
+}
