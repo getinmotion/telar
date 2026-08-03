@@ -13,6 +13,7 @@ import { ShopSummary, ProductSummary } from '@/hooks/useModerationStats';
 import { Search, Store, Package, ExternalLink, CreditCard, CheckCircle, XCircle, ArrowUpDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { exportCsv } from '@/utils/exportCsv';
 
 interface ModerationDrillDownModalProps {
   isOpen: boolean;
@@ -100,25 +101,36 @@ export const ModerationDrillDownModal: React.FC<ModerationDrillDownModalProps> =
   };
 
   const exportToCSV = () => {
-    let csv = '';
+    // Helper compartido. El armado a mano de antes entrecomillaba pero no
+    // duplicaba las comillas internas, así que un nombre con comillas rompía
+    // la fila.
+    const filename = title.replace(/\s+/g, '_');
     if (type === 'shops') {
-      csv = 'Nombre,Tipo,Región,Datos Bancarios,Marketplace,Estado,Creada\n';
-      filteredShops.forEach(s => {
-        csv += `"${s.shopName}","${s.craftType || ''}","${s.region || ''}",${s.hasBankData ? 'Sí' : 'No'},${s.marketplaceApproved ? 'Aprobada' : 'Pendiente'},"${s.publishStatus || 'pending'}","${s.createdAt}"\n`;
-      });
+      exportCsv(filename, filteredShops, [
+        { header: 'Nombre', value: (s) => s.shopName },
+        { header: 'Tipo', value: (s) => s.craftType || '' },
+        { header: 'Región', value: (s) => s.region || '' },
+        { header: 'Datos Bancarios', value: (s) => (s.hasBankData ? 'Sí' : 'No') },
+        {
+          header: 'Marketplace',
+          value: (s) => (s.marketplaceApproved ? 'Aprobada' : 'Pendiente'),
+        },
+        { header: 'Estado', value: (s) => s.publishStatus || 'pending' },
+        { header: 'Creada', value: (s) => s.createdAt },
+      ]);
     } else {
-      csv = 'Nombre,Tienda,Estado,Precio,Creado\n';
-      filteredProducts.forEach(p => {
-        csv += `"${p.name}","${p.shop_name}","${p.moderation_status || 'draft'}",${p.price},"${p.created_at}"\n`;
-      });
+      // Nombres de campo corregidos: ProductSummary usa camelCase (shopName,
+      // status, createdAt). El export anterior leía shop_name /
+      // moderation_status / created_at, que no existen, así que esas tres
+      // columnas salían vacías en el CSV.
+      exportCsv(filename, filteredProducts, [
+        { header: 'Nombre', value: (p) => p.name },
+        { header: 'Tienda', value: (p) => p.shopName ?? '' },
+        { header: 'Estado', value: (p) => p.status || 'draft' },
+        { header: 'Precio', value: (p) => p.price },
+        { header: 'Creado', value: (p) => p.createdAt },
+      ]);
     }
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${title.replace(/\s+/g, '_')}.csv`);
-    link.click();
   };
 
   const items = type === 'shops' ? filteredShops : filteredProducts;

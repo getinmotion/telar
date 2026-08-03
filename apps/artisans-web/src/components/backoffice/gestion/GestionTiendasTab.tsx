@@ -8,6 +8,7 @@ import {
   Package,
 } from 'lucide-react';
 import { useTiendasSalud } from '@/hooks/useTiendasSalud';
+import type { GestionFilters } from '@/services/gestion.actions';
 import { StatTile, DistributionList } from './StatTile';
 
 const NAVY = '#142239';
@@ -31,8 +32,10 @@ function pctColor(pct: number): string {
  * Embudo de onboarding con conteos REALES de producto (mata los ceros falsos de
  * useAdminShops), tiempo de aprobación, brechas accionables y cortes por convenio.
  */
-export const GestionTiendasTab: React.FC = () => {
-  const { data, loading } = useTiendasSalud();
+export const GestionTiendasTab: React.FC<{
+  filters?: GestionFilters;
+}> = ({ filters = {} }) => {
+  const { data, loading } = useTiendasSalud(filters);
 
   if (loading || !data) {
     return (
