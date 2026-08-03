@@ -11,6 +11,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useModerationBacklog } from '@/hooks/useModerationBacklog';
+import type { GestionFilters } from '@/services/gestion.actions';
 import { StatTile } from './StatTile';
 
 const NAVY = '#142239';
@@ -35,8 +36,10 @@ function weekLabel(iso: string): string {
  * pendientes actuales con antigüedad, tiempo de resolución, throughput semanal y
  * cortes por convenio. Derivado del historial (techo de confiabilidad).
  */
-export const GestionBacklogTab: React.FC = () => {
-  const { data, loading } = useModerationBacklog();
+export const GestionBacklogTab: React.FC<{
+  filters?: GestionFilters;
+}> = ({ filters = {} }) => {
+  const { data, loading } = useModerationBacklog(filters);
 
   if (loading || !data) {
     return (
