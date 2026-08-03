@@ -1,0 +1,6 @@
+# Datos personales de artesanos (correos, cédulas, credenciales) y estado de ejecución.
+# Nada de esto se versiona.
+state/
+logs/
+.env
+*.xlsx
