@@ -22,14 +22,22 @@ export const API_BASES: Record<string, string> = {
 
 export type TargetEnv = keyof typeof API_BASES;
 
-/** Entorno destino. Por defecto `local` — apuntar a prod tiene que ser explícito. */
-export const TARGET: TargetEnv = (process.env.COCREA_TARGET as TargetEnv) || 'local';
+/**
+ * Entorno destino. Por defecto `local` — apuntar a prod tiene que ser explícito.
+ *
+ * Se acepta `--target prod` además de la variable de entorno: `COCREA_TARGET=prod cmd`
+ * es sintaxis de bash y no funciona en PowerShell, que es donde se corre esto.
+ */
+const targetPorFlag = (): string | undefined => {
+  const i = process.argv.indexOf('--target');
+  return i >= 0 ? process.argv[i + 1] : undefined;
+};
+
+export const TARGET: TargetEnv = (targetPorFlag() as TargetEnv) || (process.env.COCREA_TARGET as TargetEnv) || 'local';
 export const API_BASE = API_BASES[TARGET];
 
 if (!API_BASE) {
-  throw new Error(
-    `COCREA_TARGET="${process.env.COCREA_TARGET}" no es válido. Opciones: ${Object.keys(API_BASES).join(', ')}`,
-  );
+  throw new Error(`Entorno "${TARGET}" no es válido. Opciones: ${Object.keys(API_BASES).join(', ')}`);
 }
 
 /** Nada escribe si no se pasa --apply. El dry-run es el default deliberado. */

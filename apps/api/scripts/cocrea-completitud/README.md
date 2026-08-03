@@ -9,34 +9,46 @@ el micrositio `cocrea.telar.co`; en `marketplace-web` se llama `VILLA_ADELAIDA_A
 
 ## Orden
 
-```bash
+Todo se corre desde `apps/api`. El entorno va como `--target`, no como variable
+de entorno: `COCREA_TARGET=prod cmd` es sintaxis de bash y **falla en PowerShell**,
+que es donde se trabaja esto (`&&` tampoco existe en PowerShell 5.1).
+
+```
 cd apps/api
 
 # 0 · ensayo end-to-end con artesanos de prueba. Nunca contra prod.
-COCREA_TARGET=stage npx ts-node scripts/cocrea-completitud/00-ensayo.ts --apply
+npm run cocrea:ensayo -- --target stage --apply
 
 # 1 · fotografía del convenio
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/01-diagnostico.ts
+npm run cocrea:diagnostico -- --target prod
 
 # 2 · cruce del Excel con la base: quién está, quién falta, quién sobra
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/02-cruce.ts
+npm run cocrea:cruce -- --target prod
 
 # 3 · contenido por tienda (determinista, revisable)
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/03-contenido.ts
+npm run cocrea:contenido -- --target prod
 
 # 4 · inyección. Sin --apply no escribe nada.
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/04-inyectar.ts
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/04-inyectar.ts --apply --limite 5
+npm run cocrea:inyectar -- --target prod
+npm run cocrea:inyectar -- --target prod --apply --limite 5
 
 # 5 · reporte final y credenciales
-COCREA_TARGET=prod npx ts-node scripts/cocrea-completitud/05-reporte.ts
+npm run cocrea:reporte -- --target prod
 ```
 
-`COCREA_TARGET` es `prod`, `stage` o `local` (por defecto `local`).
+El `--` después del nombre del script es de npm: separa los argumentos del script
+de los de npm. Sin él, `--target` se lo queda npm y el script no lo ve.
+
+`--target` es `prod`, `stage` o `local` (por defecto `local`). También se acepta
+la variable `COCREA_TARGET` si prefieres exportarla.
 `COCREA_XLSX` apunta al Excel del padrón; por defecto lo busca en `~/Downloads`.
 
 Banderas de `04-inyectar.ts`: `--apply` (escribe), `--limite N` (N altas y N
 completaciones), `--solo-crear`, `--solo-completar`.
+
+El contenido y el entorno tienen que coincidir: `contenido.json` guarda contra qué
+entorno se generó y la inyección se detiene si no cuadra, porque los ids de
+taxonomía difieren entre entornos y la API respondería un 500 sin explicación.
 
 ## Qué NO toca
 
