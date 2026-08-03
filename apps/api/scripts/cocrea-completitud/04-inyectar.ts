@@ -16,7 +16,17 @@
  * tenga contenido, y los datos bancarios.
  */
 import * as fs from 'fs';
-import { AGREEMENT_ID, DEFAULT_PASSWORD, DRY_RUN, TARGET, banner, ensureDirs, stateFile } from './config';
+import {
+  AGREEMENT_ID,
+  DEFAULT_PASSWORD,
+  DRY_RUN,
+  OPERADOR_EMAIL,
+  OPERADOR_PASSWORD,
+  TARGET,
+  banner,
+  ensureDirs,
+  stateFile,
+} from './config';
 import { ApiError, ShopProd, escrituras, get, getTiendasConvenio, setToken, write } from './helpers/api';
 import { Ledger, Paso } from './helpers/ledger';
 import { conContenido, aboutTieneContenido, contactoTieneContenido } from './helpers/estado';
@@ -58,9 +68,30 @@ async function main() {
   const shops = await getTiendasConvenio();
   const porId = new Map(shops.map((s) => [s.id, s]));
 
+  // Las altas van primero: cada una inicia sesión con su propia cuenta, y si no
+  // hay cuenta operador configurada, la primera que se cree presta su token para
+  // la fase de completar (que sí necesita uno y no tiene contraseña propia).
+  if (!SOLO_COMPLETAR) {
+    const lote = contenido.crear.slice(0, LIMITE);
+    console.log(`── Creando ${lote.length} cuentas nuevas ──\n`);
+    for (const item of lote) {
+      await crearArtesano(item);
+    }
+  }
+
   if (!SOLO_CREAR) {
+    const token = await tokenOperador();
+    if (!token && !DRY_RUN) {
+      throw new Error(
+        'Completar tiendas existentes exige un JWT y no hay ninguno.\n' +
+          'Define COCREA_OPERADOR_EMAIL y COCREA_OPERADOR_PASSWORD en scripts/cocrea-completitud/.env,\n' +
+          'o corre antes la fase de altas (sin --solo-completar) para reutilizar su token.',
+      );
+    }
+    setToken(token);
+
     const lote = contenido.completar.slice(0, LIMITE);
-    console.log(`── Completando ${lote.length} tiendas existentes ──\n`);
+    console.log(`\n── Completando ${lote.length} tiendas existentes ──\n`);
     for (const item of lote) {
       const shop = porId.get(item.shopId);
       if (!shop) {
@@ -69,14 +100,7 @@ async function main() {
       }
       await completarTienda(shop, item);
     }
-  }
-
-  if (!SOLO_COMPLETAR) {
-    const lote = contenido.crear.slice(0, LIMITE);
-    console.log(`\n── Creando ${lote.length} cuentas nuevas ──\n`);
-    for (const item of lote) {
-      await crearArtesano(item);
-    }
+    setToken(null);
   }
 
   ledger.guardar();
@@ -100,7 +124,7 @@ async function main() {
       .forEach(([k, v]) => console.log(`     ${String(v).padStart(4)}  ${k}`));
     console.log('\n  Para aplicarlo: añade --apply');
   }
-  console.log(`\n  Ledger: ${stateFile('ledger.json')}`);
+  console.log(`\n  Ledger: ${stateFile(DRY_RUN ? 'ledger.dry-run.json' : 'ledger.json')}`);
 }
 
 // ─────────────────────── completar tiendas existentes ───────────────────────
@@ -193,6 +217,7 @@ async function crearArtesano(item: any) {
 
   // Con el token del propio usuario se firman el resto de escrituras.
   const token = await entrar(email);
+  if (token && token !== 'dry-run') tokenPrestado = token;
   if (!token && !DRY_RUN) {
     ledger.error(email, 'no se pudo iniciar sesión con la cuenta recién creada');
     cuenta('ERROR de login');
@@ -248,13 +273,37 @@ async function crearArtesano(item: any) {
   setToken(null);
 }
 
-/** Inicia sesión como el artesano. El login no exige el correo verificado. */
-async function entrar(email: string): Promise<string | null> {
+/** Última sesión abierta durante la fase de altas, por si no hay cuenta operador. */
+let tokenPrestado: string | null = null;
+
+/**
+ * Token con el que se firman las escrituras sobre tiendas ajenas.
+ *
+ * Preferimos una cuenta operador declarada en el .env. Si no la hay, se usa la de
+ * un artesano recién creado: `PATCH /artisan-shops/:id` no comprueba la propiedad
+ * de la tienda, sólo que el JWT sea válido.
+ */
+async function tokenOperador(): Promise<string | null> {
+  if (DRY_RUN) return 'dry-run';
+  if (OPERADOR_EMAIL && OPERADOR_PASSWORD) {
+    const t = await entrar(OPERADOR_EMAIL, OPERADOR_PASSWORD);
+    if (t) {
+      console.log(`\n  Sesión de operador: ${OPERADOR_EMAIL}`);
+      return t;
+    }
+    console.log(`\n  ⚠️  No se pudo entrar con COCREA_OPERADOR_EMAIL (${OPERADOR_EMAIL})`);
+  }
+  if (tokenPrestado) console.log('\n  Sin cuenta operador: se usa el token de una cuenta creada en esta corrida.');
+  return tokenPrestado;
+}
+
+/** Inicia sesión. El login no exige el correo verificado. */
+async function entrar(email: string, password: string = DEFAULT_PASSWORD): Promise<string | null> {
   if (DRY_RUN) return 'dry-run';
   try {
     const res = await write<{ accessToken?: string; access_token?: string; token?: string }>('POST', '/auth/login', {
       email,
-      password: DEFAULT_PASSWORD,
+      password,
     });
     const token = res?.accessToken ?? res?.access_token ?? res?.token ?? null;
     setToken(token);

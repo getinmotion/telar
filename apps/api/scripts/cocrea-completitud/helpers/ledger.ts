@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { stateFile } from '../config';
+import { DRY_RUN, stateFile } from '../config';
 
 /**
  * Registro de lo ya hecho, por artesano.
@@ -35,13 +35,24 @@ export interface Entrada {
   errores?: string[];
 }
 
-const RUTA = () => stateFile('ledger.json');
+/** El ledger real, el único que decide qué se salta en una corrida con --apply. */
+const RUTA_REAL = () => stateFile('ledger.json');
+
+/**
+ * El dry-run escribe en un archivo aparte.
+ *
+ * Si volcara sobre el real, marcaría como cumplidos pasos que nunca se enviaron,
+ * y el siguiente `--apply` se los saltaría dejando las tiendas a medias.
+ */
+const RUTA_ESCRITURA = () => (DRY_RUN ? stateFile('ledger.dry-run.json') : RUTA_REAL());
 
 export class Ledger {
   private entradas = new Map<string, Entrada>();
 
   constructor() {
-    const ruta = RUTA();
+    // Siempre se parte del ledger real: así el dry-run simula de verdad
+    // lo que haría la siguiente corrida.
+    const ruta = RUTA_REAL();
     if (fs.existsSync(ruta)) {
       const datos = JSON.parse(fs.readFileSync(ruta, 'utf8')) as Entrada[];
       datos.forEach((e) => this.entradas.set(e.email.toLowerCase(), e));
@@ -74,6 +85,6 @@ export class Ledger {
   }
 
   guardar(): void {
-    fs.writeFileSync(RUTA(), JSON.stringify(this.todas(), null, 1), 'utf8');
+    fs.writeFileSync(RUTA_ESCRITURA(), JSON.stringify(this.todas(), null, 1), 'utf8');
   }
 }

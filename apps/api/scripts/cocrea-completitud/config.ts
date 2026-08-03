@@ -41,6 +41,17 @@ export const DEFAULT_PASSWORD = 'Telar123!';
 /** Buzón real de GET IN MOTION para los artesanos sin correo propio (subdireccionamiento con `+`). */
 export const ALIAS_MAILBOX = 'aloha@getinmotion.io';
 
+/**
+ * Cuenta con la que se firman las escrituras sobre tiendas que ya existen.
+ *
+ * `PATCH /artisan-shops/:id` y `POST /store-policies-config` exigen un JWT, y no
+ * tenemos la contraseña de los 57 artesanos ya registrados. Se define en el .env
+ * del script. Si no se define, se reutiliza el token de la primera cuenta que el
+ * propio script cree en esta corrida.
+ */
+export const OPERADOR_EMAIL = process.env.COCREA_OPERADOR_EMAIL;
+export const OPERADOR_PASSWORD = process.env.COCREA_OPERADOR_PASSWORD;
+
 /** Excel fuente. Se pasa por env para no versionar datos personales en el repo. */
 export const XLSX_PATH =
   process.env.COCREA_XLSX ||
