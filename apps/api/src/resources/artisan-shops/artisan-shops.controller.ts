@@ -208,8 +208,11 @@ export class ArtisanShopsController {
     description: 'Tienda encontrada',
   })
   @ApiResponse({ status: 404, description: 'Tienda no encontrada' })
-  async getBySlug(@Param('slug') slug: string) {
-    return await this.artisanShopsService.getBySlug(slug);
+  async getBySlug(
+    @Param('slug') slug: string,
+    @Query('agreementId') agreementId?: string,
+  ) {
+    return await this.artisanShopsService.getBySlug(slug, agreementId);
   }
 
   /**
@@ -269,8 +272,11 @@ export class ArtisanShopsController {
     description: 'Tienda encontrada',
   })
   @ApiResponse({ status: 404, description: 'Tienda no encontrada' })
-  async getById(@Param('id') id: string) {
-    return await this.artisanShopsService.getById(id);
+  async getById(
+    @Param('id') id: string,
+    @Query('agreementId') agreementId?: string,
+  ) {
+    return await this.artisanShopsService.getById(id, agreementId);
   }
 
   /**
