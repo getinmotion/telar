@@ -1,0 +1,2042 @@
+{
+ "generado": "2026-08-03T01:32:56.156Z",
+ "target": "prod",
+ "noTocar": [
+  {
+   "id": "06779a02-d7b3-4a2c-bf44-f03264f98752",
+   "shopName": "Kanuto design macrame",
+   "email": "kanutodesignmacrame@gmail.com"
+  },
+  {
+   "id": "0e42202b-8331-4068-b095-9c3b6aec7e6f",
+   "shopName": "Tafur joyeria artesanal",
+   "email": "jhonatanandresdiaztafur@gmail.com"
+  },
+  {
+   "id": "198f237a-e050-40d7-b323-4f1679f36077",
+   "shopName": "VITRO MOSAICO ARTE",
+   "email": "anaimegue@gmail.com"
+  },
+  {
+   "id": "38f94b50-e596-4c6c-89ff-17801f7aaf80",
+   "shopName": "CALIRI JOYERIA ARTESANAL ",
+   "email": "jenycarolina.2103@gmail.com"
+  },
+  {
+   "id": "48fe9896-dea1-42d5-b03e-7d5be26fea7a",
+   "shopName": "yarumotextil",
+   "email": "natylanza@gmail.com"
+  },
+  {
+   "id": "5b7dbb8a-8fc6-494a-bdc6-13a3b386189a",
+   "shopName": "NAWAL JOYERIA ARTESANAL.",
+   "email": "franmolina3116@gmail.com"
+  },
+  {
+   "id": "665a0502-83e2-4795-aec2-d17166246d60",
+   "shopName": "Taller Artesanal Cuincau : Cultura innovadora del Cauca ",
+   "email": "cuincaupop2025@gmail.com"
+  },
+  {
+   "id": "7b30cfe9-1c2b-4152-a716-1ede7b5203fe",
+   "shopName": "Artelaio ",
+   "email": "olguibadillo@gmail.com"
+  },
+  {
+   "id": "d5c22f12-59b5-42b5-a0a0-7b9361703ae2",
+   "shopName": "Biodiverzoo",
+   "email": "biodiverzooartesanal@gmail.com"
+  },
+  {
+   "id": "d849b435-c88d-42b6-bde4-156a0cdf47cd",
+   "shopName": "Jahel Carreño, Tejduria en tecnica Guane",
+   "email": "jkarrekod@gmail.com"
+  },
+  {
+   "id": "dc65585d-275e-48b4-8c8a-93c1192fac2d",
+   "shopName": "Buenomanta con historia",
+   "email": "yujeisip1993@gmail.com"
+  },
+  {
+   "id": "e4fb6f00-b2b4-4ca2-a5f0-6f2f0b929569",
+   "shopName": "Sanza Tejidos ",
+   "email": "sanzadoris2@gmail.com"
+  },
+  {
+   "id": "eb8730dd-7874-48ad-ac5d-4ddfe7d0ee04",
+   "shopName": "Telar",
+   "email": "angulo575@hotmail.com"
+  },
+  {
+   "id": "f09958ae-2592-4104-8b5b-7ae7f6a80fc4",
+   "shopName": "La vida en tenis",
+   "email": "pilarbolivarcarreno@gmail.com"
+  },
+  {
+   "id": "f756bbbc-23f7-42e3-af3f-c5e5f842d671",
+   "shopName": "Tierra Tejida",
+   "email": "doraisa1734@gmail.com"
+  },
+  {
+   "id": "f855f23e-ccfd-4baf-be9c-45efab7b0ea7",
+   "shopName": " Ceramica de Estudio La Mancha",
+   "email": "vivianneserrano@hotmail.com"
+  }
+ ],
+ "completar": [
+  {
+   "id": "093288d3-796a-475a-868f-92812388e137",
+   "userId": "cc052123-483e-42cc-9146-4e0763a4d360",
+   "shopName": "CHARUVIC",
+   "shopSlug": "charuvic",
+   "email": "danisvg27@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "aboutContent",
+    "políticas/FAQ",
+    "ubicación"
+   ],
+   "excel": null
+  },
+  {
+   "id": "0e1ae687-5807-4d4b-9ae5-182c3db95921",
+   "userId": "427998bf-99c7-455e-b0df-a4c81482f8e8",
+   "shopName": "YARUMO textil",
+   "shopSlug": "yarumo-textil",
+   "email": "estmad@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Esteban Andrés Bravo Ovalle",
+    "marca": "",
+    "municipio": "Barichara",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "0f762461-9f9a-4273-af64-289e1cf42767",
+   "userId": "e6511f44-5540-4106-8944-4e9ac393d2a0",
+   "shopName": "DesestresArte",
+   "shopSlug": "desestresarte",
+   "email": "deisyfall66@hotmail.co",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Maria Deisy Falla Vasquez",
+    "marca": "DesestresArte",
+    "municipio": "Popayan",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "1934e0d3-deaa-4b16-a684-6e9163142794",
+   "userId": "f916853a-273a-4caf-9da8-40980c4af4b1",
+   "shopName": "Stibro",
+   "shopSlug": "stibro",
+   "email": "stellarte01@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Luz Stella Ibarra Rodríguez",
+    "marca": "",
+    "municipio": "El papel plantable en barichara en la tienda ancestral.y el jabón de aceite reciclado en san Vicente de chucuri en el mercado campesino y encargos",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "1c1598dc-cb92-4459-89ee-516ffc3f3bb8",
+   "userId": "208751c5-d669-4fc4-a417-0eedd22a8e3e",
+   "shopName": "Raíz guane dulce Artesanal",
+   "shopSlug": "raiz-guane-dulce-artesanal",
+   "email": "luzhermindacorrearomero20@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Luz Herminda correa romero",
+    "marca": "",
+    "municipio": "Barichara barrio la primavera calle 5A1sur 54",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "20eb0f93-2bc7-40e1-9bc2-bccf33765ac4",
+   "userId": "f8223573-d2fe-4769-a517-b6d6addfbb9c",
+   "shopName": "Artano",
+   "shopSlug": "artano",
+   "email": "artanocultura@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Yurgen Giovanni Urrutia Córdoba",
+    "marca": "Artano",
+    "municipio": "Tumaco",
+    "origen": "Escuela Taller de Tumaco",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "260fe719-c0b0-4f85-8b81-7658ceba661a",
+   "userId": "0fb5e371-97f8-47ab-b4e8-6a0d09235ef6",
+   "shopName": "Viche Estilando en la Quebrada",
+   "shopSlug": "viche-estilando-en-la-quebrada",
+   "email": "mariaedith.roman@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Maria Edith Román",
+    "marca": "Viche Estilando en la Quebrada",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "29cb749a-d247-491b-bd4d-a77c8d8201ee",
+   "userId": "a4e79a1f-e19e-4860-9a3a-043e24a46148",
+   "shopName": "Viche Mostacho Tavo",
+   "shopSlug": "viche-mostacho-tavo",
+   "email": "gustavo.banguera@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Gustavo Adolfo Banguera",
+    "marca": "Viche Mostacho Tavo",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "2ef108ef-01da-4617-9c9a-b27ff674a622",
+   "userId": "3dca4d09-1a63-465c-b931-8f74ed2f63ab",
+   "shopName": "Talla madera -alpecon",
+   "shopSlug": "talla-madera-alpecon",
+   "email": "alonsoperez1261@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Alonso Perez Condia",
+    "marca": "Talla madera -alpecon",
+    "municipio": "Mani",
+    "origen": "Escuela Taller de Boyacá",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "2f280d23-e101-4d01-ba85-3b23b00031fa",
+   "userId": "76c7eabd-8304-459e-b53b-a9941db60d36",
+   "shopName": "Viche Rancho de Malu",
+   "shopSlug": "viche-rancho-de-malu",
+   "email": "luci5629@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Lucila Martínez",
+    "marca": "Viche Rancho de Malu",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "3282cba6-f50e-45ea-ae40-fd4851c8a6ef",
+   "userId": "6cae8a61-9e57-4de1-b874-83bb64e1e5db",
+   "shopName": "DIRK VAN DESING",
+   "shopSlug": "dirk-van-desing",
+   "email": "dirkvan1988@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Chris dirk coral unigarro",
+    "marca": "DIRK VAN DESING",
+    "municipio": "Tumaco B/ viaducto",
+    "origen": "Escuela Taller de Tumaco",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "331458c0-11a1-46a5-bb87-3d01372758d9",
+   "userId": "b4574ced-0c8d-48fd-b5de-ad14624b8e54",
+   "shopName": "Viche Los Saberes de Yolita",
+   "shopSlug": "viche-los-saberes-de-yolita",
+   "email": "luzesnedaromanasprilla@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Luz Esneida Román",
+    "marca": "Viche Los Saberes de Yolita",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "3721639b-7438-4e95-95f0-f7ab5da12d19",
+   "userId": "39432d52-45fe-491d-9569-a27ac315d0e9",
+   "shopName": "Taller de joyeria naty",
+   "shopSlug": "taller-de-joyeria-naty",
+   "email": "bleyberoliveros82@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Bleyber Vargas Oliveros",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "375ff053-a0f8-4b74-83e7-cc6baafaffa5",
+   "userId": "6adfe27f-8a1a-43b5-ac41-6d6b8e959897",
+   "shopName": "KATIBI",
+   "shopSlug": "katibi",
+   "email": "tablonemprendeoficial@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Edwin vallecilla Jimenez",
+    "marca": "KATIBI",
+    "municipio": "Tumaco, puente de las flores",
+    "origen": "Escuela Taller de Tumaco",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "37d091f4-12ee-4155-9f99-b3784af9150d",
+   "userId": "4d6496a6-2ef4-479a-9f92-1b9ee0d8427b",
+   "shopName": "Simbionte",
+   "shopSlug": "simbionte",
+   "email": "simbionte.co@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Juan Sebastián López Ortiz",
+    "marca": "Simbionte",
+    "municipio": "Suba",
+    "origen": "Persona natural con establecimiento comercial",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "3fa4f443-ea8e-4952-9855-f4740adc37bf",
+   "userId": "9adef41c-cf1b-4f6a-be52-d7e980288e2e",
+   "shopName": "Tukapú",
+   "shopSlug": "tukapu",
+   "email": "wendyjerymoncayothome@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Wendy Jerue Moncayo Thomé",
+    "marca": "Tukapú",
+    "municipio": "Popayán, Barrio Tejares",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "42aed39d-a1f8-41b7-b153-76776dee9df7",
+   "userId": "8f48067b-3c66-4f97-b940-8375bd63eb9b",
+   "shopName": "Sabrosura Doña Ana ",
+   "shopSlug": "sabrosura-dona-ana",
+   "email": "anamariamartinezpalacios4@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Ana María Martínez",
+    "marca": "Viche La Sabrosura de Doña Ana",
+    "municipio": "Medio Atrato - Chocó",
+    "origen": "Portadores conexión virtual - Viche",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "494db441-a787-4efc-a415-a965e157ec08",
+   "userId": "fed4ce4a-03d3-46a0-94f1-e8e1228767a1",
+   "shopName": "Andrés ",
+   "shopSlug": "andres",
+   "email": "andresdanielgarciapomares7@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Andrés daniel García pomares",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "505b09c9-3362-452f-a4bb-8d66eb7c8178",
+   "userId": "edd1b0d8-9165-4509-a9a8-5ce82055e4fc",
+   "shopName": "Kenya Bolivar",
+   "shopSlug": "kenya-bolivar",
+   "email": "kenyabolivar8@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Kenya Bolivar",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "563639b7-9d53-4761-90e8-9206981e3399",
+   "userId": "6e732950-0f5b-442a-8e29-fedf6e07c1d9",
+   "shopName": "la casa del curao  de hellen ",
+   "shopSlug": "la-casa-del-curao",
+   "email": "lacasadelcuraodehellen@gmail.com",
+   "faltantes": [
+    "producto",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Helen Yaneth cabezas riascos",
+    "marca": "la casa del curao de hellen",
+    "municipio": "TUMACO",
+    "origen": "Escuela Taller de Tumaco",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "65dc8562-f0c2-4404-b09b-0ebb42ec2dfb",
+   "userId": "0ef6ba3e-7a64-4f06-9989-23a9c4cf62fa",
+   "shopName": "RHyCU Ancestral Luzmy",
+   "shopSlug": "rhycu-ancestral-luzmy",
+   "email": "confeluzmy@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Luz Mirian Benavides Calderón",
+    "marca": "RHyCU Ancestral Luzmy",
+    "municipio": "Barichara",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "685d4947-1645-4ebc-9c06-c4f82ca4d31d",
+   "userId": "87011ead-4541-4800-ba90-a1c89fb5dc27",
+   "shopName": "Bella crochet marinelva ",
+   "shopSlug": "bella-crochet-marinelva",
+   "email": "marinelvavillamizarlopez@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Marinelva villamizar lopez",
+    "marca": "",
+    "municipio": "Casa de la cultura sangil",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "6b3b4616-87f2-4797-ba55-ae861f12bca6",
+   "userId": "3fddc56c-dd3f-44b5-86da-7eb73055eb60",
+   "shopName": "Taller de tejeduría en caña flecha",
+   "shopSlug": "taller-de-tejeduria-en-cana-flecha",
+   "email": "montalvotalaiguaarelys@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Arelys Montalvo",
+    "marca": "Taller de tejeduría en caña flecha",
+    "municipio": "Tuchín- Córdoba",
+    "origen": "Escuela Taller de Norte del Cauca",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "73ce71ed-09f7-4684-917a-2418983732fa",
+   "userId": "c9ed5de5-c8e3-4b5f-823e-6952f38c7b37",
+   "shopName": "La Pedrada",
+   "shopSlug": "la-pedrada",
+   "email": "colectivolapedrada@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Laura Camila Mora Jiménez",
+    "marca": "La Pedrada",
+    "municipio": "Engativá",
+    "origen": "Persona natural con establecimiento comercial",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "748772c5-ded7-40c6-8a86-a8452f7488d1",
+   "userId": "3f52ea4b-589e-4100-85e4-ba0ed2c2a251",
+   "shopName": "Accesorios lauren",
+   "shopSlug": "accesorios-lauren",
+   "email": "laurenmontalban59@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Lauren Montalban machacon",
+    "marca": "",
+    "municipio": "Cartagena barrio el pozon",
+    "origen": "Escuela Taller de Cartagena",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "807d3609-7096-407e-90a5-557334c498c8",
+   "userId": "d3eb5d30-ec7e-404e-b7b7-f4cfd6d95d70",
+   "shopName": "Filicana Colombia",
+   "shopSlug": "filicana-colombia",
+   "email": "lorenacarmona47@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Lorena Margoth Carmona Mercado",
+    "marca": "",
+    "municipio": "Mompox",
+    "origen": "Escuela Taller de Mompox",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "8279e9e0-067f-45aa-bec3-f8e29b96672b",
+   "userId": "48a0b3b3-3860-4fe7-8ec0-5f9fef59dc09",
+   "shopName": "Tejidos arcoiris",
+   "shopSlug": "tejidos-arcoiris",
+   "email": "gomezpinedasocorro4@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Socorro Gómez de Ballesteros",
+    "marca": "",
+    "municipio": "Villanueva barrio el portal",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "8512577e-400a-4b3e-baa2-8a95d2db90ea",
+   "userId": "15f92ab3-76b5-4f05-935d-62d7c7b4896f",
+   "shopName": "Alea acesorios",
+   "shopSlug": "alea-acesorios",
+   "email": "alixyul_2223@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Alix Robles velazco",
+    "marca": "",
+    "municipio": "Villanueva  santander barrio centro",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "89a0e92e-fce0-4231-a5ce-7bc3e7eb63fa",
+   "userId": "666157a1-0650-4226-863a-6284c6e4e57a",
+   "shopName": "Amedé, fibras de nuestra alma",
+   "shopSlug": "amede-fibras-de-nuestra-alma",
+   "email": "asotelares.cauca@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "María de los Angeles Vásquez Montes",
+    "marca": "Asociación de Telaristas del Cauca, Asotelares",
+    "municipio": "Totoro vereda bajo Palace",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "89f427d8-d1c2-40c5-8e7e-d68e27b266d3",
+   "userId": "75c18abe-652a-4cd5-9191-c92f31604495",
+   "shopName": "Bantura ",
+   "shopSlug": "bantura",
+   "email": "vichebantura@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Ramón Viveros",
+    "marca": "Viche Bantura",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "9242125b-634b-4b8b-86a6-531513b6d54d",
+   "userId": "0eb2c14d-3807-4a8a-a4e2-b11c4057d476",
+   "shopName": "Taller Artesanal Lusalin",
+   "shopSlug": "taller-artesanal-lusalin",
+   "email": "tallerlusalin23@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Yenny Azucena Dulcey",
+    "marca": "Taller Artesanal Lusalin",
+    "municipio": "Popayán barrio Alcázares",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "9a68a7fe-23b4-4561-852c-4a68655c54cc",
+   "userId": "e1185c8c-d4b6-4753-9b84-b504719a59ca",
+   "shopName": "MC Joyería y Artesanías",
+   "shopSlug": "mc-joyeria-y-artesanias",
+   "email": "arteyfilosofiamundial@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Juan Camilo Morales Agamez",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "9a808c50-868d-49b7-bab7-f2f72ca22303",
+   "userId": "101a32bd-8cc9-4789-9f7f-43fadc0f2666",
+   "shopName": "Arte Rustico",
+   "shopSlug": "arte-rustico",
+   "email": "marialejandrasanabriaviviescas@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "María Alejandra Sanabria viviescas",
+    "marca": "",
+    "municipio": "Barichara, vereda caucho",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "9ac9e5bf-da6f-4533-83c4-816fa6f0fb0e",
+   "userId": "51b63c31-6a2f-4ba6-b11b-414de852d62b",
+   "shopName": "ALCOCER JOYERIA",
+   "shopSlug": "alcocer-joyeria",
+   "email": "jairjoseca@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "JAIR JOSE CASSALETH ALCOCER",
+    "marca": "",
+    "municipio": "MOMPOX",
+    "origen": "Escuela Taller de Mompox",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "9e34026d-0c99-4743-8fa6-f6cf3c1e5b03",
+   "userId": "988bf23c-e414-4197-876f-2e74050fb851",
+   "shopName": "Viche y Derivados Ulaita, Co-Crea",
+   "shopSlug": "viche-y-derivados-ulaita-co-crea",
+   "email": "angulosaac@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Lucy Angulo",
+    "marca": "Viche Ulaita",
+    "municipio": "Timbiquí/Cali",
+    "origen": "Portadores presencial - Viche (Cali)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "aa44e6bb-ac1a-409f-88ac-45c77acb22a6",
+   "userId": "e809b99b-9391-4e77-9588-71bf3d1d13b8",
+   "shopName": "Taller de Arte-Sano",
+   "shopSlug": "taller-de-arte-sano",
+   "email": "mijohanacb76@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Miryam Johana Contreras Bustamante",
+    "marca": "Taller de Arte-Sano",
+    "municipio": "Chinácota",
+    "origen": "Escuela Taller de Norte de Santander",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "b76209e5-16d0-400e-9887-8a1d09382a2b",
+   "userId": "b6ed8b7d-2b6e-4a8f-94c4-266106c3b79b",
+   "shopName": "Nido Textil Boyacá",
+   "shopSlug": "nido-textil-boyaca",
+   "email": "okarenpaola@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Karen PaolaOchoa Espitia",
+    "marca": "Nido Textil Boyacá",
+    "municipio": "Tunja",
+    "origen": "Escuela Taller de Mompox",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "baa53c06-b794-419a-b254-c3bd99b2d49b",
+   "userId": "6bc08a9a-88b8-4072-8e57-01441bca9af9",
+   "shopName": "Creaciones Ancestrales alexa",
+   "shopSlug": "creaciones-ancestrales-alexa",
+   "email": "alexaramirezquibdo@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Alexandra Ramirez Machado",
+    "marca": "",
+    "municipio": "Quibdó chocó barrio jardín zm",
+    "origen": "Escuela Taller de Quibdó",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "bcfeaf8b-b151-4f7a-b87e-62cdc960b90f",
+   "userId": "324cfac4-402d-4096-8599-758d1a520cff",
+   "shopName": "JOYERÍA CONCEPCIÓN ",
+   "shopSlug": "joyeria-concepcion",
+   "email": "herreratoscanop@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Pedro José Herrera Toscano",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "bee40dd1-dead-45e4-8cba-d775bb075ce9",
+   "userId": "8d3aae8e-6fbf-44a3-b1fb-6ad0bfa661f0",
+   "shopName": "RIGOR FAM",
+   "shopSlug": "rigor-fam",
+   "email": "cristianarmandog2@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Cristian Armando Guerrero Guavita",
+    "marca": "RIGOR FAM",
+    "municipio": "Kennedy",
+    "origen": "Persona jurídica de naturaleza privada",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "bf65d172-9f05-4148-b05b-194fbdeea50c",
+   "userId": "9d57ed7d-67e8-4f47-bb46-a804690e8079",
+   "shopName": "Esteban",
+   "shopSlug": "esteban",
+   "email": "estebanvides02@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Juan Vides",
+    "marca": "",
+    "municipio": "Mompós",
+    "origen": "BOLIVAR",
+    "hoja": 3
+   }
+  },
+  {
+   "id": "c08c70d1-263f-4239-8e8d-4897db218e3b",
+   "userId": "64bf6554-ad6c-4df1-bab6-eab6bad72fa7",
+   "shopName": "ARTEX",
+   "shopSlug": "artex",
+   "email": "ifbp79@yahoo.es",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Iván Fernando Bueno Prada",
+    "marca": "ARTEX",
+    "municipio": "Barichara barrio el portal",
+    "origen": "Escuela Taller de Barichara",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "c50b0271-9d46-43de-af97-7fa776bb5b5f",
+   "userId": "676699e4-d753-4dbc-aa5b-a475ef1f4939",
+   "shopName": "Ddyvonn Artesanal",
+   "shopSlug": "ddyvonn-artesanal",
+   "email": "ddyvonn1976@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Angela Ivonne velasquez",
+    "marca": "",
+    "municipio": "Jamundi - ciudadela bonanza y Cali-llano verde",
+    "origen": "Escuela Taller de Cali",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "cd5d1303-b043-4dca-8991-f392bd84cf34",
+   "userId": "2747d744-fedc-492c-b225-90d8a849d12d",
+   "shopName": "Viche Balsámico Don Jackson Ramírez Machado ",
+   "shopSlug": "viche-balsamico-don-jackson-ramirez-machado",
+   "email": "jackramach@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Jackson Ramírez Machado",
+    "marca": "Viche La Playa Munguidó/Don Pana",
+    "municipio": "Quibdó - Chocó",
+    "origen": "Portadores conexión virtual - Viche",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "cff2f8a3-b133-4584-b8c9-e98aeddb678f",
+   "userId": "6cd04fa0-02fc-4502-8781-b55d0b027208",
+   "shopName": "Cántaro Saijeño bebidas autóctonas del litoral pacifico colombiano.",
+   "shopSlug": "cantaro-saijeno-bebidas-autoctonas-del-litoral-pacifico-colombiano",
+   "email": "hurtadoeverdaniel@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Ever Daniel Hurtado",
+    "marca": "Viche Cántaro Saijeño",
+    "municipio": "Timbiquí/Cali",
+    "origen": "Portadores presencial - Viche (Cali)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "d11d2351-3fe8-40bf-9a92-d95f5b4eb1f2",
+   "userId": "586c9a6c-7819-42fd-a275-9d8fb39f8232",
+   "shopName": "Visual Comics",
+   "shopSlug": "visual-comics",
+   "email": "visualcomics01@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "YHON KEVIN CORREA MOJICA",
+    "marca": "Visual Comics",
+    "municipio": "Puente Aranda",
+    "origen": "Persona natural con establecimiento comercial",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "d23d42eb-24fc-4688-9f2a-b1ce15a62a8e",
+   "userId": "e8347e61-9850-4374-9e24-ec7bed0a7c8d",
+   "shopName": "Tenfe",
+   "shopSlug": "tenfe",
+   "email": "tamurrajinmaa@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Natalia Valencia",
+    "marca": "",
+    "municipio": "Cali",
+    "origen": "Escuela Taller de Cali",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "d551ffb6-3048-49b3-b1a6-32e1135685f1",
+   "userId": "e70cb670-d1be-4ada-8577-b339d08979ee",
+   "shopName": "Marjul",
+   "shopSlug": "marjul",
+   "email": "marthapgomez8@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Martha Piedad Gómez Guerrero",
+    "marca": "Marjul",
+    "municipio": "Popayán, Rio Blanco",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "d58b0afa-e935-4c45-ab6f-ffeaad05424e",
+   "userId": "46ddb2ef-fd76-4820-899e-dcd8053f7fb0",
+   "shopName": "pacifiArte:Choco Estilo y tradicion ",
+   "shopSlug": "pacifiartechoco-estilo-y-tradicion",
+   "email": "tahimasa76@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Tahirih Machado Sarria",
+    "marca": "PacifiArte",
+    "municipio": "Quibdo",
+    "origen": "Escuela Taller de Quibdó",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "da96d6cb-690e-4673-bd2d-1c9aa2a2c494",
+   "userId": "3e9d2d58-69cf-42d9-b991-2713eaaf349e",
+   "shopName": "Viche Anviva",
+   "shopSlug": "viche-anviva",
+   "email": "anderleyviveros1982@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Anderley Viveros",
+    "marca": "Viche Anviva",
+    "municipio": "Noanamito, López de Micay - Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "db85a3c7-e667-42c5-8e94-105537d7e9e1",
+   "userId": "bfb596c2-2bf3-4b1e-8613-c1983cf0672e",
+   "shopName": "Viche Licha del Pacífico",
+   "shopSlug": "viche-licha-del-pacifico",
+   "email": "liceniapinillo@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Licenia Pinillo",
+    "marca": "Viche Licha del Pacífico",
+    "municipio": "Buenaventura/Cali",
+    "origen": "Portadores presencial - Viche (Cali)",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "e9ddec1c-11fa-4eea-bfe0-08c7867307b5",
+   "userId": "46cb5408-6491-4ba1-96ec-e3e34507e8d3",
+   "shopName": "Tejiendo sueños ",
+   "shopSlug": "tejiendo-suenos",
+   "email": "gloria.nil@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Gloria Nilse Quilindo Sanchez",
+    "marca": "Tejiendo Sueños",
+    "municipio": "Popayán",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "ee957c9b-32f9-4301-a444-44fec7a6c8de",
+   "userId": "50a980b1-d8d9-420c-85d1-a051078e99d1",
+   "shopName": "Tierra de Frontera",
+   "shopSlug": "tierra-de-frontera",
+   "email": "amparocc2009@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Nellyda Amparo Cárdenas Clavijo",
+    "marca": "Tierra de Frontera",
+    "municipio": "Villa del Rosario",
+    "origen": "Escuela Taller de Norte de Santander",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "f420ce6b-3ff6-4a9f-bcb1-1d156d4bca26",
+   "userId": "ce5467d4-93f2-486a-be94-8e0c1483d31e",
+   "shopName": "Joyería Valery",
+   "shopSlug": "joyeria-valery",
+   "email": "luzenithrodriguez2614@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Luz Enith Rodriguez",
+    "marca": "",
+    "municipio": "Mompox",
+    "origen": "Escuela Taller de Mompox",
+    "hoja": 2
+   }
+  },
+  {
+   "id": "f55d011d-7884-4db6-8cc8-1fbeb67568c3",
+   "userId": "55274fcb-680d-496c-9a98-e9faafb4a24b",
+   "shopName": "Viche Sabia Comadre",
+   "shopSlug": "viche-sabia-comadre",
+   "email": "garboleda40@hotmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "Gloria Amparo Arboleda",
+    "marca": "Viche Sabia Comadre",
+    "municipio": "Buenaventura - Valle del Cauca",
+    "origen": "Portadores presencial - Viche (Buenaventura)",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "fb74f353-d72b-4397-b904-9c514567d688",
+   "userId": "fb37995a-a042-41e0-96b4-fb1cb7207715",
+   "shopName": "ALDEA ESPACIO DE TRABAJO COLABORATIVO",
+   "shopSlug": "aldea-espacio-de-trabajo-colaborativo",
+   "email": "grupoarcorasas@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "OLGA PATRICIA CAMARGO R.",
+    "marca": "ALDEA ESPACIO DE TRABAJO COLABORATIVO",
+    "municipio": "Teusaquillo",
+    "origen": "Persona jurídica de naturaleza privada",
+    "hoja": 1
+   }
+  },
+  {
+   "id": "fd0b41e5-20b1-4f02-befb-39622cf35b9f",
+   "userId": "0ef209a2-46f0-4e8d-b842-b7ee2f4ed49a",
+   "shopName": "Korola",
+   "shopSlug": "korola",
+   "email": "rdagudelo5@gmail.com",
+   "faltantes": [
+    "identidad artesanal",
+    "producto",
+    "publicar",
+    "logo",
+    "aboutContent",
+    "políticas/FAQ",
+    "contacto",
+    "brandClaim",
+    "ubicación"
+   ],
+   "excel": {
+    "nombre": "RUBEN DARIO AGUDELO VICTORIA",
+    "marca": "Korola",
+    "municipio": "Popayán",
+    "origen": "Escuela Taller de Popayán",
+    "hoja": 1
+   }
+  }
+ ],
+ "crear": [
+  {
+   "nombre": "Nidia Lorena Canencio",
+   "email": "lorena.0803@hotmail.com",
+   "emailEsAlias": false,
+   "marca": "LC Marroquineria",
+   "telefono": "3003296775",
+   "cedulaExcel": "25283490",
+   "cedulaUsable": true,
+   "municipio": "Popayán",
+   "origen": "Escuela Taller de Popayán",
+   "hoja": 1
+  },
+  {
+   "nombre": "María Eugenia Patiño Rodríguez",
+   "email": "patinomariaeugenia72@gmail.com",
+   "emailEsAlias": false,
+   "marca": "",
+   "telefono": "96",
+   "cedulaExcel": "37894309",
+   "cedulaUsable": true,
+   "municipio": "Villanueva Santander",
+   "origen": "Escuela Taller de Barichara",
+   "hoja": 1
+  },
+  {
+   "nombre": "Mayerline pedraza Arenas",
+   "email": "mayerlinepedrazaarenas@gmail.com",
+   "emailEsAlias": false,
+   "marca": "Mayer diseños",
+   "telefono": "3185161343",
+   "cedulaExcel": "63475150",
+   "cedulaUsable": true,
+   "municipio": "Villanueva Santander sector monserrate",
+   "origen": "Escuela Taller de Barichara",
+   "hoja": 1
+  },
+  {
+   "nombre": "Marcos Venté",
+   "email": "aloha+don-tele@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Don Tele",
+   "telefono": "3185378487",
+   "cedulaExcel": "219",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura - Valle del Cauca",
+   "origen": "Portadores presencial - Viche (Buenaventura)",
+   "hoja": 1
+  },
+  {
+   "nombre": "Sandra Garcés",
+   "email": "aloha+fundaproductividad@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Fundaproductividad",
+   "telefono": "3155249152",
+   "cedulaExcel": "237",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura - Valle del Cauca",
+   "origen": "Portadores presencial - Viche (Buenaventura)",
+   "hoja": 1
+  },
+  {
+   "nombre": "Maricela Martínez",
+   "email": "aloha+viche-sabores-alejita@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Sabores Alejita",
+   "telefono": "3154514243",
+   "cedulaExcel": "213",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura - Valle del Cauca",
+   "origen": "Portadores presencial - Viche (Buenaventura)",
+   "hoja": 1
+  },
+  {
+   "nombre": "Jose Lilian Abadia",
+   "email": "aloha+viche-quera-de-jose-abadia@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Querá de Jose Abadia",
+   "telefono": "3104584285",
+   "cedulaExcel": "263",
+   "cedulaUsable": false,
+   "municipio": "Medio Baudó/Cali",
+   "origen": "Portadores presencial - Viche (Cali)",
+   "hoja": 1
+  },
+  {
+   "nombre": "Raul Angulo Saa",
+   "email": "aloha+viche-ulaita@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Ulaita",
+   "telefono": "3136518857",
+   "cedulaExcel": "269",
+   "cedulaUsable": false,
+   "municipio": "Timbiquí - Cauca",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 1
+  },
+  {
+   "nombre": "Ana Berta Panesso Chalá",
+   "email": "aloha+viche-pacha-negra@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Pacha Negra",
+   "telefono": "312 6757604",
+   "cedulaExcel": "287",
+   "cedulaUsable": false,
+   "municipio": "Medio Atrato - Chocó",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 1
+  },
+  {
+   "nombre": "Vanesa González",
+   "email": "aloha+viche-colectivo-curai@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Colectivo Curai",
+   "telefono": "3172122515",
+   "cedulaExcel": "291",
+   "cedulaUsable": false,
+   "municipio": "Tumaco - Nariño",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 1
+  },
+  {
+   "nombre": "Derly Esmeralda Giraldo Delgado",
+   "email": "kcaytu@gmail.com",
+   "emailEsAlias": false,
+   "marca": "Kcaytu Ideas a mano",
+   "telefono": "3108665509",
+   "cedulaExcel": "51882906",
+   "cedulaUsable": true,
+   "municipio": "Bogotá",
+   "origen": "Escuela Taller de Boyacá",
+   "hoja": 2
+  },
+  {
+   "nombre": "Marcial Montalvo",
+   "email": "tejeduriamontalvo@gmail.com",
+   "emailEsAlias": false,
+   "marca": "Taller de Tejeduría en Caña Flecha",
+   "telefono": "3134678418",
+   "cedulaExcel": "15300383",
+   "cedulaUsable": true,
+   "municipio": "Municipio de Tuchín, departamento de Córdoba",
+   "origen": "Escuela Taller de Mompox",
+   "hoja": 2
+  },
+  {
+   "nombre": "Yovy Aragón",
+   "email": "aloha+viche-curachon@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Curachon",
+   "telefono": "3215079454",
+   "cedulaExcel": "428",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura/Cali",
+   "origen": "Portadores presencial - Viche (Cali)",
+   "hoja": 2
+  },
+  {
+   "nombre": "Ruby Aroyo",
+   "email": "aloha+viche-monteclaro@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Monteclaro",
+   "telefono": "",
+   "cedulaExcel": "432",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura/Cali",
+   "origen": "Portadores presencial - Viche (Cali)",
+   "hoja": 2
+  },
+  {
+   "nombre": "Miller Villareal Tenorio",
+   "email": "aloha+viche-don-miller@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Don Miller",
+   "telefono": "3176111986",
+   "cedulaExcel": "435",
+   "cedulaUsable": false,
+   "municipio": "Tumaco - Nariño",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 2
+  },
+  {
+   "nombre": "Luis Evacio Montaño",
+   "email": "aloha+viche-mama-meme@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Mamá Meme",
+   "telefono": "3136703015",
+   "cedulaExcel": "444",
+   "cedulaUsable": false,
+   "municipio": "Gaupi - Cauca",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 2
+  },
+  {
+   "nombre": "Beibis Valencia Perea",
+   "email": "aloha+viche-camacay@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Camacay",
+   "telefono": "",
+   "cedulaExcel": "449",
+   "cedulaUsable": false,
+   "municipio": "Tumaco - Nariño",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 2
+  },
+  {
+   "nombre": "Graciano Caicedo",
+   "email": "aloha+viche-yurucavi@getinmotion.io",
+   "emailEsAlias": true,
+   "marca": "Viche Yurucavi",
+   "telefono": "315 3687133",
+   "cedulaExcel": "452",
+   "cedulaUsable": false,
+   "municipio": "Buenaventura - Valle del Cauca",
+   "origen": "Portadores conexión virtual - Viche",
+   "hoja": 2
+  },
+  {
+   "nombre": "harrinzon aragon hurtado",
+   "email": "harrinzonaragon78@gmail.com",
+   "emailEsAlias": false,
+   "marca": "",
+   "telefono": "",
+   "cedulaExcel": "",
+   "cedulaUsable": false,
+   "municipio": "Cali",
+   "origen": "VALLE DEL CAUCA",
+   "hoja": 3
+  },
+  {
+   "nombre": "Neyfer Estiguar Palacios Lozano",
+   "email": "lozanostiwar25@gmail.com",
+   "emailEsAlias": false,
+   "marca": "",
+   "telefono": "",
+   "cedulaExcel": "",
+   "cedulaUsable": false,
+   "municipio": "Alto Baudó",
+   "origen": "CHOCO",
+   "hoja": 3
+  },
+  {
+   "nombre": "Gustavo Niño Ospino",
+   "email": "gustavoninoospino@gmail.com",
+   "emailEsAlias": false,
+   "marca": "",
+   "telefono": "",
+   "cedulaExcel": "",
+   "cedulaUsable": false,
+   "municipio": "Mompós",
+   "origen": "BOLIVAR",
+   "hoja": 3
+  },
+  {
+   "nombre": "Orlando Meza",
+   "email": "mezapalominoorlandoantonio@gmail.com",
+   "emailEsAlias": false,
+   "marca": "",
+   "telefono": "",
+   "cedulaExcel": "",
+   "cedulaUsable": false,
+   "municipio": "Mompós",
+   "origen": "BOLIVAR",
+   "hoja": 3
+  },
+  {
+   "nombre": "Yojan David Hoyos Angulo",
+   "email": "yohanhoyos2022@gmail.com",
+   "emailEsAlias": false,
+   "marca": "Viche Don Dava",
+   "telefono": "",
+   "cedulaExcel": "439",
+   "cedulaUsable": false,
+   "municipio": "Barbacoas",
+   "origen": "NARIÑO",
+   "hoja": 3
+  }
+ ],
+ "revisarAMano": [
+  {
+   "score": 88,
+   "razones": "nombre ×4 + apellido en correo ×4",
+   "excel": {
+    "nombre": "Jhonatan Andrés Díaz Tafur",
+    "marca": "",
+    "email": "tafurjoyeriaartesanal@gmail.com"
+   },
+   "shop": {
+    "id": "0e42202b-8331-4068-b095-9c3b6aec7e6f",
+    "shopName": "Tafur joyeria artesanal",
+    "email": "jhonatanandresdiaztafur@gmail.com"
+   }
+  },
+  {
+   "score": 84,
+   "razones": "marca 100% + nombre ×2 + apellido en correo ×2",
+   "excel": {
+    "nombre": "Gustavo Adolfo Banguera",
+    "marca": "Viche Mostacho Tavo",
+    "email": ""
+   },
+   "shop": {
+    "id": "29cb749a-d247-491b-bd4d-a77c8d8201ee",
+    "shopName": "Viche Mostacho Tavo",
+    "email": "gustavo.banguera@hotmail.com"
+   }
+  },
+  {
+   "score": 82,
+   "razones": "marca 100% + nombre ×1 + apellido en correo ×3",
+   "excel": {
+    "nombre": "Maria Edith Román",
+    "marca": "Viche Estilando en la Quebrada",
+    "email": ""
+   },
+   "shop": {
+    "id": "260fe719-c0b0-4f85-8b81-7658ceba661a",
+    "shopName": "Viche Estilando en la Quebrada",
+    "email": "mariaedith.roman@hotmail.com"
+   }
+  },
+  {
+   "score": 76,
+   "razones": "marca 100% + nombre ×3",
+   "excel": {
+    "nombre": "Tatiana Marcela Silva Cortes",
+    "marca": "Emprendimiento en macrame, mi marca se llama kanuto design macrame tejido de origen",
+    "email": "kanutodesingmacrame@gmail.com"
+   },
+   "shop": {
+    "id": "06779a02-d7b3-4a2c-bf44-f03264f98752",
+    "shopName": "Kanuto design macrame",
+    "email": "kanutodesignmacrame@gmail.com"
+   }
+  },
+  {
+   "score": 74,
+   "razones": "marca 100% + nombre ×2 + apellido en correo ×1",
+   "excel": {
+    "nombre": "Lucy Angulo",
+    "marca": "Viche Ulaita",
+    "email": ""
+   },
+   "shop": {
+    "id": "9e34026d-0c99-4743-8fa6-f6cf3c1e5b03",
+    "shopName": "Viche y Derivados Ulaita, Co-Crea",
+    "email": "angulosaac@hotmail.com"
+   }
+  },
+  {
+   "score": 72,
+   "razones": "marca 100% + nombre ×1 + apellido en correo ×2",
+   "excel": {
+    "nombre": "Ana María Martínez",
+    "marca": "Viche La Sabrosura de Doña Ana",
+    "email": ""
+   },
+   "shop": {
+    "id": "42aed39d-a1f8-41b7-b153-76776dee9df7",
+    "shopName": "Sabrosura Doña Ana ",
+    "email": "anamariamartinezpalacios4@gmail.com"
+   }
+  },
+  {
+   "score": 70,
+   "razones": "marca 100% + apellido en correo ×3",
+   "excel": {
+    "nombre": "Ever Daniel Hurtado",
+    "marca": "Viche Cántaro Saijeño",
+    "email": ""
+   },
+   "shop": {
+    "id": "cff2f8a3-b133-4584-b8c9-e98aeddb678f",
+    "shopName": "Cántaro Saijeño bebidas autóctonas del litoral pacifico colombiano.",
+    "email": "hurtadoeverdaniel@gmail.com"
+   }
+  },
+  {
+   "score": 62,
+   "razones": "marca 100% + nombre ×1 + apellido en correo ×1",
+   "excel": {
+    "nombre": "Gloria Nilse Quilindo Sanchez",
+    "marca": "Tejiendo Sueños",
+    "email": "quilindogloria54@gmail.com"
+   },
+   "shop": {
+    "id": "e9ddec1c-11fa-4eea-bfe0-08c7867307b5",
+    "shopName": "Tejiendo sueños ",
+    "email": "gloria.nil@hotmail.com"
+   }
+  },
+  {
+   "score": 60,
+   "razones": "marca 100% + apellido en correo ×2",
+   "excel": {
+    "nombre": "Martha Piedad Gómez Guerrero",
+    "marca": "Marjul",
+    "email": "martapgomez8@gmail.com"
+   },
+   "shop": {
+    "id": "d551ffb6-3048-49b3-b1a6-32e1135685f1",
+    "shopName": "Marjul",
+    "email": "marthapgomez8@gmail.com"
+   }
+  },
+  {
+   "score": 60,
+   "razones": "marca 100% + apellido en correo ×2",
+   "excel": {
+    "nombre": "Anderley Viveros",
+    "marca": "Viche Anviva",
+    "email": ""
+   },
+   "shop": {
+    "id": "da96d6cb-690e-4673-bd2d-1c9aa2a2c494",
+    "shopName": "Viche Anviva",
+    "email": "anderleyviveros1982@gmail.com"
+   }
+  },
+  {
+   "score": 60,
+   "razones": "marca 100% + apellido en correo ×2",
+   "excel": {
+    "nombre": "Licenia Pinillo",
+    "marca": "Viche Licha del Pacífico",
+    "email": ""
+   },
+   "shop": {
+    "id": "db85a3c7-e667-42c5-8e94-105537d7e9e1",
+    "shopName": "Viche Licha del Pacífico",
+    "email": "liceniapinillo@hotmail.com"
+   }
+  },
+  {
+   "score": 56,
+   "razones": "nombre ×3 + apellido en correo ×2",
+   "excel": {
+    "nombre": "Jeny Carolina Restrepo",
+    "marca": "",
+    "email": "jenycarolinain@gmail.com"
+   },
+   "shop": {
+    "id": "38f94b50-e596-4c6c-89ff-17801f7aaf80",
+    "shopName": "CALIRI JOYERIA ARTESANAL ",
+    "email": "jenycarolina.2103@gmail.com"
+   }
+  },
+  {
+   "score": 50,
+   "razones": "marca 100% + apellido en correo ×1",
+   "excel": {
+    "nombre": "Gloria Amparo Arboleda",
+    "marca": "Viche Sabia Comadre",
+    "email": ""
+   },
+   "shop": {
+    "id": "f55d011d-7884-4db6-8cc8-1fbeb67568c3",
+    "shopName": "Viche Sabia Comadre",
+    "email": "garboleda40@hotmail.com"
+   }
+  },
+  {
+   "score": 50,
+   "razones": "marca 100% + apellido en correo ×1",
+   "excel": {
+    "nombre": "Luz Esneida Román",
+    "marca": "Viche Los Saberes de Yolita",
+    "email": ""
+   },
+   "shop": {
+    "id": "331458c0-11a1-46a5-bb87-3d01372758d9",
+    "shopName": "Viche Los Saberes de Yolita",
+    "email": "luzesnedaromanasprilla@gmail.com"
+   }
+  },
+  {
+   "score": 42,
+   "razones": "marca 50% + nombre ×1 + apellido en correo ×1",
+   "excel": {
+    "nombre": "Yimi Angulo",
+    "marca": "Viche Único del Pacífico",
+    "email": ""
+   },
+   "shop": {
+    "id": "eb8730dd-7874-48ad-ac5d-4ddfe7d0ee04",
+    "shopName": "Telar",
+    "email": "angulo575@hotmail.com"
+   }
+  },
+  {
+   "score": 40,
+   "razones": "marca 100%",
+   "excel": {
+    "nombre": "Lucila Martínez",
+    "marca": "Viche Rancho de Malu",
+    "email": ""
+   },
+   "shop": {
+    "id": "2f280d23-e101-4d01-ba85-3b23b00031fa",
+    "shopName": "Viche Rancho de Malu",
+    "email": "luci5629@hotmail.com"
+   }
+  },
+  {
+   "score": 40,
+   "razones": "marca 100%",
+   "excel": {
+    "nombre": "Ramón Viveros",
+    "marca": "Viche Bantura",
+    "email": ""
+   },
+   "shop": {
+    "id": "89f427d8-d1c2-40c5-8e7e-d68e27b266d3",
+    "shopName": "Bantura ",
+    "email": "vichebantura@gmail.com"
+   }
+  },
+  {
+   "score": 36,
+   "razones": "nombre ×3",
+   "excel": {
+    "nombre": "Jackson Ramírez Machado",
+    "marca": "Viche La Playa Munguidó/Don Pana",
+    "email": ""
+   },
+   "shop": {
+    "id": "cd5d1303-b043-4dca-8991-f392bd84cf34",
+    "shopName": "Viche Balsámico Don Jackson Ramírez Machado ",
+    "email": "jackramach@gmail.com"
+   }
+  }
+ ],
+ "duplicados": [
+  {
+   "motivo": "«Angela Ivonne velasquez» (hoja 2) y «Angela Del Valle» (hoja 3) parecen la misma persona por la raíz del correo; se procesa la primera y se descarta la otra",
+   "descartar": [
+    "Angela Del Valle|ddyvonn7@gmail.com"
+   ]
+  },
+  {
+   "motivo": "«Yohan David Hoyos Angúlo» (hoja 2) y «Yojan David Hoyos Angulo» (hoja 3) parecen la misma persona por el nombre (david, hoyos, angulo); se procesa la primera y se descarta la otra",
+   "descartar": [
+    "Yohan David Hoyos Angúlo|"
+   ]
+  },
+  {
+   "motivo": "«Orlando Meza» (hoja 3) y «Orlando Meza» (hoja 3) parecen la misma persona por la raíz del correo; se procesa la primera y se descarta la otra",
+   "descartar": [
+    "Orlando Meza|mezapalominoorlandoantonio5@gmail.com"
+   ]
+  }
+ ],
+ "tiendasFueraDelExcel": [
+  {
+   "id": "093288d3-796a-475a-868f-92812388e137",
+   "shopName": "CHARUVIC",
+   "email": "danisvg27@gmail.com"
+  }
+ ]
+}

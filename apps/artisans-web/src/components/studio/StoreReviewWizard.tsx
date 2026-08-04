@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import type { ArtisanShop, UpdateArtisanShopPayload } from "@/types/artisanShop.types";
+import type {
+  StorePoliciesConfig,
+  StorePoliciesConfigPayload,
+} from "@/services/storePoliciesConfig.actions";
 import {
   type ArtisanProfileData,
   DEFAULT_ARTISAN_PROFILE,
@@ -70,7 +74,10 @@ interface ConfigDraft {
   returnPolicy: string;
 }
 
-const buildConfigDraft = (shop: ArtisanShop): ConfigDraft => {
+const buildConfigDraft = (
+  shop: ArtisanShop,
+  policies?: StorePoliciesConfig | null,
+): ConfigDraft => {
   const s = shop as ArtisanShop & Record<string, any>;
   const c = s.contactConfig ?? {};
   const social = s.socialLinks ?? {};
@@ -89,7 +96,8 @@ const buildConfigDraft = (shop: ArtisanShop): ConfigDraft => {
     facebook: social.facebook ?? "",
     twitter: social.twitter ?? "",
     youtube: social.youtube ?? "",
-    returnPolicy: s.policiesConfig?.returnPolicy ?? "",
+    // Las políticas NO son columna de la tienda: vienen de /store-policies-config.
+    returnPolicy: policies?.returnPolicy ?? "",
   };
 };
 
@@ -149,29 +157,45 @@ const ConfigPanel: React.FC<{ title: string; children: React.ReactNode }> = ({ t
 
 interface StoreReviewWizardProps {
   shop: ArtisanShop;
+  /** Políticas de la tienda (recurso /store-policies-config, enlazado por idPoliciesConfig). */
+  policies?: StorePoliciesConfig | null;
   /** Persiste la edición (PATCH /artisan-shops/:id). Devuelve true si guardó. */
   onSave?: (payload: UpdateArtisanShopPayload) => Promise<boolean>;
+  /** Persiste las políticas en su propio recurso. Devuelve true si guardó. */
+  onSavePolicies?: (payload: StorePoliciesConfigPayload) => Promise<boolean>;
   saving?: boolean;
 }
 
-export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({ shop, onSave, saving = false }) => {
+export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({
+  shop,
+  policies,
+  onSave,
+  onSavePolicies,
+  saving = false,
+}) => {
   const [current, setCurrent] = useState(0);
   const [editable, setEditable] = useState(false);
   const [data, setData] = useState<ArtisanProfileData>(() => ({
     ...DEFAULT_ARTISAN_PROFILE,
     ...((shop.artisanProfile as unknown as ArtisanProfileData) ?? {}),
   }));
-  const [config, setConfig] = useState<ConfigDraft>(() => buildConfigDraft(shop));
+  const [config, setConfig] = useState<ConfigDraft>(() => buildConfigDraft(shop, policies));
 
   useEffect(() => {
     setData({
       ...DEFAULT_ARTISAN_PROFILE,
       ...((shop.artisanProfile as unknown as ArtisanProfileData) ?? {}),
     });
-    setConfig(buildConfigDraft(shop));
+    setConfig(buildConfigDraft(shop, policies));
     setCurrent(0);
     setEditable(false);
-  }, [shop]);
+  }, [shop]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Las políticas cargan aparte (llegan después de la tienda).
+  useEffect(() => {
+    if (editable) return;
+    setConfig((prev) => ({ ...prev, returnPolicy: policies?.returnPolicy ?? "" }));
+  }, [policies, editable]);
 
   const s = shop as ArtisanShop & Record<string, any>;
   const section = SECTIONS[current];
@@ -184,7 +208,7 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({ shop, onSa
     if (!onSave) return;
     // Editar NO cambia el estado de moderación: se omiten los campos de aprobación.
     const payload: UpdateArtisanShopPayload = {
-      artisanProfile: data as UpdateArtisanShopPayload["artisanProfile"],
+      artisanProfile: data as unknown as UpdateArtisanShopPayload["artisanProfile"],
       brandClaim: config.brandClaim,
       primaryColors: splitColors(config.primaryColors),
       secondaryColors: splitColors(config.secondaryColors),
@@ -205,9 +229,14 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({ shop, onSa
       },
       department: config.department,
       municipality: config.municipality,
-      policiesConfig: { ...(s.policiesConfig ?? {}), returnPolicy: config.returnPolicy },
+      // OJO: `policiesConfig` no existe en el DTO de tiendas (el ValidationPipe lo
+      // descartaba en silencio). Las políticas van por onSavePolicies.
     };
     const ok = await onSave(payload);
+    const policiesChanged = config.returnPolicy !== (policies?.returnPolicy ?? "");
+    if (ok && policiesChanged && onSavePolicies) {
+      await onSavePolicies({ returnPolicy: config.returnPolicy });
+    }
     if (ok) setEditable(false);
   };
 
@@ -216,7 +245,7 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({ shop, onSa
       ...DEFAULT_ARTISAN_PROFILE,
       ...((shop.artisanProfile as unknown as ArtisanProfileData) ?? {}),
     });
-    setConfig(buildConfigDraft(shop));
+    setConfig(buildConfigDraft(shop, policies));
     setEditable(false);
   };
 
@@ -298,8 +327,7 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({ shop, onSa
       );
     }
     if (key === "politicas") {
-      const pol = s.policiesConfig ?? {};
-      const faq = pol.faq ?? [];
+      const faq = policies?.faq ?? [];
       return (
         <ConfigPanel title="Políticas y FAQ">
           <EditableField label="Política de devoluciones" value={config.returnPolicy} editing={editable}
