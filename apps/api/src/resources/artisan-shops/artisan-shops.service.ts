@@ -192,10 +192,7 @@ export class ArtisanShopsService {
       // Cruzar contra la legacy dejaba fuera del directorio a todo taller cuyos
       // productos solo existen en la tabla nueva.
       fromClause += `
-        INNER JOIN shop.products_core p ON p.store_id = s.id`;
-      whereConditions.push(
-        `p.status IN ('approved', 'approved_with_edits') AND p.deleted_at IS NULL`,
-      );
+        LEFT JOIN shop.products_core p ON p.store_id = s.id`;
     }
 
     const whereClause =
