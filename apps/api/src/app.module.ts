@@ -98,7 +98,9 @@ import { PassportUserModule } from './resources/passport-user/passport-user.modu
       envFilePath: '.env',
       isGlobal: true,
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test')
+          .default('development'),
         PASSWORD_SECRET: Joi.string().required(),
         SESSION_SECRET: Joi.string().required(),
         DATABASE_URL: Joi.string().optional(),
@@ -113,16 +115,25 @@ import { PassportUserModule } from './resources/passport-user/passport-user.modu
       }),
       validationOptions: { abortEarly: false },
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
+    // Aumentado temporalmente para permitir bulk registration (20 → 1000)
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 1000 }]),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: { colorize: true, singleLine: true },
+              }
+            : undefined,
         serializers: {
           req(req) {
-            return { method: req.method, url: req.url, userId: req.headers['x-user-id'] };
+            return {
+              method: req.method,
+              url: req.url,
+              userId: req.headers['x-user-id'],
+            };
           },
           res(res) {
             return { statusCode: res.statusCode };

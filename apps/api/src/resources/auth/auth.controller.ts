@@ -41,8 +41,9 @@ export class AuthController {
    * Registrar un nuevo usuario con perfil, progreso y verificación de email
    */
   @Post('register')
-  @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  // THROTTLE TEMPORALMENTE DESACTIVADO PARA BULK REGISTRATION SCRIPTS
+  // @UseGuards(ThrottlerGuard)
+  // @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary:
@@ -212,8 +213,8 @@ export class AuthController {
    * Iniciar sesión
    */
   @Post('login')
-  @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  // @UseGuards(ThrottlerGuard)
+  // @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Iniciar sesión',

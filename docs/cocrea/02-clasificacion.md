@@ -1,7 +1,7 @@
 # CO-CREA · Clasificación
 
-Generado por `apps/api/scripts/cocrea-completitud/02-cruce.ts` contra **prod**.
-Fuente: `TELAR Cruce 85 vs Cocrea.xlsx` (98 personas) × 73 tiendas del convenio `CO-CREA`.
+Generado por `apps/api/scripts/cocrea-completitud/02-cruce.ts` contra **local**.
+Fuente: `telar_users.xlsx` (98 personas) × 75 tiendas del convenio `CO-CREA`.
 
 Sin datos personales: el plan persona a persona está en `state/plan.json`, que no se versiona.
 
@@ -9,12 +9,12 @@ Sin datos personales: el plan persona a persona está en `state/plan.json`, que 
 
 | Cubeta | Personas | Acción |
 |---|---:|---|
-| **A · No tocar** | 16 | Ya cumplen la meta. No se les modifica ningún campo. |
+| **A · No tocar** | 18 | Ya cumplen la meta. No se les modifica ningún campo. |
 | **B · Completar** | 57 | Tienen tienda; se rellenan **sólo los campos vacíos**. |
-| **C · Crear** | 23 | No tienen tienda en el convenio; se les crea cuenta, tienda y producto. |
+| **C · Crear** | 22 | No tienen tienda en el convenio; se les crea cuenta, tienda y producto. |
 | **D · Revisar a mano** | 21 | Emparejamientos inferidos y duplicados del Excel. |
 
-Techo alcanzable: **96** tiendas (73 existentes + 23 nuevas). Meta: 80. ✅ Alcanzable.
+Techo alcanzable: **97** tiendas (75 existentes + 22 nuevas). Meta: 80. ✅ Alcanzable.
 
 ## Cómo se emparejó
 
@@ -35,8 +35,8 @@ de la otra.
 | Nombre de la persona en marca / perfil / correo | 12 por palabra |
 | Apellido pegado en la parte local del correo | 10 por apellido |
 
-Resultado: 72 emparejadas (54 por correo idéntico, 18 inferidas),
-26 filas del Excel sin tienda, 1 tiendas del convenio que no aparecen en el Excel
+Resultado: 73 emparejadas (55 por correo idéntico, 18 inferidas),
+25 filas del Excel sin tienda, 2 tiendas del convenio que no aparecen en el Excel
 (existen y se respetan).
 
 > Buscar la marca también en `artisanProfile.artisticName` no es un detalle: hay tiendas cuyo

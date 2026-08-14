@@ -1,45 +1,45 @@
 # CO-CREA · Diagnóstico
 
-Generado por `apps/api/scripts/cocrea-completitud/01-diagnostico.ts` contra **prod**.
+Generado por `apps/api/scripts/cocrea-completitud/01-diagnostico.ts` contra **local**.
 Convenio `CO-CREA` (`b7a6d812-5dd7-4d7b-bec4-687d65234f4f`).
 
 Sin datos personales: el detalle por tienda queda en `state/diagnostico.json`, que no se versiona.
 
 ## Resumen
 
-**16 de 73** tiendas cumplen hoy la meta del convenio (publicada + identidad artesanal + ≥1 producto).
+**18 de 75** tiendas cumplen hoy la meta del convenio (publicada + identidad artesanal + ≥1 producto).
 
 | Métrica | Tiendas | % |
 |---|---:|---:|
-| Total en el convenio | 73 | 100% |
-| publishStatus = published | 25 | 34% |
-| active = true | 73 | 100% |
-| marketplaceApproved = true | 45 | 62% |
-| artisanProfileCompleted = true | 17 | 23% |
-| Con ≥1 producto (cualquier estado) | 23 | 32% |
-| Con ≥1 producto aprobado | 11 | 15% |
-| **Cumplen la meta** | 16 | 22% |
-| logoUrl | 17 | 23% |
+| Total en el convenio | 75 | 100% |
+| publishStatus = published | 74 | 99% |
+| active = true | 75 | 100% |
+| marketplaceApproved = true | 74 | 99% |
+| artisanProfileCompleted = true | 20 | 27% |
+| Con ≥1 producto (cualquier estado) | 25 | 33% |
+| Con ≥1 producto aprobado | 12 | 16% |
+| **Cumplen la meta** | 18 | 24% |
+| logoUrl | 18 | 24% |
 | bannerUrl | 8 | 11% |
-| brandClaim | 17 | 23% |
-| description | 71 | 97% |
-| story | 35 | 48% |
+| brandClaim | 18 | 24% |
+| description | 73 | 97% |
+| story | 37 | 49% |
 | aboutContent con contenido | 0 | 0% |
-| contactConfig con contenido | 13 | 18% |
+| contactConfig con contenido | 14 | 19% |
 | Políticas/FAQ enlazadas | 0 | 0% |
 | department | 0 | 0% |
 | municipality | 0 | 0% |
-| bankDataStatus = complete | 15 | 21% |
+| bankDataStatus = complete | 17 | 23% |
 | idContraparty (Cobre) | 0 | 0% |
 
 ## Productos
 
-108 productos en el convenio, repartidos en 23 tiendas.
+117 productos en el convenio, repartidos en 25 tiendas.
 
 | Estado | Productos |
 |---|---:|
-| `approved` | 83 |
-| `draft` | 25 |
+| `approved` | 88 |
+| `draft` | 29 |
 
 > `GET /products-new?agreementId=` **sin** parámetro `status` devuelve sólo los aprobados.
 > Los borradores hay que pedirlos aparte; si no, se subestima cuántas tiendas tienen producto.
@@ -48,20 +48,20 @@ Sin datos personales: el detalle por tienda queda en `state/diagnostico.json`, q
 
 | Falta | Tiendas |
 |---|---:|
-| identidad artesanal | 56 |
+| identidad artesanal | 55 |
 | producto | 50 |
-| publicar | 48 |
-| logo | 56 |
-| aboutContent | 73 |
-| políticas/FAQ | 73 |
-| contacto | 60 |
-| brandClaim | 56 |
-| ubicación | 73 |
+| publicar | 1 |
+| logo | 57 |
+| aboutContent | 75 |
+| políticas/FAQ | 75 |
+| contacto | 61 |
+| brandClaim | 57 |
+| ubicación | 75 |
 
 ## Sobre el "90 vs 77" del brief
 
 El brief de entrada hablaba de 90 registros en base de datos contra 77 en el dashboard.
-Ninguno de los dos números corresponde a las tiendas del convenio: hoy son **73**.
+Ninguno de los dos números corresponde a las tiendas del convenio: hoy son **75**.
 
 La explicación más probable es que se estuvieran comparando dos cosas distintas:
 `artesanos.artisan_profile` cuenta **personas registradas**, mientras que el dashboard

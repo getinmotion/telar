@@ -1,17 +1,17 @@
 # CO-CREA · Reporte final
 
-Generado por `apps/api/scripts/cocrea-completitud/05-reporte.ts` contra **prod**.
+Generado por `apps/api/scripts/cocrea-completitud/05-reporte.ts` contra **local**.
 
 ## Resultado
 
 | | Tiendas |
 |---|---:|
-| En el convenio | 73 |
-| Cumplían la meta al empezar | 16 de 73 |
-| **Cumplen la meta ahora** | **16** |
+| En el convenio | 55 |
+| Cumplían la meta al empezar | 16 de 55 |
+| **Cumplen la meta ahora** | **23** |
 | Meta | 80 |
 
-⚠️ Faltan **64** tiendas para la meta.
+⚠️ Faltan **57** tiendas para la meta.
 
 "Cumplir la meta" es: tienda publicada + identidad artesanal completa + al menos un producto.
 
@@ -22,14 +22,19 @@ Generado por `apps/api/scripts/cocrea-completitud/05-reporte.ts` contra **prod**
 | Cuentas creadas | 0 |
 | Correos verificados sin intervención | 0 |
 | Tiendas creadas | 0 |
-| Identidad artesanal completada | 0 |
-| Políticas y FAQ | 0 |
+| Identidad artesanal completada | 38 |
+| Políticas y FAQ | 39 |
 | Logo | 0 |
 | Productos creados | 0 |
-| Tiendas publicadas | 0 |
-| **Con algún error** | **0** |
+| Tiendas publicadas | 30 |
+| **Con algún error** | **39** |
 
-_Sin errores._
+### Errores
+
+El detalle lleva correos, así que está en `state/ledger.local.json`. Por tipo:
+
+- imágenes de tienda: 39
+- producto: 32
 
 ## Credenciales
 

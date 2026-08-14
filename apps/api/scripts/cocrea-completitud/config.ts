@@ -10,7 +10,8 @@ dotenv.config({ path: path.join(__dirname, '.env') });
  * Se puede sobreescribir con COCREA_AGREEMENT_ID para ensayar el script real
  * contra staging, donde este convenio no existe.
  */
-export const AGREEMENT_ID = process.env.COCREA_AGREEMENT_ID || 'b7a6d812-5dd7-4d7b-bec4-687d65234f4f';
+export const AGREEMENT_ID =
+  process.env.COCREA_AGREEMENT_ID || 'b7a6d812-5dd7-4d7b-bec4-687d65234f4f';
 export const AGREEMENT_NAME = 'CO-CREA';
 
 /** Entornos de la API (hostnames tomados de infra/prod/nginx.conf e infra/dev/nginx.conf). */
@@ -33,11 +34,16 @@ const targetPorFlag = (): string | undefined => {
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
 
-export const TARGET: TargetEnv = (targetPorFlag() as TargetEnv) || (process.env.COCREA_TARGET as TargetEnv) || 'local';
+export const TARGET: TargetEnv =
+  (targetPorFlag() as TargetEnv) ||
+  (process.env.COCREA_TARGET as TargetEnv) ||
+  'local';
 export const API_BASE = API_BASES[TARGET];
 
 if (!API_BASE) {
-  throw new Error(`Entorno "${TARGET}" no es válido. Opciones: ${Object.keys(API_BASES).join(', ')}`);
+  throw new Error(
+    `Entorno "${TARGET}" no es válido. Opciones: ${Object.keys(API_BASES).join(', ')}`,
+  );
 }
 
 /** Nada escribe si no se pasa --apply. El dry-run es el default deliberado. */
@@ -68,13 +74,25 @@ export const OPERADOR_PASSWORD = process.env.COCREA_OPERADOR_PASSWORD;
 /** Excel fuente. Se pasa por env para no versionar datos personales en el repo. */
 export const XLSX_PATH =
   process.env.COCREA_XLSX ||
-  path.join(process.env.USERPROFILE || process.env.HOME || '', 'Downloads', 'TELAR Cruce 85 vs Cocrea.xlsx');
+  path.join(
+    process.env.USERPROFILE || process.env.HOME || '',
+    'Downloads',
+    'TELAR Cruce 85 vs Cocrea.xlsx',
+  );
 
 /** Estado y salidas con datos personales. Va en .gitignore — no se commitea. */
 export const STATE_DIR = path.join(__dirname, 'state');
 
 /** Reportes agregados, sin datos personales. Estos sí se commitean. */
-export const DOCS_DIR = path.join(__dirname, '..', '..', '..', '..', 'docs', 'cocrea');
+export const DOCS_DIR = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'docs',
+  'cocrea',
+);
 
 export function ensureDirs(): void {
   for (const dir of [STATE_DIR, DOCS_DIR]) {
@@ -91,7 +109,9 @@ export function banner(titulo: string): void {
   console.log('');
   console.log('═'.repeat(64));
   console.log(`  ${titulo}`);
-  console.log(`  Convenio: ${AGREEMENT_NAME} · Entorno: ${TARGET} (${API_BASE})`);
+  console.log(
+    `  Convenio: ${AGREEMENT_NAME} · Entorno: ${TARGET} (${API_BASE})`,
+  );
   console.log(`  Modo: ${modo}`);
   console.log('═'.repeat(64));
   console.log('');

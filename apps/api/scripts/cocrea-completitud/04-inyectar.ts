@@ -18,6 +18,7 @@
 import * as fs from 'fs';
 import {
   AGREEMENT_ID,
+  API_BASE,
   DEFAULT_PASSWORD,
   DRY_RUN,
   OPERADOR_EMAIL,
@@ -27,7 +28,15 @@ import {
   ensureDirs,
   stateFile,
 } from './config';
-import { ApiError, ShopProd, escrituras, get, getTiendasConvenio, setToken, write } from './helpers/api';
+import {
+  ApiError,
+  ShopProd,
+  escrituras,
+  get,
+  getTiendasConvenio,
+  setToken,
+  write,
+} from './helpers/api';
 import { Ledger, Paso } from './helpers/ledger';
 import { conContenido } from './helpers/estado';
 import { parcheDeCompletitud } from './helpers/parche';
@@ -64,7 +73,10 @@ async function main() {
   }
 
   const ruta = stateFile('contenido.json');
-  if (!fs.existsSync(ruta)) throw new Error('Falta state/contenido.json. Corre antes: npx ts-node 03-contenido.ts');
+  if (!fs.existsSync(ruta))
+    throw new Error(
+      'Falta state/contenido.json. Corre antes: npx ts-node 03-contenido.ts',
+    );
   const contenido = JSON.parse(fs.readFileSync(ruta, 'utf8')) as Contenido;
 
   // El contenido lleva UUIDs del entorno donde se generó (país, tipo de documento,
@@ -89,6 +101,8 @@ async function main() {
     console.log(`── Creando ${lote.length} cuentas nuevas ──\n`);
     for (const item of lote) {
       await crearArtesano(item);
+      // Esperar 2 segundos entre cada registro para evitar rate limiting (429)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 
@@ -108,10 +122,14 @@ async function main() {
     for (const item of lote) {
       const shop = porId.get(item.shopId);
       if (!shop) {
-        console.log(`  ⚠️  ${item.shopNameActual}: ya no está en el convenio, se omite`);
+        console.log(
+          `  ⚠️  ${item.shopNameActual}: ya no está en el convenio, se omite`,
+        );
         continue;
       }
       await completarTienda(shop, item);
+      // Esperar 1 segundo entre cada tienda para evitar rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     setToken(null);
   }
@@ -126,7 +144,9 @@ async function main() {
     .forEach(([k, v]) => console.log(`  ${String(v).padStart(4)}  ${k}`));
 
   if (DRY_RUN) {
-    console.log(`\n  ${escrituras.length} peticiones de escritura se habrían enviado.`);
+    console.log(
+      `\n  ${escrituras.length} peticiones de escritura se habrían enviado.`,
+    );
     const porRuta = escrituras.reduce<Record<string, number>>((a, e) => {
       const clave = `${e.method} ${e.ruta.replace(/[0-9a-f-]{36}/gi, ':id')}`;
       a[clave] = (a[clave] || 0) + 1;
@@ -137,7 +157,9 @@ async function main() {
       .forEach(([k, v]) => console.log(`     ${String(v).padStart(4)}  ${k}`));
     console.log('\n  Para aplicarlo: añade --apply');
   }
-  console.log(`\n  Ledger: ${stateFile(`ledger.${TARGET}${DRY_RUN ? '.dry-run' : ''}.json`)}`);
+  console.log(
+    `\n  Ledger: ${stateFile(`ledger.${TARGET}${DRY_RUN ? '.dry-run' : ''}.json`)}`,
+  );
 }
 
 // ─────────────────────── completar tiendas existentes ───────────────────────
@@ -162,9 +184,23 @@ async function completarTienda(shop: ShopProd, item: any) {
     cuenta('tienda sin cambios');
   }
 
-  if (!conContenido(shop.idPoliciesConfig)) await ponerPoliticas(email, shop.id, t.politicas);
-  await subirImagenesTienda(email, shop.id, t, !conContenido(shop.logoUrl), !conContenido(shop.bannerUrl));
-  if (item.producto) await crearProducto(email, shop.id, item.producto, t.taxonomia, t.productoSvg);
+  if (!conContenido(shop.idPoliciesConfig))
+    await ponerPoliticas(email, shop.id, t.politicas);
+  await subirImagenesTienda(
+    email,
+    shop.id,
+    t,
+    !conContenido(shop.logoUrl),
+    !conContenido(shop.bannerUrl),
+  );
+  if (item.producto)
+    await crearProducto(
+      email,
+      shop.id,
+      item.producto,
+      t.taxonomia,
+      t.productoSvg,
+    );
   if (shop.publishStatus !== 'published') await publicar(email, shop.id);
 }
 
@@ -202,10 +238,20 @@ async function crearArtesano(item: any) {
       } catch (e1) {
         // El teléfono es único en auth.users. Si el número real del artesano ya
         // está en otra cuenta, se reintenta con el sintético en vez de perder el alta.
-        if (e1 instanceof ApiError && e1.status === 409 && /tel[eé]fono/i.test(e1.body) && r.whatsappAlterno) {
-          console.log(`    ↻ ${email}: teléfono ocupado, se usa ${r.whatsappAlterno}`);
+        if (
+          e1 instanceof ApiError &&
+          e1.status === 409 &&
+          /tel[eé]fono/i.test(e1.body) &&
+          r.whatsappAlterno
+        ) {
+          console.log(
+            `    ↻ ${email}: teléfono ocupado, se usa ${r.whatsappAlterno}`,
+          );
           cuenta('teléfono sustituido por colisión');
-          res = await write<{ userId: string }>('POST', '/auth/register', { ...cuerpo, whatsapp: r.whatsappAlterno });
+          res = await write<{ userId: string }>('POST', '/auth/register', {
+            ...cuerpo,
+            whatsapp: r.whatsappAlterno,
+          });
         } else {
           throw e1;
         }
@@ -220,7 +266,10 @@ async function crearArtesano(item: any) {
         cuenta('usuario ya existía');
         console.log(`  = ${email} ya existe (${e.body.slice(0, 80)})`);
       } else {
-        const detalle = e instanceof ApiError ? `${e.message}\n      ${e.body}` : (e as Error).message;
+        const detalle =
+          e instanceof ApiError
+            ? `${e.message}\n      ${e.body}`
+            : (e as Error).message;
         ledger.error(email, `register: ${detalle}`);
         cuenta('ERROR al crear usuario');
         console.log(`  ✗ ${email}: ${detalle}`);
@@ -233,20 +282,31 @@ async function crearArtesano(item: any) {
   const token = await entrar(email);
   if (token && token !== 'dry-run') tokenPrestado = token;
   if (!token && !DRY_RUN) {
-    ledger.error(email, 'no se pudo iniciar sesión con la cuenta recién creada');
+    ledger.error(
+      email,
+      'no se pudo iniciar sesión con la cuenta recién creada',
+    );
     cuenta('ERROR de login');
     return;
   }
 
-  if (userId && !ledger.hecho(email, 'emailVerificado')) await verificarEmail(email, userId);
+  if (userId && !ledger.hecho(email, 'emailVerificado'))
+    await verificarEmail(email, userId);
 
   let shopId = ledger.get(email).shopId;
   if (!shopId && !ledger.hecho(email, 'tienda')) {
-    const cuerpo = { userId, shopName: item.tienda.shopName, shopSlug: item.tienda.shopSlug };
+    const cuerpo = {
+      userId,
+      shopName: item.tienda.shopName,
+      shopSlug: item.tienda.shopSlug,
+    };
     try {
       const res = await write<{ id: string }>('POST', '/artisan-shops', cuerpo);
       shopId = res?.id;
-      ledger.marcar(email, 'tienda', { shopId, shopSlug: item.tienda.shopSlug });
+      ledger.marcar(email, 'tienda', {
+        shopId,
+        shopSlug: item.tienda.shopSlug,
+      });
       cuenta('tienda creada');
     } catch (e) {
       // 409 = slug tomado, o el usuario ya tenía tienda.
@@ -281,7 +341,13 @@ async function crearArtesano(item: any) {
 
   await ponerPoliticas(email, shopId ?? ':pendiente', t.politicas);
   await subirImagenesTienda(email, shopId ?? ':pendiente', t, true, true);
-  await crearProducto(email, shopId ?? ':pendiente', item.producto, t.taxonomia, t.productoSvg);
+  await crearProducto(
+    email,
+    shopId ?? ':pendiente',
+    item.producto,
+    t.taxonomia,
+    t.productoSvg,
+  );
   await publicar(email, shopId ?? ':pendiente');
 
   setToken(null);
@@ -305,17 +371,29 @@ async function tokenOperador(): Promise<string | null> {
       console.log(`\n  Sesión de operador: ${OPERADOR_EMAIL}`);
       return t;
     }
-    console.log(`\n  ⚠️  No se pudo entrar con COCREA_OPERADOR_EMAIL (${OPERADOR_EMAIL})`);
+    console.log(
+      `\n  ⚠️  No se pudo entrar con COCREA_OPERADOR_EMAIL (${OPERADOR_EMAIL})`,
+    );
   }
-  if (tokenPrestado) console.log('\n  Sin cuenta operador: se usa el token de una cuenta creada en esta corrida.');
+  if (tokenPrestado)
+    console.log(
+      '\n  Sin cuenta operador: se usa el token de una cuenta creada en esta corrida.',
+    );
   return tokenPrestado;
 }
 
 /** Inicia sesión. El login no exige el correo verificado. */
-async function entrar(email: string, password: string = DEFAULT_PASSWORD): Promise<string | null> {
+async function entrar(
+  email: string,
+  password: string = DEFAULT_PASSWORD,
+): Promise<string | null> {
   if (DRY_RUN) return 'dry-run';
   try {
-    const res = await write<{ accessToken?: string; access_token?: string; token?: string }>('POST', '/auth/login', {
+    const res = await write<{
+      accessToken?: string;
+      access_token?: string;
+      token?: string;
+    }>('POST', '/auth/login', {
       email,
       password,
     });
@@ -334,8 +412,13 @@ async function entrar(email: string, password: string = DEFAULT_PASSWORD): Promi
  */
 async function verificarEmail(email: string, userId: string) {
   try {
-    const res = await write<{ token: string }>('POST', `/email-verifications/generate/${userId}`, {});
-    if (res?.token) await write('POST', `/email-verifications/verify/${res.token}`, {});
+    const res = await write<{ token: string }>(
+      'POST',
+      `/email-verifications/generate/${userId}`,
+      {},
+    );
+    if (res?.token)
+      await write('POST', `/email-verifications/verify/${res.token}`, {});
     ledger.marcar(email, 'emailVerificado');
     cuenta('correo verificado');
   } catch (e) {
@@ -344,12 +427,22 @@ async function verificarEmail(email: string, userId: string) {
   }
 }
 
-async function ponerPoliticas(email: string, shopId: string, politicas: { returnPolicy: string; faq: any[] }) {
+async function ponerPoliticas(
+  email: string,
+  shopId: string,
+  politicas: { returnPolicy: string; faq: any[] },
+) {
   if (ledger.hecho(email, 'politicas')) return;
   try {
-    const res = await write<{ id: string }>('POST', '/store-policies-config', politicas);
+    const res = await write<{ id: string }>(
+      'POST',
+      '/store-policies-config',
+      politicas,
+    );
     // La tienda apunta a la configuración por FK; sin este PATCH no se ve.
-    await write('PATCH', `/artisan-shops/${shopId}`, { idPoliciesConfig: res?.id ?? ':pendiente' });
+    await write('PATCH', `/artisan-shops/${shopId}`, {
+      idPoliciesConfig: res?.id ?? ':pendiente',
+    });
     ledger.marcar(email, 'politicas', { policiesId: res?.id });
     cuenta('políticas y FAQ');
   } catch (e) {
@@ -359,10 +452,18 @@ async function ponerPoliticas(email: string, shopId: string, politicas: { return
 }
 
 /** Sube un SVG y devuelve su URL. En dry-run devuelve un marcador. */
-async function subirSvg(svg: string, nombre: string, folder: string): Promise<string> {
+async function subirSvg(
+  svg: string,
+  nombre: string,
+  folder: string,
+): Promise<string> {
   if (DRY_RUN) return `svg-generado://${folder}/${nombre}`;
   const form = new FormData();
-  form.append('file', new Blob([svg], { type: 'image/svg+xml' }), `${nombre}.svg`);
+  form.append(
+    'file',
+    new Blob([svg], { type: 'image/svg+xml' }),
+    `${nombre}.svg`,
+  );
   form.append('folder', folder);
   const res = await subirArchivo(form);
   return res.url;
@@ -372,23 +473,42 @@ async function subirSvg(svg: string, nombre: string, folder: string): Promise<st
  * Logo y banner de la tienda. El banner importa tanto como el logo: es la
  * cabecera del perfil, y sin él la tienda se ve vacía al entrar.
  */
-async function subirImagenesTienda(email: string, shopId: string, t: any, faltaLogo: boolean, faltaBanner: boolean) {
+async function subirImagenesTienda(
+  email: string,
+  shopId: string,
+  t: any,
+  faltaLogo: boolean,
+  faltaBanner: boolean,
+) {
   if (ledger.hecho(email, 'logo') || (!faltaLogo && !faltaBanner)) return;
   try {
     const parche: Record<string, unknown> = {};
 
-    if (faltaLogo) parche.logoUrl = await subirSvg(t.logoSvg, `${shopId}-logo`, 'shops');
+    if (faltaLogo)
+      parche.logoUrl = await subirSvg(t.logoSvg, `${shopId}-logo`, 'shops');
 
     if (faltaBanner) {
       const bannerUrl = await subirSvg(t.bannerSvg, `${shopId}-banner`, 'hero');
       parche.bannerUrl = bannerUrl;
       // El hero del perfil lee heroConfig.slides, no bannerUrl.
-      parche.heroConfig = { slides: [{ imageUrl: bannerUrl, title: t.shopName, subtitle: t.brandClaim }], autoplay: true, duration: 5000 };
+      parche.heroConfig = {
+        slides: [
+          { imageUrl: bannerUrl, title: t.shopName, subtitle: t.brandClaim },
+        ],
+        autoplay: true,
+        duration: 5000,
+      };
     }
 
     await write('PATCH', `/artisan-shops/${shopId}`, parche);
     ledger.marcar(email, 'logo', { logoUrl: String(parche.logoUrl ?? '') });
-    cuenta(faltaLogo && faltaBanner ? 'logo y banner' : faltaLogo ? 'logo' : 'banner');
+    cuenta(
+      faltaLogo && faltaBanner
+        ? 'logo y banner'
+        : faltaLogo
+          ? 'logo'
+          : 'banner',
+    );
   } catch (e) {
     ledger.error(email, `imágenes de tienda: ${(e as Error).message}`);
     cuenta('ERROR en imágenes de tienda');
@@ -397,18 +517,33 @@ async function subirImagenesTienda(email: string, shopId: string, t: any, faltaL
 
 /** El endpoint de subida es multipart, así que no pasa por el cliente JSON. */
 async function subirArchivo(form: FormData): Promise<{ url: string }> {
-  const { API_BASE } = await import('./config');
-  const res = await fetch(`${API_BASE}/file-upload/image`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`file-upload -> ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const res = await fetch(`${API_BASE}/file-upload/image`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok)
+    throw new Error(
+      `file-upload -> ${res.status}: ${(await res.text()).slice(0, 200)}`,
+    );
   return res.json();
 }
 
-async function crearProducto(email: string, shopId: string, producto: any, tax: any, imagenSvg: string) {
+async function crearProducto(
+  email: string,
+  shopId: string,
+  producto: any,
+  tax: any,
+  imagenSvg: string,
+) {
   if (!producto || ledger.hecho(email, 'producto')) return;
   try {
     // Un producto sin foto se ve roto en el marketplace, así que la imagen se
     // sube antes y viaja en el mismo payload.
-    const imagenUrl = await subirSvg(imagenSvg, `${shopId}-producto`, 'products');
+    const imagenUrl = await subirSvg(
+      imagenSvg,
+      `${shopId}-producto`,
+      'products',
+    );
 
     const cuerpo = {
       storeId: shopId,
@@ -433,11 +568,20 @@ async function crearProducto(email: string, shopId: string, producto: any, tax: 
       logistics: producto.logistics,
       // `production` sin availabilityType da 400.
       production: producto.production,
-      media: [{ mediaUrl: imagenUrl, mediaType: 'image', isPrimary: true, displayOrder: 0 }],
-      materials: (tax.materialIds ?? []).map((materialId: string, i: number) => ({
-        materialId,
-        isPrimary: i === 0,
-      })),
+      media: [
+        {
+          mediaUrl: imagenUrl,
+          mediaType: 'image',
+          isPrimary: true,
+          displayOrder: 0,
+        },
+      ],
+      materials: (tax.materialIds ?? []).map(
+        (materialId: string, i: number) => ({
+          materialId,
+          isPrimary: i === 0,
+        }),
+      ),
       variants: [
         {
           // Stock 0: la pieza es representativa, no está a la venta.
@@ -456,7 +600,9 @@ async function crearProducto(email: string, shopId: string, producto: any, tax: 
     ledger.marcar(email, 'producto', { productId: res?.id });
     cuenta('producto creado');
 
-    await write('PATCH', `/products-new/${res?.id ?? ':pendiente'}/status`, { status: 'approved' });
+    await write('PATCH', `/products-new/${res?.id ?? ':pendiente'}/status`, {
+      status: 'approved',
+    });
     ledger.marcar(email, 'productoAprobado');
     cuenta('producto aprobado');
   } catch (e) {
@@ -468,7 +614,10 @@ async function crearProducto(email: string, shopId: string, producto: any, tax: 
 async function publicar(email: string, shopId: string) {
   if (ledger.hecho(email, 'publicada')) return;
   try {
-    await write('PATCH', `/artisan-shops/${shopId}`, { publishStatus: 'published', active: true });
+    await write('PATCH', `/artisan-shops/${shopId}`, {
+      publishStatus: 'published',
+      active: true,
+    });
     ledger.marcar(email, 'publicada');
     cuenta('tienda publicada');
   } catch (e) {

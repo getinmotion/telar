@@ -1,8 +1,8 @@
 # CO-CREA · Contenido generado
 
-Generado por `apps/api/scripts/cocrea-completitud/03-contenido.ts` contra **prod**.
+Generado por `apps/api/scripts/cocrea-completitud/03-contenido.ts` contra **local**.
 
-Contenido para **23** tiendas nuevas y **57** por completar.
+Contenido para **22** tiendas nuevas y **57** por completar.
 El texto de cada tienda vive en `state/contenido.json`, que no se versiona.
 
 ## Cómo se genera
@@ -21,7 +21,7 @@ ya existe— de lo que el artesano escribió en su descripción o su historia.
 | Oficio | Tiendas |
 |---|---:|
 | Tejeduría | 38 |
-| Viche | 28 |
+| Viche | 27 |
 | Joyería artesanal | 9 |
 | Marroquinería artesanal | 2 |
 | Trabajo en fibras naturales | 2 |
@@ -49,8 +49,8 @@ caía en *Bolívar (Cauca)* y "Tumaco - Nariño" en *Nariño (Antioquia)*.
 
 | Dato | Cuántos | Valor |
 |---|---:|---|
-| Cédula | 18 | `9900000001` en adelante |
-| Teléfono | 23 | `+573900000001` en adelante |
+| Cédula | 17 | `9900000001` en adelante |
+| Teléfono | 22 | `+573900000001` en adelante |
 
 Ambos rangos son reconocibles a simple vista y no pueden colisionar con datos reales
 (`39` no es un prefijo móvil válido en Colombia). Quedan listados en `state/contenido.json`
@@ -78,7 +78,7 @@ mensual, descripción del proceso, herramientas, técnica, materiales y foto. Lo
 son representativos del oficio, con una pequeña variación por tienda para que las fichas
 no salgan clonadas; el artesano los corrige cuando entre.
 
-⚠️ **Los 28 productos de viche van sin material.** El catálogo de materiales no tiene
+⚠️ **Los 27 productos de viche van sin material.** El catálogo de materiales no tiene
 caña de azúcar; lo más parecido es "caña brava", que es una fibra y sería un dato falso.
 Si se añade "Caña de azúcar" al catálogo, estos productos quedan completos.
 
