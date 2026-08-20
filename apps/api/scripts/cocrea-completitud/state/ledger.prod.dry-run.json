@@ -1,0 +1,153 @@
+[
+ {
+  "email": "lorena.0803@hotmail.com",
+  "pasos": [
+   "usuario",
+   "tienda",
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "password": "Telar123!",
+  "shopSlug": "lc-marroquineria",
+  "logoUrl": "svg-generado://shops/:pendiente-logo"
+ },
+ {
+  "email": "patinomariaeugenia72@gmail.com",
+  "pasos": [
+   "usuario",
+   "tienda",
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "password": "Telar123!",
+  "shopSlug": "manos-de-rodriguez-tejeduria-villanueva",
+  "logoUrl": "svg-generado://shops/:pendiente-logo"
+ },
+ {
+  "email": "mayerlinepedrazaarenas@gmail.com",
+  "pasos": [
+   "usuario",
+   "tienda",
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "password": "Telar123!",
+  "shopSlug": "mayer-disenos",
+  "logoUrl": "svg-generado://shops/:pendiente-logo"
+ },
+ {
+  "email": "aloha+don-tele@getinmotion.io",
+  "pasos": [
+   "usuario",
+   "tienda",
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "password": "Telar123!",
+  "shopSlug": "don-tele",
+  "logoUrl": "svg-generado://shops/:pendiente-logo"
+ },
+ {
+  "email": "aloha+fundaproductividad@getinmotion.io",
+  "pasos": [
+   "usuario",
+   "tienda",
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "password": "Telar123!",
+  "shopSlug": "fundaproductividad",
+  "logoUrl": "svg-generado://shops/:pendiente-logo"
+ },
+ {
+  "email": "danisvg27@gmail.com",
+  "pasos": [
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo"
+  ],
+  "shopId": "093288d3-796a-475a-868f-92812388e137",
+  "logoUrl": ""
+ },
+ {
+  "email": "estmad@gmail.com",
+  "pasos": [
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "shopId": "0e1ae687-5807-4d4b-9ae5-182c3db95921",
+  "logoUrl": "svg-generado://shops/0e1ae687-5807-4d4b-9ae5-182c3db95921-logo"
+ },
+ {
+  "email": "deisyfall66@hotmail.co",
+  "pasos": [
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "shopId": "0f762461-9f9a-4273-af64-289e1cf42767",
+  "logoUrl": "svg-generado://shops/0f762461-9f9a-4273-af64-289e1cf42767-logo"
+ },
+ {
+  "email": "stellarte01@gmail.com",
+  "pasos": [
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado"
+  ],
+  "shopId": "1934e0d3-deaa-4b16-a684-6e9163142794",
+  "logoUrl": "svg-generado://shops/1934e0d3-deaa-4b16-a684-6e9163142794-logo"
+ },
+ {
+  "email": "luzhermindacorrearomero20@gmail.com",
+  "pasos": [
+   "configTienda",
+   "perfilArtesanal",
+   "politicas",
+   "logo",
+   "producto",
+   "productoAprobado",
+   "publicada"
+  ],
+  "shopId": "1c1598dc-cb92-4459-89ee-516ffc3f3bb8",
+  "logoUrl": "svg-generado://shops/1c1598dc-cb92-4459-89ee-516ffc3f3bb8-logo"
+ }
+]

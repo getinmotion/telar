@@ -1,11 +1,24 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { telarApi } from '@/integrations/api/telarApi';
-import { getActiveCategories } from '@/services/categories.actions';
 import { moderateProduct } from '@/services/moderation.actions';
+import {
+  fetchStudioTaxonomy,
+  EMPTY_STUDIO_TAXONOMY,
+  type StudioTaxonomy,
+} from '@/services/studioTaxonomy.actions';
 import type { ProductResponse, CreateProductsNewDto, ProductStatus } from '@/services/products-new.types';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
+
+/** Perfil artesanal (jsonb) de la tienda: trae UUIDs reales de taxonomía. */
+export interface StudioArtisanProfile {
+  craftId?: string;
+  craftIds?: string[];
+  techniqueIds?: string[];
+  materialIds?: string[];
+  categoryIds?: string[];
+}
 
 export interface StudioShop {
   id: string;
@@ -15,6 +28,11 @@ export interface StudioShop {
   bannerUrl: string | null;
   description: string | null;
   region: string | null;
+  // department/municipality/artisanProfile ya vienen en el payload de
+  // /artisan-shops; se declaran para poder derivar datos de la tienda.
+  department?: string | null;
+  municipality?: string | null;
+  artisanProfile?: StudioArtisanProfile | null;
   craftType: string | null;
   marketplaceApproved: boolean | null;
   publishStatus: string | null;
@@ -26,26 +44,8 @@ export interface StudioShop {
   healthScore: number;
 }
 
-export interface TaxonomyItem {
-  id: string;
-  name: string;
-  slug?: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  parentId?: string | null;
-}
-
-export interface StudioTaxonomy {
-  categories: Category[];
-  crafts: TaxonomyItem[];
-  techniques: TaxonomyItem[];
-  curatorialCategories: TaxonomyItem[];
-  materials: TaxonomyItem[];
-}
+// Los catálogos viven en services/studioTaxonomy.actions (los comparte el inyector).
+export type { TaxonomyItem, Category, StudioTaxonomy } from '@/services/studioTaxonomy.actions';
 
 export type ModerationAction = 'approve' | 'approve_with_edits' | 'request_changes' | 'reject';
 
@@ -81,13 +81,7 @@ export const useProductStudio = () => {
   const [saving, setSaving] = useState(false);
   const [moderating, setModerating] = useState(false);
 
-  const [taxonomy, setTaxonomy] = useState<StudioTaxonomy>({
-    categories: [],
-    crafts: [],
-    techniques: [],
-    curatorialCategories: [],
-    materials: [],
-  });
+  const [taxonomy, setTaxonomy] = useState<StudioTaxonomy>(EMPTY_STUDIO_TAXONOMY);
   const [taxonomyLoaded, setTaxonomyLoaded] = useState(false);
 
   // ── Fetch all shops (multi-page) ─────────────────────────────────────────────
@@ -178,6 +172,30 @@ export const useProductStudio = () => {
     }
   }, []);
 
+  // ── Create product (en nombre de la tienda seleccionada) ─────────────────────
+
+  const createProduct = useCallback(async (dto: CreateProductsNewDto): Promise<boolean> => {
+    setSaving(true);
+    try {
+      // Mismo endpoint upsert que updateProduct, pero sin productId → inserta.
+      const res = await telarApi.post<ProductResponse>('/products-new', { ...dto, productId: undefined });
+      // La respuesta del POST es más pobre que el detalle: re-leer para que la
+      // ficha (wizard + readiness) reciba el producto completo.
+      const created = res.data?.id
+        ? (await telarApi.get<ProductResponse>(`/products-new/${res.data.id}`)).data
+        : res.data;
+      setProducts((prev) => [created, ...prev]);
+      setSelectedProduct(created);
+      toast.success('Producto creado');
+      return true;
+    } catch {
+      toast.error('Error al crear producto');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
   // ── Moderate product ─────────────────────────────────────────────────────────
 
   const moderateProductAction = useCallback(async (
@@ -217,21 +235,7 @@ export const useProductStudio = () => {
   const loadTaxonomy = useCallback(async () => {
     if (taxonomyLoaded) return;
     try {
-      const [catsRes, craftsRes, techsRes, curatRes, matsRes] = await Promise.allSettled([
-        getActiveCategories(),
-        telarApi.get<TaxonomyItem[]>('/crafts'),
-        telarApi.get<TaxonomyItem[]>('/techniques'),
-        telarApi.get<TaxonomyItem[]>('/curatorial-categories'),
-        telarApi.get<TaxonomyItem[]>('/materials'),
-      ]);
-
-      setTaxonomy({
-        categories: catsRes.status === 'fulfilled' ? (catsRes.value as Category[]) : [],
-        crafts: craftsRes.status === 'fulfilled' ? craftsRes.value.data : [],
-        techniques: techsRes.status === 'fulfilled' ? techsRes.value.data : [],
-        curatorialCategories: curatRes.status === 'fulfilled' ? curatRes.value.data : [],
-        materials: matsRes.status === 'fulfilled' ? matsRes.value.data : [],
-      });
+      setTaxonomy(await fetchStudioTaxonomy());
       setTaxonomyLoaded(true);
     } catch {
       // Non-fatal — tabs degrade gracefully
@@ -272,6 +276,7 @@ export const useProductStudio = () => {
     // Mutations
     saving,
     updateProduct,
+    createProduct,
     moderating,
     moderateProductAction,
 

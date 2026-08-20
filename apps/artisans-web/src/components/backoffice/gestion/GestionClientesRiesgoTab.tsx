@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -11,18 +11,17 @@ import {
   Mail,
   Package,
   Store,
-  Search,
-  Filter,
   Handshake,
   MapPin,
   Clock,
 } from 'lucide-react';
-import { useClientesEnRiesgo } from '@/hooks/useClientesEnRiesgo';
 import {
   ClienteEnRiesgo,
+  ClientesEnRiesgoResponse,
   RiskLevel,
   RiskSeverity,
 } from '@/services/gestion.actions';
+import type { ViewFilters } from '@/hooks/useUrlFilters';
 import { cn } from '@/lib/utils';
 
 const NAVY = '#142239';
@@ -43,7 +42,9 @@ const SEVERITY_STYLE: Record<RiskSeverity, { dot: string; text: string; bg: stri
   baja: { dot: '#64748b', text: '#475569', bg: '#f8fafc' },
 };
 
-type LevelFilter = 'todos' | 'alto' | 'medio' | 'bajo';
+type LevelFilter = 'alto' | 'medio' | 'bajo';
+
+const LEVELS: LevelFilter[] = ['alto', 'medio', 'bajo'];
 
 function daysAgo(iso: string | null): string | null {
   if (!iso) return null;
@@ -183,27 +184,40 @@ const ClientCard: React.FC<{ shop: ClienteEnRiesgo }> = ({ shop }) => {
 };
 
 // ─── Tab principal ───────────────────────────────────────────
-export const GestionClientesRiesgoTab: React.FC = () => {
-  const { data, loading, refetch } = useClientesEnRiesgo();
-  const [levelFilter, setLevelFilter] = useState<LevelFilter>('todos');
-  const [reasonFilter, setReasonFilter] = useState<string>('todas');
-  const [agreementFilter, setAgreementFilter] = useState<string>('todos');
-  const [search, setSearch] = useState('');
+
+/**
+ * Los datos y los filtros los inyecta GestionPage: son los mismos que alimentan
+ * al resto de la pantalla y se controlan desde la única barra de filtros de
+ * arriba. Esta pestaña ya no monta su propia barra ni su propia petición.
+ */
+export const GestionClientesRiesgoTab: React.FC<{
+  data: ClientesEnRiesgoResponse | null;
+  loading?: boolean;
+  refetch: () => void;
+  view: ViewFilters;
+  onLevel: (level: string | undefined) => void;
+}> = ({ data, loading, refetch, view, onLevel }) => {
+  const levelFilter = LEVELS.includes(view.level as LevelFilter)
+    ? (view.level as LevelFilter)
+    : null;
 
   const atRiskShops = useMemo(
     () => (data?.shops ?? []).filter((s) => s.riskLevel !== 'sano'),
     [data],
   );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  /**
+   * Universo de las tarjetas de nivel: todo lo que pasa los filtros MENOS el de
+   * nivel. Así los números de arriba responden a lo que se está mirando (antes
+   * eran siempre los totales del padrón, dijera lo que dijera el filtro) y a la
+   * vez siguen funcionando como conmutador: cada tarjeta enseña cuántas caerían
+   * si se pulsara.
+   */
+  const scoped = useMemo(() => {
+    const q = (view.q ?? '').trim().toLowerCase();
+    const reason = view.reason;
     return atRiskShops.filter((s) => {
-      if (levelFilter !== 'todos' && s.riskLevel !== levelFilter) return false;
-      if (reasonFilter !== 'todas' && !s.reasons.some((r) => r.code === reasonFilter)) return false;
-      if (agreementFilter !== 'todos') {
-        const key = s.agreementId ?? '__none__';
-        if (key !== agreementFilter) return false;
-      }
+      if (reason && !s.reasons.some((r) => r.code === reason)) return false;
       if (q && !(
         s.shopName.toLowerCase().includes(q) ||
         (s.userEmail ?? '').toLowerCase().includes(q) ||
@@ -211,7 +225,25 @@ export const GestionClientesRiesgoTab: React.FC = () => {
       )) return false;
       return true;
     });
-  }, [atRiskShops, levelFilter, reasonFilter, agreementFilter, search]);
+  }, [atRiskShops, view.q, view.reason]);
+
+  const byLevel = useMemo(
+    () => ({
+      alto: scoped.filter((s) => s.riskLevel === 'alto').length,
+      medio: scoped.filter((s) => s.riskLevel === 'medio').length,
+      bajo: scoped.filter((s) => s.riskLevel === 'bajo').length,
+    }),
+    [scoped],
+  );
+
+  const filtered = useMemo(
+    () =>
+      levelFilter ? scoped.filter((s) => s.riskLevel === levelFilter) : scoped,
+    [scoped, levelFilter],
+  );
+
+  const toggleLevel = (level: LevelFilter) =>
+    onLevel(levelFilter === level ? undefined : level);
 
   if (loading && !data) {
     return (
@@ -234,6 +266,9 @@ export const GestionClientesRiesgoTab: React.FC = () => {
   }
 
   const { summary } = data;
+  // `scoped` ya trae los filtros de vista aplicados; `summary.atRisk` es el
+  // padrón entero del corte global. Si difieren, se dicen las dos cifras.
+  const narrowed = scoped.length !== summary.atRisk;
 
   return (
     <div className="space-y-5">
@@ -242,7 +277,18 @@ export const GestionClientesRiesgoTab: React.FC = () => {
         <div>
           <h2 className="text-base font-bold text-slate-800">Clientes en riesgo</h2>
           <p className="mt-0.5 text-xs text-slate-400">
-            A quién llamar hoy — {summary.atRisk} de {summary.totalShops} tiendas necesitan atención.
+            {narrowed ? (
+              <>
+                A quién llamar hoy — {scoped.length} de {summary.atRisk} en
+                riesgo con estos filtros ({summary.totalShops} tiendas en la
+                vista).
+              </>
+            ) : (
+              <>
+                A quién llamar hoy — {summary.atRisk} de {summary.totalShops}{' '}
+                tiendas necesitan atención.
+              </>
+            )}
           </p>
         </div>
         <button
@@ -256,61 +302,17 @@ export const GestionClientesRiesgoTab: React.FC = () => {
         </button>
       </div>
 
-      {/* KPIs por nivel (también actúan como filtro) */}
+      {/* KPIs por nivel — cuentan lo que hay en la vista, no el padrón, y
+          además conmutan el filtro de nivel. */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <RiskKpi label="En riesgo" value={summary.atRisk} color={NAVY} icon={AlertTriangle}
-          active={levelFilter === 'todos'} onClick={() => setLevelFilter('todos')} />
-        <RiskKpi label="Riesgo alto" value={summary.highRisk} color={LEVEL_STYLE.alto.bar} icon={ShieldAlert}
-          active={levelFilter === 'alto'} onClick={() => setLevelFilter((f) => (f === 'alto' ? 'todos' : 'alto'))} />
-        <RiskKpi label="Riesgo medio" value={summary.mediumRisk} color={LEVEL_STYLE.medio.bar} icon={ShieldQuestion}
-          active={levelFilter === 'medio'} onClick={() => setLevelFilter((f) => (f === 'medio' ? 'todos' : 'medio'))} />
-        <RiskKpi label="Riesgo bajo" value={summary.lowRisk} color={LEVEL_STYLE.bajo.bar} icon={ShieldCheck}
-          active={levelFilter === 'bajo'} onClick={() => setLevelFilter((f) => (f === 'bajo' ? 'todos' : 'bajo'))} />
-      </div>
-
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar tienda, email o región…"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
-          />
-        </div>
-
-        <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-          <Filter className="h-3.5 w-3.5 text-slate-400" />
-          <select
-            value={reasonFilter}
-            onChange={(e) => setReasonFilter(e.target.value)}
-            className="bg-transparent text-xs text-slate-600 focus:outline-none"
-          >
-            <option value="todas">Todos los motivos</option>
-            {summary.byReason.map((r) => (
-              <option key={r.code} value={r.code}>{r.label} ({r.count})</option>
-            ))}
-          </select>
-        </div>
-
-        {summary.byAgreement.length > 1 && (
-          <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-            <Handshake className="h-3.5 w-3.5 text-slate-400" />
-            <select
-              value={agreementFilter}
-              onChange={(e) => setAgreementFilter(e.target.value)}
-              className="bg-transparent text-xs text-slate-600 focus:outline-none"
-            >
-              <option value="todos">Todos los convenios</option>
-              {summary.byAgreement.map((a) => (
-                <option key={a.agreementId ?? '__none__'} value={a.agreementId ?? '__none__'}>
-                  {a.agreementName ?? 'Sin convenio'} ({a.atRisk})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <RiskKpi label="En riesgo" value={scoped.length} color={NAVY} icon={AlertTriangle}
+          active={levelFilter === null} onClick={() => onLevel(undefined)} />
+        <RiskKpi label="Riesgo alto" value={byLevel.alto} color={LEVEL_STYLE.alto.bar} icon={ShieldAlert}
+          active={levelFilter === 'alto'} onClick={() => toggleLevel('alto')} />
+        <RiskKpi label="Riesgo medio" value={byLevel.medio} color={LEVEL_STYLE.medio.bar} icon={ShieldQuestion}
+          active={levelFilter === 'medio'} onClick={() => toggleLevel('medio')} />
+        <RiskKpi label="Riesgo bajo" value={byLevel.bajo} color={LEVEL_STYLE.bajo.bar} icon={ShieldCheck}
+          active={levelFilter === 'bajo'} onClick={() => toggleLevel('bajo')} />
       </div>
 
       {/* Lista */}

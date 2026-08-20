@@ -29,7 +29,7 @@ export const databaseProviders = [
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: false,
         logging: false,
-        ssl: ENV === 'production' ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false },
       });
 
       console.info('🐬 Conectado a la DB:', dataSource.options.database);

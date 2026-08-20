@@ -2,6 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { ShopWithProducts } from '@/hooks/useShippingAnalytics';
 import { COLOMBIA_COORDS, DEPT_FALLBACK_COORDS } from '@/data/colombiaCoords';
+// Extraídos a lib/leafletColombia para poder reusarlos en el mapa del tablero
+// institucional sin duplicar el dataset. Comportamiento idéntico al anterior.
+import {
+  escapeHtml,
+  getCoords,
+  loadLeaflet,
+  normalizeLocation,
+} from '@/lib/leafletColombia';
+
+export { normalizeLocation };
 
 export interface ArtisansMapProps {
   shopsData: ShopWithProducts[];
@@ -9,62 +19,6 @@ export interface ArtisansMapProps {
   filterDepartment?: string | null;
   /** Alto del contenedor del mapa */
   height?: number | string;
-}
-
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-
-export function normalizeLocation(s: string): string {
-  return (s || '')
-    .toUpperCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim();
-}
-
-function getCoords(dept: string, muni: string): [number, number] | null {
-  const key = `${normalizeLocation(dept)}|${normalizeLocation(muni)}`;
-  if (COLOMBIA_COORDS[key]) return COLOMBIA_COORDS[key];
-  const fb = DEPT_FALLBACK_COORDS[normalizeLocation(dept)];
-  return fb ?? null;
-}
-
-function loadLeaflet(): Promise<any> {
-  const w = window as any;
-  if (w.L) return Promise.resolve(w.L);
-
-  if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = LEAFLET_CSS;
-    document.head.appendChild(link);
-  }
-
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src="${LEAFLET_JS}"]`,
-    ) as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener('load', () => resolve((window as any).L));
-      existing.addEventListener('error', reject);
-      if ((window as any).L) resolve((window as any).L);
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = LEAFLET_JS;
-    script.async = true;
-    script.onload = () => resolve((window as any).L);
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-function escapeHtml(s: string): string {
-  return (s || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 export const ArtisansMap: React.FC<ArtisansMapProps> = ({

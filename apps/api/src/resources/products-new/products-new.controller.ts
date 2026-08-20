@@ -26,6 +26,8 @@ import { UpdateProductsNewDto } from './dto/update-products-new.dto';
 import { CreateProductStep1Dto } from './dto/create-product-step1.dto';
 import { UpdateVariantStockDto } from './dto/update-variant-stock.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('products-new')
 @Controller('products-new')
@@ -63,7 +65,15 @@ export class ProductsNewController {
    * GET /products-new/analytics
    * Panel de analytics global de productos migrados
    */
+  // Es un panel agregado de todo el catálogo del ecosistema (calidad de fichas,
+  // precios, motivos de rechazo): no debe ser público ni legible por cualquier
+  // artesano autenticado. Antes no tenía ningún guard.
   @Get('analytics')
+  @ApiBearerAuth()
+  // Sin 'super_admin' en la lista: RolesGuard ya lo deja pasar aparte, y
+  // listarlo volvería la ruta exclusiva de super_admin (roles.guard.ts:56).
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'moderator')
   @ApiOperation({ summary: 'Analytics global de productos migrados' })
   @ApiResponse({ status: 200, description: 'Analytics obtenidos exitosamente' })
   getAnalytics() {
