@@ -1,0 +1,9 @@
+[
+ {
+  "email": "lorena.0803@hotmail.com",
+  "pasos": [],
+  "errores": [
+   "register: POST /auth/register -> 500\n      {\"statusCode\":500,\"timestamp\":\"2026-08-03T05:18:20.224Z\",\"path\":\"/telar/server/auth/register\",\"message\":{\"response\":{\"message\":\"Error interno del servidor durante el registro\",\"error\":\"Internal Server Error\",\"statusCode\":500},\"status\":500,\"options\":{},\"message\":\"Error interno del servidor durante el registro\",\"name\":\"InternalServerErrorException\"}}"
+  ]
+ }
+]

@@ -8,7 +8,9 @@ import {
   Loader2,
   ArrowLeft,
   ChevronLeft,
+  Plus,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +21,9 @@ import { ProductReviewWizard } from '@/components/studio/ProductReviewWizard';
 import { ModerationActionBar } from '@/components/moderation/ModerationActionBar';
 import { ReadinessPanel } from '@/components/studio/ReadinessPanel';
 import { computeProductReadiness } from '@/components/studio/readiness';
-import type { ModerationAction } from '@/hooks/useProductStudio';
+import type { ModerationAction, StudioShop } from '@/hooks/useProductStudio';
+import type { NewWizardState } from '@/components/shop/new-product-wizard/hooks/useNewWizardState';
+import { buildTestProductState, type InjectVariant } from '@/components/studio/test-data/buildTestProduct';
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 const NAVY   = '#142239';
@@ -49,6 +53,14 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/** Datos de la tienda que el wizard de creación no puede adivinar por pieza. */
+function seedFromShop(shop: StudioShop): Partial<NewWizardState> {
+  return {
+    workshopName: shop.shopName,
+    ...(shop.region ? { department: shop.region, shippingOrigin: shop.region } : {}),
+  };
+}
+
 // ─── Main page ──────────────────────────────────────────────────────────────────
 
 export default function ProductStudioPage() {
@@ -57,14 +69,15 @@ export default function ProductStudioPage() {
     selectedShop, selectShop,
     products, loadingProducts, productCounts,
     selectedProduct, loadingProduct, selectProduct, clearProduct,
-    saving, updateProduct,
+    saving, updateProduct, createProduct,
     moderating, moderateProductAction,
-    loadTaxonomy,
+    taxonomy, loadTaxonomy,
   } = useProductStudio();
 
   const rail = useShopRailFilters(shops);
   const [productStatusFilter, setProductStatusFilter] = useState('all');
   const [productSearch, setProductSearch] = useState('');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchAllShops();
@@ -117,6 +130,36 @@ export default function ProductStudioPage() {
     if (id) selectProduct(id);
   };
 
+  // Crear una pieza en nombre de la tienda seleccionada: queda en borrador y el
+  // Studio salta a su ficha para revisarla/enviarla.
+  const handleCreate = async (dto: Parameters<typeof createProduct>[0]) => {
+    const ok = await createProduct(dto);
+    if (ok) setCreating(false);
+    return ok;
+  };
+
+  // Datos de prueba para la tienda seleccionada: solo rellena el formulario, no guarda.
+  const handleInject = async (variant: InjectVariant): Promise<Partial<NewWizardState> | null> => {
+    if (!selectedShop) return null;
+    if (taxonomy.crafts.length === 0 && taxonomy.categories.length === 0) {
+      toast.error('La taxonomía aún no cargó; intenta de nuevo en unos segundos');
+      return null;
+    }
+    try {
+      const patch = await buildTestProductState({ variant, shop: selectedShop, taxonomy });
+      toast.success(
+        variant === 'realista'
+          ? 'Datos de prueba inyectados según el oficio de la tienda'
+          : 'Ficha "próximamente" inyectada',
+      );
+      return patch;
+    } catch (err) {
+      console.error('[ProductStudio] Error inyectando datos de prueba:', err);
+      toast.error('No se pudieron generar los datos de prueba');
+      return null;
+    }
+  };
+
   const handleModerate = async (action: ModerationAction, comment?: string) => {
     if (!selectedProduct) return;
     await moderateProductAction(selectedProduct.id, action, comment);
@@ -132,7 +175,7 @@ export default function ProductStudioPage() {
         title="Product Studio"
         controller={rail}
         selectedId={selectedShop?.id ?? null}
-        onSelect={(s) => selectShop(s)}
+        onSelect={(s) => { setCreating(false); selectShop(s); }}
         loading={loadingShops}
         showHealth
       />
@@ -142,7 +185,18 @@ export default function ProductStudioPage() {
 
         {/* Top bar */}
         <header className="flex-shrink-0 flex items-center gap-3 px-5 py-3 border-b border-slate-200 bg-white">
-          {selectedProduct ? (
+          {creating && selectedShop ? (
+            <>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setCreating(false)}
+                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2">
+                <ArrowLeft className="h-4 w-4" />
+                {selectedShop.shopName}
+              </Button>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+              <span className="text-sm font-semibold text-slate-800">Nuevo producto</span>
+              <span className="ml-auto text-xs text-slate-400">Se guardará como borrador de esta tienda</span>
+            </>
+          ) : selectedProduct ? (
             <>
               <Button type="button" variant="ghost" size="sm" onClick={clearProduct}
                 className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2">
@@ -178,6 +232,11 @@ export default function ProductStudioPage() {
               <span className="ml-auto text-xs text-slate-500">
                 {productCounts.total} producto{productCounts.total !== 1 ? 's' : ''}
               </span>
+              <Button type="button" size="sm" onClick={() => setCreating(true)}
+                className="h-7 gap-1 text-xs font-semibold text-white hover:opacity-90"
+                style={{ background: ORANGE }}>
+                <Plus className="h-3.5 w-3.5" /> Nuevo producto
+              </Button>
             </>
           ) : (
             <span className="text-sm text-slate-400">Selecciona una tienda para comenzar</span>
@@ -201,8 +260,24 @@ export default function ProductStudioPage() {
             </div>
           )}
 
+          {/* Alta de producto por el moderador (mismos 6 pasos del artesano) */}
+          {selectedShop && creating && (
+            <div className="h-full min-h-0">
+              <ProductReviewWizard
+                mode="create"
+                seed={seedFromShop(selectedShop)}
+                shopUserId={selectedShop.userId}
+                shopId={selectedShop.id}
+                onSave={handleCreate}
+                onCancelCreate={() => setCreating(false)}
+                onInject={handleInject}
+                saving={saving}
+              />
+            </div>
+          )}
+
           {/* Lista de productos */}
-          {selectedShop && !selectedProduct && (
+          {selectedShop && !creating && !selectedProduct && (
             <div className="h-full flex flex-col">
               {/* Filtros */}
               <div className="flex-shrink-0 px-5 py-3 border-b border-slate-100 bg-white flex items-center gap-3 flex-wrap">
@@ -246,9 +321,14 @@ export default function ProductStudioPage() {
                     <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
                 ) : filteredProducts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 space-y-2">
+                  <div className="flex flex-col items-center justify-center py-16 space-y-3">
                     <Package className="h-10 w-10 text-slate-300" />
                     <p className="text-sm text-slate-500">Sin productos en esta vista</p>
+                    <Button type="button" size="sm" onClick={() => setCreating(true)}
+                      className="gap-1 text-xs font-semibold text-white hover:opacity-90"
+                      style={{ background: ORANGE }}>
+                      <Plus className="h-3.5 w-3.5" /> Nuevo producto
+                    </Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -295,7 +375,7 @@ export default function ProductStudioPage() {
           )}
 
           {/* Editor de producto */}
-          {selectedShop && selectedProduct && !loadingProduct && (() => {
+          {selectedShop && !creating && selectedProduct && !loadingProduct && (() => {
             const readiness = computeProductReadiness(selectedProduct);
             const guardedModerate = (action: ModerationAction, comment?: string) => {
               if (action === 'approve' && !readiness.ready &&
@@ -332,7 +412,7 @@ export default function ProductStudioPage() {
             );
           })()}
 
-          {selectedShop && selectedProduct && loadingProduct && (
+          {selectedShop && !creating && selectedProduct && loadingProduct && (
             <div className="flex h-full items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
             </div>
