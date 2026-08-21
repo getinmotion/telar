@@ -1,0 +1,176 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Remove `isScrolled` state, `searchVisible` state, `toggleSearch` function, and the scroll detection `useEffect`": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237155658
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237163890
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237203142
+      }
+    ],
+    "2.1 Remove shadow classes and scroll-conditional className from the `<header>` tag": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237155767
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237210361
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237276973
+      }
+    ],
+    "3.1 Remove transition and fix padding on the desktop grid container": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237155857
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237210418
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237277065
+      }
+    ],
+    "3.2 Replace conditional search block with always-expanded search": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237155927
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237210469
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237277014
+      }
+    ],
+    "4.1 Fix logo to static size without transition": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237155983
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237283406
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787238519122
+      }
+    ],
+    "4.2 Fix icon buttons and login button to static sizes": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237156043
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237283446
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787238519035
+      }
+    ],
+    "5.1 Remove transitions and conditional styles from nav links container": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237156102
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237283477
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787238519082
+      }
+    ],
+    "6. Checkpoint — Verify build compiles": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237156159
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787238530267
+      },
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787240745941
+      }
+    ],
+    "1. Remove scroll-related state, effect, and function": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237203215
+      }
+    ],
+    "2. Simplify header element": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787237277106
+      }
+    ],
+    "5. Fix desktop nav links section": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787238519162
+      }
+    ],
+    "3. Fix desktop top bar and search column": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787240760064
+      }
+    ],
+    "4. Fix logo and icons column": [
+      {
+        "executionId": "9b3d8090-b8a6-4b04-b505-6f5b7fff8d62",
+        "chatSessionId": "sess_783f5fea-ed28-485c-b360-ab2909a1c2e0",
+        "timestamp": 1787240760108
+      }
+    ]
+  }
+}
