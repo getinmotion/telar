@@ -10,8 +10,8 @@ import {
   ShoppingCart,
   User,
   LogOut,
-  Heart,
   LogIn,
+  Heart,
   Menu,
   X,
   ChevronRight,
@@ -63,8 +63,7 @@ export const NavbarV2 = ({
   const { user, signOut } = useAuth();
   const { totalItems, openCart } = useCart();
   const [guestModalOpen, setGuestModalOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [searchVisible, setSearchVisible] = useState(false);
+
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchVisible, setMobileSearchVisible] = useState(false);
@@ -75,16 +74,6 @@ export const NavbarV2 = ({
   useEffect(() => {
     setLocalSearchQuery(searchQuery);
   }, [searchQuery]);
-
-  // Scroll detection
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-      if (window.scrollY <= 50) setSearchVisible(false);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -101,8 +90,6 @@ export const NavbarV2 = ({
   const handleCartClick = () => {
     openCart();
   };
-
-  const toggleSearch = () => setSearchVisible(!searchVisible);
 
   const handleSearch = () => {
     if (localSearchQuery.trim().length > 0) {
@@ -121,9 +108,7 @@ export const NavbarV2 = ({
 
   return (
     <>
-      <header
-        className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm transition-all duration-300 ${isScrolled ? "shadow-md" : ""}`}
-      >
+      <header className="sticky top-0 z-50 w-full border-b border-border/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 relative">
           {/* ════════════ MOBILE TOP BAR (< lg) ════════════ */}
           <div className="flex lg:hidden items-center justify-between py-3">
@@ -198,75 +183,33 @@ export const NavbarV2 = ({
           )}
 
           {/* ════════════ DESKTOP TOP BAR (>= lg) ════════════ */}
-          <div
-            className={`hidden lg:grid grid-cols-[1fr_auto_1fr] gap-8 items-center transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
-          >
+          <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] gap-8 items-center py-4">
             {/* Col 1: Search */}
             <div className="flex items-center gap-2">
-              {!isScrolled ? (
-                <>
-                  <div className="relative w-3/4 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar productos, artesanos..."
-                      className="pl-10 pr-24 h-10 bg-muted/30 border-border/40"
-                      value={localSearchQuery}
-                      onChange={(e) => setLocalSearchQuery(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                    />
-                    <Button
-                      size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
-                      onClick={handleSearch}
-                      disabled={localSearchQuery.trim().length === 0}
-                    >
-                      Buscar
-                    </Button>
-                  </div>
-                  {searchQuery && onSemanticSearchToggle && (
-                    <SemanticSearchToggle
-                      enabled={semanticSearchEnabled}
-                      onToggle={onSemanticSearchToggle}
-                    />
-                  )}
-                </>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={toggleSearch}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${searchVisible ? "w-64 opacity-100" : "w-0 opacity-0"}`}
-                  >
-                    {searchVisible && (
-                      <div className="relative">
-                        <Input
-                          type="search"
-                          placeholder="Buscar..."
-                          className="h-8 text-sm pr-16"
-                          value={localSearchQuery}
-                          onChange={(e) => setLocalSearchQuery(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          autoFocus
-                        />
-                        <Button
-                          size="sm"
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 text-xs px-2"
-                          onClick={handleSearch}
-                          disabled={localSearchQuery.trim().length === 0}
-                        >
-                          Ir
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div className="relative w-3/4 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar productos, artesanos..."
+                  className="pl-10 pr-24 h-10 bg-muted/30 border-border/40"
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <Button
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                  onClick={handleSearch}
+                  disabled={localSearchQuery.trim().length === 0}
+                >
+                  Buscar
+                </Button>
+              </div>
+              {searchQuery && onSemanticSearchToggle && (
+                <SemanticSearchToggle
+                  enabled={semanticSearchEnabled}
+                  onToggle={onSemanticSearchToggle}
+                />
               )}
             </div>
 
@@ -280,7 +223,7 @@ export const NavbarV2 = ({
                   <img
                     src={telarHorizontal}
                     alt="TELAR"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
+                    className="h-8 md:h-10"
                   />
                 </button>
               ) : (
@@ -291,7 +234,7 @@ export const NavbarV2 = ({
                   <img
                     src={telarHorizontal}
                     alt="TELAR"
-                    className={`transition-all duration-300 ${isScrolled ? "h-6 md:h-7" : "h-8 md:h-10"}`}
+                    className="h-8 md:h-10"
                   />
                 </Link>
               )}
@@ -343,50 +286,35 @@ export const NavbarV2 = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={isScrolled ? "h-8 w-8" : "h-10 w-10"}
+                      className="h-10 w-10"
                       title="Mi cuenta"
                     >
-                      <User className={isScrolled ? "h-4 w-4" : "h-5 w-5"} />
+                      <User className="h-5 w-5" />
                     </Button>
                   </Link>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={isScrolled ? "h-8 w-8" : "h-10 w-10"}
+                    className="h-10 w-10"
                     onClick={signOut}
                     title="Cerrar sesión"
                   >
-                    <LogOut className={isScrolled ? "h-4 w-4" : "h-5 w-5"} />
+                    <LogOut className="h-5 w-5" />
                   </Button>
                 </>
               ) : (
                 <Link to="/auth">
-                  {isScrolled ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      title="Iniciar sesión"
-                    >
-                      <LogIn className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button variant="default" size="sm">
-                      Iniciar Sesión
-                    </Button>
-                  )}
+                  <Button variant="default" size="sm">
+                    Iniciar Sesión
+                  </Button>
                 </Link>
               )}
             </div>
           </div>
 
           {/* ════════════ DESKTOP NAV LINKS (>= lg) ════════════ */}
-          <nav
-            className={`hidden lg:block border-t border-border/10 transition-all duration-300 ${isScrolled ? "bg-muted/30" : ""}`}
-          >
-            <div
-              className={`flex items-center justify-center gap-8 transition-all duration-300 ${isScrolled ? "py-1.5" : "py-3"}`}
-            >
+          <nav className="hidden lg:block border-t border-border/10">
+            <div className="flex items-center justify-center gap-8 py-3">
               {NAV_LINKS.map((link) =>
                 link.hasMegaMenu ? (
                   <div
@@ -406,7 +334,7 @@ export const NavbarV2 = ({
                   >
                     <Link
                       to={link.to}
-                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"} ${megaMenuOpen ? "text-[#ec6d13]" : ""}`}
+                      className={`font-semibold text-foreground/80 hover:text-foreground transition-colors text-sm ${megaMenuOpen ? "text-[#ec6d13]" : ""}`}
                     >
                       {link.label}
                       {megaMenuOpen && (
@@ -418,7 +346,7 @@ export const NavbarV2 = ({
                   <Link
                     key={link.label}
                     to={link.to}
-                    className={`font-semibold text-foreground/80 hover:text-foreground transition-colors ${isScrolled ? "text-xs" : "text-sm"}`}
+                    className="font-semibold text-foreground/80 hover:text-foreground transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
