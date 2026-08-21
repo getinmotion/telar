@@ -4,13 +4,13 @@
  * payload shapes from the admin UI before adding a renderer.
  */
 
-import { Link } from 'react-router-dom';
-import type { CmsSection } from '@/services/cms-sections.actions';
+import { Link } from "react-router-dom";
+import type { CmsSection } from "@/services/cms-sections.actions";
 import {
   useProductImagesByTechnique,
   getTechniqueImage,
-} from '@/hooks/useProductImagesByTechnique';
-import { CmsHeroCarousel } from '@/components/cms/CmsHeroCarousel';
+} from "@/hooks/useProductImagesByTechnique";
+import { CmsHeroCarousel } from "@/components/cms/CmsHeroCarousel";
 
 interface Props {
   section: CmsSection;
@@ -23,14 +23,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
   const p = section.payload ?? {};
 
   switch (section.type) {
-    case 'hero_split': {
-      const imageOnRight = (p.imageSide || 'right') !== 'left';
+    case "hero_split": {
+      const imageOnRight = (p.imageSide || "right") !== "left";
       const text = (
         <div className="flex-1 space-y-6">
           {p.kicker && (
             <span
               className="text-[11px] uppercase tracking-[0.4em] font-bold font-sans"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.kicker}
             </span>
@@ -38,7 +38,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.title && (
             <h1
               className="text-5xl md:text-6xl font-serif font-bold leading-tight"
-              style={{ letterSpacing: '-0.02em', color: '#1a1a1a' }}
+              style={{ letterSpacing: "-0.02em", color: "#1a1a1a" }}
             >
               {p.title}
             </h1>
@@ -46,7 +46,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.subtitle && (
             <p
               className="text-xl md:text-2xl font-serif italic leading-relaxed"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.subtitle}
             </p>
@@ -54,7 +54,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.body && (
             <p
               className="text-base leading-relaxed max-w-xl"
-              style={{ color: 'rgba(20,21,15,0.7)' }}
+              style={{ color: "rgba(20,21,15,0.7)" }}
             >
               {p.body}
             </p>
@@ -63,7 +63,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             <Link
               to={p.ctaHref}
               className="inline-block mt-4 px-10 py-4 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#1a1a1a] transition-colors duration-300"
-              style={{ backgroundColor: '#27423F' }}
+              style={{ backgroundColor: "#27423F" }}
             >
               {p.ctaLabel}
             </Link>
@@ -74,14 +74,16 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         <div className="flex-1">
           <div
             className="aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-sm border border-foreground/10"
-            style={{ backgroundColor: '#FBEFE1' }}
+            style={{ backgroundColor: "#FBEFE1" }}
           >
             {p.imageUrl && (
               <img
                 src={p.imageUrl}
-                alt={p.imageAlt || ''}
+                alt={p.imageAlt || ""}
                 className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
               />
             )}
           </div>
@@ -90,19 +92,29 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       return (
         <section className="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
           <div className="flex flex-col md:flex-row gap-12 md:gap-20 items-center">
-            {imageOnRight ? (<>{text}{image}</>) : (<>{image}{text}</>)}
+            {imageOnRight ? (
+              <>
+                {text}
+                {image}
+              </>
+            ) : (
+              <>
+                {image}
+                {text}
+              </>
+            )}
           </div>
         </section>
       );
     }
 
-    case 'hero':
+    case "hero":
       return (
         <header className="mb-32 max-w-4xl">
           {p.kicker && (
             <span
               className="text-[11px] uppercase tracking-[0.4em] mb-6 block font-bold font-sans"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.kicker}
             </span>
@@ -110,7 +122,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.title && (
             <h1
               className="font-serif text-6xl md:text-8xl font-bold leading-[1.05] mb-10"
-              style={{ letterSpacing: '-0.02em' }}
+              style={{ letterSpacing: "-0.02em" }}
             >
               {p.title}
             </h1>
@@ -119,7 +131,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-lg leading-relaxed max-w-xl opacity-90"
-                style={{ color: '#27423F' }}
+                style={{ color: "#27423F" }}
               >
                 {p.body}
               </p>
@@ -127,10 +139,10 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.totalCountLabel && (
               <div
                 className="flex flex-col border-l pl-8"
-                style={{ borderColor: 'rgba(140,114,101,0.3)' }}
+                style={{ borderColor: "rgba(140,114,101,0.3)" }}
               >
                 <span className="text-4xl font-serif font-bold">
-                  {totalTechniqueCount ?? 'â€”'}
+                  {totalTechniqueCount ?? "â€”"}
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 font-sans">
                   {p.totalCountLabel}
@@ -141,11 +153,11 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </header>
       );
 
-    case 'quote':
+    case "quote":
       return (
         <section
           className="mb-48 -mx-8 md:-mx-16 py-32 px-8 md:px-16 overflow-hidden"
-          style={{ backgroundColor: '#1a1a1a', color: '#F7E7D7' }}
+          style={{ backgroundColor: "#1a1a1a", color: "#F7E7D7" }}
         >
           <div className="max-w-5xl">
             {p.kicker && (
@@ -155,7 +167,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             )}
             <blockquote
               className="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] italic mb-12"
-              style={{ letterSpacing: '-0.02em' }}
+              style={{ letterSpacing: "-0.02em" }}
             >
               "{p.body}"
             </blockquote>
@@ -168,7 +180,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </section>
       );
 
-    case 'two_column_intro': {
+    case "two_column_intro": {
       const cols: any[] = Array.isArray(p.columns) ? p.columns : [];
       return (
         <section className="mb-24">
@@ -176,7 +188,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.kicker && (
               <span
                 className="text-[10px] uppercase tracking-[0.5em] mb-6 block font-bold font-sans"
-                style={{ color: '#27423F' }}
+                style={{ color: "#27423F" }}
               >
                 {p.kicker}
               </span>
@@ -184,7 +196,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.title && (
               <h2
                 className="font-serif text-5xl md:text-6xl font-bold leading-[1.05] mb-10"
-                style={{ letterSpacing: '-0.02em' }}
+                style={{ letterSpacing: "-0.02em" }}
               >
                 {p.title}
               </h2>
@@ -192,7 +204,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-lg leading-relaxed opacity-90"
-                style={{ color: '#27423F' }}
+                style={{ color: "#27423F" }}
               >
                 {p.body}
               </p>
@@ -204,12 +216,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 <div
                   key={i}
                   className="p-10 border-t-2"
-                  style={{ backgroundColor: '#FDF2E7', borderColor: '#27423F' }}
+                  style={{ backgroundColor: "#FDF2E7", borderColor: "#27423F" }}
                 >
                   {col.kicker && (
                     <span
                       className="text-[10px] uppercase tracking-[0.3em] font-bold font-sans block mb-4"
-                      style={{ color: '#27423F' }}
+                      style={{ color: "#27423F" }}
                     >
                       {col.kicker}
                     </span>
@@ -222,7 +234,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   {col.body && (
                     <p
                       className="text-sm leading-relaxed opacity-80"
-                      style={{ color: '#27423F' }}
+                      style={{ color: "#27423F" }}
                     >
                       {col.body}
                     </p>
@@ -235,7 +247,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'technique_grid': {
+    case "technique_grid": {
       const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
       return (
         <section className="mb-48">
@@ -243,7 +255,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.kicker && (
               <span
                 className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans block mb-4"
-                style={{ color: 'rgba(44,44,44,0.4)' }}
+                style={{ color: "rgba(44,44,44,0.4)" }}
               >
                 {p.kicker}
               </span>
@@ -251,7 +263,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.title && (
               <h3
                 className="font-serif text-3xl md:text-4xl font-bold leading-tight"
-                style={{ letterSpacing: '-0.02em' }}
+                style={{ letterSpacing: "-0.02em" }}
               >
                 {p.title}
               </h3>
@@ -266,7 +278,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                 <>
                   <div
                     className="aspect-[4/3] overflow-hidden mb-6 rounded-sm border border-foreground/10"
-                    style={{ backgroundColor: '#FBEFE1' }}
+                    style={{ backgroundColor: "#FBEFE1" }}
                   >
                     {img ? (
                       <img
@@ -275,14 +287,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                         className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
                         loading="lazy"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).style.display = "none";
                         }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span
                           className="font-serif italic text-3xl"
-                          style={{ color: 'rgba(20,21,15,0.08)' }}
+                          style={{ color: "rgba(20,21,15,0.08)" }}
                         >
                           {card.title}
                         </span>
@@ -294,7 +306,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   </h4>
                   <p
                     className="text-sm leading-relaxed opacity-80"
-                    style={{ color: '#27423F' }}
+                    style={{ color: "#27423F" }}
                   >
                     {card.body}
                   </p>
@@ -319,17 +331,17 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'featured_aside_card':
+    case "featured_aside_card":
       return (
         <div
           className="p-10 md:p-12 flex flex-col justify-center"
-          style={{ backgroundColor: '#FDF2E7' }}
+          style={{ backgroundColor: "#FDF2E7" }}
         >
           <div
             className="mb-6 flex items-center justify-center w-10 h-10"
             style={{
-              backgroundColor: 'rgba(18,43,14,0.1)',
-              color: '#27423F',
+              backgroundColor: "rgba(18,43,14,0.1)",
+              color: "#27423F",
             }}
           >
             <svg
@@ -355,7 +367,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.body && (
             <p
               className="text-xs leading-relaxed opacity-80 mb-6"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.body}
             </p>
@@ -365,14 +377,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               <Link
                 to={p.ctaHref}
                 className="text-[10px] uppercase tracking-[0.3em] font-bold w-fit border-b font-sans"
-                style={{ borderColor: '#1a1a1a' }}
+                style={{ borderColor: "#1a1a1a" }}
               >
                 {p.ctaLabel}
               </Link>
             ) : (
               <button
                 className="text-[10px] uppercase tracking-[0.3em] font-bold w-fit border-b font-sans"
-                style={{ borderColor: '#1a1a1a' }}
+                style={{ borderColor: "#1a1a1a" }}
               >
                 {p.ctaLabel}
               </button>
@@ -380,11 +392,11 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </div>
       );
 
-    case 'metrics_stat':
+    case "metrics_stat":
       return (
         <div
           className="col-span-12 md:col-span-3 p-10 flex flex-col justify-between aspect-square md:aspect-auto"
-          style={{ backgroundColor: '#27423F', color: '#fff' }}
+          style={{ backgroundColor: "#27423F", color: "#fff" }}
         >
           {p.kicker && (
             <span className="text-[10px] uppercase tracking-[0.3em] font-sans">
@@ -420,13 +432,13 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </div>
       );
 
-    case 'muestra_intro':
+    case "muestra_intro":
       return (
         <div className="mb-10 max-w-3xl">
           {p.kicker && (
             <span
               className="text-[10px] uppercase tracking-[0.5em] mb-4 block font-bold font-sans"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.kicker}
             </span>
@@ -434,7 +446,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.title && (
             <h2
               className="font-serif text-4xl md:text-5xl font-bold leading-tight"
-              style={{ letterSpacing: '-0.02em' }}
+              style={{ letterSpacing: "-0.02em" }}
             >
               {p.title}
             </h2>
@@ -442,7 +454,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {p.body && (
             <p
               className="mt-4 text-base leading-relaxed opacity-80"
-              style={{ color: '#27423F' }}
+              style={{ color: "#27423F" }}
             >
               {p.body}
             </p>
@@ -450,29 +462,29 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </div>
       );
 
-    case 'archive_label':
+    case "archive_label":
       return (
         <h2
           className="text-[10px] uppercase tracking-[0.5em] mb-10 block font-bold text-center font-sans"
-          style={{ color: '#27423F' }}
+          style={{ color: "#27423F" }}
         >
           {p.kicker}
         </h2>
       );
 
-    case 'editorial_footer': {
+    case "editorial_footer": {
       const links: any[] = Array.isArray(p.links) ? p.links : [];
       return (
         <footer
           className="mb-24 pt-24 border-t"
-          style={{ borderColor: 'rgba(140,114,101,0.2)' }}
+          style={{ borderColor: "rgba(140,114,101,0.2)" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
             <div>
               {p.kicker && (
                 <p
                   className="text-[10px] uppercase tracking-[0.5em] mb-8 block font-bold font-sans"
-                  style={{ color: '#27423F' }}
+                  style={{ color: "#27423F" }}
                 >
                   {p.kicker}
                 </p>
@@ -480,7 +492,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {p.title && (
                 <h3
                   className="font-serif text-4xl font-bold mb-8 leading-tight"
-                  style={{ letterSpacing: '-0.02em' }}
+                  style={{ letterSpacing: "-0.02em" }}
                 >
                   {p.title}
                 </h3>
@@ -488,7 +500,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {p.body && (
                 <p
                   className="leading-relaxed opacity-80 text-lg mb-10"
-                  style={{ color: '#27423F' }}
+                  style={{ color: "#27423F" }}
                 >
                   {p.body}
                 </p>
@@ -498,9 +510,9 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   {links.map((l, i) => (
                     <Link
                       key={i}
-                      to={l.href || '#'}
+                      to={l.href || "#"}
                       className="text-[10px] uppercase tracking-[0.2em] font-bold border-b font-sans"
-                      style={{ borderColor: '#1a1a1a' }}
+                      style={{ borderColor: "#1a1a1a" }}
                     >
                       {l.label}
                     </Link>
@@ -510,7 +522,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
             <div
               className="p-12 flex flex-col justify-between"
-              style={{ backgroundColor: '#FBEFE1' }}
+              style={{ backgroundColor: "#FBEFE1" }}
             >
               <div className="max-w-xs">
                 {p.asideTitle && (
@@ -519,15 +531,13 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   </h4>
                 )}
                 {p.asideBody && (
-                  <p className="text-sm leading-relaxed mb-8">
-                    {p.asideBody}
-                  </p>
+                  <p className="text-sm leading-relaxed mb-8">{p.asideBody}</p>
                 )}
               </div>
               {p.asideCtaLabel && (
                 <button
                   className="w-full py-4 border text-[10px] uppercase tracking-[0.3em] font-bold transition-colors hover:bg-[#1a1a1a] hover:text-[#F7E7D7] font-sans"
-                  style={{ borderColor: '#1a1a1a' }}
+                  style={{ borderColor: "#1a1a1a" }}
                 >
                   {p.asideCtaLabel}
                 </button>
@@ -537,7 +547,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           {(p.copyright || p.edition) && (
             <div
               className="mt-24 pt-12 border-t flex flex-col md:flex-row justify-between items-center gap-8"
-              style={{ borderColor: 'rgba(140,114,101,0.1)' }}
+              style={{ borderColor: "rgba(140,114,101,0.1)" }}
             >
               {p.copyright && (
                 <span className="text-[9px] uppercase tracking-[0.4em] opacity-40 font-sans">
@@ -555,7 +565,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'home_hero_carousel': {
+    case "home_hero_carousel": {
       const slides: any[] = Array.isArray(p.slides) ? p.slides : [];
       return (
         <CmsHeroCarousel
@@ -571,7 +581,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'home_value_props': {
+    case "home_value_props": {
       const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
       return (
         <section className="py-12 bg-[#FDF2E7]/50 border-b border-[#1a1a1a]/5">
@@ -582,7 +592,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                   <div className="aspect-square bg-[#FBEFE1] overflow-hidden mb-4 rounded-sm border border-foreground/10 group">
                     <img
                       src={c.imageUrl}
-                      alt={c.title ?? ''}
+                      alt={c.title ?? ""}
                       className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
                       loading="lazy"
                     />
@@ -603,7 +613,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'home_section_header':
+    case "home_section_header":
       return (
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-xl">
@@ -613,7 +623,11 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               </span>
             )}
             {p.title && (
-              <h2 className={`text-5xl font-serif mb-4 ${p.italicTitle ? 'italic' : ''}`}>{p.title}</h2>
+              <h2
+                className={`text-5xl font-serif mb-4 ${p.italicTitle ? "italic" : ""}`}
+              >
+                {p.title}
+              </h2>
             )}
             {p.subtitle && (
               <p className="text-[#1a1a1a]/60 italic font-serif">
@@ -632,9 +646,9 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </div>
       );
 
-    case 'home_block': {
-      const variant = (p.variant as string) || 'light';
-      if (variant === 'dark') {
+    case "home_block": {
+      const variant = (p.variant as string) || "light";
+      if (variant === "dark") {
         return (
           <section className="bg-[#1a1a1a] text-[#FDF2E7] py-32">
             <div className="max-w-[1400px] mx-auto px-6">
@@ -665,7 +679,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           </section>
         );
       }
-      if (variant === 'bordered') {
+      if (variant === "bordered") {
         return (
           <section className="py-24 px-6 max-w-[1400px] mx-auto">
             <div className="border border-[#1a1a1a]/10 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden">
@@ -697,7 +711,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {p.imageUrl && (
                 <img
                   src={p.imageUrl}
-                  alt={p.title || ''}
+                  alt={p.title || ""}
                   className="w-full md:w-1/2 aspect-[4/3] object-cover rounded-sm border border-foreground/10 grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                 />
               )}
@@ -705,14 +719,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           </section>
         );
       }
-      if (variant === 'cream') {
+      if (variant === "cream") {
         return (
           <section className="py-24 px-6 bg-[#FDF2E7]">
             <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 items-center">
               {p.imageUrl && (
                 <img
                   src={p.imageUrl}
-                  alt={p.title || ''}
+                  alt={p.title || ""}
                   className="w-full aspect-square object-cover rounded-sm border border-foreground/10 grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                 />
               )}
@@ -722,9 +736,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                     {p.kicker}
                   </span>
                 )}
-                {p.title && (
-                  <h2 className="text-5xl font-serif">{p.title}</h2>
-                )}
+                {p.title && <h2 className="text-5xl font-serif">{p.title}</h2>}
                 {p.body && (
                   <p className="text-xl text-[#1a1a1a]/70 leading-relaxed font-light">
                     {p.body}
@@ -773,28 +785,48 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'about_hero': {
+    case "about_hero": {
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
           <div
             className="relative rounded-sm overflow-hidden border border-foreground/10"
-            style={{ backgroundColor: '#27423F' }}
+            style={{ backgroundColor: "#27423F" }}
           >
             {p.bgImageUrl && (
               <img
                 src={p.bgImageUrl}
-                alt={p.bgImageAlt || ''}
+                alt={p.bgImageAlt || ""}
                 className="absolute inset-0 w-full h-full object-cover"
-                style={p.bgObjectPosition ? { objectPosition: p.bgObjectPosition } : undefined}
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                style={
+                  p.bgObjectPosition
+                    ? { objectPosition: p.bgObjectPosition }
+                    : undefined
+                }
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a1a]/85 via-[#1a1a1a]/60 to-[#1a1a1a]/30" />
             <div className="relative px-8 md:px-16 py-20 md:py-32">
               <h1 className="text-5xl md:text-7xl leading-[0.85] font-serif mb-6 text-white tracking-tight">
-                {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-                {p.titleLineItalic && <span className="italic text-[#91BCB3]">{p.titleLineItalic}</span>}
-                {p.titleLineBottom && <><br />{p.titleLineBottom}</>}
+                {p.titleLineTop && (
+                  <>
+                    {p.titleLineTop}
+                    <br />
+                  </>
+                )}
+                {p.titleLineItalic && (
+                  <span className="italic text-[#91BCB3]">
+                    {p.titleLineItalic}
+                  </span>
+                )}
+                {p.titleLineBottom && (
+                  <>
+                    <br />
+                    {p.titleLineBottom}
+                  </>
+                )}
               </h1>
               {p.body && (
                 <p className="text-base md:text-lg text-white/80 max-w-2xl font-sans leading-relaxed">
@@ -807,12 +839,14 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'about_two_col': {
-      const imageOnRight = (p.imageSide || 'right') === 'right';
+    case "about_two_col": {
+      const imageOnRight = (p.imageSide || "right") === "right";
       const bullets: string[] = Array.isArray(p.bullets) ? p.bullets : [];
-      const paragraphs: string[] = Array.isArray(p.paragraphs) ? p.paragraphs : [];
+      const paragraphs: string[] = Array.isArray(p.paragraphs)
+        ? p.paragraphs
+        : [];
       const textCol = (
-        <div className={imageOnRight ? '' : 'order-1 md:order-2'}>
+        <div className={imageOnRight ? "" : "order-1 md:order-2"}>
           {p.kicker && (
             <div className="inline-flex items-center gap-2 bg-[#27423F]/10 px-4 py-2 rounded-full mb-6">
               <span className="text-[10px] uppercase tracking-widest font-sans text-[#27423F] font-bold">
@@ -821,8 +855,15 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
           )}
           <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 text-[#1a1a1a] tracking-tight">
-            {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-            {p.titleLineItalic && <span className="italic text-[#27423F]">{p.titleLineItalic}</span>}
+            {p.titleLineTop && (
+              <>
+                {p.titleLineTop}
+                <br />
+              </>
+            )}
+            {p.titleLineItalic && (
+              <span className="italic text-[#27423F]">{p.titleLineItalic}</span>
+            )}
           </h2>
           {p.intro && (
             <p className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed mb-4">
@@ -830,7 +871,10 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </p>
           )}
           {paragraphs.map((para, i) => (
-            <p key={i} className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed mb-4">
+            <p
+              key={i}
+              className="text-sm md:text-base text-[#1a1a1a]/70 font-sans leading-relaxed mb-4"
+            >
               {para}
             </p>
           ))}
@@ -839,7 +883,9 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               {bullets.map((b, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#27423F] mt-2 flex-shrink-0" />
-                  <span className="text-sm text-[#1a1a1a]/70 font-sans leading-relaxed">{b}</span>
+                  <span className="text-sm text-[#1a1a1a]/70 font-sans leading-relaxed">
+                    {b}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -855,20 +901,24 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       const imgCol = (
         <div
           className={`relative h-[400px] md:h-[500px] rounded-sm overflow-hidden border border-foreground/10 group ${
-            imageOnRight ? '' : 'order-2 md:order-1'
+            imageOnRight ? "" : "order-2 md:order-1"
           }`}
-          style={{ backgroundColor: '#FBEFE1' }}
+          style={{ backgroundColor: "#FBEFE1" }}
         >
           {p.imageUrl ? (
             <img
               src={p.imageUrl}
-              alt={p.imageAlt || ''}
+              alt={p.imageAlt || ""}
               className="absolute inset-0 w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-serif italic text-2xl text-[#27423F]/25">Imagen</span>
+              <span className="font-serif italic text-2xl text-[#27423F]/25">
+                Imagen
+              </span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-br from-[#27423F]/20 to-[#27423F]/5 -z-10" />
@@ -922,8 +972,10 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'about_wide_block': {
-      const paragraphs: string[] = Array.isArray(p.paragraphs) ? p.paragraphs : [];
+    case "about_wide_block": {
+      const paragraphs: string[] = Array.isArray(p.paragraphs)
+        ? p.paragraphs
+        : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
           <div className="bg-white rounded-sm p-8 md:p-12 border border-[#1a1a1a]/5">
@@ -935,12 +987,24 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               </div>
             )}
             <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-8 text-[#1a1a1a] tracking-tight">
-              {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-              {p.titleLineItalic && <span className="italic text-[#27423F]">{p.titleLineItalic}</span>}
+              {p.titleLineTop && (
+                <>
+                  {p.titleLineTop}
+                  <br />
+                </>
+              )}
+              {p.titleLineItalic && (
+                <span className="italic text-[#27423F]">
+                  {p.titleLineItalic}
+                </span>
+              )}
             </h2>
-            <div className="space-y-5 max-w-3xl">
+            <div className="space-y-5 text-justify">
               {paragraphs.map((para, i) => (
-                <p key={i} className="text-base md:text-lg text-[#1a1a1a]/70 font-sans leading-relaxed">
+                <p
+                  key={i}
+                  className="text-base md:text-lg text-[#1a1a1a]/70 font-sans leading-relaxed"
+                >
                   {para}
                 </p>
               ))}
@@ -950,13 +1014,13 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'about_program_stats': {
+    case "about_program_stats": {
       const stats: any[] = Array.isArray(p.stats) ? p.stats : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-24">
           <div
             className="rounded-sm p-8 md:p-12 text-white"
-            style={{ backgroundColor: '#27423F' }}
+            style={{ backgroundColor: "#27423F" }}
           >
             {p.kicker && (
               <span className="text-[10px] uppercase tracking-[0.4em] font-sans font-bold text-white/60">
@@ -965,8 +1029,17 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             )}
             {(p.titleLineTop || p.titleLineItalic) && (
               <h2 className="text-3xl md:text-4xl leading-tight font-serif mt-4 mb-10 tracking-tight">
-                {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-                {p.titleLineItalic && <span className="italic text-[#91BCB3]">{p.titleLineItalic}</span>}
+                {p.titleLineTop && (
+                  <>
+                    {p.titleLineTop}
+                    <br />
+                  </>
+                )}
+                {p.titleLineItalic && (
+                  <span className="italic text-[#91BCB3]">
+                    {p.titleLineItalic}
+                  </span>
+                )}
               </h2>
             )}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
@@ -991,14 +1064,21 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'about_cta': {
+    case "about_cta": {
       const ctas: any[] = Array.isArray(p.ctas) ? p.ctas : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 mb-32">
           <div className="bg-gradient-to-r from-[#27423F] to-[#27423F]/80 rounded-sm p-12 md:p-16 text-center text-white">
             <h2 className="text-4xl md:text-5xl leading-tight font-serif mb-6 tracking-tight">
-              {p.titleLineTop && <>{p.titleLineTop}<br /></>}
-              {p.titleLineItalic && <span className="italic">{p.titleLineItalic}</span>}
+              {p.titleLineTop && (
+                <>
+                  {p.titleLineTop}
+                  <br />
+                </>
+              )}
+              {p.titleLineItalic && (
+                <span className="italic">{p.titleLineItalic}</span>
+              )}
             </h2>
             {p.body && (
               <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-8 font-sans leading-relaxed">
@@ -1008,7 +1088,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {ctas.length > 0 && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {ctas.map((cta, i) =>
-                  cta.variant === 'outline' ? (
+                  cta.variant === "outline" ? (
                     <Link
                       key={i}
                       to={cta.href}
@@ -1033,7 +1113,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'territorios_hero': {
+    case "territorios_hero": {
       const stats: any[] = Array.isArray(p.stats) ? p.stats : [];
       return (
         <section className="px-8 pt-24 pb-12 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
@@ -1041,7 +1121,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.kicker && (
               <span
                 className="text-sm tracking-[0.3em] uppercase mb-6 block font-sans font-bold"
-                style={{ color: '#27423F' }}
+                style={{ color: "#27423F" }}
               >
                 {p.kicker}
               </span>
@@ -1049,7 +1129,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.title && (
               <h1
                 className="text-6xl md:text-8xl font-serif font-bold leading-tight mb-8"
-                style={{ letterSpacing: '-0.02em', color: '#1a1a1a' }}
+                style={{ letterSpacing: "-0.02em", color: "#1a1a1a" }}
               >
                 {p.title}
               </h1>
@@ -1057,7 +1137,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {p.body && (
               <p
                 className="text-xl md:text-2xl font-serif italic max-w-2xl leading-relaxed"
-                style={{ color: '#27423F' }}
+                style={{ color: "#27423F" }}
               >
                 {p.body}
               </p>
@@ -1067,12 +1147,15 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             <div className="md:col-span-4 flex flex-col justify-end items-start md:items-end text-left md:text-right space-y-4">
               {stats.map((s, i) => (
                 <div key={i}>
-                  <span className="block text-4xl font-serif" style={{ color: '#27423F' }}>
+                  <span
+                    className="block text-4xl font-serif"
+                    style={{ color: "#27423F" }}
+                  >
                     {s.value}
                   </span>
                   <span
                     className="text-xs tracking-widest uppercase font-sans"
-                    style={{ color: '#27423F' }}
+                    style={{ color: "#27423F" }}
                   >
                     {s.label}
                   </span>
@@ -1084,18 +1167,31 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'territorios_dark_quote': {
+    case "territorios_dark_quote": {
       const leftStats: any[] = Array.isArray(p.leftStats) ? p.leftStats : [];
       return (
-        <section className="py-32" style={{ backgroundColor: '#1a1a1a', color: '#FBEFE1' }}>
+        <section
+          className="py-32"
+          style={{ backgroundColor: "#1a1a1a", color: "#FBEFE1" }}
+        >
           <div className="max-w-[1400px] mx-auto px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
               <div className="space-y-12">
                 {p.quote && (
                   <div className="max-w-md">
-                    <span className="text-4xl mb-6 block" style={{ color: '#91BCB3' }}>"</span>
-                    <p className="text-3xl font-serif leading-snug mb-6">{p.quote}</p>
-                    <div className="w-16 h-[2px]" style={{ backgroundColor: '#91BCB3' }} />
+                    <span
+                      className="text-4xl mb-6 block"
+                      style={{ color: "#91BCB3" }}
+                    >
+                      "
+                    </span>
+                    <p className="text-3xl font-serif leading-snug mb-6">
+                      {p.quote}
+                    </p>
+                    <div
+                      className="w-16 h-[2px]"
+                      style={{ backgroundColor: "#91BCB3" }}
+                    />
                   </div>
                 )}
                 {leftStats.length > 0 && (
@@ -1104,11 +1200,11 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
                       <div
                         key={i}
                         className="p-8 border rounded-sm"
-                        style={{ borderColor: 'rgba(236,233,226,0.12)' }}
+                        style={{ borderColor: "rgba(236,233,226,0.12)" }}
                       >
                         <span
                           className="block text-5xl font-serif mb-2"
-                          style={{ color: s.color || '#91BCB3' }}
+                          style={{ color: s.color || "#91BCB3" }}
                         >
                           {s.value}
                         </span>
@@ -1123,33 +1219,46 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
 
               <div
                 className="relative aspect-video md:aspect-square rounded-sm overflow-hidden flex items-center justify-center p-12 border border-foreground/10"
-                style={{ backgroundColor: 'rgba(236,233,226,0.05)' }}
+                style={{ backgroundColor: "rgba(236,233,226,0.05)" }}
               >
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
-                    backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
-                    backgroundSize: '40px 40px',
+                    backgroundImage:
+                      "radial-gradient(#ffffff 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
                   }}
                 />
                 <div className="relative z-10 text-center">
                   {p.rightTitle && (
-                    <h4 className="text-4xl font-serif mb-6" style={{ color: '#F7E7D7' }}>
+                    <h4
+                      className="text-4xl font-serif mb-6"
+                      style={{ color: "#F7E7D7" }}
+                    >
                       {p.rightTitle}
                     </h4>
                   )}
                   {p.rightBody && (
                     <p
                       className="max-w-sm mx-auto leading-relaxed italic"
-                      style={{ color: 'rgba(236,233,226,0.8)' }}
+                      style={{ color: "rgba(236,233,226,0.8)" }}
                     >
                       {p.rightBody}
                     </p>
                   )}
                   <div className="mt-12 flex justify-center gap-4">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#91BCB3' }} />
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(170,184,156,0.4)' }} />
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'rgba(170,184,156,0.2)' }} />
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "#91BCB3" }}
+                    />
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "rgba(170,184,156,0.4)" }}
+                    />
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "rgba(170,184,156,0.2)" }}
+                    />
                   </div>
                 </div>
               </div>
@@ -1159,7 +1268,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'historias_hero': {
+    case "historias_hero": {
       return (
         <header className="max-w-[1400px] mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-32 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
@@ -1193,7 +1302,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'historias_story_types_grid': {
+    case "historias_story_types_grid": {
       const cards: any[] = Array.isArray(p.cards) ? p.cards : [];
       return (
         <section className="max-w-[1400px] mx-auto px-6 py-10 md:py-10 border-y border-[#1a1a1a]/5">
@@ -1204,7 +1313,9 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               </h3>
             )}
             {p.title && (
-              <p className="text-3xl md:text-4xl font-serif italic">{p.title}</p>
+              <p className="text-3xl md:text-4xl font-serif italic">
+                {p.title}
+              </p>
             )}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
@@ -1232,7 +1343,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'historias_capsule_quote': {
+    case "historias_capsule_quote": {
       return (
         <section className="py-20 md:py-20 px-6 bg-white/50 border-y border-[#1a1a1a]/5">
           <div className="max-w-3xl mx-auto text-center">
@@ -1246,7 +1357,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
       );
     }
 
-    case 'historias_final_cta': {
+    case "historias_final_cta": {
       const ctas: any[] = Array.isArray(p.ctas) ? p.ctas : [];
       return (
         <section className="bg-[#27423F] py-24 md:py-32">
@@ -1259,7 +1370,12 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
               )}
               {(p.titleLineTop || p.titleLineBottom) && (
                 <h2 className="text-4xl md:text-6xl font-serif leading-[1.1] text-[#F7E7D7] italic">
-                  {p.titleLineTop && <>{p.titleLineTop}<br /></>}
+                  {p.titleLineTop && (
+                    <>
+                      {p.titleLineTop}
+                      <br />
+                    </>
+                  )}
                   {p.titleLineBottom}
                 </h2>
               )}
@@ -1267,7 +1383,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             {ctas.length > 0 && (
               <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
                 {ctas.map((cta, i) =>
-                  cta.variant === 'primary' ? (
+                  cta.variant === "primary" ? (
                     <Link
                       key={i}
                       to={cta.href}

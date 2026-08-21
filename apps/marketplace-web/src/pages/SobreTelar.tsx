@@ -8,8 +8,10 @@ import type { CmsSection } from "@/services/cms-sections.actions";
 // Fotos retiradas: se dejan vacías para que el renderer muestre placeholders
 // hasta contar con imágenes propias de Villa Adelaida.
 const ABOUT_1_URL = "";
-const ABOUT_2_URL = "";
-const ARTESANA_TEJIENDO_URL = "";
+const ABOUT_2_URL =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/villa.jpeg";
+const ARTESANA_TEJIENDO_URL =
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/1.jpeg";
 
 /* ── Fallback editorial — se renderiza solo si CMS no responde ────────── */
 const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
@@ -85,14 +87,14 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
       titleLineTop: "Resultados del proceso",
       titleLineItalic: "de fortalecimiento",
       stats: [
-        { value: "XX", label: "Artesanos y artesanas beneficiados" },
-        { value: "XX", label: "Productores del ecosistema del viche" },
+        { value: "+80", label: "Artesanos y artesanas beneficiados" },
+        { value: "+22", label: "Productores del ecosistema del viche" },
         {
           value: "5",
           label:
             "Territorios impactados: Barichara, Buenaventura, Cali, Mompox y Popayán",
         },
-        { value: "XXXX", label: "Horas del proceso de fortalecimiento" },
+        { value: "+60", label: "Horas del proceso de fortalecimiento" },
       ],
       note: "En esta iniciativa también participaron el Programa de Escuelas Taller de la Dirección de Estrategia, Desarrollo y Emprendimiento y el Grupo de Patrimonio Cultural Inmaterial del Ministerio de las Culturas, las Artes y los Saberes.",
     },
