@@ -1,0 +1,117 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Add optional `externalUserId` parameter to the `useBankData` function signature": [
+      {
+        "executionId": "2bdeb113-0a54-4b72-b6c2-433af2fe1f9c",
+        "chatSessionId": "sess_705c4511-a258-4468-86ae-dd93c5f352bd",
+        "timestamp": 1787278161087
+      },
+      {
+        "executionId": "2bdeb113-0a54-4b72-b6c2-433af2fe1f9c",
+        "chatSessionId": "sess_705c4511-a258-4468-86ae-dd93c5f352bd",
+        "timestamp": 1787278306786
+      }
+    ],
+    "1. Extend useBankData hook to accept external userId": [
+      {
+        "executionId": "2bdeb113-0a54-4b72-b6c2-433af2fe1f9c",
+        "chatSessionId": "sess_705c4511-a258-4468-86ae-dd93c5f352bd",
+        "timestamp": 1787278306907
+      }
+    ],
+    "2.1 Add the \"bancarios\" entry to the SECTIONS array": [
+      {
+        "executionId": "30032666-dd4b-46d2-9bad-1d859f3b078a",
+        "chatSessionId": "sess_47401878-c4f4-4b53-8364-abfb9b752f4d",
+        "timestamp": 1787278335340
+      },
+      {
+        "executionId": "30032666-dd4b-46d2-9bad-1d859f3b078a",
+        "chatSessionId": "sess_47401878-c4f4-4b53-8364-abfb9b752f4d",
+        "timestamp": 1787278416371
+      }
+    ],
+    "2. Add \"Datos Bancarios\" section to StoreReviewWizard navigation": [
+      {
+        "executionId": "30032666-dd4b-46d2-9bad-1d859f3b078a",
+        "chatSessionId": "sess_47401878-c4f4-4b53-8364-abfb9b752f4d",
+        "timestamp": 1787278416477
+      }
+    ],
+    "3.1 Create the `SelectField` component inside StoreReviewWizard.tsx": [
+      {
+        "executionId": "0e583aa2-b132-4b79-a884-3e71a8d7859c",
+        "chatSessionId": "sess_e23358bc-9bd2-4896-ba25-3e1333ab7e72",
+        "timestamp": 1787278485170
+      },
+      {
+        "executionId": "0e583aa2-b132-4b79-a884-3e71a8d7859c",
+        "chatSessionId": "sess_e23358bc-9bd2-4896-ba25-3e1333ab7e72",
+        "timestamp": 1787278605384
+      }
+    ],
+    "3. Implement SelectField inline component": [
+      {
+        "executionId": "0e583aa2-b132-4b79-a884-3e71a8d7859c",
+        "chatSessionId": "sess_e23358bc-9bd2-4896-ba25-3e1333ab7e72",
+        "timestamp": 1787278605489
+      }
+    ],
+    "4.1 Add bank data state and hook call inside StoreReviewWizard": [
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787278702298
+      },
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787278832709
+      }
+    ],
+    "4.2 Implement `renderBankDataSection` function": [
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787278836456
+      },
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787278977908
+      }
+    ],
+    "4.3 Wire save/update actions": [
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787278981404
+      },
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787279082873
+      }
+    ],
+    "4.4 Integrate `renderBankDataSection` into the `renderConfig` function": [
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787279086598
+      },
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787279236145
+      }
+    ],
+    "4. Implement BankDataSection render logic": [
+      {
+        "executionId": "81b090cb-1afa-4b78-a733-aa188f634807",
+        "chatSessionId": "sess_7d23ff42-8255-48af-946d-ea9533471389",
+        "timestamp": 1787279236248
+      }
+    ]
+  }
+}

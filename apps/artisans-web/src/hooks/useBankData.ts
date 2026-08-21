@@ -36,32 +36,34 @@ const mapPayoutUserInfoToArtisanBankData = (
     id: data.id,
     user_id: data.userId,
     holder_name: data.namePayoutMain,
-    document_type: data.idType || '', // Viene del perfil del usuario
-    document_number: data.idNumber || '', // Viene del perfil del usuario (desencriptado)
+    document_type: data.idType || "", // Viene del perfil del usuario
+    document_number: data.idNumber || "", // Viene del perfil del usuario (desencriptado)
     bank_code: data.bankName, // Nombre completo del banco (desencriptado)
     account_type: data.typeAccount,
     account_number: data.numAccount, // Desencriptado
     country: data.countryId, // UUID del país
     currency: data.currency,
-    status: 'complete', // Asumimos completo si existe el registro
+    status: "complete", // Asumimos completo si existe el registro
     created_at: data.createdAt,
     updated_at: data.updatedAt,
   };
 };
 
-export const useBankData = () => {
+export const useBankData = (externalUserId?: string) => {
   const [bankData, setBankData] = useState<ArtisanBankData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const effectiveUserId = externalUserId ?? user?.id;
+
   /**
    * ✅ MIGRATED: Obtiene los datos de payout desde NestJS
    * Endpoint: GET /payout-user-info/user/:userId
    */
   const fetchBankData = useCallback(async () => {
-    if (!user?.id) {
+    if (!effectiveUserId) {
       setLoading(false);
       return;
     }
@@ -69,7 +71,7 @@ export const useBankData = () => {
     try {
       setLoading(true);
 
-      const payoutData = await getPayoutUserInfoByUserId(user.id);
+      const payoutData = await getPayoutUserInfoByUserId(effectiveUserId);
 
       // Tomamos el primer registro (el usuario debería tener solo uno)
       if (payoutData && payoutData.length > 0) {
@@ -83,7 +85,7 @@ export const useBankData = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [effectiveUserId]);
 
   useEffect(() => {
     fetchBankData();
@@ -96,15 +98,19 @@ export const useBankData = () => {
   const saveBankData = async (
     formData: BankDataForm,
   ): Promise<{ success: boolean; id_contraparty?: string }> => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "Usuario no autenticado", variant: "destructive" });
+    if (!effectiveUserId) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado",
+        variant: "destructive",
+      });
       return { success: false };
     }
 
     try {
       const result = await createPayoutUserInfo({
         namePayoutMain: formData.holder_name,
-        userId: user.id,
+        userId: effectiveUserId,
         idType: formData.document_type,
         idNumber: formData.document_number,
         typeAccount: formData.account_type,
@@ -112,15 +118,22 @@ export const useBankData = () => {
         numAccount: formData.account_number,
         countryId: formData.country, // Se espera UUID del país
         currency: formData.currency,
-        createdBy: user.id,
+        createdBy: effectiveUserId,
       });
 
       await fetchBankData(); // Actualizar datos locales
-      toast({ title: "Datos bancarios guardados", description: "Tus datos han sido guardados correctamente" });
+      toast({
+        title: "Datos bancarios guardados",
+        description: "Tus datos han sido guardados correctamente",
+      });
       return { success: true, id_contraparty: result.id };
     } catch (error) {
-      console.error('Error saving payout info:', error);
-      toast({ title: "Error", description: "No se pudieron guardar los datos bancarios", variant: "destructive" });
+      console.error("Error saving payout info:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar los datos bancarios",
+        variant: "destructive",
+      });
       return { success: false };
     }
   };
@@ -132,13 +145,22 @@ export const useBankData = () => {
   const updateBankData = async (
     formData: BankDataForm,
   ): Promise<{ success: boolean; id_contraparty?: string }> => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "Usuario no autenticado", variant: "destructive" });
+    if (!effectiveUserId) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado",
+        variant: "destructive",
+      });
       return { success: false };
     }
 
     if (!bankData?.id) {
-      toast({ title: "Error", description: "No se encontró registro de datos bancarios para actualizar", variant: "destructive" });
+      toast({
+        title: "Error",
+        description:
+          "No se encontró registro de datos bancarios para actualizar",
+        variant: "destructive",
+      });
       return { success: false };
     }
 
@@ -152,15 +174,22 @@ export const useBankData = () => {
         numAccount: formData.account_number,
         countryId: formData.country, // Se espera UUID del país
         currency: formData.currency,
-        updatedBy: user.id,
+        updatedBy: effectiveUserId,
       });
 
-      toast({ title: "Datos actualizados", description: "Tus datos bancarios han sido actualizados correctamente" });
+      toast({
+        title: "Datos actualizados",
+        description: "Tus datos bancarios han sido actualizados correctamente",
+      });
       await fetchBankData();
       return { success: true, id_contraparty: result.id };
     } catch (error) {
-      console.error('Error updating payout info:', error);
-      toast({ title: "Error", description: "No se pudieron actualizar los datos bancarios", variant: "destructive" });
+      console.error("Error updating payout info:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron actualizar los datos bancarios",
+        variant: "destructive",
+      });
       return { success: false };
     }
   };
@@ -172,6 +201,6 @@ export const useBankData = () => {
     updateBankData,
     refetch: fetchBankData,
     // paymentToken kept for backward compat but no longer needed
-    paymentToken: '',
+    paymentToken: "",
   };
 };
