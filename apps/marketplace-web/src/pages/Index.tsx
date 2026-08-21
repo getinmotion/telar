@@ -24,6 +24,7 @@ import { TELAR_MARKETPLACE_URL } from "@/lib/villaAdelaida";
 import { ArrowLeft } from "lucide-react";
 import { InstitutionalLogos } from "@/components/InstitutionalLogos";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
+import { AllianceSeal } from "@/components/AllianceSeal";
 // import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 
 // ── Seeded random for consistent daily shuffle ──
@@ -115,8 +116,7 @@ const Index = () => {
   // (misma lógica de presencia que "Explorar por categorías"). Sin lista fija:
   // la home se arma sola según el catálogo.
   const displayCategories = useMemo(
-    () =>
-      categoryHierarchy.filter((c) => c.isActive && categoryHasProducts(c)),
+    () => categoryHierarchy.filter((c) => c.isActive && categoryHasProducts(c)),
     [categoryHierarchy, categoryHasProducts],
   );
 
@@ -158,6 +158,7 @@ const Index = () => {
                         loading="lazy"
                         className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                       />
+                      <AllianceSeal className="absolute bottom-2 left-2 z-10" />
                     </div>
                   </Link>
                   <Link
@@ -231,6 +232,7 @@ const Index = () => {
                           ) : (
                             <div className="w-full h-full bg-muted" />
                           )}
+                          <AllianceSeal className="absolute bottom-3 left-3 z-10" />
                         </div>
                         <div className="space-y-3">
                           <span className="inline-block bg-primary/10 text-primary text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
@@ -267,9 +269,9 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-16">
               <div className="col-span-3 text-center space-y-10 max-w-2xl mx-auto">
                 <p className="text-2xl font-serif italic opacity-95">
-                  Villa Adelaida conecta a compradores con las Escuelas Taller, artesanas
-                  y artesanos de todo el país. Cada pieza tiene origen, autor y
-                  proceso documentado.
+                  Villa Adelaida conecta a compradores con las Escuelas Taller,
+                  artesanas y artesanos de todo el país. Cada pieza tiene
+                  origen, autor y proceso documentado.
                 </p>
                 <Link
                   to="/sobre-villa-adelaida"
@@ -290,7 +292,7 @@ const Index = () => {
         {/* ═══════════════ PASAPORTE DE TRAZABILIDAD ═══════════════ */}
         <section className="py-24 bg-white">
           <div className="max-w-[1400px] mx-auto px-6 grid md:grid-cols-2 gap-24 items-center">
-            <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden">
+            <div className="aspect-square bg-muted rounded-sm border border-foreground/10 overflow-hidden relative">
               {featuredProducts[1] &&
               getPrimaryImageUrl(featuredProducts[1]) ? (
                 <img
@@ -299,14 +301,16 @@ const Index = () => {
                   className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                 />
               ) : null}
+              <AllianceSeal className="absolute bottom-3 left-3 z-10" />
             </div>
             <div className="space-y-10">
               <h2 className="text-5xl font-serif leading-tight">
                 Cada pieza tiene un pasaporte de trazabilidad
               </h2>
               <p className="text-xl text-charcoal/70 leading-relaxed font-light mb-8">
-                Cada objeto en Villa Adelaida conserva un registro que documenta su
-                origen cultural, el taller que lo creó y su proceso artesanal.
+                Cada objeto en Villa Adelaida conserva un registro que documenta
+                su origen cultural, el taller que lo creó y su proceso
+                artesanal.
               </p>
               <div className="space-y-8">
                 <div className="flex gap-6">
@@ -363,7 +367,7 @@ const Index = () => {
             </h2>
             <div className="grid lg:grid-cols-2 gap-20 items-stretch">
               {/* Shop image */}
-              <div className="min-h-[500px] bg-muted rounded-sm border border-foreground/10 overflow-hidden">
+              <div className="min-h-[500px] bg-muted rounded-sm border border-foreground/10 overflow-hidden relative">
                 {featuredShop?.bannerUrl ? (
                   <img
                     src={featuredShop.bannerUrl}
@@ -377,6 +381,7 @@ const Index = () => {
                     className="w-full h-full object-cover grayscale-[35%] hover:grayscale-0 hover:scale-[1.03] transition-all duration-700 ease-out"
                   />
                 ) : null}
+                <AllianceSeal className="absolute bottom-3 left-3 z-10" />
               </div>
               {/* Shop info */}
               <div className="flex flex-col justify-center py-10 space-y-8">
@@ -452,8 +457,8 @@ const Index = () => {
               ¿Quieres ver toda la artesanía de Colombia?
             </h2>
             <p className="text-charcoal/70 font-serif italic text-lg">
-              En Telar encuentras el catálogo completo: los talleres de todas las
-              regiones del país y de todos los programas.
+              En Telar encuentras el catálogo completo: los talleres de todas
+              las regiones del país y de todos los programas.
             </p>
             <a
               href={TELAR_MARKETPLACE_URL}

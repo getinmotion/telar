@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
 
 import { getCategoryImage } from "@/lib/categoryImages";
+import { AllianceSeal } from "@/components/AllianceSeal";
 
 const BENTO_LAYOUT: Record<string, string> = {
   "joyeria-y-accesorios": "md:col-span-2 md:row-span-2",
@@ -96,6 +97,8 @@ export default function Categories() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                   </div>
+
+                  <AllianceSeal className="absolute top-3 left-3 z-10" />
 
                   <div className="relative h-full flex flex-col justify-end p-3 md:p-6 text-white">
                     <h3 className="text-sm md:text-2xl font-bold mb-1 md:mb-2 line-clamp-2">

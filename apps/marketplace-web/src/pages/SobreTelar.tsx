@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
+import { AllianceSeal } from "@/components/AllianceSeal";
 import { useCmsSections } from "@/hooks/useCmsSections";
 import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 import type { CmsSection } from "@/services/cms-sections.actions";
@@ -86,7 +87,11 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
       stats: [
         { value: "XX", label: "Artesanos y artesanas beneficiados" },
         { value: "XX", label: "Productores del ecosistema del viche" },
-        { value: "5", label: "Territorios impactados: Barichara, Buenaventura, Cali, Mompox y Popayán" },
+        {
+          value: "5",
+          label:
+            "Territorios impactados: Barichara, Buenaventura, Cali, Mompox y Popayán",
+        },
         { value: "XXXX", label: "Horas del proceso de fortalecimiento" },
       ],
       note: "En esta iniciativa también participaron el Programa de Escuelas Taller de la Dirección de Estrategia, Desarrollo y Emprendimiento y el Grupo de Patrimonio Cultural Inmaterial del Ministerio de las Culturas, las Artes y los Saberes.",
@@ -128,7 +133,11 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
       body: "Explora los productos elaborados por artesanos, artesanas, productores y unidades productivas vinculadas a las Escuelas Taller de Colombia; conoce las historias, los saberes y los procesos detrás de cada pieza, y conecta directamente con sus creadores.",
       // "Conocer las historias" se retira mientras Historias esté oculta.
       ctas: [
-        { label: "Explorar productos", href: "/productos", variant: "secondary" },
+        {
+          label: "Explorar productos",
+          href: "/productos",
+          variant: "secondary",
+        },
         { label: "Conocer los talleres", href: "/tiendas", variant: "outline" },
       ],
     },
@@ -159,6 +168,11 @@ export default function SobreTelar() {
           <span>/</span>
           <span className="text-primary font-bold">Alianza Villa Adelaida</span>
         </nav>
+      </div>
+
+      {/* Alliance seal */}
+      <div className="max-w-[1400px] mx-auto px-6 mb-6">
+        <AllianceSeal className="rounded-lg" />
       </div>
 
       {/* CMS-driven editorial */}

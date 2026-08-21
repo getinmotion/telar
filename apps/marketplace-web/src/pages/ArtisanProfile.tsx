@@ -36,15 +36,14 @@ const dedupe = (arr: (string | undefined | null)[]): string[] =>
 // (e.g. "Marroquinería, tejidos en cuero, preforma"). Split into clean chips.
 const splitChips = (arr: (string | undefined | null)[]): string[] =>
   dedupe(
-    arr
-      .flatMap((s) => (s ? s.split(/\s*,\s*/) : []))
-      .map((s) => s.trim()),
+    arr.flatMap((s) => (s ? s.split(/\s*,\s*/) : [])).map((s) => s.trim()),
   );
 
 const resolveNames = (
   ids: string[] | undefined,
   map: Map<string, string>,
-): string[] => (ids ?? []).map((id) => map.get(id)).filter((n): n is string => Boolean(n));
+): string[] =>
+  (ids ?? []).map((id) => map.get(id)).filter((n): n is string => Boolean(n));
 
 // ── Component ────────────────────────────────────────────
 const ArtisanProfile = () => {
@@ -57,8 +56,16 @@ const ArtisanProfile = () => {
   const [products, setProducts] = useState<ProductNewCore[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
-  const { isInWishlist, toggleWishlist, loading: wishlistLoading } = useWishlist();
-  const { crafts, techniques: techCatalog, materials: matCatalog } = useTaxonomy();
+  const {
+    isInWishlist,
+    toggleWishlist,
+    loading: wishlistLoading,
+  } = useWishlist();
+  const {
+    crafts,
+    techniques: techCatalog,
+    materials: matCatalog,
+  } = useTaxonomy();
 
   // Fetch shop by slug
   useEffect(() => {
@@ -109,7 +116,9 @@ const ArtisanProfile = () => {
     slug?.replace(/-/g, " ") ||
     "Artesano";
   const nameParts = displayName.split(" ");
-  const firstName = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(" ");
+  const firstName = nameParts
+    .slice(0, Math.ceil(nameParts.length / 2))
+    .join(" ");
   const lastName = nameParts.slice(Math.ceil(nameParts.length / 2)).join(" ");
 
   const location = currentShop
@@ -225,7 +234,10 @@ const ArtisanProfile = () => {
   // ── Narrative content (AI spine → raw fallback) ────────
   const heroEyebrow = gs?.claim || primaryCraft;
   const heroSubtitle =
-    gs?.heroSubtitle || artisanProfile?.shortBio || currentShop?.description || "";
+    gs?.heroSubtitle ||
+    artisanProfile?.shortBio ||
+    currentShop?.description ||
+    "";
 
   const originParagraphs =
     gs?.originStory || gs?.culturalStory
@@ -236,10 +248,10 @@ const ArtisanProfile = () => {
         ]);
 
   const learnedFromLabel = artisanProfile?.learnedFrom
-    ? LEARNED_FROM_LABELS[artisanProfile.learnedFrom] ?? ""
+    ? (LEARNED_FROM_LABELS[artisanProfile.learnedFrom] ?? "")
     : "";
   const ethnicLabel = artisanProfile?.ethnicRelation
-    ? ETHNIC_RELATION_LABELS[artisanProfile.ethnicRelation] ?? ""
+    ? (ETHNIC_RELATION_LABELS[artisanProfile.ethnicRelation] ?? "")
     : "";
 
   const timeline = (gs?.timeline ?? []).filter((t) => t?.year || t?.event);
@@ -314,7 +326,9 @@ const ArtisanProfile = () => {
               src={heroImages[0]}
               alt={displayName}
               className={imgFitClass(heroImages[0])}
-              onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+              onError={(e) =>
+                ((e.currentTarget as HTMLImageElement).style.display = "none")
+              }
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]/20 font-serif italic text-xl">
@@ -330,7 +344,9 @@ const ArtisanProfile = () => {
               src={heroImages[0]}
               alt={displayName}
               className={imgFitClass(heroImages[0])}
-              onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+              onError={(e) =>
+                ((e.currentTarget as HTMLImageElement).style.display = "none")
+              }
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]/20 font-serif italic text-base">
@@ -349,7 +365,10 @@ const ArtisanProfile = () => {
               )}
               <h1
                 className="font-serif italic font-bold mb-8 break-words flex flex-col items-start gap-1.5"
-                style={{ fontSize: "clamp(2.25rem, 8vw, 7rem)", letterSpacing: "-0.03em" }}
+                style={{
+                  fontSize: "clamp(2.25rem, 8vw, 7rem)",
+                  letterSpacing: "-0.03em",
+                }}
               >
                 <span className="inline-block bg-[#F7E7D7]/90 backdrop-blur-sm text-[#1a1a1a] leading-[1.05] px-4 py-1 rounded-md">
                   {firstName}
@@ -395,7 +414,9 @@ const ArtisanProfile = () => {
                     <p className="text-[9px] uppercase tracking-[0.3em] text-[#1a1a1a]/40 mb-1">
                       Oficio Principal
                     </p>
-                    <p className="font-bold text-sm md:text-base">{primaryCraft}</p>
+                    <p className="font-bold text-sm md:text-base">
+                      {primaryCraft}
+                    </p>
                   </div>
                 )}
                 {(artisanProfile?.startAge ?? 0) > 0 && (
@@ -413,7 +434,9 @@ const ArtisanProfile = () => {
                     <p className="text-[9px] uppercase tracking-[0.3em] text-[#1a1a1a]/40 mb-1">
                       Pertenencia
                     </p>
-                    <p className="font-bold text-sm md:text-base">{ethnicLabel}</p>
+                    <p className="font-bold text-sm md:text-base">
+                      {ethnicLabel}
+                    </p>
                   </div>
                 )}
                 {techniquesToShow.length > 0 && (
@@ -484,16 +507,20 @@ const ArtisanProfile = () => {
                     )}
                   </div>
                 )}
-
               </div>
               <div className="col-span-12 lg:col-span-5 pt-4 lg:pt-24">
                 <div className="aspect-[4/5] bg-[#F3E4D3] relative max-w-sm mx-auto lg:ml-auto overflow-hidden">
-                  {(artisanProfile?.workshopPhoto || heroImages[1]) ? (
+                  {artisanProfile?.workshopPhoto || heroImages[1] ? (
                     <img
                       src={artisanProfile?.workshopPhoto || heroImages[1]}
                       alt={displayName}
-                      className={imgFitClass(artisanProfile?.workshopPhoto || heroImages[1])}
-                      onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+                      className={imgFitClass(
+                        artisanProfile?.workshopPhoto || heroImages[1],
+                      )}
+                      onError={(e) =>
+                        ((e.currentTarget as HTMLImageElement).style.display =
+                          "none")
+                      }
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-[#1a1a1a]/20 italic text-sm">
@@ -533,12 +560,12 @@ const ArtisanProfile = () => {
               {artisanProfile.communityVillage}
             </p>
           )}
-            {artisanProfile?.regionalHistory && (
-              <p className="text-base md:text-xl text-[#F7E7D7]/50 leading-[1.7] md:leading-[1.8] font-light mb-10 md:mb-12 max-w-2xl mx-auto">
-                {artisanProfile.regionalHistory}
-              </p>
-            )}
-            {currentShop?.department && (
+          {artisanProfile?.regionalHistory && (
+            <p className="text-base md:text-xl text-[#F7E7D7]/50 leading-[1.7] md:leading-[1.8] font-light mb-10 md:mb-12 max-w-2xl mx-auto">
+              {artisanProfile.regionalHistory}
+            </p>
+          )}
+          {/* {currentShop?.department && (
               <Link
                 to={`/territorio/${currentShop.department.toLowerCase().replace(/\s+/g, "-")}`}
                 className="group relative inline-block border border-[#BC3F1C] text-[#BC3F1C] px-8 md:px-12 py-3 md:py-4 text-[11px] md:text-xs font-bold tracking-[0.25em] md:tracking-[0.3em] uppercase overflow-hidden"
@@ -548,9 +575,9 @@ const ArtisanProfile = () => {
                 </span>
                 <div className="absolute inset-0 bg-[#BC3F1C] translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
               </Link>
-            )}
-          </div>
-        </section>
+            )} */}
+        </div>
+      </section>
 
       {/* ═══ Linea de tiempo ═══ */}
       {timeline.length > 0 && (
@@ -566,7 +593,10 @@ const ArtisanProfile = () => {
             </div>
             <ol className="relative border-l border-[#1a1a1a]/15 ml-2 md:ml-4">
               {timeline.map((t, i) => (
-                <li key={i} className="mb-10 md:mb-12 last:mb-0 pl-8 md:pl-12 relative">
+                <li
+                  key={i}
+                  className="mb-10 md:mb-12 last:mb-0 pl-8 md:pl-12 relative"
+                >
                   <span className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-[#BC3F1C]" />
                   {t.year && (
                     <p className="font-serif text-2xl md:text-3xl text-[#BC3F1C] mb-1">
@@ -676,14 +706,19 @@ const ArtisanProfile = () => {
                   <div
                     key={img}
                     className={`bg-[#F3E4D3] overflow-hidden ${
-                      i === 0 ? "col-span-2 md:col-span-2 aspect-[16/10]" : "aspect-square"
+                      i === 0
+                        ? "col-span-2 md:col-span-2 aspect-[16/10]"
+                        : "aspect-square"
                     }`}
                   >
                     <img
                       src={img}
                       alt={`Taller ${displayName} ${i + 1}`}
                       className="w-full h-full object-cover"
-                      onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+                      onError={(e) =>
+                        ((e.currentTarget as HTMLImageElement).style.display =
+                          "none")
+                      }
                     />
                   </div>
                 ))}
@@ -735,7 +770,10 @@ const ArtisanProfile = () => {
       )}
 
       {/* ═══ Piezas del taller ═══ */}
-      <section id="piezas" className="scroll-mt-24 py-20 md:py-28 lg:py-32 px-5 md:px-8 bg-white">
+      <section
+        id="piezas"
+        className="scroll-mt-24 py-20 md:py-28 lg:py-32 px-5 md:px-8 bg-white"
+      >
         <div className="max-w-[1440px] mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
             <div>
@@ -776,7 +814,11 @@ const ArtisanProfile = () => {
                 const wished = isInWishlist(product.id);
 
                 return (
-                  <Link key={product.id} to={`/product/${product.id}`} className="group">
+                  <Link
+                    key={product.id}
+                    to={`/product/${product.id}`}
+                    className="group"
+                  >
                     <div className="aspect-[4/5] bg-[#F3E4D3] mb-5 relative overflow-hidden">
                       {imageUrl && (
                         <img
@@ -816,7 +858,9 @@ const ArtisanProfile = () => {
                         }}
                         disabled={wishlistLoading}
                       >
-                        <Heart className={`w-4 h-4 ${wished ? "fill-[#BC3F1C]" : ""}`} />
+                        <Heart
+                          className={`w-4 h-4 ${wished ? "fill-[#BC3F1C]" : ""}`}
+                        />
                       </button>
                       <div className="absolute inset-0 bg-[#BC3F1C]/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     </div>
@@ -872,8 +916,19 @@ const ArtisanProfile = () => {
         <section className="py-20 md:py-28 lg:py-32 bg-white border-t border-[#1a1a1a]/5">
           <div className="max-w-4xl mx-auto px-5 md:px-8 text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#BC3F1C]/10 text-[#BC3F1C] mb-8 md:mb-10">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6 md:w-7 md:h-7">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.48 4.48 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="w-6 h-6 md:w-7 md:h-7"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.48 4.48 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"
+                />
               </svg>
             </div>
             <h3 className="font-serif text-4xl md:text-5xl lg:text-6xl mb-6 md:mb-8 italic leading-tight">

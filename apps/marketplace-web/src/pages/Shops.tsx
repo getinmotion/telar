@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useShopWishlist } from "@/hooks/useShopWishlist";
 import { normalizeCraft } from "@/lib/normalizationUtils";
+import { AllianceSeal } from "@/components/AllianceSeal";
 
 const PAGE_SIZE = 18;
 
@@ -345,10 +346,7 @@ function WorkshopCard({
       {/* Image */}
       <div className="relative aspect-[4/5] bg-muted border border-foreground/10 mb-5 overflow-hidden">
         {imageUrl ? (
-          <Link
-            to={`/tienda/${shop.shopSlug}`}
-            className="block w-full h-full"
-          >
+          <Link to={`/tienda/${shop.shopSlug}`} className="block w-full h-full">
             <img
               src={imageUrl}
               alt={shop.shopName}
@@ -376,6 +374,7 @@ function WorkshopCard({
             className={`w-5 h-5 ${isFavorite ? "fill-primary text-primary" : ""}`}
           />
         </button>
+        <AllianceSeal className="absolute bottom-3 left-3 z-10" />
       </div>
 
       {/* Meta */}
