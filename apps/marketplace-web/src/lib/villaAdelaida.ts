@@ -12,7 +12,7 @@ export const VILLA_ADELAIDA_AGREEMENT_ID =
   "b7a6d812-5dd7-4d7b-bec4-687d65234f4f";
 
 /** Micrositio con el catálogo filtrado por el convenio. */
-export const VILLA_ADELAIDA_MICROSITIO_URL = "https://cocrea.telar.co/productos";
+export const VILLA_ADELAIDA_MICROSITIO_URL = "https://alianzavillaadelaida.telar.co/productos";
 
 /** Ruta de la sección de la alianza dentro de telar.co. */
 export const VILLA_ADELAIDA_PATH = "/alianza-villa-adelaida";

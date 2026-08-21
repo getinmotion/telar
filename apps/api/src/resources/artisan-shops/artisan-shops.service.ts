@@ -394,7 +394,7 @@ export class ArtisanShopsService {
   /**
    * Verifica que el artesano dueño de la tienda pertenezca al convenio dado.
    *
-   * Los marketplaces por convenio (cocrea.telar.co, …) pasan agreementId para
+   * Los marketplaces por convenio (alianzavillaadelaida.telar.co, …) pasan agreementId para
    * que una URL directa a una tienda de otro convenio no sea visible. Sin
    * agreementId no se aplica ninguna restricción (comportamiento previo).
    */

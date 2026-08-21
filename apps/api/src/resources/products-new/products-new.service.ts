@@ -491,7 +491,7 @@ export class ProductsNewService {
 
   // ============= FILTRO POR CONVENIO (agreement) =============
   //
-  // Los marketplaces por convenio (cocrea.telar.co, …) mandan agreementId para
+  // Los marketplaces por convenio (alianzavillaadelaida.telar.co, …) mandan agreementId para
   // ver solo los productos de artesanos inscritos en ese convenio. Sin
   // agreementId no se aplica ninguna restricción (comportamiento previo).
 

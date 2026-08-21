@@ -1,6 +1,6 @@
 services:
   # ========================================
-  # Marketplace Web (React) — cocrea.telar.co → :3002
+  # Marketplace Web (React) — alianzavillaadelaida.telar.co → :3002
   #
   # OJO: marketplace-web es un build estático de Vite. Las VITE_* se hornean
   # en el bundle EN TIEMPO DE BUILD, no se leen del contenedor. Por eso aquí no

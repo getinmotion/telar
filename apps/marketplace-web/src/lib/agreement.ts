@@ -5,7 +5,7 @@
  * `agreementId` en las llamadas públicas: la API solo devuelve productos y
  * talleres de artesanos inscritos en ese convenio.
  *
- * Cada despliegue apunta a un convenio distinto (telar.co, cocrea.telar.co, …).
+ * Cada despliegue apunta a un convenio distinto (telar.co, alianzavillaadelaida.telar.co, …).
  * Si la variable queda vacía el backend NO filtra y se muestran los productos
  * de todos los convenios — de ahí el aviso en consola.
  */

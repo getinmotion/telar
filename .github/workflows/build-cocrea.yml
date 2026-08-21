@@ -1,6 +1,6 @@
 name: Build & Push Cocrea Image
 
-# Construye la imagen del marketplace para cocrea.telar.co y la publica como
+# Construye la imagen del marketplace para alianzavillaadelaida.telar.co y la publica como
 # ghcr.io/getinmotion/gim-marketplace-web:cocrea — que es la que sirve el
 # docker-compose de experiments/cocrea.
 #
@@ -11,6 +11,8 @@ name: Build & Push Cocrea Image
 # Se dispara a mano desde la pestaña Actions de GitHub ("Run workflow"),
 # porque el despliegue de Cocrea no va atado a ninguna rama.
 
+#
+# NOTA: El dominio anterior cocrea.telar.co redirige 301 al nuevo dominio.
 on:
   workflow_dispatch:
     inputs:
