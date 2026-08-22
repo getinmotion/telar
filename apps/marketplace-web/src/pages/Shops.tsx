@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useShopWishlist } from "@/hooks/useShopWishlist";
 import { normalizeCraft } from "@/lib/normalizationUtils";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 
 const PAGE_SIZE = 18;
 
@@ -21,6 +22,7 @@ interface Shop {
   region?: string;
   featured: boolean;
   productCount: number;
+  agreementId?: string | null;
 }
 
 type SortOption = "relevance" | "name_asc" | "recent";
@@ -68,6 +70,7 @@ const Shops = () => {
           region: s.region,
           featured: s.featured,
           productCount: 0,
+          agreementId: (s as any).agreementId ?? null,
         })),
       );
       setLoading(false);
@@ -374,10 +377,7 @@ function WorkshopCard({
       {/* Image */}
       <div className="relative aspect-[4/5] bg-[#e5e1d8] mb-5 overflow-hidden">
         {imageUrl ? (
-          <Link
-            to={`/tienda/${shop.shopSlug}`}
-            className="block w-full h-full"
-          >
+          <Link to={`/tienda/${shop.shopSlug}`} className="block w-full h-full">
             <img
               src={imageUrl}
               alt={shop.shopName}
@@ -405,6 +405,10 @@ function WorkshopCard({
             className={`w-5 h-5 ${isFavorite ? "fill-primary text-primary" : ""}`}
           />
         </button>
+        <VillaAdelaidaBadge
+          product={{ agreementId: shop.agreementId }}
+          className="absolute bottom-3 left-3 z-10"
+        />
       </div>
 
       {/* Meta */}
