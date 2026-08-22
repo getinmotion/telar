@@ -31,6 +31,7 @@ import {
   Heart,
   ArrowRight,
 } from "lucide-react";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 
 // ── Featured editorial story — Cauca / Agroarte ─────
 const CAUCA_FEATURED_PRODUCT_ID = "963a11d1-98a2-480e-993c-c722b1f248de";
@@ -437,6 +438,10 @@ const GiftCards = () => {
                     >
                       <Heart className="w-5 h-5" />
                     </button>
+                    <VillaAdelaidaBadge
+                      product={{ agreementId: (product as any).agreementId }}
+                      className="absolute bottom-3 left-3 z-10"
+                    />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] text-[#584237] uppercase tracking-[0.15em]">

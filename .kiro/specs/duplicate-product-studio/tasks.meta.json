@@ -1,0 +1,91 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Crear `apps/artisans-web/src/services/duplicateProduct.ts` con la constante `COPY_PREFIX = \"Copia de \"` y la función `buildDuplicatePayload(product: ProductResponse): CreateProductsNewDto`": [
+      {
+        "executionId": "5037cc14-e3ae-4052-ac71-62541326ba3a",
+        "chatSessionId": "sess_61e486fd-bdc4-4a5b-b205-0198e7710f76",
+        "timestamp": 1787364421833
+      },
+      {
+        "executionId": "5037cc14-e3ae-4052-ac71-62541326ba3a",
+        "chatSessionId": "sess_61e486fd-bdc4-4a5b-b205-0198e7710f76",
+        "timestamp": 1787364559894
+      }
+    ],
+    "1. Implementar mapper puro `buildDuplicatePayload`": [
+      {
+        "executionId": "5037cc14-e3ae-4052-ac71-62541326ba3a",
+        "chatSessionId": "sess_61e486fd-bdc4-4a5b-b205-0198e7710f76",
+        "timestamp": 1787364559966
+      }
+    ],
+    "2.1 Modificar `apps/artisans-web/src/hooks/useProductStudio.ts` para añadir `duplicatingId` y `duplicateProduct`": [
+      {
+        "executionId": "7931e5d0-7582-4cbf-987f-5096fc8cd2fd",
+        "chatSessionId": "sess_d86baf40-2f68-46cb-8927-43d6d1a429ca",
+        "timestamp": 1787364651702
+      },
+      {
+        "executionId": "7931e5d0-7582-4cbf-987f-5096fc8cd2fd",
+        "chatSessionId": "sess_d86baf40-2f68-46cb-8927-43d6d1a429ca",
+        "timestamp": 1787364863204
+      }
+    ],
+    "2. Extender `useProductStudio` con la acción de duplicación": [
+      {
+        "executionId": "7931e5d0-7582-4cbf-987f-5096fc8cd2fd",
+        "chatSessionId": "sess_d86baf40-2f68-46cb-8927-43d6d1a429ca",
+        "timestamp": 1787364863272
+      }
+    ],
+    "3. Refactor de la Product_Card y nuevo Duplicate_Button en `ProductStudioPage`": [
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787364882281
+      },
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787365127615
+      }
+    ],
+    "3.1 Refactorizar la Product_Card en `apps/artisans-web/src/pages/admin/ProductStudioPage.tsx` de `<button>` a `<div role=\"button\" tabIndex={0}>`": [
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787364885187
+      },
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787364928861
+      }
+    ],
+    "3.2 Añadir el `Duplicate_Button` dentro de la Product_Card en `ProductStudioPage.tsx`": [
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787364931791
+      },
+      {
+        "executionId": "961cff9b-44e1-444e-b78f-00a485217b0b",
+        "chatSessionId": "sess_4961640a-e8dd-485d-a2d9-cee4897a0ee8",
+        "timestamp": 1787365127541
+      }
+    ],
+    "4. Checkpoint final - Verificar build y tipos": [
+      {
+        "executionId": "337e7383-a8bf-476a-a4db-078df2be8eb6",
+        "chatSessionId": "sess_9ed533f5-d601-47e2-9e61-55bc3118fa49",
+        "timestamp": 1787365141596
+      },
+      {
+        "executionId": "337e7383-a8bf-476a-a4db-078df2be8eb6",
+        "chatSessionId": "sess_9ed533f5-d601-47e2-9e61-55bc3118fa49",
+        "timestamp": 1787365226250
+      }
+    ]
+  }
+}

@@ -21,6 +21,7 @@ import {
   type ProductFeatured,
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 import { cn } from "@/lib/utils";
 import { FALLBACK_BLOG_POSTS } from "@/datafallback/fallbackBlogPosts";
 import type { BlogPost } from "@/services/blog-posts.actions";
@@ -58,10 +59,18 @@ const FALLBACK_HISTORIAS_SECTIONS: CmsSection[] = [
       kicker: "Navegar el archivo",
       title: "Explorar por relato",
       cards: [
-        { title: "Artesanos",   subtitle: "Vida y Oficio",          href: "/tiendas"     },
-        { title: "Territorios", subtitle: "Contexto Cultural",      href: "/territorios" },
-        { title: "Técnicas",    subtitle: "Proceso y Conocimiento", href: "/tecnicas"    },
-        { title: "Piezas",      subtitle: "Origen de Objetos",      href: "/productos"   },
+        { title: "Artesanos", subtitle: "Vida y Oficio", href: "/tiendas" },
+        {
+          title: "Territorios",
+          subtitle: "Contexto Cultural",
+          href: "/territorios",
+        },
+        {
+          title: "Técnicas",
+          subtitle: "Proceso y Conocimiento",
+          href: "/tecnicas",
+        },
+        { title: "Piezas", subtitle: "Origen de Objetos", href: "/productos" },
       ],
     },
     createdAt: "",
@@ -120,9 +129,9 @@ const FALLBACK_HISTORIAS_SECTIONS: CmsSection[] = [
       titleLineTop: "Cada pieza tiene una historia.",
       titleLineBottom: "Cada historia, un territorio.",
       ctas: [
-        { label: "Explorar piezas",  href: "/productos",   variant: "primary" },
-        { label: "Ver territorios",  href: "/territorios", variant: "outline" },
-        { label: "Conocer talleres", href: "/tiendas",     variant: "outline" },
+        { label: "Explorar piezas", href: "/productos", variant: "primary" },
+        { label: "Ver territorios", href: "/territorios", variant: "outline" },
+        { label: "Conocer talleres", href: "/tiendas", variant: "outline" },
       ],
     },
     createdAt: "",
@@ -136,22 +145,34 @@ const Historias = () => {
   const [products, setProducts] = useState<ProductFeatured[]>([]);
   const { data: cmsSections } = useCmsSections("historias");
   const sections =
-    cmsSections && cmsSections.length > 0 ? cmsSections : FALLBACK_HISTORIAS_SECTIONS;
+    cmsSections && cmsSections.length > 0
+      ? cmsSections
+      : FALLBACK_HISTORIAS_SECTIONS;
   const heroSection = sections.find((s) => s.type === "historias_hero");
-  const storyTypesSection = sections.find((s) => s.type === "historias_story_types_grid");
+  const storyTypesSection = sections.find(
+    (s) => s.type === "historias_story_types_grid",
+  );
   const productsHeaderSection = sections.find(
-    (s) => s.type === "home_section_header" && s.payload?.slot === "historias_products",
+    (s) =>
+      s.type === "home_section_header" &&
+      s.payload?.slot === "historias_products",
   );
-  const capsuleSection = sections.find((s) => s.type === "historias_capsule_quote");
+  const capsuleSection = sections.find(
+    (s) => s.type === "historias_capsule_quote",
+  );
   const discoverHeaderSection = sections.find(
-    (s) => s.type === "home_section_header" && s.payload?.slot === "historias_discover",
+    (s) =>
+      s.type === "home_section_header" &&
+      s.payload?.slot === "historias_discover",
   );
-  const finalCtaSection = sections.find((s) => s.type === "historias_final_cta");
+  const finalCtaSection = sections.find(
+    (s) => s.type === "historias_final_cta",
+  );
 
   useEffect(() => {
     getProductsNew({ page: 1, limit: 8 })
       .then((res) => {
-        const d = Array.isArray(res) ? res : res.data ?? [];
+        const d = Array.isArray(res) ? res : (res.data ?? []);
         setProducts(d as ProductFeatured[]);
       })
       .catch(() => {});
@@ -164,7 +185,8 @@ const Historias = () => {
     return FALLBACK_BLOG_POSTS;
   }, [data]);
 
-  const total = typeof data?.total === 'number' ? data.total : FALLBACK_BLOG_POSTS.length;
+  const total =
+    typeof data?.total === "number" ? data.total : FALLBACK_BLOG_POSTS.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   // Split articles for featured grid (first 3) + rest
@@ -299,7 +321,9 @@ const Historias = () => {
             </section>
 
             {/* EXPLORAR POR RELATO (CMS) */}
-            {storyTypesSection && <CmsSectionRenderer section={storyTypesSection} />}
+            {storyTypesSection && (
+              <CmsSectionRenderer section={storyTypesSection} />
+            )}
 
             {/* IMMERSIVE DARK BLOCK — GRAN RELATO */}
             {featured && (
@@ -355,7 +379,7 @@ const Historias = () => {
                         to={`/product/${product.id}`}
                         className="group space-y-4"
                       >
-                        <div className="aspect-square overflow-hidden bg-[#e5e1d8]">
+                        <div className="aspect-square overflow-hidden bg-[#e5e1d8] relative">
                           {img && (
                             <img
                               src={img}
@@ -363,6 +387,12 @@ const Historias = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           )}
+                          <VillaAdelaidaBadge
+                            product={{
+                              agreementId: (product as any).agreementId,
+                            }}
+                            className="absolute bottom-2 left-2 z-10"
+                          />
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-serif text-lg leading-tight group-hover:text-[#ec6d13] transition-colors line-clamp-2">

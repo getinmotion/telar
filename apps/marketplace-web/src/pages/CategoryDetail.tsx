@@ -13,8 +13,10 @@ import {
 } from "@/services/products-new.actions";
 import { formatCurrency } from "@/lib/currencyUtils";
 import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ── Editorial data per category (visual content that doesn't come from API) ──
 interface CategoryEditorial {
@@ -39,7 +41,10 @@ const CATEGORY_EDITORIAL: Record<string, CategoryEditorial> = {
       "San Jacinto, la “tierra de la hamaca grande”, es cuna del telar vertical heredado del Reino Finzenú. Sus tejedoras transforman el algodón en hamacas y caminos de mesa al ritmo de gaitas y cumbia.",
     storyCTAs: [
       { label: "Conoce la historia", href: "/territorio/san-jacinto" },
-      { label: "Explorar piezas de San Jacinto", href: "/territorio/san-jacinto" },
+      {
+        label: "Explorar piezas de San Jacinto",
+        href: "/territorio/san-jacinto",
+      },
     ],
   },
   "joyeria-y-accesorios": {
@@ -173,7 +178,9 @@ const CategoryDetail = () => {
   const [products, setProducts] = useState<ProductFeatured[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(
+    null,
+  );
   const [filters, setFilters] = useState<CategoryFilterState>({
     technique: null,
     material: null,
@@ -266,9 +273,7 @@ const CategoryDetail = () => {
       [key]: prev[key] === value ? null : value,
     }));
     setActiveFilterChips((prev) =>
-      prev.includes(value)
-        ? prev.filter((c) => c !== value)
-        : [...prev, value],
+      prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value],
     );
   };
 
@@ -590,9 +595,7 @@ const CategoryDetail = () => {
       <section className="max-w-[1400px] mx-auto px-6 mb-32">
         <div className="flex justify-between items-end mb-12">
           <div>
-            <h2 className="font-serif text-4xl mb-2">
-              Talleres Destacados
-            </h2>
+            <h2 className="font-serif text-4xl mb-2">Talleres Destacados</h2>
             <p className="text-charcoal/50 text-sm font-medium font-sans">
               Maestros del oficio y la tradición artesanal.
             </p>
@@ -611,7 +614,14 @@ const CategoryDetail = () => {
           {(() => {
             const shopsMap = new Map<
               string,
-              { shopId: string; storeName: string; storeSlug: string; logoUrl?: string; department?: string }
+              {
+                shopId: string;
+                storeName: string;
+                storeSlug: string;
+                logoUrl?: string;
+                department?: string;
+                agreementId?: string | null;
+              }
             >();
             products.forEach((p) => {
               if (p.shopId && !shopsMap.has(p.shopId)) {
@@ -621,6 +631,7 @@ const CategoryDetail = () => {
                   storeSlug: p.storeSlug,
                   logoUrl: p.logoUrl,
                   department: p.department,
+                  agreementId: (p as any).agreementId ?? null,
                 });
               }
             });
@@ -645,7 +656,7 @@ const CategoryDetail = () => {
                 to={`/artesano/${shop.storeSlug}`}
                 className="bg-white p-8 rounded-sm border border-primary/10 hover:shadow-xl transition-all cursor-pointer group"
               >
-                <div className="w-full aspect-square bg-[#e5e1d8] rounded-sm mb-8 overflow-hidden">
+                <div className="w-full aspect-square bg-[#e5e1d8] rounded-sm mb-8 overflow-hidden relative">
                   {shop.logoUrl && (
                     <img
                       src={shop.logoUrl}
@@ -653,6 +664,10 @@ const CategoryDetail = () => {
                       className="w-full h-full object-cover"
                     />
                   )}
+                  <VillaAdelaidaBadge
+                    product={{ agreementId: shop.agreementId }}
+                    className="absolute bottom-2 left-2 z-10"
+                  />
                 </div>
                 <h3 className="font-bold text-xl mb-1 font-sans">
                   {shop.storeName}
@@ -707,10 +722,7 @@ function ProductNewCard({
 
   return (
     <div className={className}>
-      <Link
-        to={`/product/${product.id}`}
-        className="group block"
-      >
+      <Link to={`/product/${product.id}`} className="group block">
         {/* Image */}
         <div className="relative aspect-[3/4] bg-[#e5e1d8] mb-6 rounded-sm overflow-hidden">
           {imageUrl ? (
@@ -744,6 +756,10 @@ function ProductNewCard({
           <button className="absolute top-4 right-4 bg-white/80 hover:bg-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
             <Heart className="w-4 h-4 text-charcoal" />
           </button>
+          <VillaAdelaidaBadge
+            product={{ agreementId: (product as any).agreementId }}
+            className="absolute bottom-3 left-3 z-10"
+          />
         </div>
 
         {/* Info */}
