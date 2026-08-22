@@ -381,6 +381,32 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({
     await updateArtisanShop(shop.id, { logoUrl: "" } as any);
   };
 
+  // ─── Banner upload state ───────────────────────────────────────────────────────
+  const [bannerUrl, setBannerUrl] = useState(shop.bannerUrl ?? "");
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  useEffect(() => {
+    setBannerUrl(shop.bannerUrl ?? "");
+  }, [shop.bannerUrl]);
+
+  const handleBannerFile = async (file: File) => {
+    setUploadingBanner(true);
+    try {
+      const r = await uploadImage(file, UploadFolder.SHOPS);
+      setBannerUrl(r.url);
+      await updateArtisanShop(shop.id, { bannerUrl: r.url } as any);
+    } catch {
+      // Error handled silently
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
+  const handleBannerRemove = async () => {
+    setBannerUrl("");
+    await updateArtisanShop(shop.id, { bannerUrl: "" } as any);
+  };
+
   useEffect(() => {
     setData({
       ...DEFAULT_ARTISAN_PROFILE,
@@ -624,27 +650,27 @@ export const StoreReviewWizard: React.FC<StoreReviewWizardProps> = ({
       const slides = s.heroConfig?.slides ?? [];
       return (
         <ConfigPanel title="Portada">
-          <Field
-            label="Banner"
-            value={
-              shop.bannerUrl ? (
-                <img
-                  src={shop.bannerUrl}
-                  alt="banner"
-                  className="max-h-40 rounded-lg object-cover"
-                />
-              ) : undefined
-            }
-          />
+          <div className="border-b border-slate-100 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-2">
+              Banner
+            </p>
+            <div className="w-full max-w-[300px]">
+              <ImageUploadSlot
+                label="Banner de portada"
+                hint="Imagen horizontal (16:9)"
+                url={bannerUrl}
+                uploading={uploadingBanner}
+                onFile={handleBannerFile}
+                onRemove={handleBannerRemove}
+                aspect="aspect-video"
+                icon="image"
+              />
+            </div>
+          </div>
           <Field
             label="Slides del hero"
             value={slides.length > 0 ? `${slides.length} slide(s)` : undefined}
           />
-          {editable && (
-            <p className="py-2.5 text-[11px] text-slate-400">
-              Banner y slides se editan desde el portal de la tienda.
-            </p>
-          )}
         </ConfigPanel>
       );
     }

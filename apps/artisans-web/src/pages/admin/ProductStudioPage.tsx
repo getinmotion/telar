@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Store,
   Package,
@@ -9,36 +9,47 @@ import {
   ArrowLeft,
   ChevronLeft,
   Plus,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useProductStudio } from '@/hooks/useProductStudio';
-import { useShopRailFilters } from '@/hooks/useShopRailFilters';
-import { StudioShopRail } from '@/components/studio/StudioShopRail';
-import { ProductReviewWizard } from '@/components/studio/ProductReviewWizard';
-import { ModerationActionBar } from '@/components/moderation/ModerationActionBar';
-import { ReadinessPanel } from '@/components/studio/ReadinessPanel';
-import { computeProductReadiness } from '@/components/studio/readiness';
-import type { ModerationAction, StudioShop } from '@/hooks/useProductStudio';
-import type { NewWizardState } from '@/components/shop/new-product-wizard/hooks/useNewWizardState';
-import { buildTestProductState, type InjectVariant } from '@/components/studio/test-data/buildTestProduct';
+  Copy,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useProductStudio } from "@/hooks/useProductStudio";
+import { useShopRailFilters } from "@/hooks/useShopRailFilters";
+import { StudioShopRail } from "@/components/studio/StudioShopRail";
+import { ProductReviewWizard } from "@/components/studio/ProductReviewWizard";
+import { ModerationActionBar } from "@/components/moderation/ModerationActionBar";
+import { ReadinessPanel } from "@/components/studio/ReadinessPanel";
+import { computeProductReadiness } from "@/components/studio/readiness";
+import type { ModerationAction, StudioShop } from "@/hooks/useProductStudio";
+import type { NewWizardState } from "@/components/shop/new-product-wizard/hooks/useNewWizardState";
+import {
+  buildTestProductState,
+  type InjectVariant,
+} from "@/components/studio/test-data/buildTestProduct";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
-const NAVY   = '#142239';
-const ORANGE = '#ec6d13';
-const GOLDEN = '#c29200';
-const GREEN  = '#166534';
+const NAVY = "#142239";
+const ORANGE = "#ec6d13";
+const GOLDEN = "#c29200";
+const GREEN = "#166534";
 
 // ─── Status config ──────────────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  draft:               { label: 'Borrador',            color: '#6b7280', bg: '#f3f4f6' },
-  pending_moderation:  { label: 'Pendiente',           color: ORANGE,    bg: '#fff7ed' },
-  changes_requested:   { label: 'Con cambios',         color: GOLDEN,    bg: '#fffbeb' },
-  approved:            { label: 'Aprobado',            color: GREEN,     bg: '#f0fdf4' },
-  approved_with_edits: { label: 'Aprobado (ajustado)', color: GREEN,     bg: '#f0fdf4' },
-  rejected:            { label: 'No publicado',        color: '#dc2626', bg: '#fef2f2' },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
+  draft: { label: "Borrador", color: "#6b7280", bg: "#f3f4f6" },
+  pending_moderation: { label: "Pendiente", color: ORANGE, bg: "#fff7ed" },
+  changes_requested: { label: "Con cambios", color: GOLDEN, bg: "#fffbeb" },
+  approved: { label: "Aprobado", color: GREEN, bg: "#f0fdf4" },
+  approved_with_edits: {
+    label: "Aprobado (ajustado)",
+    color: GREEN,
+    bg: "#f0fdf4",
+  },
+  rejected: { label: "No publicado", color: "#dc2626", bg: "#fef2f2" },
 };
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
@@ -46,8 +57,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
   return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
-      style={{ color: cfg.color, background: cfg.bg }}>
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+      style={{ color: cfg.color, background: cfg.bg }}
+    >
       {cfg.label}
     </span>
   );
@@ -57,7 +70,9 @@ function StatusBadge({ status }: { status: string }) {
 function seedFromShop(shop: StudioShop): Partial<NewWizardState> {
   return {
     workshopName: shop.shopName,
-    ...(shop.region ? { department: shop.region, shippingOrigin: shop.region } : {}),
+    ...(shop.region
+      ? { department: shop.region, shippingOrigin: shop.region }
+      : {}),
   };
 }
 
@@ -65,18 +80,32 @@ function seedFromShop(shop: StudioShop): Partial<NewWizardState> {
 
 export default function ProductStudioPage() {
   const {
-    shops, loadingShops, fetchAllShops,
-    selectedShop, selectShop,
-    products, loadingProducts, productCounts,
-    selectedProduct, loadingProduct, selectProduct, clearProduct,
-    saving, updateProduct, createProduct,
-    moderating, moderateProductAction,
-    taxonomy, loadTaxonomy,
+    shops,
+    loadingShops,
+    fetchAllShops,
+    selectedShop,
+    selectShop,
+    products,
+    loadingProducts,
+    productCounts,
+    selectedProduct,
+    loadingProduct,
+    selectProduct,
+    clearProduct,
+    saving,
+    updateProduct,
+    createProduct,
+    moderating,
+    moderateProductAction,
+    taxonomy,
+    loadTaxonomy,
+    duplicateProduct,
+    duplicatingId,
   } = useProductStudio();
 
   const rail = useShopRailFilters(shops);
-  const [productStatusFilter, setProductStatusFilter] = useState('all');
-  const [productSearch, setProductSearch] = useState('');
+  const [productStatusFilter, setProductStatusFilter] = useState("all");
+  const [productSearch, setProductSearch] = useState("");
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -89,8 +118,8 @@ export default function ProductStudioPage() {
   const deepLinkedRef = useRef(false);
   useEffect(() => {
     if (deepLinkedRef.current || shops.length === 0) return;
-    const shopId = searchParams.get('shopId');
-    const productId = searchParams.get('productId');
+    const shopId = searchParams.get("shopId");
+    const productId = searchParams.get("productId");
     if (!shopId || !productId) return;
     const shop = shops.find((s) => s.id === shopId);
     if (!shop) return;
@@ -101,10 +130,10 @@ export default function ProductStudioPage() {
 
   const filteredProducts = useMemo(() => {
     let list = products;
-    if (productStatusFilter !== 'all') {
+    if (productStatusFilter !== "all") {
       list = list.filter((p) =>
-        productStatusFilter === 'approved'
-          ? p.status === 'approved' || p.status === 'approved_with_edits'
+        productStatusFilter === "approved"
+          ? p.status === "approved" || p.status === "approved_with_edits"
           : p.status === productStatusFilter,
       );
     }
@@ -121,7 +150,7 @@ export default function ProductStudioPage() {
     const idx = products.findIndex((p) => p.id === selectedProduct.id);
     if (idx === -1) return null;
     for (let i = idx + dir; i >= 0 && i < products.length; i += dir) {
-      if (products[i].status === 'pending_moderation') return products[i].id;
+      if (products[i].status === "pending_moderation") return products[i].id;
     }
     return null;
   };
@@ -139,23 +168,31 @@ export default function ProductStudioPage() {
   };
 
   // Datos de prueba para la tienda seleccionada: solo rellena el formulario, no guarda.
-  const handleInject = async (variant: InjectVariant): Promise<Partial<NewWizardState> | null> => {
+  const handleInject = async (
+    variant: InjectVariant,
+  ): Promise<Partial<NewWizardState> | null> => {
     if (!selectedShop) return null;
     if (taxonomy.crafts.length === 0 && taxonomy.categories.length === 0) {
-      toast.error('La taxonomía aún no cargó; intenta de nuevo en unos segundos');
+      toast.error(
+        "La taxonomía aún no cargó; intenta de nuevo en unos segundos",
+      );
       return null;
     }
     try {
-      const patch = await buildTestProductState({ variant, shop: selectedShop, taxonomy });
+      const patch = await buildTestProductState({
+        variant,
+        shop: selectedShop,
+        taxonomy,
+      });
       toast.success(
-        variant === 'realista'
-          ? 'Datos de prueba inyectados según el oficio de la tienda'
+        variant === "realista"
+          ? "Datos de prueba inyectados según el oficio de la tienda"
           : 'Ficha "próximamente" inyectada',
       );
       return patch;
     } catch (err) {
-      console.error('[ProductStudio] Error inyectando datos de prueba:', err);
-      toast.error('No se pudieron generar los datos de prueba');
+      console.error("[ProductStudio] Error inyectando datos de prueba:", err);
+      toast.error("No se pudieron generar los datos de prueba");
       return null;
     }
   };
@@ -168,58 +205,94 @@ export default function ProductStudioPage() {
   };
 
   return (
-    <div className="flex h-full overflow-hidden" style={{ fontFamily: "'Manrope', sans-serif" }}>
-
+    <div
+      className="flex h-full overflow-hidden"
+      style={{ fontFamily: "'Manrope', sans-serif" }}
+    >
       {/* ── Sidebar tiendas (rail compartido, colapsable) ────────────────── */}
       <StudioShopRail
         title="Product Studio"
         controller={rail}
         selectedId={selectedShop?.id ?? null}
-        onSelect={(s) => { setCreating(false); selectShop(s); }}
+        onSelect={(s) => {
+          setCreating(false);
+          selectShop(s);
+        }}
         loading={loadingShops}
         showHealth
       />
 
       {/* ── Área principal ────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f0ec]">
-
         {/* Top bar */}
         <header className="flex-shrink-0 flex items-center gap-3 px-5 py-3 border-b border-slate-200 bg-white">
           {creating && selectedShop ? (
             <>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setCreating(false)}
-                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setCreating(false)}
+                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 {selectedShop.shopName}
               </Button>
               <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-              <span className="text-sm font-semibold text-slate-800">Nuevo producto</span>
-              <span className="ml-auto text-xs text-slate-400">Se guardará como borrador de esta tienda</span>
+              <span className="text-sm font-semibold text-slate-800">
+                Nuevo producto
+              </span>
+              <span className="ml-auto text-xs text-slate-400">
+                Se guardará como borrador de esta tienda
+              </span>
             </>
           ) : selectedProduct ? (
             <>
-              <Button type="button" variant="ghost" size="sm" onClick={clearProduct}
-                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearProduct}
+                className="gap-1 text-sm text-slate-500 hover:text-slate-900 px-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
-                {selectedShop?.shopName ?? 'Tienda'}
+                {selectedShop?.shopName ?? "Tienda"}
               </Button>
               <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-              <span className="text-sm font-semibold text-slate-800 truncate max-w-xs">{selectedProduct.name}</span>
+              <span className="text-sm font-semibold text-slate-800 truncate max-w-xs">
+                {selectedProduct.name}
+              </span>
               <StatusBadge status={selectedProduct.status} />
               {selectedShop?.agreementName && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
-                  title="Convenio">
-                  <span className="material-symbols-outlined text-[12px]">handshake</span>
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                  title="Convenio"
+                >
+                  <span className="material-symbols-outlined text-[12px]">
+                    handshake
+                  </span>
                   {selectedShop.agreementName}
                 </span>
               )}
               <div className="ml-auto flex items-center gap-1.5">
-                <Button type="button" variant="outline" size="sm" disabled={!adjacentPendingId(-1)}
-                  onClick={() => goAdjacentPending(-1)} className="h-7 gap-1 text-xs">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!adjacentPendingId(-1)}
+                  onClick={() => goAdjacentPending(-1)}
+                  className="h-7 gap-1 text-xs"
+                >
                   <ChevronLeft className="h-3.5 w-3.5" /> Anterior
                 </Button>
-                <Button type="button" variant="outline" size="sm" disabled={!adjacentPendingId(1)}
-                  onClick={() => goAdjacentPending(1)} className="h-7 gap-1 text-xs">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!adjacentPendingId(1)}
+                  onClick={() => goAdjacentPending(1)}
+                  className="h-7 gap-1 text-xs"
+                >
                   Siguiente <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -227,35 +300,54 @@ export default function ProductStudioPage() {
           ) : selectedShop ? (
             <>
               <Store className="h-4 w-4 text-slate-400" />
-              <span className="text-sm font-semibold text-slate-800">{selectedShop.shopName}</span>
-              {selectedShop.region && <span className="text-xs text-slate-400">{selectedShop.region}</span>}
-              <span className="ml-auto text-xs text-slate-500">
-                {productCounts.total} producto{productCounts.total !== 1 ? 's' : ''}
+              <span className="text-sm font-semibold text-slate-800">
+                {selectedShop.shopName}
               </span>
-              <Button type="button" size="sm" onClick={() => setCreating(true)}
+              {selectedShop.region && (
+                <span className="text-xs text-slate-400">
+                  {selectedShop.region}
+                </span>
+              )}
+              <span className="ml-auto text-xs text-slate-500">
+                {productCounts.total} producto
+                {productCounts.total !== 1 ? "s" : ""}
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setCreating(true)}
                 className="h-7 gap-1 text-xs font-semibold text-white hover:opacity-90"
-                style={{ background: ORANGE }}>
+                style={{ background: ORANGE }}
+              >
                 <Plus className="h-3.5 w-3.5" /> Nuevo producto
               </Button>
             </>
           ) : (
-            <span className="text-sm text-slate-400">Selecciona una tienda para comenzar</span>
+            <span className="text-sm text-slate-400">
+              Selecciona una tienda para comenzar
+            </span>
           )}
         </header>
 
         {/* Body */}
         <div className="flex-1 overflow-hidden">
-
           {/* Empty state */}
           {!selectedShop && (
             <div className="flex h-full items-center justify-center">
               <div className="text-center space-y-3">
-                <div className="mx-auto h-16 w-16 rounded-2xl flex items-center justify-center"
-                  style={{ background: `${NAVY}15` }}>
+                <div
+                  className="mx-auto h-16 w-16 rounded-2xl flex items-center justify-center"
+                  style={{ background: `${NAVY}15` }}
+                >
                   <Package className="h-8 w-8" style={{ color: NAVY }} />
                 </div>
-                <p className="text-sm font-semibold text-slate-700">Product Studio</p>
-                <p className="text-xs text-slate-400 max-w-xs">Selecciona una tienda en la barra lateral para ver y gestionar sus productos.</p>
+                <p className="text-sm font-semibold text-slate-700">
+                  Product Studio
+                </p>
+                <p className="text-xs text-slate-400 max-w-xs">
+                  Selecciona una tienda en la barra lateral para ver y gestionar
+                  sus productos.
+                </p>
               </div>
             </div>
           )}
@@ -283,29 +375,54 @@ export default function ProductStudioPage() {
               <div className="flex-shrink-0 px-5 py-3 border-b border-slate-100 bg-white flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[180px]">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                  <Input type="text" placeholder="Buscar producto…" value={productSearch}
+                  <Input
+                    type="text"
+                    placeholder="Buscar producto…"
+                    value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="pl-8 h-8 text-xs border-slate-200 focus-visible:ring-blue-400" />
+                    className="pl-8 h-8 text-xs border-slate-200 focus-visible:ring-blue-400"
+                  />
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
-                  {([
-                    ['all', 'Todos', productCounts.total],
-                    ['pending_moderation', 'Pendientes', productCounts.pending],
-                    ['approved', 'Aprobados', productCounts.approved],
-                    ['changes_requested', 'Con cambios', productCounts.changes_requested],
-                    ['rejected', 'Rechazados', productCounts.rejected],
-                  ] as [string, string, number][]).map(([val, label, count]) => (
-                    <Button key={val} type="button" size="sm" onClick={() => setProductStatusFilter(val)}
+                  {(
+                    [
+                      ["all", "Todos", productCounts.total],
+                      [
+                        "pending_moderation",
+                        "Pendientes",
+                        productCounts.pending,
+                      ],
+                      ["approved", "Aprobados", productCounts.approved],
+                      [
+                        "changes_requested",
+                        "Con cambios",
+                        productCounts.changes_requested,
+                      ],
+                      ["rejected", "Rechazados", productCounts.rejected],
+                    ] as [string, string, number][]
+                  ).map(([val, label, count]) => (
+                    <Button
+                      key={val}
+                      type="button"
+                      size="sm"
+                      onClick={() => setProductStatusFilter(val)}
                       className={cn(
-                        'rounded-full h-7 px-3 text-[11px] font-semibold transition-colors',
+                        "rounded-full h-7 px-3 text-[11px] font-semibold transition-colors",
                         productStatusFilter === val
-                          ? 'bg-[#142239] text-white hover:bg-[#1a2d4a]'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                      )}>
+                          ? "bg-[#142239] text-white hover:bg-[#1a2d4a]"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                      )}
+                    >
                       {label}
                       {count > 0 && (
-                        <span className={cn('ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold',
-                          productStatusFilter === val ? 'bg-white/20' : 'bg-slate-200')}>
+                        <span
+                          className={cn(
+                            "ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+                            productStatusFilter === val
+                              ? "bg-white/20"
+                              : "bg-slate-200",
+                          )}
+                        >
                           {count}
                         </span>
                       )}
@@ -323,10 +440,16 @@ export default function ProductStudioPage() {
                 ) : filteredProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 space-y-3">
                     <Package className="h-10 w-10 text-slate-300" />
-                    <p className="text-sm text-slate-500">Sin productos en esta vista</p>
-                    <Button type="button" size="sm" onClick={() => setCreating(true)}
+                    <p className="text-sm text-slate-500">
+                      Sin productos en esta vista
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => setCreating(true)}
                       className="gap-1 text-xs font-semibold text-white hover:opacity-90"
-                      style={{ background: ORANGE }}>
+                      style={{ background: ORANGE }}
+                    >
                       <Plus className="h-3.5 w-3.5" /> Nuevo producto
                     </Button>
                   </div>
@@ -334,22 +457,35 @@ export default function ProductStudioPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {filteredProducts.map((product) => {
                       const primaryImage = product.media
-                        ?.filter((m) => m.mediaType === 'image')
+                        ?.filter((m) => m.mediaType === "image")
                         .sort((a, b) => a.displayOrder - b.displayOrder)[0];
                       return (
-                        <button key={product.id} type="button"
+                        <div
+                          key={product.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => selectProduct(product.id)}
-                          className="group rounded-2xl overflow-hidden text-left transition-all"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              selectProduct(product.id);
+                            }
+                          }}
+                          className="group relative rounded-2xl overflow-hidden text-left transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#142239]"
                           style={{
-                            background: 'rgba(255,255,255,0.82)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(255,255,255,0.65)',
-                            boxShadow: '0 4px 12px -2px rgba(0,0,0,0.04)',
-                          }}>
+                            background: "rgba(255,255,255,0.82)",
+                            backdropFilter: "blur(20px)",
+                            border: "1px solid rgba(255,255,255,0.65)",
+                            boxShadow: "0 4px 12px -2px rgba(0,0,0,0.04)",
+                          }}
+                        >
                           <div className="aspect-square bg-slate-100 overflow-hidden">
                             {primaryImage ? (
-                              <img src={primaryImage.mediaUrl} alt={product.name}
-                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              <img
+                                src={primaryImage.mediaUrl}
+                                alt={product.name}
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center">
                                 <Package className="h-8 w-8 text-slate-300" />
@@ -365,7 +501,33 @@ export default function ProductStudioPage() {
                               <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500 transition-colors" />
                             </div>
                           </div>
-                        </button>
+                          <button
+                            type="button"
+                            aria-label="Duplicar producto"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              duplicateProduct(product);
+                            }}
+                            disabled={duplicatingId === product.id}
+                            className={cn(
+                              "absolute top-2 right-2 flex items-center gap-1 rounded-full",
+                              "bg-white/90 backdrop-blur-sm shadow-sm border border-slate-200",
+                              "px-2 py-1 text-xs font-semibold text-slate-700",
+                              "hover:bg-white hover:text-slate-900",
+                              "disabled:opacity-60 disabled:cursor-not-allowed",
+                              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+                              "transition-opacity",
+                            )}
+                          >
+                            {duplicatingId === product.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                            <span className="hidden sm:inline">Duplicar</span>
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -375,42 +537,58 @@ export default function ProductStudioPage() {
           )}
 
           {/* Editor de producto */}
-          {selectedShop && !creating && selectedProduct && !loadingProduct && (() => {
-            const readiness = computeProductReadiness(selectedProduct);
-            const guardedModerate = (action: ModerationAction, comment?: string) => {
-              if (action === 'approve' && !readiness.ready &&
-                  !window.confirm('Faltan requisitos para este producto. ¿Aprobar de todas formas?')) {
-                return;
-              }
-              handleModerate(action, comment);
-            };
-            return (
-              <div className="flex h-full min-h-0">
-                {/* Centro: wizard */}
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="min-h-0 flex-1 overflow-hidden">
-                    <ProductReviewWizard
-                      product={selectedProduct}
-                      shopUserId={selectedShop?.userId}
-                      shopId={selectedShop?.id}
-                      onSave={updateProduct}
-                      saving={saving}
-                    />
+          {selectedShop &&
+            !creating &&
+            selectedProduct &&
+            !loadingProduct &&
+            (() => {
+              const readiness = computeProductReadiness(selectedProduct);
+              const guardedModerate = (
+                action: ModerationAction,
+                comment?: string,
+              ) => {
+                if (
+                  action === "approve" &&
+                  !readiness.ready &&
+                  !window.confirm(
+                    "Faltan requisitos para este producto. ¿Aprobar de todas formas?",
+                  )
+                ) {
+                  return;
+                }
+                handleModerate(action, comment);
+              };
+              return (
+                <div className="flex h-full min-h-0">
+                  {/* Centro: wizard */}
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="min-h-0 flex-1 overflow-hidden">
+                      <ProductReviewWizard
+                        product={selectedProduct}
+                        shopUserId={selectedShop?.userId}
+                        shopId={selectedShop?.id}
+                        onSave={updateProduct}
+                        saving={saving}
+                      />
+                    </div>
                   </div>
+                  {/* Derecha: panel "¿listo para aprobar?" + acciones */}
+                  <aside className="w-80 flex-shrink-0 border-l border-slate-200">
+                    <ReadinessPanel
+                      title="¿Listo para aprobar?"
+                      items={readiness.items}
+                      ready={readiness.ready}
+                    >
+                      <ModerationActionBar
+                        status={selectedProduct.status}
+                        busy={moderating}
+                        onAction={guardedModerate}
+                      />
+                    </ReadinessPanel>
+                  </aside>
                 </div>
-                {/* Derecha: panel "¿listo para aprobar?" + acciones */}
-                <aside className="w-80 flex-shrink-0 border-l border-slate-200">
-                  <ReadinessPanel title="¿Listo para aprobar?" items={readiness.items} ready={readiness.ready}>
-                    <ModerationActionBar
-                      status={selectedProduct.status}
-                      busy={moderating}
-                      onAction={guardedModerate}
-                    />
-                  </ReadinessPanel>
-                </aside>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           {selectedShop && !creating && selectedProduct && loadingProduct && (
             <div className="flex h-full items-center justify-center">

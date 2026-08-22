@@ -266,7 +266,8 @@ export class ArtisanShopsService {
         u.id as user_id_rel,
         u.email as user_email,
         u.email_confirmed_at as user_email_confirmed_at,
-        ag.name as agreement_name
+        ag.name as agreement_name,
+        ap.agreement_id as agreement_id
       FROM ${fromClause}
       ${whereClause}
       ${orderByClause}
@@ -354,6 +355,7 @@ export class ArtisanShopsService {
 
       // Agreement name from artisan_profile → agreements
       (shop as any).agreementName = row.agreement_name ?? null;
+      (shop as any).agreementId = row.agreement_id ?? null;
 
       return shop;
     });
@@ -527,12 +529,54 @@ export class ArtisanShopsService {
       return [];
     }
 
-    // Paso 2: Obtener las tiendas completas con sus relaciones y ordenadas
-    return await this.artisanShopsRepository.find({
-      where: { id: In(shopIds) },
-      relations: ['user', 'activeTheme'],
-      order: { createdAt: 'DESC' },
-      take: limit,
+    // Paso 2: Obtener tiendas completas con agreementId del artisan_profile
+    const placeholders = shopIds
+      .map((_: string, i: number) => `$${i + 1}`)
+      .join(',');
+    const shopsResult = await this.artisanShopsRepository.query(
+      `
+      SELECT s.*,
+        ap.agreement_id as agreement_id
+      FROM shop.artisan_shops s
+      LEFT JOIN artesanos.artisan_profile ap ON ap.user_id = s.user_id
+      WHERE s.id IN (${placeholders})
+      ORDER BY s.created_at DESC
+      `,
+      shopIds,
+    );
+
+    return shopsResult.map((row: any) => {
+      const shop = new ArtisanShop();
+      Object.assign(shop, {
+        id: row.id,
+        userId: row.user_id,
+        shopName: row.shop_name,
+        shopSlug: row.shop_slug,
+        description: row.description,
+        story: row.story,
+        logoUrl: ImageUrlBuilder.buildUrl(row.logo_url),
+        bannerUrl: ImageUrlBuilder.buildUrl(row.banner_url),
+        craftType: row.craft_type,
+        region: row.region,
+        department: row.department,
+        municipality: row.municipality,
+        certifications: row.certifications,
+        contactInfo: row.contact_info,
+        socialLinks: row.social_links,
+        active: row.active,
+        featured: row.featured,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        publishStatus: row.publish_status,
+        marketplaceApproved: row.marketplace_approved,
+        artisanProfile: ImageUrlBuilder.transformObject(row.artisan_profile),
+        brandClaim: row.brand_claim,
+        heroConfig: ImageUrlBuilder.transformObject(row.hero_config),
+        aboutContent: row.about_content,
+        contactConfig: row.contact_config,
+      });
+      (shop as any).agreementId = row.agreement_id ?? null;
+      return shop;
     });
   }
 

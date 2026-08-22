@@ -20,6 +20,7 @@ import {
 import { formatCurrency } from "@/lib/currencyUtils";
 import telarHorizontal from "@/assets/telar-horizontal.svg";
 import { HeroSectionV2 } from "@/components/HeroSectionV2";
+import { VillaAdelaidaBadge } from "@/components/VillaAdelaidaBadge";
 // import { CmsSectionRenderer } from "@/components/cms/CmsSectionRenderer";
 
 // ── Seeded random for consistent daily shuffle ──
@@ -52,7 +53,7 @@ const Index = () => {
   useEffect(() => {
     getProductsNew({ page: 1, limit: 50 })
       .then((res) => {
-        const data = Array.isArray(res) ? res : res.data ?? [];
+        const data = Array.isArray(res) ? res : (res.data ?? []);
         setProducts(data as ProductFeatured[]);
       })
       .catch(() => setProducts([]))
@@ -126,8 +127,8 @@ const Index = () => {
       <div className="min-h-screen bg-[#f9f7f2] text-[#2c2c2c] font-sans selection:bg-[#7a8a7a] selection:text-white">
         {/* ═══════════════ HERO CAROUSEL (CMS) ═══════════════ */}
 
-          <HeroSectionV2 />
-      
+        <HeroSectionV2 />
+
         {/* ═══════════════ VALUE PROPS (CMS) ═══════════════ */}
         {/* {valuePropsSection && <CmsSectionRenderer section={valuePropsSection} />} */}
 
@@ -224,6 +225,12 @@ const Index = () => {
                           ) : (
                             <div className="w-full h-full bg-[#e5e1d8]" />
                           )}
+                          <VillaAdelaidaBadge
+                            product={{
+                              agreementId: (product as any).agreementId,
+                            }}
+                            className="absolute bottom-3 left-3 z-10"
+                          />
                         </div>
                         <div className="space-y-3">
                           <span className="inline-block bg-[#ec6d13]/10 text-[#ec6d13] text-[9px] uppercase tracking-widest px-2 py-0.5 mb-2">
@@ -361,7 +368,7 @@ const Index = () => {
             </h2>
             <div className="grid lg:grid-cols-2 gap-20 items-stretch">
               {/* Shop image */}
-              <div className="min-h-[500px] bg-[#e5e1d8] overflow-hidden">
+              <div className="min-h-[500px] bg-[#e5e1d8] overflow-hidden relative">
                 {featuredShop?.bannerUrl ? (
                   <img
                     src={featuredShop.bannerUrl}
@@ -375,6 +382,10 @@ const Index = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : null}
+                <VillaAdelaidaBadge
+                  product={{ agreementId: (featuredShop as any)?.agreementId }}
+                  className="absolute bottom-3 left-3 z-10"
+                />
               </div>
               {/* Shop info */}
               <div className="flex flex-col justify-center py-10 space-y-8">
@@ -536,7 +547,7 @@ const Index = () => {
         </section>
 
         {/* ═══════════════ ALIADOS ═══════════════ */}
-       <section className="py-24 border-t border-[#2c2c2c]/10">
+        <section className="py-24 border-t border-[#2c2c2c]/10">
           <div className="max-w-2xl mx-auto px-6 text-center space-y-8">
             <h2 className="text-[10px] font-bold text-[#2c2c2c]/40 uppercase tracking-[0.4em]">
               Aliados

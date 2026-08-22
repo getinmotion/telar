@@ -2,7 +2,7 @@
  * Artisan Shops Types
  * Tipos para el módulo de tiendas artesanales del marketplace
  */
-import type { ArtisanProfileDisplayData } from './artisanProfile.types';
+import type { ArtisanProfileDisplayData } from "./artisanProfile.types";
 
 /**
  * Bloque editable "Acerca de" del taller (proviene de artisan_shops.about_content jsonb).
@@ -70,8 +70,10 @@ export interface ArtisanShop {
   idPoliciesConfig?: string;
   active: boolean;
   featured: boolean;
-  publishStatus: 'draft' | 'published' | 'archived';
+  publishStatus: "draft" | "published" | "archived";
   marketplaceApproved: boolean;
+  agreementId?: string | null;
+  agreementName?: string | null;
   servientregaCoverage?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -88,7 +90,7 @@ export interface ArtisanShopsFilters {
 
   // Filtros booleanos
   active?: boolean;
-  publishStatus?: 'draft' | 'published' | 'archived';
+  publishStatus?: "draft" | "published" | "archived";
   marketplaceApproved?: boolean;
   featured?: boolean;
   hasApprovedProducts?: boolean;
@@ -104,8 +106,8 @@ export interface ArtisanShopsFilters {
   q?: string;
 
   // Ordenamiento
-  sortBy?: 'created_at' | 'shop_name' | 'updated_at';
-  order?: 'ASC' | 'DESC';
+  sortBy?: "created_at" | "shop_name" | "updated_at";
+  order?: "ASC" | "DESC";
 
   // Agreement
   agreementId?: string;
@@ -144,7 +146,7 @@ export interface CreateArtisanShopRequest {
     facebook?: string;
   };
   featured?: boolean;
-  publishStatus?: 'draft' | 'published' | 'archived';
+  publishStatus?: "draft" | "published" | "archived";
 }
 
 /**
