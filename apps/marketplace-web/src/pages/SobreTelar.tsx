@@ -8,10 +8,16 @@ import type { CmsSection } from "@/services/cms-sections.actions";
 // Fotos retiradas: se dejan vacías para que el renderer muestre placeholders
 // hasta contar con imágenes propias de Villa Adelaida.
 const ABOUT_1_URL = "";
-const ABOUT_2_URL =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/villa.jpeg";
-const ARTESANA_TEJIENDO_URL =
-  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/1.jpeg";
+const ABOUT_2_URLS = [
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/villa.jpeg",
+];
+const ARTESANA_TEJIENDO_URLS = [
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/1.jpeg",
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/2.jpeg",
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/3.jpeg",
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/4.jpeg",
+  "https://telar-prod-bucket.s3.us-east-1.amazonaws.com/cocrea/5.jpeg",
+];
 
 /* ── Fallback editorial — se renderiza solo si CMS no responde ────────── */
 const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
@@ -51,7 +57,7 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
         "Becas y residencias dentro del Sistema Nacional de Convocatorias.",
         "Búsqueda y consolidación de alianzas estratégicas con actores públicos, privados y académicos para el desarrollo conjunto de proyectos.",
       ],
-      imageUrl: ABOUT_2_URL,
+      imageUrls: ABOUT_2_URLS,
       imageAlt: "Villa Adelaida, casa patrimonial en Bogotá",
     },
     createdAt: "",
@@ -94,7 +100,7 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
           label:
             "Territorios impactados: Barichara, Buenaventura, Cali, Mompox y Popayán",
         },
-        { value: "+60", label: "Horas del proceso de fortalecimiento" },
+        { value: "+60", label: "Horas por artesano" },
       ],
       note: "En esta iniciativa también participaron el Programa de Escuelas Taller de la Dirección de Estrategia, Desarrollo y Emprendimiento y el Grupo de Patrimonio Cultural Inmaterial del Ministerio de las Culturas, las Artes y los Saberes.",
     },
@@ -115,7 +121,7 @@ const FALLBACK_SOBRE_VA_SECTIONS: CmsSection[] = [
       intro:
         "El proceso de fortalecimiento se desarrolló de manera presencial en cinco territorios, en encuentros con artesanas, artesanos, productores y unidades productivas.",
       bullets: ["Barichara", "Buenaventura", "Cali", "Mompox", "Popayán"],
-      imageUrl: ARTESANA_TEJIENDO_URL,
+      imageUrls: ARTESANA_TEJIENDO_URLS,
       imageAlt: "Sesiones del proceso de fortalecimiento en los territorios",
       overlayKicker: "Sesiones en los territorios",
       overlayTitle: "saberes propios y diseño contemporáneo",

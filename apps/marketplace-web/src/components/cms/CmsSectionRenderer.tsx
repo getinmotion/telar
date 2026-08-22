@@ -11,6 +11,16 @@ import {
   getTechniqueImage,
 } from "@/hooks/useProductImagesByTechnique";
 import { CmsHeroCarousel } from "@/components/cms/CmsHeroCarousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  CarouselDots,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 
 interface Props {
   section: CmsSection;
@@ -898,6 +908,23 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
         </div>
       );
 
+      const autoplayRef = useRef(
+        Autoplay({
+          delay: 5000,
+          stopOnInteraction: false,
+          stopOnMouseEnter: true,
+        }),
+      );
+      const imageUrls: string[] = Array.isArray(p.imageUrls)
+        ? p.imageUrls.filter(
+            (u: unknown): u is string => typeof u === "string" && u.length > 0,
+          )
+        : [];
+      const legacyImageUrl: string | undefined =
+        typeof p.imageUrl === "string" && p.imageUrl ? p.imageUrl : undefined;
+      const hasMultiple = imageUrls.length > 1;
+      const hasCarousel = imageUrls.length > 0;
+
       const imgCol = (
         <div
           className={`relative h-[400px] md:h-[500px] rounded-sm overflow-hidden border border-foreground/10 group ${
@@ -905,9 +932,41 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           }`}
           style={{ backgroundColor: "#FBEFE1" }}
         >
-          {p.imageUrl ? (
+          {hasCarousel ? (
+            <Carousel
+              opts={{ align: "start", loop: hasMultiple }}
+              plugins={hasMultiple ? [autoplayRef.current] : []}
+              className="absolute inset-0 w-full h-full"
+            >
+              <CarouselContent className="h-[400px] md:h-[500px] ml-0">
+                {imageUrls.map((url, idx) => (
+                  <CarouselItem
+                    key={idx}
+                    className="pl-0 basis-full h-[400px] md:h-[500px]"
+                  >
+                    <img
+                      src={url}
+                      alt={p.imageAlt ? `${p.imageAlt} — ${idx + 1}` : ""}
+                      className="w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {hasMultiple && (
+                <>
+                  <CarouselPrevious className="left-3 bg-white/90 border-[#1a1a1a]/10 hover:bg-white z-20" />
+                  <CarouselNext className="right-3 bg-white/90 border-[#1a1a1a]/10 hover:bg-white z-20" />
+                  <CarouselDots className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20" />
+                </>
+              )}
+            </Carousel>
+          ) : legacyImageUrl ? (
             <img
-              src={p.imageUrl}
+              src={legacyImageUrl}
               alt={p.imageAlt || ""}
               className="absolute inset-0 w-full h-full object-cover grayscale-[35%] group-hover:grayscale-0 group-hover:scale-[1.03] transition-all duration-700 ease-out"
               onError={(e) => {
@@ -923,7 +982,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
           )}
           <div className="absolute inset-0 bg-gradient-to-br from-[#27423F]/20 to-[#27423F]/5 -z-10" />
           {(p.statValue || p.statLabel) && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8 pointer-events-none z-10">
               {p.statValue && (
                 <div className="text-5xl md:text-6xl font-bold text-white mb-1 font-serif">
                   {p.statValue}
@@ -937,7 +996,7 @@ export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
             </div>
           )}
           {(p.overlayKicker || p.overlayTitle) && !p.statValue && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1a1a1a]/80 via-[#1a1a1a]/30 to-transparent p-6 md:p-8 pointer-events-none z-10">
               {p.overlayKicker && (
                 <p className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-sans text-white/70 font-bold mb-2">
                   {p.overlayKicker}

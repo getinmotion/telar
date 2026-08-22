@@ -277,7 +277,7 @@ const Index = () => {
                   to="/sobre-villa-adelaida"
                   className="inline-block border border-sage text-sage px-10 py-4 uppercase text-xs tracking-widest hover:bg-sage hover:text-charcoal transition-all"
                 >
-                  Descubrir cómo funciona Villa Adelaida
+                  Descubre Villa Adelaida
                 </Link>
               </div>
             </div>

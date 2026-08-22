@@ -250,9 +250,10 @@ const ProductDetail = () => {
                 </h2>
                 {(shop?.region || product.storeName) && (
                   <p className="text-sm text-[#1a1a1a]/80 italic">
-                    Hecho a mano en {shop?.municipality || shop?.region || "Colombia"}
-                    {shop?.department ? `, ${shop.department}` : ""} por el taller{" "}
-                    {product.storeName}
+                    Hecho a mano en{" "}
+                    {shop?.municipality || shop?.region || "Colombia"}
+                    {shop?.department ? `, ${shop.department}` : ""} por el
+                    taller {product.storeName}
                   </p>
                 )}
                 {product.isCollaboration && product.collaborationName && (
@@ -271,8 +272,8 @@ const ProductDetail = () => {
               </div>
 
               <p className="text-[10px] text-[#1a1a1a]/40 max-w-xs leading-relaxed">
-                Al adquirir esta pieza, usted recibe su pasaporte de trazabilidad
-                digital, que registra su origen y autoría.
+                Al adquirir esta pieza, usted recibe su pasaporte de
+                trazabilidad digital, que registra su origen y autoría.
               </p>
             </div>
 
@@ -344,7 +345,9 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="text-4xl font-serif mb-12 text-[#1a1a1a]">
               {!selectedVariant && hasPriceRange && (
-                <span className="text-lg text-[#1a1a1a]/50 italic mr-2">Desde</span>
+                <span className="text-lg text-[#1a1a1a]/50 italic mr-2">
+                  Desde
+                </span>
               )}
               {formatCurrency(getFinalPrice())}
             </div>
@@ -393,7 +396,9 @@ const ProductDetail = () => {
                   </span>
                   <button
                     className="w-10 h-10 flex items-center justify-center text-[#1a1a1a]/60 hover:text-[#1a1a1a] transition-colors disabled:opacity-30"
-                    onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
+                    onClick={() =>
+                      setQuantity(Math.min(maxStock, quantity + 1))
+                    }
                     disabled={quantity >= maxStock}
                   >
                     +
@@ -907,7 +912,13 @@ const ProductDetail = () => {
                   </div>
                 )}
                 <Link
-                  to={shop?.shopSlug ? `/artesano/${shop.shopSlug}` : product.storeSlug ? `/artesano/${product.storeSlug}` : "#"}
+                  to={
+                    shop?.shopSlug
+                      ? `/artesano/${shop.shopSlug}`
+                      : product.storeSlug
+                        ? `/artesano/${product.storeSlug}`
+                        : "#"
+                  }
                   className="inline-block border border-[#1a1a1a] text-[#1a1a1a] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#1a1a1a] hover:text-white transition-all"
                 >
                   Ver perfil del taller
@@ -919,12 +930,12 @@ const ProductDetail = () => {
 
         {/* ═══════════════ FAIR TRADE BLOCK ═══════════════ */}
         <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-lg">
-          <div className="h-40 bg-[#F3E4D3] relative overflow-hidden">
+          <div className="h-64 sm:h-80 lg:h-full min-h-[280px] bg-[#F3E4D3] relative overflow-hidden">
             {productImages[0] && (
               <img
                 src={productImages[0]}
                 alt="Comercio justo"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
               />
             )}
           </div>
@@ -947,7 +958,6 @@ const ProductDetail = () => {
             </Link>
           </div>
         </section>
-
       </main>
 
       {/* ═══════════════ RELATED PRODUCTS ═══════════════ */}
