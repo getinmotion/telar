@@ -455,6 +455,517 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        {product.shortDescription && (
+          <section className="max-w-3xl mx-auto text-center mb-24 py-12 border-y border-[#1a1a1a]/5">
+            <span className="inline-flex items-center gap-2 text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-6">
+              <Quote className="w-4 h-4" />
+              Descripción
+            </span>
+            <blockquote className="font-serif text-xl lg:text-2xl text-[#1a1a1a] leading-relaxed italic px-8">
+              {product.shortDescription}
+            </blockquote>
+          </section>
+        )}
+
+        {/* ═══════════════ STORY OF THE PIECE ═══════════════ */}
+        {product.history && (
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24 items-center bg-white rounded-3xl p-8 lg:p-16 shadow-sm">
+            <div>
+              <span className="inline-flex items-center gap-2 text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-4">
+                <BookOpen className="w-4 h-4" />
+                Historia
+              </span>
+              <h3 className="text-4xl font-serif mb-8 text-[#1a1a1a]">
+                Historia de la pieza
+              </h3>
+              <div className="space-y-6 text-[#1a1a1a]/70 leading-relaxed text-lg font-light italic whitespace-pre-line">
+                {product.history}
+              </div>
+            </div>
+            {productImages[1] && (
+              <div className="aspect-[4/3] bg-[#F3E4D3] rounded-2xl overflow-hidden">
+                <img
+                  src={productImages[1]}
+                  alt="Detalle artesanal"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ═══════════════ PROCESS + DETAILS ═══════════════ */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8 border-y border-[#1a1a1a]/10 py-16">
+          {/* Proceso artesanal */}
+          <div className="space-y-6">
+            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a]">
+              <Hammer className="w-5 h-5 text-[#BC3F1C]" />
+              Proceso artesanal
+            </h5>
+            <ul className="space-y-5 text-sm text-[#1a1a1a]/70">
+              {(product.materials?.length > 0 || product.material) && (
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Layers className="w-4 h-4 text-[#BC3F1C]" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Materiales
+                    </span>
+                    <span className="italic">
+                      {(product.materialsDetailed ?? []).some(
+                        (m) => m.percentage != null,
+                      )
+                        ? product
+                            .materialsDetailed!.map((m) =>
+                              m.percentage != null
+                                ? `${m.name} (${m.percentage}%)`
+                                : m.name,
+                            )
+                            .join(", ")
+                        : product.materials?.join(", ") || product.material}
+                    </span>
+                  </span>
+                </li>
+              )}
+              {(product.tools?.length ?? 0) > 0 && (
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Wrench className="w-4 h-4 text-[#BC3F1C]" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Herramientas
+                    </span>
+                    <span className="italic">{product.tools!.join(", ")}</span>
+                  </span>
+                </li>
+              )}
+              {product.requirementsToStart && (
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <ClipboardCheck className="w-4 h-4 text-[#BC3F1C]" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Requisitos para iniciar
+                    </span>
+                    <span className="italic">
+                      {product.requirementsToStart}
+                    </span>
+                  </span>
+                </li>
+              )}
+              {(product.techniques?.length > 0 || product.craft) && (
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Scissors className="w-4 h-4 text-[#BC3F1C]" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Técnica
+                    </span>
+                    <span className="italic">
+                      {product.techniques?.length > 0
+                        ? product.techniques.join(", ")
+                        : product.craft}
+                    </span>
+                  </span>
+                </li>
+              )}
+              {(product.leadTimeDays || product.productionTime) && (
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                    <Clock className="w-4 h-4 text-[#BC3F1C]" />
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Tiempo de elaboración
+                    </span>
+                    <span className="italic">
+                      {product.leadTimeDays
+                        ? `Aproximadamente ${product.leadTimeDays} día${product.leadTimeDays > 1 ? "s" : ""}`
+                        : product.productionTime}
+                    </span>
+                  </span>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Detalles técnicos — ficha técnica destacada */}
+          <div className="space-y-6 bg-white rounded-2xl border border-[#1a1a1a]/10 shadow-sm p-8">
+            <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a]">
+              <Ruler className="w-5 h-5 text-[#BC3F1C]" />
+              Ficha técnica
+            </h5>
+            <ul className="space-y-4 text-sm text-[#1a1a1a]/70">
+              {(() => {
+                const d = product.dimensions;
+                if (!d) return null;
+                if (typeof d === "string") {
+                  return (
+                    <li className="flex flex-col gap-1">
+                      <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                        Dimensiones
+                      </span>
+                      <span className="italic">{d}</span>
+                    </li>
+                  );
+                }
+                const parts = [d.length, d.width, d.height].filter(
+                  (v): v is number => typeof v === "number" && v > 0,
+                );
+                if (parts.length === 0) return null;
+                return (
+                  <li className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Dimensiones
+                    </span>
+                    <span className="italic">{parts.join(" × ")} cm</span>
+                  </li>
+                );
+              })()}
+              {product.weight && parseFloat(product.weight) > 0 && (
+                <li className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                    Peso
+                  </span>
+                  <span className="italic">
+                    {parseFloat(product.weight).toFixed(2)} kg
+                  </span>
+                </li>
+              )}
+              {product.monthlyCapacity != null && (
+                <li className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                    Capacidad mensual
+                  </span>
+                  <span className="italic">
+                    {product.monthlyCapacity} unidad
+                    {product.monthlyCapacity !== 1 ? "es" : ""}/mes
+                  </span>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Cuidados y uso */}
+          {(product.careNotes || product.usageSuggestions) && (
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl border border-[#1a1a1a]/10 shadow-sm p-8">
+              {toLines(product.careNotes).length > 0 && (
+                <div className="space-y-5">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Para que dure toda la vida
+                    </span>
+                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a] mt-1">
+                      <Droplets className="w-5 h-5 text-[#BC3F1C]" />
+                      Cuidados
+                    </h5>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#1a1a1a]/70">
+                    {toLines(product.careNotes).map((line) => (
+                      <li key={line} className="flex items-start gap-3">
+                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                          <Droplets className="w-4 h-4 text-[#BC3F1C]" />
+                        </span>
+                        <span className="italic pt-1.5">{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {toLines(product.usageSuggestions).length > 0 && (
+                <div className="space-y-5">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Cómo disfrutarla
+                    </span>
+                    <h5 className="flex items-center gap-2 text-xl font-serif italic text-[#1a1a1a] mt-1">
+                      <Sparkles className="w-5 h-5 text-[#BC3F1C]" />
+                      Sugerencias de uso
+                    </h5>
+                  </div>
+                  <ul className="space-y-3 text-sm text-[#1a1a1a]/70">
+                    {toLines(product.usageSuggestions).map((line) => (
+                      <li key={line} className="flex items-start gap-3">
+                        <span className="mt-0.5 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BC3F1C]/10">
+                          <Sparkles className="w-4 h-4 text-[#BC3F1C]" />
+                        </span>
+                        <span className="italic pt-1.5">{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Así se hizo esta pieza */}
+          {(product.processDescription ||
+            (product.processEvidenceUrls?.length ?? 0) > 0) && (
+            <div className="md:col-span-2 space-y-6 pt-12 border-t border-[#1a1a1a]/10">
+              <h5 className="text-xl font-serif italic text-[#1a1a1a]">
+                Así se hizo esta pieza
+              </h5>
+              {product.processDescription && (
+                <p className="text-sm text-[#1a1a1a]/70 leading-relaxed italic max-w-3xl whitespace-pre-line">
+                  {product.processDescription}
+                </p>
+              )}
+              {(product.processEvidenceUrls?.length ?? 0) > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {product.processEvidenceUrls!.map((url) => (
+                    <div
+                      key={url}
+                      className="aspect-square bg-[#F3E4D3] rounded-xl overflow-hidden"
+                    >
+                      <img
+                        src={url}
+                        alt={`Proceso de elaboración de ${product.name}`}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Envío consciente — nota breve, no compite con la ficha técnica */}
+        <p className="text-xs text-[#1a1a1a]/50 italic text-center max-w-2xl mx-auto mb-24">
+          Envío consciente: las piezas se preparan cuidadosamente respetando
+          tanto la integridad de la creación como el impacto ambiental del
+          proceso.
+        </p>
+
+        {/* ═══════════════ DIGITAL TRACEABILITY (franja compacta) ═══════════════ */}
+        <section className="mb-24 bg-[#1a1a1a] text-white py-8 px-6 rounded-2xl">
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 max-w-4xl mx-auto text-sm">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-white/50">
+              Huella digital de la pieza
+            </span>
+            {(shop?.municipality || shop?.region || product.department) && (
+              <span className="flex items-center gap-2 text-white/80">
+                <MapPin className="w-4 h-4 text-[#BC3F1C]" />
+                {shop?.municipality || shop?.region || product.department}
+                {shop?.department ? `, ${shop.department}` : ""}
+              </span>
+            )}
+            {product.storeName && (
+              <span className="flex items-center gap-2 text-white/80">
+                <Hammer className="w-4 h-4 text-[#BC3F1C]" />
+                {product.storeName}
+              </span>
+            )}
+            {product.craft && (
+              <span className="flex items-center gap-2 text-white/80">
+                <Sparkles className="w-4 h-4 text-[#BC3F1C]" />
+                {product.craft}
+              </span>
+            )}
+          </div>
+        </section>
+
+        {/* ═══════════════ CULTURAL RECORD + MAP ═══════════════ */}
+        {(shop?.region || shop?.municipality) && (
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl mb-24 bg-white border border-[#1a1a1a]/5 shadow-sm">
+            <div className="p-12 lg:p-20 flex flex-col justify-center">
+              <span className="text-[#BC3F1C] font-bold mb-4 uppercase text-[11px] tracking-[0.3em]">
+                Registro cultural
+              </span>
+              <h3 className="text-4xl font-serif text-[#1a1a1a] mb-8">
+                {shop?.municipality || shop?.region}
+                {shop?.department ? `, ${shop.department}` : ""}
+              </h3>
+              {shop?.description && (
+                <p className="text-[#1a1a1a]/70 leading-relaxed mb-10 text-lg font-light italic">
+                  {shop.description}
+                </p>
+              )}
+              <div className="flex flex-col gap-4">
+                {product.craft && (
+                  <div className="flex justify-between border-b border-[#1a1a1a]/10 pb-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Tradición
+                    </span>
+                    <span className="text-sm italic">{product.craft}</span>
+                  </div>
+                )}
+                {(shop?.department || shop?.region) && (
+                  <div className="flex justify-between border-b border-[#1a1a1a]/10 pb-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">
+                      Ubicación
+                    </span>
+                    <span className="text-sm italic">
+                      {shop?.department || shop?.region}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bg-[#F3E4D3] min-h-[400px] relative">
+              {shopCoords ? (
+                <Map
+                  initialViewState={{
+                    longitude: shopCoords.lng,
+                    latitude: shopCoords.lat,
+                    zoom: 10,
+                  }}
+                  mapStyle={MAP_STYLE}
+                  dragPan={false}
+                  scrollZoom={false}
+                  doubleClickZoom={false}
+                  attributionControl={false}
+                  style={{ width: "100%", height: "100%" }}
+                >
+                  <Marker longitude={shopCoords.lng} latitude={shopCoords.lat}>
+                    <MapPin className="w-8 h-8 text-[#BC3F1C] fill-[#BC3F1C]/20" />
+                  </Marker>
+                </Map>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <MapPin className="w-16 h-16 text-[#BC3F1C] opacity-40" />
+                </div>
+              )}
+              <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md pointer-events-none">
+                <p className="text-sm font-semibold text-[#1a1a1a]">
+                  {shop?.municipality || shop?.region || "Colombia"}
+                </p>
+                <p className="text-xs text-[#1a1a1a]/50 mt-1">
+                  Origen artesanal
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ═══════════════ ARTISAN PROFILE ═══════════════ */}
+        {/*
+          Identidad artesanal: solo se renderiza si la tienda tiene datos reales
+          que mostrar. Fuentes (en orden de preferencia):
+            - shop.aboutContent.story  (about_content jsonb del API)
+            - shop.story               (story columna directa)
+            - shop.description         (descripción breve)
+          Si nada existe, NO mostramos texto genérico hardcoded — preferimos
+          ocultar la sección a inventar copy.
+        */}
+        {(() => {
+          const aboutStory = shop?.aboutContent?.story?.trim();
+          const directStory = shop?.story?.trim();
+          const description = shop?.description?.trim();
+          const identityStory =
+            aboutStory || directStory || description || null;
+          const claim =
+            shop?.brandClaim?.trim() ||
+            shop?.aboutContent?.title?.trim() ||
+            null;
+          // Si no hay tienda real ni copy alguno, no renderizamos la sección.
+          if (
+            !product.storeName ||
+            (!identityStory && !claim && !shop?.bannerUrl && !shop?.logoUrl)
+          ) {
+            return null;
+          }
+          return (
+            <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="aspect-square bg-[#F3E4D3] rounded-2xl overflow-hidden">
+                  {shop?.bannerUrl ? (
+                    <img
+                      src={shop.bannerUrl}
+                      alt={product.storeName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : shop?.logoUrl ? (
+                    <img
+                      src={shop.logoUrl}
+                      alt={product.storeName}
+                      className="w-full h-full object-contain p-12"
+                    />
+                  ) : null}
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 space-y-8">
+                <div>
+                  <span className="text-[#BC3F1C] font-bold uppercase text-[10px] tracking-[0.3em] mb-4 block">
+                    Conoce al artesano
+                  </span>
+                  <h3 className="text-4xl font-serif text-[#1a1a1a] mb-6">
+                    {claim || `El taller que creó esta pieza`}
+                  </h3>
+                  <h4 className="text-2xl font-serif italic text-[#1a1a1a]/80 mb-6">
+                    {product.storeName}
+                  </h4>
+                </div>
+                {identityStory && (
+                  <div className="space-y-4 text-[#1a1a1a]/70 text-lg font-light italic leading-relaxed">
+                    <p>{identityStory}</p>
+                  </div>
+                )}
+                {shop?.certifications && shop.certifications.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {shop.certifications.map((cert) => (
+                      <span
+                        key={cert}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[#1a1a1a]/15 text-[#1a1a1a]/70"
+                      >
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Link
+                  to={
+                    shop?.shopSlug
+                      ? `/artesano/${shop.shopSlug}`
+                      : product.storeSlug
+                        ? `/artesano/${product.storeSlug}`
+                        : "#"
+                  }
+                  className="inline-block border border-[#1a1a1a] text-[#1a1a1a] px-10 py-4 uppercase text-[11px] font-bold tracking-[0.2em] hover:bg-[#1a1a1a] hover:text-white transition-all"
+                >
+                  Ver perfil del taller
+                </Link>
+              </div>
+            </section>
+          );
+        })()}
+
+        {/* ═══════════════ FAIR TRADE BLOCK ═══════════════ */}
+        <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-lg">
+          <div className="h-64 sm:h-80 lg:h-full min-h-[280px] bg-[#F3E4D3] relative overflow-hidden">
+            {productImages[0] && (
+              <img
+                src={productImages[0]}
+                alt="Comercio justo"
+                className="w-full h-full object-cover object-center"
+              />
+            )}
+          </div>
+          <div className="p-8 lg:p-12 flex flex-col justify-center items-start bg-black">
+            <h3 className="text-2xl lg:text-3xl font-serif text-white mb-3 italic">
+              Comercio justo
+            </h3>
+            <p className="text-base text-white/70 mb-6 font-light italic leading-relaxed">
+              En el programa de fortalecimiento comercial de Villa Adelaida
+              participaron de manera directa talleres artesanales y productores
+              del ecosistema del viche, para que cada persona que crea una pieza
+              o producto reciba sin intermediarios una compensación justa por su
+              oficio y saber.
+            </p>
+            <Link
+              to="/sobre-villa-adelaida"
+              className="inline-block bg-[#BC3F1C] text-white px-6 py-3 font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-white hover:text-[#1a1a1a] transition-all"
+            >
+              Alianza Villa Adelaida
+            </Link>
+          </div>
+        </section>
+
         {/* Resto del detalle sin cambios ... */}
       </main>
 
