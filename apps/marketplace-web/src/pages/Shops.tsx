@@ -184,7 +184,7 @@ const Shops = () => {
       </section>
 
       {/* Filters Toolbar */}
-      <section className="max-w-[1400px] mx-auto px-6 mb-12">
+      {/* <section className="max-w-[1400px] mx-auto px-6 mb-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-charcoal/10 gap-6">
           <div className="flex flex-wrap items-center gap-8">
             <FilterSelect
@@ -229,7 +229,7 @@ const Shops = () => {
             {filtered.length} talleres encontrados
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Workshop Grid */}
       <section className="max-w-[1400px] mx-auto px-6 mb-24">

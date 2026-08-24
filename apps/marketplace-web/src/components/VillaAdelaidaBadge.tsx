@@ -13,6 +13,7 @@ export const VillaAdelaidaBadge = ({
   product: unknown;
   className?: string;
 }) => {
+  console.log("badge", product);
   if (!isVillaAdelaidaProduct(product)) return null;
 
   return (

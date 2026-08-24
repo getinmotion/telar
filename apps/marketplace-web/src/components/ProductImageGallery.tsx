@@ -8,7 +8,10 @@ interface ProductImageGalleryProps {
   productName: string;
 }
 
-export const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) => {
+export const ProductImageGallery = ({
+  images,
+  productName,
+}: ProductImageGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
@@ -40,10 +43,10 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
           alt={`${productName} - Imagen ${selectedImage + 1}`}
           className="w-full h-full object-cover"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/placeholder.svg';
+            (e.target as HTMLImageElement).src = "/placeholder.svg";
           }}
         />
-        
+
         {/* Navigation Arrows */}
         {images.length > 1 && (
           <>
@@ -102,7 +105,7 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                  (e.target as HTMLImageElement).src = "/placeholder.svg";
                 }}
               />
             </button>
@@ -119,7 +122,7 @@ export const ProductImageGallery = ({ images, productName }: ProductImageGallery
               alt={productName}
               className="w-full h-auto max-h-[85vh] object-contain"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/placeholder.svg';
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
               }}
             />
             <Button
