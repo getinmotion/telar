@@ -627,7 +627,21 @@ export class ProductsNewService {
       .orderBy('pc.createdAt', 'DESC')
       .getMany();
 
-    return products;
+    // Convenio del artesano dueño de la tienda
+    const agreementByUser = await this.agreementsByShopOwner(products);
+
+    const data = products.map((product: any) => {
+      const agreement = product.artisanShop?.userId
+        ? (agreementByUser[product.artisanShop.userId] ?? null)
+        : null;
+
+      return {
+        ...product,
+        agreementId: agreement?.id ?? null,
+      };
+    });
+
+    return data;
   }
 
   /**
@@ -972,9 +986,7 @@ export class ProductsNewService {
     });
 
     if (!variant) {
-      throw new NotFoundException(
-        `Variante con ID ${variantId} no encontrada`,
-      );
+      throw new NotFoundException(`Variante con ID ${variantId} no encontrada`);
     }
 
     variant.stockQuantity = stockQuantity;
@@ -1196,8 +1208,7 @@ export class ProductsNewService {
     // Convenio de cada producto (vía el dueño de la tienda). Una sola consulta
     // para toda la página: el marketplace general lo usa para distinguir los
     // productos que pertenecen a un convenio, p.ej. el sello de Villa Adelaida.
-    const agreementByUser =
-      await this.agreementsByShopOwner(rawResults);
+    const agreementByUser = await this.agreementsByShopOwner(rawResults);
 
     // Mapear resultados
     const thirtyDaysAgo = new Date();
@@ -1831,10 +1842,10 @@ export class ProductsNewService {
         rows.map((r) => [r.user_id, r.name]),
       );
       for (const p of data) {
-        (p as ProductCore & { agreementName?: string | null }).agreementName =
-          p.artisanShop?.userId
-            ? (agreementByUser[p.artisanShop.userId] ?? null)
-            : null;
+        (p as ProductCore & { agreementName?: string | null }).agreementName = p
+          .artisanShop?.userId
+          ? (agreementByUser[p.artisanShop.userId] ?? null)
+          : null;
       }
     }
 
