@@ -1,5 +1,5 @@
 /**
- * CmsSectionRenderer â€” renders a single CmsSection of a known type. Unknown
+ * CmsSectionVillaAdelaida — renders a single CmsSection of a known type. Unknown
  * types render nothing so the page degrades gracefully when we prototype new
  * payload shapes from the admin UI before adding a renderer.
  */
@@ -28,7 +28,10 @@ interface Props {
   totalTechniqueCount?: number;
 }
 
-export function CmsSectionRenderer({ section, totalTechniqueCount }: Props) {
+export function CmsSectionVillaAdelaida({
+  section,
+  totalTechniqueCount,
+}: Props) {
   const { data: techImages } = useProductImagesByTechnique();
   const p = section.payload ?? {};
 
