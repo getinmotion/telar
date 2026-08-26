@@ -541,25 +541,34 @@ export default function ShopDetail() {
                       className="absolute top-4 left-4 z-20"
                     />
                   </div>
-                  <div className="flex justify-between items-end gap-4 px-1">
-                    <div>
-                      <h3 className="font-serif text-lg md:text-2xl leading-tight group-hover:underline">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-serif leading-tight group-hover:text-[#BC3F1C] transition-colors">
                         {product.name}
                       </h3>
-                      {primaryMaterial && (
-                        <div className="text-xs text-[#1a1a1a]/70 mt-1">
-                          {primaryMaterial}
-                        </div>
-                      )}
-                      {/* Etiqueta logística (stock bajo, bajo pedido) */}
-                      {logistics && (
-                        <div className="mt-1 inline-block text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1 bg-[#BC3F1C]/10 text-[#BC3F1C] rounded">
-                          {logistics}
-                        </div>
-                      )}
+                      <p className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#BC3F1C]">
+                        {shop.shopName}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-widest text-[#1a1a1a]/40 font-bold">
+                        {shop.region || shop.department}
+                      </p>
                     </div>
-                    <div className="text-xl md:text-2xl font-serif text-[#BC3F1C] font-bold">
-                      {formatCurrency(price)}
+                    <div className="pt-4 border-t border-[#1a1a1a]/5 space-y-3">
+                      <p className="text-lg font-bold tracking-tight">
+                        {price ? formatCurrency(price) : "Consultar"}
+                      </p>
+                      {primaryMaterial && (
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-[8px] bg-[#BC3F1C]/5 text-[#BC3F1C] border border-[#BC3F1C]/10 px-2 py-0.5 uppercase tracking-widest font-bold">
+                            {primaryMaterial}
+                          </span>
+                        </div>
+                      )}
+                      {logistics && (
+                        <p className="text-[8px] uppercase tracking-widest text-[#1a1a1a]/40 italic font-bold">
+                          {logistics}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -567,115 +576,326 @@ export default function ShopDetail() {
             })}
           </div>
         )}
-        {/* Paginación clásica */}
+
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-3 mt-16">
+          <div className="mt-32 flex justify-center items-center gap-6">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded disabled:opacity-30"
+              className="disabled:opacity-20"
             >
-              <ChevronLeft />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="text-xs font-bold">
-              Página {currentPage} de {totalPages}
-            </span>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "w-10 h-10 flex items-center justify-center text-sm font-bold transition-colors",
+                      page === currentPage
+                        ? "bg-[#1a1a1a] text-white"
+                        : "text-[#1a1a1a]/40 hover:text-[#1a1a1a]",
+                    )}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+            </div>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2 rounded disabled:opacity-30"
+              className="disabled:opacity-20"
             >
-              <ChevronRight />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         )}
       </section>
 
-      {/* Bloque editorial — historia del taller */}
-      {editorialStory && (
-        <section className="max-w-3xl mx-auto mb-32 border-l-8 border-[#BC3F1C] pl-12 py-12">
-          <h2 className="text-4xl md:text-5xl font-serif mb-8 text-[#1a1a1a]">
-            {editorialTitle}
-          </h2>
-          <div className="text-lg md:text-xl font-light text-[#1a1a1a]/80 italic leading-relaxed whitespace-pre-line">
-            {editorialStory}
-          </div>
-        </section>
-      )}
-
-      {/* Oficio + materiales (bloque compacto) */}
+      {/* Oficio y materiales — editorial (marco de los productos) */}
       {hasOficio && (
-        <section className="max-w-4xl mx-auto mb-32">
-          <div className="bg-white rounded-2xl shadow-sm p-12 border border-[#1a1a1a]/10 flex flex-col md:flex-row gap-12 md:items-center">
-            <div className="flex-1 space-y-6">
-              {primaryTechnique && (
-                <div>
-                  <span className="font-bold uppercase text-[10px] tracking-widest text-[#BC3F1C]">
-                    Técnica principal
+        <section className="max-w-[1400px] mx-auto px-6 py-24 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <span className={eyebrowClass}>El oficio</span>
+                <h3 className="text-3xl lg:text-5xl font-serif italic leading-tight">
+                  {primaryTechnique
+                    ? `Técnica: ${primaryTechnique}`
+                    : primaryCraft
+                      ? `Oficio: ${primaryCraft}`
+                      : "Oficio artesanal"}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-x-12 gap-y-8 py-8 border-y border-[#1a1a1a]/10">
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
+                    Región
                   </span>
-                  <div className="text-xl font-serif italic text-[#1a1a1a] mt-2">
-                    {primaryTechnique}
-                  </div>
+                  <p className="font-serif text-xl italic">
+                    {shop.region || shop.department || "Colombia"}
+                  </p>
                 </div>
-              )}
-              {primaryCraft && (
-                <div>
-                  <span className="font-bold uppercase text-[10px] tracking-widest text-[#BC3F1C]">
-                    Oficio principal
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
+                    Oficio
                   </span>
-                  <div className="text-xl font-serif italic text-[#1a1a1a] mt-2">
-                    {primaryCraft}
-                  </div>
+                  <p className="font-serif text-xl italic">
+                    {primaryCraft || shop.craftType || "Artesanía"}
+                  </p>
                 </div>
-              )}
-              {materialsText && (
-                <div>
-                  <span className="font-bold uppercase text-[10px] tracking-widest text-[#BC3F1C]">
-                    Materiales principales
-                  </span>
-                  <div className="text-xl font-serif italic text-[#1a1a1a] mt-2">
-                    {materialsText}
+                {materialsText && (
+                  <div className="space-y-2 col-span-2">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
+                      Materiales
+                    </span>
+                    <p className="font-serif text-xl italic">{materialsText}</p>
                   </div>
+                )}
+              </div>
+              <a
+                href="#productos"
+                className="border border-[#1a1a1a] px-10 py-4 uppercase text-[10px] tracking-widest font-bold hover:bg-[#1a1a1a] hover:text-white transition-all inline-block"
+              >
+                Ver las piezas del taller
+              </a>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              {heroImages.slice(1, 3).map((img, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "aspect-[3/4] bg-[#F3E4D3] overflow-hidden rounded-sm",
+                    i === 0 && "mt-12",
+                  )}
+                >
+                  <img
+                    src={img}
+                    alt={`${shop.shopName} detalle ${i + 1}`}
+                    className={imgFitClass(img)}
+                  />
                 </div>
+              ))}
+              {heroImages.length < 3 && (
+                <div className="aspect-[3/4] bg-[#F3E4D3] rounded-sm" />
               )}
             </div>
           </div>
         </section>
       )}
 
-      {/* Políticas de la tienda (FAQs, cambios, devoluciones) */}
-      <section className="max-w-4xl mx-auto mb-32">
-        <Accordion type="single" collapsible>
-          {faq.length > 0 && (
-            <AccordionItem value="faq">
-              <AccordionTrigger className="text-xl md:text-2xl font-serif font-bold">
-                Preguntas frecuentes
-              </AccordionTrigger>
-              <AccordionContent>
-                <ul className="pl-6 space-y-4 list-disc">
-                  {faq.map((q, i) => (
-                    <li key={i}>
-                      <span className="font-bold">{q.q}</span>
-                      <br />
-                      {q.a}
-                    </li>
-                  ))}
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-          {returnPolicy && (
-            <AccordionItem value="devoluciones">
-              <AccordionTrigger className="text-xl md:text-2xl font-serif font-bold">
-                Devoluciones y cambios
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="whitespace-pre-line">{returnPolicy}</div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-        </Accordion>
+      {/* Historia del taller — editorial */}
+      {editorialStory && (
+        <section className="bg-white py-24 lg:py-32 border-y border-[#1a1a1a]/5 overflow-hidden">
+          <div className="max-w-[1400px] mx-auto px-6 grid lg:grid-cols-12 gap-12 lg:gap-24 items-center">
+            <div className="lg:col-span-5 relative">
+              <span
+                className="hidden lg:block absolute -left-16 top-0 font-serif text-6xl text-[#BC3F1C]/10 select-none"
+                style={{ writingMode: "vertical-rl" }}
+              >
+                HISTORIA
+              </span>
+              <div className="aspect-[4/5] bg-[#F3E4D3] shadow-sm overflow-hidden rounded-sm">
+                {heroImages[1] ? (
+                  <img
+                    src={heroImages[1]}
+                    alt={shop.shopName}
+                    className={imgFitClass(heroImages[1])}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]/20 font-serif italic">
+                    {shop.shopName}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="lg:col-span-7 space-y-8">
+              <span className={eyebrowClass}>Nuestra historia</span>
+              <h2 className="text-4xl lg:text-6xl font-serif italic leading-[1.05]">
+                {editorialTitle}
+              </h2>
+              <p className="text-lg lg:text-xl text-[#1a1a1a]/70 leading-relaxed font-light whitespace-pre-line">
+                {editorialStory}
+              </p>
+              <Link
+                to={`/artesano/${shop.shopSlug}`}
+                className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.4em] border-b-2 border-[#BC3F1C] pb-3 hover:text-[#BC3F1C] transition-colors group"
+              >
+                Conocer al artesano
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sobre el taller — misión / visión / valores (editorial) */}
+      {hasAbout && (
+        <section className="bg-[#111111] text-[#F7E7D7] py-24 lg:py-32">
+          <div className="max-w-[1400px] mx-auto px-6">
+            <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+              <div className="lg:col-span-4">
+                <span className="text-[#BC3F1C] font-bold uppercase tracking-[0.4em] text-[10px]">
+                  Sobre el taller
+                </span>
+                <h2 className="text-4xl lg:text-5xl font-serif italic leading-[1.05] mt-6">
+                  Lo que nos mueve
+                </h2>
+              </div>
+              <div className="lg:col-span-8 space-y-12">
+                <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
+                  {aboutContent?.mission && (
+                    <div className="space-y-3">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C]">
+                        Misión
+                      </h3>
+                      <p className="text-lg text-[#F7E7D7]/70 leading-relaxed font-light">
+                        {aboutContent.mission}
+                      </p>
+                    </div>
+                  )}
+                  {aboutContent?.vision && (
+                    <div className="space-y-3">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#BC3F1C]">
+                        Visión
+                      </h3>
+                      <p className="text-lg text-[#F7E7D7]/70 leading-relaxed font-light">
+                        {aboutContent.vision}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {aboutValues.length > 0 && (
+                  <div className="pt-12 border-t border-white/10">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#F7E7D7]/40 mb-8">
+                      Valores
+                    </h3>
+                    {aboutValues.some((v) => v.description) ? (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
+                        {aboutValues.map((v, i) => (
+                          <div key={`${v.name}-${i}`} className="space-y-3">
+                            <p className="font-serif text-2xl text-[#BC3F1C]/40">
+                              {String(i + 1).padStart(2, "0")}
+                            </p>
+                            {v.name && (
+                              <p className="font-serif italic text-xl text-[#F7E7D7]">
+                                {v.name}
+                              </p>
+                            )}
+                            {v.description && (
+                              <p className="text-sm text-[#F7E7D7]/50 leading-relaxed font-light">
+                                {v.description}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2.5">
+                        {aboutValues.map((v, i) => (
+                          <span
+                            key={`${v.name}-${i}`}
+                            className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-[#F7E7D7]/80"
+                          >
+                            {v.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      {faq.length > 0 && (
+        <section className="bg-white py-24 border-y border-[#1a1a1a]/5">
+          <div className="max-w-3xl mx-auto px-6">
+            <span className={eyebrowClass}>Preguntas frecuentes</span>
+            <h2 className="text-4xl lg:text-5xl font-serif italic leading-tight mt-6 mb-10">
+              Antes de comprar
+            </h2>
+            <Accordion type="single" collapsible className="w-full">
+              {faq.map((item, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="border-[#1a1a1a]/10"
+                >
+                  <AccordionTrigger className="text-left text-xl lg:text-2xl font-serif italic py-6 hover:no-underline hover:text-[#BC3F1C]">
+                    {item.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-base text-[#1a1a1a]/70 leading-relaxed font-light pb-6">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+      )}
+
+      {/* Política de devoluciones */}
+      {returnPolicy && (
+        <section className="bg-white border-y border-[#1a1a1a]/5 py-24">
+          <div className="max-w-3xl mx-auto px-6">
+            <span className={eyebrowClass}>Política de devoluciones</span>
+            <h2 className="text-3xl lg:text-4xl font-serif italic leading-tight mt-6 mb-8">
+              Compra con tranquilidad
+            </h2>
+            <div className="text-lg text-[#1a1a1a]/70 leading-relaxed font-light whitespace-pre-line">
+              {returnPolicy}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CTA — conocer al artesano */}
+      <section className="py-32 bg-[#F7E7D7] border-t border-[#1a1a1a]/5">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
+          <div className="max-w-2xl mx-auto space-y-10">
+            <h2 className="text-4xl lg:text-5xl font-serif italic">
+              Conoce a la persona detras del taller
+            </h2>
+            <p className="text-xl text-[#1a1a1a]/50 leading-relaxed font-light">
+              Descubre la historia, la técnica y el territorio de{" "}
+              {shop.shopName}.
+            </p>
+            <Link
+              to={`/artesano/${shop.shopSlug}`}
+              className="inline-block bg-[#1a1a1a] text-white px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#BC3F1C] transition-colors"
+            >
+              Ver perfil del artesano
+            </Link>
+          </div>
+        </div>
       </section>
+
+      {/* Navegación — otros talleres */}
+      <section className="py-24 max-w-[1400px] mx-auto px-6 border-t border-[#1a1a1a]/5">
+        <Link
+          to="/tiendas"
+          className="group border border-[#1a1a1a]/10 p-12 flex items-center justify-between hover:border-[#1a1a1a] transition-colors bg-white/50"
+        >
+          <div className="space-y-2">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1a1a1a]/30">
+              Explorar mas
+            </span>
+            <h4 className="text-3xl font-serif italic">
+              Ver todos los talleres
+            </h4>
+          </div>
+          <ArrowRight className="w-8 h-8 opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
+        </Link>
+      </section>
+
+      <div className="pb-24" />
       <Footer />
     </div>
   );
