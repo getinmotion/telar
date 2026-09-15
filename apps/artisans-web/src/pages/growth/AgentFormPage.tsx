@@ -14,6 +14,7 @@ import type { OnboardingResponse } from "@/types/agent.types";
 import {
   createArtisanShop,
   getArtisanShopByUserId,
+  getStoreByUserId,
 } from "@/services/artisanShops.actions";
 import { logout } from "@/pages/auth/actions/login.actions";
 import type {
@@ -551,16 +552,19 @@ export const AgentFormPage: React.FC = () => {
       if (!user?.id) return;
       setIsLoading(true);
       try {
-        const [existingProfile, shopData] = await Promise.allSettled([
+        const [existingProfile, shopData, storeData] = await Promise.allSettled([
           getArtisansKnowledgeProfile(user.id),
           getArtisanShopByUserId(user.id),
+          getStoreByUserId(user.id),
         ]);
 
         const knowledgeProfile =
           existingProfile.status === "fulfilled" ? existingProfile.value : null;
         const shop =
           shopData.status === "fulfilled" ? (shopData.value as any) : null;
-        setHasShop(!!shop);
+        const store =
+          storeData.status === "fulfilled" ? storeData.value : null;
+        setHasShop(!!shop || !!store);
         const wizardProfile = shop?.artisanProfile ?? null;
 
         const wizardCategoriesId = wizardProfile?.categoryIds?.length
@@ -960,7 +964,15 @@ export const AgentFormPage: React.FC = () => {
       toast.success("¡Tu tienda ha sido creada exitosamente!");
       navigate("/dashboard");
     } catch (error: any) {
-      const msg = error?.message || error?.error || "Error al crear la tienda";
+      const candidates = [
+        error?.message?.message,
+        error?.message?.response?.message,
+        error?.message,
+        error?.error,
+      ];
+      const msg =
+        candidates.find((c): c is string => typeof c === "string" && !!c) ??
+        "Error al crear la tienda";
       toast.error(msg);
     } finally {
       setIsSaving(false);
