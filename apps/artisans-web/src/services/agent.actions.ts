@@ -3,8 +3,8 @@
  * Handles communication with the agent API
  */
 
-import { telarApi } from '@/integrations/api/telarApi';
-import type { ArtisansIdentityProfile } from '@/types/artisansKnowledge.types';
+import { telarApi } from "@/integrations/api/telarApi";
+import type { ArtisansIdentityProfile } from "@/types/artisansKnowledge.types";
 import type {
   OnboardingResponse,
   AgentErrorResponse,
@@ -16,7 +16,29 @@ import type {
   Step2CaptureResponse,
   Step2ConfirmRequest,
   Step2ConfirmResponse,
-} from '@/types/agent.types';
+} from "@/types/agent.types";
+
+/**
+ * Indica si un error de las acciones de agentes corresponde a que el servicio
+ * de agentes (Oráculo) no está disponible.
+ * Cubre el 503 AGENT_UNAVAILABLE del backend y cualquier fallo de red/timeout
+ * sin respuesta útil: ninguno de estos debe bloquear los wizards.
+ */
+export const isAgentUnavailable = (error: any): boolean => {
+  if (!error) return false;
+
+  const statusCode = error.statusCode ?? error.response?.status;
+  if (statusCode === 503) return true;
+
+  const nestedError =
+    error.message?.response?.error ??
+    error.response?.data?.message?.response?.error;
+  if (nestedError === "AGENT_UNAVAILABLE") return true;
+
+  if (statusCode >= 500) return true;
+
+  return !statusCode;
+};
 
 /**
  * Procesa el onboarding del artesano enviando su perfil completo al servicio de agentes
@@ -24,16 +46,16 @@ import type {
  * @returns Respuesta del servicio de agentes con nivel de madurez, mensaje y acciones prioritarias
  */
 export const processOnboarding = async (
-  profile: ArtisansIdentityProfile
+  profile: ArtisansIdentityProfile,
 ): Promise<OnboardingResponse> => {
   try {
     const response = await telarApi.post<OnboardingResponse>(
-      '/agent/onboarding',
-      profile
+      "/agent/onboarding",
+      profile,
     );
     return response.data;
   } catch (error: any) {
-    console.error('[processOnboarding] Error:', error);
+    console.error("[processOnboarding] Error:", error);
     if (error.response?.data) {
       throw error.response.data as AgentErrorResponse;
     }
@@ -47,16 +69,16 @@ export const processOnboarding = async (
  * @returns Respuesta del servicio de agentes con sugerencias
  */
 export const step1InitialCapture = async (
-  data: Step1InitialCaptureRequest
+  data: Step1InitialCaptureRequest,
 ): Promise<Step1InitialCaptureResponse> => {
   try {
     const response = await telarApi.post<Step1InitialCaptureResponse>(
-      '/agent/product/step-1-initial-capture',
-      data
+      "/agent/product/step-1-initial-capture",
+      data,
     );
     return response.data;
   } catch (error: any) {
-    console.error('[step1InitialCapture] Error:', error);
+    console.error("[step1InitialCapture] Error:", error);
     if (error.response?.data) {
       throw error.response.data as AgentErrorResponse;
     }
@@ -70,16 +92,16 @@ export const step1InitialCapture = async (
  * @returns Respuesta con oráculo y estado de guardado
  */
 export const step1Confirm = async (
-  data: Step1ConfirmRequest
+  data: Step1ConfirmRequest,
 ): Promise<Step1ConfirmResponse> => {
   try {
     const response = await telarApi.post<Step1ConfirmResponse>(
-      '/agent/product/step-1-confirm',
-      data
+      "/agent/product/step-1-confirm",
+      data,
     );
     return response.data;
   } catch (error: any) {
-    console.error('[step1Confirm] Error:', error);
+    console.error("[step1Confirm] Error:", error);
     if (error.response?.data) {
       throw error.response.data as AgentErrorResponse;
     }
@@ -93,16 +115,16 @@ export const step1Confirm = async (
  * @returns Respuesta con análisis de proceso, pricing y oráculo
  */
 export const step2Capture = async (
-  data: Step2CaptureRequest
+  data: Step2CaptureRequest,
 ): Promise<Step2CaptureResponse> => {
   try {
     const response = await telarApi.post<Step2CaptureResponse>(
-      '/agent/product/step-2-capture',
-      data
+      "/agent/product/step-2-capture",
+      data,
     );
     return response.data;
   } catch (error: any) {
-    console.error('[step2Capture] Error:', error);
+    console.error("[step2Capture] Error:", error);
     if (error.response?.data) {
       throw error.response.data as AgentErrorResponse;
     }
@@ -116,16 +138,16 @@ export const step2Capture = async (
  * @returns Respuesta con oráculo y estado de guardado
  */
 export const step2Confirm = async (
-  data: Step2ConfirmRequest
+  data: Step2ConfirmRequest,
 ): Promise<Step2ConfirmResponse> => {
   try {
     const response = await telarApi.post<Step2ConfirmResponse>(
-      '/agent/product/step-2-confirm',
-      data
+      "/agent/product/step-2-confirm",
+      data,
     );
     return response.data;
   } catch (error: any) {
-    console.error('[step2Confirm] Error:', error);
+    console.error("[step2Confirm] Error:", error);
     if (error.response?.data) {
       throw error.response.data as AgentErrorResponse;
     }

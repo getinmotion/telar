@@ -12,7 +12,7 @@ import type {
   MaterialFieldMetadata,
   Step1ConfirmRequest,
 } from "@/types/agent.types";
-import { step1Confirm } from "@/services/agent.actions";
+import { step1Confirm, isAgentUnavailable } from "@/services/agent.actions";
 import { WizardFooter } from "../components/WizardFooter";
 import { AiBadge } from "../components/AiBadge";
 import { useStepValidation } from "../hooks/useStepValidation";
@@ -326,6 +326,7 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
   };
 
   const [isConfirming, setIsConfirming] = useState(false);
+  const [agentUnavailable, setAgentUnavailable] = useState(false);
 
   const handleNext = async () => {
     if (!attemptNext()) {
@@ -403,6 +404,9 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
         update({ agentStep1ConfirmResponse: confirmResponse });
       } catch (error) {
         console.error("[Step2] Error calling step1Confirm:", error);
+        if (isAgentUnavailable(error)) {
+          setAgentUnavailable(true);
+        }
       } finally {
         setIsConfirming(false);
       }
@@ -431,9 +435,11 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
                   </h2>
                 </div>
                 <p className="text-[11px] text-white/50">
-                  {hasSuggestions
-                    ? "Esto lo sugirió el sistema. Tú decides qué confirmar."
-                    : "No hay sugerencias de identidad disponibles aún."}
+                  {agentUnavailable
+                    ? "El Oráculo no está disponible en este momento. Puedes completar la identidad artesanal a mano."
+                    : hasSuggestions
+                      ? "Esto lo sugirió el sistema. Tú decides qué confirmar."
+                      : "No hay sugerencias de identidad disponibles aún."}
                 </p>
               </div>
 
@@ -607,12 +613,15 @@ export const Step2ArtisanalIdentity: React.FC<Props> = ({
               {/* No suggestions fallback */}
               {!hasSuggestions && (
                 <div className="flex flex-col items-center gap-2 py-4">
-                  <span className="material-symbols-outlined text-white/20 text-[28px]">
-                    psychology
+                  <span
+                    className={`material-symbols-outlined text-[28px] ${agentUnavailable ? "text-[#eab308]/70" : "text-white/20"}`}
+                  >
+                    {agentUnavailable ? "cloud_off" : "psychology"}
                   </span>
                   <p className="text-[11px] text-white/30 text-center">
-                    Completa el paso 1 para recibir sugerencias de identidad
-                    artesanal.
+                    {agentUnavailable
+                      ? "No se pudo contactar al agente. Nada de lo que completes aquí se pierde."
+                      : "Completa el paso 1 para recibir sugerencias de identidad artesanal."}
                   </p>
                 </div>
               )}
