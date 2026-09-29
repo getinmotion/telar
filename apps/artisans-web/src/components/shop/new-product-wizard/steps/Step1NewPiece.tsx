@@ -16,7 +16,11 @@ import {
   type Story,
 } from "@/services/story-library.actions";
 import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
-import { step1InitialCapture } from "@/services/agent.actions";
+import {
+  step1InitialCapture,
+  isAgentUnavailable,
+} from "@/services/agent.actions";
+import { OraculoUnavailableCard } from "@/components/oraculo/OraculoUnavailableCard";
 import type {
   Step1InitialCaptureRequest,
   Step1InitialCaptureResponse,
@@ -114,6 +118,7 @@ export const Step1NewPiece: React.FC<Props> = ({
   const [agentCallCompleted, setAgentCallCompleted] = useState(
     !!state.agentStep1Response,
   );
+  const [agentUnavailable, setAgentUnavailable] = useState(false);
 
   // Validation: require name, description, main photo, and history
   const hasMainPhoto = state.images[0] && typeof state.images[0] === "string";
@@ -125,7 +130,8 @@ export const Step1NewPiece: React.FC<Props> = ({
     hasHistory;
 
   // Can only continue if fields are complete AND agent has responded
-  const canContinue = allFieldsComplete && agentResponse !== null;
+  const canContinue =
+    allFieldsComplete && (agentResponse !== null || agentUnavailable);
 
   const { missing, attemptNext, fieldError } = useStepValidation([
     {
@@ -193,8 +199,23 @@ export const Step1NewPiece: React.FC<Props> = ({
     [update, state.fieldMetadata],
   );
 
+  /**
+   * Manual retry when the Oráculo is unavailable.
+   * Clears the degraded state so the auto-call effect can run once more.
+   */
+  const handleRetryAgent = useCallback(() => {
+    setAgentUnavailable(false);
+    setAgentCallAttempted(false);
+  }, []);
+
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
+    // ── STATE 0: Oráculo unavailable ─────────────────────────────────────────
+    if (agentUnavailable) {
+      setNode(<OraculoUnavailableCard onRetry={handleRetryAgent} />);
+      return clearNode;
+    }
+
     // ── STATE 1: Default waiting ──────────────────────────────────────────────
     if (!agentResponse && !isCallingAgent) {
       setNode(
@@ -392,6 +413,7 @@ export const Step1NewPiece: React.FC<Props> = ({
   }, [
     isCallingAgent,
     agentResponse,
+    agentUnavailable,
     state.fieldMetadata,
     // Note: handleAcceptSuggestion, handleRejectSuggestion, setNode, clearNode
     // are intentionally excluded to prevent infinite re-render loops
@@ -405,7 +427,8 @@ export const Step1NewPiece: React.FC<Props> = ({
       !shopId ||
       agentCallAttempted ||
       isCallingAgent ||
-      agentCallCompleted
+      agentCallCompleted ||
+      agentUnavailable
     ) {
       return;
     }
@@ -448,6 +471,11 @@ export const Step1NewPiece: React.FC<Props> = ({
         })
         .catch((error) => {
           console.error("[Step1] Error calling agent:", error);
+          if (isAgentUnavailable(error)) {
+            // El agente está caído: no reintentar en bucle, el usuario decide
+            setAgentUnavailable(true);
+            return;
+          }
           // Reset so user can try again
           setAgentCallAttempted(false);
         })
@@ -465,6 +493,7 @@ export const Step1NewPiece: React.FC<Props> = ({
     agentCallAttempted,
     agentCallCompleted,
     isCallingAgent,
+    agentUnavailable,
   ]);
 
   /**
@@ -677,7 +706,7 @@ export const Step1NewPiece: React.FC<Props> = ({
       return;
     }
 
-    if (!agentResponse) {
+    if (!agentResponse && !agentUnavailable) {
       toast.error(
         "Esperando análisis del agente. Por favor espera unos segundos.",
       );
@@ -706,184 +735,192 @@ export const Step1NewPiece: React.FC<Props> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* ── AI sidebar ────────────────────────────────────────────────── */}
           <aside className="hidden lg:block lg:col-span-3">
-            <div
-              className="p-5 sticky top-8 flex flex-col gap-4 rounded-2xl"
-              style={{ background: "#151b2d" }}
-            >
-              {/* Header */}
-              <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
-                    psychology
-                  </span>
-                  <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">
-                    ORÁCULO
-                  </h2>
-                </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  {agentResponse ? (
-                    <>
-                      <span className="material-symbols-outlined text-[#22c55e] text-[14px]">
-                        check_circle
-                      </span>
-                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-                        Análisis completado
-                      </span>
-                    </>
-                  ) : isCallingAgent ? (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
-                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-                        Esperando respuesta por parte del agente...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
-                      <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
-                        Esperando señales...
-                      </span>
-                    </>
-                  )}
-                </div>
+            {agentUnavailable ? (
+              <div className="sticky top-8">
+                <OraculoUnavailableCard onRetry={handleRetryAgent} />
               </div>
-
-              {/* STATE: Loading */}
-              {isCallingAgent && !agentResponse && (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-12 h-12 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
-                  <p className="text-[11px] text-white/60">
-                    Analizando contenido...
-                  </p>
+            ) : (
+              <div
+                className="p-5 sticky top-8 flex flex-col gap-4 rounded-2xl"
+                style={{ background: "#151b2d" }}
+              >
+                {/* Header */}
+                <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#ec6d13] text-[16px]">
+                      psychology
+                    </span>
+                    <h2 className="font-['Manrope'] text-[10px] font-[800] text-white tracking-widest uppercase">
+                      ORÁCULO
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {agentResponse ? (
+                      <>
+                        <span className="material-symbols-outlined text-[#22c55e] text-[14px]">
+                          check_circle
+                        </span>
+                        <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                          Análisis completado
+                        </span>
+                      </>
+                    ) : isCallingAgent ? (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
+                        <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                          Esperando respuesta por parte del agente...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#ec6d13] animate-pulse shrink-0" />
+                        <span className="text-[9px] font-[800] tracking-widest text-white/50 uppercase">
+                          Esperando señales...
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
 
-              {/* STATE: Suggestions available */}
-              {agentResponse && (
-                <>
-                  {/* Oraculo message */}
-                  {agentResponse.oraculo && (
-                    <div
-                      className="p-3 rounded-xl"
-                      style={{
-                        background: "rgba(236,109,19,0.1)",
-                        border: "1px solid rgba(236,109,19,0.2)",
-                      }}
-                    >
-                      <p className="text-[11px] font-[800] text-[#ec6d13] mb-1">
-                        {agentResponse.oraculo.title}
-                      </p>
-                      <p className="text-[12px] text-white/75 leading-snug">
-                        {agentResponse.oraculo.body}
-                      </p>
-                    </div>
-                  )}
+                {/* STATE: Loading */}
+                {isCallingAgent && !agentResponse && (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="w-12 h-12 border-2 border-[#ec6d13]/20 border-t-[#ec6d13] rounded-full animate-spin mb-3" />
+                    <p className="text-[11px] text-white/60">
+                      Analizando contenido...
+                    </p>
+                  </div>
+                )}
 
-                  {/* Improved description suggestion */}
-                  {agentResponse.content_improvements?.improved_description && (
-                    <SuggestionCard
-                      label="Descripción sugerida"
-                      suggestion={
-                        agentResponse.content_improvements.improved_description
-                      }
-                      fieldKey="shortDescription"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={
-                        state.fieldMetadata?.shortDescription?.source ===
-                        "ia_accepted"
-                      }
-                      isRejected={
-                        state.fieldMetadata?.shortDescription?.source ===
-                        "manual"
-                      }
-                    />
-                  )}
+                {/* STATE: Suggestions available */}
+                {agentResponse && (
+                  <>
+                    {/* Oraculo message */}
+                    {agentResponse.oraculo && (
+                      <div
+                        className="p-3 rounded-xl"
+                        style={{
+                          background: "rgba(236,109,19,0.1)",
+                          border: "1px solid rgba(236,109,19,0.2)",
+                        }}
+                      >
+                        <p className="text-[11px] font-[800] text-[#ec6d13] mb-1">
+                          {agentResponse.oraculo.title}
+                        </p>
+                        <p className="text-[12px] text-white/75 leading-snug">
+                          {agentResponse.oraculo.body}
+                        </p>
+                      </div>
+                    )}
 
-                  {/* Improved history suggestion */}
-                  {agentResponse.content_improvements?.improved_history && (
-                    <SuggestionCard
-                      label="Historia sugerida"
-                      suggestion={
-                        agentResponse.content_improvements.improved_history
-                      }
-                      fieldKey="artisanalHistory"
-                      onAccept={handleAcceptSuggestion}
-                      onReject={handleRejectSuggestion}
-                      isAccepted={
-                        state.fieldMetadata?.artisanalHistory?.source ===
-                        "ia_accepted"
-                      }
-                      isRejected={
-                        state.fieldMetadata?.artisanalHistory?.source ===
-                        "manual"
-                      }
-                    />
-                  )}
+                    {/* Improved description suggestion */}
+                    {agentResponse.content_improvements
+                      ?.improved_description && (
+                      <SuggestionCard
+                        label="Descripción sugerida"
+                        suggestion={
+                          agentResponse.content_improvements
+                            .improved_description
+                        }
+                        fieldKey="shortDescription"
+                        onAccept={handleAcceptSuggestion}
+                        onReject={handleRejectSuggestion}
+                        isAccepted={
+                          state.fieldMetadata?.shortDescription?.source ===
+                          "ia_accepted"
+                        }
+                        isRejected={
+                          state.fieldMetadata?.shortDescription?.source ===
+                          "manual"
+                        }
+                      />
+                    )}
 
-                  {/* Photo feedback (read-only) */}
-                  {agentResponse.content_improvements?.photo_feedback && (
-                    <PhotoFeedbackCard
-                      feedback={
-                        agentResponse.content_improvements.photo_feedback
-                      }
-                    />
-                  )}
+                    {/* Improved history suggestion */}
+                    {agentResponse.content_improvements?.improved_history && (
+                      <SuggestionCard
+                        label="Historia sugerida"
+                        suggestion={
+                          agentResponse.content_improvements.improved_history
+                        }
+                        fieldKey="artisanalHistory"
+                        onAccept={handleAcceptSuggestion}
+                        onReject={handleRejectSuggestion}
+                        isAccepted={
+                          state.fieldMetadata?.artisanalHistory?.source ===
+                          "ia_accepted"
+                        }
+                        isRejected={
+                          state.fieldMetadata?.artisanalHistory?.source ===
+                          "manual"
+                        }
+                      />
+                    )}
 
-                  {/* Next step hint */}
-                  {agentResponse.oraculo?.next_step_hint && (
-                    <div className="pt-2 border-t border-white/10">
-                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">
-                        Próximo paso
-                      </p>
-                      <p className="text-[11px] text-white/60 leading-snug">
-                        {agentResponse.oraculo.next_step_hint}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
+                    {/* Photo feedback (read-only) */}
+                    {agentResponse.content_improvements?.photo_feedback && (
+                      <PhotoFeedbackCard
+                        feedback={
+                          agentResponse.content_improvements.photo_feedback
+                        }
+                      />
+                    )}
 
-              {/* STATE: Default waiting */}
-              {!isCallingAgent && !agentResponse && (
-                <>
-                  {[
-                    {
-                      label: "Lectura visual",
-                      text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
-                    },
-                    {
-                      label: "Historia detectada",
-                      text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
-                    },
-                    {
-                      label: "Próximo paso",
-                      text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
-                    },
-                  ].map(({ label, text }) => (
-                    <div
-                      key={label}
-                      className="p-3 rounded-xl"
-                      style={{
-                        background: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
-                        {label}
-                      </p>
-                      <p className="text-[12px] text-white/75 leading-snug">
-                        {text}
-                      </p>
-                    </div>
-                  ))}
-                  <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
-                    Las sugerencias aparecen al agregar foto, descripción o
-                    historia.
-                  </p>
-                </>
-              )}
-            </div>
+                    {/* Next step hint */}
+                    {agentResponse.oraculo?.next_step_hint && (
+                      <div className="pt-2 border-t border-white/10">
+                        <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1">
+                          Próximo paso
+                        </p>
+                        <p className="text-[11px] text-white/60 leading-snug">
+                          {agentResponse.oraculo.next_step_hint}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* STATE: Default waiting */}
+                {!isCallingAgent && !agentResponse && (
+                  <>
+                    {[
+                      {
+                        label: "Lectura visual",
+                        text: "Esperando foto principal para analizar forma, textura, iluminación y fondo.",
+                      },
+                      {
+                        label: "Historia detectada",
+                        text: "Agrega una historia o dictá tu proceso para que TELAR entienda el valor cultural de tu pieza.",
+                      },
+                      {
+                        label: "Próximo paso",
+                        text: "Con el nombre, la descripción y la historia, TELAR podrá ayudarte a completar identidad, técnica y categoría en el paso 2.",
+                      },
+                    ].map(({ label, text }) => (
+                      <div
+                        key={label}
+                        className="p-3 rounded-xl"
+                        style={{
+                          background: "rgba(255,255,255,0.05)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <p className="text-[9px] font-[800] uppercase tracking-widest text-white/40 mb-1.5">
+                          {label}
+                        </p>
+                        <p className="text-[12px] text-white/75 leading-snug">
+                          {text}
+                        </p>
+                      </div>
+                    ))}
+                    <p className="text-center text-[9px] font-[800] uppercase tracking-widest text-white/25 pt-2 border-t border-white/10">
+                      Las sugerencias aparecen al agregar foto, descripción o
+                      historia.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
           </aside>
 
           {/* ── Main content ─────────────────────────────────────────────── */}
@@ -1103,14 +1140,17 @@ export const Step1NewPiece: React.FC<Props> = ({
         onSaveDraft={onSaveDraft}
         isSavingDraft={isSavingDraft}
         nextDisabled={
-          isCallingAgent || (allFieldsComplete && agentResponse === null)
+          !agentUnavailable &&
+          (isCallingAgent || (allFieldsComplete && agentResponse === null))
         }
         disabledReason={
-          isCallingAgent
-            ? "Procesando información con IA..."
-            : allFieldsComplete && agentResponse === null
-              ? "Esperando respuesta del agente..."
-              : undefined
+          agentUnavailable
+            ? undefined
+            : isCallingAgent
+              ? "Procesando información con IA..."
+              : allFieldsComplete && agentResponse === null
+                ? "Esperando respuesta del agente..."
+                : undefined
         }
         leftOffset={leftOffset}
       />

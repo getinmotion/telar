@@ -15,6 +15,10 @@ import { Step2ConfirmResponseDto } from './dto/step-2-confirm-response.dto';
 import { UserProfilesService } from '../user-profiles/user-profiles.service';
 import { CategoriesService } from '../categories/categories.service';
 import { ArtisanShopsService } from '../artisan-shops/artisan-shops.service';
+import {
+  buildAgentUnavailableException,
+  isAgentUnavailableError,
+} from './agent-unavailable.util';
 
 /**
  * Servicio puente para realizar peticiones al servicio de agentes (AGENT_URL)
@@ -65,6 +69,9 @@ export class AgentService {
       return response.data;
     } catch (error: any) {
       this.logger.error(`Error en GET request a ${url}:`, error.message);
+      if (isAgentUnavailableError(error)) {
+        throw buildAgentUnavailableException();
+      }
       throw error;
     }
   }
@@ -87,6 +94,9 @@ export class AgentService {
       return response.data;
     } catch (error: any) {
       this.logger.error(`Error en POST request a ${url}:`, error.message);
+      if (isAgentUnavailableError(error)) {
+        throw buildAgentUnavailableException();
+      }
       throw error;
     }
   }

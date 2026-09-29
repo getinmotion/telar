@@ -16,7 +16,8 @@ import {
   getUsageSuggestions,
 } from "../utils/careUsageSuggestions";
 import { useImageUpload } from "@/components/shop/ai-upload/hooks/useImageUpload";
-import { step2Capture } from "@/services/agent.actions";
+import { step2Capture, isAgentUnavailable } from "@/services/agent.actions";
+import { OraculoUnavailableCard } from "@/components/oraculo/OraculoUnavailableCard";
 import { getAllCategories } from "@/services/categories.actions";
 import {
   getStoriesByArtisan,
@@ -350,6 +351,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
 
   // Agent step 2 state
   const [agentLoading, setAgentLoading] = useState(false);
+  const [agentUnavailable, setAgentUnavailable] = useState(false);
   const agentCallDone = useRef(!!state.agentStep2Response);
 
   // ── Accept / Reject handlers for agent suggestions ──────────────
@@ -483,8 +485,21 @@ export const Step3ProcessTime: React.FC<Props> = ({
     state.agentStep2Response?.oraculo ??
     state.agentStep1ConfirmResponse?.oraculo;
 
+  /**
+   * Manual retry when the Oráculo is unavailable.
+   */
+  const handleRetryAgent = useCallback(() => {
+    setAgentUnavailable(false);
+    agentCallDone.current = false;
+  }, []);
+
   const { setNode, clearNode } = useOraculo();
   useEffect(() => {
+    if (agentUnavailable) {
+      setNode(<OraculoUnavailableCard onRetry={handleRetryAgent} />);
+      return clearNode;
+    }
+
     if (!oraculo && !agentLoading) return;
 
     if (agentLoading) {
@@ -640,7 +655,13 @@ export const Step3ProcessTime: React.FC<Props> = ({
       </div>,
     );
     return clearNode;
-  }, [oraculo, agentLoading, state.agentStep2Response, state.fieldMetadata]);
+  }, [
+    oraculo,
+    agentLoading,
+    agentUnavailable,
+    state.agentStep2Response,
+    state.fieldMetadata,
+  ]);
 
   // Auto-detect when process description + main evidence photo are ready → call agent
   const hasProcessDescription =
@@ -671,6 +692,11 @@ export const Step3ProcessTime: React.FC<Props> = ({
         update({ agentStep2Response: response });
       } catch (error) {
         console.error("[Step3] Error calling step2Capture:", error);
+        if (isAgentUnavailable(error)) {
+          // El agente está caído: se corta el auto-llamado hasta que el usuario reintente
+          agentCallDone.current = true;
+          setAgentUnavailable(true);
+        }
       } finally {
         setAgentLoading(false);
       }
@@ -827,8 +853,31 @@ export const Step3ProcessTime: React.FC<Props> = ({
                 </h3>
               </div>
 
+              {/* Oráculo unavailable */}
+              {agentUnavailable && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <span className="material-symbols-outlined text-[#eab308] text-[28px]">
+                    cloud_off
+                  </span>
+                  <p className="text-[11px] text-white/60 text-center leading-snug">
+                    El Oráculo no está disponible en este momento. Puedes
+                    continuar y completar los campos a mano.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRetryAgent}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 text-white/80 text-[10px] font-[800] uppercase tracking-widest transition-all hover:text-white hover:border-white/40"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      refresh
+                    </span>
+                    Reintentar
+                  </button>
+                </div>
+              )}
+
               {/* Loading state */}
-              {agentLoading && (
+              {!agentUnavailable && agentLoading && (
                 <>
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
@@ -846,7 +895,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
               )}
 
               {/* Oráculo content + suggestion cards */}
-              {!agentLoading && oraculo && (
+              {!agentUnavailable && !agentLoading && oraculo && (
                 <>
                   <div
                     className="p-3 rounded-xl"
@@ -1039,7 +1088,7 @@ export const Step3ProcessTime: React.FC<Props> = ({
               )}
 
               {/* Default empty state */}
-              {!agentLoading && !oraculo && (
+              {!agentUnavailable && !agentLoading && !oraculo && (
                 <div className="flex flex-col items-center gap-2 py-4">
                   <span className="material-symbols-outlined text-white/20 text-[28px]">
                     psychology
