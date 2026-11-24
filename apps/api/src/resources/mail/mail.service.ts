@@ -416,7 +416,7 @@ export class MailService {
     }>,
     grandTotalFormatted: string,
   ): Promise<void> {
-    const managementEmail = 'cesar@getinmotion.io';
+    const managementEmail = 'aloha@getinmotion.io';
 
     await this.mailerService.sendMail({
       to: managementEmail,
